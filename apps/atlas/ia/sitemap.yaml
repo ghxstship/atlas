@@ -1,0 +1,1468 @@
+# Atlas information architecture (Section 4.5.1 to 4.5.6, role visibility 4.5.9).
+# Single source for the sidebar, project tabs, routes, breadcrumbs, route guards and the
+# command menu index (Section 3.15). Order is render order. Labels are i18n keys in
+# packages/i18n. Validated by packages/ia; owned by A06 after the Wave 1 contract freeze.
+#
+# Visibility is declared once per row of the 4.5.9 table and inherited by every node
+# below it. Project tabs that share a page with a level-both module name it as their
+# twin and take its visibility. List routes accept view, group, sort, filter and scope.
+schemaVersion: 1
+shell: atlas
+home: home
+params:
+  org: { type: slug, reserved: [advance, sign, legal, partner, ical, api] }
+  projectKey: { type: project-key }
+  recordKey: { type: record-key }
+  viewId: { type: uuid }
+  objectKey: { type: slug }
+  partnerSlug: { type: slug }
+  document: { type: slug }
+  token: { type: token }
+  feedToken: { type: token }
+globalQuery: { peek: recordKey }
+audience:
+  dimension: platform-role
+  roles: [owner, admin, manager, member, collaborator, field, viewer]
+chrome:
+  sidebarTop: [action.search, home, inbox, my-work]
+  sidebarPinned: [action.favorites, projects]
+  mobileBottomBar: [home, inbox, action.search, my-work, action.menu]
+personas:
+  org-owner: []
+  org-admin: []
+  producer: [group.production]
+  department-head: [group.production, group.operations]
+  finance-lead: [group.commercial]
+  production-coordinator: [group.operations]
+  field-supervisor: [group.operations, group.people]
+  field-employee: []
+nodes:
+  - id: group.chrome
+    kind: group
+    label: nav.atlas.groups.chrome
+    placement: chrome
+    children:
+      - id: action.search
+        kind: action
+        label: nav.atlas.actions.search
+      - id: action.favorites
+        kind: action
+        label: nav.atlas.actions.favorites
+      - id: action.menu
+        kind: action
+        label: nav.atlas.actions.menu
+  - id: group.workspace
+    kind: group
+    label: nav.atlas.groups.workspace
+    placement: sidebar
+    visibility:
+      owner: full
+      admin: full
+      manager: full
+      member: full
+      collaborator: full
+      field: full
+      viewer: read
+    children:
+      - id: home
+        kind: item
+        label: nav.atlas.items.home
+        route: "/{org}/home"
+        level: org
+        children:
+          - id: home.today
+            kind: page
+            label: nav.atlas.pages.home.today
+            route: "/{org}/home/today"
+            list: { views: [feed, list], default: feed }
+          - id: home.gate-readiness
+            kind: page
+            label: nav.atlas.pages.home.gateReadiness
+            route: "/{org}/home/gate-readiness"
+            list: { views: [table, matrix, chart], default: table }
+          - id: home.alerts
+            kind: page
+            label: nav.atlas.pages.home.alerts
+            route: "/{org}/home/alerts"
+            list: { views: [list, inbox], default: list }
+          - id: home.recent
+            kind: page
+            label: nav.atlas.pages.home.recent
+            route: "/{org}/home/recent"
+            list: { views: [list, table], default: list }
+      - id: inbox
+        kind: item
+        label: nav.atlas.items.inbox
+        route: "/{org}/inbox"
+        level: org
+        list: { views: [inbox, list], default: inbox }
+      - id: my-work
+        kind: item
+        label: nav.atlas.items.myWork
+        route: "/{org}/my-work"
+        level: org
+        list: { views: [list, table, board, calendar], default: list }
+  - id: group.production
+    kind: group
+    label: nav.atlas.groups.production
+    placement: sidebar
+    visibility:
+      owner: full
+      admin: full
+      manager: full
+      member: full
+      collaborator: assigned
+      field: assigned
+      viewer: read
+    children:
+      - id: projects
+        kind: item
+        label: nav.atlas.items.projects
+        route: "/{org}/projects"
+        level: org
+        list: { views: [table, list, board, timeline, calendar], default: table }
+        children:
+          - id: projects.all
+            kind: page
+            label: nav.atlas.pages.projects.all
+            route: "/{org}/projects/all"
+            list: { views: [table, list, board, gallery], default: table }
+          - id: projects.by-phase
+            kind: page
+            label: nav.atlas.pages.projects.byPhase
+            route: "/{org}/projects/by-phase"
+            list: { views: [board], default: board }
+          - id: projects.portfolio-timeline
+            kind: page
+            label: nav.atlas.pages.projects.portfolioTimeline
+            route: "/{org}/projects/portfolio-timeline"
+            list: { views: [timeline, calendar], default: timeline }
+          - id: projects.templates
+            kind: page
+            label: nav.atlas.pages.projects.templates
+            route: "/{org}/projects/templates"
+            list: { views: [list, gallery], default: list }
+          - id: project
+            kind: record
+            label: nav.atlas.routes.project
+            route: "/{org}/p/{projectKey}"
+            children:
+              - id: project.act.plan
+                kind: group
+                label: nav.atlas.acts.plan
+                placement: tab-bar
+                children:
+                  - id: project.overview
+                    kind: tab
+                    label: nav.atlas.projectTabs.overview
+                    route: "/{org}/p/{projectKey}/overview"
+                  - id: project.scope
+                    kind: tab
+                    label: nav.atlas.projectTabs.scope
+                    route: "/{org}/p/{projectKey}/scope"
+                    list: { views: [tree, list, matrix], default: tree }
+                  - id: project.gates
+                    kind: tab
+                    label: nav.atlas.projectTabs.gates
+                    route: "/{org}/p/{projectKey}/gates"
+                    list: { views: [list, board], default: list }
+                  - id: project.schedule
+                    kind: tab
+                    label: nav.atlas.projectTabs.schedule
+                    route: "/{org}/p/{projectKey}/schedule"
+                    twin: schedule
+                    list: { views: [timeline, calendar, list], default: timeline }
+                  - id: project.work
+                    kind: tab
+                    label: nav.atlas.projectTabs.work
+                    route: "/{org}/p/{projectKey}/work"
+                    twin: work
+                    list: { views: [list, table, board, calendar, timeline], default: list }
+                  - id: project.show
+                    kind: tab
+                    label: nav.atlas.projectTabs.show
+                    route: "/{org}/p/{projectKey}/show"
+                    twin: show
+                    list: { views: [list, table, timeline], default: list }
+                  - id: project.advancing
+                    kind: tab
+                    label: nav.atlas.projectTabs.advancing
+                    route: "/{org}/p/{projectKey}/advancing"
+                    twin: advancing
+                    list: { views: [list, table, board], default: list }
+              - id: project.act.build
+                kind: group
+                label: nav.atlas.acts.build
+                placement: tab-bar
+                children:
+                  - id: project.logistics
+                    kind: tab
+                    label: nav.atlas.projectTabs.logistics
+                    route: "/{org}/p/{projectKey}/logistics"
+                    twin: logistics
+                    list: { views: [list, table, calendar, resource-schedule], default: list }
+                  - id: project.hospitality
+                    kind: tab
+                    label: nav.atlas.projectTabs.hospitality
+                    route: "/{org}/p/{projectKey}/hospitality"
+                    twin: hospitality
+                    list: { views: [list, table, calendar], default: list }
+                  - id: project.assets
+                    kind: tab
+                    label: nav.atlas.projectTabs.assets
+                    route: "/{org}/p/{projectKey}/assets"
+                    twin: assets
+                    list: { views: [table, list, resource-schedule], default: table }
+                  - id: project.crew
+                    kind: tab
+                    label: nav.atlas.projectTabs.crew
+                    route: "/{org}/p/{projectKey}/crew"
+                    twin: crew
+                    list:
+                      views: [resource-schedule, table, list, calendar]
+                      default: resource-schedule
+                  - id: project.engagements
+                    kind: tab
+                    label: nav.atlas.projectTabs.engagements
+                    route: "/{org}/p/{projectKey}/engagements"
+                    twin: opportunities
+                    list: { views: [table, list, board], default: table }
+                  - id: project.credentials
+                    kind: tab
+                    label: nav.atlas.projectTabs.credentials
+                    route: "/{org}/p/{projectKey}/credentials"
+                    twin: credentials
+                    list: { views: [table, list, matrix], default: table }
+                  - id: project.safety
+                    kind: tab
+                    label: nav.atlas.projectTabs.safety
+                    route: "/{org}/p/{projectKey}/safety"
+                    twin: safety
+                    list: { views: [list, table, map, board], default: list }
+                  - id: project.budget
+                    kind: tab
+                    label: nav.atlas.projectTabs.budget
+                    route: "/{org}/p/{projectKey}/budget"
+                    twin: finance
+                    list: { views: [spreadsheet, table, matrix], default: spreadsheet }
+                  - id: project.procurement
+                    kind: tab
+                    label: nav.atlas.projectTabs.procurement
+                    route: "/{org}/p/{projectKey}/procurement"
+                    twin: procurement
+                    list: { views: [table, list, board], default: table }
+              - id: project.act.show
+                kind: group
+                label: nav.atlas.acts.show
+                placement: tab-bar
+                children:
+                  - id: project.documents
+                    kind: tab
+                    label: nav.atlas.projectTabs.documents
+                    route: "/{org}/p/{projectKey}/documents"
+                    visibilityFrom: knowledge
+                    list: { views: [list, table, gallery], default: list }
+                  - id: project.reports
+                    kind: tab
+                    label: nav.atlas.projectTabs.reports
+                    route: "/{org}/p/{projectKey}/reports"
+                    twin: reports
+                    list: { views: [list, table], default: list }
+                  - id: project.activity
+                    kind: tab
+                    label: nav.atlas.projectTabs.activity
+                    route: "/{org}/p/{projectKey}/activity"
+                    visibilityFrom: activity
+                    list: { views: [feed, list], default: feed }
+                  - id: project.settings
+                    kind: tab
+                    label: nav.atlas.projectTabs.settings
+                    route: "/{org}/p/{projectKey}/settings"
+                    visibility:
+                      owner: full
+                      admin: full
+                      manager: full
+                      member: read
+                      collaborator: hidden
+                      field: hidden
+                      viewer: hidden
+      - id: schedule
+        kind: item
+        label: nav.atlas.items.schedule
+        route: "/{org}/schedule"
+        level: both
+        module: schedule
+        children:
+          - id: schedule.timeline
+            kind: page
+            label: nav.atlas.pages.schedule.timeline
+            route: "/{org}/schedule/timeline"
+            list: { views: [timeline], default: timeline }
+          - id: schedule.calendar
+            kind: page
+            label: nav.atlas.pages.schedule.calendar
+            route: "/{org}/schedule/calendar"
+            list: { views: [calendar], default: calendar }
+          - id: schedule.milestones
+            kind: page
+            label: nav.atlas.pages.schedule.milestones
+            route: "/{org}/schedule/milestones"
+            list: { views: [list, table, timeline], default: list }
+          - id: schedule.baselines
+            kind: page
+            label: nav.atlas.pages.schedule.baselines
+            route: "/{org}/schedule/baselines"
+            list: { views: [list, table], default: list }
+      - id: work
+        kind: item
+        label: nav.atlas.items.work
+        route: "/{org}/work"
+        level: both
+        module: work
+        children:
+          - id: work.all-records
+            kind: page
+            label: nav.atlas.pages.work.allRecords
+            route: "/{org}/work/all-records"
+            list: { views: [list, table, board, calendar, timeline], default: list }
+          - id: work.by-kind
+            kind: page
+            label: nav.atlas.pages.work.byKind
+            route: "/{org}/work/by-kind"
+            list: { views: [board, list, table], default: board }
+          - id: work.work-orders
+            kind: page
+            label: nav.atlas.pages.work.workOrders
+            route: "/{org}/work/work-orders"
+            list: { views: [list, table, board], default: list }
+          - id: work.punch-lists
+            kind: page
+            label: nav.atlas.pages.work.punchLists
+            route: "/{org}/work/punch-lists"
+            list: { views: [list, table, board, site-plan], default: list }
+          - id: work.recurring
+            kind: page
+            label: nav.atlas.pages.work.recurring
+            route: "/{org}/work/recurring"
+            list: { views: [list, table, calendar], default: list }
+      - id: show
+        kind: item
+        label: nav.atlas.items.show
+        route: "/{org}/show"
+        level: both
+        module: show
+        children:
+          - id: show.run-of-show
+            kind: page
+            label: nav.atlas.pages.show.runOfShow
+            route: "/{org}/show/run-of-show"
+            list: { views: [list, table, timeline], default: list }
+          - id: show.day-sheets
+            kind: page
+            label: nav.atlas.pages.show.daySheets
+            route: "/{org}/show/day-sheets"
+            list: { views: [list, calendar], default: list }
+          - id: show.call-sheets
+            kind: page
+            label: nav.atlas.pages.show.callSheets
+            route: "/{org}/show/call-sheets"
+            list: { views: [list, calendar], default: list }
+      - id: advancing
+        kind: item
+        label: nav.atlas.items.advancing
+        route: "/{org}/advancing"
+        level: both
+        module: advancing
+        children:
+          - id: advancing.packets
+            kind: page
+            label: nav.atlas.pages.advancing.packets
+            route: "/{org}/advancing/packets"
+            list: { views: [list, table, board], default: list }
+          - id: advancing.submissions
+            kind: page
+            label: nav.atlas.pages.advancing.submissions
+            route: "/{org}/advancing/submissions"
+            list: { views: [list, table, board], default: list }
+          - id: advancing.riders
+            kind: page
+            label: nav.atlas.pages.advancing.riders
+            route: "/{org}/advancing/riders"
+            list: { views: [list, table], default: list }
+          - id: advancing.reconciliation
+            kind: page
+            label: nav.atlas.pages.advancing.reconciliation
+            route: "/{org}/advancing/reconciliation"
+            list: { views: [table, matrix], default: table }
+  - id: group.operations
+    kind: group
+    label: nav.atlas.groups.operations
+    placement: sidebar
+    visibility:
+      owner: full
+      admin: full
+      manager: full
+      member: full
+      collaborator: assigned
+      field: assigned
+      viewer: read
+    children:
+      - id: places
+        kind: item
+        label: nav.atlas.items.places
+        route: "/{org}/places"
+        level: org
+        module: places
+        children:
+          - id: places.venues
+            kind: page
+            label: nav.atlas.pages.places.venues
+            route: "/{org}/places/venues"
+            list: { views: [list, table, map, gallery], default: list }
+          - id: places.spaces-and-zones
+            kind: page
+            label: nav.atlas.pages.places.spacesAndZones
+            route: "/{org}/places/spaces-and-zones"
+            list: { views: [tree, list, table, site-plan], default: tree }
+          - id: places.capability-documents
+            kind: page
+            label: nav.atlas.pages.places.capabilityDocuments
+            route: "/{org}/places/capability-documents"
+            list: { views: [list, table], default: list }
+          - id: places.site-plans
+            kind: page
+            label: nav.atlas.pages.places.sitePlans
+            route: "/{org}/places/site-plans"
+            list: { views: [gallery, site-plan, list], default: gallery }
+      - id: logistics
+        kind: item
+        label: nav.atlas.items.logistics
+        route: "/{org}/logistics"
+        level: both
+        module: logistics
+        children:
+          - id: logistics.shipments
+            kind: page
+            label: nav.atlas.pages.logistics.shipments
+            route: "/{org}/logistics/shipments"
+            list: { views: [list, table, board, calendar, map], default: list }
+          - id: logistics.dock-schedule
+            kind: page
+            label: nav.atlas.pages.logistics.dockSchedule
+            route: "/{org}/logistics/dock-schedule"
+            list: { views: [resource-schedule, calendar, list], default: resource-schedule }
+          - id: logistics.marshalling-yard-log
+            kind: page
+            label: nav.atlas.pages.logistics.marshallingYardLog
+            route: "/{org}/logistics/marshalling-yard-log"
+            list: { views: [list, table, board], default: list }
+      - id: hospitality
+        kind: item
+        label: nav.atlas.items.hospitality
+        route: "/{org}/hospitality"
+        level: both
+        module: hospitality
+        children:
+          - id: hospitality.fulfillments
+            kind: page
+            label: nav.atlas.pages.hospitality.fulfillments
+            route: "/{org}/hospitality/fulfillments"
+            list: { views: [list, table, board, calendar], default: list }
+          - id: hospitality.beos
+            kind: page
+            label: nav.atlas.pages.hospitality.beos
+            route: "/{org}/hospitality/beos"
+            list: { views: [list, table, calendar], default: list }
+          - id: hospitality.accommodation-blocks
+            kind: page
+            label: nav.atlas.pages.hospitality.accommodationBlocks
+            route: "/{org}/hospitality/accommodation-blocks"
+            list: { views: [list, table, calendar], default: list }
+      - id: assets
+        kind: item
+        label: nav.atlas.items.assets
+        route: "/{org}/assets"
+        level: both
+        module: assets
+        children:
+          - id: assets.asset-classes
+            kind: page
+            label: nav.atlas.pages.assets.assetClasses
+            route: "/{org}/assets/asset-classes"
+            list: { views: [table, list, gallery], default: table }
+          - id: assets.units
+            kind: page
+            label: nav.atlas.pages.assets.units
+            route: "/{org}/assets/units"
+            list: { views: [table, list, resource-schedule], default: table }
+          - id: assets.lots
+            kind: page
+            label: nav.atlas.pages.assets.lots
+            route: "/{org}/assets/lots"
+            list: { views: [table, list], default: table }
+          - id: assets.custody-ledger
+            kind: page
+            label: nav.atlas.pages.assets.custodyLedger
+            route: "/{org}/assets/custody-ledger"
+            list: { views: [table, list], default: table }
+          - id: assets.maintenance
+            kind: page
+            label: nav.atlas.pages.assets.maintenance
+            route: "/{org}/assets/maintenance"
+            list: { views: [list, table, calendar, board], default: list }
+          - id: assets.damage
+            kind: page
+            label: nav.atlas.pages.assets.damage
+            route: "/{org}/assets/damage"
+            list: { views: [list, table, board, gallery], default: list }
+      - id: credentials
+        kind: item
+        label: nav.atlas.items.credentials
+        route: "/{org}/credentials"
+        level: both
+        module: credentials
+        children:
+          - id: credentials.categories
+            kind: page
+            label: nav.atlas.pages.credentials.categories
+            route: "/{org}/credentials/categories"
+            list: { views: [list, table], default: list }
+          - id: credentials.issued
+            kind: page
+            label: nav.atlas.pages.credentials.issued
+            route: "/{org}/credentials/issued"
+            list: { views: [table, list, board], default: table }
+          - id: credentials.access-grid
+            kind: page
+            label: nav.atlas.pages.credentials.accessGrid
+            route: "/{org}/credentials/access-grid"
+            list: { views: [matrix, spreadsheet], default: matrix }
+          - id: credentials.scan-log
+            kind: page
+            label: nav.atlas.pages.credentials.scanLog
+            route: "/{org}/credentials/scan-log"
+            list: { views: [table, list], default: table }
+      - id: safety
+        kind: item
+        label: nav.atlas.items.safety
+        route: "/{org}/safety"
+        level: both
+        module: safety
+        children:
+          - id: safety.permits
+            kind: page
+            label: nav.atlas.pages.safety.permits
+            route: "/{org}/safety/permits"
+            list: { views: [list, table, board], default: list }
+          - id: safety.inspections
+            kind: page
+            label: nav.atlas.pages.safety.inspections
+            route: "/{org}/safety/inspections"
+            list: { views: [list, table, board, calendar, map], default: list }
+          - id: safety.inspection-templates
+            kind: page
+            label: nav.atlas.pages.safety.inspectionTemplates
+            route: "/{org}/safety/inspection-templates"
+            list: { views: [list, table], default: list }
+          - id: safety.incidents
+            kind: page
+            label: nav.atlas.pages.safety.incidents
+            route: "/{org}/safety/incidents"
+            list: { views: [list, table, map, board], default: list }
+          - id: safety.dispatch-board
+            kind: page
+            label: nav.atlas.pages.safety.dispatchBoard
+            route: "/{org}/safety/dispatch-board"
+            list: { views: [board, map], default: board }
+          - id: safety.emergency-codes
+            kind: page
+            label: nav.atlas.pages.safety.emergencyCodes
+            route: "/{org}/safety/emergency-codes"
+            list: { views: [table, list], default: table }
+          - id: safety.radio-channels
+            kind: page
+            label: nav.atlas.pages.safety.radioChannels
+            route: "/{org}/safety/radio-channels"
+            list: { views: [table, list], default: table }
+  - id: group.people
+    kind: group
+    label: nav.atlas.groups.people
+    placement: sidebar
+    children:
+      - id: people
+        kind: item
+        label: nav.atlas.items.people
+        route: "/{org}/people"
+        level: org
+        module: people
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: read
+          collaborator: hidden
+          field: own-profile
+          viewer: hidden
+        children:
+          - id: people.directory
+            kind: page
+            label: nav.atlas.pages.people.directory
+            route: "/{org}/people/directory"
+            list: { views: [table, list, gallery], default: table }
+          - id: people.roles
+            kind: page
+            label: nav.atlas.pages.people.roles
+            route: "/{org}/people/roles"
+            list: { views: [table, list], default: table }
+          - id: people.requisitions
+            kind: page
+            label: nav.atlas.pages.people.requisitions
+            route: "/{org}/people/requisitions"
+            list: { views: [table, list, board], default: table }
+          - id: people.offers
+            kind: page
+            label: nav.atlas.pages.people.offers
+            route: "/{org}/people/offers"
+            list: { views: [table, list, board], default: table }
+          - id: people.agreements
+            kind: page
+            label: nav.atlas.pages.people.agreements
+            route: "/{org}/people/agreements"
+            list: { views: [table, list], default: table }
+          - id: people.certifications
+            kind: page
+            label: nav.atlas.pages.people.certifications
+            route: "/{org}/people/certifications"
+            list: { views: [table, list, calendar], default: table }
+      - id: opportunities
+        kind: item
+        label: nav.atlas.items.opportunities
+        route: "/{org}/opportunities"
+        level: both
+        module: opportunities
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: read
+          collaborator: hidden
+          field: hidden
+          viewer: read
+        children:
+          - id: opportunities.requisitions
+            kind: page
+            label: nav.atlas.pages.opportunities.requisitions
+            route: "/{org}/opportunities/requisitions"
+            list: { views: [table, list, board], default: table }
+          - id: opportunities.postings
+            kind: page
+            label: nav.atlas.pages.opportunities.postings
+            route: "/{org}/opportunities/postings"
+            list: { views: [list, table, gallery], default: list }
+          - id: opportunities.pipeline
+            kind: page
+            label: nav.atlas.pages.opportunities.pipeline
+            route: "/{org}/opportunities/pipeline"
+            list: { views: [board, table, list], default: board }
+          - id: opportunities.pools
+            kind: page
+            label: nav.atlas.pages.opportunities.pools
+            route: "/{org}/opportunities/pools"
+            list: { views: [list, table], default: list }
+          - id: opportunities.onboarding
+            kind: page
+            label: nav.atlas.pages.opportunities.onboarding
+            route: "/{org}/opportunities/onboarding"
+            list: { views: [list, table, board], default: list }
+          - id: opportunities.engagements
+            kind: page
+            label: nav.atlas.pages.opportunities.engagements
+            route: "/{org}/opportunities/engagements"
+            list: { views: [table, list, board], default: table }
+          - id: opportunities.ratings
+            kind: page
+            label: nav.atlas.pages.opportunities.ratings
+            route: "/{org}/opportunities/ratings"
+            list: { views: [table, list], default: table }
+          - id: opportunities.marketplace-settings
+            kind: page
+            label: nav.atlas.pages.opportunities.marketplaceSettings
+            route: "/{org}/opportunities/marketplace-settings"
+      - id: crew
+        kind: item
+        label: nav.atlas.items.crew
+        route: "/{org}/crew"
+        level: both
+        module: crew
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: read
+          collaborator: hidden
+          field: own-records
+          viewer: hidden
+        children:
+          - id: crew.schedule
+            kind: page
+            label: nav.atlas.pages.crew.schedule
+            route: "/{org}/crew/schedule"
+            list: { views: [resource-schedule, calendar, list], default: resource-schedule }
+          - id: crew.shifts
+            kind: page
+            label: nav.atlas.pages.crew.shifts
+            route: "/{org}/crew/shifts"
+            list: { views: [resource-schedule, list, table, calendar], default: resource-schedule }
+          - id: crew.swaps
+            kind: page
+            label: nav.atlas.pages.crew.swaps
+            route: "/{org}/crew/swaps"
+            list: { views: [list, table, board], default: list }
+          - id: crew.time-entries
+            kind: page
+            label: nav.atlas.pages.crew.timeEntries
+            route: "/{org}/crew/time-entries"
+            list: { views: [table, list], default: table }
+          - id: crew.timesheets
+            kind: page
+            label: nav.atlas.pages.crew.timesheets
+            route: "/{org}/crew/timesheets"
+            list: { views: [table, list, board], default: table }
+          - id: crew.rate-cards
+            kind: page
+            label: nav.atlas.pages.crew.rateCards
+            route: "/{org}/crew/rate-cards"
+            list: { views: [spreadsheet, table], default: spreadsheet }
+          - id: crew.pay-periods
+            kind: page
+            label: nav.atlas.pages.crew.payPeriods
+            route: "/{org}/crew/pay-periods"
+            list: { views: [table, list], default: table }
+          - id: crew.payroll-exports
+            kind: page
+            label: nav.atlas.pages.crew.payrollExports
+            route: "/{org}/crew/payroll-exports"
+            list: { views: [table, list], default: table }
+          - id: crew.time-off
+            kind: page
+            label: nav.atlas.pages.crew.timeOff
+            route: "/{org}/crew/time-off"
+            list: { views: [list, table, calendar], default: list }
+  - id: group.commercial
+    kind: group
+    label: nav.atlas.groups.commercial
+    placement: sidebar
+    visibility:
+      owner: full
+      admin: full
+      manager: full
+      member: read
+      collaborator: hidden
+      field: hidden
+      viewer: hidden
+    children:
+      - id: finance
+        kind: item
+        label: nav.atlas.items.finance
+        route: "/{org}/finance"
+        level: both
+        module: finance
+        children:
+          - id: finance.budgets
+            kind: page
+            label: nav.atlas.pages.finance.budgets
+            route: "/{org}/finance/budgets"
+            list: { views: [spreadsheet, table, matrix], default: spreadsheet }
+          - id: finance.expenses
+            kind: page
+            label: nav.atlas.pages.finance.expenses
+            route: "/{org}/finance/expenses"
+            list: { views: [table, list, board], default: table }
+          - id: finance.change-orders
+            kind: page
+            label: nav.atlas.pages.finance.changeOrders
+            route: "/{org}/finance/change-orders"
+            list: { views: [table, list, board], default: table }
+          - id: finance.invoices
+            kind: page
+            label: nav.atlas.pages.finance.invoices
+            route: "/{org}/finance/invoices"
+            list: { views: [table, list, board], default: table }
+          - id: finance.payments
+            kind: page
+            label: nav.atlas.pages.finance.payments
+            route: "/{org}/finance/payments"
+            list: { views: [table, list], default: table }
+          - id: finance.journal
+            kind: page
+            label: nav.atlas.pages.finance.journal
+            route: "/{org}/finance/journal"
+            list: { views: [table], default: table }
+          - id: finance.periods
+            kind: page
+            label: nav.atlas.pages.finance.periods
+            route: "/{org}/finance/periods"
+            list: { views: [table, list], default: table }
+          - id: finance.universal-posting-line-export
+            kind: page
+            label: nav.atlas.pages.finance.universalPostingLineExport
+            route: "/{org}/finance/universal-posting-line-export"
+            list: { views: [table, list], default: table }
+          - id: finance.chart-of-accounts
+            kind: page
+            label: nav.atlas.pages.finance.chartOfAccounts
+            route: "/{org}/finance/chart-of-accounts"
+            list: { views: [table, tree], default: table }
+          - id: finance.cost-centers
+            kind: page
+            label: nav.atlas.pages.finance.costCenters
+            route: "/{org}/finance/cost-centers"
+            list: { views: [table, tree], default: table }
+      - id: procurement
+        kind: item
+        label: nav.atlas.items.procurement
+        route: "/{org}/procurement"
+        level: both
+        module: procurement
+        children:
+          - id: procurement.rfqs
+            kind: page
+            label: nav.atlas.pages.procurement.rfqs
+            route: "/{org}/procurement/rfqs"
+            list: { views: [table, list, board], default: table }
+          - id: procurement.purchase-orders
+            kind: page
+            label: nav.atlas.pages.procurement.purchaseOrders
+            route: "/{org}/procurement/purchase-orders"
+            list: { views: [table, list, board], default: table }
+          - id: procurement.receipts
+            kind: page
+            label: nav.atlas.pages.procurement.receipts
+            route: "/{org}/procurement/receipts"
+            list: { views: [table, list], default: table }
+          - id: procurement.invoice-matching
+            kind: page
+            label: nav.atlas.pages.procurement.invoiceMatching
+            route: "/{org}/procurement/invoice-matching"
+            list: { views: [table, list, board], default: table }
+          - id: procurement.catalog
+            kind: page
+            label: nav.atlas.pages.procurement.catalog
+            route: "/{org}/procurement/catalog"
+            list: { views: [table, list, gallery], default: table }
+      - id: vendors
+        kind: item
+        label: nav.atlas.items.vendors
+        route: "/{org}/vendors"
+        level: org
+        module: vendors
+        children:
+          - id: vendors.directory
+            kind: page
+            label: nav.atlas.pages.vendors.directory
+            route: "/{org}/vendors/directory"
+            list: { views: [table, list, gallery, map], default: table }
+          - id: vendors.classes
+            kind: page
+            label: nav.atlas.pages.vendors.classes
+            route: "/{org}/vendors/classes"
+            list: { views: [table, list], default: table }
+          - id: vendors.prequalification
+            kind: page
+            label: nav.atlas.pages.vendors.prequalification
+            route: "/{org}/vendors/prequalification"
+            list: { views: [table, list, board], default: table }
+          - id: vendors.insurance-certificates
+            kind: page
+            label: nav.atlas.pages.vendors.insuranceCertificates
+            route: "/{org}/vendors/insurance-certificates"
+            list: { views: [table, list, calendar], default: table }
+          - id: vendors.scorecards
+            kind: page
+            label: nav.atlas.pages.vendors.scorecards
+            route: "/{org}/vendors/scorecards"
+            list: { views: [table, list, chart], default: table }
+          - id: vendors.sponsor-entitlements
+            kind: page
+            label: nav.atlas.pages.vendors.sponsorEntitlements
+            route: "/{org}/vendors/sponsor-entitlements"
+            list: { views: [table, list, board], default: table }
+  - id: group.knowledge
+    kind: group
+    label: nav.atlas.groups.knowledge
+    placement: sidebar
+    children:
+      - id: knowledge
+        kind: item
+        label: nav.atlas.items.knowledge
+        route: "/{org}/knowledge"
+        level: org
+        module: knowledge
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: full
+          collaborator: read
+          field: read
+          viewer: read
+        children:
+          - id: knowledge.sops
+            kind: page
+            label: nav.atlas.pages.knowledge.sops
+            route: "/{org}/knowledge/sops"
+            list: { views: [list, table], default: list }
+          - id: knowledge.documents
+            kind: page
+            label: nav.atlas.pages.knowledge.documents
+            route: "/{org}/knowledge/documents"
+            list: { views: [list, table, gallery], default: list }
+          - id: knowledge.verbiage-library
+            kind: page
+            label: nav.atlas.pages.knowledge.verbiageLibrary
+            route: "/{org}/knowledge/verbiage-library"
+            list: { views: [table, list], default: table }
+      - id: reports
+        kind: item
+        label: nav.atlas.items.reports
+        route: "/{org}/reports"
+        level: both
+        module: reports
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: read
+          collaborator: hidden
+          field: hidden
+          viewer: read
+        children:
+          - id: reports.gate-readiness
+            kind: page
+            label: nav.atlas.pages.reports.gateReadiness
+            route: "/{org}/reports/gate-readiness"
+            list: { views: [table, matrix, chart], default: table }
+          - id: reports.coordinate-matrix
+            kind: page
+            label: nav.atlas.pages.reports.coordinateMatrix
+            route: "/{org}/reports/coordinate-matrix"
+            list: { views: [matrix, table], default: matrix }
+          - id: reports.budget-versus-actual
+            kind: page
+            label: nav.atlas.pages.reports.budgetVersusActual
+            route: "/{org}/reports/budget-versus-actual"
+            list: { views: [table, chart, matrix], default: table }
+          - id: reports.labor
+            kind: page
+            label: nav.atlas.pages.reports.labor
+            route: "/{org}/reports/labor"
+            list: { views: [table, chart], default: table }
+          - id: reports.purchase-order-exposure
+            kind: page
+            label: nav.atlas.pages.reports.purchaseOrderExposure
+            route: "/{org}/reports/purchase-order-exposure"
+            list: { views: [table, chart], default: table }
+          - id: reports.incidents
+            kind: page
+            label: nav.atlas.pages.reports.incidents
+            route: "/{org}/reports/incidents"
+            list: { views: [table, chart, map], default: table }
+          - id: reports.final-cost-report
+            kind: page
+            label: nav.atlas.pages.reports.finalCostReport
+            route: "/{org}/reports/final-cost-report"
+            list: { views: [table, chart], default: table }
+          - id: reports.saved-reports
+            kind: page
+            label: nav.atlas.pages.reports.savedReports
+            route: "/{org}/reports/saved-reports"
+            list: { views: [list, table], default: list }
+          - id: reports.builder
+            kind: page
+            label: nav.atlas.pages.reports.builder
+            route: "/{org}/reports/builder"
+      - id: canon
+        kind: item
+        label: nav.atlas.items.canon
+        route: "/{org}/canon"
+        level: org
+        module: canon
+        visibility:
+          owner: read-and-extend
+          admin: read-and-extend
+          manager: read
+          member: read
+          collaborator: read
+          field: hidden
+          viewer: read
+        children:
+          - id: canon.departments
+            kind: page
+            label: nav.atlas.pages.canon.departments
+            route: "/{org}/canon/departments"
+            list: { views: [table, list], default: table }
+          - id: canon.disciplines
+            kind: page
+            label: nav.atlas.pages.canon.disciplines
+            route: "/{org}/canon/disciplines"
+            list: { views: [table, tree, list], default: table }
+          - id: canon.categories
+            kind: page
+            label: nav.atlas.pages.canon.categories
+            route: "/{org}/canon/categories"
+            list: { views: [table, tree, list], default: table }
+          - id: canon.elements
+            kind: page
+            label: nav.atlas.pages.canon.elements
+            route: "/{org}/canon/elements"
+            list: { views: [table, list, gallery], default: table }
+          - id: canon.phases-and-gates
+            kind: page
+            label: nav.atlas.pages.canon.phasesAndGates
+            route: "/{org}/canon/phases-and-gates"
+            list: { views: [table, list], default: table }
+          - id: canon.record-kinds
+            kind: page
+            label: nav.atlas.pages.canon.recordKinds
+            route: "/{org}/canon/record-kinds"
+            list: { views: [table, list], default: table }
+          - id: canon.roles
+            kind: page
+            label: nav.atlas.pages.canon.roles
+            route: "/{org}/canon/roles"
+            list: { views: [table, list], default: table }
+          - id: canon.jurisdictions-and-permit-rules
+            kind: page
+            label: nav.atlas.pages.canon.jurisdictionsAndPermitRules
+            route: "/{org}/canon/jurisdictions-and-permit-rules"
+            list: { views: [table, list, map], default: table }
+          - id: canon.metrics
+            kind: page
+            label: nav.atlas.pages.canon.metrics
+            route: "/{org}/canon/metrics"
+            list: { views: [table, list], default: table }
+          - id: canon.org-extensions
+            kind: page
+            label: nav.atlas.pages.canon.orgExtensions
+            route: "/{org}/canon/org-extensions"
+            tags: [extensions]
+            list: { views: [table, list], default: table }
+  - id: group.footer
+    kind: group
+    label: nav.atlas.groups.footer
+    placement: footer
+    children:
+      - id: activity
+        kind: item
+        label: nav.atlas.items.activity
+        route: "/{org}/activity"
+        level: org
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: full
+          collaborator: assigned
+          field: hidden
+          viewer: read
+        children:
+          - id: activity.feed
+            kind: page
+            label: nav.atlas.pages.activity.feed
+            route: "/{org}/activity/feed"
+            list: { views: [feed, list, table], default: feed }
+          - id: activity.audit-log
+            kind: page
+            label: nav.atlas.pages.activity.auditLog
+            route: "/{org}/activity/audit-log"
+            visibility:
+              owner: full
+              admin: full
+              manager: hidden
+              member: hidden
+              collaborator: hidden
+              field: hidden
+              viewer: hidden
+            list: { views: [table, list], default: table }
+      - id: settings
+        kind: item
+        label: nav.atlas.items.settings
+        route: "/{org}/settings"
+        level: org
+        visibility:
+          owner: full
+          admin: full-except-billing-and-legal
+          manager: hidden
+          member: hidden
+          collaborator: hidden
+          field: hidden
+          viewer: hidden
+        children:
+          - id: settings.organization-profile
+            kind: section
+            label: nav.settings.org.organizationProfile
+            route: "/{org}/settings/organization-profile"
+          - id: settings.general
+            kind: section
+            label: nav.settings.org.general
+            route: "/{org}/settings/general"
+          - id: settings.legal-entities-and-fiscal
+            kind: section
+            label: nav.settings.org.legalEntitiesAndFiscal
+            route: "/{org}/settings/legal-entities-and-fiscal"
+          - id: settings.members
+            kind: section
+            label: nav.settings.org.members
+            route: "/{org}/settings/members"
+          - id: settings.roles-and-capabilities
+            kind: section
+            label: nav.settings.org.rolesAndCapabilities
+            route: "/{org}/settings/roles-and-capabilities"
+          - id: settings.teams
+            kind: section
+            label: nav.settings.org.teams
+            route: "/{org}/settings/teams"
+          - id: settings.workspaces
+            kind: section
+            label: nav.settings.org.workspaces
+            route: "/{org}/settings/workspaces"
+          - id: settings.departments-and-disciplines
+            kind: section
+            label: nav.settings.org.departmentsAndDisciplines
+            route: "/{org}/settings/departments-and-disciplines"
+          - id: settings.locations-and-venues
+            kind: section
+            label: nav.settings.org.locationsAndVenues
+            route: "/{org}/settings/locations-and-venues"
+          - id: settings.security
+            kind: section
+            label: nav.settings.org.security
+            route: "/{org}/settings/security"
+          - id: settings.access-reviews
+            kind: section
+            label: nav.settings.org.accessReviews
+            route: "/{org}/settings/access-reviews"
+          - id: settings.white-label
+            kind: section
+            label: nav.settings.org.whiteLabel
+            route: "/{org}/settings/white-label"
+          - id: settings.modules
+            kind: section
+            label: nav.settings.org.modules
+            route: "/{org}/settings/modules"
+          - id: settings.canon-extensions
+            kind: section
+            label: nav.settings.org.canonExtensions
+            route: "/{org}/settings/canon-extensions"
+          - id: settings.templates
+            kind: section
+            label: nav.settings.org.templates
+            route: "/{org}/settings/templates"
+          - id: settings.custom-fields
+            kind: section
+            label: nav.settings.org.customFields
+            route: "/{org}/settings/custom-fields"
+          - id: settings.custom-objects
+            kind: section
+            label: nav.settings.org.customObjects
+            route: "/{org}/settings/custom-objects"
+          - id: settings.views-and-defaults
+            kind: section
+            label: nav.settings.org.viewsAndDefaults
+            route: "/{org}/settings/views-and-defaults"
+          - id: settings.numbering
+            kind: section
+            label: nav.settings.org.numbering
+            route: "/{org}/settings/numbering"
+          - id: settings.automations
+            kind: section
+            label: nav.settings.org.automations
+            route: "/{org}/settings/automations"
+          - id: settings.approval-policies
+            kind: section
+            label: nav.settings.org.approvalPolicies
+            route: "/{org}/settings/approval-policies"
+          - id: settings.spend-authority
+            kind: section
+            label: nav.settings.org.spendAuthority
+            route: "/{org}/settings/spend-authority"
+          - id: settings.separation-of-duties
+            kind: section
+            label: nav.settings.org.separationOfDuties
+            route: "/{org}/settings/separation-of-duties"
+          - id: settings.time-and-attendance
+            kind: section
+            label: nav.settings.org.timeAndAttendance
+            route: "/{org}/settings/time-and-attendance"
+          - id: settings.scheduling
+            kind: section
+            label: nav.settings.org.scheduling
+            route: "/{org}/settings/scheduling"
+          - id: settings.payroll-and-time-off
+            kind: section
+            label: nav.settings.org.payrollAndTimeOff
+            route: "/{org}/settings/payroll-and-time-off"
+          - id: settings.gateway-and-marketplace
+            kind: section
+            label: nav.settings.org.gatewayAndMarketplace
+            route: "/{org}/settings/gateway-and-marketplace"
+          - id: settings.communication
+            kind: section
+            label: nav.settings.org.communication
+            route: "/{org}/settings/communication"
+          - id: settings.notifications
+            kind: section
+            label: nav.settings.org.notifications
+            route: "/{org}/settings/notifications"
+          - id: settings.ai-features
+            kind: section
+            label: nav.settings.org.aiFeatures
+            route: "/{org}/settings/ai-features"
+          - id: settings.help-and-support
+            kind: section
+            label: nav.settings.org.helpAndSupport
+            route: "/{org}/settings/help-and-support"
+          - id: settings.integrations
+            kind: section
+            label: nav.settings.org.integrations
+            route: "/{org}/settings/integrations"
+          - id: settings.api-keys-and-service-accounts
+            kind: section
+            label: nav.settings.org.apiKeysAndServiceAccounts
+            route: "/{org}/settings/api-keys-and-service-accounts"
+          - id: settings.webhooks
+            kind: section
+            label: nav.settings.org.webhooks
+            route: "/{org}/settings/webhooks"
+          - id: settings.localization
+            kind: section
+            label: nav.settings.org.localization
+            route: "/{org}/settings/localization"
+          - id: settings.billing-and-plan
+            kind: section
+            label: nav.settings.org.billingAndPlan
+            route: "/{org}/settings/billing-and-plan"
+            tags: [billing]
+          - id: settings.partner
+            kind: section
+            label: nav.settings.org.partner
+            route: "/{org}/settings/partner"
+            conditions: [partner-org]
+          - id: settings.usage
+            kind: section
+            label: nav.settings.org.usage
+            route: "/{org}/settings/usage"
+          - id: settings.data-and-privacy
+            kind: section
+            label: nav.settings.org.dataAndPrivacy
+            route: "/{org}/settings/data-and-privacy"
+          - id: settings.audit-log
+            kind: section
+            label: nav.settings.org.auditLog
+            route: "/{org}/settings/audit-log"
+          - id: settings.legal
+            kind: section
+            label: nav.settings.org.legal
+            route: "/{org}/settings/legal"
+            tags: [legal]
+          - id: settings.danger-zone
+            kind: section
+            label: nav.settings.org.dangerZone
+            route: "/{org}/settings/danger-zone"
+  - id: group.account
+    kind: group
+    label: nav.atlas.groups.account
+    placement: account-menu
+    children:
+      - id: me
+        kind: item
+        label: nav.atlas.items.personalSettings
+        route: "/{org}/me"
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: full
+          collaborator: full
+          field: full
+          viewer: full
+        children:
+          - id: me.profile
+            kind: section
+            label: nav.settings.personal.profile
+            route: "/{org}/me/profile"
+          - id: me.profile-privacy
+            kind: section
+            label: nav.settings.personal.profilePrivacy
+            route: "/{org}/me/profile-privacy"
+          - id: me.account
+            kind: section
+            label: nav.settings.personal.account
+            route: "/{org}/me/account"
+          - id: me.security
+            kind: section
+            label: nav.settings.personal.security
+            route: "/{org}/me/security"
+          - id: me.organizations
+            kind: section
+            label: nav.settings.personal.organizations
+            route: "/{org}/me/organizations"
+          - id: me.preferences
+            kind: section
+            label: nav.settings.personal.preferences
+            route: "/{org}/me/preferences"
+          - id: me.accessibility
+            kind: section
+            label: nav.settings.personal.accessibility
+            route: "/{org}/me/accessibility"
+          - id: me.notifications
+            kind: section
+            label: nav.settings.personal.notifications
+            route: "/{org}/me/notifications"
+          - id: me.out-of-office
+            kind: section
+            label: nav.settings.personal.outOfOffice
+            route: "/{org}/me/out-of-office"
+          - id: me.work-details
+            kind: section
+            label: nav.settings.personal.workDetails
+            route: "/{org}/me/work-details"
+          - id: me.payout-and-tax
+            kind: section
+            label: nav.settings.personal.payoutAndTax
+            route: "/{org}/me/payout-and-tax"
+          - id: me.calendar-feeds
+            kind: section
+            label: nav.settings.personal.calendarFeeds
+            route: "/{org}/me/calendar-feeds"
+          - id: me.connected-apps
+            kind: section
+            label: nav.settings.personal.connectedApps
+            route: "/{org}/me/connected-apps"
+          - id: me.keyboard-shortcuts
+            kind: section
+            label: nav.settings.personal.keyboardShortcuts
+            route: "/{org}/me/keyboard-shortcuts"
+            conditions: [desktop]
+          - id: me.developer
+            kind: section
+            label: nav.settings.personal.developer
+            route: "/{org}/me/developer"
+            conditions: [org-allows-personal-tokens]
+  - id: group.routes
+    kind: group
+    label: nav.atlas.groups.routes
+    placement: none
+    children:
+      - id: record
+        kind: record
+        label: nav.atlas.routes.record
+        route: "/{org}/r/{recordKey}"
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: full
+          collaborator: assigned
+          field: assigned
+          viewer: read
+      - id: saved-view
+        kind: page
+        label: nav.atlas.routes.savedView
+        route: "/{org}/views/{viewId}"
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: full
+          collaborator: assigned
+          field: assigned
+          viewer: read
+      - id: import
+        kind: page
+        label: nav.atlas.routes.import
+        route: "/{org}/import"
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: full
+          collaborator: hidden
+          field: hidden
+          viewer: hidden
+      - id: custom-object
+        kind: page
+        label: nav.atlas.routes.customObject
+        route: "/{org}/objects/{objectKey}"
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: full
+          collaborator: assigned
+          field: assigned
+          viewer: read
+        list: { views: [list, board, table, calendar], default: list }
+      - id: partner-console
+        kind: item
+        label: nav.atlas.routes.partnerConsole
+        route: "/partner/{partnerSlug}"
+        visibility:
+          owner: full
+          admin: full
+          manager: hidden
+          member: hidden
+          collaborator: hidden
+          field: hidden
+          viewer: hidden
+        children:
+          - id: partner-console.client-orgs
+            kind: page
+            label: nav.atlas.partner.clientOrgs
+            route: "/partner/{partnerSlug}/client-orgs"
+            list: { views: [table, list], default: table }
+          - id: partner-console.default-brand
+            kind: page
+            label: nav.atlas.partner.defaultBrand
+            route: "/partner/{partnerSlug}/default-brand"
+          - id: partner-console.usage
+            kind: page
+            label: nav.atlas.partner.usage
+            route: "/partner/{partnerSlug}/usage"
+            list: { views: [table, chart], default: table }
+          - id: partner-console.wholesale-billing
+            kind: page
+            label: nav.atlas.partner.wholesaleBilling
+            route: "/partner/{partnerSlug}/wholesale-billing"
+            tags: [billing]
+            visibility:
+              owner: full
+              admin: hidden
+              manager: hidden
+              member: hidden
+              collaborator: hidden
+              field: hidden
+              viewer: hidden
+            list: { views: [table, list], default: table }
+      - id: legal
+        kind: page
+        label: nav.atlas.routes.legal
+        route: "/legal/{document}"
+        auth: public
+      - id: advance-form
+        kind: page
+        label: nav.atlas.routes.advanceForm
+        route: "/advance/{token}"
+        auth: token
+        servedBy: gateway
+      - id: agreement-signing
+        kind: page
+        label: nav.atlas.routes.agreementSigning
+        route: "/sign/{token}"
+        auth: token
+        servedBy: gateway
+      - id: calendar-feed
+        kind: page
+        label: nav.atlas.routes.calendarFeed
+        route: "/ical/{feedToken}.ics"
+        auth: token

@@ -8,5 +8,513 @@
       "name": "Gateway",
       "tagline": "Encuentra trabajo, completa tu incorporación, entrega y recibe tu pago."
     }
+  },
+  "nav": {
+    "breadcrumb": {
+      "org": "Organización",
+      "workspace": "Espacio de trabajo",
+      "scope": "Nodo de alcance"
+    },
+    "atlas": {
+      "pages": {
+        "home": {
+          "today": "Hoy",
+          "gateReadiness": "Preparación de compuertas en todos los proyectos",
+          "alerts": "Alertas",
+          "recent": "Recientes"
+        },
+        "projects": {
+          "all": "Todos los proyectos",
+          "byPhase": "Por fase",
+          "portfolioTimeline": "Cronología de la cartera",
+          "templates": "Plantillas"
+        },
+        "schedule": {
+          "timeline": "Cronología",
+          "calendar": "Calendario",
+          "milestones": "Hitos",
+          "baselines": "Líneas base"
+        },
+        "work": {
+          "allRecords": "Todos los registros",
+          "byKind": "Por tipo",
+          "workOrders": "Órdenes de trabajo",
+          "punchLists": "Listas de pendientes",
+          "recurring": "Recurrentes"
+        },
+        "show": {
+          "runOfShow": "Escaleta",
+          "daySheets": "Hojas del día",
+          "callSheets": "Hojas de llamado"
+        },
+        "advancing": {
+          "packets": "Paquetes",
+          "submissions": "Respuestas recibidas",
+          "riders": "Riders",
+          "reconciliation": "Conciliación"
+        },
+        "places": {
+          "venues": "Recintos",
+          "spacesAndZones": "Espacios y zonas",
+          "capabilityDocuments": "Documentos de capacidades",
+          "sitePlans": "Planos del sitio"
+        },
+        "logistics": {
+          "shipments": "Envíos",
+          "dockSchedule": "Programación de muelles",
+          "marshallingYardLog": "Registro del patio de maniobras"
+        },
+        "hospitality": {
+          "fulfillments": "Servicios atendidos",
+          "beos": "Órdenes de banquete",
+          "accommodationBlocks": "Bloqueos de habitaciones"
+        },
+        "assets": {
+          "assetClasses": "Catálogo de clases de activos",
+          "units": "Unidades",
+          "lots": "Lotes",
+          "custodyLedger": "Registro de custodia",
+          "maintenance": "Mantenimiento",
+          "damage": "Daños"
+        },
+        "credentials": {
+          "categories": "Categorías",
+          "issued": "Emitidas",
+          "accessGrid": "Matriz de acceso",
+          "scanLog": "Registro de escaneos"
+        },
+        "safety": {
+          "permits": "Permisos",
+          "inspections": "Inspecciones",
+          "inspectionTemplates": "Plantillas de inspección",
+          "incidents": "Incidentes",
+          "dispatchBoard": "Tablero de despacho",
+          "emergencyCodes": "Códigos de emergencia",
+          "radioChannels": "Canales de radio"
+        },
+        "people": {
+          "directory": "Directorio",
+          "roles": "Roles",
+          "requisitions": "Requisiciones",
+          "offers": "Ofertas",
+          "agreements": "Acuerdos",
+          "certifications": "Certificaciones"
+        },
+        "opportunities": {
+          "requisitions": "Requisiciones",
+          "postings": "Publicaciones",
+          "pipeline": "Embudo de selección",
+          "pools": "Grupos de talento",
+          "onboarding": "Incorporación",
+          "engagements": "Contrataciones",
+          "ratings": "Calificaciones",
+          "marketplaceSettings": "Configuración del mercado"
+        },
+        "crew": {
+          "schedule": "Programación",
+          "shifts": "Turnos",
+          "swaps": "Intercambios",
+          "timeEntries": "Registros de tiempo",
+          "timesheets": "Hojas de horas",
+          "rateCards": "Tarifarios",
+          "payPeriods": "Periodos de pago",
+          "payrollExports": "Exportaciones de nómina",
+          "timeOff": "Ausencias"
+        },
+        "finance": {
+          "budgets": "Presupuestos",
+          "expenses": "Gastos",
+          "changeOrders": "Órdenes de cambio",
+          "invoices": "Facturas",
+          "payments": "Pagos",
+          "journal": "Libro diario",
+          "periods": "Periodos",
+          "universalPostingLineExport": "Exportación de la línea de registro universal",
+          "chartOfAccounts": "Catálogo de cuentas",
+          "costCenters": "Centros de costos"
+        },
+        "procurement": {
+          "rfqs": "Solicitudes de cotización",
+          "purchaseOrders": "Órdenes de compra",
+          "receipts": "Recepciones",
+          "invoiceMatching": "Conciliación de facturas",
+          "catalog": "Catálogo"
+        },
+        "vendors": {
+          "directory": "Directorio",
+          "classes": "Clases",
+          "prequalification": "Precalificación",
+          "insuranceCertificates": "Certificados de seguro",
+          "scorecards": "Evaluaciones",
+          "sponsorEntitlements": "Beneficios de patrocinio"
+        },
+        "knowledge": {
+          "sops": "Procedimientos operativos",
+          "documents": "Documentos",
+          "verbiageLibrary": "Biblioteca de terminología"
+        },
+        "reports": {
+          "gateReadiness": "Preparación de compuertas",
+          "coordinateMatrix": "Matriz de coordenadas",
+          "budgetVersusActual": "Presupuesto frente a real",
+          "labor": "Mano de obra",
+          "purchaseOrderExposure": "Exposición de órdenes de compra",
+          "incidents": "Incidentes",
+          "finalCostReport": "Informe de costo final",
+          "savedReports": "Informes guardados",
+          "builder": "Generador de informes"
+        },
+        "canon": {
+          "departments": "Departamentos",
+          "disciplines": "Disciplinas",
+          "categories": "Categorías",
+          "elements": "Elementos",
+          "phasesAndGates": "Fases y compuertas",
+          "recordKinds": "Tipos de registro",
+          "roles": "Roles",
+          "jurisdictionsAndPermitRules": "Jurisdicciones y reglas de permisos",
+          "metrics": "Métricas",
+          "orgExtensions": "Extensiones de la organización"
+        },
+        "activity": {
+          "feed": "Actividad de la organización",
+          "auditLog": "Registro de auditoría"
+        }
+      },
+      "items": {
+        "home": "Inicio",
+        "inbox": "Bandeja de entrada",
+        "myWork": "Mi trabajo",
+        "projects": "Proyectos",
+        "schedule": "Cronograma",
+        "work": "Trabajo",
+        "show": "Show",
+        "advancing": "Coordinación previa",
+        "places": "Lugares",
+        "logistics": "Logística",
+        "hospitality": "Hospitalidad",
+        "assets": "Activos",
+        "credentials": "Acreditaciones",
+        "safety": "Seguridad operativa",
+        "people": "Personas",
+        "opportunities": "Oportunidades",
+        "crew": "Equipo técnico",
+        "finance": "Finanzas",
+        "procurement": "Compras",
+        "vendors": "Proveedores",
+        "knowledge": "Conocimiento",
+        "reports": "Informes",
+        "canon": "Canon",
+        "activity": "Actividad",
+        "settings": "Configuración",
+        "personalSettings": "Configuración personal"
+      },
+      "projectTabs": {
+        "overview": "Resumen",
+        "scope": "Alcance",
+        "gates": "Compuertas",
+        "schedule": "Cronograma",
+        "work": "Trabajo",
+        "show": "Show",
+        "advancing": "Coordinación previa",
+        "logistics": "Logística",
+        "hospitality": "Hospitalidad",
+        "assets": "Activos",
+        "crew": "Equipo técnico",
+        "engagements": "Contrataciones",
+        "credentials": "Acreditaciones",
+        "safety": "Seguridad operativa",
+        "budget": "Presupuesto",
+        "procurement": "Compras",
+        "documents": "Documentos",
+        "reports": "Informes",
+        "activity": "Actividad",
+        "settings": "Configuración"
+      },
+      "acts": {
+        "plan": "Planificación",
+        "build": "Construcción",
+        "show": "Show"
+      },
+      "routes": {
+        "project": "Proyecto",
+        "partnerConsole": "Consola de socios",
+        "record": "Registro",
+        "savedView": "Vista guardada",
+        "import": "Importar",
+        "customObject": "Objeto personalizado",
+        "legal": "Legal",
+        "advanceForm": "Formulario de coordinación previa",
+        "agreementSigning": "Firma de acuerdo",
+        "calendarFeed": "Suscripción de calendario"
+      },
+      "partner": {
+        "clientOrgs": "Organizaciones cliente",
+        "defaultBrand": "Marca predeterminada",
+        "usage": "Uso",
+        "wholesaleBilling": "Facturación mayorista"
+      },
+      "groups": {
+        "routes": "Rutas directas",
+        "chrome": "Acceso rápido",
+        "workspace": "Espacio de trabajo",
+        "production": "Producción",
+        "operations": "Operaciones",
+        "people": "Personas",
+        "commercial": "Comercial",
+        "knowledge": "Conocimiento",
+        "footer": "Navegación inferior",
+        "account": "Menú de cuenta"
+      },
+      "actions": {
+        "search": "Buscar",
+        "favorites": "Favoritos",
+        "menu": "Menú"
+      }
+    },
+    "settings": {
+      "org": {
+        "organizationProfile": "Perfil de la organización",
+        "general": "General",
+        "legalEntitiesAndFiscal": "Entidades legales y datos fiscales",
+        "members": "Miembros",
+        "rolesAndCapabilities": "Roles y capacidades",
+        "teams": "Equipos",
+        "workspaces": "Espacios de trabajo",
+        "departmentsAndDisciplines": "Departamentos y disciplinas en uso",
+        "locationsAndVenues": "Valores predeterminados de ubicaciones y recintos",
+        "security": "Seguridad",
+        "accessReviews": "Revisiones de acceso",
+        "whiteLabel": "Marca blanca",
+        "modules": "Módulos",
+        "canonExtensions": "Extensiones del canon",
+        "templates": "Plantillas",
+        "customFields": "Campos personalizados",
+        "customObjects": "Objetos personalizados",
+        "viewsAndDefaults": "Vistas y valores predeterminados",
+        "numbering": "Numeración",
+        "automations": "Automatizaciones",
+        "approvalPolicies": "Políticas de aprobación",
+        "spendAuthority": "Autoridad de gasto",
+        "separationOfDuties": "Separación de funciones",
+        "timeAndAttendance": "Tiempo y asistencia",
+        "scheduling": "Programación de turnos",
+        "payrollAndTimeOff": "Nómina y ausencias",
+        "gatewayAndMarketplace": "Gateway y mercado",
+        "communication": "Comunicación",
+        "notifications": "Notificaciones predeterminadas",
+        "aiFeatures": "Funciones de IA",
+        "helpAndSupport": "Ayuda y soporte",
+        "integrations": "Integraciones",
+        "apiKeysAndServiceAccounts": "Claves de API y cuentas de servicio",
+        "webhooks": "Webhooks",
+        "localization": "Localización",
+        "billingAndPlan": "Facturación y plan",
+        "partner": "Socio",
+        "usage": "Uso",
+        "dataAndPrivacy": "Datos y privacidad",
+        "auditLog": "Registro de auditoría",
+        "legal": "Legal",
+        "dangerZone": "Zona de peligro"
+      },
+      "personal": {
+        "profile": "Perfil",
+        "profilePrivacy": "Privacidad del perfil",
+        "account": "Cuenta",
+        "security": "Seguridad",
+        "organizations": "Organizaciones",
+        "preferences": "Preferencias",
+        "accessibility": "Accesibilidad",
+        "notifications": "Notificaciones",
+        "outOfOffice": "Fuera de la oficina",
+        "workDetails": "Datos laborales",
+        "payoutAndTax": "Pagos e impuestos",
+        "calendarFeeds": "Suscripciones de calendario",
+        "connectedApps": "Aplicaciones conectadas",
+        "keyboardShortcuts": "Atajos de teclado",
+        "developer": "Desarrollador"
+      },
+      "company": {
+        "companyProfileAndPrivacy": "Perfil y privacidad de la empresa",
+        "teamAndAccountRoles": "Equipo y roles de la cuenta",
+        "serviceRegionsAndCapabilities": "Regiones de servicio y capacidades",
+        "insuranceAndComplianceDocuments": "Documentos de seguros y cumplimiento",
+        "payoutAndTax": "Pagos e impuestos",
+        "representation": "Representación",
+        "notifications": "Notificaciones predeterminadas",
+        "dangerZone": "Zona de peligro"
+      }
+    },
+    "gateway": {
+      "engagementTabs": {
+        "overview": "Resumen",
+        "roster": "Artistas representados",
+        "approvals": "Aprobaciones",
+        "bid": "Propuesta",
+        "scope": "Alcance",
+        "offer": "Oferta",
+        "onboarding": "Incorporación",
+        "training": "Capacitación",
+        "positions": "Puestos",
+        "entitlements": "Beneficios",
+        "assetApprovals": "Aprobación de materiales",
+        "schedule": "Cronograma",
+        "runOfShow": "Escaleta",
+        "changeOrders": "Órdenes de cambio",
+        "purchaseOrders": "Órdenes de compra",
+        "deliveries": "Entregas",
+        "submittals": "Envíos para aprobación",
+        "deliverables": "Entregables",
+        "time": "Tiempo",
+        "shifts": "Turnos",
+        "timesheets": "Hojas de horas",
+        "travelAndLodging": "Viaje y alojamiento",
+        "perDiem": "Viáticos",
+        "advance": "Coordinación previa",
+        "rider": "Rider",
+        "setTimes": "Horarios de presentación",
+        "hospitality": "Hospitalidad",
+        "guestList": "Lista de invitados",
+        "activationSchedule": "Calendario de activaciones",
+        "proofOfPerformance": "Comprobación de cumplimiento",
+        "credentials": "Acreditaciones",
+        "compliance": "Cumplimiento",
+        "settlement": "Liquidación",
+        "reports": "Informes",
+        "invoices": "Facturas",
+        "documents": "Documentos",
+        "messages": "Mensajes"
+      },
+      "avatar": {
+        "settings": "Configuración",
+        "companySettings": "Configuración de la empresa",
+        "profile": "Perfil",
+        "documents": "Documentos",
+        "switchOrg": "Cambiar de organización",
+        "help": "Ayuda",
+        "signOut": "Cerrar sesión"
+      },
+      "groups": {
+        "primary": "Navegación principal",
+        "avatar": "Menú de perfil",
+        "public": "Páginas públicas"
+      },
+      "primary": {
+        "home": "Inicio",
+        "explore": "Explorar",
+        "work": "Trabajo",
+        "money": "Dinero",
+        "messages": "Mensajes"
+      },
+      "explore": {
+        "saved": "Guardadas",
+        "alerts": "Alertas",
+        "opportunity": "Oportunidad"
+      },
+      "work": {
+        "upcoming": "Próximos",
+        "engagements": "Contrataciones",
+        "applications": "Postulaciones",
+        "engagement": "Contratación"
+      },
+      "money": {
+        "overview": "Resumen",
+        "invoices": "Facturas",
+        "timesheets": "Hojas de horas",
+        "payments": "Pagos",
+        "taxDocuments": "Documentos fiscales"
+      },
+      "messages": {
+        "thread": "Conversación"
+      },
+      "public": {
+        "personProfile": "Perfil de persona",
+        "companyProfile": "Perfil de empresa",
+        "advanceForm": "Formulario de coordinación previa",
+        "agreementSigning": "Firma de acuerdo"
+      }
+    },
+    "compass": {
+      "more": {
+        "timesheets": "Hojas de horas",
+        "perDiem": "Viáticos",
+        "travelAndLodging": "Viaje y alojamiento",
+        "onboarding": "Requisitos de incorporación",
+        "purchaseOrders": "Órdenes de compra",
+        "deliveries": "Entregas",
+        "submittals": "Envíos para aprobación",
+        "timeEntries": "Registros de tiempo",
+        "deliverables": "Entregables",
+        "advanceSummary": "Resumen de coordinación previa",
+        "rider": "Rider",
+        "settlement": "Liquidación",
+        "runOfShow": "Escaleta",
+        "reports": "Informes",
+        "proofOfPerformance": "Comprobación de cumplimiento",
+        "incidents": "Incidentes",
+        "inspections": "Inspecciones",
+        "logistics": "Logística",
+        "show": "Show",
+        "expenses": "Gastos",
+        "reference": "Referencia",
+        "offlineQueue": "Cola sin conexión",
+        "profile": "Perfil y certificaciones",
+        "settings": "Configuración"
+      },
+      "reference": {
+        "emergencyCodes": "Códigos de emergencia",
+        "radioChannels": "Canales de radio",
+        "venueMaps": "Mapas del recinto",
+        "sops": "Procedimientos operativos"
+      },
+      "content": {
+        "shifts": "Turnos",
+        "tasks": "Tareas",
+        "daySheet": "Hoja del día",
+        "runOfShow": "Escaleta",
+        "engagedShiftsAndPositions": "Turnos y puestos asignados",
+        "briefings": "Instrucciones previas",
+        "callTimes": "Horarios de llamado",
+        "dockSlot": "Turno de muelle",
+        "loadInAndLoadOutWindows": "Horarios de montaje y desmontaje",
+        "deliveryInstructions": "Instrucciones de entrega",
+        "tasksAndDeliverablesDue": "Tareas y entregables pendientes",
+        "siteAccessTimes": "Horarios de acceso al sitio",
+        "setTime": "Horario de presentación",
+        "hospitality": "Hospitalidad",
+        "guestList": "Lista de invitados",
+        "showDaySchedule": "Programa del día del show",
+        "approvalsWaiting": "Aprobaciones pendientes",
+        "activationSchedule": "Calendario de activaciones",
+        "entitlementChecklist": "Lista de beneficios"
+      },
+      "groups": {
+        "tabs": "Barra de pestañas",
+        "routes": "Rutas directas"
+      },
+      "tabs": {
+        "today": "Hoy",
+        "schedule": "Horario",
+        "scan": "Escanear",
+        "inbox": "Bandeja de entrada",
+        "more": "Más",
+        "crew": "Equipo técnico"
+      },
+      "scan": {
+        "asset": "Activo",
+        "receiving": "Recepción",
+        "credential": "Acreditación",
+        "lookup": "Consulta"
+      },
+      "crew": {
+        "board": "Tablero del equipo",
+        "timesheetApprovals": "Aprobación de hojas de horas",
+        "dispatchBoard": "Tablero de despacho",
+        "shiftCoverage": "Cobertura de turnos"
+      },
+      "routes": {
+        "record": "Registro"
+      }
+    }
   }
 }

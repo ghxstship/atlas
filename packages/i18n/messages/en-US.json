@@ -8,5 +8,513 @@
       "name": "Gateway",
       "tagline": "Find work, get onboarded, deliver and get paid."
     }
+  },
+  "nav": {
+    "breadcrumb": {
+      "org": "Organization",
+      "workspace": "Workspace",
+      "scope": "Scope Node"
+    },
+    "atlas": {
+      "pages": {
+        "home": {
+          "today": "Today",
+          "gateReadiness": "Gate Readiness Across Projects",
+          "alerts": "Alerts",
+          "recent": "Recent"
+        },
+        "projects": {
+          "all": "All Projects",
+          "byPhase": "By Phase",
+          "portfolioTimeline": "Portfolio Timeline",
+          "templates": "Templates"
+        },
+        "schedule": {
+          "timeline": "Timeline",
+          "calendar": "Calendar",
+          "milestones": "Milestones",
+          "baselines": "Baselines"
+        },
+        "work": {
+          "allRecords": "All Records",
+          "byKind": "By Kind",
+          "workOrders": "Work Orders",
+          "punchLists": "Punch Lists",
+          "recurring": "Recurring"
+        },
+        "show": {
+          "runOfShow": "Run of Show",
+          "daySheets": "Day Sheets",
+          "callSheets": "Call Sheets"
+        },
+        "advancing": {
+          "packets": "Packets",
+          "submissions": "Submissions",
+          "riders": "Riders",
+          "reconciliation": "Reconciliation"
+        },
+        "places": {
+          "venues": "Venues",
+          "spacesAndZones": "Spaces and Zones",
+          "capabilityDocuments": "Capability Documents",
+          "sitePlans": "Site Plans"
+        },
+        "logistics": {
+          "shipments": "Shipments",
+          "dockSchedule": "Dock Schedule",
+          "marshallingYardLog": "Marshalling Yard Log"
+        },
+        "hospitality": {
+          "fulfillments": "Fulfillments",
+          "beos": "BEOs",
+          "accommodationBlocks": "Accommodation Blocks"
+        },
+        "assets": {
+          "assetClasses": "Catalog of Asset Classes",
+          "units": "Units",
+          "lots": "Lots",
+          "custodyLedger": "Custody Ledger",
+          "maintenance": "Maintenance",
+          "damage": "Damage"
+        },
+        "credentials": {
+          "categories": "Categories",
+          "issued": "Issued",
+          "accessGrid": "Access Grid",
+          "scanLog": "Scan Log"
+        },
+        "safety": {
+          "permits": "Permits",
+          "inspections": "Inspections",
+          "inspectionTemplates": "Inspection Templates",
+          "incidents": "Incidents",
+          "dispatchBoard": "Dispatch Board",
+          "emergencyCodes": "Emergency Codes",
+          "radioChannels": "Radio Channels"
+        },
+        "people": {
+          "directory": "Directory",
+          "roles": "Roles",
+          "requisitions": "Requisitions",
+          "offers": "Offers",
+          "agreements": "Agreements",
+          "certifications": "Certifications"
+        },
+        "opportunities": {
+          "requisitions": "Requisitions",
+          "postings": "Postings",
+          "pipeline": "Pipeline",
+          "pools": "Pools",
+          "onboarding": "Onboarding",
+          "engagements": "Engagements",
+          "ratings": "Ratings",
+          "marketplaceSettings": "Marketplace Settings"
+        },
+        "crew": {
+          "schedule": "Schedule",
+          "shifts": "Shifts",
+          "swaps": "Swaps",
+          "timeEntries": "Time Entries",
+          "timesheets": "Timesheets",
+          "rateCards": "Rate Cards",
+          "payPeriods": "Pay Periods",
+          "payrollExports": "Payroll Exports",
+          "timeOff": "Time Off"
+        },
+        "finance": {
+          "budgets": "Budgets",
+          "expenses": "Expenses",
+          "changeOrders": "Change Orders",
+          "invoices": "Invoices",
+          "payments": "Payments",
+          "journal": "Journal",
+          "periods": "Periods",
+          "universalPostingLineExport": "Universal Posting Line Export",
+          "chartOfAccounts": "Chart of Accounts",
+          "costCenters": "Cost Centers"
+        },
+        "procurement": {
+          "rfqs": "RFQs",
+          "purchaseOrders": "Purchase Orders",
+          "receipts": "Receipts",
+          "invoiceMatching": "Invoice Matching",
+          "catalog": "Catalog"
+        },
+        "vendors": {
+          "directory": "Directory",
+          "classes": "Classes",
+          "prequalification": "Prequalification",
+          "insuranceCertificates": "Insurance Certificates",
+          "scorecards": "Scorecards",
+          "sponsorEntitlements": "Sponsor Entitlements"
+        },
+        "knowledge": {
+          "sops": "SOPs",
+          "documents": "Documents",
+          "verbiageLibrary": "Verbiage Library"
+        },
+        "reports": {
+          "gateReadiness": "Gate Readiness",
+          "coordinateMatrix": "Coordinate Matrix",
+          "budgetVersusActual": "Budget versus Actual",
+          "labor": "Labor",
+          "purchaseOrderExposure": "Purchase Order Exposure",
+          "incidents": "Incidents",
+          "finalCostReport": "Final Cost Report",
+          "savedReports": "Saved Reports",
+          "builder": "Report Builder"
+        },
+        "canon": {
+          "departments": "Departments",
+          "disciplines": "Disciplines",
+          "categories": "Categories",
+          "elements": "Elements",
+          "phasesAndGates": "Phases and Gates",
+          "recordKinds": "Record Kinds",
+          "roles": "Roles",
+          "jurisdictionsAndPermitRules": "Jurisdictions and Permit Rules",
+          "metrics": "Metrics",
+          "orgExtensions": "Org Extensions"
+        },
+        "activity": {
+          "feed": "Org Activity Feed",
+          "auditLog": "Audit Log"
+        }
+      },
+      "items": {
+        "home": "Home",
+        "inbox": "Inbox",
+        "myWork": "My Work",
+        "projects": "Projects",
+        "schedule": "Schedule",
+        "work": "Work",
+        "show": "Show",
+        "advancing": "Advancing",
+        "places": "Places",
+        "logistics": "Logistics",
+        "hospitality": "Hospitality",
+        "assets": "Assets",
+        "credentials": "Credentials",
+        "safety": "Safety",
+        "people": "People",
+        "opportunities": "Opportunities",
+        "crew": "Crew",
+        "finance": "Finance",
+        "procurement": "Procurement",
+        "vendors": "Vendors",
+        "knowledge": "Knowledge",
+        "reports": "Reports",
+        "canon": "Canon",
+        "activity": "Activity",
+        "settings": "Settings",
+        "personalSettings": "Personal Settings"
+      },
+      "projectTabs": {
+        "overview": "Overview",
+        "scope": "Scope",
+        "gates": "Gates",
+        "schedule": "Schedule",
+        "work": "Work",
+        "show": "Show",
+        "advancing": "Advancing",
+        "logistics": "Logistics",
+        "hospitality": "Hospitality",
+        "assets": "Assets",
+        "crew": "Crew",
+        "engagements": "Engagements",
+        "credentials": "Credentials",
+        "safety": "Safety",
+        "budget": "Budget",
+        "procurement": "Procurement",
+        "documents": "Documents",
+        "reports": "Reports",
+        "activity": "Activity",
+        "settings": "Settings"
+      },
+      "acts": {
+        "plan": "Plan",
+        "build": "Build",
+        "show": "Show"
+      },
+      "routes": {
+        "project": "Project",
+        "partnerConsole": "Partner Console",
+        "record": "Record",
+        "savedView": "Saved View",
+        "import": "Import",
+        "customObject": "Custom Object",
+        "legal": "Legal",
+        "advanceForm": "Advance Form",
+        "agreementSigning": "Agreement Signing",
+        "calendarFeed": "Calendar Feed"
+      },
+      "partner": {
+        "clientOrgs": "Client Orgs",
+        "defaultBrand": "Default Brand",
+        "usage": "Usage",
+        "wholesaleBilling": "Wholesale Billing"
+      },
+      "groups": {
+        "routes": "Direct Routes",
+        "chrome": "Quick Access",
+        "workspace": "Workspace",
+        "production": "Production",
+        "operations": "Operations",
+        "people": "People",
+        "commercial": "Commercial",
+        "knowledge": "Knowledge",
+        "footer": "Footer Navigation",
+        "account": "Account Menu"
+      },
+      "actions": {
+        "search": "Search",
+        "favorites": "Favorites",
+        "menu": "Menu"
+      }
+    },
+    "settings": {
+      "org": {
+        "organizationProfile": "Organization Profile",
+        "general": "General",
+        "legalEntitiesAndFiscal": "Legal Entities and Fiscal",
+        "members": "Members",
+        "rolesAndCapabilities": "Roles and Capabilities",
+        "teams": "Teams",
+        "workspaces": "Workspaces",
+        "departmentsAndDisciplines": "Departments and Disciplines in Use",
+        "locationsAndVenues": "Locations and Venues Defaults",
+        "security": "Security",
+        "accessReviews": "Access Reviews",
+        "whiteLabel": "White Label",
+        "modules": "Modules",
+        "canonExtensions": "Canon Extensions",
+        "templates": "Templates",
+        "customFields": "Custom Fields",
+        "customObjects": "Custom Objects",
+        "viewsAndDefaults": "Views and Defaults",
+        "numbering": "Numbering",
+        "automations": "Automations",
+        "approvalPolicies": "Approval Policies",
+        "spendAuthority": "Spend Authority",
+        "separationOfDuties": "Separation of Duties",
+        "timeAndAttendance": "Time and Attendance",
+        "scheduling": "Scheduling",
+        "payrollAndTimeOff": "Payroll and Time Off",
+        "gatewayAndMarketplace": "Gateway and Marketplace",
+        "communication": "Communication",
+        "notifications": "Notifications Defaults",
+        "aiFeatures": "AI Features",
+        "helpAndSupport": "Help and Support",
+        "integrations": "Integrations",
+        "apiKeysAndServiceAccounts": "API Keys and Service Accounts",
+        "webhooks": "Webhooks",
+        "localization": "Localization",
+        "billingAndPlan": "Billing and Plan",
+        "partner": "Partner",
+        "usage": "Usage",
+        "dataAndPrivacy": "Data and Privacy",
+        "auditLog": "Audit Log",
+        "legal": "Legal",
+        "dangerZone": "Danger Zone"
+      },
+      "personal": {
+        "profile": "Profile",
+        "profilePrivacy": "Profile Privacy",
+        "account": "Account",
+        "security": "Security",
+        "organizations": "Organizations",
+        "preferences": "Preferences",
+        "accessibility": "Accessibility",
+        "notifications": "Notifications",
+        "outOfOffice": "Out of Office",
+        "workDetails": "Work Details",
+        "payoutAndTax": "Payout and Tax",
+        "calendarFeeds": "Calendar Feeds",
+        "connectedApps": "Connected Apps",
+        "keyboardShortcuts": "Keyboard Shortcuts",
+        "developer": "Developer"
+      },
+      "company": {
+        "companyProfileAndPrivacy": "Company Profile and Privacy",
+        "teamAndAccountRoles": "Team and Account Roles",
+        "serviceRegionsAndCapabilities": "Service Regions and Capabilities",
+        "insuranceAndComplianceDocuments": "Insurance and Compliance Documents",
+        "payoutAndTax": "Payout and Tax",
+        "representation": "Representation",
+        "notifications": "Notifications Defaults",
+        "dangerZone": "Danger Zone"
+      }
+    },
+    "gateway": {
+      "engagementTabs": {
+        "overview": "Overview",
+        "roster": "Roster",
+        "approvals": "Approvals",
+        "bid": "Bid",
+        "scope": "Scope",
+        "offer": "Offer",
+        "onboarding": "Onboarding",
+        "training": "Training",
+        "positions": "Positions",
+        "entitlements": "Entitlements",
+        "assetApprovals": "Asset Approvals",
+        "schedule": "Schedule",
+        "runOfShow": "Run of Show",
+        "changeOrders": "Change Orders",
+        "purchaseOrders": "Purchase Orders",
+        "deliveries": "Deliveries",
+        "submittals": "Submittals",
+        "deliverables": "Deliverables",
+        "time": "Time",
+        "shifts": "Shifts",
+        "timesheets": "Timesheets",
+        "travelAndLodging": "Travel and Lodging",
+        "perDiem": "Per Diem",
+        "advance": "Advance",
+        "rider": "Rider",
+        "setTimes": "Set Times",
+        "hospitality": "Hospitality",
+        "guestList": "Guest List",
+        "activationSchedule": "Activation Schedule",
+        "proofOfPerformance": "Proof of Performance",
+        "credentials": "Credentials",
+        "compliance": "Compliance",
+        "settlement": "Settlement",
+        "reports": "Reports",
+        "invoices": "Invoices",
+        "documents": "Documents",
+        "messages": "Messages"
+      },
+      "avatar": {
+        "settings": "Settings",
+        "companySettings": "Company Settings",
+        "profile": "Profile",
+        "documents": "Documents",
+        "switchOrg": "Switch Org",
+        "help": "Help",
+        "signOut": "Sign Out"
+      },
+      "groups": {
+        "primary": "Primary Navigation",
+        "avatar": "Avatar Menu",
+        "public": "Public Pages"
+      },
+      "primary": {
+        "home": "Home",
+        "explore": "Explore",
+        "work": "Work",
+        "money": "Money",
+        "messages": "Messages"
+      },
+      "explore": {
+        "saved": "Saved",
+        "alerts": "Alerts",
+        "opportunity": "Opportunity"
+      },
+      "work": {
+        "upcoming": "Upcoming",
+        "engagements": "Engagements",
+        "applications": "Applications",
+        "engagement": "Engagement"
+      },
+      "money": {
+        "overview": "Overview",
+        "invoices": "Invoices",
+        "timesheets": "Timesheets",
+        "payments": "Payments",
+        "taxDocuments": "Tax Documents"
+      },
+      "messages": {
+        "thread": "Conversation"
+      },
+      "public": {
+        "personProfile": "Person Profile",
+        "companyProfile": "Company Profile",
+        "advanceForm": "Advance Form",
+        "agreementSigning": "Agreement Signing"
+      }
+    },
+    "compass": {
+      "more": {
+        "timesheets": "Timesheets",
+        "perDiem": "Per Diem",
+        "travelAndLodging": "Travel and Lodging",
+        "onboarding": "Onboarding Items",
+        "purchaseOrders": "Purchase Orders",
+        "deliveries": "Deliveries",
+        "submittals": "Submittals",
+        "timeEntries": "Time Entries",
+        "deliverables": "Deliverables",
+        "advanceSummary": "Advance Summary",
+        "rider": "Rider",
+        "settlement": "Settlement",
+        "runOfShow": "Run of Show",
+        "reports": "Reports",
+        "proofOfPerformance": "Proof of Performance",
+        "incidents": "Incidents",
+        "inspections": "Inspections",
+        "logistics": "Logistics",
+        "show": "Show",
+        "expenses": "Expenses",
+        "reference": "Reference",
+        "offlineQueue": "Offline Queue",
+        "profile": "Profile and Certifications",
+        "settings": "Settings"
+      },
+      "reference": {
+        "emergencyCodes": "Emergency Codes",
+        "radioChannels": "Radio Channels",
+        "venueMaps": "Venue Maps",
+        "sops": "SOPs"
+      },
+      "content": {
+        "shifts": "Shifts",
+        "tasks": "Tasks",
+        "daySheet": "Day Sheet",
+        "runOfShow": "Run of Show",
+        "engagedShiftsAndPositions": "Engaged Shifts and Positions",
+        "briefings": "Briefings",
+        "callTimes": "Call Times",
+        "dockSlot": "Dock Slot",
+        "loadInAndLoadOutWindows": "Load-In and Load-Out Windows",
+        "deliveryInstructions": "Delivery Instructions",
+        "tasksAndDeliverablesDue": "Tasks and Deliverables Due",
+        "siteAccessTimes": "Site Access Times",
+        "setTime": "Set Time",
+        "hospitality": "Hospitality",
+        "guestList": "Guest List",
+        "showDaySchedule": "Show-Day Schedule",
+        "approvalsWaiting": "Approvals Waiting",
+        "activationSchedule": "Activation Schedule",
+        "entitlementChecklist": "Entitlement Checklist"
+      },
+      "groups": {
+        "tabs": "Tab Bar",
+        "routes": "Direct Routes"
+      },
+      "tabs": {
+        "today": "Today",
+        "schedule": "Schedule",
+        "scan": "Scan",
+        "inbox": "Inbox",
+        "more": "More",
+        "crew": "Crew"
+      },
+      "scan": {
+        "asset": "Asset",
+        "receiving": "Receiving",
+        "credential": "Credential",
+        "lookup": "Lookup"
+      },
+      "crew": {
+        "board": "Crew Board",
+        "timesheetApprovals": "Timesheet Approvals",
+        "dispatchBoard": "Dispatch Board",
+        "shiftCoverage": "Shift Coverage"
+      },
+      "routes": {
+        "record": "Record"
+      }
+    }
   }
 }

@@ -1,0 +1,609 @@
+# Gateway information architecture (Section 4.5.8, external company settings 4.5.6).
+# Single source for the top bar, bottom tab bar, avatar menu, engagement tabs, routes,
+# breadcrumbs, route guards and the command menu index (Section 3.15). Order is render
+# order. Validated by packages/ia; owned by A27 after the Wave 1 contract freeze.
+#
+# Visibility keys are the person's standing: individual (no company account) or an
+# account role. Engagement tabs render only for the engagement's role type, from the
+# sets under engagementTabs, in order.
+schemaVersion: 1
+shell: gateway
+home: home
+params:
+  opportunityKey: { type: display-key }
+  engagementKey: { type: display-key }
+  threadKey: { type: display-key }
+  handle: { type: handle }
+  companyHandle: { type: handle }
+  token: { type: token }
+audience:
+  dimension: account-role
+  roles: [individual, account-owner, account-admin, account-finance, account-member]
+  roleTypes: [client, vendor, contractor, crew, staff, artist, artist-representative, sponsor]
+chrome:
+  topBar: [home, explore, work, money, messages]
+  mobileBottomBar: [home, explore, work, money, messages]
+  avatarMenu: [profile, documents, settings, action.switch-org, action.help, action.sign-out]
+engagementTabs:
+  container: engagement
+  sets:
+    client:
+      tabs:
+        - engagement.overview
+        - engagement.approvals
+        - engagement.schedule
+        - engagement.run-of-show
+        - engagement.change-orders
+        - engagement.reports
+        - engagement.invoices
+        - engagement.documents
+        - engagement.messages
+    vendor:
+      tabs:
+        - engagement.overview
+        - engagement.bid
+        - engagement.purchase-orders
+        - engagement.deliveries
+        - engagement.submittals
+        - engagement.advance
+        - engagement.invoices
+        - engagement.compliance
+        - engagement.documents
+        - engagement.messages
+    contractor:
+      tabs:
+        - engagement.overview
+        - engagement.scope
+        - engagement.deliverables
+        - engagement.time
+        - engagement.invoices
+        - engagement.documents
+        - engagement.messages
+    crew:
+      tabs:
+        - engagement.overview
+        - engagement.offer
+        - engagement.onboarding
+        - engagement.shifts
+        - engagement.timesheets
+        - engagement.travel-and-lodging
+        - engagement.per-diem
+        - engagement.credentials
+        - engagement.documents
+        - engagement.messages
+    staff:
+      tabs:
+        - engagement.overview
+        - engagement.offer
+        - engagement.onboarding
+        - engagement.training
+        - engagement.positions
+        - engagement.shifts
+        - engagement.timesheets
+        - engagement.credentials
+        - engagement.documents
+        - engagement.messages
+    artist:
+      tabs:
+        - engagement.overview
+        - engagement.offer
+        - engagement.advance
+        - engagement.rider
+        - engagement.set-times
+        - engagement.hospitality
+        - engagement.guest-list
+        - engagement.settlement
+        - engagement.documents
+        - engagement.messages
+    artist-representative:
+      tabs: [engagement.roster]
+      delegatesTo: artist
+      always: [engagement.overview, engagement.messages]
+      scopes:
+        offers: [engagement.offer]
+        advance:
+          - engagement.advance
+          - engagement.rider
+          - engagement.set-times
+          - engagement.hospitality
+          - engagement.guest-list
+        settlement: [engagement.settlement]
+        documents: [engagement.documents]
+    sponsor:
+      tabs:
+        - engagement.overview
+        - engagement.entitlements
+        - engagement.asset-approvals
+        - engagement.activation-schedule
+        - engagement.proof-of-performance
+        - engagement.invoices
+        - engagement.documents
+        - engagement.messages
+nodes:
+  - id: group.primary
+    kind: group
+    label: nav.gateway.groups.primary
+    placement: top-bar
+    children:
+      - id: home
+        kind: item
+        label: nav.gateway.primary.home
+        route: /home
+        visibility:
+          individual: full
+          account-owner: full
+          account-admin: full
+          account-finance: full
+          account-member: assigned
+        list: { views: [feed, inbox], default: feed }
+      - id: explore
+        kind: item
+        label: nav.gateway.primary.explore
+        route: /explore
+        visibility:
+          individual: full
+          account-owner: full
+          account-admin: full
+          account-finance: read
+          account-member: read
+        list: { views: [gallery, list, map], default: gallery }
+        children:
+          - id: explore.saved
+            kind: page
+            label: nav.gateway.explore.saved
+            route: /explore/saved
+            list: { views: [gallery, list], default: gallery }
+          - id: explore.alerts
+            kind: page
+            label: nav.gateway.explore.alerts
+            route: /explore/alerts
+            list: { views: [list], default: list }
+          - id: explore.opportunity
+            kind: record
+            label: nav.gateway.explore.opportunity
+            route: "/explore/{opportunityKey}"
+      - id: work
+        kind: item
+        label: nav.gateway.primary.work
+        route: /work
+        visibility:
+          individual: full
+          account-owner: full
+          account-admin: full
+          account-finance: read
+          account-member: assigned
+        children:
+          - id: work.upcoming
+            kind: page
+            label: nav.gateway.work.upcoming
+            route: /work/upcoming
+            list: { views: [list, calendar], default: list }
+          - id: work.engagements
+            kind: page
+            label: nav.gateway.work.engagements
+            route: /work/engagements
+            list: { views: [list, table, board], default: list }
+          - id: work.applications
+            kind: page
+            label: nav.gateway.work.applications
+            route: /work/applications
+            list: { views: [list, board, table], default: list }
+          - id: engagement
+            kind: record
+            label: nav.gateway.work.engagement
+            route: "/work/engagements/{engagementKey}"
+            children:
+              - id: engagement.overview
+                kind: tab
+                label: nav.gateway.engagementTabs.overview
+                route: "/work/engagements/{engagementKey}/overview"
+              - id: engagement.roster
+                kind: tab
+                label: nav.gateway.engagementTabs.roster
+                route: "/work/engagements/{engagementKey}/roster"
+                list: { views: [list, gallery], default: list }
+              - id: engagement.approvals
+                kind: tab
+                label: nav.gateway.engagementTabs.approvals
+                route: "/work/engagements/{engagementKey}/approvals"
+                list: { views: [list, board], default: list }
+              - id: engagement.bid
+                kind: tab
+                label: nav.gateway.engagementTabs.bid
+                route: "/work/engagements/{engagementKey}/bid"
+              - id: engagement.scope
+                kind: tab
+                label: nav.gateway.engagementTabs.scope
+                route: "/work/engagements/{engagementKey}/scope"
+              - id: engagement.offer
+                kind: tab
+                label: nav.gateway.engagementTabs.offer
+                route: "/work/engagements/{engagementKey}/offer"
+              - id: engagement.onboarding
+                kind: tab
+                label: nav.gateway.engagementTabs.onboarding
+                route: "/work/engagements/{engagementKey}/onboarding"
+              - id: engagement.training
+                kind: tab
+                label: nav.gateway.engagementTabs.training
+                route: "/work/engagements/{engagementKey}/training"
+                list: { views: [list], default: list }
+              - id: engagement.positions
+                kind: tab
+                label: nav.gateway.engagementTabs.positions
+                route: "/work/engagements/{engagementKey}/positions"
+                list: { views: [list, calendar], default: list }
+              - id: engagement.entitlements
+                kind: tab
+                label: nav.gateway.engagementTabs.entitlements
+                route: "/work/engagements/{engagementKey}/entitlements"
+                list: { views: [list, board], default: list }
+              - id: engagement.asset-approvals
+                kind: tab
+                label: nav.gateway.engagementTabs.assetApprovals
+                route: "/work/engagements/{engagementKey}/asset-approvals"
+                list: { views: [list, gallery, board], default: list }
+              - id: engagement.schedule
+                kind: tab
+                label: nav.gateway.engagementTabs.schedule
+                route: "/work/engagements/{engagementKey}/schedule"
+                list: { views: [calendar, list, timeline], default: calendar }
+              - id: engagement.run-of-show
+                kind: tab
+                label: nav.gateway.engagementTabs.runOfShow
+                route: "/work/engagements/{engagementKey}/run-of-show"
+                list: { views: [list, timeline], default: list }
+              - id: engagement.change-orders
+                kind: tab
+                label: nav.gateway.engagementTabs.changeOrders
+                route: "/work/engagements/{engagementKey}/change-orders"
+                list: { views: [table, list], default: table }
+              - id: engagement.purchase-orders
+                kind: tab
+                label: nav.gateway.engagementTabs.purchaseOrders
+                route: "/work/engagements/{engagementKey}/purchase-orders"
+                list: { views: [table, list], default: table }
+              - id: engagement.deliveries
+                kind: tab
+                label: nav.gateway.engagementTabs.deliveries
+                route: "/work/engagements/{engagementKey}/deliveries"
+                list: { views: [list, calendar], default: list }
+              - id: engagement.submittals
+                kind: tab
+                label: nav.gateway.engagementTabs.submittals
+                route: "/work/engagements/{engagementKey}/submittals"
+                list: { views: [list, table], default: list }
+              - id: engagement.deliverables
+                kind: tab
+                label: nav.gateway.engagementTabs.deliverables
+                route: "/work/engagements/{engagementKey}/deliverables"
+                list: { views: [list, board], default: list }
+              - id: engagement.time
+                kind: tab
+                label: nav.gateway.engagementTabs.time
+                route: "/work/engagements/{engagementKey}/time"
+                list: { views: [table, list], default: table }
+              - id: engagement.shifts
+                kind: tab
+                label: nav.gateway.engagementTabs.shifts
+                route: "/work/engagements/{engagementKey}/shifts"
+                list: { views: [list, calendar], default: list }
+              - id: engagement.timesheets
+                kind: tab
+                label: nav.gateway.engagementTabs.timesheets
+                route: "/work/engagements/{engagementKey}/timesheets"
+                list: { views: [table, list], default: table }
+              - id: engagement.travel-and-lodging
+                kind: tab
+                label: nav.gateway.engagementTabs.travelAndLodging
+                route: "/work/engagements/{engagementKey}/travel-and-lodging"
+              - id: engagement.per-diem
+                kind: tab
+                label: nav.gateway.engagementTabs.perDiem
+                route: "/work/engagements/{engagementKey}/per-diem"
+              - id: engagement.advance
+                kind: tab
+                label: nav.gateway.engagementTabs.advance
+                route: "/work/engagements/{engagementKey}/advance"
+              - id: engagement.rider
+                kind: tab
+                label: nav.gateway.engagementTabs.rider
+                route: "/work/engagements/{engagementKey}/rider"
+              - id: engagement.set-times
+                kind: tab
+                label: nav.gateway.engagementTabs.setTimes
+                route: "/work/engagements/{engagementKey}/set-times"
+                list: { views: [list, timeline], default: list }
+              - id: engagement.hospitality
+                kind: tab
+                label: nav.gateway.engagementTabs.hospitality
+                route: "/work/engagements/{engagementKey}/hospitality"
+              - id: engagement.guest-list
+                kind: tab
+                label: nav.gateway.engagementTabs.guestList
+                route: "/work/engagements/{engagementKey}/guest-list"
+                list: { views: [table, list], default: table }
+              - id: engagement.activation-schedule
+                kind: tab
+                label: nav.gateway.engagementTabs.activationSchedule
+                route: "/work/engagements/{engagementKey}/activation-schedule"
+                list: { views: [calendar, list], default: calendar }
+              - id: engagement.proof-of-performance
+                kind: tab
+                label: nav.gateway.engagementTabs.proofOfPerformance
+                route: "/work/engagements/{engagementKey}/proof-of-performance"
+                list: { views: [gallery, list], default: gallery }
+              - id: engagement.credentials
+                kind: tab
+                label: nav.gateway.engagementTabs.credentials
+                route: "/work/engagements/{engagementKey}/credentials"
+                list: { views: [list], default: list }
+              - id: engagement.compliance
+                kind: tab
+                label: nav.gateway.engagementTabs.compliance
+                route: "/work/engagements/{engagementKey}/compliance"
+              - id: engagement.settlement
+                kind: tab
+                label: nav.gateway.engagementTabs.settlement
+                route: "/work/engagements/{engagementKey}/settlement"
+              - id: engagement.reports
+                kind: tab
+                label: nav.gateway.engagementTabs.reports
+                route: "/work/engagements/{engagementKey}/reports"
+                list: { views: [list, table], default: list }
+              - id: engagement.invoices
+                kind: tab
+                label: nav.gateway.engagementTabs.invoices
+                route: "/work/engagements/{engagementKey}/invoices"
+                list: { views: [table, list], default: table }
+              - id: engagement.documents
+                kind: tab
+                label: nav.gateway.engagementTabs.documents
+                route: "/work/engagements/{engagementKey}/documents"
+                list: { views: [list, table], default: list }
+              - id: engagement.messages
+                kind: tab
+                label: nav.gateway.engagementTabs.messages
+                route: "/work/engagements/{engagementKey}/messages"
+      - id: money
+        kind: item
+        label: nav.gateway.primary.money
+        route: /money
+        visibility:
+          individual: full
+          account-owner: full
+          account-admin: full
+          account-finance: full
+          account-member: hidden
+        children:
+          - id: money.overview
+            kind: page
+            label: nav.gateway.money.overview
+            route: /money/overview
+            list: { views: [chart], default: chart }
+          - id: money.invoices
+            kind: page
+            label: nav.gateway.money.invoices
+            route: /money/invoices
+            list: { views: [table, list], default: table }
+          - id: money.timesheets
+            kind: page
+            label: nav.gateway.money.timesheets
+            route: /money/timesheets
+            list: { views: [table, list], default: table }
+          - id: money.payments
+            kind: page
+            label: nav.gateway.money.payments
+            route: /money/payments
+            list: { views: [table, list], default: table }
+          - id: money.tax-documents
+            kind: page
+            label: nav.gateway.money.taxDocuments
+            route: /money/tax-documents
+            list: { views: [table, list], default: table }
+      - id: messages
+        kind: item
+        label: nav.gateway.primary.messages
+        route: /messages
+        visibility:
+          individual: full
+          account-owner: full
+          account-admin: full
+          account-finance: assigned
+          account-member: assigned
+        list: { views: [split, list], default: split }
+        children:
+          - id: messages.thread
+            kind: record
+            label: nav.gateway.messages.thread
+            route: "/messages/{threadKey}"
+  - id: group.avatar
+    kind: group
+    label: nav.gateway.groups.avatar
+    placement: avatar-menu
+    children:
+      - id: profile
+        kind: item
+        label: nav.gateway.avatar.profile
+        route: /profile
+        visibility:
+          individual: full
+          account-owner: full
+          account-admin: full
+          account-finance: full
+          account-member: full
+      - id: documents
+        kind: item
+        label: nav.gateway.avatar.documents
+        route: /documents
+        visibility:
+          individual: full
+          account-owner: full
+          account-admin: full
+          account-finance: full
+          account-member: assigned
+        list: { views: [table, list], default: table }
+      - id: settings
+        kind: item
+        label: nav.gateway.avatar.settings
+        route: /settings
+        visibility:
+          individual: full
+          account-owner: full
+          account-admin: full
+          account-finance: full
+          account-member: full
+        children:
+          - id: settings.profile
+            kind: section
+            label: nav.settings.personal.profile
+            route: /settings/profile
+          - id: settings.profile-privacy
+            kind: section
+            label: nav.settings.personal.profilePrivacy
+            route: /settings/profile-privacy
+          - id: settings.account
+            kind: section
+            label: nav.settings.personal.account
+            route: /settings/account
+          - id: settings.security
+            kind: section
+            label: nav.settings.personal.security
+            route: /settings/security
+          - id: settings.organizations
+            kind: section
+            label: nav.settings.personal.organizations
+            route: /settings/organizations
+          - id: settings.preferences
+            kind: section
+            label: nav.settings.personal.preferences
+            route: /settings/preferences
+          - id: settings.accessibility
+            kind: section
+            label: nav.settings.personal.accessibility
+            route: /settings/accessibility
+          - id: settings.notifications
+            kind: section
+            label: nav.settings.personal.notifications
+            route: /settings/notifications
+          - id: settings.out-of-office
+            kind: section
+            label: nav.settings.personal.outOfOffice
+            route: /settings/out-of-office
+          - id: settings.work-details
+            kind: section
+            label: nav.settings.personal.workDetails
+            route: /settings/work-details
+          - id: settings.payout-and-tax
+            kind: section
+            label: nav.settings.personal.payoutAndTax
+            route: /settings/payout-and-tax
+          - id: settings.calendar-feeds
+            kind: section
+            label: nav.settings.personal.calendarFeeds
+            route: /settings/calendar-feeds
+          - id: settings.connected-apps
+            kind: section
+            label: nav.settings.personal.connectedApps
+            route: /settings/connected-apps
+          - id: settings.keyboard-shortcuts
+            kind: section
+            label: nav.settings.personal.keyboardShortcuts
+            route: /settings/keyboard-shortcuts
+            conditions: [desktop]
+          - id: settings.developer
+            kind: section
+            label: nav.settings.personal.developer
+            route: /settings/developer
+            conditions: [org-allows-personal-tokens]
+          - id: settings.company
+            kind: section
+            label: nav.gateway.avatar.companySettings
+            route: /settings/company
+            conditions: [company-account]
+            visibility:
+              individual: hidden
+              account-owner: full
+              account-admin: full
+              account-finance: read
+              account-member: read
+            children:
+              - id: settings.company.company-profile-and-privacy
+                kind: section
+                label: nav.settings.company.companyProfileAndPrivacy
+                route: /settings/company/company-profile-and-privacy
+              - id: settings.company.team-and-account-roles
+                kind: section
+                label: nav.settings.company.teamAndAccountRoles
+                route: /settings/company/team-and-account-roles
+              - id: settings.company.service-regions-and-capabilities
+                kind: section
+                label: nav.settings.company.serviceRegionsAndCapabilities
+                route: /settings/company/service-regions-and-capabilities
+              - id: settings.company.insurance-and-compliance-documents
+                kind: section
+                label: nav.settings.company.insuranceAndComplianceDocuments
+                route: /settings/company/insurance-and-compliance-documents
+              - id: settings.company.payout-and-tax
+                kind: section
+                label: nav.settings.company.payoutAndTax
+                route: /settings/company/payout-and-tax
+                visibility:
+                  individual: hidden
+                  account-owner: full
+                  account-admin: full
+                  account-finance: full
+                  account-member: hidden
+              - id: settings.company.representation
+                kind: section
+                label: nav.settings.company.representation
+                route: /settings/company/representation
+              - id: settings.company.notifications
+                kind: section
+                label: nav.settings.company.notifications
+                route: /settings/company/notifications
+              - id: settings.company.danger-zone
+                kind: section
+                label: nav.settings.company.dangerZone
+                route: /settings/company/danger-zone
+                visibility:
+                  individual: hidden
+                  account-owner: full
+                  account-admin: hidden
+                  account-finance: hidden
+                  account-member: hidden
+      - id: action.switch-org
+        kind: action
+        label: nav.gateway.avatar.switchOrg
+        conditions: [platform-domain]
+      - id: action.help
+        kind: action
+        label: nav.gateway.avatar.help
+      - id: action.sign-out
+        kind: action
+        label: nav.gateway.avatar.signOut
+  - id: group.public
+    kind: group
+    label: nav.gateway.groups.public
+    placement: none
+    children:
+      - id: person-profile
+        kind: page
+        label: nav.gateway.public.personProfile
+        route: "/u/{handle}"
+        auth: public
+      - id: company-profile
+        kind: page
+        label: nav.gateway.public.companyProfile
+        route: "/c/{companyHandle}"
+        auth: public
+      - id: advance-form
+        kind: page
+        label: nav.gateway.public.advanceForm
+        route: "/advance/{token}"
+        auth: token
+      - id: agreement-signing
+        kind: page
+        label: nav.gateway.public.agreementSigning
+        route: "/sign/{token}"
+        auth: token
