@@ -1,0 +1,12 @@
+{
+  "shell": {
+    "atlas": {
+      "name": "Atlas",
+      "tagline": "Plan, budget, procure, staff, advance and close every production."
+    },
+    "gateway": {
+      "name": "Gateway",
+      "tagline": "Find work, get onboarded, deliver and get paid."
+    }
+  }
+}

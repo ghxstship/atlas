@@ -1,0 +1,27 @@
+{
+  "name": "xos",
+  "private": true,
+  "description": "XOS 4.0: Atlas, Gateway and Compass on one backend, one API and one design system.",
+  "license": "AGPL-3.0-only",
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "guard:finish": "node --experimental-strip-types --no-warnings packages/config/src/finish-guard-cli.ts",
+    "verify": "pnpm format:check && pnpm guard:finish && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@xos/config": "workspace:*",
+    "prettier": "3.9.9",
+    "turbo": "2.11.7",
+    "typescript": "6.0.3"
+  }
+}

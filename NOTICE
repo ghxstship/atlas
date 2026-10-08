@@ -1,0 +1,21 @@
+XOS 4.0
+Copyright (c) 2026 GHXSTSHIP Industries LLC
+
+This repository contains components under three licenses:
+
+1. AGPL-3.0-only (see LICENSE)
+   apps/atlas, apps/gateway, apps/compass, apps/console, packages/api,
+   packages/data and supabase/.
+
+2. MIT (see the LICENSE file in each package)
+   SDKs, design tokens, UI libraries, schemas, the CLI, the MCP server
+   and shared configuration: packages/sdk-ts, packages/tokens, packages/ui,
+   packages/ui-native, packages/icons, packages/schemas, packages/i18n,
+   packages/config and their published artifacts.
+
+3. CC BY 4.0
+   Canon data published from the XOS 4.0 Bible (canon/ and the generated
+   xpms seed). The XOS name and marks are reserved; see TRADEMARKS.md.
+
+Third-party components are listed with their licenses in the Open Source
+Licenses page generated from each release SBOM.

@@ -1,0 +1,12 @@
+{
+  "shell": {
+    "atlas": {
+      "name": "Atlas",
+      "tagline": "Planifica, presupuesta, compra, contrata, coordina y cierra cada producción."
+    },
+    "gateway": {
+      "name": "Gateway",
+      "tagline": "Encuentra trabajo, completa tu incorporación, entrega y recibe tu pago."
+    }
+  }
+}

@@ -1,0 +1,22 @@
+name: Feature request
+description: Propose a change to a module, workflow or the platform.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Who is affected and what they cannot do today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
+  - type: input
+    id: section
+    attributes:
+      label: Build prompt section or ADR
+      description: The section of the XOS 4.0 build prompt or the ADR this touches.
