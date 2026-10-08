@@ -3,3 +3,4 @@ canon/source/
 supabase/migrations/
 LICENSE
 docs/spec/
+.claude/

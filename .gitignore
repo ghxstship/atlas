@@ -16,3 +16,6 @@ supabase/.branches/
 supabase/.temp/
 # Canon inputs are fetched from Drive and committed deliberately; reports are generated.
 canon/reports/
+
+# Claude Code agent worktrees and local state
+.claude/
