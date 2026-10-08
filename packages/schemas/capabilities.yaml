@@ -1,0 +1,1355 @@
+# XOS capability registry (Section 8, Section 3.15, ADR 0005).
+#
+# This file is the single source of every capability, every platform role and every
+# default grant. The generator in src/capabilities emits the capability seed migration
+# from it; RLS helpers, UI permission checks, API scopes and docs read the same data.
+#
+# Grant derivation. Each module states, per platform role, one visibility level taken
+# from the Section 4.5.9 table. A role's grants in that module follow from the level and
+# from each capability's class:
+#   full      every capability at organization reach. A Member reaches write, approve and
+#             export capabilities of project-scoped modules only on assigned projects, and
+#             holds no manage capability (Section 8: Member creates and edits within
+#             projects they belong to).
+#   read      read capabilities at organization reach.
+#   assigned  read and write capabilities at assigned reach (projects, workspaces and
+#             teams the person is a member of or assigned to).
+#   own       read and write capabilities marked own, at own reach (the person's own rows).
+#   hidden    nothing.
+# A capability that lists roles overrides the derivation entirely for that capability.
+
+version: 1
+
+roles:
+  - code: owner
+    band: 1
+    description: Everything, including billing, deletion and data rights.
+  - code: admin
+    band: 2
+    description: Org configuration, members, integrations and canon extensions.
+  - code: manager
+    band: 3
+    description: Full project and finance operations.
+  - code: member
+    band: 4
+    description: Creates and edits within projects they belong to, with no finance approval.
+  - code: collaborator
+    band: 5
+    description: Edits assigned records only, with no finance or procurement writes.
+  - code: field
+    band: 6
+    description: Compass field functions, own shifts, own time and assigned tasks.
+  - code: viewer
+    band: 7
+    description: Reads within granted scopes.
+
+modules:
+  - code: home
+    group: workspace
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: full,
+        field: full,
+        viewer: read,
+      }
+    capabilities:
+      - code: home.dashboard.read
+        class: read
+        description: Read the org dashboard, today, gate readiness across projects and recent items.
+      - code: home.alerts.read
+        class: read
+        description: Read alerts raised for the projects and records the person can see.
+
+  - code: inbox
+    group: workspace
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: full,
+        field: full,
+        viewer: read,
+      }
+    capabilities:
+      - code: inbox.notifications.read
+        class: read
+        description: Read notifications, approvals waiting on the person and mentions.
+      - code: inbox.notifications.write
+        class: write
+        own: true
+        description: Mark the person's own notifications read, archived or snoozed.
+        roles:
+          {
+            owner: own,
+            admin: own,
+            manager: own,
+            member: own,
+            collaborator: own,
+            field: own,
+            viewer: own,
+          }
+
+  - code: my_work
+    group: workspace
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: full,
+        field: full,
+        viewer: read,
+      }
+    capabilities:
+      - code: my_work.items.read
+        class: read
+        description: Read the records the person owns or is accountable for.
+
+  - code: projects
+    group: production
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: projects.project.read
+        class: read
+        description: Read projects, their scope tree, jurisdiction and phase.
+      - code: projects.project.create
+        class: manage
+        description: Create a project, including from a template.
+      - code: projects.project.write
+        class: write
+        description: Edit a project's details, key dates, region and tier.
+      - code: projects.project.archive
+        class: manage
+        description: Archive or restore a project.
+      - code: projects.scope.write
+        class: write
+        description: Edit the scope tree, requirements and element selection.
+      - code: projects.gate.read
+        class: read
+        description: Read gates, criteria, evidence and transition history.
+      - code: projects.gate.evidence.write
+        class: write
+        description: Attach or withdraw evidence against a gate criterion.
+      - code: projects.gate.transition
+        class: approve
+        description: Move a project through a gate when every blocking criterion has evidence.
+      - code: projects.members.manage
+        class: manage
+        description: Add and remove project members and set their project roles.
+      - code: projects.settings.write
+        class: manage
+        description: Edit project settings, including the project key and Gateway access.
+      - code: projects.template.write
+        class: manage
+        description: Create and edit project templates.
+      - code: projects.project.export
+        class: export
+        description: Export project data.
+
+  - code: schedule
+    group: production
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: schedule.timeline.read
+        class: read
+        description: Read timelines, calendars, milestones, dependencies and actuals.
+      - code: schedule.timeline.write
+        class: write
+        description: Create and edit timeline records, dependencies and actuals.
+      - code: schedule.milestone.write
+        class: write
+        description: Create and edit milestones.
+      - code: schedule.baseline.write
+        class: manage
+        description: Set or replace a schedule baseline.
+      - code: schedule.timeline.export
+        class: export
+        description: Export schedules and calendars.
+
+  - code: work
+    group: production
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: work.record.read
+        class: read
+        description: Read work records of every kind.
+      - code: work.record.write
+        class: write
+        description: Create and edit work records and move them through record states.
+      - code: work.work_order.read
+        class: read
+        description: Read work orders and their bids.
+      - code: work.work_order.write
+        class: write
+        description: Create and edit work orders.
+      - code: work.work_order.award
+        class: approve
+        description: Award a work order to a bidder.
+      - code: work.punch_list.write
+        class: write
+        description: Create and close punch list items.
+      - code: work.recurring.write
+        class: manage
+        description: Create and edit recurring record rules.
+      - code: work.record.export
+        class: export
+        description: Export work records.
+
+  - code: show
+    group: production
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: show.run_of_show.read
+        class: read
+        description: Read the run of show, cues, day sheets and call sheets.
+      - code: show.run_of_show.write
+        class: write
+        description: Create and edit the run of show and its cues.
+      - code: show.cue.call
+        class: write
+        description: Call cues live during a show.
+      - code: show.day_sheet.write
+        class: write
+        description: Create and edit day sheets and call sheets.
+      - code: show.call_sheet.publish
+        class: approve
+        description: Publish a call sheet or day sheet to its recipients.
+
+  - code: advancing
+    group: production
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: advancing.packet.read
+        class: read
+        description: Read advance packets, sections, recipients and submissions.
+      - code: advancing.packet.write
+        class: write
+        description: Create and edit advance packets and their sections.
+      - code: advancing.packet.send
+        class: approve
+        description: Send an advance packet to its recipients.
+      - code: advancing.submission.review
+        class: approve
+        description: Accept or return an advance submission.
+      - code: advancing.rider.write
+        class: write
+        description: Record riders and their fulfillment.
+      - code: advancing.reconciliation.write
+        class: write
+        description: Reconcile advanced items against what was delivered.
+
+  - code: places
+    group: operations
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: places.venue.read
+        class: read
+        description: Read venues, spaces, zones, capability documents and site plans.
+      - code: places.venue.write
+        class: write
+        description: Create and edit venues.
+      - code: places.space.write
+        class: write
+        description: Create and edit spaces and zones.
+      - code: places.capability_document.write
+        class: write
+        description: Upload and edit venue capability documents.
+      - code: places.site_plan.write
+        class: write
+        description: Upload and edit site plans.
+
+  - code: logistics
+    group: operations
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: logistics.shipment.read
+        class: read
+        description: Read shipments, dock slots and the marshalling yard log.
+      - code: logistics.shipment.write
+        class: write
+        description: Create and edit shipments and manifests.
+      - code: logistics.dock_slot.write
+        class: write
+        description: Book and change dock slots.
+      - code: logistics.yard.write
+        class: write
+        description: Record arrivals, staging and queue position in the marshalling yard log.
+      - code: logistics.release.approve
+        class: approve
+        description: Release a staged vehicle or shipment from the marshalling yard.
+
+  - code: hospitality
+    group: operations
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: hospitality.fulfillment.read
+        class: read
+        description: Read lodging, catering, travel and amenity fulfillments and BEOs.
+      - code: hospitality.fulfillment.write
+        class: write
+        description: Create and edit hospitality fulfillments.
+      - code: hospitality.beo.write
+        class: write
+        description: Create and edit banquet event orders.
+      - code: hospitality.beo.approve
+        class: approve
+        description: Approve a banquet event order for issue to the venue or caterer.
+      - code: hospitality.accommodation.write
+        class: write
+        description: Create and edit accommodation blocks and room assignments.
+
+  - code: assets
+    group: operations
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: assets.asset.read
+        class: read
+        description: Read asset classes, units, lots, custody, maintenance and damage.
+      - code: assets.asset.write
+        class: write
+        description: Create and edit assets at class, unit and lot grain.
+      - code: assets.custody.write
+        class: write
+        description: Check assets out and in and record custody transfers.
+      - code: assets.maintenance.write
+        class: write
+        description: Record maintenance on assets.
+      - code: assets.damage.write
+        class: write
+        description: Report damage to assets.
+      - code: assets.write_off.approve
+        class: approve
+        description: Approve writing off a damaged or lost asset.
+      - code: assets.asset.export
+        class: export
+        description: Export the asset register.
+
+  - code: credentials
+    group: operations
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: credentials.credential.read
+        class: read
+        description: Read credential categories, issued credentials and the Access Grid.
+      - code: credentials.category.write
+        class: manage
+        description: Create and edit credential categories.
+      - code: credentials.access_grid.write
+        class: manage
+        description: Edit the zone by category access matrix.
+      - code: credentials.credential.issue
+        class: approve
+        description: Issue a credential to someone other than the issuer.
+      - code: credentials.credential.revoke
+        class: approve
+        description: Revoke an issued credential.
+      - code: credentials.scan.write
+        class: write
+        description: Scan credentials at an access point.
+      - code: credentials.scan_log.read
+        class: read
+        description: Read the credential scan log.
+
+  - code: safety
+    group: operations
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: assigned,
+        viewer: read,
+      }
+    capabilities:
+      - code: safety.permit.read
+        class: read
+        description: Read permits produced by the permit engine.
+      - code: safety.permit.write
+        class: write
+        description: Record permit applications, conditions and approvals.
+      - code: safety.inspection.read
+        class: read
+        description: Read inspections and their findings.
+      - code: safety.inspection.write
+        class: write
+        description: Perform inspections and record findings.
+      - code: safety.inspection.sign_off
+        class: approve
+        description: Sign off a completed inspection.
+      - code: safety.inspection_template.write
+        class: manage
+        description: Create and edit inspection templates.
+      - code: safety.incident.read
+        class: read
+        description: Read incidents and the dispatch board.
+      - code: safety.incident.write
+        class: write
+        description: Report incidents and add updates.
+      - code: safety.incident.dispatch
+        class: write
+        description: Dispatch responders to an incident.
+      - code: safety.incident.close
+        class: approve
+        description: Sign off and close an incident.
+      - code: safety.emergency_code.write
+        class: manage
+        description: Edit the org's emergency codes.
+      - code: safety.radio_channel.write
+        class: manage
+        description: Edit the radio channel plan.
+
+  - code: people
+    group: people
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: read,
+        collaborator: hidden,
+        field: own,
+        viewer: hidden,
+      }
+    capabilities:
+      - code: people.directory.read
+        class: read
+        description: Read the people directory, memberships and roles of the org.
+      - code: people.profile.read
+        class: read
+        own: true
+        description: Read a person's org-side record, certifications and assignments.
+      - code: people.profile.write
+        class: write
+        own: true
+        description: Edit a person's org-side record.
+      - code: people.role.write
+        class: manage
+        description: Edit the org's workforce roles and staffing ratios.
+      - code: people.requisition.read
+        class: read
+        description: Read staffing requisitions.
+      - code: people.requisition.write
+        class: write
+        description: Create and edit staffing requisitions.
+      - code: people.requisition.approve
+        class: approve
+        description: Approve a staffing requisition.
+      - code: people.offer.write
+        class: write
+        description: Draft offers to people.
+      - code: people.offer.approve
+        class: approve
+        description: Approve and send an offer.
+      - code: people.agreement.write
+        class: write
+        description: Prepare agreements for signature.
+      - code: people.certification.read
+        class: read
+        own: true
+        description: Read certifications and their evidence.
+      - code: people.certification.write
+        class: write
+        own: true
+        description: Record a certification with evidence for verification.
+      - code: people.certification.verify
+        class: approve
+        description: Verify a certification held by someone else.
+
+  - code: opportunities
+    group: people
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: read,
+        collaborator: hidden,
+        field: hidden,
+        viewer: read,
+      }
+    capabilities:
+      - code: opportunities.posting.read
+        class: read
+        description: Read requisitions turned into opportunities and their postings.
+      - code: opportunities.posting.write
+        class: write
+        description: Create and edit opportunity postings.
+      - code: opportunities.posting.publish
+        class: approve
+        description: Publish a posting to invited parties or the marketplace.
+      - code: opportunities.application.read
+        class: read
+        description: Read applications and bids received.
+      - code: opportunities.application.review
+        class: write
+        description: Shortlist, interview and score applications.
+      - code: opportunities.selection.decide
+        class: approve
+        description: Select or decline applicants.
+      - code: opportunities.offer.send
+        class: approve
+        description: Send an offer to a selected applicant.
+      - code: opportunities.onboarding.write
+        class: write
+        description: Manage onboarding items and verifications.
+      - code: opportunities.engagement.read
+        class: read
+        description: Read external engagements and their onboarding progress.
+      - code: opportunities.engagement.write
+        class: write
+        description: Edit external engagements and move them through engagement states.
+      - code: opportunities.pool.write
+        class: write
+        description: Manage talent and vendor pools.
+      - code: opportunities.rating.write
+        class: write
+        description: Rate external parties after an engagement.
+      - code: opportunities.marketplace.manage
+        class: manage
+        description: Edit marketplace settings for the org.
+
+  - code: crew
+    group: people
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: read,
+        collaborator: hidden,
+        field: own,
+        viewer: hidden,
+      }
+    capabilities:
+      - code: crew.schedule.read
+        class: read
+        description: Read the crew schedule across shifts and positions.
+      - code: crew.shift.read
+        class: read
+        own: true
+        description: Read shifts and assignments.
+      - code: crew.shift.write
+        class: write
+        description: Create, edit and assign shifts.
+      - code: crew.swap.request
+        class: write
+        own: true
+        description: Request or withdraw a shift swap.
+      - code: crew.swap.approve
+        class: approve
+        description: Approve a shift swap requested by someone else.
+      - code: crew.time_entry.read
+        class: read
+        own: true
+        description: Read time entries and punches.
+      - code: crew.time_entry.write
+        class: write
+        own: true
+        description: Clock in and out and record breaks.
+      - code: crew.timesheet.read
+        class: read
+        own: true
+        description: Read timesheets.
+      - code: crew.timesheet.submit
+        class: write
+        own: true
+        description: Submit a timesheet for approval.
+      - code: crew.timesheet.approve
+        class: approve
+        description: Approve a timesheet submitted by someone else.
+      - code: crew.time_off.request
+        class: write
+        own: true
+        description: Request time off.
+      - code: crew.time_off.approve
+        class: approve
+        description: Approve time off requested by someone else.
+      - code: crew.rate_card.read
+        class: read
+        description: Read labor rate cards.
+      - code: crew.rate_card.write
+        class: manage
+        description: Edit labor rate cards.
+      - code: crew.pay_period.manage
+        class: manage
+        description: Open, close and post pay periods.
+      - code: crew.payroll.export
+        class: export
+        description: Produce a payroll export.
+
+  - code: finance
+    group: commercial
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: read,
+        collaborator: hidden,
+        field: hidden,
+        viewer: hidden,
+      }
+    capabilities:
+      - code: finance.budget.read
+        class: read
+        description: Read budgets, budget lines, contingency and the cost forecast.
+      - code: finance.budget.write
+        class: write
+        description: Edit budgets and budget lines.
+      - code: finance.budget.approve
+        class: approve
+        description: Approve a budget or a budget revision.
+      - code: finance.expense.read
+        class: read
+        description: Read expenses.
+      - code: finance.expense.write
+        class: write
+        description: Record expenses against a budget line.
+      - code: finance.expense.approve
+        class: approve
+        description: Approve an expense submitted by someone else.
+      - code: finance.change_order.read
+        class: read
+        description: Read change orders.
+      - code: finance.change_order.write
+        class: write
+        description: Request a change order.
+      - code: finance.change_order.price
+        class: write
+        description: Price a change order.
+      - code: finance.change_order.approve
+        class: approve
+        description: Approve a change order that someone else requested.
+      - code: finance.po.approve
+        class: approve
+        description: Approve a purchase order created by someone else, within spend authority.
+      - code: finance.invoice.read
+        class: read
+        description: Read invoices received and issued.
+      - code: finance.invoice.write
+        class: write
+        description: Record and edit invoices.
+      - code: finance.invoice.approve
+        class: approve
+        description: Approve an invoice for payment.
+      - code: finance.payment.read
+        class: read
+        description: Read payments.
+      - code: finance.payment.write
+        class: write
+        description: Record payments.
+      - code: finance.payment.approve
+        class: approve
+        description: Approve a payment run.
+      - code: finance.journal.read
+        class: read
+        description: Read the journal and ledger.
+      - code: finance.journal.write
+        class: write
+        description: Prepare journal entries.
+      - code: finance.journal.post
+        class: approve
+        description: Post a journal entry prepared by someone else.
+      - code: finance.period.manage
+        class: manage
+        description: Open financial periods and manage their calendar.
+      - code: finance.period.close
+        class: approve
+        description: Close or audit a financial period.
+      - code: finance.gl.read
+        class: read
+        description: Read the chart of accounts.
+      - code: finance.cost_center.write
+        class: manage
+        description: Create and edit cost centers.
+      - code: finance.upl.export
+        class: export
+        description: Produce the Universal Posting Line export.
+
+  - code: procurement
+    group: commercial
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: read,
+        collaborator: hidden,
+        field: hidden,
+        viewer: hidden,
+      }
+    capabilities:
+      - code: procurement.rfq.read
+        class: read
+        description: Read RFQs and invitations to bid.
+      - code: procurement.rfq.write
+        class: write
+        description: Create and edit RFQs.
+      - code: procurement.rfq.issue
+        class: approve
+        description: Issue an RFQ to invited vendors or the marketplace.
+      - code: procurement.bid.read
+        class: read
+        description: Read bids after their deadline has passed.
+      - code: procurement.bid.unseal
+        class: approve
+        description: Read sealed bids before their deadline.
+      - code: procurement.bid.award
+        class: approve
+        description: Award an RFQ to a bidder.
+      - code: procurement.po.read
+        class: read
+        description: Read purchase orders and their line items.
+      - code: procurement.po.write
+        class: write
+        description: Create and edit purchase orders.
+      - code: procurement.po.send
+        class: write
+        description: Send an approved purchase order to its vendor.
+      - code: procurement.receipt.write
+        class: write
+        description: Record receipts against purchase orders.
+      - code: procurement.invoice_match.write
+        class: write
+        description: Run three-way matching of invoices, receipts and purchase orders.
+      - code: procurement.catalog.read
+        class: read
+        description: Read the procurement catalog.
+      - code: procurement.catalog.write
+        class: manage
+        description: Edit org catalog items and bindings.
+
+  - code: vendors
+    group: commercial
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: read,
+        collaborator: hidden,
+        field: hidden,
+        viewer: hidden,
+      }
+    capabilities:
+      - code: vendors.vendor.read
+        class: read
+        description: Read vendors, classes, prequalification, insurance certificates and scorecards.
+      - code: vendors.vendor.write
+        class: write
+        description: Create and edit vendors.
+      - code: vendors.bank_details.write
+        class: manage
+        description: Edit a vendor's bank details.
+      - code: vendors.class.write
+        class: manage
+        description: Edit vendor classes.
+      - code: vendors.prequalification.approve
+        class: approve
+        description: Approve a vendor's prequalification.
+      - code: vendors.coi.write
+        class: write
+        description: Record insurance certificates.
+      - code: vendors.scorecard.write
+        class: write
+        description: Score vendor performance.
+      - code: vendors.entitlement.write
+        class: write
+        description: Edit sponsor entitlements.
+
+  - code: knowledge
+    group: knowledge
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: read,
+        field: read,
+        viewer: read,
+      }
+    capabilities:
+      - code: knowledge.sop.read
+        class: read
+        description: Read SOPs.
+      - code: knowledge.sop.write
+        class: write
+        description: Draft and edit SOPs.
+      - code: knowledge.sop.publish
+        class: approve
+        description: Publish an SOP and require acknowledgment.
+      - code: knowledge.sop.acknowledge
+        class: write
+        own: true
+        description: Acknowledge an SOP the person is required to read.
+        roles:
+          {
+            owner: own,
+            admin: own,
+            manager: own,
+            member: own,
+            collaborator: own,
+            field: own,
+            viewer: own,
+          }
+      - code: knowledge.document.read
+        class: read
+        description: Read documents and their versions.
+      - code: knowledge.document.write
+        class: write
+        description: Upload and version documents.
+      - code: knowledge.verbiage.read
+        class: read
+        description: Read the verbiage library.
+      - code: knowledge.verbiage.write
+        class: manage
+        description: Edit the controlled vocabulary of the verbiage library.
+
+  - code: reports
+    group: knowledge
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: read,
+        collaborator: hidden,
+        field: hidden,
+        viewer: read,
+      }
+    capabilities:
+      - code: reports.report.read
+        class: read
+        description: Read reports and dashboards.
+      - code: reports.report.write
+        class: write
+        description: Build and save reports and dashboards.
+      - code: reports.schedule.write
+        class: manage
+        description: Schedule report delivery and warehouse delivery.
+      - code: reports.report.export
+        class: export
+        description: Export report results.
+
+  - code: canon
+    group: knowledge
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: read,
+        member: read,
+        collaborator: read,
+        field: hidden,
+        viewer: read,
+      }
+    capabilities:
+      - code: canon.taxonomy.read
+        class: read
+        description: Browse departments, disciplines, categories, elements, phases, record kinds and roles.
+      - code: canon.extension.write
+        class: manage
+        description: Create and edit org canon extensions in the .50 to .99 range.
+
+  - code: activity
+    group: footer
+    project_scoped: true
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: full,
+        member: full,
+        collaborator: assigned,
+        field: hidden,
+        viewer: read,
+      }
+    capabilities:
+      - code: activity.feed.read
+        class: read
+        description: Read the activity feed.
+
+  - code: audit
+    group: footer
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: hidden,
+        member: hidden,
+        collaborator: hidden,
+        field: hidden,
+        viewer: hidden,
+      }
+    capabilities:
+      - code: audit.log.read
+        class: read
+        description: Read the compliance audit ledger.
+      - code: audit.log.export
+        class: export
+        description: Export the compliance audit ledger.
+
+  - code: org
+    group: settings
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: hidden,
+        member: hidden,
+        collaborator: hidden,
+        field: hidden,
+        viewer: hidden,
+      }
+    capabilities:
+      - code: org.settings.read
+        class: read
+        description: Read org settings pages.
+      - code: org.profile.write
+        class: write
+        description: Edit the organization profile, its sections, visibility, handle and verification.
+      - code: org.general.write
+        class: write
+        description: Edit the org name, legal name, logo, default workspace and default landing page.
+      - code: org.legal_entities.write
+        class: write
+        description: Edit legal entities, tax identifiers, fiscal year start, base currency and invoice numbering.
+      - code: org.members.read
+        class: read
+        description: Read members, pending invitations and capability grants.
+      - code: org.members.invite
+        class: manage
+        description: Invite people to the org with a role and expiry.
+      - code: org.members.manage
+        class: manage
+        description: Assign and remove roles, grant capabilities and end memberships.
+      - code: org.roles.manage
+        class: manage
+        description: Create and edit custom roles from the capability set.
+      - code: org.teams.manage
+        class: manage
+        description: Create and edit teams and their members.
+      - code: org.workspaces.manage
+        class: manage
+        description: Create and edit workspaces and their members.
+      - code: org.departments.write
+        class: write
+        description: Choose the canon departments and disciplines the org works in.
+      - code: org.locations.write
+        class: write
+        description: Edit defaults for locations and venues.
+      - code: org.security.write
+        class: manage
+        description: Edit MFA policy, sessions, IP allow-list, SSO, SCIM, verified domains and automatic join.
+      - code: org.access_reviews.manage
+        class: manage
+        description: Run access review campaigns.
+      - code: org.access_grants.manage
+        class: manage
+        description: Grant and revoke record grants, including standing partner grants.
+      - code: org.view_as_role.use
+        class: manage
+        description: Preview the interface as any role without seeing more than the viewer already may.
+      - code: org.white_label.write
+        class: write
+        description: Edit brand, domains, email and mobile app white label settings.
+      - code: org.modules.write
+        class: manage
+        description: Turn modules on or off for the org.
+      - code: org.templates.write
+        class: write
+        description: Edit org templates.
+      - code: org.custom_fields.write
+        class: manage
+        description: Define custom fields.
+      - code: org.custom_objects.write
+        class: manage
+        description: Define custom objects.
+      - code: org.views.write
+        class: write
+        description: Set default views per collection and share saved views org-wide.
+      - code: org.numbering.write
+        class: manage
+        description: Edit record key and document number formats.
+      - code: org.automations.write
+        class: manage
+        description: Create and edit automations.
+      - code: org.approval_policies.write
+        class: manage
+        description: Edit approval policies.
+      - code: org.spend_authority.write
+        class: manage
+        description: Edit spend authority limits.
+      - code: org.separation_of_duties.write
+        class: manage
+        description: Tighten separation of duties rules.
+      - code: org.time_attendance.write
+        class: manage
+        description: Edit clock rules, geofences, kiosk, rounding, break and overtime rules.
+      - code: org.scheduling.write
+        class: manage
+        description: Edit shift templates, open-shift claiming, swap rules and availability windows.
+      - code: org.payroll.write
+        class: manage
+        description: Edit pay periods, earning codes, time-off policies and holiday calendars.
+      - code: org.gateway.write
+        class: manage
+        description: Edit Gateway and marketplace settings, question templates, onboarding packets and pools.
+      - code: org.communication.write
+        class: manage
+        description: Edit feed, announcement, group, acknowledgment, retention and translation rules.
+      - code: org.notifications.write
+        class: manage
+        description: Edit org-wide notification defaults and mandatory categories.
+      - code: org.ai.write
+        class: manage
+        description: Turn AI features on or off and set their limits.
+      - code: org.help.write
+        class: write
+        description: Edit internal support contacts, custom help links and support hours.
+      - code: org.integrations.manage
+        class: manage
+        description: Connect, configure and disconnect integrations.
+      - code: org.api_keys.manage
+        class: manage
+        description: Create and revoke API keys and service accounts.
+      - code: org.webhooks.manage
+        class: manage
+        description: Create, edit and replay webhooks.
+      - code: org.localization.write
+        class: write
+        description: Edit default language, formats, units and time zone.
+      - code: org.usage.read
+        class: read
+        description: Read plan usage.
+      - code: org.partner.manage
+        class: manage
+        description: Create client orgs, set their plan and default brand from the partner console.
+      - code: org.billing.read
+        class: read
+        description: Read billing, plan, invoices and payment methods.
+        roles: { owner: organization }
+      - code: org.billing.manage
+        class: manage
+        description: Change plan, seats, payment methods and partner wholesale billing.
+        roles: { owner: organization }
+      - code: org.legal.read
+        class: read
+        description: Read accepted terms and their versions.
+        roles: { owner: organization }
+      - code: org.legal.accept
+        class: manage
+        description: Accept terms on behalf of the org.
+        roles: { owner: organization }
+      - code: org.support_session.grant
+        class: manage
+        description: Grant a platform operator a support session of at most 24 hours.
+        roles: { owner: organization }
+      - code: org.break_glass.use
+        class: manage
+        description: Take emergency full access for one hour with MFA and a written reason.
+        roles: { owner: organization }
+      - code: org.ownership.transfer
+        class: manage
+        description: Transfer ownership of the org.
+        roles: { owner: organization }
+      - code: org.organization.archive
+        class: manage
+        description: Archive the org.
+        roles: { owner: organization }
+      - code: org.organization.delete
+        class: manage
+        description: Delete the org within the cancellation timeline.
+        roles: { owner: organization }
+
+  - code: data
+    group: settings
+    project_scoped: false
+    visibility:
+      {
+        owner: full,
+        admin: full,
+        manager: hidden,
+        member: hidden,
+        collaborator: hidden,
+        field: hidden,
+        viewer: hidden,
+      }
+    capabilities:
+      - code: data.classification.write
+        class: manage
+        description: Set the classification of columns in the column registry.
+      - code: data.export.run
+        class: export
+        description: Export Public and Internal data.
+      - code: data.export.confidential
+        class: export
+        description: Export Confidential data.
+      - code: data.request.manage
+        class: manage
+        description: Handle data subject requests.
+      - code: data.retention.write
+        class: manage
+        description: Edit retention periods.
+      - code: data.legal_hold.manage
+        class: manage
+        description: Place and release legal holds.
+      - code: data.export.restricted
+        class: export
+        description: Export Restricted data with step-up authentication.
+        roles: { owner: organization }
+      - code: data.restricted.read.payroll
+        class: read
+        description: Read unmasked pay rates and payroll amounts.
+        roles: { owner: organization }
+      - code: data.restricted.read.banking
+        class: read
+        description: Read unmasked bank details.
+        roles: { owner: organization }
+      - code: data.restricted.read.tax
+        class: read
+        description: Read unmasked tax identifiers and tax forms.
+        roles: { owner: organization }
+      - code: data.restricted.read.government_id
+        class: read
+        description: Read unmasked government identifiers.
+        roles: { owner: organization }
+      - code: data.restricted.read.medical
+        class: read
+        description: Read unmasked medical notes.
+        roles: { owner: organization }
+
+  - code: me
+    group: personal
+    project_scoped: false
+    visibility:
+      {
+        owner: own,
+        admin: own,
+        manager: own,
+        member: own,
+        collaborator: own,
+        field: own,
+        viewer: own,
+      }
+    capabilities:
+      - code: me.profile.write
+        class: write
+        own: true
+        description: Edit the person's own profile and profile privacy.
+      - code: me.account.write
+        class: write
+        own: true
+        description: Edit the person's own account, security and connected apps.
+      - code: me.preferences.write
+        class: write
+        own: true
+        description: Edit the person's own preferences, accessibility and keyboard shortcuts.
+      - code: me.notifications.write
+        class: write
+        own: true
+        description: Edit the person's own notification matrix, quiet hours and digest.
+      - code: me.out_of_office.write
+        class: write
+        own: true
+        description: Set out of office dates and delegate approvals to another member.
+      - code: me.work_details.write
+        class: write
+        own: true
+        description: Edit the person's own work details, payout and tax details.
+      - code: me.calendar_feeds.write
+        class: write
+        own: true
+        description: Create and revoke the person's own calendar feeds.
+      - code: me.api_tokens.write
+        class: write
+        own: true
+        description: Create and revoke personal API tokens where the org allows them.
+
+# Section 4.5.6 organization settings tree, in order, with the capability that edits each section.
+settings_sections:
+  - { section: organization_profile, capability: org.profile.write }
+  - { section: general, capability: org.general.write }
+  - { section: legal_entities_and_fiscal, capability: org.legal_entities.write }
+  - { section: members, capability: org.members.manage }
+  - { section: roles_and_capabilities, capability: org.roles.manage }
+  - { section: teams, capability: org.teams.manage }
+  - { section: workspaces, capability: org.workspaces.manage }
+  - { section: departments_and_disciplines, capability: org.departments.write }
+  - { section: locations_and_venues, capability: org.locations.write }
+  - { section: security, capability: org.security.write }
+  - { section: access_reviews, capability: org.access_reviews.manage }
+  - { section: white_label, capability: org.white_label.write }
+  - { section: modules, capability: org.modules.write }
+  - { section: canon_extensions, capability: canon.extension.write }
+  - { section: templates, capability: org.templates.write }
+  - { section: custom_fields, capability: org.custom_fields.write }
+  - { section: custom_objects, capability: org.custom_objects.write }
+  - { section: views_and_defaults, capability: org.views.write }
+  - { section: numbering, capability: org.numbering.write }
+  - { section: automations, capability: org.automations.write }
+  - { section: approval_policies, capability: org.approval_policies.write }
+  - { section: spend_authority, capability: org.spend_authority.write }
+  - { section: separation_of_duties, capability: org.separation_of_duties.write }
+  - { section: time_and_attendance, capability: org.time_attendance.write }
+  - { section: scheduling, capability: org.scheduling.write }
+  - { section: payroll_and_time_off, capability: org.payroll.write }
+  - { section: gateway_and_marketplace, capability: org.gateway.write }
+  - { section: communication, capability: org.communication.write }
+  - { section: notifications_defaults, capability: org.notifications.write }
+  - { section: ai_features, capability: org.ai.write }
+  - { section: help_and_support, capability: org.help.write }
+  - { section: integrations, capability: org.integrations.manage }
+  - { section: api_keys_and_service_accounts, capability: org.api_keys.manage }
+  - { section: webhooks, capability: org.webhooks.manage }
+  - { section: localization, capability: org.localization.write }
+  - { section: billing_and_plan, capability: org.billing.manage }
+  - { section: partner, capability: org.partner.manage }
+  - { section: usage, capability: org.usage.read }
+  - { section: data_and_privacy, capability: data.classification.write }
+  - { section: audit_log, capability: audit.log.read }
+  - { section: legal, capability: org.legal.accept }
+  - { section: danger_zone, capability: org.ownership.transfer }
+
+# Section 4.5.6 personal settings tree, in order. Every person edits their own settings.
+personal_settings_sections:
+  - { section: profile, capability: me.profile.write }
+  - { section: profile_privacy, capability: me.profile.write }
+  - { section: account, capability: me.account.write }
+  - { section: security, capability: me.account.write }
+  - { section: organizations, capability: me.account.write }
+  - { section: preferences, capability: me.preferences.write }
+  - { section: accessibility, capability: me.preferences.write }
+  - { section: notifications, capability: me.notifications.write }
+  - { section: out_of_office, capability: me.out_of_office.write }
+  - { section: work_details, capability: me.work_details.write }
+  - { section: payout_and_tax, capability: me.work_details.write }
+  - { section: calendar_feeds, capability: me.calendar_feeds.write }
+  - { section: connected_apps, capability: me.account.write }
+  - { section: keyboard_shortcuts, capability: me.preferences.write }
+  - { section: developer, capability: me.api_tokens.write }

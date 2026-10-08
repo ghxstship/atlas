@@ -1,0 +1,32 @@
+{
+  "name": "@xos/schemas",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Single-source registries for XOS: the capability registry, with Zod schemas and generated contracts alongside.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./capabilities": "./src/capabilities/index.ts",
+    "./capabilities.yaml": "./capabilities.yaml"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "generate:capabilities": "node --experimental-strip-types --no-warnings src/capabilities/generate-cli.ts",
+    "check:capabilities": "node --experimental-strip-types --no-warnings src/capabilities/generate-cli.ts --check"
+  },
+  "dependencies": {
+    "yaml": "2.9.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.0.3",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
