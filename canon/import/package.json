@@ -1,0 +1,35 @@
+{
+  "name": "@xos/canon-import",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Deterministic canon importer: reads the XOS 4.0 Bible, Item Catalog, GL chart and Production Playbook, validates counts, cross-checks the Playbook, and emits xpms seed migrations.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "canon": "node --experimental-strip-types --no-warnings src/cli.ts",
+    "canon:generate": "node --experimental-strip-types --no-warnings src/cli.ts generate",
+    "canon:check": "node --experimental-strip-types --no-warnings src/cli.ts check",
+    "canon:roundtrip": "node --experimental-strip-types --no-warnings src/cli.ts roundtrip",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "exceljs": "4.4.0",
+    "pg": "8.23.1",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "@vitest/coverage-v8": "5.0.3",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

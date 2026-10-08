@@ -1,0 +1,59 @@
+{
+  "generator": "@xos/canon-import",
+  "files": [
+    {
+      "file": "XOS_4.0_Bible.xlsx",
+      "role": "bible",
+      "reference_only": false,
+      "bytes": 372978,
+      "sha256": "bb49eb899bb7e5c82e2dde4c6336ece76588a4245949bb6a4f6d5c8d2cb6efb7",
+      "drive_file_id": "13nY5TNM71uXAcWbfiJaf5QpQPdCUFvQQ",
+      "drive_modified_time": "2026-09-15T22:29:08Z"
+    },
+    {
+      "file": "XOS-4.0_Production-Playbook_2026.xlsx",
+      "role": "playbook",
+      "reference_only": false,
+      "bytes": 1767615,
+      "sha256": "6da37de807d7ac6380501b5f0e635e80069e68a59e937f9ec256778aa36ebc15",
+      "drive_file_id": "1p5Yxgyp5G09WR9X6sj8Btim2IM5vr-Zhe5eEvokn15w",
+      "drive_modified_time": "2026-10-07T15:36:45.256Z"
+    },
+    {
+      "file": "XOS_4.0_Item_Catalog.csv",
+      "role": "item-catalog",
+      "reference_only": false,
+      "bytes": 503250,
+      "sha256": "cb946c00d05425071b34b12477e990203be0009332f5bfda3de31b1b74b24cfe",
+      "drive_file_id": "1rum0_qhVdu4Dty608yNq8mqQ-fKR1GOQ",
+      "drive_modified_time": "2026-09-15T22:29:08Z"
+    },
+    {
+      "file": "XOS_4.0_GL_Chart_of_Accounts.csv",
+      "role": "gl-chart",
+      "reference_only": false,
+      "bytes": 4899,
+      "sha256": "5ccca756a079331d3d8828cd798dab372c893ab9b6cb3c759ab212544c12a403",
+      "drive_file_id": "1WQR9rV5Guyx3J-qfxj8eThQKG-0m4xP_",
+      "drive_modified_time": "2026-09-15T22:29:08Z"
+    },
+    {
+      "file": "XOS_4.0_Kit.zip",
+      "role": "kit",
+      "reference_only": true,
+      "bytes": 6907935,
+      "sha256": "d8182252cdae88d04e99dbaa4e00c01409727bd2375171d7e157f0446c4176b6",
+      "drive_file_id": "1xmq0KYsh9DhneaFrE_pmXd9ZLSeSTiKi",
+      "drive_modified_time": "2026-09-15T22:29:08Z"
+    },
+    {
+      "file": "XOS_4.0_Templates.zip",
+      "role": "templates",
+      "reference_only": true,
+      "bytes": 233252,
+      "sha256": "f5ed5a3ec21d1a453262553acc7f27a1c20b4ce65f3f604fe717cf90ea8a2196",
+      "drive_file_id": "1HTk7-scm8V7Yq8Azb6fsh-iP6R7Ed77q",
+      "drive_modified_time": "2026-09-15T22:29:08Z"
+    }
+  ]
+}
