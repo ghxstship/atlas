@@ -1,0 +1,35 @@
+{
+  "name": "@xos/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "XOS public API v1: Hono route definitions and the generated OpenAPI 3.1 document.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./openapi/v1.json": "./openapi/v1.json"
+  },
+  "scripts": {
+    "generate": "node --experimental-strip-types --no-warnings scripts/generate-openapi.ts",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@hono/zod-openapi": "1.6.3",
+    "@xos/resource-schemas": "workspace:*",
+    "hono": "4.13.13",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@seriousme/openapi-schema-validator": "2.11.0",
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.0.3",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "prettier": "3.9.9",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
