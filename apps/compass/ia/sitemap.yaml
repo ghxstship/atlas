@@ -1,0 +1,791 @@
+# Compass information architecture (Section 4.3 and 4.5.7).
+# Single source for the tab bar, More menu, scan modes, settings and deep links
+# (Section 3.15). Order is render order. Validated by packages/ia; owned by A17 after
+# the Wave 1 contract freeze.
+#
+# Visibility keys are audiences: internal field users (field-supervisor stands for Field
+# Supervisor and above), then each external role type. The five tabs are the same for
+# everyone; the Crew tab renders only for field-supervisor. More menu additions for an
+# external role come first, so internal users see the base list in the 4.5.7 order.
+schemaVersion: 1
+shell: compass
+home: today
+params:
+  recordKey: { type: record-key }
+audience:
+  dimension: compass-audience
+  roles:
+    - field
+    - field-supervisor
+    - client
+    - vendor
+    - contractor
+    - crew
+    - staff
+    - artist
+    - artist-representative
+    - sponsor
+chrome: { tabBar: [today, schedule, scan, inbox, more, crew] }
+scanContainer: scan
+contentBlocks:
+  - id: shifts
+    label: nav.compass.content.shifts
+  - id: tasks
+    label: nav.compass.content.tasks
+  - id: day-sheet
+    label: nav.compass.content.daySheet
+  - id: run-of-show
+    label: nav.compass.content.runOfShow
+  - id: engaged-shifts-and-positions
+    label: nav.compass.content.engagedShiftsAndPositions
+  - id: briefings
+    label: nav.compass.content.briefings
+  - id: call-times
+    label: nav.compass.content.callTimes
+  - id: dock-slot
+    label: nav.compass.content.dockSlot
+  - id: load-in-and-load-out-windows
+    label: nav.compass.content.loadInAndLoadOutWindows
+  - id: delivery-instructions
+    label: nav.compass.content.deliveryInstructions
+  - id: tasks-and-deliverables-due
+    label: nav.compass.content.tasksAndDeliverablesDue
+  - id: site-access-times
+    label: nav.compass.content.siteAccessTimes
+  - id: set-time
+    label: nav.compass.content.setTime
+  - id: hospitality
+    label: nav.compass.content.hospitality
+  - id: guest-list
+    label: nav.compass.content.guestList
+  - id: show-day-schedule
+    label: nav.compass.content.showDaySchedule
+  - id: approvals-waiting
+    label: nav.compass.content.approvalsWaiting
+  - id: activation-schedule
+    label: nav.compass.content.activationSchedule
+  - id: entitlement-checklist
+    label: nav.compass.content.entitlementChecklist
+contentProfiles:
+  field:
+    today: [shifts, tasks, day-sheet, run-of-show]
+    scanModes:
+      - mode: asset
+        scope: all
+      - mode: receiving
+        scope: all
+      - mode: credential
+        scope: all
+      - mode: lookup
+        scope: all
+  field-supervisor:
+    today: [shifts, tasks, day-sheet, run-of-show]
+    scanModes:
+      - mode: asset
+        scope: all
+      - mode: receiving
+        scope: all
+      - mode: credential
+        scope: all
+      - mode: lookup
+        scope: all
+  client: { today: [show-day-schedule, approvals-waiting], scanModes: [] }
+  vendor:
+    today: [dock-slot, load-in-and-load-out-windows, delivery-instructions]
+    scanModes:
+      - mode: receiving
+        scope: acknowledgment
+      - mode: credential
+        scope: own
+  contractor:
+    today: [tasks-and-deliverables-due, site-access-times]
+    scanModes:
+      - mode: credential
+        scope: own
+  crew:
+    today: [engaged-shifts-and-positions, briefings, call-times]
+    scanModes:
+      - mode: credential
+        scope: own
+      - mode: asset
+        scope: assigned
+  staff:
+    today: [engaged-shifts-and-positions, briefings, call-times]
+    scanModes:
+      - mode: credential
+        scope: own
+      - mode: asset
+        scope: assigned
+  artist:
+    today: [day-sheet, set-time, call-times, hospitality, guest-list]
+    scanModes:
+      - mode: credential
+        scope: own-and-party
+  artist-representative:
+    today: [day-sheet, set-time, call-times, hospitality, guest-list]
+    scanModes:
+      - mode: credential
+        scope: own-and-party
+  sponsor: { today: [activation-schedule, entitlement-checklist], scanModes: [] }
+deepLinks:
+  - pattern: compass://r/{recordKey}
+    node: record
+nodes:
+  - id: group.tabs
+    kind: group
+    label: nav.compass.groups.tabs
+    placement: tab-bar
+    children:
+      - id: today
+        kind: item
+        label: nav.compass.tabs.today
+        route: /today
+        visibility:
+          field: full
+          field-supervisor: full
+          client: full
+          vendor: full
+          contractor: full
+          crew: full
+          staff: full
+          artist: full
+          artist-representative: full
+          sponsor: full
+        list: { views: [feed, list], default: feed }
+      - id: schedule
+        kind: item
+        label: nav.compass.tabs.schedule
+        route: /schedule
+        visibility:
+          field: full
+          field-supervisor: full
+          client: full
+          vendor: full
+          contractor: full
+          crew: full
+          staff: full
+          artist: full
+          artist-representative: full
+          sponsor: full
+        list: { views: [calendar, list, resource-schedule], default: calendar }
+      - id: scan
+        kind: item
+        label: nav.compass.tabs.scan
+        route: /scan
+        visibility:
+          field: full
+          field-supervisor: full
+          client: full
+          vendor: full
+          contractor: full
+          crew: full
+          staff: full
+          artist: full
+          artist-representative: full
+          sponsor: full
+        children:
+          - id: scan.asset
+            kind: mode
+            label: nav.compass.scan.asset
+            route: /scan/asset
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: full
+              staff: full
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+          - id: scan.receiving
+            kind: mode
+            label: nav.compass.scan.receiving
+            route: /scan/receiving
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: full
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+          - id: scan.credential
+            kind: mode
+            label: nav.compass.scan.credential
+            route: /scan/credential
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: full
+              contractor: full
+              crew: full
+              staff: full
+              artist: full
+              artist-representative: full
+              sponsor: hidden
+          - id: scan.lookup
+            kind: mode
+            label: nav.compass.scan.lookup
+            route: /scan/lookup
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+      - id: inbox
+        kind: item
+        label: nav.compass.tabs.inbox
+        route: /inbox
+        visibility:
+          field: full
+          field-supervisor: full
+          client: full
+          vendor: full
+          contractor: full
+          crew: full
+          staff: full
+          artist: full
+          artist-representative: full
+          sponsor: full
+        list: { views: [inbox, list], default: inbox }
+      - id: more
+        kind: item
+        label: nav.compass.tabs.more
+        route: /more
+        visibility:
+          field: full
+          field-supervisor: full
+          client: full
+          vendor: full
+          contractor: full
+          crew: full
+          staff: full
+          artist: full
+          artist-representative: full
+          sponsor: full
+        children:
+          - id: timesheets
+            kind: page
+            label: nav.compass.more.timesheets
+            route: /timesheets
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: full
+              staff: full
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
+          - id: per-diem
+            kind: page
+            label: nav.compass.more.perDiem
+            route: /per-diem
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: full
+              staff: full
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
+          - id: travel-and-lodging
+            kind: page
+            label: nav.compass.more.travelAndLodging
+            route: /travel-and-lodging
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: full
+              staff: full
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
+          - id: onboarding
+            kind: page
+            label: nav.compass.more.onboarding
+            route: /onboarding
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: full
+              staff: full
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
+          - id: purchase-orders
+            kind: page
+            label: nav.compass.more.purchaseOrders
+            route: /purchase-orders
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: full
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
+          - id: deliveries
+            kind: page
+            label: nav.compass.more.deliveries
+            route: /deliveries
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: full
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list, calendar], default: list }
+          - id: submittals
+            kind: page
+            label: nav.compass.more.submittals
+            route: /submittals
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: full
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
+          - id: time-entries
+            kind: page
+            label: nav.compass.more.timeEntries
+            route: /time-entries
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: hidden
+              contractor: full
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
+          - id: deliverables
+            kind: page
+            label: nav.compass.more.deliverables
+            route: /deliverables
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: hidden
+              contractor: full
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list, board], default: list }
+          - id: advance-summary
+            kind: page
+            label: nav.compass.more.advanceSummary
+            route: /advance-summary
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: full
+              artist-representative: full
+              sponsor: hidden
+          - id: rider
+            kind: page
+            label: nav.compass.more.rider
+            route: /rider
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: full
+              artist-representative: full
+              sponsor: hidden
+          - id: settlement
+            kind: page
+            label: nav.compass.more.settlement
+            route: /settlement
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: full
+              artist-representative: full
+              sponsor: hidden
+          - id: run-of-show
+            kind: page
+            label: nav.compass.more.runOfShow
+            route: /run-of-show
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: read
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
+          - id: reports
+            kind: page
+            label: nav.compass.more.reports
+            route: /reports
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: read
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
+          - id: proof-of-performance
+            kind: page
+            label: nav.compass.more.proofOfPerformance
+            route: /proof-of-performance
+            visibility:
+              field: hidden
+              field-supervisor: hidden
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: full
+            list: { views: [gallery, list], default: gallery }
+          - id: incidents
+            kind: page
+            label: nav.compass.more.incidents
+            route: /incidents
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list, map], default: list }
+          - id: inspections
+            kind: page
+            label: nav.compass.more.inspections
+            route: /inspections
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list, calendar], default: list }
+          - id: logistics
+            kind: page
+            label: nav.compass.more.logistics
+            route: /logistics
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list, calendar], default: list }
+          - id: show
+            kind: page
+            label: nav.compass.more.show
+            route: /show
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list], default: list }
+          - id: expenses
+            kind: page
+            label: nav.compass.more.expenses
+            route: /expenses
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            list: { views: [list, gallery], default: list }
+          - id: reference
+            kind: page
+            label: nav.compass.more.reference
+            route: /reference
+            visibility:
+              field: full
+              field-supervisor: full
+              client: hidden
+              vendor: hidden
+              contractor: hidden
+              crew: hidden
+              staff: hidden
+              artist: hidden
+              artist-representative: hidden
+              sponsor: hidden
+            children:
+              - id: reference.emergency-codes
+                kind: page
+                label: nav.compass.reference.emergencyCodes
+                route: /reference/emergency-codes
+                list: { views: [list], default: list }
+              - id: reference.radio-channels
+                kind: page
+                label: nav.compass.reference.radioChannels
+                route: /reference/radio-channels
+                list: { views: [list], default: list }
+              - id: reference.venue-maps
+                kind: page
+                label: nav.compass.reference.venueMaps
+                route: /reference/venue-maps
+                list: { views: [site-plan, map, gallery], default: site-plan }
+              - id: reference.sops
+                kind: page
+                label: nav.compass.reference.sops
+                route: /reference/sops
+                list: { views: [list, document], default: list }
+          - id: offline-queue
+            kind: page
+            label: nav.compass.more.offlineQueue
+            route: /offline-queue
+            visibility:
+              field: full
+              field-supervisor: full
+              client: full
+              vendor: full
+              contractor: full
+              crew: full
+              staff: full
+              artist: full
+              artist-representative: full
+              sponsor: full
+            list: { views: [list], default: list }
+          - id: profile
+            kind: page
+            label: nav.compass.more.profile
+            route: /profile
+            visibility:
+              field: full
+              field-supervisor: full
+              client: full
+              vendor: full
+              contractor: full
+              crew: full
+              staff: full
+              artist: full
+              artist-representative: full
+              sponsor: full
+          - id: settings
+            kind: page
+            label: nav.compass.more.settings
+            route: /settings
+            visibility:
+              field: full
+              field-supervisor: full
+              client: full
+              vendor: full
+              contractor: full
+              crew: full
+              staff: full
+              artist: full
+              artist-representative: full
+              sponsor: full
+            children:
+              - id: settings.profile
+                kind: section
+                label: nav.settings.personal.profile
+                route: /settings/profile
+              - id: settings.profile-privacy
+                kind: section
+                label: nav.settings.personal.profilePrivacy
+                route: /settings/profile-privacy
+              - id: settings.account
+                kind: section
+                label: nav.settings.personal.account
+                route: /settings/account
+              - id: settings.security
+                kind: section
+                label: nav.settings.personal.security
+                route: /settings/security
+              - id: settings.organizations
+                kind: section
+                label: nav.settings.personal.organizations
+                route: /settings/organizations
+              - id: settings.preferences
+                kind: section
+                label: nav.settings.personal.preferences
+                route: /settings/preferences
+              - id: settings.accessibility
+                kind: section
+                label: nav.settings.personal.accessibility
+                route: /settings/accessibility
+              - id: settings.notifications
+                kind: section
+                label: nav.settings.personal.notifications
+                route: /settings/notifications
+              - id: settings.out-of-office
+                kind: section
+                label: nav.settings.personal.outOfOffice
+                route: /settings/out-of-office
+              - id: settings.work-details
+                kind: section
+                label: nav.settings.personal.workDetails
+                route: /settings/work-details
+              - id: settings.payout-and-tax
+                kind: section
+                label: nav.settings.personal.payoutAndTax
+                route: /settings/payout-and-tax
+              - id: settings.calendar-feeds
+                kind: section
+                label: nav.settings.personal.calendarFeeds
+                route: /settings/calendar-feeds
+              - id: settings.connected-apps
+                kind: section
+                label: nav.settings.personal.connectedApps
+                route: /settings/connected-apps
+              - id: settings.developer
+                kind: section
+                label: nav.settings.personal.developer
+                route: /settings/developer
+                conditions: [org-allows-personal-tokens]
+      - id: crew
+        kind: item
+        label: nav.compass.tabs.crew
+        route: /crew
+        visibility:
+          field: hidden
+          field-supervisor: full
+          client: hidden
+          vendor: hidden
+          contractor: hidden
+          crew: hidden
+          staff: hidden
+          artist: hidden
+          artist-representative: hidden
+          sponsor: hidden
+        children:
+          - id: crew.board
+            kind: page
+            label: nav.compass.crew.board
+            route: /crew/board
+            list: { views: [board, resource-schedule, list], default: board }
+          - id: crew.timesheet-approvals
+            kind: page
+            label: nav.compass.crew.timesheetApprovals
+            route: /crew/timesheet-approvals
+            list: { views: [list], default: list }
+          - id: crew.dispatch-board
+            kind: page
+            label: nav.compass.crew.dispatchBoard
+            route: /crew/dispatch-board
+            list: { views: [board, map, list], default: board }
+          - id: crew.shift-coverage
+            kind: page
+            label: nav.compass.crew.shiftCoverage
+            route: /crew/shift-coverage
+            list: { views: [resource-schedule, list], default: resource-schedule }
+  - id: group.routes
+    kind: group
+    label: nav.compass.groups.routes
+    placement: none
+    children:
+      - id: record
+        kind: record
+        label: nav.compass.routes.record
+        route: "/r/{recordKey}"
+        visibility:
+          field: full
+          field-supervisor: full
+          client: full
+          vendor: full
+          contractor: full
+          crew: full
+          staff: full
+          artist: full
+          artist-representative: full
+          sponsor: full
