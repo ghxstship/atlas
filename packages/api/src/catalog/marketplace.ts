@@ -7,7 +7,7 @@ import {
   EngagementState,
   OpportunityState,
   marketplace as mk,
-} from "@xos/resource-schemas";
+} from "@xos/schemas";
 import { collectionQuery, itemAction, resource, transitionBody } from "./define.ts";
 import type { ResourceSpec } from "./types.ts";
 

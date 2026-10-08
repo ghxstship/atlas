@@ -4,7 +4,7 @@ import { createApiApp, problemResponse, toPointer, validationHook } from "../src
 import { camelFromPath, labelFromName, resource } from "../src/catalog/define.ts";
 import { buildRoutes } from "../src/build/routes.ts";
 import { registerParameters } from "../src/conventions/components.ts";
-import { identity } from "@xos/resource-schemas";
+import { identity } from "@xos/schemas";
 
 describe("app factory", () => {
   it("mounts no unimplemented operation handlers", async () => {

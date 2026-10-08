@@ -3,7 +3,7 @@
  * (Sections 4.6 and 4.10).
  */
 import { z } from "@hono/zod-openapi";
-import { identity as id, platform as pf } from "@xos/resource-schemas";
+import { identity as id, platform as pf } from "@xos/schemas";
 import { collectionAction, collectionQuery, itemAction, resource } from "./define.ts";
 import type { ResourceSpec } from "./types.ts";
 

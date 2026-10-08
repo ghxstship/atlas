@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@hono/zod-openapi": "1.6.3",
-    "@xos/resource-schemas": "workspace:*",
+    "@xos/schemas": "workspace:*",
     "hono": "4.13.13",
     "zod": "4.6.5"
   },

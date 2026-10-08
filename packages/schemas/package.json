@@ -6,6 +6,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
+    ".": "./src/index.ts",
     "./capabilities": "./src/capabilities/index.ts",
     "./capabilities.yaml": "./capabilities.yaml"
   },

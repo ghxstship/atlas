@@ -4,8 +4,8 @@
  */
 import { createRoute, z } from "@hono/zod-openapi";
 import type { RouteConfig } from "@hono/zod-openapi";
-import { exampleOf, page } from "@xos/resource-schemas";
-import type { ResourceDefinition } from "@xos/resource-schemas";
+import { exampleOf, page } from "@xos/schemas";
+import type { ResourceDefinition } from "@xos/schemas";
 import type { SharedParameters } from "../conventions/components.ts";
 import { ProblemResponseNames, successHeaders } from "../conventions/components.ts";
 import type { ProblemStatus } from "../conventions/components.ts";

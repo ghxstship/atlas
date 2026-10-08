@@ -1,9 +1,9 @@
 /**
- * @xos/resource-schemas: Zod schemas for every public API resource.
- *
- * Layout mirrors the planned `packages/schemas/src/` tree (`common/` and `resources/`), so the
- * package folds into `packages/schemas` by moving `src/` and re-pointing imports.
+ * @xos/schemas package entry: the Zod resource schemas of the public API, plus the capability
+ * registry as a namespace. `@xos/schemas/capabilities` remains the direct registry entry.
  */
+export * as capabilities from "./capabilities/index.ts";
+
 export * as canonCodes from "./common/canon-codes.ts";
 export * as fields from "./common/fields.ts";
 export * from "./common/enums.ts";

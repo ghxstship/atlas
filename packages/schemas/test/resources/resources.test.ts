@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import * as schemas from "../src/index.ts";
+import * as schemas from "../../src/index.ts";
 import {
   MoneyTotal,
   RecordState,
@@ -11,7 +11,7 @@ import {
   maskable,
   page,
   type ResourceDefinition,
-} from "../src/index.ts";
+} from "../../src/index.ts";
 
 const modules = [
   schemas.canon,

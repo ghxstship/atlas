@@ -5,7 +5,7 @@
  */
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "@hono/zod-openapi";
-import { Problem, RefusalProblem, ValidationProblem } from "@xos/resource-schemas";
+import { Problem, RefusalProblem, ValidationProblem } from "@xos/schemas";
 
 export const PROBLEM_MEDIA_TYPE = "application/problem+json";
 
