@@ -10,6 +10,7 @@ import type { SharedParameters } from "../conventions/components.ts";
 import { ProblemResponseNames, successHeaders } from "../conventions/components.ts";
 import type { ProblemStatus } from "../conventions/components.ts";
 import type { ActionSpec, ResourceSpec } from "../catalog/types.ts";
+import { RESOURCE_CAPABILITIES, canonRule } from "../catalog/capabilities.ts";
 
 const JSON_MEDIA_TYPE = "application/json";
 
@@ -71,11 +72,43 @@ interface Built {
   readonly route: RouteConfig;
 }
 
-function base(spec: ResourceSpec, verb: string) {
+/** The capability an operation requires (see `catalog/capabilities.ts`). */
+export function capabilityFor(spec: ResourceSpec, verb: string, method: string): string {
+  const rule = RESOURCE_CAPABILITIES[spec.op] ?? canonRule(spec.op);
+  const pick = (): string | undefined => {
+    if (rule === undefined) return undefined;
+    const action = rule.actions?.[verb];
+    if (action !== undefined) return action;
+    switch (verb) {
+      case "list":
+      case "get":
+        return rule.read;
+      case "create":
+        return rule.create ?? rule.write;
+      case "delete":
+        return rule.delete ?? rule.write;
+      default:
+        return method === "get" ? rule.read : rule.write;
+    }
+  };
+  const capability = pick();
+  if (capability === undefined) throw new Error(`No capability for ${spec.op}.${verb}.`);
+  return capability;
+}
+
+/** OAuth scopes map one to one to capability groups: the capability's first segment. */
+export function scopeOf(capability: string): string {
+  return capability.split(".")[0] as string;
+}
+
+function base(spec: ResourceSpec, verb: string, method: string) {
+  const capability = capabilityFor(spec, verb, method);
   return {
     operationId: `${spec.op}.${verb}`,
     tags: [spec.module],
     "x-xos-table": spec.def.table,
+    "x-xos-capability": capability,
+    security: [{ bearerJwt: [] }, { apiKey: [] }, { oauth2: [scopeOf(capability)] }],
   };
 }
 
@@ -103,7 +136,7 @@ function standardRoutes(spec: ResourceSpec, params: SharedParameters): Built[] {
         const p = pageOf(def.read, `${def.name}Page`);
         routes.push({
           route: createRoute({
-            ...base(spec, "list"),
+            ...base(spec, "list", "get"),
             ...orderExtension(spec),
             method: "get",
             path: spec.path,
@@ -134,7 +167,7 @@ function standardRoutes(spec: ResourceSpec, params: SharedParameters): Built[] {
       case "get":
         routes.push({
           route: createRoute({
-            ...base(spec, "get"),
+            ...base(spec, "get", "get"),
             method: "get",
             path: itemPath,
             summary: `Get ${a} ${label}`,
@@ -156,7 +189,7 @@ function standardRoutes(spec: ResourceSpec, params: SharedParameters): Built[] {
           throw new Error(`${def.name} is read-only and cannot declare create.`);
         routes.push({
           route: createRoute({
-            ...base(spec, "create"),
+            ...base(spec, "create", "post"),
             method: "post",
             path: spec.path,
             summary: `Create ${a} ${label}`,
@@ -183,7 +216,7 @@ function standardRoutes(spec: ResourceSpec, params: SharedParameters): Built[] {
           throw new Error(`${def.name} has no updatable fields and cannot declare update.`);
         routes.push({
           route: createRoute({
-            ...base(spec, "update"),
+            ...base(spec, "update", "patch"),
             method: "patch",
             path: itemPath,
             summary: `Update ${a} ${label}`,
@@ -207,7 +240,7 @@ function standardRoutes(spec: ResourceSpec, params: SharedParameters): Built[] {
       case "delete":
         routes.push({
           route: createRoute({
-            ...base(spec, "delete"),
+            ...base(spec, "delete", "delete"),
             method: "delete",
             path: itemPath,
             summary: `Delete ${a} ${label}`,
@@ -267,7 +300,7 @@ function actionRoute(spec: ResourceSpec, action: ActionSpec, params: SharedParam
 
   return {
     route: createRoute({
-      ...base(spec, action.verb),
+      ...base(spec, action.verb, action.method),
       method: action.method,
       path,
       summary: action.summary,
