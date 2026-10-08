@@ -1,0 +1,9 @@
+# security.txt for XOS 4.0 (RFC 9116)
+# Draft for review by counsel before launch. Wave 2 serves this file at
+# /.well-known/security.txt on every XOS domain, adds a Canonical line for each
+# production domain, and renews Expires at every release.
+Contact: https://github.com/ghxstship/atlas/security/advisories/new
+Policy: https://github.com/ghxstship/atlas/blob/main/SECURITY.md
+Acknowledgments: https://github.com/ghxstship/atlas/security/advisories
+Preferred-Languages: en, es
+Expires: 2027-09-30T00:00:00.000Z
