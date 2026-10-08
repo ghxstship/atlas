@@ -69,6 +69,7 @@ describe("isScannable", () => {
     expect(isScannable("canon/source/XOS_4.0_Item_Catalog.csv")).toBe(false);
     expect(isScannable("LICENSE")).toBe(false);
     expect(isScannable("CODE_OF_CONDUCT.md")).toBe(false);
+    expect(isScannable("docs/spec/XOS_4.0_Build_Prompt.md")).toBe(false);
     expect(isScannable("pnpm-lock.yaml")).toBe(false);
   });
 });

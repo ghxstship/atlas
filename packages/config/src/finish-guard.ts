@@ -27,6 +27,7 @@ const EM_DASH = String.fromCharCode(0x2014);
 const EXCLUDED_PATHS: readonly RegExp[] = [
   /(^|\/)node_modules\//,
   /^canon\/source\//,
+  /^docs\/spec\//,
   /(^|\/)pnpm-lock\.yaml$/,
   /(^|\/)LICENSE(\.[a-z]+)?$/,
   /(^|\/)CODE_OF_CONDUCT\.md$/,

@@ -1,0 +1,24 @@
+account_code,account_name,account_type,tax_type,description
+1000,Cash and Bank,Asset,None,Operating bank accounts and petty cash.
+1100,Accounts Receivable,Asset,None,"Invoices issued and unpaid: hire, production fees, sponsorship."
+1200,Prepaid Expenses and Deposits,Asset,None,Lease and vendor deposits; insurance and subscriptions paid in advance.
+1500,Fixed Assets,Asset,None,"Capitalized leasehold improvements, installed systems, furniture, fixtures and equipment. Class is carried on the URID dimension. Examples: Lease Security Deposit; Vendor Deposit."
+2000,Accounts Payable,Liability,None,Vendor invoices received and unpaid.
+2100,Accrued Liabilities,Liability,None,Event costs incurred and not yet invoiced; accrued payroll.
+2200,Deferred Revenue,Liability,None,"Hire, ticket and sponsor revenue received before the event. Examples: Accrued Event Cost."
+2300,Sales Tax Payable,Liability,None,Tax collected on sales and owed to the state. Examples: Deferred Hire Revenue; Deferred Sponsorship Revenue.
+3000,Equity,Equity,None,Owner equity and retained earnings.
+4000,Revenue · Executive,Revenue,Tax on Sales,"Private hire, production fees and ticketing invoiced by the venue. Examples: Private Hire · Full Venue; Private Hire · Single Zone; Production Fee; Sponsorship · Presenting; Sponsorship · Title; Ticket · General Admission."
+4300,Revenue · Marketing,Revenue,Tax on Sales,Sponsorship cash and value in kind against evidenced deliverables.
+4700,Revenue · Experience,Revenue,Tax on Sales,"Coat check, parking, valet and other guest-paid services. Examples: Coat Check Fee; Merchandise Sales; Parking and Valet Fee."
+4800,Revenue · Hospitality,Revenue,Tax on Sales,"Bar, catering and merchandise sales at the point of sale. Examples: Bar Sales; Catering Sales."
+5000,Expense · Executive,Expense,Tax on Purchases,"Governance, professional fees, insurance, licenses, management retainer and producer fee. Examples: Budget Envelope Development; Executive Producer or Project Lead; Feasibility Study; Insurance or Permits; Insurance · GL, Property, Liquor; Legal & Compliance."
+5100,Expense · Creative,Expense,Tax on Purchases,"Creative direction, design, programming, scenic and graphics. Examples: 3D Renderings · 5 Key Spaces; Concept Development & Creative Direction; Creative Direction; Décor or Theming or Scenic Dressing; Environmental Graphics & Branding; Exhibition Content Curation & Layout."
+5200,Expense · Talent,Expense,Tax on Purchases,"Artist fees, riders, travel, lodging and backline. Examples: Artist Booking & Programming; Event Performing Talent (Placeholder); Music Programming & Curation; DJ or Live Set Programming; Artist Hospitality; Artist Performance Fees."
+5300,Expense · Marketing,Expense,Tax on Purchases,"Marketing, content capture, press and amplification. Examples: Always-On Marketing & Social; Build + Launch Photography or Videography; Campaign Strategy & Brand Marketing; Local Partnership or Community Org; PR & Community Relations; PR or Press or Influencer."
+5400,Expense · Environment,Expense,Tax on Purchases,"Fabrication, signage, surfaces, furniture, install and building systems. Examples: Air Conditioner - Portable; Battery Pack - Portable; Booth - Guard; Cable Run - Feeder; Compactor - Portable; Demo or Surface Prep or Paint."
+5500,Expense · Production,Expense,Tax on Purchases,"Staging, rigging, power, crew, trucking and production supply. Examples: AV or Stage Labor; Amplifier Rack - Audio; Backline · Bass (head or Cab or DI); Backline · Common (stands or Snakes or DI or Road Cases); Backline · DJ: 4× Turntables (Technics SL-1200MK7); Backline · DJ: 8× CDJ-3000X Media Players."
+5600,Expense · Operations,Expense,Tax on Purchases,"Venue operations: house staff, security, medical, janitorial, waste, fire and life safety, occupancy and utilities. Examples: Caller - Show; Cleaning or Waste; Director - Technical; Facilities & Maintenance Tech; Janitorial & Cleaning (base); Logistics or Freight."
+5700,Expense · Experience,Expense,Tax on Purchases,"Front of house, credentials, guest services and accessibility. Examples: ADA Accessibility Compliance Package; ATM - Portable; Accessibility & Inclusive Design Review; Guest Journey Mapping Workshop; Guest Services Concierge; Guest Survey & Feedback Program."
+5800,Expense · Hospitality,Expense,Tax on Purchases,"Catering, bar, ice, glassware, linen and event rentals. Examples: Bar or Catering Staff; Beverage Service; Catering Package - VIP; Food Truck - Contracted; Station - Dessert; Supplies & Consumables (base)."
+5900,Expense · Technology,Expense,Tax on Purchases,"Audio, lighting, video, network, software and access control. Examples: Cat6 Cable Run Package; Enterprise Wireless Access Point; Event Core Router or Firewall; IT Helpdesk Technician; IT Room Build: Rack, Server, UPS; Managed Network Switch - 24 or 48 Port."
