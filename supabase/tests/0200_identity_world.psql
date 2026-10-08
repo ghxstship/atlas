@@ -1,0 +1,176 @@
+-- Shared pgTAP fixture for the 02xx suites, included with \ir inside each test transaction.
+-- Every user, org and email is fictional; Northwind Live is the demo tenant (Section 3.14).
+-- Nothing persists: each suite rolls back.
+--
+-- Orgs: org_a Northwind Live (Team plan), org_b Harbor Lights Productions (Access plan),
+-- org_p Bluewater Partners (partner), org_c Tidewater Events (client of org_p, Core plan).
+-- People and roles:
+--   alice owner A, bob admin A, carol manager A, dave member A, erin collaborator A,
+--   frank field A, gina viewer A, mia member and field in A and viewer in B,
+--   xavier owner B, paul owner P, cora owner C, nina signed up with no org.
+-- Workspace ws_a and team team_a in A; frank is in ws_a, erin in team_a.
+
+create temporary table world (key text primary key, id uuid not null);
+grant select, insert on world to public;
+
+create function pg_temp.id(p_key text) returns uuid
+language sql stable as $$ select w.id from world w where w.key = p_key $$;
+
+create function pg_temp.as_platform() returns void
+language plpgsql as $$
+begin
+  perform set_config('role', 'postgres', true);
+  perform set_config('request.jwt.claims', '', true);
+end $$;
+
+create function pg_temp.as_anon() returns void
+language plpgsql as $$
+begin
+  perform set_config('role', 'postgres', true);
+  perform set_config('request.jwt.claims', '{"role":"anon"}', true);
+  perform set_config('role', 'anon', true);
+end $$;
+
+create function pg_temp.as_user(p_key text) returns void
+language plpgsql as $$
+declare
+  v_user uuid;
+begin
+  perform set_config('role', 'postgres', true);
+  select w.id into v_user from world w where w.key = p_key || '_user';
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
+  perform set_config('role', 'authenticated', true);
+end $$;
+
+-- Claims of a user while keeping the postgres role, for calling private helpers directly.
+create function pg_temp.claims(p_key text) returns void
+language plpgsql as $$
+begin
+  perform set_config('role', 'postgres', true);
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated')::text, true);
+end $$;
+
+create function pg_temp.new_user(p_key text, p_email text, p_name text) returns void
+language plpgsql as $$
+declare
+  v_user uuid := gen_random_uuid();
+begin
+  perform pg_temp.as_platform();
+  insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, raw_user_meta_data, created_at, updated_at)
+  values (v_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', p_email, now(),
+          jsonb_build_object('full_name', p_name), now(), now());
+  insert into world values (p_key || '_user', v_user);
+  insert into world select p_key, p.id from app.people p where p.user_id = v_user;
+end $$;
+
+create function pg_temp.invite_token(p_inviter text, p_org text, p_email text, p_role text) returns text
+language plpgsql as $$
+declare
+  v_role uuid;
+  v_token text;
+begin
+  perform pg_temp.as_platform();
+  select r.id into v_role from app.roles r where r.org_id is null and r.code = p_role;
+  perform pg_temp.as_user(p_inviter);
+  select i.invite_token into v_token from app.invite_member(pg_temp.id(p_org), p_email, v_role) i;
+  perform pg_temp.as_platform();
+  return v_token;
+end $$;
+
+create function pg_temp.join_org(p_inviter text, p_org text, p_invitee text, p_role text) returns uuid
+language plpgsql as $$
+declare
+  v_email text;
+  v_token text;
+  v_membership uuid;
+begin
+  perform pg_temp.as_platform();
+  select u.email into v_email from auth.users u where u.id = pg_temp.id(p_invitee || '_user');
+  v_token := pg_temp.invite_token(p_inviter, p_org, v_email, p_role);
+  perform pg_temp.as_user(p_invitee);
+  select a.membership_id into v_membership from app.accept_invite(v_token) a;
+  perform pg_temp.as_platform();
+  if v_membership is null then
+    raise exception 'fixture: % could not join % as %', p_invitee, p_org, p_role;
+  end if;
+  insert into world values (p_invitee || '@' || p_org, v_membership) on conflict (key) do nothing;
+  return v_membership;
+end $$;
+
+create function pg_temp.system_role(p_code text) returns uuid
+language sql stable as $$ select r.id from app.roles r where r.org_id is null and r.code = p_code $$;
+
+create function pg_temp.build_world() returns void
+language plpgsql as $$
+declare
+  v_id uuid;
+  v_token text;
+begin
+  perform pg_temp.new_user('alice', 'alice@northwind.test', 'Alice Moreno');
+  perform pg_temp.new_user('bob', 'bob@northwind.test', 'Bob Okafor');
+  perform pg_temp.new_user('carol', 'carol@northwind.test', 'Carol Nguyen');
+  perform pg_temp.new_user('dave', 'dave@northwind.test', 'Dave Lindqvist');
+  perform pg_temp.new_user('erin', 'erin@northwind.test', 'Erin Castillo');
+  perform pg_temp.new_user('frank', 'frank@northwind.test', 'Frank Adeyemi');
+  perform pg_temp.new_user('gina', 'gina@northwind.test', 'Gina Rossi');
+  perform pg_temp.new_user('mia', 'mia@northwind.test', 'Mia Takahashi');
+  perform pg_temp.new_user('xavier', 'xavier@harborlights.test', 'Xavier Dubois');
+  perform pg_temp.new_user('paul', 'paul@bluewater.test', 'Paul Brennan');
+  perform pg_temp.new_user('cora', 'cora@tidewater.test', 'Cora Whitfield');
+  perform pg_temp.new_user('nina', 'nina@nowhere.test', 'Nina Halvorsen');
+
+  perform pg_temp.as_user('alice');
+  insert into world values ('org_a', app.create_organization('Northwind Live', 'northwind-live'));
+  perform pg_temp.as_user('xavier');
+  insert into world values ('org_b', app.create_organization('Harbor Lights Productions', 'harbor-lights'));
+  perform pg_temp.as_user('paul');
+  insert into world values ('org_p', app.create_organization('Bluewater Partners', 'bluewater-partners'));
+
+  -- Northwind Live runs on the Team plan; billing services change plans with the service role.
+  perform pg_temp.as_platform();
+  update app.subscriptions set plan_code = 'team' where org_id in (pg_temp.id('org_a'), pg_temp.id('org_p'));
+  insert into world select 'alice@org_a', m.id from app.memberships m where m.person_id = pg_temp.id('alice');
+  insert into world select 'xavier@org_b', m.id from app.memberships m where m.person_id = pg_temp.id('xavier');
+  insert into world select 'paul@org_p', m.id from app.memberships m where m.person_id = pg_temp.id('paul');
+
+  perform pg_temp.join_org('alice', 'org_a', 'bob', 'admin');
+  perform pg_temp.join_org('bob', 'org_a', 'carol', 'manager');
+  perform pg_temp.join_org('bob', 'org_a', 'dave', 'member');
+  perform pg_temp.join_org('bob', 'org_a', 'erin', 'collaborator');
+  perform pg_temp.join_org('bob', 'org_a', 'frank', 'field');
+  perform pg_temp.join_org('bob', 'org_a', 'gina', 'viewer');
+  perform pg_temp.join_org('bob', 'org_a', 'mia', 'member');
+  perform pg_temp.join_org('bob', 'org_a', 'mia', 'field');
+  perform pg_temp.join_org('xavier', 'org_b', 'mia', 'viewer');
+
+  perform pg_temp.as_user('paul');
+  select c.org_id, c.invite_token into v_id, v_token
+  from app.create_client_organization(pg_temp.id('org_p'), 'Tidewater Events', 'tidewater-events',
+    'cora@tidewater.test', 'core') c;
+  insert into world values ('org_c', v_id);
+  perform pg_temp.as_user('cora');
+  insert into world select 'cora@org_c', a.membership_id from app.accept_invite(v_token) a;
+
+  perform pg_temp.as_user('alice');
+  insert into app.workspaces (org_id, slug, name) values (pg_temp.id('org_a'), 'east-coast', 'East Coast')
+  returning id into v_id;
+  insert into world values ('ws_a', v_id);
+  insert into app.workspace_members (workspace_id, membership_id) values (pg_temp.id('ws_a'), pg_temp.id('frank@org_a'));
+  insert into app.teams (org_id, name, description) values (pg_temp.id('org_a'), 'Load-In Crew', 'Leads every load-in.')
+  returning id into v_id;
+  insert into world values ('team_a', v_id);
+  insert into app.team_members (team_id, membership_id) values (pg_temp.id('team_a'), pg_temp.id('erin@org_a'));
+
+  perform pg_temp.as_user('xavier');
+  insert into app.workspaces (org_id, slug, name) values (pg_temp.id('org_b'), 'harbor-main', 'Harbor Main')
+  returning id into v_id;
+  insert into world values ('ws_b', v_id);
+  insert into app.teams (org_id, name) values (pg_temp.id('org_b'), 'Riggers') returning id into v_id;
+  insert into world values ('team_b', v_id);
+
+  perform pg_temp.as_platform();
+end $$;
+
+select pg_temp.build_world();
