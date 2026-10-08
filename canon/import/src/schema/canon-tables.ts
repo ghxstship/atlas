@@ -310,34 +310,6 @@ export const CANON_TABLES: readonly TableSpec[] = [
     ],
   },
   {
-    name: "dim_provenance",
-    comment:
-      "Provenance ranks (Bible tab 19, Section 3.8): human 100, operator 80, imported 60, agent 40, provider 20.",
-    primaryKey: ["provenance"],
-    unique: [["rank"]],
-    orderBy: ["rank"],
-    columns: [
-      { name: "provenance", type: "code", comment: "Provenance name." },
-      {
-        name: "rank",
-        type: "int",
-        comment: "Rank; a lower rank never overwrites a populated field written by a higher rank.",
-        check: "rank > 0",
-      },
-      { name: "definition", type: "text", comment: "Who writes with this provenance." },
-      {
-        name: "may_overwrite",
-        type: "text",
-        comment: "What a writer of this provenance may overwrite, as canon states it.",
-      },
-      {
-        name: "max_confidence",
-        type: "code",
-        comment: "Highest economics assertion word this provenance may carry.",
-      },
-    ],
-  },
-  {
     name: "dim_assertion_rank",
     comment: "Assertion ranks 4 to 0 (Bible tab 22). Rank 0 is absent: not zero and not low.",
     primaryKey: ["rank"],
@@ -374,6 +346,34 @@ export const CANON_TABLES: readonly TableSpec[] = [
       },
     ],
     unique: [["domain", "rank"]],
+  },
+  {
+    name: "dim_provenance",
+    comment:
+      "Provenance ranks (Bible tab 19, Section 3.8): human 100, operator 80, imported 60, agent 40, provider 20.",
+    primaryKey: ["provenance"],
+    unique: [["rank"]],
+    orderBy: ["rank"],
+    columns: [
+      { name: "provenance", type: "code", comment: "Provenance name." },
+      {
+        name: "rank",
+        type: "int",
+        comment: "Rank; a lower rank never overwrites a populated field written by a higher rank.",
+        check: "rank > 0",
+      },
+      { name: "definition", type: "text", comment: "Who writes with this provenance." },
+      {
+        name: "may_overwrite",
+        type: "text",
+        comment: "What a writer of this provenance may overwrite, as canon states it.",
+      },
+      {
+        name: "max_confidence",
+        type: "code",
+        comment: "Highest economics assertion word this provenance may carry.",
+      },
+    ],
   },
   {
     name: "dim_staleness_policy",

@@ -10,6 +10,7 @@ import {
   verifyFileManifest,
 } from "./manifest.ts";
 import type { FileManifest } from "./manifest.ts";
+import { generateCanon, writeGenerated } from "./generate.ts";
 import { buildCanonModel } from "./model/bible-model.ts";
 import { defaultRoot, repoPaths } from "./paths.ts";
 import type { RepoPaths } from "./paths.ts";
@@ -63,7 +64,14 @@ switch (command) {
   case "check":
     process.exitCode = await check(paths);
     break;
+  case "generate": {
+    const result = generateCanon(await loadInputs(paths));
+    writeGenerated(paths, result.files);
+    for (const f of result.files) console.log(`wrote ${f.path}`);
+    console.log(`${result.findings.items.length} findings recorded`);
+    break;
+  }
   default:
-    console.error(`Unknown command "${command}". Commands: manifest, check.`);
+    console.error(`Unknown command "${command}". Commands: manifest, check, generate.`);
     process.exitCode = 2;
 }
