@@ -11,6 +11,7 @@ create table xpms.dim_department (
   executive_lead xpms.canon_text,
   core_function xpms.canon_text,
   scope xpms.canon_text,
+  source_row integer,
   source_status xpms.canon_text,
   source_created_by xpms.canon_text,
   source_created_at timestamp,
@@ -25,6 +26,7 @@ comment on column xpms.dim_department.note is 'Bible note, such as the 4.0 label
 comment on column xpms.dim_department.executive_lead is 'EXECUTIVE LEAD from the Playbook Departments sheet.';
 comment on column xpms.dim_department.core_function is 'CORE FUNCTION from the Playbook Departments sheet.';
 comment on column xpms.dim_department.scope is 'SCOPE from the Playbook Departments sheet.';
+comment on column xpms.dim_department.source_row is 'Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.';
 comment on column xpms.dim_department.source_status is 'STATUS as recorded on the Playbook row (for example Active).';
 comment on column xpms.dim_department.source_created_by is 'CREATED BY as recorded on the Playbook row.';
 comment on column xpms.dim_department.source_created_at is 'CREATED AT as recorded on the Playbook row: a wall-clock time; the Playbook records no time zone.';
@@ -36,6 +38,7 @@ create table xpms.dim_discipline (
   discipline xpms.canon_text not null,
   source xpms.canon_text not null,
   is_extension boolean generated always as (substr(disc_code, 6, 2)::integer >= 50) stored not null,
+  source_row integer,
   source_status xpms.canon_text,
   source_created_by xpms.canon_text,
   source_created_at timestamp,
@@ -49,6 +52,7 @@ comment on column xpms.dim_discipline.dept_code is 'Department class the discipl
 comment on column xpms.dim_discipline.discipline is 'Discipline label in Title Case.';
 comment on column xpms.dim_discipline.source is 'Origin of the discipline: canon, workforce, ramp-up or another tagged extension source.';
 comment on column xpms.dim_discipline.is_extension is 'True when the discipline segment is .50 to .99 (an extension range).';
+comment on column xpms.dim_discipline.source_row is 'Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.';
 comment on column xpms.dim_discipline.source_status is 'STATUS as recorded on the Playbook row (for example Active).';
 comment on column xpms.dim_discipline.source_created_by is 'CREATED BY as recorded on the Playbook row.';
 comment on column xpms.dim_discipline.source_created_at is 'CREATED AT as recorded on the Playbook row: a wall-clock time; the Playbook records no time zone.';
@@ -62,6 +66,7 @@ create table xpms.dim_category (
   source xpms.canon_text not null,
   xyz xpms.xyz_tag,
   is_extension boolean generated always as (substr(cat_urid, 6, 2)::integer >= 50 or substr(cat_urid, 9, 2)::integer >= 50) stored not null,
+  source_row integer,
   source_status xpms.canon_text,
   source_created_by xpms.canon_text,
   source_created_at timestamp,
@@ -76,6 +81,7 @@ comment on column xpms.dim_category.category is 'Category label in Title Case.';
 comment on column xpms.dim_category.source is 'Origin of the category: canon or a tagged extension source.';
 comment on column xpms.dim_category.xyz is 'SCHEMA FAMILY (XYZ) from the Playbook Categories & URID Master sheet: X Resource, Y Process, Z Timeline.';
 comment on column xpms.dim_category.is_extension is 'True when the discipline or category segment is .50 to .99.';
+comment on column xpms.dim_category.source_row is 'Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.';
 comment on column xpms.dim_category.source_status is 'STATUS as recorded on the Playbook row (for example Active).';
 comment on column xpms.dim_category.source_created_by is 'CREATED BY as recorded on the Playbook row.';
 comment on column xpms.dim_category.source_created_at is 'CREATED AT as recorded on the Playbook row: a wall-clock time; the Playbook records no time zone.';
@@ -150,6 +156,7 @@ create table xpms.dim_team (
   workgroup_tag xpms.canon_text,
   lead_role xpms.canon_text,
   responsibilities xpms.canon_text,
+  source_row integer,
   source_status xpms.canon_text,
   source_created_by xpms.canon_text,
   source_created_at timestamp,
@@ -164,6 +171,7 @@ comment on column xpms.dim_team.dept_code is 'Department the team rolls up to.';
 comment on column xpms.dim_team.workgroup_tag is 'WORKGROUP TAG from the Playbook Teams sheet.';
 comment on column xpms.dim_team.lead_role is 'LEAD ROLE from the Playbook Teams sheet.';
 comment on column xpms.dim_team.responsibilities is 'RESPONSIBILITIES from the Playbook Teams sheet.';
+comment on column xpms.dim_team.source_row is 'Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.';
 comment on column xpms.dim_team.source_status is 'STATUS as recorded on the Playbook row (for example Active).';
 comment on column xpms.dim_team.source_created_by is 'CREATED BY as recorded on the Playbook row.';
 comment on column xpms.dim_team.source_created_at is 'CREATED AT as recorded on the Playbook row: a wall-clock time; the Playbook records no time zone.';
@@ -536,6 +544,7 @@ create table xpms.dim_gl_account (
   account_type xpms.canon_text not null references xpms.dim_gl_account_type(account_type),
   tax_type xpms.canon_text not null,
   description xpms.canon_text not null,
+  source_row integer,
   source_status xpms.canon_text,
   source_created_by xpms.canon_text,
   source_created_at timestamp,
@@ -548,6 +557,7 @@ comment on column xpms.dim_gl_account.account_name is 'Account name.';
 comment on column xpms.dim_gl_account.account_type is 'Account type.';
 comment on column xpms.dim_gl_account.tax_type is 'Default tax type: Tax on Purchases, Tax on Sales, Tax Exempt or None.';
 comment on column xpms.dim_gl_account.description is 'What posts to the account.';
+comment on column xpms.dim_gl_account.source_row is 'Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.';
 comment on column xpms.dim_gl_account.source_status is 'STATUS as recorded on the Playbook row (for example Active).';
 comment on column xpms.dim_gl_account.source_created_by is 'CREATED BY as recorded on the Playbook row.';
 comment on column xpms.dim_gl_account.source_created_at is 'CREATED AT as recorded on the Playbook row: a wall-clock time; the Playbook records no time zone.';
@@ -561,6 +571,7 @@ create table xpms.dim_cost_center_template (
   kind xpms.canon_text not null,
   scope_code xpms.canon_code,
   note xpms.canon_text,
+  source_row integer,
   source_status xpms.canon_text,
   source_created_by xpms.canon_text,
   source_created_at timestamp,
@@ -574,6 +585,7 @@ comment on column xpms.dim_cost_center_template.cost_center is 'Cost center name
 comment on column xpms.dim_cost_center_template.kind is 'Standing, Overhead or Event.';
 comment on column xpms.dim_cost_center_template.scope_code is 'Event scope code, for event cost centers.';
 comment on column xpms.dim_cost_center_template.note is 'Canon note.';
+comment on column xpms.dim_cost_center_template.source_row is 'Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.';
 comment on column xpms.dim_cost_center_template.source_status is 'STATUS as recorded on the Playbook row (for example Active).';
 comment on column xpms.dim_cost_center_template.source_created_by is 'CREATED BY as recorded on the Playbook row.';
 comment on column xpms.dim_cost_center_template.source_created_at is 'CREATED AT as recorded on the Playbook row: a wall-clock time; the Playbook records no time zone.';
@@ -587,6 +599,7 @@ create table xpms.dim_counterparty_type (
   vendor_class xpms.canon_text,
   clearance_tier xpms.canon_text,
   default_account_code xpms.canon_code references xpms.dim_gl_account(account_code),
+  source_row integer,
   source_status xpms.canon_text,
   source_created_by xpms.canon_text,
   source_created_at timestamp,
@@ -602,6 +615,7 @@ comment on column xpms.dim_counterparty_type.classification_code is 'CLASSIFICAT
 comment on column xpms.dim_counterparty_type.vendor_class is 'VENDOR CLASS from the Playbook Counterparty Types sheet.';
 comment on column xpms.dim_counterparty_type.clearance_tier is 'CLEARANCE TIER from the Playbook Counterparty Types sheet.';
 comment on column xpms.dim_counterparty_type.default_account_code is 'DEFAULT GL ACCOUNT from the Playbook Counterparty Types sheet.';
+comment on column xpms.dim_counterparty_type.source_row is 'Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.';
 comment on column xpms.dim_counterparty_type.source_status is 'STATUS as recorded on the Playbook row (for example Active).';
 comment on column xpms.dim_counterparty_type.source_created_by is 'CREATED BY as recorded on the Playbook row.';
 comment on column xpms.dim_counterparty_type.source_created_at is 'CREATED AT as recorded on the Playbook row: a wall-clock time; the Playbook records no time zone.';
@@ -799,6 +813,7 @@ create table xpms.elements (
   mapping_confidence xpms.canon_text not null,
   lifecycle_state xpms.canon_text not null references xpms.dim_state(state),
   external_ref xpms.canon_text,
+  source_row integer,
   primary key (element_id),
   check (left(element_id, 11) = urid || '-'),
   check (purchase_account is not null or sales_account is not null)
@@ -827,6 +842,7 @@ comment on column xpms.elements.source is 'Where the element entered canon.';
 comment on column xpms.elements.mapping_confidence is 'How the element was mapped to its URID.';
 comment on column xpms.elements.lifecycle_state is 'Lifecycle state from the shared vocabulary.';
 comment on column xpms.elements.external_ref is 'Legacy code or touchpoint ID; never a join key.';
+comment on column xpms.elements.source_row is 'Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.';
 create index elements_urid_idx on xpms.elements (urid);
 create index elements_unit_basis_idx on xpms.elements (unit_basis);
 create index elements_tier_code_idx on xpms.elements (tier_code);

@@ -115,6 +115,7 @@ function buildDimensions(b: Builder): void {
     executive_lead: null,
     core_function: null,
     scope: null,
+    source_row: null,
     source_status: null,
     source_created_by: null,
     source_created_at: null,
@@ -123,6 +124,7 @@ function buildDimensions(b: Builder): void {
   b.put("dim_department", depts);
 
   const meta = {
+    source_row: null,
     source_status: null,
     source_created_by: null,
     source_created_at: null,
@@ -685,6 +687,7 @@ function buildGl(b: Builder, gl: CsvTable): void {
     }
     return {
       ...row,
+      source_row: null,
       source_status: null,
       source_created_by: null,
       source_created_at: null,
@@ -849,7 +852,7 @@ function buildCatalog(b: Builder, items: CsvTable, generatedAt: string): void {
     for (const [col, src] of Object.entries(ELEMENT_FIELDS)) {
       row[col] = col === "tier_code" ? tierCode : text(src);
     }
-    elements.push(row);
+    elements.push({ ...row, source_row: null });
     for (const [col, value] of Object.entries(row)) {
       if (col !== "element_id" && value !== null) {
         provenance.push({

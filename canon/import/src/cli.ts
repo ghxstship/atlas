@@ -1,4 +1,5 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mergeColumnMap, readColumnMap, writeColumnMap } from "./playbook/column-map.ts";
 import { join } from "node:path";
 import { countFailures, validateCounts } from "./counts.ts";
 import { Findings } from "./doctrine.ts";
@@ -71,7 +72,16 @@ switch (command) {
     console.log(`${result.findings.items.length} findings recorded`);
     break;
   }
+  case "map": {
+    const target = join(paths.canonMap, "playbook-columns.yaml");
+    const existing = existsSync(target) ? readColumnMap(readFileSync(target, "utf8")) : null;
+    const inputs = await loadInputs(paths);
+    mkdirSync(paths.canonMap, { recursive: true });
+    writeFileSync(target, writeColumnMap(mergeColumnMap(existing, inputs.playbook)));
+    console.log(`wrote ${target}`);
+    break;
+  }
   default:
-    console.error(`Unknown command "${command}". Commands: manifest, check, generate.`);
+    console.error(`Unknown command "${command}". Commands: manifest, check, generate, map.`);
     process.exitCode = 2;
 }

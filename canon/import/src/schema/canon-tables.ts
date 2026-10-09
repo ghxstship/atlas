@@ -6,7 +6,16 @@ import type { ColumnSpec, TableSpec } from "./types.ts";
  * and the four row metadata columns the Playbook records.
  */
 
+const sourceRow: ColumnSpec = {
+  name: "source_row",
+  type: "int",
+  nullable: true,
+  comment:
+    "Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.",
+};
+
 const sourceMeta: readonly ColumnSpec[] = [
+  sourceRow,
   {
     name: "source_status",
     type: "text",
@@ -1190,6 +1199,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
         nullable: true,
         comment: "Legacy code or touchpoint ID; never a join key.",
       },
+      sourceRow,
     ],
     checks: [
       "left(element_id, 11) = urid || '-'",
