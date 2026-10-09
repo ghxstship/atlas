@@ -28,7 +28,7 @@
   "scripts": {
     "build": "node build-tokens.mjs",
     "contrast": "node scripts/check-contrast.js xos.tokens.json scripts/contrast-pairs.json",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint . --max-warnings 0 && stylelint \"**/*.css\" --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/check-contrast.js xos.tokens.json scripts/contrast-pairs.json && vitest run"
   },
@@ -38,6 +38,7 @@
     "@xos/config": "workspace:*",
     "eslint": "10.12.0",
     "style-dictionary": "5.6.0",
+    "stylelint": "17.16.0",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "vite": "8.3.3",
