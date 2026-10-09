@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Clock In</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px;">
+  <header style="flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px 8px 16px; border-bottom: 1px solid var(--border-subtle);">
+    <div style="min-height: 48px; display: flex; flex-direction: column; justify-content: center;">
+      <span style="font-size: 12px; color: var(--text-secondary);">Northwind Live</span>
+      <strong>Opening Night · Harbor Pavilion</strong>
+    </div>
+    <button type="button" aria-label="Account, Malik Osei" style="min-width: 48px; min-height: 48px; display: grid; place-items: center; border: 0; background: none; padding: 0; cursor: pointer;"><x-import component-from-global-scope="XOS.Avatar" name="Malik Osei"></x-import></button>
+  </header>
+  <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Show call</h1>
+      <span class="xos-muted">Fri, Nov 20 · 2:00 PM to 11:30 PM · Head Arena / Festival Rigger</span>
+    </div>
+    <div role="status" aria-live="polite" style="display: flex; flex-direction: column; gap: 12px;">
+      <x-import component-from-global-scope="XOS.ClockButton" state="{{c.state}}" label="{{c.label}}" detail="{{c.detail}}" timer="{{c.timer}}" geofence="{{c.geo}}" geofence-ok="{{c.geoOk}}"></x-import>
+    </div>
+    <sc-if value="{{onShift}}" hint-placeholder-val="{{false}}">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <x-import component-from-global-scope="XOS.Button" size="lg" icon="Coffee" class-name="xos-block">{{c.second}}</x-import>
+        <x-import component-from-global-scope="XOS.Button" size="lg" variant="danger" icon="LogOut" class-name="xos-block">Clock Out</x-import>
+      </div>
+      <section aria-labelledby="c-lock" style="display: flex; flex-direction: column; gap: 8px;">
+        <h2 id="c-lock" class="xos-label" style="margin: 0;">On the lock screen</h2>
+        <x-import component-from-global-scope="XOS.LiveActivity" label="{{c.label}}" on-break="{{c.onBreak}}" elapsed="{{c.short}}" place="Harbor Pavilion · Rigger" next-shift="Closing Night" next-time="Sun 2:00 PM"></x-import>
+      </section>
+    </sc-if>
+    <sc-if value="{{blocked}}" hint-placeholder-val="{{false}}">
+      <x-import component-from-global-scope="XOS.InlineAlert" tone="warning" title="Outside the venue geofence">Clock In opens when you are inside Harbor Pavilion. Your supervisor can clock you in from the crew board.</x-import>
+    </sc-if>
+    <section aria-labelledby="c-punch" style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 id="c-punch" class="xos-label" style="margin: 0;">Punches this week</h2>
+      <div class="xos-card" style="padding: 12px 16px; display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; font-size: 14px;">
+        <span>Wed, Nov 18</span><span class="xos-num">6:02 AM to 5:48 PM</span>
+        <span>Thu, Nov 19</span><span class="xos-num">12:58 PM to 10:31 PM</span>
+      </div>
+    </section>
+  </main>
+  <div style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" compass="{{yes}}" label="Compass" active="Today" center-label="Scan" items="{{tabs}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"clock":{"editor":"enum","options":["out","outside","on","break"],"default":"out"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const k = this.props.clock || 'out';
+    const C = {
+      out: { state: 'out', label: 'Clock In', detail: 'Show call starts at 2:00 PM', geo: "You're at Harbor Pavilion", geoOk: true },
+      outside: { state: 'blocked', label: 'Clock In', detail: 'Available inside the venue', geo: "You're 1.2 mi from Harbor Pavilion", geoOk: false },
+      on: { state: 'on', label: 'On Shift', timer: '03:42:10', short: '03:42', detail: 'Started 1:56 PM', geo: "You're at Harbor Pavilion", geoOk: true, second: 'Break' },
+      break: { state: 'break', label: 'On Break', timer: '00:12:40', short: '00:12', detail: 'Break started 5:40 PM', geo: "You're at Harbor Pavilion", geoOk: true, second: 'End Break', onBreak: true }
+    };
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true,
+      c: C[k] || C.out,
+      onShift: k === 'on' || k === 'break',
+      blocked: k === 'outside',
+      tabs: [{ label: 'Today', icon: 'House' }, { label: 'Schedule', icon: 'CalendarDays' }, { label: 'Scan', icon: 'ScanLine' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Crew', icon: 'HardHat' }, { label: 'More', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

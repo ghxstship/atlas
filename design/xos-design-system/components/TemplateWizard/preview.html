@@ -1,0 +1,12 @@
+<!-- @dsCard group="Templates" height=380 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TemplateWizard</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col',style:{maxWidth:640}},h(X.Stepper,{current:1,steps:['Upload','Map Columns','Review','Import']}),h('h1',{style:{margin:0,fontSize:20}},'Map Columns'),h(X.Select,{label:'Item',value:'item',options:[{value:'item',label:'Item name'},{value:'urid',label:'URID'}]}),h(X.Select,{label:'Unit Cost',value:'cost',options:[{value:'cost',label:'unit_cost_usd'},{value:'skip',label:'Do not import'}]}),h('div',{className:'xos-row',style:{justifyContent:'space-between'}},h(X.Button,{variant:'ghost',icon:'ChevronLeft'},'Back'),h(X.Button,{variant:'primary'},'Next'))));
+</script>
+</body>
+</html>

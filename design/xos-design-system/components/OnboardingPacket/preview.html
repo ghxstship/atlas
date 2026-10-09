@@ -1,0 +1,12 @@
+<!-- @dsCard group="Gateway" height=380 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>OnboardingPacket</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{width:'100%',maxWidth:480}},h(X.OnboardingPacket,{items:[{label:'W-9',state:'verified',blocking:true,minutes:3,note:'Verified Oct 2'},{label:'Insurance certificate',state:'review',blocking:true,minutes:2,note:'In review'},{label:'Crew agreement',state:'todo',blocking:true,minutes:4,action:'Sign'},{label:'Safety briefing',state:'todo',blocking:true,minutes:6,action:'Start'},{label:'Uniform sizes',state:'todo',blocking:false,minutes:1}]})));
+</script>
+</body>
+</html>

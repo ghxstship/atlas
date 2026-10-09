@@ -1,0 +1,12 @@
+<!-- @dsCard group="Compass" height=280 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ShiftCard</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.ShiftCard,{state:'scheduled',stateLabel:'Scheduled',countdown:'Starts in 14 h',role:'Stagehand \u00b7 Build and strike',date:'Fri, Oct 30',time:'6:00 AM to 4:00 PM',place:'Harbor Pavilion, Dock B',actions:[h(X.Button,{key:'s'},'Swap'),h(X.Button,{key:'c',variant:'primary'},'Add to Wallet')]}));
+</script>
+</body>
+</html>

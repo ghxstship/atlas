@@ -1,0 +1,12 @@
+<!-- @dsCard group="Data display" height=320 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>MapView</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.MapView,{label:'Harbor Pavilion site plan',width:560,height:300,geofence:{x:280,y:150,r:140},zones:[{label:'Main Stage',x:220,y:30,w:140,h:70},{label:'FOH',x:250,y:140,w:80,h:40},{label:'Dock',x:20,y:20,w:110,h:60},{label:'Box Office',x:430,y:220,w:110,h:60}],pins:[{x:290,y:70,label:'Rigging check',tone:'accent'},{x:75,y:55,label:'Delivery staged',tone:'warning'},{x:470,y:250,label:'Medical, minor',tone:'danger'}]}));
+</script>
+</body>
+</html>

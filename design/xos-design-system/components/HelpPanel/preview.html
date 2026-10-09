@@ -1,0 +1,12 @@
+<!-- @dsCard group="Overlays" height=520 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>HelpPanel</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.HelpPanel,{assistant:true,articles:['How gates work','Clear a blocking criterion','Advance packets and riders'],shortcuts:[{label:'Command menu',keys:'\u2318 K'},{label:'Create record',keys:'C'},{label:'Shortcut sheet',keys:'?'}]}));
+</script>
+</body>
+</html>

@@ -64,12 +64,13 @@ describe("isScannable", () => {
     expect(isScannable("packages/i18n/messages/en-US.json")).toBe(true);
   });
 
-  it("skips binaries, canon inputs and third-party verbatim text", () => {
+  it("skips binaries, canon inputs, design exports and third-party verbatim text", () => {
     expect(isScannable("apps/atlas/public/logo.png")).toBe(false);
     expect(isScannable("canon/source/XOS_4.0_Item_Catalog.csv")).toBe(false);
     expect(isScannable("LICENSE")).toBe(false);
     expect(isScannable("CODE_OF_CONDUCT.md")).toBe(false);
     expect(isScannable("docs/spec/XOS_4.0_Build_Prompt.md")).toBe(false);
+    expect(isScannable("design/xos-screens/AtlasHome.dc.html")).toBe(false);
     expect(isScannable("pnpm-lock.yaml")).toBe(false);
   });
 });

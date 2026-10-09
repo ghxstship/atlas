@@ -1,0 +1,12 @@
+<!-- @dsCard group="XOS" height=460 width=960 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>CoordinateMatrix</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render((function(){var rows=[['0000','Executive'],['1000','Creative'],['2000','Talent'],['3000','Marketing'],['4000','Environment'],['5000','Production'],['6000','Operations'],['7000','Experience'],['8000','Hospitality'],['9000','Technology']].map(function(d){return {code:d[0],name:d[1]}}),cols=[[1,'SCP','Scope'],[2,'ENG','Engage'],[3,'ADV','Advance'],[4,'PRC','Procure'],[5,'BLD','Build'],[6,'INS','Install'],[7,'OPR','Operate'],[8,'AMP','Amplify'],[9,'CLS','Close']].map(function(p){return {gate:p[0],code:p[1],name:p[2]}}),cells={};var seed=[3,0,5,8,2,0,4,1,6,9,2,7,0,3,5,1,8,4,2,6,0,9,3,7,1,5,0];rows.forEach(function(r,i){cols.forEach(function(c,j){var v=seed[(i*7+j*3)%seed.length];if(v)cells[r.code+'|'+c.code]=v})});return h(X.CoordinateMatrix,{label:'Coordinate Matrix, Northwind Fall Series',corner:'Department',rows:rows,cols:cols,cells:cells})})());
+</script>
+</body>
+</html>

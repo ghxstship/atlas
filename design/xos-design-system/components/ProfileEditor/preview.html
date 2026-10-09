@@ -1,0 +1,12 @@
+<!-- @dsCard group="Gateway" height=340 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ProfileEditor</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{width:'100%',maxWidth:560}},h(X.ProfileEditor,{strength:80,nextStep:'Add a portfolio item to reach 100%',fields:[{label:'Headline',value:'Lead rigger, arenas and festivals',visibility:'public'},{label:'Rates',value:'$62 per hour, $560 per day',visibility:'application'},{label:'Phone',value:'Last 4: 0142',visibility:'private'}]})));
+</script>
+</body>
+</html>

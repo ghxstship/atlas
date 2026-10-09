@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Day Sheet</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px;">
+  <header style="flex: none; display: flex; align-items: center; gap: 4px; padding: 8px 12px 8px 4px; border-bottom: 1px solid var(--border-subtle);">
+    <x-import component-from-global-scope="XOS.IconButton" icon="ChevronLeft" label="Back to Today"></x-import>
+    <strong style="flex: 1;">Day Sheet</strong>
+    <x-import component-from-global-scope="XOS.Tag" tone="success">Saved offline</x-import>
+  </header>
+  <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+    <x-import component-from-global-scope="XOS.DaySheetView" date="Friday, Nov 20" title="Opening Night" venue="Harbor Pavilion" entries="{{entries}}" contacts="{{contacts}}"></x-import>
+    <x-import component-from-global-scope="XOS.Card" title="Weather and parking">
+      <p style="margin: 0; color: var(--text-secondary);">Crew parking in Lot C, enter from the service road. Credential required past Dock B.</p>
+    </x-import>
+  </main>
+  <div style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" compass="{{yes}}" label="Compass" active="Today" center-label="Scan" items="{{tabs}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true,
+      entries: [{ time: '1:45 PM', label: 'Crew call, Dock B kiosk' }, { time: '3:00 PM', label: 'Sound check', now: true }, { time: '5:30 PM', label: 'Crew meal' }, { time: '6:30 PM', label: 'Doors' }, { time: '7:30 PM', label: 'Show' }, { time: '10:45 PM', label: 'Curfew' }],
+      contacts: [{ name: 'Jordan Lee', role: 'Producer' }, { name: 'Morgan Chen', role: 'Production Coordinator' }],
+      tabs: [{ label: 'Today', icon: 'House' }, { label: 'Schedule', icon: 'CalendarDays' }, { label: 'Scan', icon: 'ScanLine' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Crew', icon: 'HardHat' }, { label: 'More', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

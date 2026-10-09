@@ -1,0 +1,12 @@
+<!-- @dsCard group="XOS" height=420 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>GateReadinessPanel</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.GateReadinessPanel,{gate:3,code:'ADV',name:'Advance',nextLabel:'Enter Gate 4',criteria:[{code:'G3.PERMITS_FILED',label:'Every permit the jurisdiction requires is filed with lead time in hand.',result:'gap',blocking:true,action:'Open Permits'},{code:'G3.NO_CRITICAL_GAPS',label:'Reconciliation of every requirement against its capability document leaves zero unresolved critical gaps.',result:'unknown',blocking:true,action:'Reconcile'},{code:'G3.NO_STALE_DOCS',label:'No requirement or capability document in the advance set is past its validity window.',result:'met',blocking:true,evidence:'14 documents'},{code:'G3.RIGGING_DOCUMENTED',label:'Where a rigging requirement exists, the venue has a documented point and total load on file.',result:'met',blocking:true,evidence:'Rigging plot v2'},{code:'G3.PO_BASELINE',label:'PO baseline set; gate 9 reconciles against it.',result:'met',blocking:true,evidence:'PO baseline v1'}]}));
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow · Requirements Check</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="dark" style="width: 100%; display: flex; flex-direction: column; gap: 48px; background: var(--bg-surface); color: var(--text-primary); font-family: var(--font-sans);">
+  <section aria-label="Step 1"><div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 14px; font-weight: 600;"><span class="xos-code">1</span>Exactly what is missing</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayOpportunity" check="missing" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Step 2"><div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 14px; font-weight: 600;"><span class="xos-code">2</span>Added by camera · check turns green</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayOpportunity" check="met" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Step 3"><div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 14px; font-weight: 600;"><span class="xos-code">3</span>Apply with saved profile · 3 taps</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayApply" h="844" hint-size="100%,844px"></dc-import></div></section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2748}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Command Menu</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="position: relative; height: {{hpx}}; overflow: hidden; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div aria-hidden="true" inert="" style="height: 100%;">
+    <dc-import name="AtlasHome" h="{{hfwd}}" theme="{{theme}}" hint-size="100%,100%"></dc-import>
+  </div>
+  <div style="position: absolute; inset: 0; background: var(--scrim); opacity: 0.64;"></div>
+  <div role="dialog" aria-modal="true" aria-label="Command menu" style="position: absolute; inset-inline: 0; top: 96px; display: flex; justify-content: center; padding: 0 16px;">
+    <div style="width: 100%; max-width: 640px;">
+      <x-import component-from-global-scope="XOS.CommandMenu" query="approve" placeholder="Search records, people, pages, settings and actions" groups="{{groups}}"></x-import>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      hfwd: h ? String(h) : '',
+      groups: [
+        { label: 'Actions', items: [{ label: 'Approve Timesheets', icon: 'CheckCheck', shortcut: 'G T', selected: true }, { label: 'Approve Change Order: Barricade upgrade', icon: 'Check', shortcut: 'A' }] },
+        { label: 'Records', items: [{ label: 'Approve Main Stage advance packet', code: 'NWL-118', state: 'ready' }, { label: 'Approval Policies review', code: 'NWL-109', state: 'complete' }] },
+        { label: 'Settings', items: [{ label: 'Approval Policies', icon: 'Settings', shortcut: 'G S' }, { label: 'Spend Authority', icon: 'Settings' }] },
+        { label: 'People', items: [{ label: 'Avery Brooks · Finance, approves over $5,000', icon: 'User' }] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

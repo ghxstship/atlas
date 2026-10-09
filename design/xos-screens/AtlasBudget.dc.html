@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Budget Grid</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item" aria-haspopup="listbox" aria-label="Workspace, Miami Office"><x-import component-from-global-scope="XOS.Icon" name="Building2"></x-import>Miami Office<span style="margin-inline-start: auto; display: inline-flex;"><x-import component-from-global-scope="XOS.Icon" name="ChevronsUpDown" size="{{i12}}"></x-import></span></button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <x-import component-from-global-scope="XOS.Sidebar" label="Atlas" active="Finance" groups="{{nav}}"></x-import>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Menu"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <x-import component-from-global-scope="XOS.PresenceIndicator" names="{{editors}}" verb="editing"></x-import>
+          <x-import component-from-global-scope="XOS.IconButton" icon="CircleHelp" label="Help" shortcut="?"></x-import>
+          <button type="button" aria-label="Account, Avery Brooks" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Avery Brooks"></x-import></button>
+        </div>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <x-import component-from-global-scope="XOS.PageHeader" title="Budget" glyph="Table" actions="{{actions}}"></x-import>
+      <x-import component-from-global-scope="XOS.Tabs" label="Finance pages" value="budgets" tabs="{{pages}}"></x-import>
+      <div class="xos-layout-dashboard">
+        <x-import component-from-global-scope="XOS.StatTile" label="Budget, Base grade" value="{{budget}}" format="money" caption="Baseline v1, Oct 30"></x-import>
+        <x-import component-from-global-scope="XOS.StatTile" label="Committed" value="{{committed}}" format="money" caption="Purchase orders and signed engagements"></x-import>
+        <x-import component-from-global-scope="XOS.StatTile" label="Forecast variance" value="{{variance}}" format="money" delta="{{varPct}}" delta-unit="%" delta-label="vs. baseline" good-when="down"></x-import>
+      </div>
+      <x-import component-from-global-scope="XOS.InlineAlert" tone="info" title="Unpriced is not zero">One line has no rate yet. It shows as Unpriced and is left out of totals until a rate is set.</x-import>
+      <x-import component-from-global-scope="XOS.BudgetGrid" label="Budget grid, Opening Night" accounts="{{accounts}}" scope-label="Opening Night · CC-E01" grade="base" grades="{{grades}}" lines="{{lines}}"></x-import>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Home" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p, c) => (X[n] && R) ? R.createElement(X[n], p, c) : null;
+    const h = Number(this.props.h) || 0;
+    const open = ['Commercial'];
+    const g = (label, items) => ({ label, collapsed: open.indexOf(label) < 0, items });
+    const acct = [['5000', 'Executive', '0000'], ['5100', 'Creative', '1000'], ['5200', 'Talent', '2000'], ['5300', 'Marketing', '3000'], ['5400', 'Environment', '4000'], ['5500', 'Production', '5000'], ['5600', 'Operations', '6000'], ['5700', 'Experience', '7000'], ['5800', 'Hospitality', '8000'], ['5900', 'Technology', '9000']];
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      i12: 12, budget: 186400, committed: 121950, variance: -3120, varPct: -1.7,
+      editors: ['Jordan Lee'],
+      actions: el('Button', { variant: 'primary', icon: 'Plus', shortcut: 'C' }, 'Add Line'),
+      accounts: acct.map((a) => ({ code: a[0], name: 'Expense · ' + a[1], classCode: a[2], type: 'Expense' })),
+      grades: [{ value: 'base', label: 'Base' }, { value: 'elevated', label: 'Elevated' }, { value: 'premium', label: 'Premium' }],
+      lines: [
+        { cc: 'CC-E01', urid: '5000.01.02', name: 'Line Array - Medium', type: 'Scope', qty: 2, unit: 'each', base: 15000, elevated: 15000, premium: 15000 },
+        { cc: 'CC-E01', urid: '5000.04.02', name: 'Stage Deck - 4x8', type: 'Scope', qty: 40, unit: 'each', base: 48.5, elevated: 48.5, premium: 48.5 },
+        { cc: 'CC-E01', urid: '5000.05.03', name: 'Truss - 20.5in Box', type: 'Scope', qty: 24, unit: 'each', base: 56, elevated: 56, premium: 56 },
+        { cc: 'CC-E01', urid: '8000.01.02', name: 'Coffee Service', type: 'Scope', qty: 3, unit: 'lot', base: 200, elevated: 200, premium: 200 },
+        { cc: 'CC-E01', urid: '8000.01.02', name: 'Artist-Rooted Cultural Menu', type: 'Scope', qty: 1, unit: 'each', base: null, elevated: null, premium: null }
+      ],
+      nav: [
+        { items: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 9 }, { label: 'My Work', icon: 'CircleCheck' }] },
+        { label: 'Favorites', items: [{ label: 'Approvals Over $5,000', icon: 'Star' }, { label: 'Open Change Orders', icon: 'Star' }] },
+        { label: 'Recent Projects', items: [{ label: 'Northwind Fall Series', icon: 'Folder' }, { label: 'Harbor Winter Gala', icon: 'Folder' }, { label: 'Bayfront Food Festival', icon: 'Folder' }, { label: 'Coastline Brand Launch', icon: 'Folder' }, { label: 'Riverside Summer Stage', icon: 'Folder' }, { label: 'All Projects', icon: 'FolderOpen' }] },
+        g('Production', [{ label: 'Projects', icon: 'Folder' }, { label: 'Schedule', icon: 'Calendar' }, { label: 'Work', icon: 'SquareCheck' }, { label: 'Show', icon: 'Clapperboard' }, { label: 'Advancing', icon: 'ClipboardCheck' }]),
+        g('Operations', [{ label: 'Places', icon: 'MapPin' }, { label: 'Logistics', icon: 'Truck' }, { label: 'Hospitality', icon: 'ConciergeBell' }, { label: 'Assets', icon: 'Boxes' }, { label: 'Credentials', icon: 'IdCard' }, { label: 'Safety', icon: 'ShieldAlert' }]),
+        g('People', [{ label: 'People', icon: 'Users' }, { label: 'Opportunities', icon: 'UserSearch' }, { label: 'Crew', icon: 'HardHat' }]),
+        g('Commercial', [{ label: 'Finance', icon: 'Wallet' }, { label: 'Procurement', icon: 'ShoppingCart' }, { label: 'Vendors', icon: 'Store' }]),
+        g('Knowledge', [{ label: 'Knowledge', icon: 'BookOpen' }, { label: 'Reports', icon: 'ChartColumn' }, { label: 'Canon', icon: 'Library' }]),
+        { items: [{ label: 'Activity', icon: 'Activity' }, { label: 'Settings', icon: 'Settings' }] }
+      ],
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Miami Office' }, { label: 'Northwind Fall Series' }, { label: 'Opening Night' }, { label: 'Budget' }],
+      pages: [{ value: 'budgets', label: 'Budgets' }, { value: 'expenses', label: 'Expenses' }, { value: 'co', label: 'Change Orders', count: 2 }, { value: 'invoices', label: 'Invoices' }, { value: 'payments', label: 'Payments' }, { value: 'journal', label: 'Journal' }, { value: 'periods', label: 'Periods' }, { value: 'upl', label: 'Universal Posting Line Export' }, { value: 'coa', label: 'Chart of Accounts' }, { value: 'cc', label: 'Cost Centers' }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 9 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

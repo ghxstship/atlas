@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Settings · Data and Privacy</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="ArrowLeft"></x-import>Back to Atlas</button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search settings<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <nav aria-label="Organization settings" class="xos-sidebar">
+      <sc-for list="{{sections}}" as="s" hint-placeholder-count="42">
+        <button type="button" class="xos-nav-item" aria-current="{{s.current}}">{{s.label}}</button>
+      </sc-for>
+    </nav>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Settings sections"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <button type="button" aria-label="Account, Sam Rivera" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Sam Rivera"></x-import></button>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <div style="max-width: 880px; width: 100%; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Data and Privacy</h1>
+            <span class="xos-muted">Classification, exports, data requests, retention and legal holds</span>
+          </div>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" icon="Download">Export All Data</x-import>
+        </div>
+        <x-import component-from-global-scope="XOS.Tabs" label="Data and privacy sections" value="requests" tabs="{{inner}}"></x-import>
+        <section aria-labelledby="h-req" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-req" style="margin: 0; font-size: 14px; font-weight: 600;">Data requests</h2>
+          <x-import component-from-global-scope="XOS.DataTable" caption="Access and deletion requests from people in your records" columns="{{reqCols}}" rows="{{reqRows}}"></x-import>
+        </section>
+        <section aria-labelledby="h-class" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-class" style="margin: 0; font-size: 14px; font-weight: 600;">Classification</h2>
+          <x-import component-from-global-scope="XOS.DataTable" caption="How each class is stored and shown" density="compact" columns="{{clsCols}}" rows="{{clsRows}}"></x-import>
+        </section>
+        <section aria-labelledby="h-hold" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-hold" style="margin: 0; font-size: 14px; font-weight: 600;">Retention and legal holds</h2>
+          <x-import component-from-global-scope="XOS.Select" label="Delete closed project records after" value="7y" options="{{retention}}" help="Records under a legal hold are kept until the hold is released."></x-import>
+          <x-import component-from-global-scope="XOS.InlineAlert" tone="warning" title="1 active legal hold">Riverside Summer Stage, placed Sep 14 by Sam Rivera. Deletion and retention jobs skip every record in this project.</x-import>
+        </section>
+      </div>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Menu" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const S = ['Organization Profile', 'General', 'Legal Entities and Fiscal', 'Members', 'Roles and Capabilities', 'Teams', 'Workspaces', 'Departments and Disciplines in Use', 'Locations and Venues', 'Security', 'Access Reviews', 'White Label', 'Modules', 'Canon Extensions', 'Templates', 'Custom Fields', 'Custom Objects', 'Views and Defaults', 'Numbering', 'Automations', 'Approval Policies', 'Spend Authority', 'Separation of Duties', 'Time and Attendance', 'Scheduling', 'Payroll and Time Off', 'Gateway and Marketplace', 'Communication', 'Notifications Defaults', 'AI Features', 'Help and Support', 'Integrations', 'API Keys and Service Accounts', 'Webhooks', 'Localization', 'Billing and Plan', 'Usage', 'Data and Privacy', 'Audit Log', 'Legal', 'Danger Zone'];
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      sections: S.map((s) => ({ label: s, current: s === 'Data and Privacy' ? 'page' : undefined })),
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Settings' }, { label: 'Data and Privacy' }],
+      inner: [{ value: 'class', label: 'Classification' }, { value: 'exports', label: 'Exports' }, { value: 'requests', label: 'Data Requests', count: 2 }, { value: 'retention', label: 'Retention' }, { value: 'holds', label: 'Legal Holds', count: 1 }],
+      reqCols: [{ key: 'key', label: 'Request', type: 'code' }, { key: 'who', label: 'Person' }, { key: 'type', label: 'Type' }, { key: 'due', label: 'Respond By' }, { key: 's', label: 'Status', type: 'state' }],
+      reqRows: [
+        { key: 'DSR-0014', who: 'Elena Vasquez', type: 'Access', due: 'Nov 30', s: { state: 'active', label: 'Gathering' } },
+        { key: 'DSR-0013', who: 'Jamal Wright', type: 'Deletion', due: 'Nov 24', s: { state: 'blocked', label: 'Held: tax records' } },
+        { key: 'DSR-0011', who: 'Former applicant', type: 'Deletion', due: 'Oct 20', s: { state: 'complete', label: 'Complete' } }
+      ],
+      clsCols: [{ key: 'c', label: 'Class' }, { key: 'ex', label: 'Examples' }, { key: 'shown', label: 'Shown As' }],
+      clsRows: [
+        { c: 'Public', ex: 'Public profiles, published opportunities', shown: 'In full' },
+        { c: 'Internal', ex: 'Records, schedules, budgets', shown: 'To members with access' },
+        { c: 'Confidential', ex: 'Contracts, rates, internal notes', shown: 'To named roles only' },
+        { c: 'Restricted', ex: 'Tax identifiers, bank details, passport numbers', shown: 'Last four digits only' }
+      ],
+      retention: [{ value: '3y', label: '3 years' }, { value: '7y', label: '7 years' }, { value: '10y', label: '10 years' }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 2 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Compass" height=680 width=420 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ScanSheet</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.ScanSheet,{frame:true,mode:'receiving',hint:'Point at a barcode or QR code',count:23,countLabel:'of 30 received',last:{ok:true,title:'Line Array - Medium',code:'5000.01.02-XPMS-004'},doneLabel:'Review Batch'}));
+</script>
+</body>
+</html>

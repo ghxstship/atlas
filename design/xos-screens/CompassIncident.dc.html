@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Quick Incident</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px;">
+  <sc-if value="{{s1}}" hint-placeholder-val="{{true}}">
+    <div style="position: relative; flex: 1; min-height: 0; overflow: hidden;">
+      <div aria-hidden="true" inert="" style="position: absolute; inset: 0; overflow: hidden;"><dc-import name="CompassToday" theme="{{theme}}" hint-size="100%,100%"></dc-import></div>
+      <div style="position: absolute; inset: 0; background: var(--scrim); opacity: var(--opacity-scrim-dark);"></div>
+      <div role="dialog" aria-modal="true" aria-label="Report incident" style="position: absolute; inset-inline: 0; bottom: 0;">
+        <x-import component-from-global-scope="XOS.QuickIncidentSheet" location="Harbor Pavilion, Box Office line" types="{{types}}"></x-import>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{later}}" hint-placeholder-val="{{false}}">
+    <header style="flex: none; display: flex; align-items: center; gap: 4px; padding: 8px 12px 8px 4px; border-bottom: 1px solid var(--border-subtle);">
+      <x-import component-from-global-scope="XOS.IconButton" icon="X" label="Cancel report"></x-import>
+      <div style="flex: 1; display: flex; flex-direction: column;"><strong>Report Incident</strong><span style="font-size: 12px; color: var(--text-secondary);">Step {{step}} of 3 · {{stepName}}</span></div>
+    </header>
+    <div style="flex: none; padding: 0 16px;"><x-import component-from-global-scope="XOS.ProgressBar" label="Report progress" value="{{progress}}"></x-import></div>
+    <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+      <sc-if value="{{s2}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; gap: 8px; align-items: center;"><x-import component-from-global-scope="XOS.Icon" name="HeartPulse" color="var(--danger)"></x-import><strong>Medical</strong><x-import component-from-global-scope="XOS.Tag" tone="danger">Critical type</x-import></div>
+        <x-import component-from-global-scope="XOS.MapView" label="Incident location" width="{{mapW}}" height="{{mapH}}" zones="{{zones}}" pins="{{pins}}"></x-import>
+        <x-import component-from-global-scope="XOS.Input" label="Location" value="Box Office line, Harbor Pavilion" help="Filled from your position. Drag the pin to adjust."></x-import>
+        <x-import component-from-global-scope="XOS.Button" variant="primary" size="lg" class-name="xos-block">Confirm Location</x-import>
+      </sc-if>
+      <sc-if value="{{s3}}" hint-placeholder-val="{{false}}">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <x-import component-from-global-scope="XOS.Button" size="lg" icon="Camera" class-name="xos-block">Add Photo</x-import>
+          <x-import component-from-global-scope="XOS.Button" size="lg" icon="Mic" class-name="xos-block">Voice Note</x-import>
+        </div>
+        <div class="xos-card" style="padding: 12px 16px; display: flex; flex-direction: column; gap: 6px;">
+          <span class="xos-label">Voice note · 0:12 · transcribed</span>
+          <p style="margin: 0;">Guest fainted in the box office line. Conscious and breathing, sitting down now.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;"><span class="xos-label" aria-hidden="true">Severity</span><x-import component-from-global-scope="XOS.SegmentedControl" label="Severity" value="2" options="{{sev}}"></x-import></div>
+        <x-import component-from-global-scope="XOS.OfflineBanner" message="Offline. This report will send when you reconnect." queued="{{one}}"></x-import>
+        <button type="button" aria-describedby="hold-help" style="min-height: 64px; border: 0; border-radius: 12px; background: var(--danger); color: var(--danger-text-on); font: 600 20px var(--font-sans); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"><x-import component-from-global-scope="XOS.Icon" name="Siren" size="{{i24}}"></x-import>Hold to Send</button>
+        <span id="hold-help" class="xos-muted" style="font-size: 14px; text-align: center;">Critical reports send after a 1 second hold, so a pocket tap never dispatches. Dispatch and Code Blue on Zone 1, Channel 1.</span>
+      </sc-if>
+    </main>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"step":{"editor":"enum","options":["1","2","3"],"default":"1"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const step = String(this.props.step || '1');
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      step, stepName: { '1': 'Type', '2': 'Location', '3': 'Details and send' }[step],
+      progress: { '1': 33, '2': 66, '3': 100 }[step],
+      s1: step === '1', later: step !== '1', s2: step === '2', s3: step === '3',
+      one: 1, i24: 24, mapW: 358, mapH: 220,
+      types: [{ label: 'Medical', icon: 'HeartPulse', critical: true }, { label: 'Security', icon: 'ShieldAlert', critical: true }, { label: 'Fire', icon: 'Flame', critical: true }, { label: 'Injury', icon: 'Bandage' }, { label: 'Property', icon: 'Hammer' }, { label: 'Other', icon: 'Ellipsis' }],
+      zones: [{ label: 'Box Office', x: 200, y: 120, w: 130, h: 70 }, { label: 'FOH', x: 120, y: 40, w: 90, h: 50 }],
+      pins: [{ x: 262, y: 150, label: 'You are here', tone: 'danger' }],
+      sev: [{ value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' }, { value: '4', label: '4' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

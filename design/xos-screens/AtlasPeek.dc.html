@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Record Side Peek</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item" aria-haspopup="listbox" aria-label="Workspace, Miami Office"><x-import component-from-global-scope="XOS.Icon" name="Building2"></x-import>Miami Office<span style="margin-inline-start: auto; display: inline-flex;"><x-import component-from-global-scope="XOS.Icon" name="ChevronsUpDown" size="{{i12}}"></x-import></span></button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <x-import component-from-global-scope="XOS.Sidebar" label="Atlas" active="Work" groups="{{nav}}"></x-import>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Menu"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <x-import component-from-global-scope="XOS.IconButton" icon="CircleHelp" label="Help" shortcut="?"></x-import>
+          <button type="button" aria-label="Account, Jordan Lee" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Jordan Lee"></x-import></button>
+        </div>
+      </div>
+    </div>
+    <div style="flex: 1; min-height: 0; display: flex; flex-wrap: wrap;">
+      <div class="xos-shell-body" style="flex: 999 1 420px; min-width: 0; min-height: 0; overflow: auto;">
+        <x-import component-from-global-scope="XOS.PageHeader" title="Work" glyph="SquareCheck" count="{{count}}" actions="{{actions}}"></x-import>
+        <x-import component-from-global-scope="XOS.RecordList" label="Work">
+          <x-import component-from-global-scope="XOS.RecordRow" state="blocked" state-label="Blocked" record-key="NWL-144" kind="Supply" title="Barricade sections for front of house" next="Nov 3" owner="Priya Nair" action-label="Resolve"></x-import>
+          <x-import component-from-global-scope="XOS.RecordRow" state="ready" state-label="Ready" record-key="NWL-118" kind="Approval" title="Approve Main Stage advance packet" next="Nov 4" owner="Jordan Lee" action-label="Approve" action-key="A"></x-import>
+          <x-import component-from-global-scope="XOS.RecordRow" state="scheduled" state-label="Scheduled" record-key="NWL-142" kind="Task" title="Confirm stage deck delivery window" next="Nov 5" owner="Jordan Lee" action-label="Complete" action-key="E" selected="{{yes}}"></x-import>
+          <x-import component-from-global-scope="XOS.RecordRow" state="in-review" state-label="In Review" record-key="NWL-127" kind="Compliance" title="Reconcile power requirement with venue" next="Nov 4" owner="Priya Nair" action-label="Review"></x-import>
+          <x-import component-from-global-scope="XOS.RecordRow" state="scheduled" state-label="Scheduled" record-key="NWL-139" kind="Meeting" title="Production meeting with Harbor Audio" next="Nov 5" owner="Jordan Lee" action-label="Open"></x-import>
+          <x-import component-from-global-scope="XOS.RecordRow" state="scheduled" state-label="Scheduled" record-key="NWL-141" kind="Build" title="Stage build, Main Stage" next="Nov 16" owner="Malik Osei" action-label="Open"></x-import>
+        </x-import>
+      </div>
+      <aside aria-label="Side peek, NWL-142" class="xos-scroll-col" style="flex: 0 1 560px; min-width: 0; max-width: 100%; min-height: 0; overflow: auto; border-inline-start: 1px solid var(--border-subtle); background: var(--bg-surface); display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border-subtle);">
+          <x-import component-from-global-scope="XOS.PresenceIndicator" names="{{viewers}}" verb="viewing"></x-import>
+          <div style="display: flex; gap: 4px;">
+            <x-import component-from-global-scope="XOS.IconButton" icon="ChevronUp" label="Previous record" shortcut="K"></x-import>
+            <x-import component-from-global-scope="XOS.IconButton" icon="ChevronDown" label="Next record" shortcut="J"></x-import>
+            <x-import component-from-global-scope="XOS.IconButton" icon="Maximize2" label="Open full page" shortcut="⌘ ↵"></x-import>
+            <x-import component-from-global-scope="XOS.IconButton" icon="X" label="Close peek" shortcut="Esc"></x-import>
+          </div>
+        </div>
+        <x-import component-from-global-scope="XOS.SidePeek" record-key="NWL-142" kind="Task" title="Confirm stage deck delivery window" state="scheduled" state-label="Scheduled" chips="{{chips}}" properties="{{props}}">
+          <x-import component-from-global-scope="XOS.RichTextEditor" label="Description" html="{{desc}}"></x-import>
+          <x-import component-from-global-scope="XOS.ActivityFeedItem" actor="Malik Osei" action="changed state to" target="Scheduled" time="2h ago"></x-import>
+          <x-import component-from-global-scope="XOS.ActivityFeedItem" actor="Morgan Chen" action="commented" time="1h ago" comment="Dock B is held for us from 6:00 AM. Forklift confirmed." reactions="{{reactions}}"></x-import>
+          <div style="display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--border-subtle); border-radius: 8px;">
+            <x-import component-from-global-scope="XOS.QRCode" value="https://northwindlive.xos.app/r/NWL-142" label="Open NWL-142 in Compass" size="{{qr}}"></x-import>
+            <p class="xos-muted" style="margin: 0;">Scan to continue this record in Compass on your phone.</p>
+          </div>
+        </x-import>
+      </aside>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="My Work" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p, c) => (X[n] && R) ? R.createElement(X[n], p, c) : null;
+    const h = Number(this.props.h) || 0;
+    const open = ['Production'];
+    const g = (label, items) => ({ label, collapsed: open.indexOf(label) < 0, items });
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      i12: 12, yes: true, count: 142, qr: 72,
+      viewers: ['Malik Osei', 'Morgan Chen'],
+      actions: el('Button', { variant: 'primary', shortcut: 'C' }, 'New Record'),
+      chips: [el('PhaseChip', { key: 'p', gate: 4, name: 'Procure', code: 'PRC' })],
+      props: [
+        { label: 'Owner', value: el('PropertyChip', { icon: 'User', value: 'Jordan Lee' }) },
+        { label: 'Due', value: el('PropertyChip', { icon: 'Calendar', value: 'Thu, Nov 5' }) },
+        { label: 'Department', value: el('DepartmentChip', { name: 'Production', code: '5000' }) },
+        { label: 'Category', value: el('URIDChip', { name: 'Stage Decks & Risers', urid: '5000.04.02' }) },
+        { label: 'Scope', value: el('PropertyChip', { icon: 'Ticket', value: 'Opening Night' }) },
+        { label: 'Budget Line', value: el('Money', { amount: 1940 }) }
+      ],
+      desc: '<p>Vendor holds the 6:00 AM window on Nov 16. Confirm forklift and the Dock B slot.</p>',
+      reactions: [{ icon: 'ThumbsUp', label: 'Agree', count: 2 }],
+      nav: [
+        { items: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 6 }, { label: 'My Work', icon: 'CircleCheck' }] },
+        { label: 'Favorites', items: [{ label: 'Opening Night Run of Show', icon: 'Star' }, { label: 'My Open Blockers', icon: 'Star' }] },
+        { label: 'Recent Projects', items: [{ label: 'Northwind Fall Series', icon: 'Folder' }, { label: 'Harbor Winter Gala', icon: 'Folder' }, { label: 'Bayfront Food Festival', icon: 'Folder' }, { label: 'Coastline Brand Launch', icon: 'Folder' }, { label: 'Riverside Summer Stage', icon: 'Folder' }, { label: 'All Projects', icon: 'FolderOpen' }] },
+        g('Production', [{ label: 'Projects', icon: 'Folder' }, { label: 'Schedule', icon: 'Calendar' }, { label: 'Work', icon: 'SquareCheck' }, { label: 'Show', icon: 'Clapperboard' }, { label: 'Advancing', icon: 'ClipboardCheck' }]),
+        g('Operations', [{ label: 'Places', icon: 'MapPin' }, { label: 'Logistics', icon: 'Truck' }, { label: 'Hospitality', icon: 'ConciergeBell' }, { label: 'Assets', icon: 'Boxes' }, { label: 'Credentials', icon: 'IdCard' }, { label: 'Safety', icon: 'ShieldAlert' }]),
+        g('People', [{ label: 'People', icon: 'Users' }, { label: 'Opportunities', icon: 'UserSearch' }, { label: 'Crew', icon: 'HardHat' }]),
+        g('Commercial', [{ label: 'Finance', icon: 'Wallet' }, { label: 'Procurement', icon: 'ShoppingCart' }, { label: 'Vendors', icon: 'Store' }]),
+        g('Knowledge', [{ label: 'Knowledge', icon: 'BookOpen' }, { label: 'Reports', icon: 'ChartColumn' }, { label: 'Canon', icon: 'Library' }]),
+        { items: [{ label: 'Activity', icon: 'Activity' }, { label: 'Settings', icon: 'Settings' }] }
+      ],
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Miami Office' }, { label: 'Northwind Fall Series' }, { label: 'Work' }, { label: 'NWL-142' }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 6 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

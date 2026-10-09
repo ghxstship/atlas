@@ -1,0 +1,12 @@
+<!-- @dsCard group="Navigation" height=64 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Tabs</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.Tabs,{label:'Project',value:'gates',tabs:[{value:'overview',label:'Overview'},{value:'scope',label:'Scope'},{value:'gates',label:'Gates',count:4},{value:'schedule',label:'Schedule'},{value:'budget',label:'Budget'}]}));
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Payment Tracker Prototype</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="dark" role="region" aria-label="Payment Tracker prototype" style="width: 100%; display: flex; flex-direction: column; background: var(--bg-surface); color: var(--text-primary); font-family: var(--font-sans);">
+    <sc-if value="{{s0}}" hint-placeholder-val="{{true}}">
+      <div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 14px; font-weight: 600;" aria-live="polite"><span class="xos-code">1 of 3</span>Invoice drafted from approved days · 2 taps</div>
+      <div style="height: 844px; overflow: hidden;"><dc-import name="GatewayMoney" step="invoice" h="844" hint-size="100%,844px"></dc-import></div>
+    </sc-if>
+    <sc-if value="{{s1}}" hint-placeholder-val="{{false}}">
+      <div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 14px; font-weight: 600;" aria-live="polite"><span class="xos-code">2 of 3</span>Submitted · tracked like a package</div>
+      <div style="height: 844px; overflow: hidden;"><dc-import name="GatewayMoney" step="submitted" h="844" hint-size="100%,844px"></dc-import></div>
+    </sc-if>
+    <sc-if value="{{s2}}" hint-placeholder-val="{{false}}">
+      <div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 14px; font-weight: 600;" aria-live="polite"><span class="xos-code">3 of 3</span>Paid · push at each stage, 0 taps</div>
+      <div style="height: 844px; overflow: hidden;"><dc-import name="GatewayMoney" step="paid" h="844" hint-size="100%,844px"></dc-import></div>
+    </sc-if>
+  <div class="xos-compass" style="height: 64px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 12px; border-top: 1px solid var(--border-subtle);">
+    <x-import component-from-global-scope="XOS.Button" variant="ghost" icon="ChevronLeft" disabled="{{atStart}}" on-click="{{back}}">Back</x-import>
+    <span class="xos-muted" style="font-size: 12px;">Step {{num}} of 3</span>
+    <x-import component-from-global-scope="XOS.Button" variant="primary" on-click="{{next}}">{{nextLabel}}</x-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":948}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const n = 3, i = (this.state && this.state.step) || 0;
+    const go = (k) => this.setState({ step: (k + n) % n });
+    const v = { num: i + 1, atStart: i === 0, nextLabel: i === n - 1 ? 'Start Over' : 'Next', back: () => go(i - 1), next: () => go(i + 1) };
+    for (let k = 0; k < n; k++) v['s' + k] = k === i;
+    return v;
+  }
+}
+</script>
+</body>
+</html>

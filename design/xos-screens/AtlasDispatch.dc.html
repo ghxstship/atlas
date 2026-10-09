@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Incident Dispatch Board</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item" aria-haspopup="listbox" aria-label="Workspace, Miami Office"><x-import component-from-global-scope="XOS.Icon" name="Building2"></x-import>Miami Office<span style="margin-inline-start: auto; display: inline-flex;"><x-import component-from-global-scope="XOS.Icon" name="ChevronsUpDown" size="{{i12}}"></x-import></span></button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <x-import component-from-global-scope="XOS.Sidebar" label="Atlas" active="Safety" groups="{{nav}}"></x-import>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Menu"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <x-import component-from-global-scope="XOS.Tag" tone="success">Live · 4 dispatchers</x-import>
+          <x-import component-from-global-scope="XOS.IconButton" icon="CircleHelp" label="Help" shortcut="?"></x-import>
+          <button type="button" aria-label="Account, Malik Osei" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Malik Osei"></x-import></button>
+        </div>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <x-import component-from-global-scope="XOS.PageHeader" title="Dispatch Board" glyph="Siren" count="{{count}}" actions="{{actions}}"></x-import>
+      <x-import component-from-global-scope="XOS.Tabs" label="Safety pages" value="dispatch" tabs="{{pages}}"></x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+        <section aria-labelledby="h-queue" style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-queue" style="margin: 0; font-size: 14px; font-weight: 600;">Queue · Opening Night</h2>
+          <div role="list" aria-live="polite" aria-label="Incident queue" style="display: flex; flex-direction: column; gap: 8px;">
+            <sc-for list="{{queue}}" as="q" hint-placeholder-count="4">
+              <article role="listitem" style="display: flex; gap: 12px; padding: 12px; background: var(--bg-raised); border: 1px solid var(--border-subtle); border-inline-start: 3px solid {{q.edge}}; border-radius: 8px;">
+                <x-import component-from-global-scope="XOS.Icon" name="{{q.icon}}" color="{{q.edge}}"></x-import>
+                <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;">
+                  <div style="display: flex; justify-content: space-between; gap: 8px;"><strong>{{q.title}}</strong><span class="xos-code xos-muted">{{q.key}}</span></div>
+                  <span class="xos-muted">{{q.meta}}</span>
+                  <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding-top: 4px;"><x-import component-from-global-scope="XOS.StateChip" state="{{q.state}}" label="{{q.stateLabel}}" compact="{{yes}}"></x-import><x-import component-from-global-scope="XOS.Tag" tone="{{q.tone}}">{{q.severity}}</x-import></div>
+                </div>
+              </article>
+            </sc-for>
+          </div>
+        </section>
+        <section aria-labelledby="h-map" style="flex: 2 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-map" style="margin: 0; font-size: 14px; font-weight: 600;">Harbor Pavilion site plan</h2>
+          <x-import component-from-global-scope="XOS.ScrollRegion" label="Site plan map">
+            <x-import component-from-global-scope="XOS.MapView" label="Harbor Pavilion site plan with incident pins" width="{{mapW}}" height="{{mapH}}" geofence="{{fence}}" zones="{{zones}}" pins="{{pins}}"></x-import>
+          </x-import>
+          <x-import component-from-global-scope="XOS.Card" title="INC-0012 · Medical, minor" meta="Box Office · reported 7:42 PM by Rafael Costa">
+            <p style="margin: 0;">Guest fainted in the box office line, conscious and breathing. Venue medic requested.</p>
+            <dl class="xos-props" style="margin: 0;">
+              <dt>Code</dt><dd>Code Blue · Medical Emergency</dd>
+              <dt>Radio</dt><dd>Zone 1, Channel 1, Emergency</dd>
+              <dt>Responding</dt><dd>Miami Fire-Rescue for EMS, if escalated</dd>
+            </dl>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <x-import component-from-global-scope="XOS.Button" variant="primary" icon="UserCheck" shortcut="A">Assign Medic</x-import>
+              <x-import component-from-global-scope="XOS.Button" icon="ArrowUpCircle" shortcut="⇧ E">Escalate</x-import>
+              <x-import component-from-global-scope="XOS.Button" variant="ghost" icon="Check" shortcut="E">Resolve</x-import>
+            </div>
+          </x-import>
+        </section>
+      </div>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Home" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p, c) => (X[n] && R) ? R.createElement(X[n], p, c) : null;
+    const h = Number(this.props.h) || 0;
+    const open = ['Operations', 'People'];
+    const g = (label, items) => ({ label, collapsed: open.indexOf(label) < 0, items });
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      i12: 12, yes: true, count: 4, mapW: 640, mapH: 320,
+      actions: el('Button', { icon: 'Plus', shortcut: 'N' }, 'New Incident'),
+      queue: [
+        { key: 'INC-0012', title: 'Medical, minor', meta: 'Box Office · 2 min ago · unassigned', icon: 'HeartPulse', edge: 'var(--danger)', state: 'proposed', stateLabel: 'New', severity: 'Severity 2', tone: 'danger' },
+        { key: 'INC-0011', title: 'Crowd surge at barricade', meta: 'Front of House · 6 min ago · Shieldline Security', icon: 'ShieldAlert', edge: 'var(--warning)', state: 'active', stateLabel: 'Active', severity: 'Severity 3', tone: 'warning' },
+        { key: 'INC-0010', title: 'Spill on stage left stairs', meta: 'Main Stage · 14 min ago · Morgan Chen', icon: 'TriangleAlert', edge: 'var(--warning)', state: 'active', stateLabel: 'Active', severity: 'Severity 4', tone: 'warning' },
+        { key: 'INC-0009', title: 'Lost child reunited', meta: 'Guest Services · 31 min ago', icon: 'Users', edge: 'var(--success)', state: 'complete', stateLabel: 'Complete', severity: 'Severity 3', tone: 'neutral' }
+      ],
+      fence: { x: 320, y: 160, r: 150 },
+      zones: [{ label: 'Main Stage', x: 250, y: 30, w: 150, h: 70 }, { label: 'FOH', x: 280, y: 140, w: 90, h: 40 }, { label: 'Dock B', x: 20, y: 20, w: 120, h: 60 }, { label: 'Box Office', x: 500, y: 230, w: 120, h: 60 }],
+      pins: [{ x: 540, y: 255, label: 'INC-0012 Medical', tone: 'danger' }, { x: 320, y: 140, label: 'INC-0011 Crowd surge', tone: 'warning' }, { x: 260, y: 90, label: 'INC-0010 Spill', tone: 'warning' }],
+      pages: [{ value: 'permits', label: 'Permits' }, { value: 'insp', label: 'Inspections' }, { value: 'tpl', label: 'Inspection Templates' }, { value: 'inc', label: 'Incidents' }, { value: 'dispatch', label: 'Dispatch Board' }, { value: 'codes', label: 'Emergency Codes' }, { value: 'radio', label: 'Radio Channels' }],
+      nav: [
+        { items: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'My Work', icon: 'CircleCheck' }] },
+        { label: 'Favorites', items: [{ label: 'Opening Week Crew', icon: 'Star' }, { label: 'Open Swaps', icon: 'Star' }] },
+        { label: 'Recent Projects', items: [{ label: 'Northwind Fall Series', icon: 'Folder' }, { label: 'Harbor Winter Gala', icon: 'Folder' }, { label: 'Bayfront Food Festival', icon: 'Folder' }, { label: 'Coastline Brand Launch', icon: 'Folder' }, { label: 'Riverside Summer Stage', icon: 'Folder' }, { label: 'All Projects', icon: 'FolderOpen' }] },
+        g('Production', [{ label: 'Projects', icon: 'Folder' }, { label: 'Schedule', icon: 'Calendar' }, { label: 'Work', icon: 'SquareCheck' }, { label: 'Show', icon: 'Clapperboard' }, { label: 'Advancing', icon: 'ClipboardCheck' }]),
+        g('Operations', [{ label: 'Places', icon: 'MapPin' }, { label: 'Logistics', icon: 'Truck' }, { label: 'Hospitality', icon: 'ConciergeBell' }, { label: 'Assets', icon: 'Boxes' }, { label: 'Credentials', icon: 'IdCard' }, { label: 'Safety', icon: 'ShieldAlert' }]),
+        g('People', [{ label: 'People', icon: 'Users' }, { label: 'Opportunities', icon: 'UserSearch' }, { label: 'Crew', icon: 'HardHat' }]),
+        g('Commercial', [{ label: 'Finance', icon: 'Wallet' }, { label: 'Procurement', icon: 'ShoppingCart' }, { label: 'Vendors', icon: 'Store' }]),
+        g('Knowledge', [{ label: 'Knowledge', icon: 'BookOpen' }, { label: 'Reports', icon: 'ChartColumn' }, { label: 'Canon', icon: 'Library' }]),
+        { items: [{ label: 'Activity', icon: 'Activity' }, { label: 'Settings', icon: 'Settings' }] }
+      ],
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Miami Office' }, { label: 'Northwind Fall Series' }, { label: 'Opening Night' }, { label: 'Safety' }, { label: 'Dispatch Board' }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

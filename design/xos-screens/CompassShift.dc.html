@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Shift Detail and Swap</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px;">
+  <header style="flex: none; display: flex; align-items: center; gap: 4px; padding: 8px 12px 8px 4px; border-bottom: 1px solid var(--border-subtle);">
+    <x-import component-from-global-scope="XOS.IconButton" icon="ChevronLeft" label="Back to Schedule"></x-import>
+    <strong style="flex: 1;">Shift</strong>
+    <x-import component-from-global-scope="XOS.IconButton" icon="Share" label="Share or add to calendar"></x-import>
+  </header>
+  <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+    <x-import component-from-global-scope="XOS.ShiftCard" state="scheduled" state-label="Scheduled" countdown="Starts in 2 d" role="Rigger · Closing Night show call" date="Sun, Nov 22" time="2:00 PM to 11:30 PM" place="Harbor Pavilion, Dock B" actions="{{shiftActions}}"></x-import>
+    <div class="xos-card" style="padding: 12px 16px; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: 14px;">
+      <span class="xos-muted">Call</span><span>1:45 PM at the Dock B crew kiosk</span>
+      <span class="xos-muted">Report to</span><span>Morgan Chen</span>
+      <span class="xos-muted">Bring</span><span>Harness, steel-toe boots, photo ID</span>
+      <span class="xos-muted">Crew</span><span style="display: inline-flex; align-items: center; gap: 8px;"><x-import component-from-global-scope="XOS.AvatarStack" names="{{crew}}" max="{{four}}"></x-import>6 on this call</span>
+    </div>
+    <form aria-labelledby="s-swap" style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface);">
+      <h2 id="s-swap" style="margin: 0; font-size: 16px; font-weight: 600;">Request a swap</h2>
+      <x-import component-from-global-scope="XOS.Combobox" label="Swap with" value="nora" options="{{people}}" help="Only people qualified for this role and free that day are listed."></x-import>
+      <x-import component-from-global-scope="XOS.Textarea" label="Note for your supervisor" value="Family event Sunday afternoon. Nora has confirmed."></x-import>
+      <x-import component-from-global-scope="XOS.Button" variant="primary" size="lg" class-name="xos-block">Request Swap</x-import>
+      <span class="xos-muted" style="font-size: 14px;">Morgan Chen approves swaps. Nobody approves their own.</span>
+    </form>
+  </main>
+  <div style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" compass="{{yes}}" label="Compass" active="Schedule" center-label="Scan" items="{{tabs}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p, c) => (X[n] && R) ? R.createElement(X[n], p, c) : null;
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true, four: 4,
+      shiftActions: [el('Button', { key: 'c' }, 'Add to Calendar'), el('Button', { key: 'w' }, 'Add to Wallet')],
+      crew: ['Dana Ruiz', 'Lena Fischer', 'Owen Price', 'Rafael Costa', 'Nora Lindqvist', 'Tariq Haddad'],
+      people: [{ value: 'nora', label: 'Nora Lindqvist', help: 'Rigger · free Sunday' }, { value: 'tariq', label: 'Tariq Haddad', help: 'Rigger · free Sunday' }],
+      tabs: [{ label: 'Today', icon: 'House' }, { label: 'Schedule', icon: 'CalendarDays' }, { label: 'Scan', icon: 'ScanLine' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Crew', icon: 'HardHat' }, { label: 'More', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

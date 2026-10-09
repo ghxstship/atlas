@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Public Profile and EPK</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <header style="flex: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 24px; border-bottom: 1px solid var(--border-subtle);">
+    <x-import component-from-global-scope="XOS.BrandMark" name="XOS Gateway" size="sm"></x-import>
+    <div style="display: flex; gap: 8px;"><x-import component-from-global-scope="XOS.Button" variant="ghost">Sign In</x-import><x-import component-from-global-scope="XOS.Button" variant="primary">Book Lumen Tide</x-import></div>
+  </header>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1040px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <span class="xos-muted">gateway.xos.app/u/lumentide · public profile</span>
+      <x-import component-from-global-scope="XOS.EPKViewer" artist="Lumen Tide" headline="Electronic duo · Miami" badges="{{badges}}" bio="Live electronic sets with modular synths and percussion, 60 to 90 minutes. Represented by Tidal Management." media="{{media}}" links="{{links}}"></x-import>
+      <section aria-labelledby="pp-rate" style="display: flex; flex-direction: column; gap: 8px;">
+        <h2 id="pp-rate" class="xos-label" style="margin: 0;">Ratings from completed engagements</h2>
+        <x-import component-from-global-scope="XOS.ActivityFeedItem" actor="Northwind Live" action="rated" target="5 of 5" time="Sep 2026" comment="On time, clean advance, crowd stayed through the changeover."></x-import>
+        <x-import component-from-global-scope="XOS.ActivityFeedItem" actor="Lumen Tide" action="replied" time="Sep 2026" comment="Thank you to the Northwind crew for a smooth day."></x-import>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      badges: ['Verified', '12 engagements'],
+      media: [{ type: 'video', label: 'Live at Riverside' }, { type: 'audio', label: 'Night Swim' }, { type: 'image', label: 'Press photo' }, { type: 'video', label: 'Studio session' }],
+      links: [{ label: 'Stage plot', href: '#stage-plot' }, { label: 'Technical rider', href: '#rider' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

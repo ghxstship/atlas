@@ -1,0 +1,12 @@
+<!-- @dsCard group="Compass" height=460 width=420 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>SyncConflictSheet</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.SyncConflictSheet,{frame:true,message:'Someone changed this field while you were offline.',field:'Delivery Window',mine:'6:00 AM to 8:00 AM',mineMeta:'You, 9:12 AM offline',theirs:'7:00 AM to 9:00 AM',theirsMeta:'Dana Ruiz, 9:20 AM'}));
+</script>
+</body>
+</html>

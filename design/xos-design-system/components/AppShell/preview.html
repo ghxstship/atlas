@@ -1,0 +1,12 @@
+<!-- @dsCard group="Layout" height=440 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>AppShell</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.AppShell,{brand:h(X.BrandMark,{name:'Northwind Live',size:'sm'}),sidebar:h(X.Sidebar,{active:'Projects',groups:[{items:[{label:'Home',icon:'House'},{label:'Inbox',icon:'Inbox',badge:6},{label:'My Work',icon:'CircleCheck'}]},{label:'Production',items:[{label:'Projects',icon:'Folder'},{label:'Schedule',icon:'Calendar'}]}]}),mobileNav:h(X.TabBar,{label:'Atlas',active:'Home',items:[{label:'Home',icon:'House'},{label:'Inbox',icon:'Inbox',badge:6},{label:'Search',icon:'Search'},{label:'My Work',icon:'CircleCheck'},{label:'Menu',icon:'Menu'}]}),header:[h(X.Breadcrumbs,{key:'b',items:[{label:'Northwind Live'},{label:'Projects'}]}),h(X.PresenceIndicator,{key:'p',names:['Morgan Chen','Malik Osei']})]},h(X.PageHeader,{title:'Projects',count:12,actions:h(X.Button,{variant:'primary',shortcut:'C'},'New Project')}),h(X.EmptyState,{icon:'Folder',sentence:'No archived projects yet. Close a project at Gate 9.',actionLabel:'View Active'})));
+</script>
+</body>
+</html>

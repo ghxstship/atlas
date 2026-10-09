@@ -1,0 +1,12 @@
+<!-- @dsCard group="Editing" height=200 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ColorPicker</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.ColorPicker,{label:'Tenant Accent',value:'#0F7B6C',checks:[{label:'White label on accent',fg:'#FFFFFF',min:4.5},{label:'Accent on light canvas',fgIsValue:true,bg:'#FFFFFF',min:3},{label:'Accent on dark canvas',fgIsValue:true,bg:'#0E0F11',min:3}]}));
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+Roles Library 9000.50.01 Production Stage Manager: stored department 5000 Production dropped; class 9000 Technology derives from the code.
+Roles Library 9000.50.02 Audio Engineer - A1/FOH: stored department 5000 Production dropped; class 9000 Technology derives from the code.
+Roles Library 9000.50.03 Lighting Designer / LD: stored department 5000 Production dropped; class 9000 Technology derives from the code.
+Roles Library 9000.50.04 Video Director / V1: stored department 5000 Production dropped; class 9000 Technology derives from the code.
+Labor Rate Cards: engagement type "W2 Daily" (7 rows) becomes classification Employee, arrangement Per Engagement; pay basis unchanged.
+Labor Rate Cards: engagement type "Contractor 1099" (20 rows) becomes classification Independent Contractor, arrangement Per Engagement; pay basis unchanged.
+Labor Rate Cards: engagement type "Vendor Master" (6 rows) becomes classification Vendor-Supplied, arrangement Per Engagement; pay basis unchanged.
+Labor Rate Cards: engagement type "Retainer" (2 rows) becomes classification Independent Contractor, arrangement Retainer; pay basis unchanged.
+Labor Rate Cards: 24 rows stored multipliers as text ("1.5x"); all 35 now reference an overtime rule.
+Labor Rate Cards LRC-008 9000.50.01 Production Stage Manager: stored GL 5500; derived GL 5900 Expense · Technology.
+Labor Rate Cards LRC-009 9000.50.02 Audio Engineer - A1/FOH: stored GL 5500; derived GL 5900 Expense · Technology.
+Labor Rate Cards LRC-010 9000.50.03 Lighting Designer / LD: stored GL 5500; derived GL 5900 Expense · Technology.
+Labor Rate Cards LRC-011 9000.50.04 Video Director / V1: stored GL 5500; derived GL 5900 Expense · Technology.
+Enumerations: Employment Type "Full-Time Salary" (ENM-025) retired; it becomes Employee, Salary, Full-Time; Exempt only when the role passes the duties and salary tests.
+Enumerations: Employment Type "Hourly Contractor" (ENM-026) retired; it becomes Independent Contractor, Hourly.
+Enumerations: Employment Type "Union Overhire" (ENM-027) retired; it becomes Employee, Hourly, Temporary, Nonexempt, with a labor agreement.
+Enumerations: Employment Type "Vendor Crew" (ENM-028) retired; it becomes Vendor-Supplied, naming the vendor.
+Enumerations: Employment Type "Volunteer / Intern" (ENM-029) retired; it becomes split into Volunteer, Unpaid Intern, or Employee for a paid intern.
+Emergency Codes: 84 protocols (14 codes x 6 domains) made global; organization and project columns dropped; 183 steps.
+Emergency Codes: agency names replaced with service tokens in EMG-001, EMG-007, EMG-019, EMG-025, EMG-027, EMG-028, EMG-031, EMG-043, EMG-061, EMG-067.
+Enumerations: "Emergency Radio Code" (7 of the 14 codes) retired; emergency_code is the only list.
+Jurisdictions: 7 rows mirrored from Bible tab 11 (US, US-FL, US-FL-MIAMI-DADE, GB, MX, AE, SA).
+Jurisdictions: tab 11 values are unchanged, but each is stored once. Country derives from the ID; unit system and currency are stored on the country and inherited by US-FL and US-FL-MIAMI-DADE; Primary Code Sets (a comma list) becomes one jurisdiction_code_set row per set (14 rows). jurisdiction_resolved returns tab 11 exactly.
+Roles Library: Discipline (25 values) and Rank (10 values) become the role_discipline and role_rank lists; every role references them. Values unchanged.
+Enumerations: "Regulatory Agency" moved to jurisdiction_agency under US-FL-MIAMI-DADE. Fire and EMS are Miami Fire-Rescue, as Bible tab 15 names it; the Playbook entry "Miami-Dade Fire Rescue" is a different department that does not serve City of Miami venues.
+Worker classification: Volunteer is permitted only for Nonprofit and Public Agency organizations (decision D17).

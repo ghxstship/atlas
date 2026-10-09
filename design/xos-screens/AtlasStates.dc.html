@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Empty, Error and Refusal States</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-scroll-col" style="height: {{hpx}}; box-sizing: border-box; overflow: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <header style="display: flex; flex-direction: column; gap: 4px;">
+    <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Empty, error and refusal states</h1>
+    <p style="margin: 0; color: var(--text-secondary);">Each state replaces only the region that has it. The rest of the page keeps working.</p>
+  </header>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 24px;">
+    <section aria-labelledby="s-empty" style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface);">
+      <h2 id="s-empty" class="xos-label" style="margin: 0;">Empty · Crew › Shifts, Harbor Winter Gala</h2>
+      <x-import component-from-global-scope="XOS.EmptyState" icon="CalendarClock" sentence="No shifts yet. Post a crew call." action-label="Post Crew Call" shortcut="C"></x-import>
+      <x-import component-from-global-scope="XOS.EmptyState" icon="Inbox" sentence="Nothing needs you. New approvals land here." action-label="View For Your Information"></x-import>
+    </section>
+    <section aria-labelledby="s-error" style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface);">
+      <h2 id="s-error" class="xos-label" style="margin: 0;">Error · one region, with retry</h2>
+      <x-import component-from-global-scope="XOS.ErrorState" title="Purchase orders could not load" sentence="The connection dropped while loading purchase orders. Your other work is safe." reference="Ref 7F3A-21C9"></x-import>
+      <x-import component-from-global-scope="XOS.Input" label="Day rate" value="-550" error="Day rate must be a positive amount. Enter 550 or more."></x-import>
+    </section>
+    <section aria-labelledby="s-refuse" style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface);">
+      <h2 id="s-refuse" class="xos-label" style="margin: 0;">Refusals · the system declines to guess</h2>
+      <x-import component-from-global-scope="XOS.RefusalNotice" outcome="NO_ANSWER" title="No permit answer for London" reason="GB is declared but not populated, so permit and wage questions resolve to no answer." action-label="Request Population"></x-import>
+      <x-import component-from-global-scope="XOS.RefusalNotice" outcome="UNRATIFIED" title="Rate card not ratified" reason="LRC-041 is a draft. It cannot price a budget line until Finance ratifies it." action-label="Open Rate Card"></x-import>
+      <x-import component-from-global-scope="XOS.RefusalNotice" outcome="REFUSE" title="Volunteer engagement refused" reason="Northwind Live is For-Profit. Volunteers are permitted only for Nonprofit and Public Agency organizations (XOS-ENG-6)." action-label="Change Classification"></x-import>
+    </section>
+    <section aria-labelledby="s-404" style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface);">
+      <h2 id="s-404" class="xos-label" style="margin: 0;">System · not found, also shown for no access</h2>
+      <div class="xos-layout-system">
+        <x-import component-from-global-scope="XOS.Icon" name="Compass" size="{{i28}}" color="var(--text-secondary)"></x-import>
+        <p style="margin: 0; font-size: 20px; font-weight: 600;">This page does not exist</p>
+        <p class="xos-muted" style="margin: 0;">Check the address, or search for what you need.</p>
+        <x-import component-from-global-scope="XOS.Button" variant="primary" shortcut="⌘ K">Search</x-import>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return { theme: this.props.theme ?? 'dark', hpx: h ? h + 'px' : '100vh', i28: 28 };
+  }
+}
+</script>
+</body>
+</html>

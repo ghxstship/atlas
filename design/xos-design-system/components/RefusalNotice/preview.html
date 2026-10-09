@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=120 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>RefusalNotice</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.RefusalNotice,{outcome:'NO_ANSWER',title:'No permit answer',reason:'This project has no populated jurisdiction, so permit and code questions resolve to no answer.',actionLabel:'Set Jurisdiction'}));
+</script>
+</body>
+</html>

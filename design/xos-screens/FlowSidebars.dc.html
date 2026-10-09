@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flow · Atlas Role-Default Sidebars</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 1960px; height: 1180px; box-sizing: border-box; padding: 32px; display: flex; flex-direction: column; gap: 24px; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <header style="display: flex; flex-direction: column; gap: 6px;">
+    <h1 style="margin: 0; font-size: 24px; font-weight: 600;">Atlas sidebar, default state by persona</h1>
+    <p style="margin: 0; color: var(--text-secondary); max-width: 1100px;">Search, Home, Inbox and My Work are always on top, then Favorites and the five most recent projects. Module groups start collapsed except the groups each persona uses most. People can hide, reorder and pin items, and Reset to Role Default restores this layout.</p>
+  </header>
+  <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 16px; align-items: start;">
+    <sc-for list="{{personas}}" as="p" hint-placeholder-count="7">
+      <section aria-label="{{p.name}} default sidebar" style="display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+        <div style="display: flex; flex-direction: column; gap: 2px; min-height: 48px;">
+          <strong style="font-size: 14px;">{{p.name}}</strong>
+          <span class="xos-muted" style="font-size: 12px;">{{p.note}}</span>
+        </div>
+        <div class="xos-shell-side" style="display: block; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px; background: var(--bg-surface);">
+          <button type="button" class="xos-nav-item" style="width: 100%;"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+          <x-import component-from-global-scope="XOS.Sidebar" label="{{p.name}} sidebar" active="Home" groups="{{p.groups}}"></x-import>
+        </div>
+      </section>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"$preview":{"width":1960,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const build = (open) => {
+      const g = (label, items) => ({ label, collapsed: open.indexOf(label) < 0, items });
+      return [
+        { items: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox' }, { label: 'My Work', icon: 'CircleCheck' }] },
+        { label: 'Favorites', items: [{ label: 'Pinned view', icon: 'Star' }] },
+        { label: 'Recent Projects', items: [{ label: 'Northwind Fall Series', icon: 'Folder' }, { label: 'Harbor Winter Gala', icon: 'Folder' }, { label: 'All Projects', icon: 'FolderOpen' }] },
+        g('Production', [{ label: 'Projects', icon: 'Folder' }, { label: 'Schedule', icon: 'Calendar' }, { label: 'Work', icon: 'SquareCheck' }, { label: 'Show', icon: 'Clapperboard' }, { label: 'Advancing', icon: 'ClipboardCheck' }]),
+        g('Operations', [{ label: 'Places', icon: 'MapPin' }, { label: 'Logistics', icon: 'Truck' }, { label: 'Hospitality', icon: 'ConciergeBell' }, { label: 'Assets', icon: 'Boxes' }, { label: 'Credentials', icon: 'IdCard' }, { label: 'Safety', icon: 'ShieldAlert' }]),
+        g('People', [{ label: 'People', icon: 'Users' }, { label: 'Opportunities', icon: 'UserSearch' }, { label: 'Crew', icon: 'HardHat' }]),
+        g('Commercial', [{ label: 'Finance', icon: 'Wallet' }, { label: 'Procurement', icon: 'ShoppingCart' }, { label: 'Vendors', icon: 'Store' }]),
+        g('Knowledge', [{ label: 'Knowledge', icon: 'BookOpen' }, { label: 'Reports', icon: 'ChartColumn' }, { label: 'Canon', icon: 'Library' }]),
+        { items: [{ label: 'Activity', icon: 'Activity' }, { label: 'Settings', icon: 'Settings' }] }
+      ];
+    };
+    return {
+      theme: this.props.theme ?? 'dark',
+      personas: [
+        { name: 'Org Owner', note: 'No group named in Section 4.5.2; all collapsed', groups: build([]) },
+        { name: 'Org Admin', note: 'No group named in Section 4.5.2; all collapsed', groups: build([]) },
+        { name: 'Producer', note: 'Opens Production', groups: build(['Production']) },
+        { name: 'Department Head', note: 'Opens Production and Operations', groups: build(['Production', 'Operations']) },
+        { name: 'Finance Lead', note: 'Opens Commercial', groups: build(['Commercial']) },
+        { name: 'Production Coordinator', note: 'Opens Operations', groups: build(['Operations']) },
+        { name: 'Field Supervisor', note: 'Opens Operations and People', groups: build(['Operations', 'People']) }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

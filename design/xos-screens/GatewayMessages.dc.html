@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Messages</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Dana Ruiz" active="Messages" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Messages</h1>
+      <x-import component-from-global-scope="XOS.SplitView" label="Conversations" selected="{{zero}}" items="{{threads}}" detail="{{detail}}"></x-import>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Messages" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p, ...c) => (X[n] && R) ? R.createElement(X[n], p, ...c) : null;
+    const tag = (t, p, ...c) => R ? R.createElement(t, p, ...c) : null;
+    const h = Number(this.props.h) || 0;
+    const detail = tag('div', { className: 'xos-col' },
+      tag('div', { className: 'xos-row', style: { justifyContent: 'space-between' } }, tag('strong', { style: { fontSize: 16 } }, 'Northwind Fall Series · Crew'), el('Tag', { tone: 'neutral' }, 'Northwind Live')),
+      el('ActivityFeedItem', { actor: 'Morgan Chen', action: 'posted', time: 'Today, 9:12 AM', comment: 'Build day call moves to 5:45 AM at Dock B. Lot C opens at 5:15 AM.', reactions: [{ icon: 'ThumbsUp', label: 'Acknowledged', count: 11 }] }),
+      el('ActivityFeedItem', { actor: 'Dana Ruiz', action: 'replied', time: 'Today, 9:20 AM', comment: 'Got it. Bringing two extra radios from the shop.' }),
+      el('ActivityFeedItem', { actor: 'Morgan Chen', action: 'attached', target: 'Day sheet, Nov 18', time: 'Today, 9:31 AM' }),
+      el('Textarea', { label: 'Reply to Northwind Fall Series · Crew', placeholder: 'Write a message' }),
+      tag('div', { className: 'xos-row', style: { justifyContent: 'flex-end' } }, el('IconButton', { icon: 'Paperclip', label: 'Attach a file' }), el('Button', { variant: 'primary', icon: 'Send', shortcut: '⌘ ↵' }, 'Send')));
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      zero: 0, detail,
+      threads: [
+        { state: 'active', title: 'Northwind Fall Series · Crew', meta: 'Morgan Chen: Build day call moves to 5:45 AM' },
+        { state: 'scheduled', title: 'Winter Gala offer', meta: 'Harbor Light Events: Happy to discuss the rate' },
+        { state: 'complete', title: 'Autumn Benefit', meta: 'You: Final show report attached' }
+      ],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

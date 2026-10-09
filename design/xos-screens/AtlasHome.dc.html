@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Home</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px; {{tenantCss}}">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="{{brand}}" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item" aria-haspopup="listbox" aria-label="Workspace, Miami Office"><x-import component-from-global-scope="XOS.Icon" name="Building2"></x-import>Miami Office<span style="margin-inline-start: auto; display: inline-flex;"><x-import component-from-global-scope="XOS.Icon" name="ChevronsUpDown" size="{{i12}}"></x-import></span></button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <x-import component-from-global-scope="XOS.Sidebar" label="Atlas" active="Home" groups="{{nav}}"></x-import>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Menu" aria-controls="atlas-side"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <x-import component-from-global-scope="XOS.IconButton" icon="QrCode" label="Open in Compass"></x-import>
+          <x-import component-from-global-scope="XOS.IconButton" icon="CircleHelp" label="Help" shortcut="?"></x-import>
+          <button type="button" aria-label="Account, Jordan Lee" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Jordan Lee"></x-import></button>
+        </div>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <h1 style="margin: 0; font-size: 20px; font-weight: 600; line-height: 1.2;">Home</h1>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <x-import component-from-global-scope="XOS.DateRangePicker" label="Date range" start="2026-11-02" end="2026-11-08"></x-import>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" shortcut="C">New Record</x-import>
+        </div>
+      </div>
+      <x-import component-from-global-scope="XOS.Tabs" label="Home pages" value="today" tabs="{{pages}}"></x-import>
+      <div class="xos-layout-dashboard">
+        <x-import component-from-global-scope="XOS.StatTile" label="Committed, Fall Series" value="{{committed}}" format="money" delta="{{committedDelta}}" delta-unit="%" delta-label="forecast vs. baseline" good-when="down"></x-import>
+        <x-import component-from-global-scope="XOS.StatTile" label="Open blockers" value="{{blockers}}" delta="{{one}}" delta-label="since Friday" good-when="down"></x-import>
+        <x-import component-from-global-scope="XOS.StatTile" label="Crew filled, Fall Series" value="{{filled}}" delta="{{six}}" delta-label="of 50 positions" good-when="up"></x-import>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 24px; align-items: start;">
+        <section aria-labelledby="h-mywork" style="display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+          <h2 id="h-mywork" style="margin: 0; font-size: 14px; font-weight: 600;">My Work</h2>
+          <x-import component-from-global-scope="XOS.RecordList" label="My Work">
+            <x-import component-from-global-scope="XOS.RecordRow" state="blocked" state-label="Blocked" record-key="NWL-144" kind="Supply" title="Barricade sections for front of house" chips="{{chipPrc}}" next="Nov 3" owner="Priya Nair" action-label="Resolve"></x-import>
+            <x-import component-from-global-scope="XOS.RecordRow" state="ready" state-label="Ready" record-key="NWL-118" kind="Approval" title="Approve Main Stage advance packet" chips="{{chipAdv}}" next="Nov 4" owner="Jordan Lee" action-label="Approve" action-key="A"></x-import>
+            <x-import component-from-global-scope="XOS.RecordRow" state="active" state-label="Active" record-key="NWL-142" kind="Task" title="Confirm stage deck delivery window" chips="{{chipPrc}}" next="Nov 5" owner="Jordan Lee" action-label="Complete" action-key="E"></x-import>
+            <x-import component-from-global-scope="XOS.RecordRow" state="in-review" state-label="In Review" record-key="NWL-131" kind="Permit" title="Temporary structure permit, Main Stage" chips="{{chipAdv}}" next="Nov 6" owner="Malik Osei" action-label="Review"></x-import>
+            <x-import component-from-global-scope="XOS.RecordRow" state="scheduled" state-label="Scheduled" record-key="NWL-139" kind="Meeting" title="Production meeting with Harbor Audio" chips="{{chipAdv}}" next="Nov 5" owner="Jordan Lee" action-label="Open"></x-import>
+          </x-import>
+        </section>
+        <section aria-labelledby="h-needs" style="display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+          <h2 id="h-needs" style="margin: 0; font-size: 14px; font-weight: 600;">Inbox</h2>
+          <x-import component-from-global-scope="XOS.NotificationCenter" needs-you="{{needsYou}}" fyi="{{fyi}}"></x-import>
+        </section>
+      </div>
+      <section aria-labelledby="h-gates" style="display: flex; flex-direction: column; gap: 8px;">
+        <h2 id="h-gates" style="margin: 0; font-size: 14px; font-weight: 600;">Gate readiness across projects</h2>
+        <x-import component-from-global-scope="XOS.DataTable" caption="Projects by current gate" columns="{{gateCols}}" rows="{{gateRows}}"></x-import>
+      </section>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Home" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"brand":{"editor":"text","default":"Northwind Live"},"accent":{"editor":"color","default":""},"rounded":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p) => (X[n] && R) ? R.createElement(X[n], p) : null;
+    const h = Number(this.props.h) || 0;
+    const accent = this.props.accent || '';
+    const tenantCss = (accent ? '--accent-default: ' + accent + '; --focus-ring: ' + accent + '; --accent-text: ' + accent + ';' : '') + (this.props.rounded ? ' --radius-control: 8px; --radius-card: 12px; --radius-chip: 6px;' : '');
+    const open = ['Production'];
+    const g = (label, items) => ({ label, collapsed: open.indexOf(label) < 0, items });
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      brand: this.props.brand || 'Northwind Live',
+      tenantCss,
+      i12: 12, one: 1, six: 6, blockers: 3, filled: 46, committed: 121950, committedDelta: -1.7,
+      nav: [
+        { items: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 6 }, { label: 'My Work', icon: 'CircleCheck' }] },
+        { label: 'Favorites', items: [{ label: 'Opening Night Run of Show', icon: 'Star' }, { label: 'My Open Blockers', icon: 'Star' }] },
+        { label: 'Recent Projects', items: [{ label: 'Northwind Fall Series', icon: 'Folder' }, { label: 'Harbor Winter Gala', icon: 'Folder' }, { label: 'Bayfront Food Festival', icon: 'Folder' }, { label: 'Coastline Brand Launch', icon: 'Folder' }, { label: 'Riverside Summer Stage', icon: 'Folder' }, { label: 'All Projects', icon: 'FolderOpen' }] },
+        g('Production', [{ label: 'Projects', icon: 'Folder' }, { label: 'Schedule', icon: 'Calendar' }, { label: 'Work', icon: 'SquareCheck' }, { label: 'Show', icon: 'Clapperboard' }, { label: 'Advancing', icon: 'ClipboardCheck' }]),
+        g('Operations', [{ label: 'Places', icon: 'MapPin' }, { label: 'Logistics', icon: 'Truck' }, { label: 'Hospitality', icon: 'ConciergeBell' }, { label: 'Assets', icon: 'Boxes' }, { label: 'Credentials', icon: 'IdCard' }, { label: 'Safety', icon: 'ShieldAlert' }]),
+        g('People', [{ label: 'People', icon: 'Users' }, { label: 'Opportunities', icon: 'UserSearch' }, { label: 'Crew', icon: 'HardHat' }]),
+        g('Commercial', [{ label: 'Finance', icon: 'Wallet' }, { label: 'Procurement', icon: 'ShoppingCart' }, { label: 'Vendors', icon: 'Store' }]),
+        g('Knowledge', [{ label: 'Knowledge', icon: 'BookOpen' }, { label: 'Reports', icon: 'ChartColumn' }, { label: 'Canon', icon: 'Library' }]),
+        { items: [{ label: 'Activity', icon: 'Activity' }, { label: 'Settings', icon: 'Settings' }] }
+      ],
+      crumbs: [{ label: this.props.brand || 'Northwind Live' }, { label: 'Miami Office' }, { label: 'Home' }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 6 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }],
+      pages: [{ value: 'today', label: 'Today' }, { value: 'gates', label: 'Gate Readiness' }, { value: 'alerts', label: 'Alerts', count: 2 }, { value: 'recent', label: 'Recent' }],
+      chipPrc: el('PhaseChip', { gate: 4, name: 'Procure', code: 'PRC' }),
+      chipAdv: el('PhaseChip', { gate: 3, name: 'Advance', code: 'ADV' }),
+      needsYou: [
+        { kind: 'Approval', title: 'Approve change order: Barricade upgrade', meta: '$1,344 · Northwind Fall Series', action: 'Approve', actionKey: 'A' },
+        { kind: 'Payment', title: 'Invoice INV-0442 needs a three-way match', meta: 'Harbor Audio · NWL-PO-0031' },
+        { kind: 'Permit', title: 'Permit lead time closes in 4 days', meta: 'Temporary structure, Main Stage' }
+      ],
+      fyi: [
+        { kind: 'Document', title: 'Technical rider v3 shared by Lumen Tide', meta: 'Yesterday' },
+        { kind: 'Milestone', title: 'Harbor Winter Gala entered Gate 2 · Engage', meta: 'Friday' }
+      ],
+      gateCols: [
+        { key: 'key', label: 'Key', type: 'code' },
+        { key: 'project', label: 'Project' },
+        { key: 'gate', label: 'Current Gate' },
+        { key: 'blocking', label: 'Blocking Criteria', type: 'number' },
+        { key: 'state', label: 'State', type: 'state' }
+      ],
+      gateRows: [
+        { key: 'NWL', project: 'Northwind Fall Series', gate: 'Gate 3 · Advance', blocking: 2, state: { state: 'blocked', label: 'Blocked' } },
+        { key: 'CBL', project: 'Coastline Brand Launch', gate: 'Gate 4 · Procure', blocking: 0, state: { state: 'ready', label: 'Ready' } },
+        { key: 'HWG', project: 'Harbor Winter Gala', gate: 'Gate 2 · Engage', blocking: 1, state: { state: 'active', label: 'Active' } },
+        { key: 'BFF', project: 'Bayfront Food Festival', gate: 'Gate 1 · Scope', blocking: 3, state: { state: 'active', label: 'Active' } },
+        { key: 'RSS', project: 'Riverside Summer Stage', gate: 'Gate 9 · Close', blocking: 0, state: { state: 'complete', label: 'Complete' } }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

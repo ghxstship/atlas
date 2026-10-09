@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Sponsor Engagement</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="Northwind Live" label="Gateway" person="Jules Bennett" active="Work" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"><x-import component-from-global-scope="XOS.Tag" tone="accent">Sponsor</x-import><x-import component-from-global-scope="XOS.StateChip" state="active" label="Active"></x-import><span class="xos-muted">Solstice Sparkling Water</span></div>
+          <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Northwind Fall Series · Presenting partner</h1>
+        </div>
+        <x-import component-from-global-scope="XOS.Button" variant="primary" icon="Check">Approve Assets</x-import>
+      </div>
+      <x-import component-from-global-scope="XOS.Tabs" label="Engagement" value="overview" tabs="{{tabs}}"></x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+        <div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+          <x-import component-from-global-scope="XOS.ProgressBar" label="Entitlements fulfilled, 2 of 5" value="{{pct}}"></x-import>
+          <x-import component-from-global-scope="XOS.DataTable" caption="Entitlements" columns="{{cols}}" rows="{{rows}}"></x-import>
+          <span class="xos-muted">The proof-of-performance report arrives at Gate 8 · Amplify, with photos captured on site in Compass.</span>
+        </div>
+        <aside aria-label="Engagement stages" style="flex: 1 1 300px; min-width: 0;"><x-import component-from-global-scope="XOS.EngagementTimeline" current="{{six}}" stages="{{stages}}"></x-import></aside>
+      </div>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Work" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const st = (s, l) => ({ state: s, label: l });
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      six: 6, pct: 40,
+      cols: [{ key: 'e', label: 'Entitlement' }, { key: 'when', label: 'When' }, { key: 's', label: 'Status', type: 'state' }],
+      rows: [
+        { e: 'Logo on main stage scrim', when: 'All shows', s: st('in-review', 'Asset in review') },
+        { e: 'Sampling tent at entry plaza', when: 'Nov 20 to 22', s: st('scheduled', 'Scheduled') },
+        { e: 'Host mention before headliner', when: 'Each night', s: st('scheduled', 'Scheduled') },
+        { e: 'Social posts, 3', when: 'Nov 10 to 22', s: st('complete', 'Delivered') },
+        { e: '20 hospitality passes', when: 'Nov 20', s: st('complete', 'Issued') }
+      ],
+      tabs: ['Overview', 'Entitlements', 'Asset Approvals', 'Activation Schedule', 'Proof of Performance', 'Invoices', 'Documents', 'Messages'].map((t) => ({ value: t.toLowerCase(), label: t })),
+      stages: [{ label: 'Requisition' }, { label: 'Opportunity', date: 'Aug 4' }, { label: 'Application', date: 'Aug 11' }, { label: 'Selection', date: 'Aug 25' }, { label: 'Offer', date: 'Sep 1' }, { label: 'Onboarding', date: 'Sep 8' }, { label: 'Engaged', date: 'Now' }, { label: 'Close-out' }, { label: 'Re-engagement' }],
+      crumbs: [{ label: 'Work' }, { label: 'Engagements' }, { label: 'Northwind Fall Series' }],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

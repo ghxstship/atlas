@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Settings · Security</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="ArrowLeft"></x-import>Back to Atlas</button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search settings<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <nav aria-label="Organization settings" class="xos-sidebar">
+      <sc-for list="{{sections}}" as="s" hint-placeholder-count="42">
+        <button type="button" class="xos-nav-item" aria-current="{{s.current}}">{{s.label}}</button>
+      </sc-for>
+    </nav>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Settings sections"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <button type="button" aria-label="Account, Riley Grant" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Riley Grant"></x-import></button>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <form aria-labelledby="h-sec" style="max-width: 640px; width: 100%; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <h1 id="h-sec" style="margin: 0; font-size: 20px; font-weight: 600;">Security</h1>
+          <span class="xos-muted">Set at Organization · locked for workspaces and projects · last changed by Riley Grant, Oct 28</span>
+        </div>
+        <x-import component-from-global-scope="XOS.Radio" label="Two-step sign-in" name="mfa" value="all" options="{{mfa}}"></x-import>
+        <x-import component-from-global-scope="XOS.Switch" label="Allow passkeys as the first sign-in method" default-checked="{{yes}}"></x-import>
+        <x-import component-from-global-scope="XOS.Select" label="Session length" value="12h" options="{{sessions}}" help="People are asked to sign in again after this much inactivity."></x-import>
+        <x-import component-from-global-scope="XOS.Card" title="Single sign-on" meta="SAML 2.0 · Connected">
+          <p style="margin: 0; color: var(--text-secondary);">People with a verified Northwind Live address sign in through your identity provider. SCIM keeps members and teams in sync.</p>
+          <x-import component-from-global-scope="XOS.Switch" label="Provision members with SCIM" default-checked="{{yes}}"></x-import>
+        </x-import>
+        <section aria-labelledby="h-dom" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-dom" style="margin: 0; font-size: 14px; font-weight: 600;">Verified domains</h2>
+          <x-import component-from-global-scope="XOS.DataTable" caption="Domains whose people can join automatically" density="compact" columns="{{domCols}}" rows="{{domRows}}"></x-import>
+        </section>
+        <x-import component-from-global-scope="XOS.Accordion" items="{{more}}"></x-import>
+        <div style="position: sticky; bottom: 0; display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 0; border-top: 1px solid var(--border-subtle); background: var(--bg-canvas);">
+          <span class="xos-muted" role="status">Unsaved changes</span>
+          <x-import component-from-global-scope="XOS.Button" variant="ghost">Discard</x-import>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" shortcut="⌘ S">Save</x-import>
+        </div>
+      </form>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Menu" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const R = window.React;
+    const p = (t) => R ? R.createElement('p', { style: { margin: 0, color: 'var(--text-secondary)' } }, t) : t;
+    const h = Number(this.props.h) || 0;
+    const S = ['Organization Profile', 'General', 'Legal Entities and Fiscal', 'Members', 'Roles and Capabilities', 'Teams', 'Workspaces', 'Departments and Disciplines in Use', 'Locations and Venues', 'Security', 'Access Reviews', 'White Label', 'Modules', 'Canon Extensions', 'Templates', 'Custom Fields', 'Custom Objects', 'Views and Defaults', 'Numbering', 'Automations', 'Approval Policies', 'Spend Authority', 'Separation of Duties', 'Time and Attendance', 'Scheduling', 'Payroll and Time Off', 'Gateway and Marketplace', 'Communication', 'Notifications Defaults', 'AI Features', 'Help and Support', 'Integrations', 'API Keys and Service Accounts', 'Webhooks', 'Localization', 'Usage', 'Data and Privacy', 'Audit Log', 'Danger Zone'];
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true,
+      sections: S.map((s) => ({ label: s, current: s === 'Security' ? 'page' : undefined })),
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Settings' }, { label: 'Security' }],
+      mfa: [{ value: 'all', label: 'Required for everyone' }, { value: 'admins', label: 'Required for Owners and Admins' }, { value: 'optional', label: 'Optional' }],
+      sessions: [{ value: '8h', label: '8 hours' }, { value: '12h', label: '12 hours' }, { value: '24h', label: '24 hours' }, { value: '7d', label: '7 days' }],
+      domCols: [{ key: 'd', label: 'Domain', type: 'code' }, { key: 'join', label: 'Automatic Join' }, { key: 'role', label: 'Default Role' }, { key: 's', label: 'Status', type: 'state' }],
+      domRows: [{ d: 'northwindlive.com', join: 'On', role: 'Member', s: { state: 'complete', label: 'Verified' } }, { d: 'nwlive.events', join: 'Off', role: 'Viewer', s: { state: 'scheduled', label: 'DNS pending' } }],
+      more: [
+        { title: 'IP allow-list', meta: 'Off', content: p('Limit Atlas sign-in to listed address ranges. Compass and Gateway are not affected.') },
+        { title: 'Break-glass accounts', meta: '2 accounts', content: p('Two sealed Owner accounts that bypass single sign-on. Every use is written to the audit log and alerts all Owners.') }
+      ],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 2 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<!-- @dsCard group="Templates" height=460 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TemplateAuth</title>
+<style>.tpl-auth{background:var(--bg-surface);border-radius:var(--radius-card)} .tpl-auth .xos-field{width:100%}</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-layout-auth tpl-auth'},h('div',{className:'xos-card'},h('div',{className:'xos-card-body',style:{gap:16}},h(X.BrandMark,{name:'Northwind Live',size:'lg'}),h('h1',{style:{margin:0,fontSize:20}},'Sign in'),h(X.Button,{variant:'primary',size:'lg',icon:'KeyRound',className:'xos-block'},'Use Passkey'),h(X.Button,{size:'lg',className:'xos-block'},'Continue with Apple'),h(X.Button,{size:'lg',className:'xos-block'},'Continue with Google'),h(X.Divider,{label:'or'}),h(X.Input,{label:'Email',type:'email',placeholder:'you@company.com'}),h(X.Button,{size:'lg',className:'xos-block'},'Email Me a Link')))));
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Iconography" height=56 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Icon</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row',style:{gap:'var(--space-16)'}},['plus','x','search','check','chevron-right','chevron-down','more','info','alert','check-circle','clock','pin','home','inbox','folder','calendar','undo','file'].map(function(n){return h(X.Icon,{key:n,name:n,label:n})})));
+</script>
+</body>
+</html>

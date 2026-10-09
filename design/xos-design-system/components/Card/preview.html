@@ -1,0 +1,12 @@
+<!-- @dsCard group="Layout" height=180 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Card</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{width:'100%',maxWidth:360}},h(X.Card,{title:'Budget Summary',meta:'Gate 4',footer:h(X.Button,{size:'sm'},'Open Budget')},h('div',{className:'xos-row',style:{justifyContent:'space-between'}},h('span',{className:'xos-muted'},'Committed'),h(X.Money,{amount:212480})),h('div',{className:'xos-row',style:{justifyContent:'space-between'}},h('span',{className:'xos-muted'},'Remaining'),h(X.Money,{amount:null})))));
+</script>
+</body>
+</html>

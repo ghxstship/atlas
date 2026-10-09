@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=140 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Banner</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col',style:{gap:0}},h(X.Banner,{tone:'info',actionLabel:'Review'},'Gate 3 review is scheduled for Oct 14.'),h(X.Banner,{tone:'warning',onDismiss:function(){}},'2 insurance certificates expire within 30 days.'),h(X.Banner,{tone:'danger',actionLabel:'Reconnect'},'QuickBooks sync stopped. Exports are queued.')));
+</script>
+</body>
+</html>

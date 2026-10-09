@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Advance Packet Builder</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item" aria-haspopup="listbox" aria-label="Workspace, Miami Office"><x-import component-from-global-scope="XOS.Icon" name="Building2"></x-import>Miami Office<span style="margin-inline-start: auto; display: inline-flex;"><x-import component-from-global-scope="XOS.Icon" name="ChevronsUpDown" size="{{i12}}"></x-import></span></button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <x-import component-from-global-scope="XOS.Sidebar" label="Atlas" active="Advancing" groups="{{nav}}"></x-import>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Menu"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <x-import component-from-global-scope="XOS.IconButton" icon="CircleHelp" label="Help" shortcut="?"></x-import>
+          <button type="button" aria-label="Account, Morgan Chen" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Morgan Chen"></x-import></button>
+        </div>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <span class="xos-code xos-muted">NWL-118</span>
+            <x-import component-from-global-scope="XOS.StateChip" state="active" label="Active"></x-import>
+            <x-import component-from-global-scope="XOS.PhaseChip" gate="{{three}}" name="Advance" code="ADV"></x-import>
+          </div>
+          <h1 style="margin: 0; font-size: 20px; font-weight: 600; line-height: 1.2;">Main Stage Advance Packet</h1>
+          <span class="xos-muted">Opening Night · 7 sections · 6 recipients · due Fri, Nov 6</span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <x-import component-from-global-scope="XOS.Button" icon="Plus">Add Section</x-import>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" icon="Send">Remind Outstanding</x-import>
+        </div>
+      </div>
+      <x-import component-from-global-scope="XOS.Tabs" label="Advancing pages" value="packets" tabs="{{pages}}"></x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+        <section aria-labelledby="h-sections" style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-sections" style="margin: 0; font-size: 14px; font-weight: 600;">Sections</h2>
+          <x-import component-from-global-scope="XOS.Accordion" items="{{sections}}"></x-import>
+        </section>
+        <section aria-labelledby="h-heat" style="flex: 2 1 660px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h2 id="h-heat" style="margin: 0; font-size: 14px; font-weight: 600;">Progress by recipient and section</h2>
+            <span class="xos-muted">27 of 42 complete · 4 in review · 10 outstanding · 1 blocked</span>
+          </div>
+          <x-import component-from-global-scope="XOS.ScrollRegion" label="Recipient by section progress">
+            <table style="border-collapse: collapse; width: 100%; min-width: 620px;">
+              <caption style="text-align: start; color: var(--text-secondary); padding-bottom: 8px;">Each cell shows the section state for that recipient. Select a cell to open the submission.</caption>
+              <thead>
+                <tr>
+                  <th scope="col" style="text-align: start; padding: 8px; font-weight: 500; color: var(--text-secondary); border-bottom: 1px solid var(--border-subtle);">Recipient</th>
+                  <sc-for list="{{sectionNames}}" as="s" hint-placeholder-count="7">
+                    <th scope="col" style="padding: 8px; font-weight: 500; color: var(--text-secondary); border-bottom: 1px solid var(--border-subtle); text-align: center;">{{s}}</th>
+                  </sc-for>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{grid}}" as="r" hint-placeholder-count="6">
+                  <tr>
+                    <th scope="row" style="text-align: start; padding: 8px; font-weight: 500; border-bottom: 1px solid var(--border-subtle); white-space: nowrap;">{{r.name}}</th>
+                    <sc-for list="{{r.cells}}" as="c" hint-placeholder-count="7">
+                      <td style="padding: 6px; border-bottom: 1px solid var(--border-subtle); text-align: center;" title="{{c.label}}">
+                        <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; border-radius: 6px; background: var(--bg-surface);"><x-import component-from-global-scope="XOS.StateIcon" state="{{c.state}}"></x-import></span>
+                        <span class="xos-sr">{{c.label}}</span>
+                      </td>
+                    </sc-for>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </x-import>
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; color: var(--text-secondary); font-size: 12px;">
+            <span style="display: inline-flex; gap: 6px; align-items: center;"><x-import component-from-global-scope="XOS.StateIcon" state="complete"></x-import>Complete</span>
+            <span style="display: inline-flex; gap: 6px; align-items: center;"><x-import component-from-global-scope="XOS.StateIcon" state="in-review"></x-import>In Review</span>
+            <span style="display: inline-flex; gap: 6px; align-items: center;"><x-import component-from-global-scope="XOS.StateIcon" state="active"></x-import>Started</span>
+            <span style="display: inline-flex; gap: 6px; align-items: center;"><x-import component-from-global-scope="XOS.StateIcon" state="proposed"></x-import>Not Started</span>
+            <span style="display: inline-flex; gap: 6px; align-items: center;"><x-import component-from-global-scope="XOS.StateIcon" state="blocked"></x-import>Blocked</span>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Home" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const R = window.React;
+    const h = Number(this.props.h) || 0;
+    const open = ['Production', 'Operations'];
+    const g = (label, items) => ({ label, collapsed: open.indexOf(label) < 0, items });
+    const S = { c: ['complete', 'Complete'], r: ['in-review', 'In Review'], a: ['active', 'Started'], p: ['proposed', 'Not Started'], b: ['blocked', 'Blocked'] };
+    const names = ['Contacts', 'Schedule', 'Technical', 'Power', 'Hospitality', 'Insurance', 'Credentials'];
+    const row = (name, codes) => ({ name, cells: codes.split('').map((k, i) => ({ state: S[k][0], label: name + ', ' + names[i] + ': ' + S[k][1] })) });
+    const p = (t) => R ? R.createElement('p', { style: { margin: 0, color: 'var(--text-secondary)' } }, t) : t;
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      i12: 12, three: 3,
+      sectionNames: names,
+      grid: [
+        row('Harbor Audio', 'ccrbcca'),
+        row('Lumen Tide', 'ccaprpp'),
+        row('Bayline Catering', 'cccccrc'),
+        row('Shieldline Security', 'ccccpcc'),
+        row('Coastal Rigging', 'ccrapcp'),
+        row('Harbor Pavilion', 'ccccacc')
+      ],
+      sections: [
+        { title: 'Contacts', meta: '3 fields', content: p('Day-of contact, phone and radio call sign for each recipient.') },
+        { title: 'Technical', meta: '9 fields · rider upload', open: true, content: p('Console, monitor mixes, backline and stage plot. Riders attach here and feed the reconciliation against the venue capability document.') },
+        { title: 'Power', meta: '4 fields', content: p('Service size, phase and distance from stage. Reconciled against Harbor Pavilion power.') },
+        { title: 'Insurance', meta: 'Certificate · expiry checked', content: p('Certificate naming Northwind Live as additional insured, with expiry after Nov 23.') }
+      ],
+      pages: [{ value: 'packets', label: 'Packets' }, { value: 'subs', label: 'Submissions', count: 5 }, { value: 'riders', label: 'Riders' }, { value: 'recon', label: 'Reconciliation' }],
+      nav: [
+        { items: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 4 }, { label: 'My Work', icon: 'CircleCheck' }] },
+        { label: 'Favorites', items: [{ label: 'Main Stage Advance Packet', icon: 'Star' }, { label: 'Riders Awaiting Review', icon: 'Star' }] },
+        { label: 'Recent Projects', items: [{ label: 'Northwind Fall Series', icon: 'Folder' }, { label: 'Harbor Winter Gala', icon: 'Folder' }, { label: 'Bayfront Food Festival', icon: 'Folder' }, { label: 'Coastline Brand Launch', icon: 'Folder' }, { label: 'Riverside Summer Stage', icon: 'Folder' }, { label: 'All Projects', icon: 'FolderOpen' }] },
+        g('Production', [{ label: 'Projects', icon: 'Folder' }, { label: 'Schedule', icon: 'Calendar' }, { label: 'Work', icon: 'SquareCheck' }, { label: 'Show', icon: 'Clapperboard' }, { label: 'Advancing', icon: 'ClipboardCheck' }]),
+        g('Operations', [{ label: 'Places', icon: 'MapPin' }, { label: 'Logistics', icon: 'Truck' }, { label: 'Hospitality', icon: 'ConciergeBell' }, { label: 'Assets', icon: 'Boxes' }, { label: 'Credentials', icon: 'IdCard' }, { label: 'Safety', icon: 'ShieldAlert' }]),
+        g('People', [{ label: 'People', icon: 'Users' }, { label: 'Opportunities', icon: 'UserSearch' }, { label: 'Crew', icon: 'HardHat' }]),
+        g('Commercial', [{ label: 'Finance', icon: 'Wallet' }, { label: 'Procurement', icon: 'ShoppingCart' }, { label: 'Vendors', icon: 'Store' }]),
+        g('Knowledge', [{ label: 'Knowledge', icon: 'BookOpen' }, { label: 'Reports', icon: 'ChartColumn' }, { label: 'Canon', icon: 'Library' }]),
+        { items: [{ label: 'Activity', icon: 'Activity' }, { label: 'Settings', icon: 'Settings' }] }
+      ],
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Miami Office' }, { label: 'Northwind Fall Series' }, { label: 'Advancing' }, { label: 'NWL-118' }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 4 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

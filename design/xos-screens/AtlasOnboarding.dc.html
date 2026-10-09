@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Org Onboarding</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 48px; padding: 0 24px; border-bottom: 1px solid var(--border-subtle); flex: none;">
+    <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+      <x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import>
+      <span style="color: var(--text-tertiary);">Set up your organization</span>
+    </div>
+    <x-import component-from-global-scope="XOS.Button" variant="ghost">Save and Exit</x-import>
+  </header>
+  <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-subtle); overflow-x: auto; flex: none;">
+    <x-import component-from-global-scope="XOS.Stepper" steps="{{steps}}" current="{{current}}"></x-import>
+  </div>
+  <main style="flex: 1; min-height: 0; overflow: auto; padding: 32px 24px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 48px; justify-content: center; align-items: flex-start;">
+      <section aria-labelledby="step-title" style="flex: 1 1 480px; max-width: 640px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <span class="xos-label">Step 4 of 8</span>
+          <h1 id="step-title" style="margin: 0; font-size: 24px; font-weight: 600; line-height: 1.2;">Where does your first project happen?</h1>
+          <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">Permits, wage-and-hour rules and emergency agencies resolve from the venue's jurisdiction.</p>
+        </div>
+        <x-import component-from-global-scope="XOS.Input" label="Venue" value="Harbor Pavilion, Miami, FL"></x-import>
+        <x-import component-from-global-scope="XOS.Combobox" label="Jurisdiction" value="US-FL-MIAMI-DADE" options="{{jurisdictions}}" default-open="{{yes}}" help="The most specific level wins. Lower levels inherit what they leave blank."></x-import>
+        <x-import component-from-global-scope="XOS.InlineAlert" tone="warning" title="Declared, not yet populated">GB, MX, AE and SA are declared but have no rules yet. Projects there return No Answer for permit and wage questions until they are populated.</x-import>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+          <x-import component-from-global-scope="XOS.Button" variant="ghost" icon="ArrowLeft">Back</x-import>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" shortcut="⌘ ↵">Next</x-import>
+        </div>
+      </section>
+      <aside aria-label="Setup progress" style="flex: 0 1 360px; display: flex; flex-direction: column; gap: 16px;">
+        <x-import component-from-global-scope="XOS.OnboardingChecklist" title="Set Up Northwind Live" steps="{{checklist}}"></x-import>
+        <x-import component-from-global-scope="XOS.Card" title="Explore first">
+          <p style="margin: 0; color: var(--text-secondary);">Open a private copy of the Northwind Live sandbox. Nothing you do there reaches your organization.</p>
+          <div><x-import component-from-global-scope="XOS.Button" icon="FlaskConical">Open Sandbox</x-import></div>
+        </x-import>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true,
+      current: 3,
+      steps: ['Brand', 'Members', 'First Project', 'Jurisdiction', 'Budget', 'Schedule', 'Compass Invite', 'Integration'],
+      checklist: [
+        { label: 'Brand', done: true },
+        { label: 'Members', done: true },
+        { label: 'First project', done: true },
+        { label: 'Jurisdiction', done: false, action: 'Set' },
+        { label: 'Budget', done: false, action: 'Start' },
+        { label: 'Schedule', done: false, action: 'Start' },
+        { label: 'Compass invite', done: false, action: 'Invite' },
+        { label: 'Integration', done: false, action: 'Connect' }
+      ],
+      jurisdictions: [
+        { value: 'US', label: 'United States', code: 'US' },
+        { value: 'US-FL', label: 'Florida', code: 'US-FL' },
+        { value: 'US-FL-MIAMI-DADE', label: 'Miami-Dade County', code: 'US-FL-MIAMI-DADE' },
+        { value: 'GB', label: 'United Kingdom', code: 'GB', help: 'Declared, not populated' },
+        { value: 'MX', label: 'Mexico', code: 'MX', help: 'Declared, not populated' },
+        { value: 'AE', label: 'United Arab Emirates', code: 'AE', help: 'Declared, not populated' },
+        { value: 'SA', label: 'Saudi Arabia', code: 'SA', help: 'Declared, not populated' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

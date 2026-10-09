@@ -1,0 +1,12 @@
+<!-- @dsCard group="Navigation" height=80 width=960 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TopNav</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.TopNav,{brand:'Northwind Live',label:'Gateway',person:'Dana Ruiz',active:'Work',items:[{label:'Home',icon:'House'},{label:'Explore',icon:'Compass'},{label:'Work',icon:'Briefcase'},{label:'Money',icon:'Wallet'},{label:'Messages',icon:'MessageSquare',badge:2}]}));
+</script>
+</body>
+</html>

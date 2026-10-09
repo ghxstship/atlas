@@ -1,0 +1,12 @@
+<!-- @dsCard group="Compass" height=640 width=420 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>PhotoCapture</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.PhotoCapture,{frame:true,hint:'Frame the damage, then tap to annotate',count:3}));
+</script>
+</body>
+</html>

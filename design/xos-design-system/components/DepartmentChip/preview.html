@@ -1,0 +1,12 @@
+<!-- @dsCard group="Chips" height=48 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>DepartmentChip</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row'},h(X.DepartmentChip,{name:'Environment',code:'4000'}),h(X.DepartmentChip,{name:'Production',code:'5000'}),h(X.DepartmentChip,{name:'Technology',code:'9000'})));
+</script>
+</body>
+</html>

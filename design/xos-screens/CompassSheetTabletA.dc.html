@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass on 11 in tablet · part 1</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="dark" style="width: 100%; display: flex; flex-direction: column; gap: 48px; background: var(--bg-surface); color: var(--text-primary); font-family: var(--font-sans);">
+  <section aria-label="Today on tablet"><div style="height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 600;">Today<span style="font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--text-secondary);">834 by 1194 pt</span></div><div style="height: 1194px; overflow: hidden;"><dc-import name="CompassToday" h="1194" hint-size="100%,1194px"></dc-import></div></section>
+  <section aria-label="Clock In on tablet"><div style="height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 600;">Clock In<span style="font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--text-secondary);">834 by 1194 pt</span></div><div style="height: 1194px; overflow: hidden;"><dc-import name="CompassClock" h="1194" hint-size="100%,1194px"></dc-import></div></section>
+  <section aria-label="Kiosk Mode on tablet"><div style="height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 600;">Kiosk Mode<span style="font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--text-secondary);">834 by 1194 pt</span></div><div style="height: 1194px; overflow: hidden;"><dc-import name="CompassKiosk" h="1194" hint-size="100%,1194px"></dc-import></div></section>
+  <section aria-label="Shift Detail on tablet"><div style="height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 600;">Shift Detail and Swap<span style="font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--text-secondary);">834 by 1194 pt</span></div><div style="height: 1194px; overflow: hidden;"><dc-import name="CompassShift" h="1194" hint-size="100%,1194px"></dc-import></div></section>
+  <section aria-label="Task on tablet"><div style="height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 600;">Task with Checklist and Photo<span style="font-family: var(--font-mono); font-size: 12px; font-weight: 400; color: var(--text-secondary);">834 by 1194 pt</span></div><div style="height: 1194px; overflow: hidden;"><dc-import name="CompassTask" h="1194" hint-size="100%,1194px"></dc-import></div></section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":834,"height":6362}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

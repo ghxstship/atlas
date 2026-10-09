@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway at 390 px · part 4</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="dark" style="width: 100%; display: flex; flex-direction: column; gap: 48px; background: var(--bg-surface); color: var(--text-primary); font-family: var(--font-sans);">
+  <section aria-label="Messages at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Messages</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayMessages" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Profile Editor at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Profile Editor</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayProfile" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Public Profile at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Public Profile and EPK</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayPublicProfile" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Company Account at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Company Account and Team</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayCompany" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Settings at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Settings, Consents and Payout</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewaySettings" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Advance by Token at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Advance by Token</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayAdvanceToken" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Sign by Token at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Sign by Token and Claim Account</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewaySignToken" h="844" hint-size="100%,844px"></dc-import></div></section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":6476}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

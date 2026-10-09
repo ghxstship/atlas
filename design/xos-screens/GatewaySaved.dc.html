@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Saved and Alerts</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Dana Ruiz" active="Explore" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Explore</h1>
+      <x-import component-from-global-scope="XOS.Tabs" label="Explore" value="saved" tabs="{{tabs}}"></x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+        <section aria-labelledby="s-saved" style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="s-saved" class="xos-label" style="margin: 0;">Saved · 3</h2>
+          <x-import component-from-global-scope="XOS.Gallery" label="Saved opportunities" min="{{gmin}}">
+            <x-import component-from-global-scope="XOS.OpportunityCard" org="Northwind Live" verified="{{yes}}" role="Rigger, Fall Series" pay="$800 to $1,150 per day" date="Nov 18 to 22" place="Miami, FL" requirements="{{met}}" deadline="Apply by Nov 17" saved="{{yes}}"></x-import>
+            <x-import component-from-global-scope="XOS.OpportunityCard" org="Coastline Productions" verified="{{yes}}" role="Deck Crew, Boat Show Build" pay="$34 per hour" date="Feb 9 to 14" place="Miami, FL" requirements="{{met}}" deadline="Apply by Jan 20" saved="{{yes}}"></x-import>
+            <x-import component-from-global-scope="XOS.OpportunityCard" org="Harbor Light Events" verified="{{yes}}" role="Lighting Programmer" pay="$4,800 flat" date="Dec 10 to 13" place="Miami Beach, FL" requirements="{{osha}}" missing-action="Add OSHA 10" deadline="Apply by Nov 30" saved="{{yes}}"></x-import>
+          </x-import>
+        </section>
+        <section aria-labelledby="s-alerts" style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="s-alerts" class="xos-label" style="margin: 0;">Alerts · 2 saved searches</h2>
+          <sc-for list="{{alerts}}" as="a" hint-placeholder-count="2">
+            <div class="xos-card" style="padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; justify-content: space-between; gap: 8px;"><strong>{{a.name}}</strong><span class="xos-muted">{{a.count}} new</span></div>
+              <span class="xos-muted">{{a.query}}</span>
+              <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <x-import component-from-global-scope="XOS.Switch" label="Push" default-checked="{{yes}}"></x-import>
+                <x-import component-from-global-scope="XOS.Switch" label="Email" default-checked="{{a.email}}"></x-import>
+              </div>
+            </div>
+          </sc-for>
+          <x-import component-from-global-scope="XOS.Button" icon="BellPlus">New Alert</x-import>
+        </section>
+      </div>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Explore" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true, gmin: 280,
+      met: { missing: [] }, osha: { missing: ['OSHA 10'] },
+      tabs: [{ value: 'foryou', label: 'For You' }, { value: 'all', label: 'All' }, { value: 'saved', label: 'Saved', count: 3 }, { value: 'alerts', label: 'Alerts', count: 2 }],
+      alerts: [
+        { name: 'Rigging near Miami', query: 'Crew · rigging · within 25 mi · day rate', count: 2, email: true },
+        { name: 'Stage management, winter', query: 'Contractor · stage manager · Dec to Feb', count: 1, email: false }
+      ],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Crew Schedule</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item" aria-haspopup="listbox" aria-label="Workspace, Miami Office"><x-import component-from-global-scope="XOS.Icon" name="Building2"></x-import>Miami Office<span style="margin-inline-start: auto; display: inline-flex;"><x-import component-from-global-scope="XOS.Icon" name="ChevronsUpDown" size="{{i12}}"></x-import></span></button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <x-import component-from-global-scope="XOS.Sidebar" label="Atlas" active="Crew" groups="{{nav}}"></x-import>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Menu"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <x-import component-from-global-scope="XOS.IconButton" icon="CircleHelp" label="Help" shortcut="?"></x-import>
+          <button type="button" aria-label="Account, Malik Osei" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Malik Osei"></x-import></button>
+        </div>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <x-import component-from-global-scope="XOS.PageHeader" title="Crew Schedule" glyph="HardHat" count="{{count}}" actions="{{actions}}"></x-import>
+      <x-import component-from-global-scope="XOS.Tabs" label="Crew pages" value="schedule" tabs="{{pages}}"></x-import>
+      <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1 1 320px; max-width: 480px;"><x-import component-from-global-scope="XOS.ProgressBar" label="Fill rate, 46 of 50 positions" value="{{fill}}"></x-import></div>
+        <x-import component-from-global-scope="XOS.Tag" tone="warning">2 overtime warnings</x-import>
+        <x-import component-from-global-scope="XOS.Tag" tone="danger">1 double booking</x-import>
+      </div>
+      <x-import component-from-global-scope="XOS.InlineAlert" tone="warning" title="Before you assign">Placing Priya Nair on Sat, Nov 21 puts her at 48 hours this week, 8 hours of overtime at 1.5x under OTR-001 Standard Overtime.</x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+        <section aria-labelledby="h-sched" style="flex: 999 1 780px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-sched" style="margin: 0; font-size: 14px; font-weight: 600;">Opening week · Nov 16 to 21</h2>
+          <x-import component-from-global-scope="XOS.ResourceSchedule" label="Crew Schedule, Opening Week" days="{{days}}" people="{{people}}"></x-import>
+        </section>
+        <section aria-labelledby="h-avail" style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-avail" style="margin: 0; font-size: 14px; font-weight: 600;">Available, ranked for Rigger on Nov 17</h2>
+          <x-import component-from-global-scope="XOS.DataTable" caption="Drag a person onto a shift, or press Space to pick up and arrows to place" density="compact" columns="{{availCols}}" rows="{{availRows}}"></x-import>
+        </section>
+      </div>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Home" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p, c) => (X[n] && R) ? R.createElement(X[n], p, c) : null;
+    const h = Number(this.props.h) || 0;
+    const open = ['Operations', 'People'];
+    const g = (label, items) => ({ label, collapsed: open.indexOf(label) < 0, items });
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      i12: 12, count: 50, fill: 92,
+      actions: el('Button', { variant: 'primary', icon: 'Megaphone' }, 'Post Crew Call'),
+      days: [{ key: 'd1', dow: 'Mon', date: 16 }, { key: 'd2', dow: 'Tue', date: 17 }, { key: 'd3', dow: 'Wed', date: 18 }, { key: 'd4', dow: 'Thu', date: 19 }, { key: 'd5', dow: 'Fri', date: 20 }, { key: 'd6', dow: 'Sat', date: 21, weekend: true }],
+      people: [
+        { name: 'Dana Ruiz', role: 'Lead Stagehand / Deck Crew Chief', shifts: [{ day: 'd1', time: '6:00 AM', state: 'scheduled' }, { day: 'd3', time: '6:00 AM', state: 'scheduled' }, { day: 'd5', time: '2:00 PM', state: 'scheduled' }] },
+        { name: 'Lena Fischer', role: 'Head Arena / Festival Rigger', shifts: [{ day: 'd1', time: '7:00 AM', state: 'scheduled' }, { day: 'd2', time: '7:00 AM', state: 'proposed' }] },
+        { name: 'Priya Nair', role: 'Audio Engineer - A1/FOH', shifts: [{ day: 'd4', time: '12:00 PM', state: 'ready' }, { day: 'd5', time: '12:00 PM', state: 'scheduled' }, { day: 'd6', time: '3:00 PM', state: 'blocked' }] },
+        { name: 'Owen Price', role: 'Head Arena / Festival Rigger', shifts: [{ day: 'd1', time: '7:00 AM', state: 'scheduled' }, { day: 'd1', time: '2:00 PM', state: 'blocked' }] },
+        { name: 'Rafael Costa', role: 'Lead Stagehand / Deck Crew Chief', shifts: [{ day: 'd2', time: '6:00 AM', state: 'scheduled' }, { day: 'd3', time: '6:00 AM', state: 'scheduled' }] }
+      ],
+      availCols: [{ key: 'name', label: 'Person' }, { key: 'role', label: 'Role Code', type: 'code' }, { key: 'hours', label: 'Hours This Week', type: 'number' }, { key: 'fit', label: 'Fit', type: 'state' }],
+      availRows: [
+        { name: 'Tariq Haddad', role: '5000.51.02', hours: 0, fit: { state: 'complete', label: 'Preferred pool' } },
+        { name: 'Nora Lindqvist', role: '5000.51.02', hours: 10, fit: { state: 'complete', label: 'Approved pool' } },
+        { name: 'Sam Okafor', role: '5000.51.02', hours: 36, fit: { state: 'deferred', label: 'Overtime risk' } }
+      ],
+      pages: [{ value: 'schedule', label: 'Schedule' }, { value: 'shifts', label: 'Shifts' }, { value: 'swaps', label: 'Swaps', count: 2 }, { value: 'time', label: 'Time Entries' }, { value: 'ts', label: 'Timesheets' }, { value: 'rates', label: 'Rate Cards' }, { value: 'periods', label: 'Pay Periods' }, { value: 'payroll', label: 'Payroll Exports' }, { value: 'off', label: 'Time Off' }],
+      nav: [
+        { items: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'My Work', icon: 'CircleCheck' }] },
+        { label: 'Favorites', items: [{ label: 'Opening Week Crew', icon: 'Star' }, { label: 'Open Swaps', icon: 'Star' }] },
+        { label: 'Recent Projects', items: [{ label: 'Northwind Fall Series', icon: 'Folder' }, { label: 'Harbor Winter Gala', icon: 'Folder' }, { label: 'Bayfront Food Festival', icon: 'Folder' }, { label: 'Coastline Brand Launch', icon: 'Folder' }, { label: 'Riverside Summer Stage', icon: 'Folder' }, { label: 'All Projects', icon: 'FolderOpen' }] },
+        g('Production', [{ label: 'Projects', icon: 'Folder' }, { label: 'Schedule', icon: 'Calendar' }, { label: 'Work', icon: 'SquareCheck' }, { label: 'Show', icon: 'Clapperboard' }, { label: 'Advancing', icon: 'ClipboardCheck' }]),
+        g('Operations', [{ label: 'Places', icon: 'MapPin' }, { label: 'Logistics', icon: 'Truck' }, { label: 'Hospitality', icon: 'ConciergeBell' }, { label: 'Assets', icon: 'Boxes' }, { label: 'Credentials', icon: 'IdCard' }, { label: 'Safety', icon: 'ShieldAlert' }]),
+        g('People', [{ label: 'People', icon: 'Users' }, { label: 'Opportunities', icon: 'UserSearch' }, { label: 'Crew', icon: 'HardHat' }]),
+        g('Commercial', [{ label: 'Finance', icon: 'Wallet' }, { label: 'Procurement', icon: 'ShoppingCart' }, { label: 'Vendors', icon: 'Store' }]),
+        g('Knowledge', [{ label: 'Knowledge', icon: 'BookOpen' }, { label: 'Reports', icon: 'ChartColumn' }, { label: 'Canon', icon: 'Library' }]),
+        { items: [{ label: 'Activity', icon: 'Activity' }, { label: 'Settings', icon: 'Settings' }] }
+      ],
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Miami Office' }, { label: 'Northwind Fall Series' }, { label: 'Crew' }, { label: 'Schedule' }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

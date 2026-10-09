@@ -1,0 +1,12 @@
+<!-- @dsCard group="Forms" height=72 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Checkbox</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col',style:{gap:'var(--space-8)'}},h(X.Checkbox,{label:'Blocking Criterion',defaultChecked:true}),h(X.Checkbox,{label:'Requires Photo Evidence'})));
+</script>
+</body>
+</html>

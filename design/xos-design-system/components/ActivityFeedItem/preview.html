@@ -1,0 +1,12 @@
+<!-- @dsCard group="Data display" height=140 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ActivityFeedItem</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col'},h(X.ActivityFeedItem,{actor:'Morgan Chen',action:'commented on',target:'NWL-142',time:'12 min ago',comment:'Vendor confirmed the 6 AM window.',reactions:[{icon:'ThumbsUp',label:'Agree',count:2},{icon:'Check',label:'Done',count:1}]}),h(X.ActivityFeedItem,{actor:'Malik Osei',action:'moved to Gate 4',time:'1h ago'})));
+</script>
+</body>
+</html>

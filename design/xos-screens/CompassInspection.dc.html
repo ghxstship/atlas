@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Inspection Runner</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px;">
+  <header style="flex: none; display: flex; align-items: center; gap: 4px; padding: 8px 12px 8px 4px; border-bottom: 1px solid var(--border-subtle);">
+    <x-import component-from-global-scope="XOS.IconButton" icon="ChevronLeft" label="Save and leave inspection"></x-import>
+    <div style="flex: 1; display: flex; flex-direction: column;"><strong>NWL-151 · Inspection</strong><span style="font-size: 12px; color: var(--text-secondary);">Template: Egress Walk · Stage Left</span></div>
+  </header>
+  <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+    <x-import component-from-global-scope="XOS.ChecklistRunner" title="Stage Left Egress Walk" index="{{two}}" items="{{items}}"></x-import>
+    <x-import component-from-global-scope="XOS.InlineAlert" tone="danger" title="Item 3 failed">A fail needs a photo and a note before the next item.</x-import>
+    <div style="display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start;">
+      <button type="button" style="width: 72px; height: 72px; border-radius: 8px; border: 2px dashed var(--border-control); background: none; color: var(--text-primary); display: grid; place-items: center; cursor: pointer;" aria-label="Add photo of the failed item"><x-import component-from-global-scope="XOS.Icon" name="Camera" size="{{i24}}"></x-import></button>
+      <x-import component-from-global-scope="XOS.Textarea" label="Note" value="Door needs a key to open from inside. Locksmith requested."></x-import>
+    </div>
+    <span class="xos-muted" style="font-size: 14px;">Average 4 s per item · sign-off unlocks after the last item</span>
+  </main>
+  <div style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" compass="{{yes}}" label="Compass" active="More" center-label="Scan" items="{{tabs}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true, two: 2, i24: 24,
+      items: [
+        { code: '1', label: 'Exit signs lit', result: 'pass' },
+        { code: '2', label: 'Path clear to 44 in', result: 'pass' },
+        { code: '3', label: 'Exit door opens with one motion', result: 'fail', help: 'Push bar, no key or special knowledge.' },
+        { code: '4', label: 'Fire extinguisher tagged', result: null }
+      ],
+      tabs: [{ label: 'Today', icon: 'House' }, { label: 'Schedule', icon: 'CalendarDays' }, { label: 'Scan', icon: 'ScanLine' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Crew', icon: 'HardHat' }, { label: 'More', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

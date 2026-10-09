@@ -1,0 +1,13 @@
+<!-- @dsCard group="Templates" height=400 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TemplateDocument</title>
+<style>.tpl-outline{display:flex;flex-direction:column;gap:var(--space-8)} .tpl-read{font-size:14px;line-height:1.6;display:flex;flex-direction:column;gap:var(--space-8)}</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-layout-document'},h('nav',{'aria-label':'Outline',className:'tpl-outline'},h('span',{className:'xos-label'},'Outline'),['Purpose','Before arrival','At the dock','After unload'].map(function(l,i){return h('a',{key:l,href:'#',className:'xos-link',style:{fontWeight:i===2?600:400}},l)})),h('article',{className:'tpl-read'},h('span',{className:'xos-code xos-muted'},'SOP-014 \u00b7 v3'),h('h1',{style:{margin:0,fontSize:24,lineHeight:1.2}},'Dock Receiving'),h('h2',{style:{fontSize:16,margin:'16px 0 4px'}},'At the dock'),h('p',null,'Check in at the gate queue, then wait for the dock lead. Chock wheels before unloading. Scan each item against its purchase order in Compass.'),h(X.Checkbox,{label:'I have read and understood this procedure'}))));
+</script>
+</body>
+</html>

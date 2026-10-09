@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Schedule</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Dana Ruiz" active="Work" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Work</h1>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <x-import component-from-global-scope="XOS.SegmentedControl" label="View" value="calendar" options="{{views}}"></x-import>
+          <x-import component-from-global-scope="XOS.Button" icon="Rss">Calendar Feed</x-import>
+        </div>
+      </div>
+      <x-import component-from-global-scope="XOS.Tabs" label="Work" value="upcoming" tabs="{{tabs}}"></x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+        <section aria-labelledby="sc-cal" style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="sc-cal" class="xos-label" style="margin: 0;">November 2026 · all orgs</h2>
+          <x-import component-from-global-scope="XOS.Calendar" month="2026-11-01" today="2026-11-16" events="{{events}}"></x-import>
+        </section>
+        <section aria-labelledby="sc-agenda" style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="sc-agenda" class="xos-label" style="margin: 0;">Coming up</h2>
+          <x-import component-from-global-scope="XOS.ShiftCard" state="scheduled" state-label="Scheduled" countdown="in 2 d 13 h" role="Lead Stagehand · Build day" date="Wed, Nov 18" time="6:00 AM to 4:00 PM" place="Northwind Live · Harbor Pavilion"></x-import>
+          <x-import component-from-global-scope="XOS.ShiftCard" state="scheduled" state-label="Scheduled" role="Lead Stagehand · Show call" date="Fri, Nov 20" time="2:00 PM to 11:30 PM" place="Northwind Live · Harbor Pavilion"></x-import>
+          <x-import component-from-global-scope="XOS.ShiftCard" state="scheduled" state-label="Scheduled" role="Lead Stagehand · Closing Night" date="Sun, Nov 22" time="2:00 PM to 11:30 PM" place="Northwind Live · Harbor Pavilion"></x-import>
+          <x-import component-from-global-scope="XOS.ShiftCard" state="proposed" state-label="Offered" role="Stage Manager · Winter Gala" date="Sat, Dec 12" time="10:00 AM to 12:00 AM" place="Harbor Light Events · Miami Beach"></x-import>
+        </section>
+      </div>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Work" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      
+      views: [{ value: 'list', label: 'List' }, { value: 'calendar', label: 'Calendar' }],
+      tabs: [{ value: 'upcoming', label: 'Upcoming', count: 4 }, { value: 'engagements', label: 'Engagements', count: 2 }, { value: 'applications', label: 'Applications', count: 5 }],
+      events: [
+        { date: '2026-11-16', label: 'Load-in', state: 'complete' },
+        { date: '2026-11-18', label: 'Build day', state: 'scheduled' },
+        { date: '2026-11-20', label: 'Show call', state: 'scheduled' },
+        { date: '2026-11-22', label: 'Show call', state: 'scheduled' },
+        { date: '2026-11-23', label: 'Strike', state: 'proposed' }
+      ],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

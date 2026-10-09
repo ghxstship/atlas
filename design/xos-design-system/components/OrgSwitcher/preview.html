@@ -1,0 +1,12 @@
+<!-- @dsCard group="Gateway" height=280 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>OrgSwitcher</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.OrgSwitcher,{current:'Northwind Live',heading:'Your organizations',orgs:[{name:'Northwind Live',role:'Crew'},{name:'Harbor Light Events',role:'Contractor',badge:2},{name:'Coastline Productions',role:'Crew'}]}));
+</script>
+</body>
+</html>

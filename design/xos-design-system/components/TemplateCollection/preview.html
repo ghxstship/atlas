@@ -1,0 +1,12 @@
+<!-- @dsCard group="Templates" height=420 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TemplateCollection</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col'},h(X.PageHeader,{title:'Work',glyph:'SquareCheck',count:142,views:h(X.SegmentedControl,{label:'View',value:'list',options:[{value:'list',label:'List'},{value:'board',label:'Board'},{value:'timeline',label:'Timeline'},{value:'calendar',label:'Calendar'},{value:'table',label:'Table'}]}),actions:h(X.Button,{variant:'primary',shortcut:'C'},'New Record')}),h(X.FilterBuilder,{saveLabel:'Save View',filters:[{field:'State',op:'is not',value:'Complete'},{field:'Phase',op:'is',value:'Gate 4 \u00b7 Procure'}]}),h(X.RecordList,{label:'Work'},h(X.RecordRow,{state:'active',stateLabel:'Active',recordKey:'NWL-142',kind:'Task',title:'Confirm stage deck delivery window',chips:h(X.PhaseChip,{gate:4,name:'Procure',code:'PRC'}),next:'Oct 30',owner:'Morgan Chen',actionLabel:'Complete',actionKey:'E'}),h(X.RecordRow,{state:'blocked',stateLabel:'Blocked',recordKey:'NWL-144',kind:'Supply',title:'Barricade sections for front of house',chips:h(X.PhaseChip,{gate:4,name:'Procure',code:'PRC'}),next:'Oct 28',owner:'Priya Nair',actionLabel:'Resolve'}),h(X.RecordRow,{state:'in-review',stateLabel:'In Review',recordKey:'NWL-151',kind:'Inspection',title:'Stage left egress walk',chips:h(X.PhaseChip,{gate:6,name:'Install',code:'INS'}),next:'Nov 19',owner:'Malik Osei',actionLabel:'Review'}))));
+</script>
+</body>
+</html>

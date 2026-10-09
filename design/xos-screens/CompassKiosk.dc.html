@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Kiosk Mode</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px;">
+  <header style="flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px 8px 16px; border-bottom: 1px solid var(--border-subtle);">
+    <div style="display: flex; align-items: center; gap: 12px; min-height: 48px;">
+      <x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm" icon-only="{{yes}}"></x-import>
+      <div style="display: flex; flex-direction: column;"><strong>Crew Kiosk</strong><span style="font-size: 12px; color: var(--text-secondary);">Dock B crew entrance · shared device</span></div>
+    </div>
+    <x-import component-from-global-scope="XOS.IconButton" icon="Lock" label="Exit kiosk, supervisor passkey required"></x-import>
+  </header>
+  <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; padding: 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+    <div style="text-align: center; display: flex; flex-direction: column; gap: 6px;">
+      <h1 style="margin: 0; font-size: 24px; font-weight: 600;">Enter your PIN</h1>
+      <span class="xos-muted">Fri, Nov 20 · 1:52 PM · inside the geofence</span>
+    </div>
+    <div role="status" aria-live="polite" aria-label="2 of 4 digits entered" style="display: flex; gap: 16px;">
+      <span style="width: 16px; height: 16px; border-radius: 9999px; background: var(--text-primary);"></span>
+      <span style="width: 16px; height: 16px; border-radius: 9999px; background: var(--text-primary);"></span>
+      <span style="width: 16px; height: 16px; border-radius: 9999px; border: 2px solid var(--border-control); box-sizing: border-box;"></span>
+      <span style="width: 16px; height: 16px; border-radius: 9999px; border: 2px solid var(--border-control); box-sizing: border-box;"></span>
+    </div>
+    <div role="group" aria-label="PIN keypad" style="display: grid; grid-template-columns: repeat(3, 80px); gap: 12px;">
+      <sc-for list="{{keys}}" as="k" hint-placeholder-count="12">
+        <button type="button" aria-label="{{k.label}}" style="height: 64px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--bg-raised); color: var(--text-primary); font: 600 24px var(--font-sans); cursor: pointer;">{{k.text}}</button>
+      </sc-for>
+    </div>
+    <x-import component-from-global-scope="XOS.InlineAlert" tone="info" title="Photo on punch">This kiosk takes a photo with each punch. One person per PIN; a second clock-in on another device is refused.</x-import>
+    <section aria-labelledby="k-recent" style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
+      <h2 id="k-recent" class="xos-label" style="margin: 0;">Recent punches</h2>
+      <div class="xos-card" style="padding: 12px 16px; display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; font-size: 14px;">
+        <span>Dana Ruiz · In</span><span class="xos-num">1:48 PM</span>
+        <span>Lena Fischer · In</span><span class="xos-num">1:47 PM</span>
+        <span>Rafael Costa · In</span><span class="xos-num">1:45 PM</span>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"sunlight"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((n) => ({ text: n, label: n }));
+    keys.push({ text: 'Clear', label: 'Clear' }, { text: '0', label: '0' }, { text: '⌫', label: 'Delete last digit' });
+    return { theme: this.props.theme ?? 'sunlight', hpx: h ? h + 'px' : '100vh', yes: true, keys };
+  }
+}
+</script>
+</body>
+</html>

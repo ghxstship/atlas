@@ -1,0 +1,12 @@
+<!-- @dsCard group="Chips" height=48 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>RecordKindChip</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row'},h(X.RecordKindChip,{kind:'Task'}),h(X.RecordKindChip,{kind:'Inspection'}),h(X.RecordKindChip,{kind:'Contract'})));
+</script>
+</body>
+</html>

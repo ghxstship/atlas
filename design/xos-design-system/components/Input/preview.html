@@ -1,0 +1,12 @@
+<!-- @dsCard group="Forms" height=200 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Input</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col'},h(X.Input,{label:'Record Title',placeholder:'Confirm rigging plot',help:'Start with a verb for Task records.'}),h(X.Input,{label:'Project Key',defaultValue:'NW',error:'Project Key needs 2 to 5 letters; NW is taken, try NWL.'})));
+</script>
+</body>
+</html>

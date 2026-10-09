@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Money</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Dana Ruiz" active="Money" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1040px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Money</h1>
+      <x-import component-from-global-scope="XOS.Tabs" label="Money" value="{{tab}}" tabs="{{tabs}}"></x-import>
+      <sc-if value="{{overview}}" hint-placeholder-val="{{true}}">
+        <div class="xos-layout-dashboard">
+          <x-import component-from-global-scope="XOS.StatTile" label="Earned in 2026" value="{{earned}}" format="money" caption="Across 3 organizations"></x-import>
+          <x-import component-from-global-scope="XOS.StatTile" label="Pending" value="{{pending}}" format="money" caption="Approved, not yet paid"></x-import>
+          <x-import component-from-global-scope="XOS.StatTile" label="Next payment" value="{{next}}" format="money" caption="Northwind Live payroll, Nov 27"></x-import>
+        </div>
+        <x-import component-from-global-scope="XOS.Banner" tone="info" icon="Receipt" action-label="Create Invoice">4 approved days at Harbor Light Events are ready to invoice.</x-import>
+        <x-import component-from-global-scope="XOS.PaymentTracker" invoice-key="INV-HLE-0007" title="Stage manager services · Oct 12 to 16" amount="{{prior}}" current="{{two}}" dates="{{priorDates}}" expected="Nov 20"></x-import>
+      </sc-if>
+      <sc-if value="{{invoice}}" hint-placeholder-val="{{false}}">
+        <div class="xos-card" style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;"><strong style="font-size: 16px;">New invoice to Harbor Light Events</strong><span class="xos-code xos-muted">INV-HLE-0008</span></div>
+          <span class="xos-muted">Drafted from your approved days. Nothing to type.</span>
+          <x-import component-from-global-scope="XOS.DataTable" caption="Approved days" density="compact" columns="{{cols}}" rows="{{rows}}" totals="{{totals}}" totals-label="Total"></x-import>
+          <x-import component-from-global-scope="XOS.Select" label="Pay to" value="ach" options="{{payTo}}"></x-import>
+          <x-import component-from-global-scope="XOS.Checkbox" label="I confirm these days and amounts are correct." default-checked="{{yes}}"></x-import>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" size="lg" class-name="xos-block">Submit Invoice</x-import>
+        </div>
+      </sc-if>
+      <sc-if value="{{tracked}}" hint-placeholder-val="{{false}}">
+        <x-import component-from-global-scope="XOS.InlineAlert" tone="success" title="{{trackTitle}}">{{trackBody}}</x-import>
+        <x-import component-from-global-scope="XOS.PaymentTracker" invoice-key="INV-HLE-0008" title="Stage manager services · Nov 10 to 13" amount="{{amount}}" current="{{stage}}" dates="{{dates}}" expected="Dec 4"></x-import>
+      </sc-if>
+      <span class="xos-muted" style="font-size: 12px;">Money moves on each organization's own payment rails. XOS never holds funds. Tax documents are under Tax Documents.</span>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Money" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"step":{"editor":"enum","options":["overview","invoice","submitted","paid"],"default":"overview"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const s = this.props.step || 'overview';
+    const paid = s === 'paid';
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true, two: 2,
+      overview: s === 'overview', invoice: s === 'invoice', tracked: s === 'submitted' || paid,
+      tab: s === 'overview' ? 'overview' : 'invoices',
+      earned: 41250, pending: 3000, next: 1650, prior: 3000, amount: 2400,
+      priorDates: ['Oct 17', 'Oct 21', 'Nov 13', ''],
+      stage: paid ? 3 : 0,
+      dates: paid ? ['Nov 16', 'Nov 17', 'Nov 30', 'Dec 2'] : ['Nov 16', '', '', ''],
+      trackTitle: paid ? 'Paid Dec 2' : 'Submitted in 38 seconds',
+      trackBody: paid ? 'Harbor Light Events paid INV-HLE-0008 by ACH to the account ending 4410.' : 'Harbor Light Events has it now. We will tell you at each step.',
+      cols: [{ key: 'd', label: 'Day' }, { key: 'rate', label: 'Day Rate', type: 'money' }],
+      rows: [{ d: 'Mon, Nov 9', rate: 600 }, { d: 'Tue, Nov 10', rate: 600 }, { d: 'Thu, Nov 12', rate: 600 }, { d: 'Fri, Nov 13', rate: 600 }],
+      totals: { rate: 2400 },
+      payTo: [{ value: 'ach', label: 'ACH · account ending 4410' }],
+      tabs: [{ value: 'overview', label: 'Overview' }, { value: 'invoices', label: 'Invoices' }, { value: 'timesheets', label: 'Timesheets' }, { value: 'payments', label: 'Payments' }, { value: 'tax', label: 'Tax Documents' }],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

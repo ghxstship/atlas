@@ -1,0 +1,12 @@
+<!-- @dsCard group="Gateway" height=460 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ApplicationForm</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{width:'100%',maxWidth:480}},h(X.ApplicationForm,{role:'Lead Rigger',org:'Northwind Live',shared:[{label:'Name and headline',on:true},{label:'Certifications',on:true},{label:'Rates',on:true},{label:'References',on:false}],questions:['Largest arena flown as lead?']})));
+</script>
+</body>
+</html>

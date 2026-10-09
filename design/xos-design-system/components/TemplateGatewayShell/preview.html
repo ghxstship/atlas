@@ -1,0 +1,13 @@
+<!-- @dsCard group="Templates" height=560 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TemplateGatewayShell</title>
+<style>.tpl-gw{font-size:14px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col',style:{gap:0}},h(X.TopNav,{brand:'Northwind Live',label:'Gateway',person:'Dana Ruiz',active:'Home',items:[{label:'Home',icon:'House'},{label:'Explore',icon:'Compass'},{label:'Work',icon:'Briefcase'},{label:'Money',icon:'Wallet'},{label:'Messages',icon:'MessageSquare',badge:2}]}),h('div',{className:'xos-layout-gateway tpl-gw'},h(X.UpNextCard,{org:'Northwind Live',countdown:'in 2 d 14 h',title:'Stagehand \u00b7 Build and strike',when:'Fri, Oct 30 \u00b7 6:00 AM to 4:00 PM',callTime:'5:45 AM',address:'Harbor Pavilion, Dock B, Miami, FL',bring:['Steel-toe boots','Photo ID']}),h('div',{className:'xos-col'},h(X.OnboardingPacket,{items:[{label:'W-9',state:'verified',blocking:true,minutes:3,note:'Verified Oct 2'},{label:'Crew agreement',state:'todo',blocking:true,minutes:4,action:'Sign'}]}),h(X.PaymentTracker,{invoiceKey:'INV-0442',title:'Stagehand \u00b7 Oct 26 to Oct 30',amount:2750,current:2,dates:['Oct 31','Nov 2',''],expected:'Nov 7'}))),h('div',{className:'xos-mobile-only'},h(X.TabBar,{label:'Gateway mobile',active:'Home',items:[{label:'Home',icon:'House'},{label:'Explore',icon:'Compass'},{label:'Work',icon:'Briefcase'},{label:'Money',icon:'Wallet'},{label:'Messages',icon:'MessageSquare',badge:2}]}))));
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Artist Engagement</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="Northwind Live" label="Gateway" person="Lumen Tide" active="Work" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"><x-import component-from-global-scope="XOS.Tag" tone="accent">Artist</x-import><x-import component-from-global-scope="XOS.StateChip" state="active" label="Active"></x-import><span class="xos-muted">Northwind Live · managed by Tidal Management</span></div>
+          <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Opening Night · Lumen Tide, support set</h1>
+        </div>
+        <x-import component-from-global-scope="XOS.Button" variant="primary" icon="ClipboardCheck">Finish Advance</x-import>
+      </div>
+      <x-import component-from-global-scope="XOS.Tabs" label="Engagement" value="overview" tabs="{{tabs}}"></x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+        <div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+          <dl class="xos-card" style="margin: 0; padding: 16px; display: grid; grid-template-columns: auto 1fr; gap: 12px 20px;">
+            <dt class="xos-muted">Set time</dt><dd style="margin: 0;"><strong>Fri, Nov 20 · 8:15 PM to 9:00 PM</strong></dd>
+            <dt class="xos-muted">Load-in</dt><dd style="margin: 0;">3:30 PM · Dock B · line check 5:15 PM</dd>
+            <dt class="xos-muted">Fee</dt><dd style="margin: 0;">$6,000 guarantee · settled after the show</dd>
+            <dt class="xos-muted">Hospitality</dt><dd style="margin: 0;">Green Room 2 · rider v3 confirmed</dd>
+            <dt class="xos-muted">Guest list</dt><dd style="margin: 0;">6 of 8 names used</dd>
+          </dl>
+          <section aria-labelledby="ar-adv" style="display: flex; flex-direction: column; gap: 8px;">
+            <h2 id="ar-adv" class="xos-label" style="margin: 0;">Advance · 2 of 7 sections complete</h2>
+            <x-import component-from-global-scope="XOS.ReconciliationTable" label="Rider against venue capability" rows="{{recon}}"></x-import>
+          </section>
+        </div>
+        <aside aria-label="Engagement stages" style="flex: 1 1 300px; min-width: 0;"><x-import component-from-global-scope="XOS.EngagementTimeline" current="{{six}}" stages="{{stages}}"></x-import></aside>
+      </div>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Work" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      six: 6,
+      recon: [{ requirement: '48 ch FOH console', capability: '64 ch console in house', result: 'Met' }, { requirement: '2 in-ear mixes', capability: '4 in-ear mixes', result: 'Met' }, { requirement: '200 A three-phase power', capability: null, result: 'Unknown' }],
+      tabs: ['Overview', 'Offer', 'Advance', 'Rider', 'Set Times', 'Hospitality', 'Guest List', 'Settlement', 'Documents', 'Messages'].map((t) => ({ value: t.toLowerCase(), label: t })),
+      stages: [{ label: 'Requisition' }, { label: 'Opportunity', date: 'Sep 20' }, { label: 'Application', date: 'Sep 24' }, { label: 'Selection', date: 'Oct 1' }, { label: 'Offer', date: 'Oct 3' }, { label: 'Onboarding', date: 'Oct 10' }, { label: 'Engaged', date: 'Now' }, { label: 'Close-out' }, { label: 'Re-engagement' }],
+      crumbs: [{ label: 'Work' }, { label: 'Engagements' }, { label: 'Opening Night' }],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 3 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

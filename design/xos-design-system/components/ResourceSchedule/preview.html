@@ -1,0 +1,12 @@
+<!-- @dsCard group="Data display" height=300 width=960 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ResourceSchedule</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.ResourceSchedule,{label:'Crew Schedule, Opening Week',days:[{key:'d1',dow:'Mon',date:16},{key:'d2',dow:'Tue',date:17},{key:'d3',dow:'Wed',date:18},{key:'d4',dow:'Thu',date:19},{key:'d5',dow:'Fri',date:20},{key:'d6',dow:'Sat',date:21,weekend:true}],people:[{name:'Dana Ruiz',role:'Stagehand',shifts:[{day:'d3',time:'6:00 AM',state:'scheduled'},{day:'d4',time:'6:00 AM',state:'scheduled'}]},{name:'Malik Osei',role:'Rigger',shifts:[{day:'d3',time:'7:00 AM',state:'scheduled'},{day:'d3',time:'2:00 PM',state:'proposed'}]},{name:'Priya Nair',role:'Front of House Audio Engineer',shifts:[{day:'d5',time:'12:00 PM',state:'ready'},{day:'d6',time:'3:00 PM',state:'scheduled'}]}]}));
+</script>
+</body>
+</html>

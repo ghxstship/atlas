@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Applications and Offers</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Dana Ruiz" active="Work" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Work</h1>
+        <x-import component-from-global-scope="XOS.SegmentedControl" label="View" value="board" options="{{views}}"></x-import>
+      </div>
+      <x-import component-from-global-scope="XOS.Tabs" label="Work" value="applications" tabs="{{tabs}}"></x-import>
+      <x-import component-from-global-scope="XOS.Banner" tone="info" icon="Handshake" action-label="Review Offer">Harbor Light Events sent you an offer for Stage Manager, Winter Gala. Answer by Fri, Nov 20.</x-import>
+      <x-import component-from-global-scope="XOS.ScrollRegion" label="Applications by state">
+        <x-import component-from-global-scope="XOS.Board" read-only="{{yes}}" columns="{{columns}}"></x-import>
+      </x-import>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Work" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh', yes: true,
+      views: [{ value: 'list', label: 'List' }, { value: 'board', label: 'Board' }],
+      tabs: [{ value: 'upcoming', label: 'Upcoming' }, { value: 'engagements', label: 'Engagements', count: 2 }, { value: 'applications', label: 'Applications', count: 5 }],
+      columns: [
+        { state: 'proposed', label: 'Submitted', cards: [{ key: 'APP-0218', title: 'Rigger, Fall Series', owner: 'Northwind Live', due: 'Nov 16' }] },
+        { state: 'in-review', label: 'In Review', cards: [{ key: 'APP-0211', title: 'Deck Crew, Boat Show Build', owner: 'Coastline Productions', due: 'Nov 12' }] },
+        { state: 'ready', label: 'Shortlisted', cards: [] },
+        { state: 'scheduled', label: 'Offered', cards: [{ key: 'APP-0207', title: 'Stage Manager, Winter Gala', owner: 'Harbor Light Events', due: 'Answer by Nov 20' }] },
+        { state: 'complete', label: 'Accepted', cards: [{ key: 'APP-0182', title: 'Lead Stagehand, Fall Series', owner: 'Northwind Live', due: 'Oct 26' }] },
+        { state: 'canceled', label: 'Not Selected', cards: [{ key: 'APP-0175', title: 'Rigger, Summer Stage', owner: 'Northwind Live', due: 'Sep 2' }] }
+      ],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

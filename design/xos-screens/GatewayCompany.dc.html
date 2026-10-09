@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Company Account and Team</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Kai Morales" active="" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1040px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <x-import component-from-global-scope="XOS.BrandMark" name="Harbor Audio" size="md" icon-only="{{yes}}"></x-import>
+          <div style="display: flex; flex-direction: column;"><h1 style="margin: 0; font-size: 20px; font-weight: 600;">Harbor Audio</h1><span class="xos-muted">Harbor Audio Rentals LLC · gateway.xos.app/c/harboraudio</span></div>
+        </div>
+        <x-import component-from-global-scope="XOS.Button" variant="primary" icon="UserPlus">Invite Teammate</x-import>
+      </div>
+      <x-import component-from-global-scope="XOS.Tabs" label="Company" value="team" tabs="{{tabs}}"></x-import>
+      <x-import component-from-global-scope="XOS.DataTable" caption="Team and account roles" columns="{{cols}}" rows="{{rows}}"></x-import>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px;">
+        <x-import component-from-global-scope="XOS.Card" title="Capabilities" meta="Tagged by canon">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;"><x-import component-from-global-scope="XOS.URIDChip" name="Line Array - Medium" urid="5000.01.02"></x-import><x-import component-from-global-scope="XOS.DepartmentChip" name="Production" code="5000"></x-import></div>
+        </x-import>
+        <x-import component-from-global-scope="XOS.Card" title="Insurance" meta="1 expiring">
+          <p style="margin: 0; color: var(--text-secondary);">General liability certificate expires Dec 1. 3 organizations rely on it.</p>
+        </x-import>
+      </div>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true,
+      tabs: [{ value: 'profile', label: 'Company Profile and Privacy' }, { value: 'team', label: 'Team and Account Roles' }, { value: 'regions', label: 'Service Regions and Capabilities' }, { value: 'insurance', label: 'Insurance and Compliance' }, { value: 'payout', label: 'Payout and Tax' }],
+      cols: [{ key: 'name', label: 'Name' }, { key: 'role', label: 'Account Role' }, { key: 'sees', label: 'Sees' }],
+      rows: [
+        { name: 'Kai Morales', role: 'Account Owner', sees: 'Everything' },
+        { name: 'Erin Walsh', role: 'Account Finance', sees: 'Money, invoices and payments' },
+        { name: 'Marco Diaz', role: 'Account Member', sees: 'Northwind Fall Series only' }
+      ],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 1 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

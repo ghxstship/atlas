@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Onboarding Packet</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="Northwind Live" label="Gateway" person="Dana Ruiz" active="Work" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 640px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Onboarding · Lead Stagehand, Fall Series</h1>
+        <span class="xos-muted">Finish the blocking items before your first shift on Wed, Nov 18.</span>
+      </div>
+      <x-import component-from-global-scope="XOS.OnboardingPacket" items="{{items}}"></x-import>
+      <x-import component-from-global-scope="XOS.InlineAlert" tone="success" title="2 items already on file">Your W-4 and OSHA 30 certificate from earlier Northwind Live engagements checked themselves off.</x-import>
+      <x-import component-from-global-scope="XOS.Card" title="Photograph a document">
+        <p style="margin: 0; color: var(--text-secondary);">Use your phone camera. Edges are found and the page is cropped for you.</p>
+        <div><x-import component-from-global-scope="XOS.Button" icon="Camera">Open Camera</x-import></div>
+      </x-import>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Work" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      items: [
+        { label: 'W-4', state: 'verified', blocking: true, minutes: 3, note: 'On file from Sep 2026' },
+        { label: 'OSHA 30-Hour Construction', state: 'verified', blocking: true, minutes: 2, note: 'On file' },
+        { label: 'Crew agreement', state: 'todo', blocking: true, minutes: 4, action: 'Sign' },
+        { label: 'Safety briefing', state: 'todo', blocking: true, minutes: 6, action: 'Start' },
+        { label: 'Emergency contact', state: 'review', blocking: true, minutes: 1, note: 'In review' },
+        { label: 'Uniform sizes', state: 'todo', blocking: false, minutes: 1, action: 'Add' }
+      ],
+      crumbs: [{ label: 'Work' }, { label: 'Engagements' }, { label: 'Northwind Fall Series' }, { label: 'Onboarding' }],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

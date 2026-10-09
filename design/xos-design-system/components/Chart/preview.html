@@ -1,0 +1,12 @@
+<!-- @dsCard group="Data display" height=400 width=760 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Chart</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col',style:{gap:24}},h(X.Chart,{type:'bar',title:'Budget versus actual',subtitle:'Opening Night, by department',categoryLabel:'Department',format:'money',categories:['Production','Operations','Experience','Hospitality','Technology'],series:[{name:'Budget',values:[33284,12800,9600,14200,21500]},{name:'Actual',values:[31120,13950,8840,null,22710]}]})));
+</script>
+</body>
+</html>

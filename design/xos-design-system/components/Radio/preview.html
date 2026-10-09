@@ -1,0 +1,12 @@
+<!-- @dsCard group="Forms" height=150 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Radio</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.Radio,{label:'Rate Type',value:'day',options:[{value:'hourly',label:'Hourly'},{value:'day',label:'Day Rate',help:'Paid per call day, 10 hours.'},{value:'flat',label:'Flat'}]}));
+</script>
+</body>
+</html>

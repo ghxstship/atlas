@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Today</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px; {{tenantCss}}">
+  <header style="flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px 8px 16px; border-bottom: 1px solid var(--border-subtle);">
+    <button type="button" aria-haspopup="listbox" aria-label="Context, {{brand}}, Opening Night" style="min-height: 48px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer;">
+      <span style="font-size: 12px; color: var(--text-secondary);">{{brand}}</span>
+      <span style="display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">Opening Night · Harbor Pavilion<x-import component-from-global-scope="XOS.Icon" name="ChevronDown" size="{{i16}}"></x-import></span>
+    </button>
+    <button type="button" aria-label="Account, Malik Osei" style="min-width: 48px; min-height: 48px; display: grid; place-items: center; border: 0; background: none; padding: 0; cursor: pointer;"><x-import component-from-global-scope="XOS.Avatar" name="Malik Osei"></x-import></button>
+  </header>
+  <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+    <x-import component-from-global-scope="XOS.Input" type="search" aria-label="Search" placeholder="Search records, people and actions"></x-import>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px; align-items: start;">
+      <section aria-labelledby="t-clock" style="display: flex; flex-direction: column; gap: 12px;">
+        <h1 id="t-clock" style="margin: 0; font-size: 20px; font-weight: 600;">Fri, Nov 20</h1>
+        <x-import component-from-global-scope="XOS.ClockButton" state="out" label="Clock In" detail="Show call · 2:00 PM to 11:30 PM" geofence="You're at Harbor Pavilion" geofence-ok="{{yes}}"></x-import>
+      </section>
+      <section aria-labelledby="t-next" style="display: flex; flex-direction: column; gap: 8px;">
+        <h2 id="t-next" class="xos-label" style="margin: 0;">Next cue</h2>
+        <div class="xos-card" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+          <span class="xos-code" style="font-size: 16px;">Q12</span>
+          <div style="display: flex; flex-direction: column; min-width: 0;"><strong>House to half</strong><span class="xos-muted" style="font-size: 14px;">7:30 PM · Production</span></div>
+        </div>
+      </section>
+      <section aria-labelledby="t-tasks" style="display: flex; flex-direction: column; gap: 8px;">
+        <h2 id="t-tasks" class="xos-label" style="margin: 0;">Due today · 3</h2>
+        <x-import component-from-global-scope="XOS.RecordList" label="Tasks due today">
+          <x-import component-from-global-scope="XOS.RecordRow" state="active" state-label="Active" record-key="NWL-151" kind="Inspection" title="Stage left egress walk" next="3:00 PM" action-label="Start"></x-import>
+          <x-import component-from-global-scope="XOS.RecordRow" state="ready" state-label="Ready" record-key="NWL-166" kind="Task" title="Confirm barricade pins at front of house" next="5:00 PM" action-label="Complete"></x-import>
+          <x-import component-from-global-scope="XOS.RecordRow" state="ready" state-label="Ready" record-key="NWL-170" kind="Shift" title="Approve crew timesheets, build days" next="End of day" action-label="Review"></x-import>
+        </x-import>
+      </section>
+      <section aria-labelledby="t-day" style="display: flex; flex-direction: column; gap: 8px;">
+        <h2 id="t-day" class="xos-label" style="margin: 0;">Day sheet</h2>
+        <div class="xos-card" style="padding: 12px 16px; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 14px;">
+          <span class="xos-num">3:00 PM</span><span>Sound check</span>
+          <span class="xos-num">6:30 PM</span><span>Doors</span>
+          <span class="xos-num">7:30 PM</span><span>Show</span>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" compass="{{yes}}" label="Compass" active="Today" center-label="Scan" items="{{tabs}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"brand":{"editor":"text","default":"Northwind Live"},"accent":{"editor":"color","default":""},"rounded":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const accent = this.props.accent || '';
+    const tenantCss = (accent ? '--accent-default: ' + accent + '; --focus-ring: ' + accent + '; --accent-text: ' + accent + ';' : '') + (this.props.rounded ? ' --radius-control: 8px; --radius-card: 12px; --radius-chip: 6px;' : '');
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      brand: this.props.brand || 'Northwind Live',
+      tenantCss, yes: true, i16: 16,
+      tabs: [{ label: 'Today', icon: 'House' }, { label: 'Schedule', icon: 'CalendarDays' }, { label: 'Scan', icon: 'ScanLine' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Crew', icon: 'HardHat' }, { label: 'More', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

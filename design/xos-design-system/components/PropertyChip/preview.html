@@ -1,0 +1,12 @@
+<!-- @dsCard group="Chips" height=48 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>PropertyChip</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row'},h(X.PropertyChip,{label:'Owner',value:'Morgan Chen',onClick:function(){}}),h(X.PropertyChip,{icon:'calendar',value:'Oct 30',onClick:function(){}}),h(X.PropertyChip,{label:'Tier',value:'Experiential'})));
+</script>
+</body>
+</html>

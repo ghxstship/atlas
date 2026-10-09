@@ -1,0 +1,12 @@
+<!-- @dsCard group="Overlays" height=340 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>CommandMenu</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.CommandMenu,{query:'adv',groups:[{label:'Records',items:[{label:'Advance Packet: Main Stage',code:'NWL-118',state:'active',selected:true},{label:'Advance Rider Review',code:'NWL-121',state:'in-review'}]},{label:'Actions',items:[{label:'New Advance Packet',icon:'plus',shortcut:'C'},{label:'Go to Advancing',icon:'chevron-right',shortcut:'G A'}]}]}));
+</script>
+</body>
+</html>

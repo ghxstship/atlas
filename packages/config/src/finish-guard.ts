@@ -23,11 +23,12 @@ const STAND_IN = new RegExp(STAND_IN_WORD, "gi");
 const TEST_DOUBLE = new RegExp(`\\b${"mo" + "ck"}`, "i");
 const EM_DASH = String.fromCharCode(0x2014);
 
-/** Paths whose content is third-party verbatim text or canon input, never our copy. */
+/** Paths whose content is third-party verbatim text, canon input or Claude Design exports (ADR 0005, item 5), never hand-written copy. */
 const EXCLUDED_PATHS: readonly RegExp[] = [
   /(^|\/)node_modules\//,
   /^canon\/source\//,
   /^docs\/spec\//,
+  /^design\//,
   /(^|\/)pnpm-lock\.yaml$/,
   /(^|\/)LICENSE(\.[a-z]+)?$/,
   /(^|\/)CODE_OF_CONDUCT\.md$/,

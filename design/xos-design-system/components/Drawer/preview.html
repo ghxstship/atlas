@@ -1,0 +1,12 @@
+<!-- @dsCard group="Overlays" height=380 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Drawer</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.Drawer,{title:'Filters',footer:[h(X.Button,{key:'a',variant:'ghost'},'Reset'),h(X.Button,{key:'b',variant:'primary'},'Apply')]},h(X.Select,{label:'Department',value:'5000',options:[{value:'5000',label:'Production'},{value:'6000',label:'Operations'}]}),h(X.Checkbox,{label:'Only blocked records'})));
+</script>
+</body>
+</html>

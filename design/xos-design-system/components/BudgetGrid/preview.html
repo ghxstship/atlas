@@ -1,0 +1,12 @@
+<!-- @dsCard group="XOS" height=420 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>BudgetGrid</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.BudgetGrid,{label:'Budget grid, Opening Night',accounts:[{code:'5000',name:'Expense \u00b7 Executive',classCode:'0000',type:'Expense'},{code:'5100',name:'Expense \u00b7 Creative',classCode:'1000',type:'Expense'},{code:'5200',name:'Expense \u00b7 Talent',classCode:'2000',type:'Expense'},{code:'5300',name:'Expense \u00b7 Marketing',classCode:'3000',type:'Expense'},{code:'5400',name:'Expense \u00b7 Environment',classCode:'4000',type:'Expense'},{code:'5500',name:'Expense \u00b7 Production',classCode:'5000',type:'Expense'},{code:'5600',name:'Expense \u00b7 Operations',classCode:'6000',type:'Expense'},{code:'5700',name:'Expense \u00b7 Experience',classCode:'7000',type:'Expense'},{code:'5800',name:'Expense \u00b7 Hospitality',classCode:'8000',type:'Expense'},{code:'5900',name:'Expense \u00b7 Technology',classCode:'9000',type:'Expense'}],scopeLabel:'Opening Night \u00b7 CC-E01',grade:'base',grades:[{value:'base',label:'Base'},{value:'elevated',label:'Elevated'},{value:'premium',label:'Premium'}],lines:[{cc:'CC-E01',urid:'5000.01.02',name:'Line Array - Medium',type:'Scope',qty:2,unit:'each',base:15000,elevated:15000,premium:15000},{cc:'CC-E01',urid:'5000.04.02',name:'Stage Deck - 4x8',type:'Scope',qty:40,unit:'each',base:48.5,elevated:48.5,premium:48.5},{cc:'CC-E01',urid:'5000.05.03',name:'Truss - 20.5in Box',type:'Scope',qty:24,unit:'each',base:56,elevated:56,premium:56},{cc:'CC-E01',urid:'8000.01.02',name:'Coffee Service',type:'Scope',qty:3,unit:'lot',base:200,elevated:200,premium:200},{cc:'CC-E01',urid:'8000.01.02',name:'Artist-Rooted Cultural Menu',type:'Scope',qty:1,unit:'each',base:null,elevated:null,premium:null}]}));
+</script>
+</body>
+</html>

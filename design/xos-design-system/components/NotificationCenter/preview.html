@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=300 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>NotificationCenter</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.NotificationCenter,{needsYou:[{kind:'Approval',title:'Approve timesheet: Stagehand crew, Oct 30',meta:'12 entries \u00b7 Northwind Fall Series',action:'Approve',actionKey:'A'},{kind:'Payment',title:'Invoice INV-0442 needs a three-way match',meta:'Harbor Audio'},{kind:'Inspection',title:'Inspection failed: Stage left egress',meta:'Opening Night \u00b7 10 min ago'}],fyi:[{kind:'Document',title:'Rider v3 shared',meta:'Yesterday'}]}));
+</script>
+</body>
+</html>

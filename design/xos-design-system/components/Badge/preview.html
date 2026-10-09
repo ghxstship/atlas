@@ -1,0 +1,12 @@
+<!-- @dsCard group="Identity" height=48 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Badge</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row'},h(X.Badge,{count:6}),h(X.Badge,{count:12,tone:'accent'}),h(X.Badge,{count:3,tone:'danger',label:'3 overdue'}),h(X.Badge,{count:140,tone:'accent'})));
+</script>
+</body>
+</html>

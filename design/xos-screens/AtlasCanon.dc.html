@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Canon Browser</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item" aria-haspopup="listbox" aria-label="Workspace, Miami Office"><x-import component-from-global-scope="XOS.Icon" name="Building2"></x-import>Miami Office<span style="margin-inline-start: auto; display: inline-flex;"><x-import component-from-global-scope="XOS.Icon" name="ChevronsUpDown" size="{{i12}}"></x-import></span></button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <x-import component-from-global-scope="XOS.Sidebar" label="Atlas" active="Canon" groups="{{nav}}"></x-import>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Menu"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <x-import component-from-global-scope="XOS.IconButton" icon="CircleHelp" label="Help" shortcut="?"></x-import>
+          <button type="button" aria-label="Account, Riley Grant" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Riley Grant"></x-import></button>
+        </div>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <x-import component-from-global-scope="XOS.PageHeader" title="Canon" glyph="Library" actions="{{actions}}"></x-import>
+      <x-import component-from-global-scope="XOS.Tabs" label="Canon pages" value="roles" tabs="{{pages}}"></x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+        <section aria-labelledby="h-dept" style="flex: 0 1 260px; min-width: 240px; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-dept" class="xos-label" style="margin: 0;">Departments</h2>
+          <nav aria-label="Departments" style="display: flex; flex-direction: column; gap: 2px;">
+            <sc-for list="{{depts}}" as="d" hint-placeholder-count="10">
+              <button type="button" class="xos-nav-item" aria-current="{{d.current}}" style="justify-content: flex-start;">
+                <x-import component-from-global-scope="XOS.DepartmentGlyph" code="{{d.code}}"></x-import>
+                <span style="flex: 1; text-align: start;">{{d.name}}</span>
+                <span class="xos-code xos-muted">{{d.code}}</span>
+              </button>
+            </sc-for>
+          </nav>
+        </section>
+        <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <x-import component-from-global-scope="XOS.DepartmentChip" name="Production" code="5000"></x-import>
+            <span class="xos-muted">Roles Library · 7 roles · read-only canon from the XOS 4.0 Bible</span>
+            <x-import component-from-global-scope="XOS.ProvenanceBadge" source="XOS 4.0 Bible" rank="{{one}}"></x-import>
+          </div>
+          <x-import component-from-global-scope="XOS.DataTable" caption="Roles, 5000 Production, in numeric order" columns="{{roleCols}}" rows="{{roleRows}}"></x-import>
+          <x-import component-from-global-scope="XOS.InlineAlert" tone="info" title="Org extensions">Your organization can extend canon with its own rows; extension disciplines and categories take codes from .50 to .99. Extensions never change a canon row.</x-import>
+        </div>
+      </div>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Search" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p, c) => (X[n] && R) ? R.createElement(X[n], p, c) : null;
+    const h = Number(this.props.h) || 0;
+    const open = ['Knowledge'];
+    const g = (label, items) => ({ label, collapsed: open.indexOf(label) < 0, items });
+    const D = [['0000', 'Executive'], ['1000', 'Creative'], ['2000', 'Talent'], ['3000', 'Marketing'], ['4000', 'Environment'], ['5000', 'Production'], ['6000', 'Operations'], ['7000', 'Experience'], ['8000', 'Hospitality'], ['9000', 'Technology']];
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      i12: 12, one: 1,
+      actions: el('Button', { variant: 'primary', icon: 'Plus' }, 'Add Extension'),
+      depts: D.map((d) => ({ code: d[0], name: d[1], current: d[0] === '5000' ? 'page' : undefined })),
+      roleCols: [{ key: 'code', label: 'Role Code', type: 'code' }, { key: 'title', label: 'Job Title' }, { key: 'disc', label: 'Discipline' }, { key: 'rank', label: 'Rank' }, { key: 'gl', label: 'GL Account', type: 'code' }],
+      roleRows: [
+        { code: '5000.50.01', title: 'Production & Operations Director', disc: 'Production Leadership', rank: 'Director', gl: '5500' },
+        { code: '5000.50.02', title: 'Master Electrician / Power Lead', disc: 'Power & Utilities', rank: 'Lead Technician', gl: '5500' },
+        { code: '5000.50.03', title: 'Production Coordinator', disc: 'Production Leadership', rank: 'Coordinator', gl: '5500' },
+        { code: '5000.51.01', title: 'Lead Stagehand / Deck Crew Chief', disc: 'Stage Crew', rank: 'Crew Chief', gl: '5500' },
+        { code: '5000.51.02', title: 'Head Arena / Festival Rigger', disc: 'Stage Crew', rank: 'Lead Technician', gl: '5500' },
+        { code: '5000.51.03', title: 'Lead System Rigger', disc: 'Stage Crew', rank: 'Technician', gl: '5500' },
+        { code: '5000.52.01', title: 'Special Effects / Pyro Lead', disc: 'Production Supply', rank: 'Lead Technician', gl: '5500' }
+      ],
+      pages: [{ value: 'dept', label: 'Departments' }, { value: 'disc', label: 'Disciplines' }, { value: 'cat', label: 'Categories' }, { value: 'el', label: 'Elements' }, { value: 'gates', label: 'Phases and Gates' }, { value: 'kinds', label: 'Record Kinds' }, { value: 'roles', label: 'Roles' }, { value: 'jur', label: 'Jurisdictions and Permit Rules' }, { value: 'metrics', label: 'Metrics' }, { value: 'ext', label: 'Org Extensions' }],
+      nav: [
+        { items: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 2 }, { label: 'My Work', icon: 'CircleCheck' }] },
+        { label: 'Favorites', items: [{ label: 'Members Pending Review', icon: 'Star' }, { label: 'Audit Log, This Week', icon: 'Star' }] },
+        { label: 'Recent Projects', items: [{ label: 'Northwind Fall Series', icon: 'Folder' }, { label: 'Harbor Winter Gala', icon: 'Folder' }, { label: 'Bayfront Food Festival', icon: 'Folder' }, { label: 'Coastline Brand Launch', icon: 'Folder' }, { label: 'Riverside Summer Stage', icon: 'Folder' }, { label: 'All Projects', icon: 'FolderOpen' }] },
+        g('Production', [{ label: 'Projects', icon: 'Folder' }, { label: 'Schedule', icon: 'Calendar' }, { label: 'Work', icon: 'SquareCheck' }, { label: 'Show', icon: 'Clapperboard' }, { label: 'Advancing', icon: 'ClipboardCheck' }]),
+        g('Operations', [{ label: 'Places', icon: 'MapPin' }, { label: 'Logistics', icon: 'Truck' }, { label: 'Hospitality', icon: 'ConciergeBell' }, { label: 'Assets', icon: 'Boxes' }, { label: 'Credentials', icon: 'IdCard' }, { label: 'Safety', icon: 'ShieldAlert' }]),
+        g('People', [{ label: 'People', icon: 'Users' }, { label: 'Opportunities', icon: 'UserSearch' }, { label: 'Crew', icon: 'HardHat' }]),
+        g('Commercial', [{ label: 'Finance', icon: 'Wallet' }, { label: 'Procurement', icon: 'ShoppingCart' }, { label: 'Vendors', icon: 'Store' }]),
+        g('Knowledge', [{ label: 'Knowledge', icon: 'BookOpen' }, { label: 'Reports', icon: 'ChartColumn' }, { label: 'Canon', icon: 'Library' }]),
+        { items: [{ label: 'Activity', icon: 'Activity' }, { label: 'Settings', icon: 'Settings' }] }
+      ],
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Canon' }, { label: 'Roles' }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 2 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

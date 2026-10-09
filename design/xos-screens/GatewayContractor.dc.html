@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Contractor Engagement</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="Harbor Light Events" label="Gateway" person="Dana Ruiz" active="Work" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"><x-import component-from-global-scope="XOS.Tag" tone="accent">Contractor</x-import><x-import component-from-global-scope="XOS.StateChip" state="active" label="Closing"></x-import><span class="xos-muted">Harbor Light Events</span></div>
+          <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Autumn Benefit · Stage manager services</h1>
+        </div>
+        <x-import component-from-global-scope="XOS.Button" variant="primary" icon="Receipt">Submit Invoice</x-import>
+      </div>
+      <x-import component-from-global-scope="XOS.Tabs" label="Engagement" value="overview" tabs="{{tabs}}"></x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+        <div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+          <dl class="xos-card" style="margin: 0; padding: 16px; display: grid; grid-template-columns: auto 1fr; gap: 12px 20px;">
+            <dt class="xos-muted">Scope</dt><dd style="margin: 0;">Stage management for 4 event days, show reports within 24 hours</dd>
+            <dt class="xos-muted">Classification</dt><dd style="margin: 0;">Independent Contractor · 1099-NEC</dd>
+            <dt class="xos-muted">Rate</dt><dd style="margin: 0;">$600 per day · Day Rate · Per Engagement</dd>
+            <dt class="xos-muted">Dates</dt><dd style="margin: 0;">Nov 10 to 13</dd>
+          </dl>
+          <section aria-labelledby="k-del" style="display: flex; flex-direction: column; gap: 8px;">
+            <h2 id="k-del" class="xos-label" style="margin: 0;">Deliverables · 4 of 4 accepted</h2>
+            <x-import component-from-global-scope="XOS.RecordList" label="Deliverables">
+              <x-import component-from-global-scope="XOS.RecordRow" state="complete" state-label="Accepted" record-key="DLV-01" kind="Report" title="Show report, Nov 10" next="Nov 11" action-label="Open"></x-import>
+              <x-import component-from-global-scope="XOS.RecordRow" state="complete" state-label="Accepted" record-key="DLV-02" kind="Report" title="Show report, Nov 11" next="Nov 12" action-label="Open"></x-import>
+              <x-import component-from-global-scope="XOS.RecordRow" state="complete" state-label="Accepted" record-key="DLV-03" kind="Report" title="Show report, Nov 12" next="Nov 13" action-label="Open"></x-import>
+              <x-import component-from-global-scope="XOS.RecordRow" state="complete" state-label="Accepted" record-key="DLV-04" kind="Report" title="Show report, Nov 13" next="Nov 14" action-label="Open"></x-import>
+            </x-import>
+          </section>
+          <x-import component-from-global-scope="XOS.InlineAlert" tone="success" title="Ready to invoice">All 4 days are approved. Your invoice for $2,400 is drafted from them.</x-import>
+        </div>
+        <aside aria-label="Engagement stages" style="flex: 1 1 300px; min-width: 0;"><x-import component-from-global-scope="XOS.EngagementTimeline" current="{{seven}}" stages="{{stages}}"></x-import></aside>
+      </div>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Work" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      seven: 7,
+      tabs: ['Overview', 'Scope', 'Deliverables', 'Time', 'Invoices', 'Documents', 'Messages'].map((t) => ({ value: t.toLowerCase(), label: t })),
+      stages: [{ label: 'Requisition' }, { label: 'Opportunity', date: 'Oct 15' }, { label: 'Application', date: 'Oct 18' }, { label: 'Selection', date: 'Oct 22' }, { label: 'Offer', date: 'Oct 23' }, { label: 'Onboarding', date: 'Oct 26' }, { label: 'Engaged', date: 'Nov 10 to 13' }, { label: 'Close-out', date: 'Now' }, { label: 'Re-engagement' }],
+      crumbs: [{ label: 'Work' }, { label: 'Engagements' }, { label: 'Autumn Benefit' }],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

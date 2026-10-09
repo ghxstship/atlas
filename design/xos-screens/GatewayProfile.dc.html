@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Profile Editor</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Dana Ruiz" active="" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1040px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+      <div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <x-import component-from-global-scope="XOS.Avatar" name="Dana Ruiz" size="lg"></x-import>
+          <div style="display: flex; flex-direction: column;"><h1 style="margin: 0; font-size: 20px; font-weight: 600;">Dana Ruiz</h1><span class="xos-muted">gateway.xos.app/u/danaruiz</span></div>
+        </div>
+        <x-import component-from-global-scope="XOS.ProfileEditor" strength="{{strength}}" next-step="Add a portfolio item to reach 100%" fields="{{fields}}"></x-import>
+        <section aria-labelledby="pr-skills" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="pr-skills" class="xos-label" style="margin: 0;">Skills, tagged by canon role</h2>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <x-import component-from-global-scope="XOS.URIDChip" name="Lead Stagehand / Deck Crew Chief" urid="5000.51.01"></x-import>
+            <x-import component-from-global-scope="XOS.URIDChip" name="Production Stage Manager" urid="9000.50.01"></x-import>
+          </div>
+        </section>
+      </div>
+      <aside aria-labelledby="pr-avail" style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+        <h2 id="pr-avail" class="xos-label" style="margin: 0;">Availability · shared on application</h2>
+        <x-import component-from-global-scope="XOS.AvailabilityCalendar" month="2026-12-01" available="{{avail}}" booked="{{booked}}"></x-import>
+      </aside>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      strength: 80,
+      fields: [
+        { label: 'Headline', value: 'Lead stagehand and stage manager, arenas and festivals', visibility: 'public' },
+        { label: 'Location', value: 'Miami, FL', visibility: 'public' },
+        { label: 'Certifications', value: 'OSHA 30, First Aid, CPR and AED', visibility: 'public' },
+        { label: 'Rates', value: '$550 per day, $600 per day as contractor', visibility: 'application' },
+        { label: 'References', value: '2 references', visibility: 'application' },
+        { label: 'Phone', value: 'Last 4: 0142', visibility: 'private' }
+      ],
+      avail: ['2026-12-01', '2026-12-02', '2026-12-03', '2026-12-08', '2026-12-09', '2026-12-10', '2026-12-12', '2026-12-13'],
+      booked: [],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

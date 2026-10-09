@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=200 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ShortcutEditor</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.ShortcutEditor,{label:'Keyboard shortcuts',rows:[{action:'Create record',keys:'C'},{action:'Approve',keys:'A',custom:true},{action:'Snooze',keys:'\u2318 W',conflict:'Reserved by the browser',recording:true}]}));
+</script>
+</body>
+</html>

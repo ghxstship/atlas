@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Records List</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item" aria-haspopup="listbox" aria-label="Workspace, Miami Office"><x-import component-from-global-scope="XOS.Icon" name="Building2"></x-import>Miami Office<span style="margin-inline-start: auto; display: inline-flex;"><x-import component-from-global-scope="XOS.Icon" name="ChevronsUpDown" size="{{i12}}"></x-import></span></button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <x-import component-from-global-scope="XOS.Sidebar" label="Atlas" active="Work" groups="{{nav}}"></x-import>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Menu"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <x-import component-from-global-scope="XOS.IconButton" icon="CircleHelp" label="Help" shortcut="?"></x-import>
+          <button type="button" aria-label="Account, Jordan Lee" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Jordan Lee"></x-import></button>
+        </div>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <x-import component-from-global-scope="XOS.PageHeader" title="Work" glyph="SquareCheck" count="{{count}}" views="{{views}}" actions="{{actions}}"></x-import>
+      <x-import component-from-global-scope="XOS.Tabs" label="Work pages" value="all" tabs="{{pages}}"></x-import>
+      <x-import component-from-global-scope="XOS.FilterBuilder" save-label="Save View" filters="{{filters}}"></x-import>
+      <x-import component-from-global-scope="XOS.BulkActionBar" count="{{two}}" actions="{{bulk}}"></x-import>
+      <x-import component-from-global-scope="XOS.RecordList" label="Work, 142 records">
+        <x-import component-from-global-scope="XOS.RecordRow" state="blocked" state-label="Blocked" record-key="NWL-144" kind="Supply" title="Barricade sections for front of house" chips="{{chipPrc}}" next="Nov 3" owner="Priya Nair" action-label="Resolve" selected="{{yes}}"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="blocked" state-label="Blocked" record-key="NWL-131" kind="Permit" title="Temporary structure permit, Main Stage" chips="{{chipAdv}}" next="Nov 6" owner="Malik Osei" action-label="Open" selected="{{yes}}"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="ready" state-label="Ready" record-key="NWL-118" kind="Approval" title="Approve Main Stage advance packet" chips="{{chipAdv}}" next="Nov 4" owner="Jordan Lee" action-label="Approve" action-key="A"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="active" state-label="Active" record-key="NWL-142" kind="Task" title="Confirm stage deck delivery window" chips="{{chipPrc}}" next="Nov 5" owner="Jordan Lee" action-label="Complete" action-key="E"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="active" state-label="Active" record-key="NWL-120" kind="Distribution" title="Advance packets out to 7 recipients" chips="{{chipAdv}}" next="Nov 6" owner="Morgan Chen" action-label="Remind"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="in-review" state-label="In Review" record-key="NWL-127" kind="Compliance" title="Reconcile power requirement with venue" chips="{{chipAdv}}" next="Nov 4" owner="Priya Nair" action-label="Review"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="scheduled" state-label="Scheduled" record-key="NWL-139" kind="Meeting" title="Production meeting with Harbor Audio" chips="{{chipAdv}}" next="Nov 5" owner="Jordan Lee" action-label="Open"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="scheduled" state-label="Scheduled" record-key="NWL-141" kind="Build" title="Stage build, Main Stage" chips="{{chipBld}}" next="Nov 16" owner="Malik Osei" action-label="Open"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="scheduled" state-label="Scheduled" record-key="NWL-147" kind="Rehearsal" title="Rehearse changeover" chips="{{chipOpr}}" next="Nov 19" owner="Morgan Chen" action-label="Open"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="proposed" state-label="Proposed" record-key="NWL-156" kind="Risk" title="Rain plan for load-out" chips="{{chipBld}}" next="Nov 12" owner="Jordan Lee" action-label="Triage"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="deferred" state-label="Deferred" record-key="NWL-158" kind="Training" title="Forklift refresher for dock crew" chips="{{chipBld}}" next="Dec 1" owner="Morgan Chen" action-label="Resume"></x-import>
+        <x-import component-from-global-scope="XOS.RecordRow" state="complete" state-label="Complete" record-key="NWL-112" kind="Contract" title="Harbor Audio supply agreement" chips="{{chipEng}}" next="Oct 28" owner="Jordan Lee" action-label="Open"></x-import>
+      </x-import>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="My Work" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p, c) => (X[n] && R) ? R.createElement(X[n], p, c) : null;
+    const h = Number(this.props.h) || 0;
+    const open = ['Production'];
+    const g = (label, items) => ({ label, collapsed: open.indexOf(label) < 0, items });
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      i12: 12, yes: true, two: 2, count: 142,
+      views: el('SegmentedControl', { label: 'View', value: 'list', options: [{ value: 'list', label: 'List' }, { value: 'board', label: 'Board' }, { value: 'timeline', label: 'Timeline' }, { value: 'calendar', label: 'Calendar' }, { value: 'table', label: 'Table' }] }),
+      actions: el('Button', { variant: 'primary', shortcut: 'C' }, 'New Record'),
+      chipEng: el('PhaseChip', { gate: 2, name: 'Engage', code: 'ENG' }),
+      chipAdv: el('PhaseChip', { gate: 3, name: 'Advance', code: 'ADV' }),
+      chipPrc: el('PhaseChip', { gate: 4, name: 'Procure', code: 'PRC' }),
+      chipBld: el('PhaseChip', { gate: 5, name: 'Build', code: 'BLD' }),
+      chipOpr: el('PhaseChip', { gate: 7, name: 'Operate', code: 'OPR' }),
+      nav: [
+        { items: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 6 }, { label: 'My Work', icon: 'CircleCheck' }] },
+        { label: 'Favorites', items: [{ label: 'Opening Night Run of Show', icon: 'Star' }, { label: 'My Open Blockers', icon: 'Star' }] },
+        { label: 'Recent Projects', items: [{ label: 'Northwind Fall Series', icon: 'Folder' }, { label: 'Harbor Winter Gala', icon: 'Folder' }, { label: 'Bayfront Food Festival', icon: 'Folder' }, { label: 'Coastline Brand Launch', icon: 'Folder' }, { label: 'Riverside Summer Stage', icon: 'Folder' }, { label: 'All Projects', icon: 'FolderOpen' }] },
+        g('Production', [{ label: 'Projects', icon: 'Folder' }, { label: 'Schedule', icon: 'Calendar' }, { label: 'Work', icon: 'SquareCheck' }, { label: 'Show', icon: 'Clapperboard' }, { label: 'Advancing', icon: 'ClipboardCheck' }]),
+        g('Operations', [{ label: 'Places', icon: 'MapPin' }, { label: 'Logistics', icon: 'Truck' }, { label: 'Hospitality', icon: 'ConciergeBell' }, { label: 'Assets', icon: 'Boxes' }, { label: 'Credentials', icon: 'IdCard' }, { label: 'Safety', icon: 'ShieldAlert' }]),
+        g('People', [{ label: 'People', icon: 'Users' }, { label: 'Opportunities', icon: 'UserSearch' }, { label: 'Crew', icon: 'HardHat' }]),
+        g('Commercial', [{ label: 'Finance', icon: 'Wallet' }, { label: 'Procurement', icon: 'ShoppingCart' }, { label: 'Vendors', icon: 'Store' }]),
+        g('Knowledge', [{ label: 'Knowledge', icon: 'BookOpen' }, { label: 'Reports', icon: 'ChartColumn' }, { label: 'Canon', icon: 'Library' }]),
+        { items: [{ label: 'Activity', icon: 'Activity' }, { label: 'Settings', icon: 'Settings' }] }
+      ],
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Miami Office' }, { label: 'Work' }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 6 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }],
+      pages: [{ value: 'all', label: 'All Records', count: 142 }, { value: 'kind', label: 'By Kind' }, { value: 'wo', label: 'Work Orders' }, { value: 'punch', label: 'Punch Lists' }, { value: 'recurring', label: 'Recurring' }],
+      filters: [{ field: 'Project', op: 'is', value: 'Northwind Fall Series' }, { field: 'State', op: 'is not', value: 'Canceled' }],
+      bulk: [{ label: 'Set Owner', icon: 'User', shortcut: 'A' }, { label: 'Set State', icon: 'CircleDot', shortcut: 'S' }, { label: 'Set Due Date', icon: 'Calendar', shortcut: 'D' }, { label: 'Move', icon: 'FolderInput' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

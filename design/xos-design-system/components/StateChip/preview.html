@@ -1,0 +1,12 @@
+<!-- @dsCard group="Chips" height=88 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>StateChip</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row'},[['proposed','Proposed'],['ready','Ready'],['scheduled','Scheduled'],['active','Active'],['blocked','Blocked'],['in-review','In Review'],['complete','Complete'],['deferred','Deferred'],['canceled','Canceled']].map(function(s){return h(X.StateChip,{key:s[0],state:s[0],label:s[1]})})));
+</script>
+</body>
+</html>

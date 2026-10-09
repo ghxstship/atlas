@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Offer</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Dana Ruiz" active="Work" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1040px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+      <article style="flex: 999 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <x-import component-from-global-scope="XOS.BrandMark" name="Harbor Light Events" size="sm" icon-only="{{yes}}"></x-import>
+          <span>Harbor Light Events</span>
+          <x-import component-from-global-scope="XOS.Tag" tone="success">Verified organization</x-import>
+        </div>
+        <h1 style="margin: 0; font-size: 24px; font-weight: 600;">Offer · Stage Manager, Winter Gala</h1>
+        <dl class="xos-card" style="margin: 0; padding: 16px; display: grid; grid-template-columns: auto 1fr; gap: 12px 20px;">
+          <dt class="xos-muted">Rate</dt><dd style="margin: 0;"><strong>$650 per day</strong> · 2 days</dd>
+          <dt class="xos-muted">Dates</dt><dd style="margin: 0;">Sat, Dec 12 and Sun, Dec 13</dd>
+          <dt class="xos-muted">Place</dt><dd style="margin: 0;">Miami Beach, FL</dd>
+          <dt class="xos-muted">Classification</dt><dd style="margin: 0;">Independent Contractor · paid on a 1099-NEC</dd>
+          <dt class="xos-muted">Pay basis</dt><dd style="margin: 0;">Day Rate · Per Engagement</dd>
+          <dt class="xos-muted">Answer by</dt><dd style="margin: 0;">Fri, Nov 20, 5:00 PM</dd>
+        </dl>
+        <sc-if value="{{review}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <x-import component-from-global-scope="XOS.Button" variant="primary" size="lg" icon="Check">Accept</x-import>
+            <x-import component-from-global-scope="XOS.Button" size="lg" icon="ArrowLeftRight">Counter</x-import>
+            <x-import component-from-global-scope="XOS.Button" variant="ghost" size="lg">Decline</x-import>
+          </div>
+        </sc-if>
+        <sc-if value="{{counter}}" hint-placeholder-val="{{false}}">
+          <form aria-labelledby="o-counter" style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface);">
+            <h2 id="o-counter" style="margin: 0; font-size: 16px; font-weight: 600;">Counter the offer</h2>
+            <x-import component-from-global-scope="XOS.CurrencyInput" label="Your day rate" value="{{counterRate}}" help="Harbor Light Events sees the new rate and your note."></x-import>
+            <x-import component-from-global-scope="XOS.Textarea" label="Note" value="Rate reflects a 14-hour gala day with load-out."></x-import>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;"><x-import component-from-global-scope="XOS.Button" variant="ghost">Cancel</x-import><x-import component-from-global-scope="XOS.Button" variant="primary">Send Counter</x-import></div>
+          </form>
+        </sc-if>
+        <sc-if value="{{decline}}" hint-placeholder-val="{{false}}">
+          <form aria-labelledby="o-decline" style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface);">
+            <h2 id="o-decline" style="margin: 0; font-size: 16px; font-weight: 600;">Decline the offer</h2>
+            <x-import component-from-global-scope="XOS.Radio" label="Reason, shared with Harbor Light Events" name="reason" value="dates" options="{{reasons}}"></x-import>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;"><x-import component-from-global-scope="XOS.Button" variant="ghost">Back</x-import><x-import component-from-global-scope="XOS.Button" variant="primary">Decline Offer</x-import></div>
+          </form>
+        </sc-if>
+      </article>
+      <aside aria-label="Engagement stages" style="flex: 1 1 300px; min-width: 0;">
+        <x-import component-from-global-scope="XOS.EngagementTimeline" current="{{four}}" stages="{{stages}}"></x-import>
+      </aside>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Work" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"mode":{"editor":"enum","options":["review","counter","decline"],"default":"counter"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const m = this.props.mode || 'counter';
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true, four: 4, counterRate: 725,
+      review: m === 'review', counter: m === 'counter', decline: m === 'decline',
+      reasons: [{ value: 'dates', label: 'Not available on these dates' }, { value: 'rate', label: 'Rate does not work for me' }, { value: 'other', label: 'Another reason' }],
+      stages: [{ label: 'Requisition', owner: 'Harbor Light Events' }, { label: 'Opportunity', date: 'Nov 2' }, { label: 'Application', date: 'Nov 4' }, { label: 'Selection', date: 'Nov 11' }, { label: 'Offer', date: 'Nov 13' }, { label: 'Onboarding', owner: 'You, then Harbor Light Events' }, { label: 'Engaged' }, { label: 'Close-out' }, { label: 'Re-engagement' }],
+      crumbs: [{ label: 'Work' }, { label: 'Applications' }, { label: 'Offer' }],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

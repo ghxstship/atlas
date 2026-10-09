@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Settings, Consents and Payout</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Dana Ruiz" active="" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div class="xos-layout-settings" style="max-width: 1040px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box;">
+      <nav aria-label="Settings sections" class="xos-sidebar" style="width: auto;">
+        <sc-for list="{{sections}}" as="s" hint-placeholder-count="11">
+          <button type="button" class="xos-nav-item" aria-current="{{s.current}}">{{s.label}}</button>
+        </sc-for>
+      </nav>
+      <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+        <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Profile Privacy</h1>
+        <section aria-labelledby="gs-consent" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="gs-consent" style="margin: 0; font-size: 14px; font-weight: 600;">Sharing consents by organization</h2>
+          <x-import component-from-global-scope="XOS.DataTable" caption="What each organization can see. Revoke any time; records an organization must keep by law stay with them." columns="{{cols}}" rows="{{rows}}"></x-import>
+          <div><x-import component-from-global-scope="XOS.Button" variant="danger" icon="UserX">Revoke Coastline Productions</x-import></div>
+        </section>
+        <x-import component-from-global-scope="XOS.Switch" label="Let search engines index my public profile"></x-import>
+        <section aria-labelledby="gs-pay" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="gs-pay" style="margin: 0; font-size: 14px; font-weight: 600;">Payout and Tax</h2>
+          <x-import component-from-global-scope="XOS.PayoutDetailsForm" rail="ACH" on-file="{{onFile}}"></x-import>
+          <span class="xos-muted" style="font-size: 12px;">Bank and tax numbers are stored encrypted as Restricted. Only the last four digits are ever shown.</span>
+        </section>
+      </div>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const S = ['Profile', 'Profile Privacy', 'Account', 'Security', 'Organizations', 'Preferences', 'Accessibility', 'Notifications', 'Out of Office', 'Work Details', 'Payout and Tax', 'Calendar Feeds', 'Connected Apps'];
+    const st = (s, l) => ({ state: s, label: l });
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      sections: S.map((s) => ({ label: s, current: s === 'Profile Privacy' ? 'page' : undefined })),
+      onFile: { bank: 'Account on file', last4: '4410' },
+      cols: [{ key: 'org', label: 'Organization' }, { key: 'shared', label: 'Shared', wrap: true }, { key: 's', label: 'Consent', type: 'state' }],
+      rows: [
+        { org: 'Northwind Live', shared: 'Name, certifications, rates, availability, emergency contact', s: st('active', 'Live while engaged') },
+        { org: 'Harbor Light Events', shared: 'Name, certifications, rates', s: st('active', 'Live while engaged') },
+        { org: 'Coastline Productions', shared: 'Name and headline', s: st('scheduled', 'Snapshot, application') }
+      ],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

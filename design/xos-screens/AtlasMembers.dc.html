@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Settings · Members and Roles</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="ArrowLeft"></x-import>Back to Atlas</button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search settings<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <nav aria-label="Organization settings" class="xos-sidebar">
+      <sc-for list="{{sections}}" as="s" hint-placeholder-count="42">
+        <button type="button" class="xos-nav-item" aria-current="{{s.current}}">{{s.label}}</button>
+      </sc-for>
+    </nav>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Settings sections"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <button type="button" aria-label="Account, Riley Grant" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Riley Grant"></x-import></button>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <div style="max-width: 1040px; width: 100%; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Members</h1>
+            <span class="xos-muted">38 members · 2 invitations pending · SCIM sync on</span>
+          </div>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" icon="UserPlus" shortcut="I">Invite Members</x-import>
+        </div>
+        <x-import component-from-global-scope="XOS.Tabs" label="Members and roles" value="members" tabs="{{tabsInner}}"></x-import>
+        <x-import component-from-global-scope="XOS.FilterBuilder" filters="{{filters}}"></x-import>
+        <x-import component-from-global-scope="XOS.DataTable" caption="Members of Northwind Live" columns="{{cols}}" rows="{{rows}}"></x-import>
+        <section aria-labelledby="h-vis" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-vis" style="margin: 0; font-size: 14px; font-weight: 600;">What each role sees in navigation</h2>
+          <x-import component-from-global-scope="XOS.DataTable" caption="Navigation groups by membership role. Capability checks still decide every action." density="compact" columns="{{visCols}}" rows="{{visRows}}"></x-import>
+        </section>
+      </div>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Menu" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const S = ['Organization Profile', 'General', 'Legal Entities and Fiscal', 'Members', 'Roles and Capabilities', 'Teams', 'Workspaces', 'Departments and Disciplines in Use', 'Locations and Venues', 'Security', 'Access Reviews', 'White Label', 'Modules', 'Canon Extensions', 'Templates', 'Custom Fields', 'Custom Objects', 'Views and Defaults', 'Numbering', 'Automations', 'Approval Policies', 'Spend Authority', 'Separation of Duties', 'Time and Attendance', 'Scheduling', 'Payroll and Time Off', 'Gateway and Marketplace', 'Communication', 'Notifications Defaults', 'AI Features', 'Help and Support', 'Integrations', 'API Keys and Service Accounts', 'Webhooks', 'Localization', 'Billing and Plan', 'Partner', 'Usage', 'Data and Privacy', 'Audit Log', 'Legal', 'Danger Zone'];
+    const hidden = ['Billing and Plan', 'Legal', 'Partner'];
+    const st = (s, l) => ({ state: s, label: l });
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      sections: S.filter((s) => hidden.indexOf(s) < 0).map((s) => ({ label: s, current: s === 'Members' ? 'page' : undefined })),
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Settings' }, { label: 'Members' }],
+      tabsInner: [{ value: 'members', label: 'Members', count: 38 }, { value: 'invites', label: 'Invitations', count: 2 }, { value: 'roles', label: 'Roles and Capabilities' }],
+      filters: [{ field: 'Role', op: 'is any of', value: 'Owner, Admin, Manager' }],
+      cols: [{ key: 'name', label: 'Name' }, { key: 'email', label: 'Email' }, { key: 'role', label: 'Role' }, { key: 'team', label: 'Teams' }, { key: 'mfa', label: 'Passkey or MFA', type: 'state' }, { key: 'last', label: 'Last Active' }],
+      rows: [
+        { name: 'Sam Rivera', email: 'sam.rivera@northwindlive.com', role: 'Owner', team: 'Leadership', mfa: st('complete', 'Passkey'), last: 'Today' },
+        { name: 'Riley Grant', email: 'riley.grant@northwindlive.com', role: 'Admin', team: 'Operations', mfa: st('complete', 'Passkey'), last: 'Now' },
+        { name: 'Jordan Lee', email: 'jordan.lee@northwindlive.com', role: 'Manager', team: 'Production', mfa: st('complete', 'Authenticator'), last: 'Today' },
+        { name: 'Avery Brooks', email: 'avery.brooks@northwindlive.com', role: 'Manager', team: 'Finance', mfa: st('complete', 'Passkey'), last: 'Yesterday' },
+        { name: 'Morgan Chen', email: 'morgan.chen@northwindlive.com', role: 'Member', team: 'Production', mfa: st('complete', 'Authenticator'), last: 'Today' },
+        { name: 'Malik Osei', email: 'malik.osei@northwindlive.com', role: 'Field', team: 'Crew', mfa: st('blocked', 'Not set up'), last: 'Nov 1' }
+      ],
+      visCols: [{ key: 'g', label: 'Group' }, { key: 'owner', label: 'Owner' }, { key: 'admin', label: 'Admin' }, { key: 'manager', label: 'Manager' }, { key: 'member', label: 'Member' }, { key: 'collab', label: 'Collaborator' }, { key: 'field', label: 'Field' }, { key: 'viewer', label: 'Viewer' }],
+      visRows: [
+        { g: 'Production', owner: 'Full', admin: 'Full', manager: 'Full', member: 'Full', collab: 'Assigned', field: 'Assigned', viewer: 'Read' },
+        { g: 'People', owner: 'Full', admin: 'Full', manager: 'Full', member: 'Read', collab: 'Hidden', field: 'Own profile', viewer: 'Hidden' },
+        { g: 'Crew', owner: 'Full', admin: 'Full', manager: 'Full', member: 'Read', collab: 'Hidden', field: 'Own records', viewer: 'Hidden' },
+        { g: 'Commercial', owner: 'Full', admin: 'Full', manager: 'Full', member: 'Read', collab: 'Hidden', field: 'Hidden', viewer: 'Hidden' },
+        { g: 'Org settings', owner: 'Full', admin: 'Full except Billing and Legal', manager: 'Hidden', member: 'Hidden', collab: 'Hidden', field: 'Hidden', viewer: 'Hidden' }
+      ],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 2 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Opportunity Detail</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Dana Ruiz" active="Explore" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1040px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+      <article style="flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm" icon-only="{{yes}}"></x-import>
+          <span>Northwind Live</span>
+          <x-import component-from-global-scope="XOS.Tag" tone="success">Verified organization</x-import>
+        </div>
+        <h1 style="margin: 0; font-size: 24px; font-weight: 600; line-height: 1.2;">Rigger, Fall Series</h1>
+        <p style="margin: 0; font-size: 16px;"><strong>$800 to $1,150 per day</strong> · Nov 18 to 22 · Harbor Pavilion, Miami, FL · 6 positions</p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <x-import component-from-global-scope="XOS.Tag" tone="neutral">Crew</x-import>
+          <span class="xos-code xos-muted">5000.51.02 · Head Arena / Festival Rigger</span>
+        </div>
+        <section aria-labelledby="o-about" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="o-about" style="margin: 0; font-size: 16px; font-weight: 600;">About the work</h2>
+          <p style="margin: 0; line-height: 1.5;">Hang and trim the Main Stage rig for a three-night concert series: chain motors, bridles and a 20.5 in box truss grid. Load-in starts Mon, Nov 16; strike is Mon, Nov 23.</p>
+        </section>
+        <section aria-labelledby="o-q" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="o-q" style="margin: 0; font-size: 16px; font-weight: 600;">Questions you will answer</h2>
+          <p style="margin: 0;">Largest arena flown as lead?</p>
+        </section>
+      </article>
+      <aside aria-labelledby="o-req" style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface);">
+        <h2 id="o-req" style="margin: 0; font-size: 16px; font-weight: 600;">Requirements check</h2>
+        <ul role="list" style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px;">
+          <sc-for list="{{reqs}}" as="r" hint-placeholder-count="4">
+            <li style="display: flex; gap: 8px; align-items: flex-start;"><x-import component-from-global-scope="XOS.Icon" name="{{r.icon}}" color="{{r.color}}"></x-import><span style="flex: 1;">{{r.label}}</span><span style="color: {{r.color}}; font-weight: 500;">{{r.status}}</span></li>
+          </sc-for>
+        </ul>
+        <sc-if value="{{missing}}" hint-placeholder-val="{{false}}">
+          <x-import component-from-global-scope="XOS.InlineAlert" tone="warning" title="1 thing missing">Add your arena rigging certification to apply. It takes about 2 minutes with your camera.</x-import>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" size="lg" icon="Camera" class-name="xos-block">Add Certification</x-import>
+        </sc-if>
+        <sc-if value="{{met}}" hint-placeholder-val="{{true}}">
+          <x-import component-from-global-scope="XOS.InlineAlert" tone="success" title="You qualify">Your saved profile covers every requirement.</x-import>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" size="lg" class-name="xos-block">Apply</x-import>
+        </sc-if>
+        <x-import component-from-global-scope="XOS.Button" variant="ghost" icon="Bookmark" class-name="xos-block">Save</x-import>
+        <span class="xos-muted" style="font-size: 12px;">Apply by Tue, Nov 17, 5:00 PM. You will see exactly what is shared before you send.</span>
+      </aside>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Explore" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"check":{"editor":"enum","options":["met","missing"],"default":"met"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const missing = this.props.check === 'missing';
+    const ok = (label) => ({ label, icon: 'CircleCheck', color: 'var(--success-text)', status: 'On file' });
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true, missing, met: !missing,
+      reqs: [ok('OSHA 30-Hour Construction'), missing ? { label: 'Arena rigging certification', icon: 'CircleAlert', color: 'var(--warning-text)', status: 'Missing' } : ok('Arena rigging certification'), ok('Own harness and lanyard'), ok('Available Nov 18 to 22')],
+      crumbs: [{ label: 'Explore' }, { label: 'Rigger, Fall Series' }],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

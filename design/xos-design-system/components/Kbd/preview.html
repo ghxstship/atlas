@@ -1,0 +1,12 @@
+<!-- @dsCard group="Actions" height=48 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Kbd</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row'},h(X.Kbd,null,'\u2318'),h(X.Kbd,null,'K'),h('span',{className:'xos-muted'},'then'),h(X.Kbd,null,'G'),h(X.Kbd,null,'P')));
+</script>
+</body>
+</html>

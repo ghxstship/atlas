@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway at 390 px · part 1</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="dark" style="width: 100%; display: flex; flex-direction: column; gap: 48px; background: var(--bg-surface); color: var(--text-primary); font-family: var(--font-sans);">
+  <section aria-label="Home at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Home</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayHome" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Explore at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Explore</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayExplore" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Opportunity Detail at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Opportunity Detail</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayOpportunity" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Saved and Alerts at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Saved and Alerts</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewaySaved" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Application at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Application</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayApply" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Bid Sheet at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Bid Sheet</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewayBid" h="844" hint-size="100%,844px"></dc-import></div></section>
+  <section aria-label="Agency Slate at 390 px"><div style="height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 16px; font-weight: 600;">Agency Slate</div><div style="height: 844px; overflow: hidden;"><dc-import name="GatewaySlate" h="844" hint-size="100%,844px"></dc-import></div></section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":6476}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

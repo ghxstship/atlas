@@ -1,0 +1,12 @@
+<!-- @dsCard group="Iconography" height=120 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>DepartmentGlyph</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row',style:{gap:8,alignItems:'flex-start'}},[['0000','Executive'],['1000','Creative'],['2000','Talent'],['3000','Marketing'],['4000','Environment'],['5000','Production'],['6000','Operations'],['7000','Experience'],['8000','Hospitality'],['9000','Technology']].map(function(d){return (function(n,l,c){return h('div',{key:c||l,className:'xos-col',style:{alignItems:'center',gap:6,width:88,textAlign:'center'}},n,h('span',{style:{fontSize:12}},l),c?h('span',{className:'xos-code xos-muted'},c):null)})(h(X.DepartmentGlyph,{code:d[0],size:20}),d[1],d[0])})));
+</script>
+</body>
+</html>

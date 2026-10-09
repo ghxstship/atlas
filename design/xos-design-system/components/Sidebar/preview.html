@@ -1,0 +1,12 @@
+<!-- @dsCard group="Navigation" height=420 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Sidebar</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.Sidebar,{active:'Projects',groups:[{items:[{label:'Home',icon:'home'},{label:'Inbox',icon:'inbox',badge:6},{label:'My Work',icon:'check-circle'}]},{label:'Production',items:[{label:'Projects',icon:'folder'},{label:'Schedule',icon:'calendar'},{label:'Work',icon:'file'}]},{label:'Operations',collapsed:true,items:[]},{label:'Commercial',collapsed:true,items:[]}]}));
+</script>
+</body>
+</html>

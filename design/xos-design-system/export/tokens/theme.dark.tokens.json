@@ -1,0 +1,403 @@
+{
+ "$description": "XOS color and shadow tokens, dark theme. Selected with [data-theme=\"dark\"].",
+ "color": {
+  "bg": {
+   "canvas": {
+    "$type": "color",
+    "$value": "#0E0F11",
+    "$description": "Page background behind every shell. Spec token color.bg.canvas."
+   },
+   "surface": {
+    "$type": "color",
+    "$value": "#16171A",
+    "$description": "Sidebar, page header and grouped regions on canvas. Spec token color.bg.surface."
+   },
+   "raised": {
+    "$type": "color",
+    "$value": "#1C1D21",
+    "$description": "Cards, menus, popovers, side peek and dialogs. Spec token color.bg.raised."
+   },
+   "hover": {
+    "$type": "color",
+    "$value": "#222328",
+    "$description": "Hover and selected row fill. Every text token passes 4.5:1 on it in every theme (text-tertiary 4.55:1 dark, 4.51:1 light). Spec token color.bg.hover."
+   }
+  },
+  "border": {
+   "subtle": {
+    "$type": "color",
+    "$value": "#26272C",
+    "$description": "Default 1 px hairline: dividers, card edges, table rules and the ring paired with menu and dialog shadows. Spec token color.border.subtle."
+   },
+   "strong": {
+    "$type": "color",
+    "$value": "#34353B",
+    "$description": "Emphasis dividers, table header rules and selected outlines; decorative only. Control boundaries use border-control. Spec token color.border.strong."
+   },
+   "control": {
+    "$type": "color",
+    "$value": "#67686F",
+    "$description": "Boundary of every input, select, checkbox, radio, switch and segmented control; meets the 3:1 non-text minimum on canvas, surface and raised (3.04:1 dark, 3.02:1 light). Added to resolve WCAG 2.2 SC 1.4.11."
+   }
+  },
+  "text": {
+   "primary": {
+    "$type": "color",
+    "$value": "#EDEEF0",
+    "$description": "Titles, body text, values and labels on any background. Spec token color.text.primary."
+   },
+   "secondary": {
+    "$type": "color",
+    "$value": "#A0A3AB",
+    "$description": "Secondary labels, property names, metadata on any background. Spec token color.text.secondary."
+   },
+   "tertiary": {
+    "$type": "color",
+    "$value": "#878A94",
+    "$description": "Input hint text, timestamps and helper text on every background, including bg-hover (4.55:1 dark, 4.51:1 light minimum). Adjusted from the spec's #858892 and #6B6E76, which measured 4.43:1 and 4.44:1 on bg-hover. Spec token color.text.tertiary."
+   }
+  },
+  "accent": {
+   "default": {
+    "$type": "color",
+    "$value": "#5B63E8",
+    "$description": "Fill role: primary button, active marker, selection, progress. As text use accent-text. Icons on any background pass 3:1. Spec token color.accent.default."
+   },
+   "text-on": {
+    "$type": "color",
+    "$value": "#FFFFFF",
+    "$description": "Label and icon on an accent-default fill (4.78:1 dark, 5.68:1 light). Spec token color.accent.text-on."
+   },
+   "text": {
+    "$type": "color",
+    "$value": "#8B92F5",
+    "$description": "Text role of the accent: links, selected text, accent labels; 4.5:1 or higher on every background in every theme."
+   }
+  },
+  "focus": {
+   "ring": {
+    "$type": "color",
+    "$value": "#8B92F5",
+    "$description": "2 px keyboard focus ring with 2 px offset on every interactive element (6.87:1 dark, 5.68:1 light against canvas). Spec token color.focus.ring."
+   }
+  },
+  "danger": {
+   "$type": "color",
+   "$value": "#EF5A5A",
+   "$description": "Fill and icon role for destructive actions, errors, Blocked and critical severity. As text use danger-text. Spec token color.danger."
+  },
+  "warning": {
+   "$type": "color",
+   "$value": "#E5A23B",
+   "$description": "Fill and icon role for warnings, Deferred and staleness; icons pass 3:1 on every background. As text use warning-text. Spec token color.warning."
+  },
+  "success": {
+   "$type": "color",
+   "$value": "#3FB97A",
+   "$description": "Fill and icon role for success, Complete and Met; icons pass 3:1 on every background. As text use success-text. Spec token color.success."
+  },
+  "danger-text": {
+   "$type": "color",
+   "$value": "#EF5A5A",
+   "$description": "Text role of danger: error messages, destructive menu items, removed values; 4.5:1 or higher on every background."
+  },
+  "danger-text-on": {
+   "$type": "color",
+   "$value": "{color.bg.canvas}",
+   "$description": "Label and icon on a danger fill, such as a hold-to-send button: the canvas color in every theme (5.73:1 dark, 5.17:1 light, 7.00:1 sunlight). Spec token color.danger-text-on."
+  },
+  "warning-text": {
+   "$type": "color",
+   "$value": "#E5A23B",
+   "$description": "Text role of warning: countdowns near zero, staleness labels; 4.5:1 or higher on every background."
+  },
+  "success-text": {
+   "$type": "color",
+   "$value": "#3FB97A",
+   "$description": "Text role of success: added values, confirmations; 4.5:1 or higher on every background."
+  },
+  "state": {
+   "proposed": {
+    "$type": "color",
+    "$value": "{color.text.secondary}",
+    "$description": "Proposed state icon (dashed circle). Hue Neutral."
+   },
+   "ready": {
+    "$type": "color",
+    "$value": "{color.text.primary}",
+    "$description": "Ready state icon (empty circle). Hue Neutral strong."
+   },
+   "scheduled": {
+    "$type": "color",
+    "$value": "#56B4E9",
+    "$description": "Scheduled state icon (clock circle). Hue Blue, from the Okabe-Ito set; 8.31:1 dark and 5.19:1 light on canvas."
+   },
+   "active": {
+    "$type": "color",
+    "$value": "{color.accent.default}",
+    "$description": "Active state icon (half circle). Hue Accent; icon use only in dark (3:1 icon threshold met)."
+   },
+   "blocked": {
+    "$type": "color",
+    "$value": "{color.danger}",
+    "$description": "Blocked state icon (octagon). Hue Danger."
+   },
+   "in-review": {
+    "$type": "color",
+    "$value": "#B58CF0",
+    "$description": "In Review state icon (eye circle). Hue Violet; 7.28:1 dark and 5.45:1 light on canvas."
+   },
+   "complete": {
+    "$type": "color",
+    "$value": "{color.success}",
+    "$description": "Complete state icon (check circle). Hue Success."
+   },
+   "deferred": {
+    "$type": "color",
+    "$value": "{color.warning}",
+    "$description": "Deferred state icon (pause circle). Hue Warning."
+   },
+   "canceled": {
+    "$type": "color",
+    "$value": "{color.text.tertiary}",
+    "$description": "Canceled state icon (slashed circle). Hue Tertiary."
+   }
+  },
+  "viz": {
+   "ink": {
+    "$type": "color",
+    "$value": "#17181C",
+    "$description": "Text and marks on light data-viz fills (viz-seq-1 to 5, viz-cat-1, 2, 4) in every theme."
+   },
+   "cat-1": {
+    "$type": "color",
+    "$value": "#C98300",
+    "$description": "Categorical series 1 of 7: Okabe-Ito Orange, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view."
+   },
+   "cat-2": {
+    "$type": "color",
+    "$value": "#3E9ED2",
+    "$description": "Categorical series 2 of 7: Okabe-Ito Sky Blue, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view."
+   },
+   "cat-3": {
+    "$type": "color",
+    "$value": "#008F68",
+    "$description": "Categorical series 3 of 7: Okabe-Ito Bluish Green, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view."
+   },
+   "cat-4": {
+    "$type": "color",
+    "$value": "#A59700",
+    "$description": "Categorical series 4 of 7: Okabe-Ito Yellow, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view."
+   },
+   "cat-5": {
+    "$type": "color",
+    "$value": "#0072B2",
+    "$description": "Categorical series 5 of 7: Okabe-Ito Blue, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view."
+   },
+   "cat-6": {
+    "$type": "color",
+    "$value": "#D55E00",
+    "$description": "Categorical series 6 of 7: Okabe-Ito Vermillion, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view."
+   },
+   "cat-7": {
+    "$type": "color",
+    "$value": "#C775A3",
+    "$description": "Categorical series 7 of 7: Okabe-Ito Reddish Purple, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view."
+   },
+   "other": {
+    "$type": "color",
+    "$value": "#999999",
+    "$description": "The Other bucket: series past the seventh fold here, always last and always labeled. Not a series color; it never sits next to a hue it must be told apart from."
+   },
+   "seq-1": {
+    "$type": "color",
+    "$value": "#E8EDFF",
+    "$description": "Sequential step 1 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude."
+   },
+   "seq-2": {
+    "$type": "color",
+    "$value": "#CAD4FF",
+    "$description": "Sequential step 2 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude."
+   },
+   "seq-3": {
+    "$type": "color",
+    "$value": "#AAB8FF",
+    "$description": "Sequential step 3 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude."
+   },
+   "seq-4": {
+    "$type": "color",
+    "$value": "#8B9AFF",
+    "$description": "Sequential step 4 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude."
+   },
+   "seq-5": {
+    "$type": "color",
+    "$value": "#707DF7",
+    "$description": "Sequential step 5 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude."
+   },
+   "seq-6": {
+    "$type": "color",
+    "$value": "#5B63E8",
+    "$description": "Sequential step 6 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude."
+   },
+   "seq-7": {
+    "$type": "color",
+    "$value": "#474DBB",
+    "$description": "Sequential step 7 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude."
+   },
+   "seq-8": {
+    "$type": "color",
+    "$value": "#363D8C",
+    "$description": "Sequential step 8 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude."
+   },
+   "seq-9": {
+    "$type": "color",
+    "$value": "#272C60",
+    "$description": "Sequential step 9 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude."
+   },
+   "div-1": {
+    "$type": "color",
+    "$value": "#0072B2",
+    "$description": "Diverging step 1 of 7 (strongest under), blue to orange through neutral in OKLab. Variance and budget versus actual."
+   },
+   "div-2": {
+    "$type": "color",
+    "$value": "#4B80AB",
+    "$description": "Diverging step 2 of 7 (under), blue to orange through neutral in OKLab. Variance and budget versus actual."
+   },
+   "div-3": {
+    "$type": "color",
+    "$value": "#748DA3",
+    "$description": "Diverging step 3 of 7 (slightly under), blue to orange through neutral in OKLab. Variance and budget versus actual."
+   },
+   "div-4": {
+    "$type": "color",
+    "$value": "#999999",
+    "$description": "Diverging step 4 of 7 (neutral midpoint), blue to orange through neutral in OKLab. Variance and budget versus actual."
+   },
+   "div-5": {
+    "$type": "color",
+    "$value": "#B18975",
+    "$description": "Diverging step 5 of 7 (slightly over), blue to orange through neutral in OKLab. Variance and budget versus actual."
+   },
+   "div-6": {
+    "$type": "color",
+    "$value": "#C4764D",
+    "$description": "Diverging step 6 of 7 (over), blue to orange through neutral in OKLab. Variance and budget versus actual."
+   },
+   "div-7": {
+    "$type": "color",
+    "$value": "#D55E00",
+    "$description": "Diverging step 7 of 7 (strongest over), blue to orange through neutral in OKLab. Variance and budget versus actual."
+   }
+  },
+  "paper": {
+   "$type": "color",
+   "$value": "#FFFFFF",
+   "$description": "Printed page surface in document previews; always white, like the printed PDF."
+  },
+  "paper-ink": {
+   "$type": "color",
+   "$value": "#17181C",
+   "$description": "Text on paper."
+  },
+  "camera-bg": {
+   "$type": "color",
+   "$value": "#0E0F11",
+   "$description": "Camera viewfinder ground in Compass scan and photo screens, in every theme."
+  },
+  "camera-ink": {
+   "$type": "color",
+   "$value": "#FFFFFF",
+   "$description": "Reticle and hint text over the camera feed."
+  },
+  "ecode": {
+   "red": {
+    "$type": "color",
+    "$value": "#D32F2F",
+    "$description": "Swatch for Code Red, Fire Emergency. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "orange": {
+    "$type": "color",
+    "$value": "#EF6C00",
+    "$description": "Swatch for Code Orange, Acts of Aggression. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "yellow": {
+    "$type": "color",
+    "$value": "#F9A825",
+    "$description": "Swatch for Code Yellow, Power or Structural Failure or Damage. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "green": {
+    "$type": "color",
+    "$value": "#2E7D32",
+    "$description": "Swatch for Code Green, Theft & Loss Prevention. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "blue": {
+    "$type": "color",
+    "$value": "#1565C0",
+    "$description": "Swatch for Code Blue, Medical Emergency. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "purple": {
+    "$type": "color",
+    "$value": "#6A1B9A",
+    "$description": "Swatch for Code Purple, Political or Civil Unrest. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "white": {
+    "$type": "color",
+    "$value": "#FFFFFF",
+    "$description": "Swatch for Code White, Government Agency Inspection or Encounter. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "black": {
+    "$type": "color",
+    "$value": "#000000",
+    "$description": "Swatch for Code Black, Acts of Terror. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "pink": {
+    "$type": "color",
+    "$value": "#D81B60",
+    "$description": "Swatch for Code Pink, Illegal Substance. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "indigo": {
+    "$type": "color",
+    "$value": "#283593",
+    "$description": "Swatch for Code Indigo, Absent or Missing Talent. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "silver": {
+    "$type": "color",
+    "$value": "#A7AAB0",
+    "$description": "Swatch for Code Silver, Active Shooter. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "grey": {
+    "$type": "color",
+    "$value": "#616161",
+    "$description": "Swatch for Code Grey, Bomb Threat. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "amber": {
+    "$type": "color",
+    "$value": "#FFB300",
+    "$description": "Swatch for Code Amber, Security Breach. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme."
+   },
+   "adam": {
+    "$type": "color",
+    "$value": "{color.text.tertiary}",
+    "$description": "Swatch for Code Adam, Missing Person(s). Code Adam names no color, so it reads neutral; the code name carries the meaning."
+   }
+  },
+  "scrim": {
+   "$type": "color",
+   "$value": "#000000",
+   "$description": "Overlay behind drawers, dialogs and the mobile sidebar; shown at opacity-scrim-dark in Dark and opacity-scrim-light in Light and Sunlight."
+  }
+ },
+ "shadow": {
+  "menu": {
+   "$type": "shadow",
+   "$value": "0 0 0 1px #26272C, 0 8px 24px rgba(0,0,0,0.48)",
+   "$description": "Menus, popovers, hover cards, tooltips, toasts."
+  },
+  "dialog": {
+   "$type": "shadow",
+   "$value": "0 0 0 1px #26272C, 0 24px 48px rgba(0,0,0,0.56)",
+   "$description": "Dialogs, command menu, side peek."
+  }
+ }
+}

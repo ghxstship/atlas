@@ -1,0 +1,15 @@
+<!-- @dsCard group="Editing" height=300 width=960 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>SpreadsheetGrid</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  var ACCOUNTS = [{code:'5000',name:'Expense \u00b7 Executive',classCode:'0000',type:'Expense'},{code:'5100',name:'Expense \u00b7 Creative',classCode:'1000',type:'Expense'},{code:'5200',name:'Expense \u00b7 Talent',classCode:'2000',type:'Expense'},{code:'5300',name:'Expense \u00b7 Marketing',classCode:'3000',type:'Expense'},{code:'5400',name:'Expense \u00b7 Environment',classCode:'4000',type:'Expense'},{code:'5500',name:'Expense \u00b7 Production',classCode:'5000',type:'Expense'},{code:'5600',name:'Expense \u00b7 Operations',classCode:'6000',type:'Expense'},{code:'5700',name:'Expense \u00b7 Experience',classCode:'7000',type:'Expense'},{code:'5800',name:'Expense \u00b7 Hospitality',classCode:'8000',type:'Expense'},{code:'5900',name:'Expense \u00b7 Technology',classCode:'9000',type:'Expense'}];
+  var OT_RULES = {'OTR-001':{name:'Standard Overtime',ot:1.5,dt:2},'OTR-002':{name:'Exempt',ot:1,dt:1}};
+  var ROLES = {'5000.51.01':'Lead Stagehand / Deck Crew Chief','5000.51.02':'Head Arena / Festival Rigger','9000.50.01':'Production Stage Manager','9000.50.02':'Audio Engineer - A1/FOH','9000.52.01':'Lead Network & Comms Engineer'};
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.SpreadsheetGrid,{label:'Labor rate card',columns:[{key:'role',label:'Role Code',type:'code',width:104},{key:'title',label:'Job Title',width:180,derive:function(r){return ROLES[r.role];}},{key:'cls',label:'Classification',width:96},{key:'basis',label:'Pay Basis'},{key:'rate',label:'Standard Rate',type:'money',editable:true},{key:'ot',label:'OT',type:'multiplier',derive:function(r){return OT_RULES[r.otRule].ot;}},{key:'dt',label:'DT',type:'multiplier',derive:function(r){return OT_RULES[r.otRule].dt;}},{key:'gl',label:'GL Account',type:'code',derive:function(r){var a=X.glForCode(r.role,ACCOUNTS);return a?a.code:null;}}],rows:[{card:'LRC-022',cls:'Employee',role:'5000.51.01',basis:'Day Rate',rate:550,otRule:'OTR-001'},{card:'LRC-023',cls:'Independent Contractor',role:'5000.51.02',basis:'Day Rate',rate:950,otRule:'OTR-001'},{card:'LRC-008',cls:'Employee',role:'9000.50.01',basis:'Day Rate',rate:950,otRule:'OTR-001'},{card:'LRC-009',cls:'Vendor-Supplied',role:'9000.50.02',basis:'Day Rate',rate:850,otRule:'OTR-001'},{card:'LRC-035',cls:'Vendor-Supplied',role:'9000.52.01',basis:'Day Rate',rate:850,otRule:'OTR-001'}]}));
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Layout" height=300 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>SplitView</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.SplitView,{label:'Submissions',selected:0,items:[{state:'in-review',title:'Main Stage Advance: Audio',meta:'Submitted by Harbor Audio, 2h ago'},{state:'active',title:'Main Stage Advance: Catering',meta:'3 of 7 sections'},{state:'complete',title:'Main Stage Advance: Security',meta:'Reconciled Oct 6'}],detail:h('div',{className:'xos-col'},h('strong',{style:{fontSize:16}},'Main Stage Advance: Audio'),h(X.ReconciliationTable,{rows:[{requirement:'48 ch FOH console',capability:'64 ch console in house',result:'Met'},{requirement:'200 A three-phase power',capability:null,result:'Unknown'}]}))}));
+</script>
+</body>
+</html>

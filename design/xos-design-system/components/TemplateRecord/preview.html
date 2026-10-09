@@ -1,0 +1,13 @@
+<!-- @dsCard group="Templates" height=460 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TemplateRecord</title>
+<style>.tpl-props .xos-props{grid-template-columns:minmax(0,1fr);gap:var(--space-4) 0} .tpl-props dd{margin-block-end:var(--space-8)}</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-layout-record'},h('div',{className:'xos-col'},h('div',{className:'xos-row',style:{gap:8}},h(X.RecordKindGlyph,{kind:'Task',color:'var(--text-secondary)'}),h('span',{className:'xos-code xos-muted'},'NWL-142'),h(X.StateChip,{state:'active',label:'Active',onClick:function(){}})),h('h1',{className:'xos-peek-title'},'Confirm stage deck delivery window'),h(X.RichTextEditor,{label:'Description',html:'<p>Vendor holds the 6 AM window on Oct 30. Confirm forklift and dock slot.</p>'}),h(X.ActivityFeedItem,{actor:'Malik Osei',action:'changed state to',target:'Active',time:'2h ago'})),h('aside',{className:'xos-layout-record-aside tpl-props'},h('dl',{className:'xos-props'},h('dt',null,'Owner'),h('dd',null,h(X.PropertyChip,{icon:'User',value:'Morgan Chen',onClick:function(){}})),h('dt',null,'Due'),h('dd',null,h(X.PropertyChip,{icon:'Calendar',value:'Oct 30',onClick:function(){}})),h('dt',null,'Phase'),h('dd',null,h(X.PhaseChip,{gate:4,name:'Procure',code:'PRC'})),h('dt',null,'Category'),h('dd',null,h(X.URIDChip,{name:'Stage Decks & Risers',urid:'5000.04.02'})),h('dt',null,'Budget'),h('dd',null,h(X.Money,{amount:1940}))))));
+</script>
+</body>
+</html>

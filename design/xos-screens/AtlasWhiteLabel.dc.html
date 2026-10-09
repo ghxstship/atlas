@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Settings · White Label</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="ArrowLeft"></x-import>Back to Atlas</button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search settings<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <nav aria-label="Organization settings" class="xos-sidebar">
+      <sc-for list="{{sections}}" as="s" hint-placeholder-count="42">
+        <button type="button" class="xos-nav-item" aria-current="{{s.current}}">{{s.label}}</button>
+      </sc-for>
+    </nav>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Settings sections"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <button type="button" aria-label="Account, Riley Grant" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Riley Grant"></x-import></button>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+        <form aria-labelledby="h-wl" style="flex: 1 1 520px; max-width: 640px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <h1 id="h-wl" style="margin: 0; font-size: 20px; font-weight: 600;">White Label</h1>
+            <span class="xos-muted">Set at Organization · applies to Atlas, Gateway, Compass, email and documents</span>
+          </div>
+          <x-import component-from-global-scope="XOS.Stepper" steps="{{steps}}" current="{{zero}}"></x-import>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px;">
+            <x-import component-from-global-scope="XOS.BrandSlot" label="Logo, Light" width="{{lw}}" height="{{lh}}" formats="SVG or PNG, transparent"></x-import>
+            <x-import component-from-global-scope="XOS.BrandSlot" label="Logo, Dark" width="{{lw}}" height="{{lh}}" formats="SVG or PNG, transparent"></x-import>
+            <x-import component-from-global-scope="XOS.BrandSlot" label="Favicon" width="{{fav}}" height="{{fav}}" formats="SVG or PNG"></x-import>
+            <x-import component-from-global-scope="XOS.BrandSlot" label="App Icon" width="{{app}}" height="{{app}}" formats="PNG, no transparency"></x-import>
+          </div>
+          <x-import component-from-global-scope="XOS.ColorPicker" label="Tenant Accent" value="#0F7B6C" checks="{{checks}}"></x-import>
+          <x-import component-from-global-scope="XOS.Select" label="Font family" value="inter" options="{{fonts}}" help="Open-licensed fonts only."></x-import>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><span class="xos-label" aria-hidden="true">Corner radius</span><x-import component-from-global-scope="XOS.SegmentedControl" label="Corner radius" value="rounded" options="{{radii}}"></x-import><span class="xos-help">Rounded uses 8 px controls, 12 px cards and 6 px chips, all on the radius scale.</span></div>
+          <x-import component-from-global-scope="XOS.Input" label="Gateway domain" value="gateway.northwindlive.com" help="Add a CNAME record to gateway.xos.app. Verified Oct 30."></x-import>
+          <div style="position: sticky; bottom: 0; display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 0; border-top: 1px solid var(--border-subtle); background: var(--bg-canvas);">
+            <span class="xos-muted" role="status">Unsaved changes</span>
+            <x-import component-from-global-scope="XOS.Button" variant="ghost">Discard</x-import>
+            <x-import component-from-global-scope="XOS.Button" variant="primary" shortcut="⌘ S">Save</x-import>
+          </div>
+        </form>
+        <section aria-labelledby="h-prev" style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-prev" class="xos-label" style="margin: 0;">Live preview, tokens only</h2>
+          <x-import component-from-global-scope="XOS.WhiteLabelPreview" sample="{{sample}}" brands="{{brands}}"></x-import>
+        </section>
+      </div>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Menu" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p, ...c) => (X[n] && R) ? R.createElement(X[n], p, ...c) : null;
+    const div = (p, ...c) => R ? R.createElement('div', p, ...c) : null;
+    const h = Number(this.props.h) || 0;
+    const S = ['Organization Profile', 'General', 'Legal Entities and Fiscal', 'Members', 'Roles and Capabilities', 'Teams', 'Workspaces', 'Departments and Disciplines in Use', 'Locations and Venues', 'Security', 'Access Reviews', 'White Label', 'Modules', 'Canon Extensions', 'Templates', 'Custom Fields', 'Custom Objects', 'Views and Defaults', 'Numbering', 'Automations', 'Approval Policies', 'Spend Authority', 'Separation of Duties', 'Time and Attendance', 'Scheduling', 'Payroll and Time Off', 'Gateway and Marketplace', 'Communication', 'Notifications Defaults', 'AI Features', 'Help and Support', 'Integrations', 'API Keys and Service Accounts', 'Webhooks', 'Localization', 'Usage', 'Data and Privacy', 'Audit Log', 'Danger Zone'];
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      zero: 0, lw: 160, lh: 40, fav: 32, app: 1024,
+      sections: S.map((s) => ({ label: s, current: s === 'White Label' ? 'page' : undefined })),
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Settings' }, { label: 'White Label' }],
+      steps: ['Brand', 'Domains', 'Email', 'Mobile App', 'Review'],
+      checks: [{ label: 'White label on accent', fg: '#FFFFFF', min: 4.5 }, { label: 'Accent on light canvas', fgIsValue: true, bg: '#FFFFFF', min: 3 }, { label: 'Accent on dark canvas', fgIsValue: true, bg: '#0E0F11', min: 3 }],
+      fonts: [{ value: 'inter', label: 'Inter' }, { value: 'ibm', label: 'IBM Plex Sans' }, { value: 'source', label: 'Source Sans 3' }],
+      radii: [{ value: 'default', label: 'Default' }, { value: 'rounded', label: 'Rounded' }],
+      sample: div({ className: 'xos-col' }, div({ className: 'xos-row' }, el('StateChip', { state: 'active', label: 'Active' }), el('PhaseChip', { gate: 3, name: 'Advance', code: 'ADV' })), div({ className: 'xos-row' }, el('Button', { variant: 'primary' }, 'Apply Now'), el('Button', null, 'Save')), el('ProgressBar', { label: 'Onboarding packet', value: 62 })),
+      brands: [{ name: 'Northwind Live', domain: 'gateway.northwindlive.com', theme: 'dark', tokens: {} }, { name: 'Northwind Live, proposed', domain: 'gateway.northwindlive.com', theme: 'light', tokens: { 'accent-default': '#0F7B6C', 'focus-ring': '#0F7B6C', 'radius-control': '8px', 'radius-card': '12px', 'radius-chip': '6px' } }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 2 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

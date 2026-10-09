@@ -1,0 +1,12 @@
+<!-- @dsCard group="Forms" height=300 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Combobox</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.Combobox,{label:'Discipline',placeholder:'Search disciplines',defaultOpen:true,value:'5000.04',options:[['5000.01','Audio'],['5000.02','Lighting'],['5000.03','Video & LED'],['5000.04','Staging & Decks'],['5000.05','Rigging & Motors'],['5000.06','Power & Distribution']].map(function(d){return {value:d[0],label:d[1],code:d[0]}})}));
+</script>
+</body>
+</html>

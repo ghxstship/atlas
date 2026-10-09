@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=240 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>InlineAlert</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col'},h(X.InlineAlert,{tone:'info',title:'Gate 3 has 2 open criteria'},'Clear both to enable the next gate.'),h(X.InlineAlert,{tone:'success',title:'Onboarding verified'},'All blocking items passed.'),h(X.InlineAlert,{tone:'warning',title:'Price band degraded'},'Quote is 14 months old.'),h(X.InlineAlert,{tone:'danger',title:'Sync failed'},'Retry or check the integration.')));
+</script>
+</body>
+</html>

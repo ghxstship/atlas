@@ -1,0 +1,12 @@
+<!-- @dsCard group="Navigation" height=56 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>SegmentedControl</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.SegmentedControl,{label:'View',value:'board',options:[{value:'list',label:'List'},{value:'board',label:'Board'},{value:'timeline',label:'Timeline'},{value:'calendar',label:'Calendar'},{value:'table',label:'Table'}]}));
+</script>
+</body>
+</html>

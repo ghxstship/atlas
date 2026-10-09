@@ -1,0 +1,12 @@
+<!-- @dsCard group="Overlays" height=280 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ContextMenu</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.ContextMenu,{items:[{label:'Open',icon:'SquareArrowOutUpRight',shortcut:'\u21b5',active:true},{label:'Open in Side Peek',icon:'PanelRight',shortcut:'Space'},{label:'Copy Link',icon:'Link2',shortcut:'\u2318 L'},{separator:true},{label:'Change State',icon:'CircleDot',submenu:true},{label:'Assign',icon:'User',shortcut:'A'},{separator:true},{label:'Cancel Record',icon:'Ban',danger:true}]}));
+</script>
+</body>
+</html>

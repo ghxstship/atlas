@@ -1,0 +1,12 @@
+<!-- @dsCard group="Compass" height=620 width=420 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>DaySheetView</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.DaySheetView,{frame:true,date:'Saturday, Nov 21',title:'Opening Night',venue:'Harbor Pavilion',entries:[{time:'8:00 AM',label:'Crew call'},{time:'12:00 PM',label:'Lunch'},{time:'3:00 PM',label:'Sound check',now:true},{time:'6:30 PM',label:'Doors'},{time:'7:30 PM',label:'Show'}],contacts:[{name:'Dana Ruiz',role:'Production Manager'},{name:'Malik Osei',role:'Stage Manager'}]}));
+</script>
+</body>
+</html>

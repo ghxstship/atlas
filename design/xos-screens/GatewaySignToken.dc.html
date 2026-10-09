@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Sign by Token and Claim Account</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <header style="flex: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 24px; border-bottom: 1px solid var(--border-subtle);">
+    <x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import>
+    <span class="xos-muted" style="font-size: 12px;">Secure signing link · access code verified</span>
+  </header>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 720px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <sc-if value="{{sign}}" hint-placeholder-val="{{false}}">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 600;">Sign: Supply agreement, Harbor Audio</h1>
+        <x-import component-from-global-scope="XOS.FilePreviewer" name="Supply_Agreement_Harbor_Audio.pdf" meta="4 pages" pages="{{four}}" page="{{three}}">
+          <div class="xos-paper"><strong style="font-size: 14px;">12. Insurance</strong><p>Supplier names Northwind Live as additional insured for the term of this agreement.</p></div>
+        </x-import>
+        <x-import component-from-global-scope="XOS.SignaturePad" label="Signature, Kai Morales, Account Owner" attestation="I am authorized to sign for Harbor Audio Rentals LLC."></x-import>
+        <x-import component-from-global-scope="XOS.Button" variant="primary" size="lg" class-name="xos-block">Sign Agreement</x-import>
+      </sc-if>
+      <sc-if value="{{claim}}" hint-placeholder-val="{{true}}">
+        <div class="xos-layout-system" style="padding: 24px 0 8px;">
+          <x-import component-from-global-scope="XOS.Icon" name="CircleCheck" size="{{i28}}" color="var(--success-text)"></x-import>
+          <h1 style="margin: 0; font-size: 24px; font-weight: 600;">Signed. A copy is on its way to kai@harboraudio.com.</h1>
+          <p class="xos-muted" style="margin: 0;">Certificate SIG-2026-0418 · Nov 16, 10:42 AM EST</p>
+        </div>
+        <div class="xos-card" style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+          <strong style="font-size: 16px;">Keep everything in one place</strong>
+          <p style="margin: 0; color: var(--text-secondary);">Claim a free Gateway account for kai@harboraudio.com. This agreement, your bid and your purchase orders link to it automatically, across every organization you work with.</p>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" size="lg" icon="KeyRound" class-name="xos-block">Create Passkey</x-import>
+          <x-import component-from-global-scope="XOS.Button" variant="ghost" size="lg" class-name="xos-block">Not Now</x-import>
+        </div>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"mode":{"editor":"enum","options":["sign","claim"],"default":"claim"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const m = this.props.mode || 'claim';
+    return { theme: this.props.theme ?? 'light', hpx: h ? h + 'px' : '100vh', sign: m === 'sign', claim: m === 'claim', three: 3, four: 4, i28: 28 };
+  }
+}
+</script>
+</body>
+</html>

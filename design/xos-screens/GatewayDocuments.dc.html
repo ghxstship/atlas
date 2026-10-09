@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Documents and Signing</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="XOS Gateway" label="Gateway" person="Dana Ruiz" active="" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+      <section aria-labelledby="d-vault" style="flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+        <h1 id="d-vault" style="margin: 0; font-size: 20px; font-weight: 600;">Documents</h1>
+        <x-import component-from-global-scope="XOS.Input" type="search" aria-label="Search documents" placeholder="Search contracts, forms and certificates"></x-import>
+        <x-import component-from-global-scope="XOS.DataTable" caption="Your documents across organizations" density="comfortable" columns="{{cols}}" rows="{{rows}}"></x-import>
+      </section>
+      <section aria-labelledby="d-sign" style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <h2 id="d-sign" style="margin: 0; font-size: 16px; font-weight: 600;">Crew agreement · Northwind Live</h2>
+          <x-import component-from-global-scope="XOS.Tag" tone="warning">Blocks Nov 18 shift</x-import>
+        </div>
+        <x-import component-from-global-scope="XOS.FilePreviewer" name="Crew_Agreement_Fall_Series.pdf" meta="3 pages · version 2" pages="{{three}}" page="{{two}}">
+          <div class="xos-paper">
+            <strong style="font-size: 14px;">7. Hours and overtime</strong>
+            <p>Day rate covers 10 hours. Hours over 40 in a workweek are paid at 1.5 times the regular rate.</p>
+            <strong style="font-size: 14px;">8. Safety</strong>
+            <p>Crew completes the site safety briefing before the first shift and follows the site emergency codes.</p>
+          </div>
+        </x-import>
+        <x-import component-from-global-scope="XOS.SignaturePad" label="Your signature" attestation="I have read and agree to the Crew Agreement, version 2."></x-import>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <x-import component-from-global-scope="XOS.Button" variant="ghost">Decline to Sign</x-import>
+          <x-import component-from-global-scope="XOS.Button" variant="primary" icon="FileSignature">Sign and Finish</x-import>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const st = (s, l) => ({ state: s, label: l });
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      two: 2, three: 3,
+      cols: [{ key: 'doc', label: 'Document', wrap: true }, { key: 'org', label: 'Organization', wrap: true }, { key: 's', label: 'Status', type: 'state' }],
+      rows: [
+        { doc: 'Crew agreement v2', org: 'Northwind Live', s: st('ready', 'To sign') },
+        { doc: 'W-4', org: 'Northwind Live', s: st('complete', 'Verified') },
+        { doc: 'W-9', org: 'Harbor Light Events', s: st('complete', 'Verified') },
+        { doc: 'Contractor agreement', org: 'Harbor Light Events', s: st('complete', 'Signed Oct 26') },
+        { doc: 'OSHA 30-Hour Construction', org: 'You, shared with 2 orgs', s: st('complete', 'No expiry') },
+        { doc: 'First Aid, CPR and AED', org: 'You, shared with 1 org', s: st('deferred', 'Expires Feb 3') }
+      ],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare', badge: 2 }]
+    };
+  }
+}
+</script>
+</body>
+</html>

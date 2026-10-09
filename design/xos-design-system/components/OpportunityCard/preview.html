@@ -1,0 +1,12 @@
+<!-- @dsCard group="Gateway" height=280 width=780 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>OpportunityCard</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row',style:{alignItems:'flex-start'}},h(X.OpportunityCard,{org:'Northwind Live',verified:true,role:'Rigger, Fall Series',pay:'$800 to $1,150 per day',date:'Nov 18 to 22',place:'Miami, FL',requirements:{missing:[]},deadline:'Apply by Nov 4'}),h(X.OpportunityCard,{org:'Northwind Live',verified:true,role:'Bartender, Opening Night',pay:null,date:'Nov 21',place:'Miami, FL',requirements:{missing:['TIPS certification']},missingAction:'Add TIPS',deadline:'Apply by Nov 10'})));
+</script>
+</body>
+</html>

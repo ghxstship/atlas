@@ -1,0 +1,12 @@
+<!-- @dsCard group="Data display" height=320 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Board</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.Board,{columns:[{state:'ready',label:'Ready',cards:[{key:'NWL-151',title:'Forklift for load-in',kind:'Booking',owner:'Morgan Chen',due:'Oct 28'}]},{state:'active',label:'Active',cards:[{key:'NWL-142',title:'Confirm stage deck delivery window',kind:'Task',owner:'Malik Osei',due:'Oct 30'},{key:'NWL-147',title:'Rehearse changeover',kind:'Rehearsal',due:'Nov 19'}]},{state:'blocked',label:'Blocked',cards:[{key:'NWL-144',title:'Barricade sections for front of house',kind:'Supply',owner:'Priya Nair'}]}]}));
+</script>
+</body>
+</html>

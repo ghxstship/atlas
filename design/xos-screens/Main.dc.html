@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>XOS 4.0 Screens</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;padding:0}
+a{color:var(--accent-text)}a:hover{color:var(--text-primary)}
+</style>
+</helmet>
+<div data-theme="{{theme}}" style="width: 1440px; height: 900px; box-sizing: border-box; padding: 64px; display: flex; flex-direction: column; gap: 40px; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <header style="display: flex; justify-content: space-between; align-items: flex-start; gap: 32px;">
+    <div style="display: flex; flex-direction: column; gap: 12px; max-width: 760px;">
+      <x-import component-from-global-scope="XOS.BrandMark" name="XOS" size="md"></x-import>
+      <h1 style="margin: 0; font-size: 32px; line-height: 1.2; font-weight: 600;">XOS 4.0 Screens</h1>
+      <p style="margin: 0; font-size: 16px; color: var(--text-secondary); line-height: 1.45;">Section 11.5 deliverables 2 to 6, composed only from the XOS Design System components and tokens. Where a screen and the build prompt disagree, the prompt wins.</p>
+    </div>
+    <dl style="margin: 0; display: grid; grid-template-columns: auto auto; gap: 6px 16px; font-size: 12px; color: var(--text-secondary); background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px 20px;">
+      <dt>Tenant</dt><dd style="margin: 0; color: var(--text-primary);">Northwind Live (fictional)</dd>
+      <dt>Project</dt><dd style="margin: 0; color: var(--text-primary);">Northwind Fall Series · NWL</dd>
+      <dt>Venue</dt><dd style="margin: 0; color: var(--text-primary);">Harbor Pavilion, Miami, FL</dd>
+      <dt>Jurisdiction</dt><dd style="margin: 0; color: var(--text-primary); font-family: var(--font-mono);">US-FL-MIAMI-DADE</dd>
+      <dt>Shows</dt><dd style="margin: 0; color: var(--text-primary);">Opening Night Nov 20, Closing Night Nov 22, 2026</dd>
+      <dt>Canon</dt><dd style="margin: 0; color: var(--text-primary);">XOS 4.0 Bible and Standard Library</dd>
+    </dl>
+  </header>
+  <nav aria-label="Deliverables" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px;">
+    <a href="AtlasSignIn.dc.html" style="display: flex; flex-direction: column; gap: 8px; padding: 20px; background: var(--bg-raised); border: 1px solid var(--border-subtle); border-radius: 8px; text-decoration: none; color: var(--text-primary);">
+      <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">Item 2</span>
+      <strong style="font-size: 20px; font-weight: 600;">Atlas</strong>
+      <span style="color: var(--text-secondary); line-height: 1.45;">27 screens at 1440 px, with every screen again at 1280 and 1024 px.</span>
+    </a>
+    <a href="CompassToday.dc.html" style="display: flex; flex-direction: column; gap: 8px; padding: 20px; background: var(--bg-raised); border: 1px solid var(--border-subtle); border-radius: 8px; text-decoration: none; color: var(--text-primary);">
+      <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">Item 3</span>
+      <strong style="font-size: 20px; font-weight: 600;">Compass</strong>
+      <span style="color: var(--text-secondary); line-height: 1.45;">15 screens at 390 by 844 pt, again at 430 by 932 pt and on an 11 in tablet.</span>
+    </a>
+    <a href="GatewayHome.dc.html" style="display: flex; flex-direction: column; gap: 8px; padding: 20px; background: var(--bg-raised); border: 1px solid var(--border-subtle); border-radius: 8px; text-decoration: none; color: var(--text-primary);">
+      <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">Item 4</span>
+      <strong style="font-size: 20px; font-weight: 600;">Gateway</strong>
+      <span style="color: var(--text-secondary); line-height: 1.45;">28 screens at 1440 px and at 390 px, including all eight role types.</span>
+    </a>
+    <a href="FlowClock.dc.html" style="display: flex; flex-direction: column; gap: 8px; padding: 20px; background: var(--bg-raised); border: 1px solid var(--border-subtle); border-radius: 8px; text-decoration: none; color: var(--text-primary);">
+      <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">Item 5</span>
+      <strong style="font-size: 20px; font-weight: 600;">Flows</strong>
+      <span style="color: var(--text-secondary); line-height: 1.45;">Six task flows with tap and keystroke counts, each also a clickable prototype, plus role-default sidebars and navigation bars.</span>
+    </a>
+    <a href="WLAtlasNorthwind.dc.html" style="display: flex; flex-direction: column; gap: 8px; padding: 20px; background: var(--bg-raised); border: 1px solid var(--border-subtle); border-radius: 8px; text-decoration: none; color: var(--text-primary);">
+      <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">Item 6</span>
+      <strong style="font-size: 20px; font-weight: 600;">White Label</strong>
+      <span style="color: var(--text-secondary); line-height: 1.45;">The same three screens under two tenant brands, changed by tokens only.</span>
+    </a>
+  </nav>
+  <section aria-labelledby="read" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
+    <h2 id="read" style="grid-column: 1 / -1; margin: 0; font-size: 16px; font-weight: 600;">How to read these screens</h2>
+    <div style="display: flex; gap: 12px; align-items: flex-start;">
+      <x-import component-from-global-scope="XOS.Icon" name="StickyNote" size="{{iconSize}}" color="var(--text-secondary)"></x-import>
+      <p style="margin: 0; color: var(--text-secondary); line-height: 1.45;">The note beside each screen lists its interaction notes and keyboard shortcuts, responsive behavior, and accessibility notes: focus order, landmarks and announcements.</p>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: flex-start;">
+      <x-import component-from-global-scope="XOS.Icon" name="SunMoon" size="{{iconSize}}" color="var(--text-secondary)"></x-import>
+      <p style="margin: 0; color: var(--text-secondary); line-height: 1.45;">Every screen has a Theme tweak: Dark, Light or Sunlight. Atlas and Compass open in Dark; Gateway opens in Light, standing in for System.</p>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: flex-start;">
+      <x-import component-from-global-scope="XOS.Icon" name="Ruler" size="{{iconSize}}" color="var(--text-secondary)"></x-import>
+      <p style="margin: 0; color: var(--text-secondary); line-height: 1.45;">Size sheets reuse the same screen files at another width, so the 1280, 1024, 430 and tablet views show the real responsive rules, not redrawn copies.</p>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { theme: this.props.theme ?? 'dark', iconSize: 20 };
+  }
+}
+</script>
+</body>
+</html>

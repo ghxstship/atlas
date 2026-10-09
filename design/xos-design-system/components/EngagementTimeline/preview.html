@@ -1,0 +1,12 @@
+<!-- @dsCard group="Gateway" height=420 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>EngagementTimeline</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.EngagementTimeline,{current:5,stages:[{label:'Requisition',owner:'Northwind Live'},{label:'Opportunity',date:'Oct 1'},{label:'Application',date:'Oct 3'},{label:'Selection',date:'Oct 7'},{label:'Offer',date:'Oct 8'},{label:'Onboarding',owner:'You, then Northwind Live'},{label:'Engaged'},{label:'Close-out'},{label:'Re-engagement'}]}));
+</script>
+</body>
+</html>

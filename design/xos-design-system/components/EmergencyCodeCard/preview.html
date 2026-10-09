@@ -1,0 +1,13 @@
+<!-- @dsCard group="XOS" height=560 width=960 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>EmergencyCodeCard</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  var AUTH = [{service:'fire',agency:'Miami Fire-Rescue',contact:'911'},{service:'ems',agency:'Miami Fire-Rescue',contact:'911'},{service:'lawEnforcement',agency:'Miami Police Department',contact:'911'}];
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row',style:{alignItems:'flex-start'}},h(X.EmergencyCodeCard,{recordKey:'EMG-001',code:'Code Red',name:'Fire Emergency',swatch:'ecode-red',domain:'Site Operations',authorities:AUTH,steps:['Identify fire source and immediately activate fire extinguishers.','Contact {fire}.','Clear and cordon off affected areas.','Shut off utilities (gas/electric).'],channel:'Zone 1, Channel 1, Emergency'}),h(X.EmergencyCodeCard,{recordKey:'EMG-007',code:'Code Orange',name:'Acts of Aggression',swatch:'ecode-orange',domain:'Site Operations',authorities:AUTH,steps:['Alert security teams and {lawEnforcement} immediately.','Isolate aggressors and provide crowd control to prevent escalation.','Assess if evacuation is necessary.'],channel:'Zone 1, Channel 1, Emergency'}),h(X.EmergencyCodeCard,{recordKey:'EMG-025',code:'Code Blue',name:'Medical Emergency',swatch:'ecode-blue',domain:'Site Operations',steps:['Immediately call {ems} or direct on-site medical personnel.','Clear space for medical teams to access the affected individual.','Use first aid kits if necessary.']})));
+</script>
+</body>
+</html>

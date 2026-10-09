@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Emergency Codes</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px;">
+  <header style="flex: none; display: flex; align-items: center; gap: 4px; padding: 8px 12px 8px 4px; border-bottom: 1px solid var(--border-subtle);">
+    <x-import component-from-global-scope="XOS.IconButton" icon="ChevronLeft" label="Back to Reference"></x-import>
+    <div style="flex: 1; display: flex; flex-direction: column;"><strong>Emergency Codes</strong><span style="font-size: 12px; color: var(--text-secondary);">Site Operations · Miami-Dade agencies</span></div>
+    <x-import component-from-global-scope="XOS.Tag" tone="success">Offline</x-import>
+  </header>
+  <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+    <x-import component-from-global-scope="XOS.Select" label="Operational domain" value="site" options="{{domains}}"></x-import>
+    <x-import component-from-global-scope="XOS.EmergencyCodeCard" record-key="EMG-001" code="Code Red" name="Fire Emergency" swatch="ecode-red" domain="Site Operations" authorities="{{auth}}" steps="{{steps}}" channel="Zone 1, Channel 1, Emergency"></x-import>
+    <nav aria-label="All emergency codes" style="display: flex; flex-direction: column;">
+      <sc-for list="{{codes}}" as="c" hint-placeholder-count="14">
+        <button type="button" style="min-height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 4px; border: 0; border-bottom: 1px solid var(--border-subtle); background: none; color: inherit; font: inherit; text-align: start; cursor: pointer;">
+          <span aria-hidden="true" style="width: 8px; align-self: stretch; margin: 12px 0; border-radius: 2px; background: var(--{{c.swatch}}); box-shadow: inset 0 0 0 1px var(--border-strong);"></span>
+          <strong style="min-width: 108px;">{{c.code}}</strong>
+          <span style="flex: 1; color: var(--text-secondary);">{{c.name}}</span>
+          <x-import component-from-global-scope="XOS.Icon" name="ChevronRight" color="var(--text-tertiary)"></x-import>
+        </button>
+      </sc-for>
+    </nav>
+  </main>
+  <div style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" compass="{{yes}}" label="Compass" active="More" center-label="Scan" items="{{tabs}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const C = [['Code Red', 'Fire Emergency', 'ecode-red'], ['Code Orange', 'Acts of Aggression', 'ecode-orange'], ['Code Yellow', 'Power or Structural Failure or Damage', 'ecode-yellow'], ['Code Green', 'Theft & Loss Prevention', 'ecode-green'], ['Code Blue', 'Medical Emergency', 'ecode-blue'], ['Code Purple', 'Political or Civil Unrest', 'ecode-purple'], ['Code White', 'Government Agency Inspection or Encounter', 'ecode-white'], ['Code Black', 'Acts of Terror', 'ecode-black'], ['Code Pink', 'Illegal Substance', 'ecode-pink'], ['Code Indigo', 'Absent or Missing Talent', 'ecode-indigo'], ['Code Silver', 'Active Shooter', 'ecode-silver'], ['Code Grey', 'Bomb Threat', 'ecode-grey'], ['Code Amber', 'Security Breach', 'ecode-amber'], ['Code Adam', 'Missing Person(s)', 'ecode-adam']];
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true,
+      codes: C.map((c) => ({ code: c[0], name: c[1], swatch: c[2] })),
+      domains: [{ value: 'site', label: 'Site Operations' }, { value: 'stage', label: 'Stage Operations' }, { value: 'fb', label: 'Food & Beverage Operations' }, { value: 'guest', label: 'Guest Experience' }, { value: 'boh', label: 'Back of House Operations' }, { value: 'foh', label: 'Front of House Operations' }],
+      auth: [{ service: 'fire', agency: 'Miami Fire-Rescue', contact: '911' }, { service: 'ems', agency: 'Miami Fire-Rescue', contact: '911' }, { service: 'lawEnforcement', agency: 'Miami Police Department', contact: '911' }],
+      steps: ['Identify fire source and immediately activate fire extinguishers.', 'Contact {fire}.', 'Clear and cordon off affected areas.', 'Shut off utilities (gas/electric).'],
+      tabs: [{ label: 'Today', icon: 'House' }, { label: 'Schedule', icon: 'CalendarDays' }, { label: 'Scan', icon: 'ScanLine' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Crew', icon: 'HardHat' }, { label: 'More', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

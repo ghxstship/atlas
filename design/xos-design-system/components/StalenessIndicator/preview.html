@@ -1,0 +1,12 @@
+<!-- @dsCard group="XOS" height=48 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>StalenessIndicator</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row'},h(X.StalenessIndicator,{months:4}),h(X.StalenessIndicator,{months:14}),h(X.StalenessIndicator,{months:26}),h(X.StalenessIndicator,{months:38})));
+</script>
+</body>
+</html>

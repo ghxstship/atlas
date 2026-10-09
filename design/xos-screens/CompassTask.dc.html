@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Task with Checklist and Photo</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px;">
+  <header style="flex: none; display: flex; align-items: center; gap: 4px; padding: 8px 12px 8px 4px; border-bottom: 1px solid var(--border-subtle);">
+    <x-import component-from-global-scope="XOS.IconButton" icon="ChevronLeft" label="Back to Today"></x-import>
+    <span class="xos-code xos-muted" style="flex: 1;">NWL-166</span>
+    <x-import component-from-global-scope="XOS.IconButton" icon="Ellipsis" label="More actions: snooze, reassign"></x-import>
+  </header>
+  <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <x-import component-from-global-scope="XOS.RecordKindChip" kind="Task"></x-import>
+        <x-import component-from-global-scope="XOS.StateChip" state="active" label="Active"></x-import>
+      </div>
+      <h1 style="margin: 0; font-size: 20px; font-weight: 600; line-height: 1.25;">Confirm barricade pins at front of house</h1>
+      <span class="xos-muted">Due 5:00 PM · Front of House · photo proof required</span>
+    </div>
+    <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 4px;">
+      <legend class="xos-label" style="padding: 0 0 8px;">Checklist · 3 of 4</legend>
+      <sc-for list="{{items}}" as="it" hint-placeholder-count="4">
+        <div style="min-height: 48px; display: flex; align-items: center; padding: 0 4px; border-bottom: 1px solid var(--border-subtle);">
+          <x-import component-from-global-scope="XOS.Checkbox" label="{{it.label}}" default-checked="{{it.done}}"></x-import>
+        </div>
+      </sc-for>
+    </fieldset>
+    <section aria-labelledby="t-photo" style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 id="t-photo" class="xos-label" style="margin: 0;">Photo proof · 2</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+        <figure style="margin: 0; aspect-ratio: 1; border-radius: 8px; background: var(--camera-bg); color: var(--camera-ink); display: grid; place-items: center; gap: 4px; font-size: 12px;" aria-label="Photo 1, barricade section A, 2:41 PM"><x-import component-from-global-scope="XOS.Icon" name="Image" size="{{i24}}"></x-import>2:41 PM</figure>
+        <figure style="margin: 0; aspect-ratio: 1; border-radius: 8px; background: var(--camera-bg); color: var(--camera-ink); display: grid; place-items: center; gap: 4px; font-size: 12px;" aria-label="Photo 2, barricade section B, 2:43 PM"><x-import component-from-global-scope="XOS.Icon" name="Image" size="{{i24}}"></x-import>2:43 PM</figure>
+        <button type="button" style="aspect-ratio: 1; border-radius: 8px; border: 2px dashed var(--border-control); background: none; color: var(--text-primary); font: 500 14px var(--font-sans); display: grid; place-items: center; cursor: pointer;"><x-import component-from-global-scope="XOS.Icon" name="Camera" size="{{i24}}"></x-import>Add Photo</button>
+      </div>
+    </section>
+    <x-import component-from-global-scope="XOS.Button" variant="primary" size="lg" icon="Check" class-name="xos-block">Complete Task</x-import>
+    <span class="xos-muted" style="font-size: 14px; text-align: center;">Or swipe the task right from Today. Works offline.</span>
+  </main>
+  <div style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" compass="{{yes}}" label="Compass" active="Today" center-label="Scan" items="{{tabs}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true, i24: 24,
+      items: [
+        { label: 'Every section pinned at both ends', done: true },
+        { label: 'Gates swing freely and latch', done: true },
+        { label: 'No gap wider than 4 in between sections', done: true },
+        { label: 'Photo of each section joint', done: false }
+      ],
+      tabs: [{ label: 'Today', icon: 'House' }, { label: 'Schedule', icon: 'CalendarDays' }, { label: 'Scan', icon: 'ScanLine' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Crew', icon: 'HardHat' }, { label: 'More', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

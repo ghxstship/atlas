@@ -1,0 +1,12 @@
+<!-- @dsCard group="Iconography" height=56 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>StateIcon</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row',style:{gap:'var(--space-16)'}},['proposed','ready','scheduled','active','blocked','in-review','complete','deferred','canceled'].map(function(s){return h(X.StateIcon,{key:s,state:s,size:16})})));
+</script>
+</body>
+</html>

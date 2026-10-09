@@ -1,0 +1,13 @@
+<!-- @dsCard group="Templates" height=300 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TemplateSystem</title>
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-layout-system'},h(X.Icon,{name:'Compass',size:28,color:'var(--text-secondary)'}),h('h1',{style:{margin:0,fontSize:20}},'This page does not exist'),h('p',{className:'xos-muted',style:{margin:0}},'Check the address, or search for what you need.'),h(X.Button,{variant:'primary',shortcut:'\u2318 K'},'Search')));
+</script>
+</body>
+</html>

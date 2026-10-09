@@ -1,0 +1,12 @@
+<!-- @dsCard group="Actions" height=48 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Link</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row',style:{gap:16}},h(X.Link,{href:'#'},'View Purchase Order'),h(X.Link,{href:'https://example.com',external:true},'Carrier Tracking')));
+</script>
+</body>
+</html>

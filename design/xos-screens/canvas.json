@@ -1,0 +1,2343 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-09T18:00:00Z"
+ },
+ "title": "XOS 4.0 Screens",
+ "launch": {
+  "view": "canvas",
+  "page": "overview"
+ },
+ "pages": [
+  {
+   "id": "overview",
+   "name": "Overview"
+  },
+  {
+   "id": "atlas",
+   "name": "Atlas"
+  },
+  {
+   "id": "compass",
+   "name": "Compass"
+  },
+  {
+   "id": "gateway",
+   "name": "Gateway"
+  },
+  {
+   "id": "flows",
+   "name": "Flows"
+  },
+  {
+   "id": "white-label",
+   "name": "White Label"
+  }
+ ],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "XOS 4.0 Screens",
+   "page": "overview"
+  },
+  "AtlasSignIn.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Sign In",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasMfa.dc.html": {
+   "x": 2040,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Multi-Factor Check",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasOnboarding.dc.html": {
+   "x": 4080,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Org Onboarding",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasHome.dc.html": {
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "Home",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasProject.dc.html": {
+   "x": 2040,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "Project Overview",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasScope.dc.html": {
+   "x": 4080,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "Scope Tree",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasSchedule.dc.html": {
+   "x": 0,
+   "y": 2520,
+   "w": 1440,
+   "h": 900,
+   "title": "Schedule Timeline",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasRecords.dc.html": {
+   "x": 2040,
+   "y": 2520,
+   "w": 1440,
+   "h": 900,
+   "title": "Records List",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasBoard.dc.html": {
+   "x": 4080,
+   "y": 2520,
+   "w": 1440,
+   "h": 900,
+   "title": "Records Board",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasPeek.dc.html": {
+   "x": 0,
+   "y": 3620,
+   "w": 1440,
+   "h": 900,
+   "title": "Record Side Peek",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasBudget.dc.html": {
+   "x": 2040,
+   "y": 3620,
+   "w": 1440,
+   "h": 900,
+   "title": "Budget Grid",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasPurchaseOrder.dc.html": {
+   "x": 4080,
+   "y": 3620,
+   "w": 1440,
+   "h": 900,
+   "title": "Purchase Order",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasAdvancing.dc.html": {
+   "x": 0,
+   "y": 5040,
+   "w": 1440,
+   "h": 900,
+   "title": "Advance Packet Builder",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasPipeline.dc.html": {
+   "x": 2040,
+   "y": 5040,
+   "w": 1440,
+   "h": 900,
+   "title": "Opportunities Pipeline",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasCrew.dc.html": {
+   "x": 4080,
+   "y": 5040,
+   "w": 1440,
+   "h": 900,
+   "title": "Crew Schedule",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasTimesheets.dc.html": {
+   "x": 0,
+   "y": 6140,
+   "w": 1440,
+   "h": 900,
+   "title": "Timesheet Approval",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasDispatch.dc.html": {
+   "x": 0,
+   "y": 7560,
+   "w": 1440,
+   "h": 900,
+   "title": "Incident Dispatch Board",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasAccessGrid.dc.html": {
+   "x": 2040,
+   "y": 7560,
+   "w": 1440,
+   "h": 900,
+   "title": "Access Grid",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasCanon.dc.html": {
+   "x": 4080,
+   "y": 7560,
+   "w": 1440,
+   "h": 900,
+   "title": "Canon Browser",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasMatrix.dc.html": {
+   "x": 0,
+   "y": 8660,
+   "w": 1440,
+   "h": 900,
+   "title": "Coordinate Matrix Report",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasMembers.dc.html": {
+   "x": 0,
+   "y": 10080,
+   "w": 1440,
+   "h": 900,
+   "title": "Settings · Members and Roles",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasWhiteLabel.dc.html": {
+   "x": 2040,
+   "y": 10080,
+   "w": 1440,
+   "h": 900,
+   "title": "Settings · White Label",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasSecurity.dc.html": {
+   "x": 4080,
+   "y": 10080,
+   "w": 1440,
+   "h": 900,
+   "title": "Settings · Security",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasBilling.dc.html": {
+   "x": 0,
+   "y": 11180,
+   "w": 1440,
+   "h": 900,
+   "title": "Settings · Billing and Plan",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasPrivacy.dc.html": {
+   "x": 2040,
+   "y": 11180,
+   "w": 1440,
+   "h": 900,
+   "title": "Settings · Data and Privacy",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasCommand.dc.html": {
+   "x": 4080,
+   "y": 11180,
+   "w": 1440,
+   "h": 900,
+   "title": "Command Menu",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasStates.dc.html": {
+   "x": 0,
+   "y": 12280,
+   "w": 1440,
+   "h": 900,
+   "title": "Empty, Error and Refusal States",
+   "page": "atlas",
+   "expand": "fill"
+  },
+  "AtlasSheet1280A.dc.html": {
+   "x": 0,
+   "y": 13700,
+   "w": 1280,
+   "h": 5880,
+   "title": "Access and Home at 1280 px",
+   "page": "atlas"
+  },
+  "AtlasSheet1024A.dc.html": {
+   "x": 1400,
+   "y": 13700,
+   "w": 1024,
+   "h": 5880,
+   "title": "Access and Home at 1024 px",
+   "page": "atlas"
+  },
+  "AtlasSheet1280B.dc.html": {
+   "x": 2664,
+   "y": 13700,
+   "w": 1280,
+   "h": 5880,
+   "title": "Plan and Track at 1280 px",
+   "page": "atlas"
+  },
+  "AtlasSheet1024B.dc.html": {
+   "x": 4064,
+   "y": 13700,
+   "w": 1024,
+   "h": 5880,
+   "title": "Plan and Track at 1024 px",
+   "page": "atlas"
+  },
+  "AtlasSheet1280C.dc.html": {
+   "x": 5328,
+   "y": 13700,
+   "w": 1280,
+   "h": 3904,
+   "title": "Advance and People at 1280 px",
+   "page": "atlas"
+  },
+  "AtlasSheet1024C.dc.html": {
+   "x": 6728,
+   "y": 13700,
+   "w": 1024,
+   "h": 3904,
+   "title": "Advance and People at 1024 px",
+   "page": "atlas"
+  },
+  "AtlasSheet1280D.dc.html": {
+   "x": 7992,
+   "y": 13700,
+   "w": 1280,
+   "h": 3904,
+   "title": "Safety, Access and Canon at 1280 px",
+   "page": "atlas"
+  },
+  "AtlasSheet1024D.dc.html": {
+   "x": 9392,
+   "y": 13700,
+   "w": 1024,
+   "h": 3904,
+   "title": "Safety, Access and Canon at 1024 px",
+   "page": "atlas"
+  },
+  "AtlasSheet1280E.dc.html": {
+   "x": 10656,
+   "y": 13700,
+   "w": 1280,
+   "h": 6868,
+   "title": "Settings and System States at 1280 px",
+   "page": "atlas"
+  },
+  "AtlasSheet1024E.dc.html": {
+   "x": 12056,
+   "y": 13700,
+   "w": 1024,
+   "h": 6868,
+   "title": "Settings and System States at 1024 px",
+   "page": "atlas"
+  },
+  "CompassToday.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Today",
+   "page": "compass"
+  },
+  "CompassClock.dc.html": {
+   "x": 900,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Clock In",
+   "page": "compass"
+  },
+  "CompassKiosk.dc.html": {
+   "x": 1800,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Kiosk Mode",
+   "page": "compass"
+  },
+  "CompassShift.dc.html": {
+   "x": 2700,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Shift Detail and Swap",
+   "page": "compass"
+  },
+  "CompassTask.dc.html": {
+   "x": 3600,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Task with Checklist and Photo",
+   "page": "compass"
+  },
+  "CompassIncident.dc.html": {
+   "x": 0,
+   "y": 1364,
+   "w": 390,
+   "h": 844,
+   "title": "Quick Incident",
+   "page": "compass"
+  },
+  "CompassInspection.dc.html": {
+   "x": 900,
+   "y": 1364,
+   "w": 390,
+   "h": 844,
+   "title": "Inspection Runner",
+   "page": "compass"
+  },
+  "CompassScan.dc.html": {
+   "x": 1800,
+   "y": 1364,
+   "w": 390,
+   "h": 844,
+   "title": "Scan",
+   "page": "compass"
+  },
+  "CompassShow.dc.html": {
+   "x": 2700,
+   "y": 1364,
+   "w": 390,
+   "h": 844,
+   "title": "Run of Show Live",
+   "page": "compass"
+  },
+  "CompassDaySheet.dc.html": {
+   "x": 3600,
+   "y": 1364,
+   "w": 390,
+   "h": 844,
+   "title": "Day Sheet",
+   "page": "compass"
+  },
+  "CompassCodes.dc.html": {
+   "x": 0,
+   "y": 2728,
+   "w": 390,
+   "h": 844,
+   "title": "Emergency Codes",
+   "page": "compass"
+  },
+  "CompassRadio.dc.html": {
+   "x": 900,
+   "y": 2728,
+   "w": 390,
+   "h": 844,
+   "title": "Radio Channels",
+   "page": "compass"
+  },
+  "CompassOffline.dc.html": {
+   "x": 1800,
+   "y": 2728,
+   "w": 390,
+   "h": 844,
+   "title": "Offline Queue",
+   "page": "compass"
+  },
+  "CompassProfile.dc.html": {
+   "x": 2700,
+   "y": 2728,
+   "w": 390,
+   "h": 844,
+   "title": "Profile and Certifications",
+   "page": "compass"
+  },
+  "CompassMore.dc.html": {
+   "x": 3600,
+   "y": 2728,
+   "w": 390,
+   "h": 844,
+   "title": "More Menu",
+   "page": "compass"
+  },
+  "CompassSheetScanModes.dc.html": {
+   "x": 0,
+   "y": 4092,
+   "w": 390,
+   "h": 2748,
+   "title": "Scan Modes at 390 by 844 pt",
+   "page": "compass"
+  },
+  "CompassSheet430A.dc.html": {
+   "x": 550,
+   "y": 4092,
+   "w": 430,
+   "h": 5052,
+   "title": "Compass at 430 by 932 pt, part 1",
+   "page": "compass"
+  },
+  "CompassSheet430B.dc.html": {
+   "x": 1140,
+   "y": 4092,
+   "w": 430,
+   "h": 5052,
+   "title": "Compass at 430 by 932 pt, part 2",
+   "page": "compass"
+  },
+  "CompassSheet430C.dc.html": {
+   "x": 1730,
+   "y": 4092,
+   "w": 430,
+   "h": 5052,
+   "title": "Compass at 430 by 932 pt, part 3",
+   "page": "compass"
+  },
+  "CompassSheetTabletA.dc.html": {
+   "x": 2320,
+   "y": 4092,
+   "w": 834,
+   "h": 6362,
+   "title": "Compass on 11 in tablet, part 1",
+   "page": "compass"
+  },
+  "CompassSheetTabletB.dc.html": {
+   "x": 3314,
+   "y": 4092,
+   "w": 834,
+   "h": 6362,
+   "title": "Compass on 11 in tablet, part 2",
+   "page": "compass"
+  },
+  "CompassSheetTabletC.dc.html": {
+   "x": 4308,
+   "y": 4092,
+   "w": 834,
+   "h": 6362,
+   "title": "Compass on 11 in tablet, part 3",
+   "page": "compass"
+  },
+  "GatewayHome.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Home",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayExplore.dc.html": {
+   "x": 2040,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Explore",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayOpportunity.dc.html": {
+   "x": 4080,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Opportunity Detail",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewaySaved.dc.html": {
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "Saved and Alerts",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayApply.dc.html": {
+   "x": 0,
+   "y": 2520,
+   "w": 1440,
+   "h": 900,
+   "title": "Application",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayBid.dc.html": {
+   "x": 2040,
+   "y": 2520,
+   "w": 1440,
+   "h": 900,
+   "title": "Bid Sheet",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewaySlate.dc.html": {
+   "x": 4080,
+   "y": 2520,
+   "w": 1440,
+   "h": 900,
+   "title": "Agency Slate",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayApplications.dc.html": {
+   "x": 0,
+   "y": 3620,
+   "w": 1440,
+   "h": 900,
+   "title": "Applications and Offers",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayOffer.dc.html": {
+   "x": 2040,
+   "y": 3620,
+   "w": 1440,
+   "h": 900,
+   "title": "Offer: Accept, Counter or Decline",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayOnboarding.dc.html": {
+   "x": 4080,
+   "y": 3620,
+   "w": 1440,
+   "h": 900,
+   "title": "Onboarding Packet",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayClient.dc.html": {
+   "x": 0,
+   "y": 5040,
+   "w": 1440,
+   "h": 900,
+   "title": "Client Engagement",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayVendor.dc.html": {
+   "x": 2040,
+   "y": 5040,
+   "w": 1440,
+   "h": 900,
+   "title": "Vendor Engagement",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayContractor.dc.html": {
+   "x": 4080,
+   "y": 5040,
+   "w": 1440,
+   "h": 900,
+   "title": "Contractor Engagement",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayCrew.dc.html": {
+   "x": 0,
+   "y": 6140,
+   "w": 1440,
+   "h": 900,
+   "title": "Crew Engagement",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayStaff.dc.html": {
+   "x": 2040,
+   "y": 6140,
+   "w": 1440,
+   "h": 900,
+   "title": "Staff Engagement",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayArtist.dc.html": {
+   "x": 4080,
+   "y": 6140,
+   "w": 1440,
+   "h": 900,
+   "title": "Artist Engagement",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayRepresentative.dc.html": {
+   "x": 0,
+   "y": 7240,
+   "w": 1440,
+   "h": 900,
+   "title": "Artist Representative",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewaySponsor.dc.html": {
+   "x": 2040,
+   "y": 7240,
+   "w": 1440,
+   "h": 900,
+   "title": "Sponsor Engagement",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewaySchedule.dc.html": {
+   "x": 0,
+   "y": 8660,
+   "w": 1440,
+   "h": 900,
+   "title": "Schedule",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayDocuments.dc.html": {
+   "x": 2040,
+   "y": 8660,
+   "w": 1440,
+   "h": 900,
+   "title": "Documents and Signing",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayMoney.dc.html": {
+   "x": 4080,
+   "y": 8660,
+   "w": 1440,
+   "h": 900,
+   "title": "Money and Invoice Submission",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayMessages.dc.html": {
+   "x": 0,
+   "y": 9760,
+   "w": 1440,
+   "h": 900,
+   "title": "Messages",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayProfile.dc.html": {
+   "x": 0,
+   "y": 11180,
+   "w": 1440,
+   "h": 900,
+   "title": "Profile Editor",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayPublicProfile.dc.html": {
+   "x": 2040,
+   "y": 11180,
+   "w": 1440,
+   "h": 900,
+   "title": "Public Profile and EPK",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayCompany.dc.html": {
+   "x": 4080,
+   "y": 11180,
+   "w": 1440,
+   "h": 900,
+   "title": "Company Account and Team",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewaySettings.dc.html": {
+   "x": 0,
+   "y": 12280,
+   "w": 1440,
+   "h": 900,
+   "title": "Settings, Consents and Payout",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewayAdvanceToken.dc.html": {
+   "x": 0,
+   "y": 13700,
+   "w": 1440,
+   "h": 900,
+   "title": "Advance by Token",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewaySignToken.dc.html": {
+   "x": 2040,
+   "y": 13700,
+   "w": 1440,
+   "h": 900,
+   "title": "Sign by Token and Claim Account",
+   "page": "gateway",
+   "expand": "fill"
+  },
+  "GatewaySheetPhoneA.dc.html": {
+   "x": 0,
+   "y": 15120,
+   "w": 390,
+   "h": 6476,
+   "title": "Gateway at 390 px, part 1",
+   "page": "gateway"
+  },
+  "GatewaySheetPhoneB.dc.html": {
+   "x": 1090,
+   "y": 15120,
+   "w": 390,
+   "h": 6476,
+   "title": "Gateway at 390 px, part 2",
+   "page": "gateway"
+  },
+  "GatewaySheetPhoneC.dc.html": {
+   "x": 2180,
+   "y": 15120,
+   "w": 390,
+   "h": 6476,
+   "title": "Gateway at 390 px, part 3",
+   "page": "gateway"
+  },
+  "GatewaySheetPhoneD.dc.html": {
+   "x": 3270,
+   "y": 15120,
+   "w": 390,
+   "h": 6476,
+   "title": "Gateway at 390 px, part 4",
+   "page": "gateway"
+  },
+  "FlowClock.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 3680,
+   "title": "Clock-In States",
+   "page": "flows"
+  },
+  "FlowScan.dc.html": {
+   "x": 910,
+   "y": 0,
+   "w": 390,
+   "h": 2748,
+   "title": "Continuous Scan",
+   "page": "flows"
+  },
+  "FlowIncident.dc.html": {
+   "x": 1820,
+   "y": 0,
+   "w": 390,
+   "h": 2748,
+   "title": "Three-Step Incident",
+   "page": "flows"
+  },
+  "FlowUpNext.dc.html": {
+   "x": 2730,
+   "y": 0,
+   "w": 390,
+   "h": 2748,
+   "title": "Gateway Up Next",
+   "page": "flows"
+  },
+  "FlowPayment.dc.html": {
+   "x": 3640,
+   "y": 0,
+   "w": 390,
+   "h": 2748,
+   "title": "Payment Tracker",
+   "page": "flows"
+  },
+  "FlowRequirements.dc.html": {
+   "x": 4550,
+   "y": 0,
+   "w": 390,
+   "h": 2748,
+   "title": "Requirements Check",
+   "page": "flows"
+  },
+  "FlowSidebars.dc.html": {
+   "x": 0,
+   "y": 4200,
+   "w": 1960,
+   "h": 1180,
+   "title": "Atlas Role-Default Sidebars",
+   "page": "flows"
+  },
+  "FlowAtlasPhone.dc.html": {
+   "x": 2480,
+   "y": 4200,
+   "w": 390,
+   "h": 844,
+   "title": "Atlas Phone Bottom Bar",
+   "page": "flows"
+  },
+  "FlowGatewayPhone.dc.html": {
+   "x": 3390,
+   "y": 4200,
+   "w": 390,
+   "h": 844,
+   "title": "Gateway Bar on Phone",
+   "page": "flows"
+  },
+  "FlowGatewayDesktop.dc.html": {
+   "x": 0,
+   "y": 6020,
+   "w": 1440,
+   "h": 900,
+   "title": "Gateway Bar on Desktop",
+   "page": "flows",
+   "expand": "fill"
+  },
+  "WLAtlasNorthwind.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Atlas Home · Northwind Live",
+   "page": "white-label",
+   "expand": "fill"
+  },
+  "WLAtlasHarbor.dc.html": {
+   "x": 1600,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Atlas Home · Harbor Light Events",
+   "page": "white-label",
+   "expand": "fill"
+  },
+  "WLGatewayNorthwind.dc.html": {
+   "x": 0,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "Gateway Home · Northwind Live",
+   "page": "white-label",
+   "expand": "fill"
+  },
+  "WLGatewayHarbor.dc.html": {
+   "x": 1600,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "Gateway Home · Harbor Light Events",
+   "page": "white-label",
+   "expand": "fill"
+  },
+  "WLCompassNorthwind.dc.html": {
+   "x": 0,
+   "y": 2600,
+   "w": 390,
+   "h": 844,
+   "title": "Compass Today · Northwind Live",
+   "page": "white-label"
+  },
+  "WLCompassHarbor.dc.html": {
+   "x": 600,
+   "y": 2600,
+   "w": 390,
+   "h": 844,
+   "title": "Compass Today · Harbor Light Events",
+   "page": "white-label"
+  },
+  "ProtoClock.dc.html": {
+   "x": 0,
+   "y": 7300,
+   "w": 390,
+   "h": 948,
+   "title": "Clock-In States Prototype",
+   "page": "flows",
+   "is_interactive": true
+  },
+  "ProtoScan.dc.html": {
+   "x": 910,
+   "y": 7300,
+   "w": 390,
+   "h": 948,
+   "title": "Continuous Scan Prototype",
+   "page": "flows",
+   "is_interactive": true
+  },
+  "ProtoIncident.dc.html": {
+   "x": 1820,
+   "y": 7300,
+   "w": 390,
+   "h": 948,
+   "title": "Three-Step Incident Prototype",
+   "page": "flows",
+   "is_interactive": true
+  },
+  "ProtoUpNext.dc.html": {
+   "x": 2730,
+   "y": 7300,
+   "w": 390,
+   "h": 948,
+   "title": "Gateway Up Next Prototype",
+   "page": "flows",
+   "is_interactive": true
+  },
+  "ProtoPayment.dc.html": {
+   "x": 3640,
+   "y": 7300,
+   "w": 390,
+   "h": 948,
+   "title": "Payment Tracker Prototype",
+   "page": "flows",
+   "is_interactive": true
+  },
+  "ProtoRequirements.dc.html": {
+   "x": 4550,
+   "y": 7300,
+   "w": 390,
+   "h": 948,
+   "title": "Requirements Check Prototype",
+   "page": "flows",
+   "is_interactive": true
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "AtlasSignIn.dc.html",
+  "AtlasMfa.dc.html",
+  "AtlasOnboarding.dc.html",
+  "AtlasHome.dc.html",
+  "AtlasProject.dc.html",
+  "AtlasScope.dc.html",
+  "AtlasSchedule.dc.html",
+  "AtlasRecords.dc.html",
+  "AtlasBoard.dc.html",
+  "AtlasPeek.dc.html",
+  "AtlasBudget.dc.html",
+  "AtlasPurchaseOrder.dc.html",
+  "AtlasAdvancing.dc.html",
+  "AtlasPipeline.dc.html",
+  "AtlasCrew.dc.html",
+  "AtlasTimesheets.dc.html",
+  "AtlasDispatch.dc.html",
+  "AtlasAccessGrid.dc.html",
+  "AtlasCanon.dc.html",
+  "AtlasMatrix.dc.html",
+  "AtlasMembers.dc.html",
+  "AtlasWhiteLabel.dc.html",
+  "AtlasSecurity.dc.html",
+  "AtlasBilling.dc.html",
+  "AtlasPrivacy.dc.html",
+  "AtlasCommand.dc.html",
+  "AtlasStates.dc.html",
+  "AtlasSheet1280A.dc.html",
+  "AtlasSheet1024A.dc.html",
+  "AtlasSheet1280B.dc.html",
+  "AtlasSheet1024B.dc.html",
+  "AtlasSheet1280C.dc.html",
+  "AtlasSheet1024C.dc.html",
+  "AtlasSheet1280D.dc.html",
+  "AtlasSheet1024D.dc.html",
+  "AtlasSheet1280E.dc.html",
+  "AtlasSheet1024E.dc.html",
+  "CompassToday.dc.html",
+  "CompassClock.dc.html",
+  "CompassKiosk.dc.html",
+  "CompassShift.dc.html",
+  "CompassTask.dc.html",
+  "CompassIncident.dc.html",
+  "CompassInspection.dc.html",
+  "CompassScan.dc.html",
+  "CompassShow.dc.html",
+  "CompassDaySheet.dc.html",
+  "CompassCodes.dc.html",
+  "CompassRadio.dc.html",
+  "CompassOffline.dc.html",
+  "CompassProfile.dc.html",
+  "CompassMore.dc.html",
+  "CompassSheetScanModes.dc.html",
+  "CompassSheet430A.dc.html",
+  "CompassSheet430B.dc.html",
+  "CompassSheet430C.dc.html",
+  "CompassSheetTabletA.dc.html",
+  "CompassSheetTabletB.dc.html",
+  "CompassSheetTabletC.dc.html",
+  "GatewayHome.dc.html",
+  "GatewayExplore.dc.html",
+  "GatewayOpportunity.dc.html",
+  "GatewaySaved.dc.html",
+  "GatewayApply.dc.html",
+  "GatewayBid.dc.html",
+  "GatewaySlate.dc.html",
+  "GatewayApplications.dc.html",
+  "GatewayOffer.dc.html",
+  "GatewayOnboarding.dc.html",
+  "GatewayClient.dc.html",
+  "GatewayVendor.dc.html",
+  "GatewayContractor.dc.html",
+  "GatewayCrew.dc.html",
+  "GatewayStaff.dc.html",
+  "GatewayArtist.dc.html",
+  "GatewayRepresentative.dc.html",
+  "GatewaySponsor.dc.html",
+  "GatewaySchedule.dc.html",
+  "GatewayDocuments.dc.html",
+  "GatewayMoney.dc.html",
+  "GatewayMessages.dc.html",
+  "GatewayProfile.dc.html",
+  "GatewayPublicProfile.dc.html",
+  "GatewayCompany.dc.html",
+  "GatewaySettings.dc.html",
+  "GatewayAdvanceToken.dc.html",
+  "GatewaySignToken.dc.html",
+  "GatewaySheetPhoneA.dc.html",
+  "GatewaySheetPhoneB.dc.html",
+  "GatewaySheetPhoneC.dc.html",
+  "GatewaySheetPhoneD.dc.html",
+  "FlowClock.dc.html",
+  "FlowScan.dc.html",
+  "FlowIncident.dc.html",
+  "FlowUpNext.dc.html",
+  "FlowPayment.dc.html",
+  "FlowRequirements.dc.html",
+  "FlowSidebars.dc.html",
+  "FlowAtlasPhone.dc.html",
+  "FlowGatewayPhone.dc.html",
+  "FlowGatewayDesktop.dc.html",
+  "ProtoClock.dc.html",
+  "ProtoScan.dc.html",
+  "ProtoIncident.dc.html",
+  "ProtoUpNext.dc.html",
+  "ProtoPayment.dc.html",
+  "ProtoRequirements.dc.html",
+  "WLAtlasNorthwind.dc.html",
+  "WLAtlasHarbor.dc.html",
+  "WLGatewayNorthwind.dc.html",
+  "WLGatewayHarbor.dc.html",
+  "WLCompassNorthwind.dc.html",
+  "WLCompassHarbor.dc.html"
+ ],
+ "notes": {
+  "ag1": {
+   "x": 0,
+   "y": -300,
+   "text": "Access and Home",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "atlas"
+  },
+  "ag2": {
+   "x": 0,
+   "y": 2220,
+   "text": "Plan and Track",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "atlas"
+  },
+  "ag3": {
+   "x": 0,
+   "y": 4740,
+   "text": "Advance and People",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "atlas"
+  },
+  "ag4": {
+   "x": 0,
+   "y": 7260,
+   "text": "Safety, Access and Canon",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "atlas"
+  },
+  "ag5": {
+   "x": 0,
+   "y": 9780,
+   "text": "Settings and System States",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "atlas"
+  },
+  "asheets": {
+   "x": 0,
+   "y": 13400,
+   "text": "Atlas at 1280 and 1024 px",
+   "kind": "title1",
+   "maxW": 12000,
+   "page": "atlas"
+  },
+  "cg1": {
+   "x": 0,
+   "y": -300,
+   "text": "Today, Clock and Shifts",
+   "kind": "title1",
+   "maxW": 4340,
+   "page": "compass"
+  },
+  "cg2": {
+   "x": 0,
+   "y": 1064,
+   "text": "Report, Inspect and Scan",
+   "kind": "title1",
+   "maxW": 4340,
+   "page": "compass"
+  },
+  "cg3": {
+   "x": 0,
+   "y": 2428,
+   "text": "Reference, Offline and Profile",
+   "kind": "title1",
+   "maxW": 4340,
+   "page": "compass"
+  },
+  "csheets": {
+   "x": 0,
+   "y": 3792,
+   "text": "Compass at 430 by 932 pt, 11 in tablet and scan modes",
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "compass"
+  },
+  "gg1": {
+   "x": 0,
+   "y": -300,
+   "text": "Home and Opportunities",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "gateway"
+  },
+  "gg2": {
+   "x": 0,
+   "y": 2220,
+   "text": "Apply, Offers and Onboarding",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "gateway"
+  },
+  "gg3": {
+   "x": 0,
+   "y": 4740,
+   "text": "Engagement Overview by Role Type",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "gateway"
+  },
+  "gg4": {
+   "x": 0,
+   "y": 8360,
+   "text": "Schedule, Documents, Money and Messages",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "gateway"
+  },
+  "gg5": {
+   "x": 0,
+   "y": 10880,
+   "text": "Profile, Company and Settings",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "gateway"
+  },
+  "gg6": {
+   "x": 0,
+   "y": 13400,
+   "text": "Token Flows Without an Account",
+   "kind": "title1",
+   "maxW": 5960,
+   "page": "gateway"
+  },
+  "gsheets": {
+   "x": 0,
+   "y": 14820,
+   "text": "Gateway at phone width, 390 px",
+   "kind": "title1",
+   "maxW": 4000,
+   "page": "gateway"
+  },
+  "fflows": {
+   "x": 0,
+   "y": -300,
+   "text": "Leadership flows with tap and keystroke counts",
+   "kind": "title1",
+   "maxW": 5400,
+   "page": "flows"
+  },
+  "fnav": {
+   "x": 0,
+   "y": 3900,
+   "text": "Role-default sidebars and navigation bars",
+   "kind": "title1",
+   "maxW": 5400,
+   "page": "flows"
+  },
+  "wl": {
+   "x": 0,
+   "y": -300,
+   "text": "Same screens, two tenant brands, tokens only",
+   "kind": "title1",
+   "maxW": 3200,
+   "page": "white-label"
+  },
+  "n-AtlasSignIn": {
+   "x": 1480,
+   "y": 0,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nPasskey is the one primary action; Apple, Google and email link follow, password and SSO are links. Enter submits the focused method. Session expiry reopens this as a dialog over the page and keeps unsaved input.\n\nResponsive\nAuth template: 400 px card centered on the surface ground at every width; footer links wrap below 375 px.\n\nAccessibility\nFocus order: passkey, Apple, Google, email field, email link, password, SSO, footer. One h1. Email field uses autocomplete username webauthn so the browser offers passkeys inline. Errors are announced with role alert."
+  },
+  "n-AtlasMfa": {
+   "x": 3520,
+   "y": 0,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nTyping 6 digits verifies automatically; Verify is the fallback. Security key or platform authenticator is offered first by the browser. Recovery code and switch account are links.\n\nResponsive\nSame Auth card at every width.\n\nAccessibility\nCode field uses inputmode numeric and autocomplete one-time-code. The info alert is announced politely. Wrong code: the field names the problem and the fix in one sentence."
+  },
+  "n-AtlasOnboarding": {
+   "x": 5560,
+   "y": 0,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nWizard: Back and Next, Cmd or Ctrl+Enter for Next, progress saved per step. The jurisdiction combobox lists Bible tab 11 codes; GB, MX, AE and SA are declared but unpopulated and refuse with No Answer. Checklist matches the eight first-run steps in Section 11.7.\n\nResponsive\nForm column 640 px with the checklist beside it; below 1024 px the checklist wraps under the form and the stepper scrolls sideways.\n\nAccessibility\nStepper is an ordered list with aria-current on the step. Combobox follows the ARIA 1.2 pattern, arrows move, Enter selects. Landmarks: header, main, aside."
+  },
+  "n-AtlasHome": {
+   "x": 1480,
+   "y": 1100,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nC creates a record anywhere, Cmd or Ctrl+K opens the command menu, G then H returns Home. My Work rows show state, owner, next date and the next action on hover; E completes, A approves. Inbox items Done with E, Snooze with H.\n\nResponsive\nSidebar 240 px from 1024 px up; a drawer from the menu button below 1024 px; below 768 px the bottom bar shows Home, Inbox, Search, My Work, Menu. Two columns stack when the content is narrower than two 420 px columns; tiles go 3, 2, 1. My Work rows reflow by the width of the list, below 720 px, not the viewport.\n\nAccessibility\nLandmarks: nav (sidebar), main, banner row. One h1 with h2 per region. Stat deltas are text, never color alone. Inbox counts are announced politely when they change."
+  },
+  "n-AtlasProject": {
+   "x": 3520,
+   "y": 1100,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nProject tabs follow Section 4.5.4 order and scroll sideways. Scope picker filters every tab. Gate readiness lists canon G3 criteria; each gap carries the action that clears it, and Enter Gate 4 activates when the last blocker clears.\n\nResponsive\nReadiness and summary sit side by side from 1024 px and stack below; tabs scroll; key dates keep a two-column grid down to 640 px.\n\nAccessibility\nGate criteria are a list; results use icon plus word. Presence avatars have a text label. Tabs use the ARIA tabs pattern with arrow keys."
+  },
+  "n-AtlasScope": {
+   "x": 5560,
+   "y": 1100,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nScope tree: arrows move, Right expands, Left collapses, Enter selects and filters every tab. E opens element selection. Reconciliation rows open the capability document.\n\nResponsive\nTree column 260 to 300 px beside content; below 1024 px the tree moves above the tables. Element table scrolls inside its region.\n\nAccessibility\nTree uses role tree with aria-expanded. Staleness is text with an icon. Unpriced element shows Unpriced, never $0.00."
+  },
+  "n-AtlasSchedule": {
+   "x": 1480,
+   "y": 2520,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nDrag a bar to reschedule; dependents preview before release, Escape cancels. Keyboard: Space picks up, arrows move by a day, Space drops. Double booking is flagged in place before release. Baseline and critical path are toggles.\n\nResponsive\nTimeline scrolls inside its labeled region at every width; header controls wrap. Below 768 px the Timeline view is offered read-only and List becomes default.\n\nAccessibility\nEach bar has an accessible name with dates and state. Drag steps are announced. The table view is the accessible alternative to the chart."
+  },
+  "n-AtlasRecords": {
+   "x": 3520,
+   "y": 2520,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nJ and K move, X selects, Shift+click selects a range, Cmd or Ctrl+A selects loaded rows. The bulk bar shows only actions every selected record allows. Filters, sort and grouping carry across view types.\n\nResponsive\nRows reflow below 1024 px: state and title on line one, metadata on line two, action at the end. Below 768 px rows become stacked cards with the three key fields.\n\nAccessibility\nList uses role list with labeled rows; selected state is aria-selected. Bulk bar is a toolbar announced when it appears."
+  },
+  "n-AtlasBoard": {
+   "x": 5560,
+   "y": 2520,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nDrag cards between states; keyboard path is Space, arrows, Space, with announcements. A move shows an Undo toast for 8 seconds. Add Record lives at the end of each column.\n\nResponsive\nColumns scroll sideways in a region; on phones Board becomes a compact state-grouped list.\n\nAccessibility\nColumns are labeled groups with counts. Cards are buttons opening the side peek. Moves are announced with the new state."
+  },
+  "n-AtlasPeek": {
+   "x": 1480,
+   "y": 3620,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nSelecting a row opens the side peek; J and K move between records without closing it; Cmd or Ctrl+Enter opens the full page; Escape closes. Properties edit in place. QR code continues the record in Compass.\n\nResponsive\nPeek is 560 px, resizable 440 to 960; below 768 px it opens full screen.\n\nAccessibility\nPeek is a complementary region labeled with the record key. Focus moves to the title on open and returns to the row on close. Comments and reactions are labeled."
+  },
+  "n-AtlasBudget": {
+   "x": 3520,
+   "y": 3620,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nSpreadsheet speed: arrows move, Enter edits, Tab commits, fill handle copies. Grade switch recalculates amounts; amounts are derived from qty times rate and never stored. GL posts by URID class (5000 to 5500, 8000 to 5800).\n\nResponsive\nGrid scrolls in its region with pinned first columns; tiles reflow 3, 2, 1. Below 768 px the grid is read-only with stacked line cards.\n\nAccessibility\nGrid follows the ARIA grid pattern with row and column headers. Unpriced lines read Unpriced. Totals row is announced as a summary."
+  },
+  "n-AtlasPurchaseOrder": {
+   "x": 5560,
+   "y": 3620,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nThree-way match compares ordered, received and invoiced per line; mismatches block approval of that line only. A approves matched lines, Hold Invoice pauses payment. Credit request opens a message to the vendor.\n\nResponsive\nRecord layout: content left, 320 px properties right; properties drop below content under 1024 px. Match table scrolls in its region.\n\nAccessibility\nMatch state is icon plus word. Banner is role alert. Property list is a description list."
+  },
+  "n-AtlasAdvancing": {
+   "x": 1480,
+   "y": 5040,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nRecipient by section heatmap shows every outstanding item on one screen; select a cell to open that submission. Remind Outstanding sends to only the incomplete cells. Sections reorder by drag or keyboard.\n\nResponsive\nSections and heatmap sit side by side above 1024 px and stack below; the heatmap scrolls in its region.\n\nAccessibility\nHeatmap is a real table with row and column headers; each cell carries a text state for screen readers. Legend repeats states as text."
+  },
+  "n-AtlasPipeline": {
+   "x": 3520,
+   "y": 5040,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nBoard by application state from Section 4.4.4. Drag to move stage; Send Offers acts on the shortlisted column. Pool members get early access. Do Not Engage flags never show here.\n\nResponsive\nBoard scrolls sideways; fill bar wraps under the opportunity picker.\n\nAccessibility\nEach card names the applicant and their status. Fill rate is a labeled progress bar with a text value."
+  },
+  "n-AtlasCrew": {
+   "x": 5560,
+   "y": 5040,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nDrag people from the availability list onto shifts; Space, arrows and Space on keyboard. Overtime and double booking warn before assignment. Fill bar updates live.\n\nResponsive\nThe availability list sits under the schedule at every Atlas width, so neither is cut; the schedule scrolls in its region at 1024 px.\n\nAccessibility\nResource schedule is a grid with person and day headers. Warnings are text, not color only. Overtime uses OTR-001 numbers."
+  },
+  "n-AtlasTimesheets": {
+   "x": 1480,
+   "y": 6140,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nSplit view: list on the left, timesheet on the right. A approves, R rejects with a reason, Shift+A approves every clean sheet. Approve a queue of 20 in under 60 s. Undo toast for 8 seconds.\n\nResponsive\nSplit view list collapses to a single column below 768 px and opens the detail as a full screen.\n\nAccessibility\nList is a listbox with aria-selected. Punch table has headers. Edited punches are flagged with text."
+  },
+  "n-AtlasDispatch": {
+   "x": 1480,
+   "y": 7560,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nNew incidents appear at the top of the queue within 2 s. A assigns, Shift+E escalates, E resolves. Severity reads as icon, edge color and word. Map pins match the queue.\n\nResponsive\nQueue and map side by side above 1024 px; below, the queue sits above the map. Map scrolls in its region.\n\nAccessibility\nQueue is a live region announcing new incidents politely and Severity 1 assertively. Map has a list alternative (the queue)."
+  },
+  "n-AtlasAccessGrid": {
+   "x": 3520,
+   "y": 7560,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nSpace toggles a grant, arrows move, Shift+arrows select a range. Changes sync to Compass scanners within a minute, offline included. Badge preview updates with the category.\n\nResponsive\nGrid scrolls in its region; badge preview moves under the grid below 1024 px.\n\nAccessibility\nMatrix is an ARIA grid; each cell names zone, category and granted or not. Category color always pairs with its name."
+  },
+  "n-AtlasCanon": {
+   "x": 5560,
+   "y": 7560,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nRead-only canon from the Bible, in numeric order. Department list filters the Roles table. Org extensions live only in free .50 to .99 ranges and never change a canon row.\n\nResponsive\nDepartment list sits beside the table above 1024 px and above it below.\n\nAccessibility\nDepartment list uses aria-current. Codes sit in mono chips beside plain names. Provenance badge names the source."
+  },
+  "n-AtlasMatrix": {
+   "x": 1480,
+   "y": 8660,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\n90 coordinates, 10 departments by 9 gates. Every number opens its records in one click; arrows move between cells and Enter opens. Measure switch changes the count.\n\nResponsive\nMatrix scrolls in its region at every width; filters wrap.\n\nAccessibility\nMatrix is a grid with row and column headers; blank cells read No records. Table view is the accessible alternative."
+  },
+  "n-AtlasMembers": {
+   "x": 1480,
+   "y": 10080,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nInvite with I. Role change is inline per row with Undo. Visibility table mirrors Section 4.5.9 so admins see what each role sees.\n\nResponsive\nSettings layout: section list left; below 768 px the list becomes a menu button and tables scroll in regions.\n\nAccessibility\nSection list is nav with aria-current. Tables have captions. MFA status is icon plus word."
+  },
+  "n-AtlasWhiteLabel": {
+   "x": 3520,
+   "y": 10080,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nBrand step of the white-label wizard. Accent picker runs the contrast gate live and blocks a failing save. Preview shows the tenant change on real components. Sticky save bar appears when dirty; Cmd or Ctrl+S saves.\n\nResponsive\nForm 640 px with preview beside it above 1024 px and below it under that.\n\nAccessibility\nContrast checks are text results. Unsaved status is a live region. Brand slots name their exact sizes and formats."
+  },
+  "n-AtlasSecurity": {
+   "x": 5560,
+   "y": 10080,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nEvery setting shows where its value comes from and who changed it. Locked at organization level for lower scopes. Extra settings sit behind More so 7 or fewer fields show first.\n\nResponsive\nSingle 640 px column at every width.\n\nAccessibility\nRadio group and switches use native inputs with labels. Accordion headers are buttons with aria-expanded."
+  },
+  "n-AtlasBilling": {
+   "x": 1480,
+   "y": 11180,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nOwners only; Admins never see this page (Section 4.5.9). Change Plan is the one primary action.\n\nResponsive\nSingle column up to 880 px; tiles reflow 3, 2, 1.\n\nAccessibility\nCard number shows last four only. Invoice table has a caption and status words."
+  },
+  "n-AtlasPrivacy": {
+   "x": 3520,
+   "y": 11180,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nData requests show their respond-by date; held deletions explain why. Export All Data runs in the background and notifies when ready.\n\nResponsive\nSingle column up to 880 px; tables scroll in regions on phones.\n\nAccessibility\nClassification table explains display rules in words. Legal hold alert is role status."
+  },
+  "n-AtlasCommand": {
+   "x": 5560,
+   "y": 11180,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nCmd or Ctrl+K anywhere. Results group by Actions, Records, Settings and People; arrows move, Enter runs, Escape closes. The last 50 viewed records show before typing. Operators like kind: and is:blocked filter.\n\nResponsive\nDialog 640 px wide, full width minus 16 px gutters on phones.\n\nAccessibility\nCombobox with listbox results; focus is trapped in the dialog and returns on close. Background is inert."
+  },
+  "n-AtlasStates": {
+   "x": 1480,
+   "y": 12280,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "blue",
+   "page": "atlas",
+   "text": "Interaction and keys\nEvery region has its own empty, error and refusal state. Empty states are one sentence and one button. Errors name the field, problem and fix. Refusals show NO_ANSWER, UNRATIFIED or REFUSE with the reason; 403 renders as 404.\n\nResponsive\nGrid of states reflows from two columns to one below 900 px.\n\nAccessibility\nErrors use role alert; refusals use role status. Retry buttons say what they retry."
+  },
+  "n-CompassToday": {
+   "x": 430,
+   "y": 0,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nOne primary action: the clock button, which changes with state. Geofence status shows before the tap. Tasks swipe right to complete, left to snooze, with buttons for both. Context picker switches project and scope. Supervisors see the Crew tab.\n\nResponsive\nFluid from 320 to 430 pt; on tablet the sections become two columns. Text holds at 200 percent font scale.\n\nAccessibility\n48 pt minimum targets. Landmarks: header, main, nav. Clock state changes are announced. Tab bar uses aria-current."
+  },
+  "n-CompassClock": {
+   "x": 1330,
+   "y": 0,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nStates: outside geofence (waits), at venue (Clock In, 1 tap), on shift (Break, Clock Out), on break (End Break). Haptic plus 120 ms visual confirmation. Live Activity offers Break and Clock Out from the lock screen. Double clock-in on another device is refused.\n\nResponsive\nSame layout at 390 and 430 pt; tablet centers the column.\n\nAccessibility\nClock state is a live region. Geofence status is text plus icon. Clock Out uses the danger style but stays a single tap with Undo."
+  },
+  "n-CompassKiosk": {
+   "x": 2230,
+   "y": 0,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nShared device: worker enters a 4-digit PIN, photo on punch, one person per PIN. Exiting needs a supervisor passkey. Opens in Sunlight for outdoor gates.\n\nResponsive\nKeypad stays 3 by 4 with 64 pt keys at every size; tablet centers it.\n\nAccessibility\nPIN progress is announced as digits entered, never the digits. Keys have labels, including Delete last digit."
+  },
+  "n-CompassShift": {
+   "x": 3130,
+   "y": 0,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nShift card offers calendar and wallet in 1 tap. Swap request lists only qualified, free people; nobody approves their own swap. Withdraw is available until approved.\n\nResponsive\nSingle column; tablet shows the swap form beside the card.\n\nAccessibility\nForm fields are labeled; help text explains eligibility. Back button names its destination."
+  },
+  "n-CompassTask": {
+   "x": 4030,
+   "y": 0,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nChecklist items are rows. Photo proof captures inline when required. Complete Task or swipe right from Today; works offline and queues.\n\nResponsive\nPhoto grid stays 3 across; tablet widens the column.\n\nAccessibility\nChecklist is a fieldset with a legend and count. Photos have time-stamped labels."
+  },
+  "n-CompassIncident": {
+   "x": 430,
+   "y": 1364,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nThree steps. Step 1 opens as a sheet over whatever screen is showing, from the Report Incident action anywhere: type grid; then confirm location (filled automatically), add photo or voice note and send. Critical types use hold to send. Works offline with a visible queue. Target under 30 s.\n\nResponsive\nType grid is 2 or 3 across by width; map scales to the column.\n\nAccessibility\nThe sheet is a modal dialog and the screen behind it is inert. Step and progress are announced. Hold to send has a text explanation and an accessible alternative long-press duration setting."
+  },
+  "n-CompassInspection": {
+   "x": 1330,
+   "y": 1364,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nOne item per card with large Pass and Fail. Fail requires a photo and a note before continuing. Sign-off unlocks after the last item. Average under 5 s per item.\n\nResponsive\nSingle column; tablet shows the item list beside the current card.\n\nAccessibility\nPass and Fail are buttons with text. Failed alert is role alert."
+  },
+  "n-CompassScan": {
+   "x": 2230,
+   "y": 1364,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nOpens from the center tab. Mode picker in the scan sheet: Asset, Receiving, Credential. Continuous mode counts each scan with a haptic, then a batch review. NFC button reads tags.\n\nResponsive\nViewfinder fills the width; review table fits 320 pt and up.\n\nAccessibility\nEach scan result is announced politely; failures assertively. Mode picker is a segmented radio group."
+  },
+  "n-CompassShow": {
+   "x": 3130,
+   "y": 1364,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nShow mode: always dark, screen kept awake, large type, haptic before each cue. Cues sync with Atlas in under 500 ms. Only the stage manager advances cues.\n\nResponsive\nLarge type scales up on tablet for arm's-length reading.\n\nAccessibility\nCurrent cue and countdown are a live region announced at each cue change, not every second."
+  },
+  "n-CompassDaySheet": {
+   "x": 4030,
+   "y": 1364,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nDay sheet is cached for offline. Now marker follows the clock. Contacts call or message in 1 tap.\n\nResponsive\nSingle column; tablet shows contacts beside the schedule.\n\nAccessibility\nTimes are text in a list; the current entry is marked with text, not color only."
+  },
+  "n-CompassCodes": {
+   "x": 430,
+   "y": 2728,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nGlobal codes, 14 in canon order; protocols by operational domain. Steps name services and fill agencies from the venue jurisdiction (Miami Fire-Rescue, Miami Police Department). Offline.\n\nResponsive\nSingle column; tablet shows the code list beside the open card.\n\nAccessibility\nEvery swatch sits beside its code word; color never stands alone. Steps are an ordered list."
+  },
+  "n-CompassRadio": {
+   "x": 1330,
+   "y": 2728,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nYour channel at the top. Emergency channel reminder. Plan sorted by zone then channel. Offline.\n\nResponsive\nTable fits 320 pt with wrapping notes.\n\nAccessibility\nTable has a caption and headers. Emergency note is role note with text."
+  },
+  "n-CompassOffline": {
+   "x": 2230,
+   "y": 2728,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nEverything works offline; this queue shows what will send, in order. Conflicts wait for the person and show both values. Nothing is silently lost.\n\nResponsive\nSingle column; tablet shows the conflict beside the queue.\n\nAccessibility\nOffline banner is a status region. Conflict choices are radio buttons with full values read out."
+  },
+  "n-CompassProfile": {
+   "x": 3130,
+   "y": 2728,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nShow My Badge brightens the screen and shows the offline QR; also in Wallet. Expiring certifications warn 30 days ahead with a 1-tap upload.\n\nResponsive\nSingle column; tablet shows certifications beside identity.\n\nAccessibility\nBadge QR has a text alternative with the credential key. Expiry status is text."
+  },
+  "n-CompassMore": {
+   "x": 4030,
+   "y": 2728,
+   "w": 360,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "compass",
+   "text": "Interaction and keys\nMore menu in the Section 4.5.7 order: Incidents, Inspections, Logistics, Show, Expenses, Reference (Emergency codes, Radio channels, Venue maps, SOPs), Offline queue, Profile and certifications, Settings. External users see role-specific additions.\n\nResponsive\nList rows are 52 pt; tablet uses two columns.\n\nAccessibility\nNav landmark with headings for groups. Counts are part of each link's accessible name."
+  },
+  "n-GatewayHome": {
+   "x": 1480,
+   "y": 0,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nUp Next card leads with countdown, call time, address, parking, contact and what to bring; 1 tap to directions, calendar or wallet. Needs You feed acts inline. Recommendations explain how ranking works. Search sits at the top.\n\nResponsive\nTop bar on desktop; below 768 px the five destinations move to a bottom tab bar. Up Next and the feed stack below 900 px.\n\nAccessibility\nLandmarks: banner, main, nav. Each feed item's action names the item. Countdown text updates without being announced every minute."
+  },
+  "n-GatewayExplore": {
+   "x": 3520,
+   "y": 0,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nFor You feed, filter chips, list or map, Saved and Alerts. Cards lead with role, pay, date and place. On phones swipe right to save and left to pass, with buttons for both. Rate on Request when no pay is posted.\n\nResponsive\nGallery reflows from 3 cards to 1. Filter chips wrap onto more lines on phones; the Cards and Map switch sits with the filters.\n\nAccessibility\nChips are toggle buttons with aria-pressed. Map view has the list as its alternative."
+  },
+  "n-GatewayOpportunity": {
+   "x": 5560,
+   "y": 0,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nRequirements check shows a green mark when the person qualifies or exactly what is missing, with the fix. Pay shows before applying. Apply in 3 taps or fewer with a complete profile.\n\nResponsive\nTwo columns above 900 px; the check panel moves above the description on phones.\n\nAccessibility\nRequirement status is icon plus word. Apply is disabled only by missing requirements and says why."
+  },
+  "n-GatewaySaved": {
+   "x": 1480,
+   "y": 1100,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nSaved opportunities and saved-search alerts with push and email switches. New Alert saves the current filters.\n\nResponsive\nSaved cards and alerts stack on phones.\n\nAccessibility\nSwitches are labeled inputs. Alert counts are text."
+  },
+  "n-GatewayApply": {
+   "x": 1480,
+   "y": 2520,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nOne-step apply with a profile snapshot. Each shared field is a visible toggle before sending. Drafts save automatically. No resumes.\n\nResponsive\nSingle 640 px column.\n\nAccessibility\nSharing toggles are switches with labels. Draft saved is a status region."
+  },
+  "n-GatewayBid": {
+   "x": 3520,
+   "y": 2520,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nSealed line-item bid; nobody sees another bidder. Unpriced lines go as No Bid, never zero. Drafts save. Submit Sealed Bid locks the bid until the deadline.\n\nResponsive\nBid grid scrolls in its region; actions wrap.\n\nAccessibility\nGrid cells have headers. Deadline is text with time zone."
+  },
+  "n-GatewaySlate": {
+   "x": 5560,
+   "y": 2520,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nAgency picks named staff from its roster; only staff with verified required certifications can be included. Positions counter shows filled of needed.\n\nResponsive\nSingle column up to 760 px.\n\nAccessibility\nRoster rows are checkboxes labeled with name and role; certification status is text."
+  },
+  "n-GatewayApplications": {
+   "x": 1480,
+   "y": 3620,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nWork, Applications tab: board by application state, read-only for the applicant: no add buttons, cards open but do not move. Offers carry a banner with the answer-by date.\n\nResponsive\nBoard scrolls sideways; on phones it becomes a state-grouped list.\n\nAccessibility\nColumns are labeled lists with counts."
+  },
+  "n-GatewayOffer": {
+   "x": 3520,
+   "y": 3620,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nAccept, Counter or Decline. Counter sends a new rate and note; Decline asks for a shared reason. Terms show classification and pay basis per the engagement canon (Independent Contractor, Day Rate, Per Engagement).\n\nResponsive\nTerms and timeline stack on phones; actions go full width.\n\nAccessibility\nMode changes move focus to the new form heading. Timeline is an ordered list with the current stage marked in text."
+  },
+  "n-GatewayOnboarding": {
+   "x": 5560,
+   "y": 3620,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nChecklist with progress and minutes per item. Items already verified with this org check themselves off. Camera capture crops documents automatically. Blocking items gate the first shift.\n\nResponsive\nSingle 640 px column.\n\nAccessibility\nEach item states blocking or optional in text. Progress bar has a text value."
+  },
+  "n-GatewayClient": {
+   "x": 1480,
+   "y": 5040,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nClient tabs in Section 4.5.8 order. Approvals inline with A. Change orders show amount and impact.\n\nResponsive\nContent and timeline stack below 900 px; tabs scroll.\n\nAccessibility\nTabs use the ARIA tabs pattern. Stat tiles read value and caption."
+  },
+  "n-GatewayVendor": {
+   "x": 3520,
+   "y": 5040,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nVendor tabs in Section 4.5.8 order. PO, dock slot, advance and invoice status on one screen. Payment tracker shows held invoices plainly.\n\nResponsive\nSame responsive pattern as every engagement page.\n\nAccessibility\nInsurance expiry alert is role alert. Codes in mono beside plain words."
+  },
+  "n-GatewayContractor": {
+   "x": 5560,
+   "y": 5040,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nContractor tabs in Section 4.5.8 order. Invoice drafts from accepted deliverables. Classification states 1099-NEC.\n\nResponsive\nSame responsive pattern.\n\nAccessibility\nDeliverable rows show state as icon and word."
+  },
+  "n-GatewayCrew": {
+   "x": 1480,
+   "y": 6140,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nCrew tabs in Section 4.5.8 order. Onboarding progress and shifts lead. Employee classification states W-2 payroll; overtime at 1.5x after 40 hours (OTR-001).\n\nResponsive\nSame responsive pattern; shift cards stack.\n\nAccessibility\nProgress bar has a text value. Shift cards are articles with headings."
+  },
+  "n-GatewayStaff": {
+   "x": 3520,
+   "y": 6140,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nStaff tabs in Section 4.5.8 order. Training and briefings first; agency staff see that pay comes from their agency.\n\nResponsive\nSame responsive pattern.\n\nAccessibility\nBriefing items state minutes and blocking in text."
+  },
+  "n-GatewayArtist": {
+   "x": 5560,
+   "y": 6140,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nArtist tabs in Section 4.5.8 order. Set time, load-in, fee, hospitality and guest list on Overview. Advance reconciles rider needs against venue capability.\n\nResponsive\nSame responsive pattern.\n\nAccessibility\nReconciliation results are words, not color."
+  },
+  "n-GatewayRepresentative": {
+   "x": 1480,
+   "y": 7240,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nRoster of represented artists with delegated scopes and expiry. Acts only within scopes; everything else goes to the artist.\n\nResponsive\nTable scrolls in a region on phones.\n\nAccessibility\nScopes are text in a table with headers."
+  },
+  "n-GatewaySponsor": {
+   "x": 3520,
+   "y": 7240,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nSponsor tabs in Section 4.5.8 order. Entitlements with status, asset approvals, activation schedule. Proof of performance arrives at Gate 8.\n\nResponsive\nSame responsive pattern.\n\nAccessibility\nProgress bar has a text value; entitlement table has a caption."
+  },
+  "n-GatewaySchedule": {
+   "x": 1480,
+   "y": 8660,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nWork, Upcoming across orgs in calendar and list; calendar feed subscribes in 1 tap; any item adds to a calendar.\n\nResponsive\nCalendar and agenda stack on phones; phones default to the agenda list.\n\nAccessibility\nCalendar grid has day headers; events are listed in text."
+  },
+  "n-GatewayDocuments": {
+   "x": 3520,
+   "y": 8660,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nVault across orgs with expiry. Signing shows the document, the attestation and the signature pad; Sign and Finish creates a signed certificate.\n\nResponsive\nVault and signing stack on phones; the signature pad fills the width.\n\nAccessibility\nSignature pad has a typed-name alternative. File previewer pages are labeled."
+  },
+  "n-GatewayMoney": {
+   "x": 5560,
+   "y": 8660,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nOverview: earned, pending, next payment. Invoices draft from approved days; submit in under 60 s. Tracker reads Submitted, Approved, Scheduled, Paid with dates. XOS never holds funds.\n\nResponsive\nTiles reflow 3, 2, 1; forms are single column.\n\nAccessibility\nTracker stages are an ordered list with dates as text. Amounts use Money formatting."
+  },
+  "n-GatewayMessages": {
+   "x": 1480,
+   "y": 9760,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nThreads per engagement and per org; attachments, reactions, Cmd or Ctrl+Enter sends. Reply from the push notification without opening the app.\n\nResponsive\nSplit view on desktop; on phones the list and thread are separate screens.\n\nAccessibility\nThread list is a listbox; messages are a log region."
+  },
+  "n-GatewayProfile": {
+   "x": 1480,
+   "y": 11180,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nPer-field visibility: Private, Shared on application, Public. Strength meter names the next improvement. Skills tag canon roles. Availability calendar shares on application.\n\nResponsive\nEditor and availability stack on phones.\n\nAccessibility\nVisibility controls are labeled selects per field. Strength is a text percentage."
+  },
+  "n-GatewayPublicProfile": {
+   "x": 3520,
+   "y": 11180,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nPublic profile at /u/handle with EPK media, links and ratings from completed engagements, with public replies.\n\nResponsive\nMedia grid reflows to one column on phones.\n\nAccessibility\nMedia items have labels; ratings are text."
+  },
+  "n-GatewayCompany": {
+   "x": 5560,
+   "y": 11180,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nCompany account at /c/handle. Team with account roles: Owner, Admin, Finance, Member. Capabilities tagged by canon; insurance shared with each org.\n\nResponsive\nTabs scroll; cards reflow.\n\nAccessibility\nRole table has a caption. Tabs use the ARIA pattern."
+  },
+  "n-GatewaySettings": {
+   "x": 1480,
+   "y": 12280,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nPersonal settings in Section 4.5.6 order. Sharing consents per org are reversible. Payout details stored as Restricted and shown as last four only.\n\nResponsive\nSection list becomes a menu button below 768 px.\n\nAccessibility\nRevoke is a danger button that names the org. Payout form fields are labeled."
+  },
+  "n-GatewayAdvanceToken": {
+   "x": 1480,
+   "y": 13700,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nNo account needed; token plus access code. Answers save as typed. Seven sections with a stepper. At the end the person is offered an account.\n\nResponsive\nSingle 720 px column.\n\nAccessibility\nStepper is an ordered list. File drop has a button alternative."
+  },
+  "n-GatewaySignToken": {
+   "x": 3520,
+   "y": 13700,
+   "w": 400,
+   "maxH": 860,
+   "size": "s",
+   "fill": "purple",
+   "page": "gateway",
+   "text": "Interaction and keys\nSign with a token, then claim a Gateway account by passkey; records link by verified email. Not Now keeps the token flow.\n\nResponsive\nSingle 720 px column.\n\nAccessibility\nSuccess message is role status. Claim is optional and says so."
+  },
+  "n-FlowClock-1": {
+   "x": 430,
+   "y": 40,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 1\nOutside the geofence the button waits and says why. 0 taps possible."
+  },
+  "n-FlowClock-2": {
+   "x": 430,
+   "y": 972,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 2\nInside the venue: Clock In is 1 tap, under 2 s from unlock. App Shortcut, Action Button and quick tile do the same."
+  },
+  "n-FlowClock-3": {
+   "x": 430,
+   "y": 1904,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 3\nOn shift: timer, Break and Clock Out each 1 tap. Live Activity mirrors them on the lock screen."
+  },
+  "n-FlowClock-4": {
+   "x": 430,
+   "y": 2836,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 4\nOn break: End Break 1 tap. A forgotten clock-out closes at 16 hours and is flagged for review."
+  },
+  "n-FlowScan-1": {
+   "x": 1340,
+   "y": 40,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 1\nCenter tab or the app icon's long-press opens Receiving: 1 tap."
+  },
+  "n-FlowScan-2": {
+   "x": 1340,
+   "y": 972,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 2\nContinuous mode: each scan counts with a haptic and no tap. Target 30 items in under 60 s."
+  },
+  "n-FlowScan-3": {
+   "x": 1340,
+   "y": 1904,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 3\nBatch review shows shorts against the PO; Receive is 1 tap, so 2 taps total for the batch."
+  },
+  "n-FlowIncident-1": {
+   "x": 2250,
+   "y": 40,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 1\nChoose the type from the grid: 1 tap. Critical types are marked."
+  },
+  "n-FlowIncident-2": {
+   "x": 2250,
+   "y": 972,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 2\nLocation fills from position; confirm with 1 tap or drag the pin."
+  },
+  "n-FlowIncident-3": {
+   "x": 2250,
+   "y": 1904,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 3\nVoice note is transcribed; Hold to Send for critical types. Under 30 s, offline included, queued if needed."
+  },
+  "n-FlowUpNext-1": {
+   "x": 3160,
+   "y": 40,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 1\nHome opens on the Up Next card: countdown, call time, address. 0 taps."
+  },
+  "n-FlowUpNext-2": {
+   "x": 3160,
+   "y": 972,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 2\nEvery detail in a bottom sheet: 1 tap. Directions, contacts, parking, what to bring."
+  },
+  "n-FlowUpNext-3": {
+   "x": 3160,
+   "y": 1904,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 3\nAdd to Wallet or Calendar: 1 tap. The wallet pass works offline."
+  },
+  "n-FlowPayment-1": {
+   "x": 4070,
+   "y": 40,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 1\nInvoice drafts from approved days; open and confirm: 2 taps, under 60 s."
+  },
+  "n-FlowPayment-2": {
+   "x": 4070,
+   "y": 972,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 2\nSubmitted shows in the tracker immediately with the date; push at each stage."
+  },
+  "n-FlowPayment-3": {
+   "x": 4070,
+   "y": 1904,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 3\nPaid with date and rail, last four only. 0 taps after submission."
+  },
+  "n-FlowRequirements-1": {
+   "x": 4980,
+   "y": 40,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 1\nThe requirements check names exactly what is missing and the fix."
+  },
+  "n-FlowRequirements-2": {
+   "x": 4980,
+   "y": 972,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 2\nCamera adds the certificate; the check turns green without leaving the page."
+  },
+  "n-FlowRequirements-3": {
+   "x": 4980,
+   "y": 1904,
+   "w": 340,
+   "maxH": 420,
+   "size": "s",
+   "fill": "orange",
+   "page": "flows",
+   "text": "Step 3\nApply with the saved profile in 3 taps: Apply, review shared fields, Submit."
+  },
+  "n-FlowSidebars": {
+   "x": 2000,
+   "y": 4200,
+   "w": 360,
+   "maxH": 400,
+   "size": "s",
+   "fill": "yellow",
+   "page": "flows",
+   "text": "Defaults per Section 4.5.2: Producer opens Production; Finance Lead opens Commercial; Production Coordinator opens Operations; Department Head opens Production and Operations; Field Supervisor opens Operations and People. The prompt names no default for Org Owner or Org Admin, so all groups start collapsed for them. Reset to Role Default restores this layout."
+  },
+  "n-FlowAtlasPhone": {
+   "x": 2910,
+   "y": 4200,
+   "w": 340,
+   "maxH": 400,
+   "size": "s",
+   "fill": "yellow",
+   "page": "flows",
+   "text": "Atlas below 768 px: bottom bar with Home, Inbox, Search, My Work, Menu. Menu opens the full sidebar as a sheet. Same Home screen file, rendered at 390 px."
+  },
+  "n-FlowGatewayPhone": {
+   "x": 3820,
+   "y": 4200,
+   "w": 340,
+   "maxH": 400,
+   "size": "s",
+   "fill": "yellow",
+   "page": "flows",
+   "text": "Gateway below 768 px: five destinations in a bottom tab bar (Home, Explore, Work, Money, Messages). Avatar menu holds Profile, Documents, Settings, Switch org, Help, Sign out."
+  },
+  "n-FlowGatewayDesktop": {
+   "x": 1480,
+   "y": 6020,
+   "w": 400,
+   "maxH": 400,
+   "size": "s",
+   "fill": "yellow",
+   "page": "flows",
+   "text": "Gateway on desktop: the same five destinations sit in the top bar with the org brand; no sidebar. Comfortable density, 14 px base text."
+  },
+  "n-WLAtlasHarbor": {
+   "x": 3080,
+   "y": 0,
+   "w": 400,
+   "maxH": 400,
+   "size": "s",
+   "fill": "yellow",
+   "page": "white-label",
+   "text": "Harbor Light Events: Light theme, accent #0F7B6C, rounded radius scale (control 10, card 12, chip 6). Only tokens change; markup and components are identical to Northwind Live."
+  },
+  "n-WLGatewayHarbor": {
+   "x": 3080,
+   "y": 1300,
+   "w": 400,
+   "maxH": 400,
+   "size": "s",
+   "fill": "yellow",
+   "page": "white-label",
+   "text": "Same Gateway Home file with the Harbor Light Events token set. The custom domain shows only this org."
+  },
+  "n-WLCompassHarbor": {
+   "x": 1030,
+   "y": 2600,
+   "w": 340,
+   "maxH": 400,
+   "size": "s",
+   "fill": "yellow",
+   "page": "white-label",
+   "text": "Same Compass Today file with the Harbor Light Events token set; Sunlight still available from the Theme tweak."
+  },
+  "n-WLAtlasNorthwind": {
+   "x": 0,
+   "y": 940,
+   "w": 400,
+   "maxH": 400,
+   "size": "s",
+   "fill": "yellow",
+   "page": "white-label",
+   "text": "Northwind Live default: Dark theme, accent #5B63E8, default radius scale."
+  },
+  "n-ProtoClock": {
+   "x": 430,
+   "y": 7300,
+   "w": 340,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "flows",
+   "text": "Interaction and keys\nPress Play, then Next and Back to step through clock-in states exactly as drawn above, with the tap count for each step in the header. Next on the last step starts over.\n\nResponsive\nThe phone frame is 390 by 844 pt; the same screens reflow at 430 pt and on tablet in the Compass and Gateway size sheets.\n\nAccessibility\nThe step header is a polite live region, so each step is announced; Back is disabled on the first step."
+  },
+  "n-ProtoScan": {
+   "x": 1340,
+   "y": 7300,
+   "w": 340,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "flows",
+   "text": "Interaction and keys\nPress Play, then Next and Back to step through continuous scan exactly as drawn above, with the tap count for each step in the header. Next on the last step starts over.\n\nResponsive\nThe phone frame is 390 by 844 pt; the same screens reflow at 430 pt and on tablet in the Compass and Gateway size sheets.\n\nAccessibility\nThe step header is a polite live region, so each step is announced; Back is disabled on the first step."
+  },
+  "n-ProtoIncident": {
+   "x": 2250,
+   "y": 7300,
+   "w": 340,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "flows",
+   "text": "Interaction and keys\nPress Play, then Next and Back to step through three-step incident exactly as drawn above, with the tap count for each step in the header. Next on the last step starts over.\n\nResponsive\nThe phone frame is 390 by 844 pt; the same screens reflow at 430 pt and on tablet in the Compass and Gateway size sheets.\n\nAccessibility\nThe step header is a polite live region, so each step is announced; Back is disabled on the first step."
+  },
+  "n-ProtoUpNext": {
+   "x": 3160,
+   "y": 7300,
+   "w": 340,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "flows",
+   "text": "Interaction and keys\nPress Play, then Next and Back to step through gateway up next exactly as drawn above, with the tap count for each step in the header. Next on the last step starts over.\n\nResponsive\nThe phone frame is 390 by 844 pt; the same screens reflow at 430 pt and on tablet in the Compass and Gateway size sheets.\n\nAccessibility\nThe step header is a polite live region, so each step is announced; Back is disabled on the first step."
+  },
+  "n-ProtoPayment": {
+   "x": 4070,
+   "y": 7300,
+   "w": 340,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "flows",
+   "text": "Interaction and keys\nPress Play, then Next and Back to step through payment tracker exactly as drawn above, with the tap count for each step in the header. Next on the last step starts over.\n\nResponsive\nThe phone frame is 390 by 844 pt; the same screens reflow at 430 pt and on tablet in the Compass and Gateway size sheets.\n\nAccessibility\nThe step header is a polite live region, so each step is announced; Back is disabled on the first step."
+  },
+  "n-ProtoRequirements": {
+   "x": 4980,
+   "y": 7300,
+   "w": 340,
+   "maxH": 860,
+   "size": "s",
+   "fill": "green",
+   "page": "flows",
+   "text": "Interaction and keys\nPress Play, then Next and Back to step through requirements check exactly as drawn above, with the tap count for each step in the header. Next on the last step starts over.\n\nResponsive\nThe phone frame is 390 by 844 pt; the same screens reflow at 430 pt and on tablet in the Compass and Gateway size sheets.\n\nAccessibility\nThe step header is a polite live region, so each step is announced; Back is disabled on the first step."
+  },
+  "fproto": {
+   "x": 0,
+   "y": 7000,
+   "text": "Clickable prototypes",
+   "kind": "title1",
+   "page": "flows",
+   "maxW": 5000
+  }
+ },
+ "designSystems": [
+  {
+   "title": "XOS Design System",
+   "namespace": "xos",
+   "artifact": "https://claude.ai/artifact/SMcWcDeEEgvsziW6mSmM7h",
+   "version": "1791506057-1aaf",
+   "copiedAt": "2026-10-09T18:00:00Z"
+  }
+ ]
+}

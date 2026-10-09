@@ -1,0 +1,12 @@
+<!-- @dsCard group="Data display" height=48 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Money</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row'},h(X.Money,{amount:48250}),h('span',{className:'xos-muted'},'|'),h(X.Money,{amount:0}),h('span',{className:'xos-muted'},'|'),h(X.Money,{amount:null})));
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Overlays" height=300 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ShortcutSheet</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.ShortcutSheet,{groups:[{label:'Navigation',items:[{label:'Command menu',keys:'\u2318 K'},{label:'Go to Projects',keys:'G P'},{label:'Go to Inbox',keys:'G I'},{label:'Search',keys:'/'}]},{label:'Records',items:[{label:'Create',keys:'C'},{label:'Next and previous',keys:'J K'},{label:'Select',keys:'X'},{label:'Approve',keys:'A'}]}]}));
+</script>
+</body>
+</html>

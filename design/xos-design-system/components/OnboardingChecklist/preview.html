@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=420 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>OnboardingChecklist</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{width:'100%',maxWidth:420}},h(X.OnboardingChecklist,{title:'Set Up Northwind Live',steps:[{label:'Brand',done:true},{label:'Members',done:true},{label:'First project',done:true},{label:'Jurisdiction',done:false,action:'Set'},{label:'Budget',done:false,action:'Start'},{label:'Schedule',done:false,action:'Start'},{label:'Compass invite',done:false,action:'Invite'},{label:'Integration',done:false,action:'Connect'}]})));
+</script>
+</body>
+</html>

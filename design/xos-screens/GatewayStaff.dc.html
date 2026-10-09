@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gateway · Staff Engagement</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px;">
+  <x-import component-from-global-scope="XOS.TopNav" brand="Northwind Live" label="Gateway" person="Ana Silva" active="Work" items="{{nav}}"></x-import>
+  <main style="flex: 1; min-height: 0; overflow: auto;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+      <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"><x-import component-from-global-scope="XOS.Tag" tone="accent">Staff</x-import><x-import component-from-global-scope="XOS.StateChip" state="active" label="Active"></x-import><span class="xos-muted">Northwind Live · through Bayline Staffing</span></div>
+          <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Closing Night · Bar Lead, Main Bar</h1>
+        </div>
+        <x-import component-from-global-scope="XOS.Button" variant="primary" icon="PlayCircle">Start Briefing</x-import>
+      </div>
+      <x-import component-from-global-scope="XOS.Tabs" label="Engagement" value="overview" tabs="{{tabs}}"></x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+        <div style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+          <section aria-labelledby="st-train" style="display: flex; flex-direction: column; gap: 8px;">
+            <h2 id="st-train" class="xos-label" style="margin: 0;">Training and briefings</h2>
+            <x-import component-from-global-scope="XOS.OnboardingPacket" items="{{items}}"></x-import>
+          </section>
+          <x-import component-from-global-scope="XOS.ShiftCard" state="scheduled" state-label="Scheduled" countdown="in 6 d" role="Bar Lead · Main Bar position" date="Sun, Nov 22" time="5:00 PM to 12:00 AM" place="Harbor Pavilion, Main Bar"></x-import>
+          <span class="xos-muted">Bayline Staffing invoices Northwind Live for your hours. Your pay comes from Bayline.</span>
+        </div>
+        <aside aria-label="Engagement stages" style="flex: 1 1 300px; min-width: 0;"><x-import component-from-global-scope="XOS.EngagementTimeline" current="{{six}}" stages="{{stages}}"></x-import></aside>
+      </div>
+    </div>
+  </main>
+  <div class="xos-mobile-only" style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" label="Gateway" active="Work" items="{{nav}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"light"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'light',
+      hpx: h ? h + 'px' : '100vh',
+      six: 6,
+      items: [{ label: 'TIPS certification', state: 'verified', blocking: true, minutes: 2, note: 'Verified, expires 2028' }, { label: 'Uniform: black, Northwind apron provided', state: 'verified', blocking: false, minutes: 1, note: 'Confirmed' }, { label: 'Bar briefing, Closing Night', state: 'todo', blocking: true, minutes: 8, action: 'Start' }],
+      tabs: ['Overview', 'Offer', 'Onboarding', 'Training', 'Positions', 'Shifts', 'Timesheets', 'Credentials', 'Documents', 'Messages'].map((t) => ({ value: t.toLowerCase(), label: t })),
+      stages: [{ label: 'Requisition' }, { label: 'Opportunity', date: 'Nov 2' }, { label: 'Application', date: 'Nov 5' }, { label: 'Selection', date: 'Nov 9' }, { label: 'Offer', date: 'Nov 10' }, { label: 'Onboarding', date: 'Nov 11' }, { label: 'Engaged', date: 'Now' }, { label: 'Close-out' }, { label: 'Re-engagement' }],
+      crumbs: [{ label: 'Work' }, { label: 'Engagements' }, { label: 'Closing Night' }],
+      nav: [{ label: 'Home', icon: 'House' }, { label: 'Explore', icon: 'Compass' }, { label: 'Work', icon: 'Briefcase' }, { label: 'Money', icon: 'Wallet' }, { label: 'Messages', icon: 'MessageSquare' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

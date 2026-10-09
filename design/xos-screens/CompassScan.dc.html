@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Scan</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px;">
+  <header style="flex: none; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border-subtle);">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+      <div style="display: flex; flex-direction: column;"><strong>{{m.title}}</strong><span style="font-size: 12px; color: var(--text-secondary);">{{m.context}}</span></div>
+      <x-import component-from-global-scope="XOS.IconButton" icon="Nfc" label="Read NFC tag"></x-import>
+    </div>
+  </header>
+  <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column;">
+    <sc-if value="{{live}}" hint-placeholder-val="{{true}}">
+      <x-import component-from-global-scope="XOS.ScanSheet" mode="{{mode}}" hint="{{m.hint}}" count="{{count}}" count-label="{{m.countLabel}}" done-label="{{m.done}}" last="{{m.last}}"></x-import>
+    </sc-if>
+    <sc-if value="{{review}}" hint-placeholder-val="{{false}}">
+      <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Review batch · 34 items</h1>
+        <x-import component-from-global-scope="XOS.InlineAlert" tone="warning" title="2 short on line 2">10 of 12 subwoofers arrived. Receiving records 10 and flags the line for the three-way match.</x-import>
+        <x-import component-from-global-scope="XOS.DataTable" caption="Received against NWL-PO-0031" density="compact" columns="{{cols}}" rows="{{rows}}"></x-import>
+        <x-import component-from-global-scope="XOS.Button" variant="primary" size="lg" class-name="xos-block">Receive 34 Items</x-import>
+        <x-import component-from-global-scope="XOS.Button" variant="ghost" size="lg" class-name="xos-block">Keep Scanning</x-import>
+      </div>
+    </sc-if>
+  </main>
+  <div style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" compass="{{yes}}" label="Compass" active="Scan" center-label="Scan" items="{{tabs}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"mode":{"editor":"enum","options":["asset","receiving","credential"],"default":"receiving"},"step":{"editor":"enum","options":["start","running","review"],"default":"running"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const mode = this.props.mode || 'receiving';
+    const step = this.props.step || 'running';
+    const M = {
+      receiving: { title: 'Receiving · Continuous', context: 'NWL-PO-0031 · Harbor Audio · Dock B', hint: 'Point at a barcode or QR code', countLabel: 'of 36 expected', done: 'Review Batch', last: { ok: true, title: 'Line Array - Medium', code: '5000.01.02-NWL-004' } },
+      asset: { title: 'Asset Custody', context: 'Check out to Malik Osei · Main Stage', hint: 'Scan the asset tag', countLabel: 'checked out', done: 'Finish', last: { ok: true, title: 'Truss - 20.5in Box', code: '5000.05.03-NWL-012' } },
+      credential: { title: 'Credential Check', context: 'Access point: Stage left door · Opening Night', hint: 'Scan the badge QR code', countLabel: 'scanned this hour', done: 'Close Access Point', last: { ok: false, title: 'Artist · not valid for Production Office', code: 'CRD-0187' } }
+    };
+    const counts = { receiving: { start: 1, running: 23, review: 34 }, asset: { start: 1, running: 6, review: 6 }, credential: { start: 1, running: 48, review: 48 } };
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true, mode, m: M[mode] || M.receiving,
+      count: (counts[mode] || counts.receiving)[step] || 1,
+      live: step !== 'review', review: step === 'review',
+      cols: [{ key: 'line', label: 'Line', type: 'number' }, { key: 'item', label: 'Item' }, { key: 'qty', label: 'Scanned', type: 'number' }, { key: 's', label: 'Match', type: 'state' }],
+      rows: [
+        { line: 1, item: 'Line array cabinet', qty: 24, s: { state: 'complete', label: 'Complete' } },
+        { line: 2, item: 'Subwoofer, dual 18 in', qty: 10, s: { state: 'blocked', label: 'Short 2' } }      ],
+      tabs: [{ label: 'Today', icon: 'House' }, { label: 'Schedule', icon: 'CalendarDays' }, { label: 'Scan', icon: 'ScanLine' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Crew', icon: 'HardHat' }, { label: 'More', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

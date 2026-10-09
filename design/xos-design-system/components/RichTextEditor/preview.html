@@ -1,0 +1,12 @@
+<!-- @dsCard group="Editing" height=280 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>RichTextEditor</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.RichTextEditor,{label:'SOP body',presence:h(X.PresenceIndicator,{names:['Morgan Chen'],verb:'editing'}),html:'<p><strong>Dock procedure.</strong> Check in at the gate queue, then wait for <span class="xos-mention">@Dock Lead</span>.</p><ul><li>Chock wheels before unloading.</li><li>Log the delivery in Compass.</li></ul>'}));
+</script>
+</body>
+</html>

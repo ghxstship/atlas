@@ -1,0 +1,12 @@
+<!-- @dsCard group="Chips" height=48 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>PhaseChip</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row'},h(X.PhaseChip,{gate:1,name:'Scope',code:'SCP'}),h(X.PhaseChip,{gate:3,name:'Advance',code:'ADV'}),h(X.PhaseChip,{gate:5,name:'Build',code:'BLD'})));
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Layout" height=80 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>PageHeader</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.PageHeader,{title:'Purchase Orders',glyph:'ShoppingCart',count:48,views:h(X.SegmentedControl,{label:'View',value:'table',options:[{value:'list',label:'List'},{value:'board',label:'Board'},{value:'table',label:'Table'}]}),actions:h(X.Button,{variant:'primary',shortcut:'C'},'New Order')}));
+</script>
+</body>
+</html>

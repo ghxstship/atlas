@@ -1,0 +1,12 @@
+<!-- @dsCard group="Compass" height=300 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ClockButton</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col'},h(X.ClockButton,{state:'out',label:'Clock In',geofence:"You're at the venue",geofenceOk:true}),h(X.ClockButton,{state:'on',label:'On Shift',timer:'03:42:10',detail:'Break or Clock Out'})));
+</script>
+</body>
+</html>

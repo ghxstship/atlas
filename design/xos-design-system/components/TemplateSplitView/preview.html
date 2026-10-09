@@ -1,0 +1,12 @@
+<!-- @dsCard group="Templates" height=320 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TemplateSplitView</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.SplitView,{label:'Dispatch queue',selected:0,items:[{state:'blocked',title:'Medical, minor \u00b7 Box Office',meta:'Reported 4 min ago'},{state:'active',title:'Delivery staged at Dock B',meta:'Reported 12 min ago'},{state:'complete',title:'Rigging check, Main Stage',meta:'Closed 30 min ago'}],detail:h('div',{className:'xos-col'},h('strong',{style:{fontSize:16}},'Medical, minor \u00b7 Box Office'),h(X.EmergencyCodeCard,{authorities:[{service:'ems',agency:'Miami Fire-Rescue',contact:'911'}],recordKey:'EMG-025',code:'Code Blue',name:'Medical Emergency',swatch:'ecode-blue',domain:'Site Operations',steps:['Immediately call {ems} or direct on-site medical personnel.','Clear space for medical teams to access the affected individual.','Use first aid kits if necessary.'],channel:'Zone 1, Channel 1, Emergency'}))}));
+</script>
+</body>
+</html>

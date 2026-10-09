@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" role="img" aria-label="Splash Screen slot, 1290 x 2796">
+<rect width="390" height="844" fill="#0E0F11"></rect>
+<rect x="6" y="6" width="378" height="832" rx="12" fill="none" stroke="#34353B" stroke-width="3" stroke-dasharray="12 10"></rect>
+<text x="195.0" y="414.2" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="39" font-weight="600" fill="#A0A3AB">Splash Screen</text>
+<text x="195.0" y="464.9" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="31" fill="#A0A3AB">1290 x 2796</text>
+</svg>

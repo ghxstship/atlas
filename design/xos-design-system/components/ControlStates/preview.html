@@ -1,0 +1,31 @@
+<!-- @dsCard group="Actions" height=420 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ControlStates</title>
+<style>
+  #root { max-inline-size: 100%; overflow-x: auto; }
+  .grid { display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); min-inline-size: 880px; gap: var(--space-12) var(--space-8); align-items: center; }
+  .grid > .hd { font-size: 11px; font-weight: var(--weight-medium); color: var(--text-secondary); }
+  .grid .xos-field { width: 100%; } .grid .xos-btn { max-width: 100%; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  var states = ['Default', 'Hover', 'Focus', 'Active', 'Disabled', 'Loading', 'Error'];
+  function cls(i) { return ['', 'is-hover', 'is-focus', 'is-active', '', '', ''][i]; }
+  function row(label, make) { return [h('span', { key: label, className: 'xos-label' }, label)].concat(states.map(function (s, i) { return h('div', { key: label + s }, make(i)); })); }
+  var dash = function () { return h('span', { className: 'xos-muted' }, 'Not applicable'); };
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'grid' },
+    [h('span', { key: 'c' })].concat(states.map(function (s) { return h('span', { key: s, className: 'hd' }, s); })),
+    row('Primary', function (i) { return i === 6 ? dash() : h(X.Button, { variant: 'primary', className: cls(i), disabled: i === 4, loading: i === 5 }, 'Approve'); }),
+    row('Secondary', function (i) { return i === 6 ? dash() : h(X.Button, { className: cls(i), disabled: i === 4, loading: i === 5 }, 'Export'); }),
+    row('Danger', function (i) { return i === 6 ? dash() : h(X.Button, { variant: 'danger', className: cls(i), disabled: i === 4, loading: i === 5 }, 'Archive'); }),
+    row('Input', function (i) { return i === 5 ? dash() : h('div', { className: 'xos-field' }, h('input', { className: 'xos-input ' + cls(i), defaultValue: i === 6 ? 'NW' : 'NWL', disabled: i === 4, 'aria-invalid': i === 6 ? 'true' : undefined, 'aria-label': 'Project Key' }), i === 6 ? h('span', { className: 'xos-error' }, '2 to 5 letters') : null); }),
+    row('Checkbox', function (i) { return i === 5 || i === 6 ? dash() : h('label', { className: 'xos-check' }, h('input', { type: 'checkbox', className: cls(i), defaultChecked: true, disabled: i === 4 }), 'Blocking'); }),
+    row('Switch', function (i) { return i === 5 || i === 6 ? dash() : h('label', { className: 'xos-check xos-switch' }, h('input', { type: 'checkbox', role: 'switch', className: cls(i), defaultChecked: i !== 0, disabled: i === 4 }), 'Sync'); }),
+    row('Chip', function (i) { return i === 5 || i === 6 ? dash() : h('button', { type: 'button', className: 'xos-chip ' + cls(i), disabled: i === 4, style: i === 4 ? { opacity: 'var(--opacity-disabled)' } : undefined }, h(X.StateIcon, { state: 'active' }), 'Active'); })
+  ));
+</script>
+</body>
+</html>

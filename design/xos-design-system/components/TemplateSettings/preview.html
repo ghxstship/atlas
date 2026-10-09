@@ -1,0 +1,13 @@
+<!-- @dsCard group="Templates" height=440 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TemplateSettings</title>
+<style>.tpl-form{display:flex;flex-direction:column;gap:var(--space-16)} .tpl-save{display:flex;justify-content:flex-end;align-items:center;gap:var(--space-8);padding-block-start:var(--space-12);border-block-start:1px solid var(--border-subtle)}</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-layout-settings'},h('nav',{'aria-label':'Settings sections'},h('div',{className:'xos-sidebar',style:{width:'auto'}},['Organization Profile','General','Legal Entities and Fiscal','Members','Roles and Capabilities','White Label','Modules'].map(function(l,i){return h('button',{key:l,type:'button',className:'xos-nav-item','aria-current':i===5?'page':undefined},l)}))),h('div',{className:'tpl-form'},h('h1',{style:{margin:0,fontSize:20}},'White Label'),h(X.BrandSlot,{label:'Logo, Light',width:160,height:40,formats:'SVG or PNG, transparent'}),h(X.ColorPicker,{label:'Tenant Accent',value:'#0F7B6C',checks:[{label:'White label on accent',fg:'#FFFFFF',min:4.5},{label:'Accent on light canvas',fgIsValue:true,bg:'#FFFFFF',min:3},{label:'Accent on dark canvas',fgIsValue:true,bg:'#0E0F11',min:3}]}),h('div',{className:'tpl-save'},h('span',{className:'xos-muted'},'Unsaved changes'),h(X.Button,{variant:'ghost'},'Discard'),h(X.Button,{variant:'primary',shortcut:'\u2318 S'},'Save')))));
+</script>
+</body>
+</html>

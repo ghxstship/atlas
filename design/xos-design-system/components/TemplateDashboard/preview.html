@@ -1,0 +1,13 @@
+<!-- @dsCard group="Templates" height=560 width=960 page -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TemplateDashboard</title>
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col'},h('div',{className:'xos-row',style:{justifyContent:'space-between'}},h('h1',{style:{margin:0,fontSize:16}},'Home'),h(X.DateRangePicker,{label:'Date range',width:340,start:'2026-11-16',end:'2026-11-22'})),h('div',{className:'xos-layout-dashboard'},h(X.StatTile,{label:'Committed',value:33284,format:'money',delta:-4.2,deltaUnit:'%',deltaLabel:'vs. budget',goodWhen:'down'}),h(X.StatTile,{label:'Open blockers',value:3,delta:1,deltaLabel:'since Monday',goodWhen:'down'}),h(X.StatTile,{label:'Crew filled',value:46,delta:6,deltaLabel:'of 50 positions',goodWhen:'up'})),h(X.Chart,{type:'line',title:'Records completed',categoryLabel:'Week',categories:['Oct 19','Oct 26','Nov 2','Nov 9','Nov 16'],series:[{name:'Production',values:[12,18,22,31,40]},{name:'Operations',values:[6,9,15,20,24]},{name:'Hospitality',values:[2,4,null,9,14]}]})));
+</script>
+</body>
+</html>

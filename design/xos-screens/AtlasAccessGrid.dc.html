@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Access Grid</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item" aria-haspopup="listbox" aria-label="Workspace, Miami Office"><x-import component-from-global-scope="XOS.Icon" name="Building2"></x-import>Miami Office<span style="margin-inline-start: auto; display: inline-flex;"><x-import component-from-global-scope="XOS.Icon" name="ChevronsUpDown" size="{{i12}}"></x-import></span></button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <x-import component-from-global-scope="XOS.Sidebar" label="Atlas" active="Credentials" groups="{{nav}}"></x-import>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Menu"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <x-import component-from-global-scope="XOS.IconButton" icon="CircleHelp" label="Help" shortcut="?"></x-import>
+          <button type="button" aria-label="Account, Morgan Chen" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Morgan Chen"></x-import></button>
+        </div>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <x-import component-from-global-scope="XOS.PageHeader" title="Access Grid" glyph="IdCard" actions="{{actions}}"></x-import>
+      <x-import component-from-global-scope="XOS.Tabs" label="Credentials pages" value="grid" tabs="{{pages}}"></x-import>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+        <section aria-labelledby="h-grid" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <h2 id="h-grid" style="margin: 0; font-size: 14px; font-weight: 600;">Zones by credential category · Opening Night</h2>
+            <span class="xos-muted">Space toggles a cell. Arrow keys move.</span>
+          </div>
+          <x-import component-from-global-scope="XOS.AccessGridMatrix" label="Access Grid, Opening Night" zones="{{zones}}" categories="{{cats}}" grants="{{grants}}"></x-import>
+          <x-import component-from-global-scope="XOS.InlineAlert" tone="info" title="Scans enforce this grid">Compass credential scans at each access point check this grid, offline included. Changes reach devices within a minute.</x-import>
+        </section>
+        <section aria-labelledby="h-badge" style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
+          <h2 id="h-badge" style="margin: 0; font-size: 14px; font-weight: 600;">Badge preview</h2>
+          <x-import component-from-global-scope="XOS.CredentialBadge" org="Northwind Live" name="Dana Ruiz" role="Lead Stagehand" category="Production" category-color="{{two}}" credential-key="CRD-0142" payload="xos:credential:CRD-0142:nwl" zones="{{badgeZones}}" valid-from="Nov 16" valid-to="Nov 23"></x-import>
+        </section>
+      </div>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Home" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const X = window.XOS || {}, R = window.React;
+    const el = (n, p, c) => (X[n] && R) ? R.createElement(X[n], p, c) : null;
+    const h = Number(this.props.h) || 0;
+    const open = ['Production', 'Operations'];
+    const g = (label, items) => ({ label, collapsed: open.indexOf(label) < 0, items });
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      i12: 12, two: 2,
+      actions: el('Button', { variant: 'primary', icon: 'Printer' }, 'Issue Credentials'),
+      zones: ['Front of House', 'Backstage', 'Stage', 'Production Office', 'Green Room', 'Dock B'],
+      cats: [{ name: 'All Access', color: 1 }, { name: 'Production', color: 2 }, { name: 'Artist', color: 3 }, { name: 'Guest', color: 4 }, { name: 'Vendor', color: 5 }],
+      grants: ['All Access|Front of House', 'All Access|Backstage', 'All Access|Stage', 'All Access|Production Office', 'All Access|Green Room', 'All Access|Dock B', 'Production|Backstage', 'Production|Stage', 'Production|Production Office', 'Production|Dock B', 'Artist|Backstage', 'Artist|Green Room', 'Artist|Stage', 'Guest|Front of House', 'Vendor|Backstage', 'Vendor|Dock B'],
+      badgeZones: ['Backstage', 'Stage', 'Production Office', 'Dock B'],
+      pages: [{ value: 'cats', label: 'Categories' }, { value: 'issued', label: 'Issued', count: 214 }, { value: 'grid', label: 'Access Grid' }, { value: 'scans', label: 'Scan Log' }],
+      nav: [
+        { items: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 4 }, { label: 'My Work', icon: 'CircleCheck' }] },
+        { label: 'Favorites', items: [{ label: 'Main Stage Advance Packet', icon: 'Star' }, { label: 'Riders Awaiting Review', icon: 'Star' }] },
+        { label: 'Recent Projects', items: [{ label: 'Northwind Fall Series', icon: 'Folder' }, { label: 'Harbor Winter Gala', icon: 'Folder' }, { label: 'Bayfront Food Festival', icon: 'Folder' }, { label: 'Coastline Brand Launch', icon: 'Folder' }, { label: 'Riverside Summer Stage', icon: 'Folder' }, { label: 'All Projects', icon: 'FolderOpen' }] },
+        g('Production', [{ label: 'Projects', icon: 'Folder' }, { label: 'Schedule', icon: 'Calendar' }, { label: 'Work', icon: 'SquareCheck' }, { label: 'Show', icon: 'Clapperboard' }, { label: 'Advancing', icon: 'ClipboardCheck' }]),
+        g('Operations', [{ label: 'Places', icon: 'MapPin' }, { label: 'Logistics', icon: 'Truck' }, { label: 'Hospitality', icon: 'ConciergeBell' }, { label: 'Assets', icon: 'Boxes' }, { label: 'Credentials', icon: 'IdCard' }, { label: 'Safety', icon: 'ShieldAlert' }]),
+        g('People', [{ label: 'People', icon: 'Users' }, { label: 'Opportunities', icon: 'UserSearch' }, { label: 'Crew', icon: 'HardHat' }]),
+        g('Commercial', [{ label: 'Finance', icon: 'Wallet' }, { label: 'Procurement', icon: 'ShoppingCart' }, { label: 'Vendors', icon: 'Store' }]),
+        g('Knowledge', [{ label: 'Knowledge', icon: 'BookOpen' }, { label: 'Reports', icon: 'ChartColumn' }, { label: 'Canon', icon: 'Library' }]),
+        { items: [{ label: 'Activity', icon: 'Activity' }, { label: 'Settings', icon: 'Settings' }] }
+      ],
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Miami Office' }, { label: 'Northwind Fall Series' }, { label: 'Opening Night' }, { label: 'Credentials' }, { label: 'Access Grid' }],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 4 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

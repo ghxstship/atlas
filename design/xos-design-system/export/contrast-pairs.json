@@ -1,0 +1,16 @@
+{
+ "standard": "WCAG 2.2 Level AA",
+ "note": "Every pair here must pass in every theme. White-label overrides are checked against the same list before they can be saved.",
+ "rules": [
+  { "name": "Body text on grounds", "min": 4.5, "fg": ["text-primary", "text-secondary", "text-tertiary", "accent-text", "danger-text", "warning-text", "success-text"], "bg": ["bg-canvas", "bg-surface", "bg-raised", "bg-hover"] },
+  { "name": "Label on accent fill", "min": 4.5, "fg": ["accent-text-on"], "bg": ["accent-default"] },
+  { "name": "Label on danger fill", "min": 4.5, "fg": ["danger-text-on"], "bg": ["danger"] },
+  { "name": "Icons and state marks on grounds", "min": 3, "fg": ["accent-default", "danger", "warning", "success", "state-proposed", "state-ready", "state-scheduled", "state-active", "state-blocked", "state-in-review", "state-complete", "state-deferred", "state-canceled"], "bg": ["bg-canvas", "bg-surface", "bg-raised", "bg-hover"] },
+  { "name": "Control boundaries", "min": 3, "fg": ["border-control"], "bg": ["bg-canvas", "bg-surface", "bg-raised"] },
+  { "name": "Focus indicator", "min": 3, "fg": ["focus-ring"], "bg": ["bg-canvas", "bg-surface", "bg-raised"] },
+  { "name": "Ink on light chart fills", "min": 4.5, "fg": ["viz-ink"], "bg": ["viz-seq-1", "viz-seq-2", "viz-seq-3", "viz-seq-4", "viz-seq-5"] },
+  { "name": "Ink on dark chart fills", "min": 4.5, "fg": ["accent-text-on"], "bg": ["viz-seq-6", "viz-seq-7", "viz-seq-8", "viz-seq-9"] },
+  { "name": "Camera overlay", "min": 4.5, "fg": ["camera-ink"], "bg": ["camera-bg"] },
+  { "name": "Printed page", "min": 4.5, "fg": ["paper-ink"], "bg": ["paper"] }
+ ]
+}

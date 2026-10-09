@@ -1,0 +1,12 @@
+<!-- @dsCard group="Data display" height=260 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>DataTable</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.DataTable,{caption:'Purchase Orders',columns:[{key:'key',label:'Key',type:'code'},{key:'title',label:'Title'},{key:'state',label:'State',type:'state'},{key:'amount',label:'Amount',type:'money'}],rows:[{key:'NWL-142',title:'Stage Deck - 4x8 rental',state:{state:'active',label:'Active'},amount:1940},{key:'NWL-143',title:'Line Array - Medium rental',state:{state:'in-review',label:'In Review'},amount:null},{key:'NWL-144',title:'Truss - 20.5in Box rental',state:{state:'blocked',label:'Blocked'},amount:1344},{key:'NWL-145',title:'Coffee Service',state:{state:'complete',label:'Complete'},amount:0}],totals:{amount:null}}));
+</script>
+</body>
+</html>

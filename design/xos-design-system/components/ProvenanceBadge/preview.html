@@ -1,0 +1,12 @@
+<!-- @dsCard group="XOS" height=48 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>ProvenanceBadge</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row'},h(X.ProvenanceBadge,{source:'Human',rank:100}),h(X.ProvenanceBadge,{source:'Imported',rank:60}),h(X.ProvenanceBadge,{source:'Agent',rank:40})));
+</script>
+</body>
+</html>

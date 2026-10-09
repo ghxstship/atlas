@@ -1,0 +1,12 @@
+<!-- @dsCard group="Data display" height=64 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>BulkActionBar</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.BulkActionBar,{count:12,actions:[{label:'Approve',icon:'Check',shortcut:'A'},{label:'Assign',icon:'User'},{label:'Change State',icon:'CircleDot'},{label:'Export',icon:'Download'}]}));
+</script>
+</body>
+</html>

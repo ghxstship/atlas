@@ -1,0 +1,12 @@
+<!-- @dsCard group="Navigation" height=260 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>TabBar</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-col'},h('span',{className:'xos-label'},'Compass'),h(X.TabBar,{compass:true,label:'Compass',active:'Today',centerLabel:'Scan',items:[{label:'Today',icon:'House'},{label:'Schedule',icon:'CalendarDays'},{label:'Scan',icon:'ScanLine'},{label:'Inbox',icon:'Inbox',badge:3},{label:'More',icon:'Menu'}]}),h('span',{className:'xos-label'},'Gateway, below md'),h(X.TabBar,{label:'Gateway',active:'Home',items:[{label:'Home',icon:'House'},{label:'Explore',icon:'Compass'},{label:'Work',icon:'Briefcase'},{label:'Money',icon:'Wallet'},{label:'Messages',icon:'MessageSquare',badge:2}]}),h('span',{className:'xos-label'},'Atlas, below md'),h(X.TabBar,{label:'Atlas',active:'My Work',items:[{label:'Home',icon:'House'},{label:'Inbox',icon:'Inbox',badge:6},{label:'Search',icon:'Search'},{label:'My Work',icon:'CircleCheck'},{label:'Menu',icon:'Menu'}]})));
+</script>
+</body>
+</html>

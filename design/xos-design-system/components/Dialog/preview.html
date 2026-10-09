@@ -1,0 +1,12 @@
+<!-- @dsCard group="Overlays" height=220 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Dialog</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(X.Dialog,{title:'Cancel Purchase Order',actions:[h(X.Button,{key:'a',variant:'ghost'},'Keep'),h(X.Button,{key:'b',variant:'primary'},'Cancel Order')]},'Canceled orders are retained, never deleted. The vendor is notified.'));
+</script>
+</body>
+</html>

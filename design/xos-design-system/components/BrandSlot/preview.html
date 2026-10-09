@@ -1,0 +1,12 @@
+<!-- @dsCard group="White Label" height=200 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>BrandSlot</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'xos-row',style:{gap:24,alignItems:'flex-end'}},h(X.BrandSlot,{label:'Logo, Light',width:160,height:40,formats:'SVG or PNG, transparent'}),h(X.BrandSlot,{label:'Logo, Dark',width:160,height:40,formats:'SVG or PNG, transparent'}),h(X.BrandSlot,{label:'Favicon',width:32,height:32,formats:'SVG, or PNG at 32 px minimum'}),h(X.BrandSlot,{label:'App Icon',width:1024,height:1024,formats:'PNG, no transparency'}),h(X.BrandSlot,{label:'Splash',width:1290,height:2796,formats:'PNG'})));
+</script>
+</body>
+</html>

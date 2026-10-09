@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas · Settings · Billing and Plan</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-shell" style="height: {{hpx}}; box-sizing: border-box; border: 0; border-radius: 0; grid-template-rows: minmax(0, 1fr); background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 13px;">
+  <div class="xos-shell-side" id="atlas-side">
+    <div class="xos-shell-brand"><x-import component-from-global-scope="XOS.BrandMark" name="Northwind Live" size="sm"></x-import></div>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="ArrowLeft"></x-import>Back to Atlas</button>
+    <button type="button" class="xos-nav-item"><x-import component-from-global-scope="XOS.Icon" name="Search"></x-import>Search settings<span style="margin-inline-start: auto;"><x-import component-from-global-scope="XOS.Kbd">⌘ K</x-import></span></button>
+    <nav aria-label="Organization settings" class="xos-sidebar">
+      <sc-for list="{{sections}}" as="s" hint-placeholder-count="42">
+        <button type="button" class="xos-nav-item" aria-current="{{s.current}}">{{s.label}}</button>
+      </sc-for>
+    </nav>
+  </div>
+  <main class="xos-shell-main" style="min-height: 0;">
+    <div class="xos-shell-head">
+      <span class="xos-shell-menu"><x-import component-from-global-scope="XOS.IconButton" icon="Menu" label="Settings sections"></x-import></span>
+      <div class="xos-shell-headbody">
+        <x-import component-from-global-scope="XOS.Breadcrumbs" items="{{crumbs}}"></x-import>
+        <button type="button" aria-label="Account, Sam Rivera" aria-haspopup="menu" class="xos-avatar-btn"><x-import component-from-global-scope="XOS.Avatar" name="Sam Rivera"></x-import></button>
+      </div>
+    </div>
+    <div class="xos-shell-body" style="flex: 1; min-height: 0; overflow: auto;">
+      <div style="max-width: 880px; width: 100%; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Billing and Plan</h1>
+          <span class="xos-muted">Visible to Owners only</span>
+        </div>
+        <x-import component-from-global-scope="XOS.Card" title="Pro" meta="Renews Dec 1, 2026 · billed monthly">
+          <p style="margin: 0; color: var(--text-secondary);">Includes the public Gateway marketplace, Stripe Connect payouts and a custom Gateway domain.</p>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <x-import component-from-global-scope="XOS.Button" variant="primary">Change Plan</x-import>
+            <x-import component-from-global-scope="XOS.Button" variant="ghost">Compare Plans</x-import>
+          </div>
+        </x-import>
+        <div class="xos-layout-dashboard">
+          <x-import component-from-global-scope="XOS.StatTile" label="Member seats" value="{{seats}}" caption="of 50 included"></x-import>
+          <x-import component-from-global-scope="XOS.StatTile" label="Active Compass devices" value="{{devices}}" caption="Field and external users, this month"></x-import>
+          <x-import component-from-global-scope="XOS.StatTile" label="File storage, GB" value="{{storage}}" caption="of 500 GB included"></x-import>
+        </div>
+        <x-import component-from-global-scope="XOS.Card" title="Payment method">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <span style="display: inline-flex; gap: 8px; align-items: center;"><x-import component-from-global-scope="XOS.Icon" name="CreditCard"></x-import>Card ending 2846 · expires 08/28</span>
+            <x-import component-from-global-scope="XOS.Button">Update</x-import>
+          </div>
+        </x-import>
+        <section aria-labelledby="h-inv" style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 id="h-inv" style="margin: 0; font-size: 14px; font-weight: 600;">Invoices</h2>
+          <x-import component-from-global-scope="XOS.DataTable" caption="Platform invoices" columns="{{cols}}" rows="{{rows}}"></x-import>
+        </section>
+      </div>
+    </div>
+    <div class="xos-shell-bottom"><x-import component-from-global-scope="XOS.TabBar" label="Atlas" active="Menu" items="{{tabs}}"></x-import></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    const S = ['Organization Profile', 'General', 'Legal Entities and Fiscal', 'Members', 'Roles and Capabilities', 'Teams', 'Workspaces', 'Departments and Disciplines in Use', 'Locations and Venues', 'Security', 'Access Reviews', 'White Label', 'Modules', 'Canon Extensions', 'Templates', 'Custom Fields', 'Custom Objects', 'Views and Defaults', 'Numbering', 'Automations', 'Approval Policies', 'Spend Authority', 'Separation of Duties', 'Time and Attendance', 'Scheduling', 'Payroll and Time Off', 'Gateway and Marketplace', 'Communication', 'Notifications Defaults', 'AI Features', 'Help and Support', 'Integrations', 'API Keys and Service Accounts', 'Webhooks', 'Localization', 'Billing and Plan', 'Usage', 'Data and Privacy', 'Audit Log', 'Legal', 'Danger Zone'];
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      seats: 38, devices: 64, storage: 212,
+      sections: S.map((s) => ({ label: s, current: s === 'Billing and Plan' ? 'page' : undefined })),
+      crumbs: [{ label: 'Northwind Live' }, { label: 'Settings' }, { label: 'Billing and Plan' }],
+      cols: [{ key: 'n', label: 'Invoice', type: 'code' }, { key: 'period', label: 'Period' }, { key: 'amount', label: 'Amount', type: 'money' }, { key: 's', label: 'Status', type: 'state' }],
+      rows: [
+        { n: 'XOS-2026-1101', period: 'Nov 2026', amount: 2480, s: { state: 'scheduled', label: 'Due Dec 1' } },
+        { n: 'XOS-2026-1001', period: 'Oct 2026', amount: 2480, s: { state: 'complete', label: 'Paid' } },
+        { n: 'XOS-2026-0901', period: 'Sep 2026', amount: 2310, s: { state: 'complete', label: 'Paid' } }
+      ],
+      tabs: [{ label: 'Home', icon: 'House' }, { label: 'Inbox', icon: 'Inbox', badge: 2 }, { label: 'Search', icon: 'Search' }, { label: 'My Work', icon: 'CircleCheck' }, { label: 'Menu', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

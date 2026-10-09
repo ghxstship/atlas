@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=300 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>WhatsNew</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{style:{width:'100%',maxWidth:420}},h(X.WhatsNew,{changelogHref:'#',entries:[{label:'New',date:'Oct 6',title:'Bid leveling for RFQs',body:'Compare sealed bids side by side with unpriced lines flagged.'},{label:'Improved',tone:'neutral',date:'Sep 29',title:'Faster gate readiness',body:'Gate readiness now loads in under 500 ms.'}]})));
+</script>
+</body>
+</html>

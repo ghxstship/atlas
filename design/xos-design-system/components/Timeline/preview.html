@@ -1,0 +1,12 @@
+<!-- @dsCard group="Data display" height=300 width=960 -->
+<!doctype html>
+<html lang="en-US">
+<head><meta charset="utf-8"><title>Timeline</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var X = window.XOS, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render((function(){var days=[];for(var i=0;i<21;i++){var d=new Date(2026,9,26+i);days.push({dow:'SMTWTFS'[d.getDay()],date:d.getDate(),weekend:d.getDay()===0||d.getDay()===6})}return h(X.Timeline,{label:'Main Stage',days:days,today:3,gates:[{day:4,label:'Gate 5'},{day:14,label:'Gate 7'}],rows:[{key:'NWL-140',title:'Load-in',state:'complete',start:0,end:2,baselineStart:0,baselineEnd:1},{key:'NWL-141',title:'Stage build',state:'active',start:3,end:8,progress:40,critical:true,dependsOn:0,baselineStart:2,baselineEnd:7},{key:'NWL-142',title:'Audio install',state:'scheduled',start:9,end:12,dependsOn:1},{key:'NWL-143',title:'Tech rehearsal',state:'scheduled',start:13,end:13,milestone:true},{key:'NWL-144',title:'Barricade',state:'blocked',start:6,end:8}]})})());
+</script>
+</body>
+</html>

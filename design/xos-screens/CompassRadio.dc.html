@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass · Radio Channels</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/xos/tokens.css">
+<link rel="stylesheet" href="ds/xos/components/bundle.css">
+<script src="ds/xos/components/lib/react-alias.js"></script>
+<script src="ds/xos/components/lib/lucide-react.min.js"></script>
+<script src="ds/xos/components/lib/qrcode-generator.js"></script>
+<script src="ds/xos/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;padding:0}</style>
+</helmet>
+<div data-theme="{{theme}}" class="xos-compass" style="height: {{hpx}}; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 16px;">
+  <header style="flex: none; display: flex; align-items: center; gap: 4px; padding: 8px 12px 8px 4px; border-bottom: 1px solid var(--border-subtle);">
+    <x-import component-from-global-scope="XOS.IconButton" icon="ChevronLeft" label="Back to Reference"></x-import>
+    <div style="flex: 1; display: flex; flex-direction: column;"><strong>Radio Channels</strong><span style="font-size: 12px; color: var(--text-secondary);">Radio Plan, Opening Night</span></div>
+    <x-import component-from-global-scope="XOS.Tag" tone="success">Offline</x-import>
+  </header>
+  <main class="xos-scroll-col" style="flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+    <div class="xos-card" style="padding: 16px; display: flex; align-items: center; gap: 16px;">
+      <x-import component-from-global-scope="XOS.Icon" name="Radio" size="{{i28}}" color="var(--accent-text)"></x-import>
+      <div style="display: flex; flex-direction: column;"><span class="xos-label">Your channel</span><strong style="font-size: 20px;">Zone 1 · Channel 7</strong><span class="xos-muted">Stage Ops</span></div>
+    </div>
+    <x-import component-from-global-scope="XOS.InlineAlert" tone="danger" title="Emergencies">Zone 1, Channel 1 is for life safety and incident response only.</x-import>
+    <x-import component-from-global-scope="XOS.RadioChannelTable" caption="Radio Plan, Opening Night" channels="{{channels}}"></x-import>
+  </main>
+  <div style="flex: none;"><x-import component-from-global-scope="XOS.TabBar" compass="{{yes}}" label="Compass" active="More" center-label="Scan" items="{{tabs}}"></x-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light","sunlight"],"default":"dark"},"h":{"editor":"int","default":0,"min":0,"max":2000,"unit":"px"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const h = Number(this.props.h) || 0;
+    return {
+      theme: this.props.theme ?? 'dark',
+      hpx: h ? h + 'px' : '100vh',
+      yes: true, i28: 28,
+      channels: [{ zone: 1, channel: 1, assignment: 'Emergency', notes: 'Primary life safety and incident response' }, { zone: 1, channel: 2, assignment: 'Security', notes: 'Perimeter and access security coordination' }, { zone: 1, channel: 7, assignment: 'Stage Ops', notes: 'Main stage and side stage crew leads' }, { zone: 1, channel: 8, assignment: 'Audio', notes: 'FOH audio, monitor world, and system tech' }, { zone: 1, channel: 14, assignment: 'Guest Services', notes: 'Info booths, lost & found, ADA assistance' }, { zone: 2, channel: 1, assignment: 'All Call', notes: 'Emergency broadcast across all channels' }],
+      tabs: [{ label: 'Today', icon: 'House' }, { label: 'Schedule', icon: 'CalendarDays' }, { label: 'Scan', icon: 'ScanLine' }, { label: 'Inbox', icon: 'Inbox', badge: 3 }, { label: 'Crew', icon: 'HardHat' }, { label: 'More', icon: 'Menu' }]
+    };
+  }
+}
+</script>
+</body>
+</html>
