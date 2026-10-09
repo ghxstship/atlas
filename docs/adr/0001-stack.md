@@ -77,6 +77,20 @@ Section 5 fixes the stack and requires every dependency pinned to the latest sta
 | Testing       | `@axe-core/playwright`                                   | 4.13.0  |
 | Codegen       | `openapi-typescript`                                     | 7.13.0  |
 
+### Added during Wave 1 (2026-10-09)
+
+Dependencies the Wave 1 agents needed that the original table did not list, each pinned to the latest stable release compatible with the pins above.
+
+| Area       | Package                               | Version | Used by                      | Reason                                                                         |
+| ---------- | ------------------------------------- | ------- | ---------------------------- | ------------------------------------------------------------------------------ |
+| Parsing    | `yaml`                                | 2.9.1   | `@xos/ia`, `@xos/schemas`    | Loads the sitemaps, `capabilities.yaml` and `plans.yaml`                       |
+| Testing    | `@seriousme/openapi-schema-validator` | 2.11.0  | `@xos/api`                   | Validates the generated document as OpenAPI 3.1                                |
+| Tokens     | `@tailwindcss/node`                   | 4.3.3   | `@xos/tokens` (dev)          | Compiles the Tailwind preset through `@config` in tests; matches `tailwindcss` |
+| Lint       | `stylelint`                           | 16.26.1 | `@xos/config`, `@xos/tokens` | Deviation 4 below                                                              |
+| Lint       | `stylelint-use-logical-spec`          | 5.0.1   | `@xos/config`                | Provides `liberty/use-logical-spec` (ADR 0010)                                 |
+| i18n       | `@formatjs/icu-messageformat-parser`  | 3.5.21  | `@xos/i18n` (dev)            | Compares ICU arguments between catalogs                                        |
+| Components | `qrcode-generator`                    | 1.4.4   | `@xos/ui` (Wave 2)           | Same library the design reference uses for QRCode and CredentialBadge          |
+
 ### CI actions (pinned by commit SHA, Section 9)
 
 | Action               | Tag     | SHA                                                                                       |
@@ -92,6 +106,7 @@ Section 5 fixes the stack and requires every dependency pinned to the latest sta
 1. **TypeScript 6.0.3, not 7.0.2.** `typescript-eslint` 8.71.1 declares a peer range of `>=4.8.4 <6.1.0`. TypeScript 7 (the native compiler) would break type-aware lint across the monorepo. Renovate holds TypeScript below 6.1 until `typescript-eslint` widens its range; this ADR is superseded then.
 2. **pnpm 10.15.1, not 12.10.1.** Corepack bundled with Node 22.14 cannot launch the pnpm 12 package layout. Upgrade together with the Node runtime.
 3. **Local Supabase port block 554xx and project id `xos4`.** The build host already runs an unrelated Supabase stack named `xos` on the default and 544xx ports. Moving this project avoids touching that stack.
+4. **stylelint 16.26.1, not 17.16.0.** `stylelint-use-logical-spec` 5.0.1, the plugin ADR 0010 relies on, declares `stylelint >=11 <17` and has not been updated since 2024. 16.26.1 is the newest release inside that range. Renovate holds stylelint below 17 until the plugin widens its range or is replaced through a new ADR.
 
 ## Alternatives considered
 

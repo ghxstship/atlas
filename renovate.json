@@ -8,6 +8,11 @@
       "description": "typescript-eslint caps TypeScript below 6.1 (ADR 0001). Hold TypeScript until it widens.",
       "matchPackageNames": ["typescript"],
       "allowedVersions": "<6.1.0"
+    },
+    {
+      "description": "stylelint-use-logical-spec supports stylelint below 17 (ADR 0001, deviation 4). Hold stylelint until it widens.",
+      "matchPackageNames": ["stylelint"],
+      "allowedVersions": "<17.0.0"
     }
   ]
 }
