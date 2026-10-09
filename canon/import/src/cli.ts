@@ -1,5 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { mergeColumnMap, readColumnMap, writeColumnMap } from "./playbook/column-map.ts";
+import { checkLedger, localDatabaseUrl, readLedger, roundTripReport } from "./ledger.ts";
+import { roundTrip } from "./roundtrip.ts";
 import { join } from "node:path";
 import { countFailures, validateCounts } from "./counts.ts";
 import { Findings } from "./doctrine.ts";
@@ -11,7 +13,7 @@ import {
   verifyFileManifest,
 } from "./manifest.ts";
 import type { FileManifest } from "./manifest.ts";
-import { generateCanon, generateOptions, writeGenerated } from "./generate.ts";
+import { generateCanon, generateOptions, staleFiles, writeGenerated } from "./generate.ts";
 import { buildCanonModel } from "./model/bible-model.ts";
 import { defaultRoot, repoPaths } from "./paths.ts";
 import type { RepoPaths } from "./paths.ts";
@@ -53,6 +55,21 @@ async function check(paths: RepoPaths): Promise<number> {
   failures.push(...model.problems, ...countFailures(counts));
   for (const c of counts)
     console.log(`${c.ok ? "ok  " : "FAIL"} ${c.entity}: ${c.parsed} (expected ${c.expected})`);
+  if (failures.length === 0) {
+    // Generated files must match a fresh run; a Playbook to Bible difference fails the build (Section 2.1).
+    const result = generateCanon(inputs, generateOptions(paths));
+    for (const f of staleFiles(paths, result.files))
+      failures.push(`${f} is stale: run canon:generate`);
+    if (result.diff.length > 0) {
+      failures.push(
+        `${result.diff.length} Playbook to Bible differences await an owner decision; see canon/reports/playbook-bible-diff.md`,
+      );
+    }
+    for (const r of result.reference) {
+      if (r.missing.length + r.extra.length > 0)
+        failures.push(`Reference model table ${r.table} differs from the reference seed`);
+    }
+  }
   for (const f of failures) console.error(f);
   return failures.length === 0 ? 0 : 1;
 }
@@ -71,6 +88,31 @@ switch (command) {
     writeGenerated(paths, result.files);
     for (const f of result.files) console.log(`wrote ${f.path}`);
     console.log(`${result.findings.items.length} findings recorded`);
+    break;
+  }
+  case "roundtrip": {
+    const out = join(paths.canonReports, "roundtrip");
+    mkdirSync(out, { recursive: true });
+    const diffs = await roundTrip(
+      process.env["CANON_DB_URL"] ?? localDatabaseUrl(paths),
+      join(paths.canonSource, sourceByRole("playbook").file),
+      join(out, "playbook-export.xlsx"),
+      "Cover Page",
+    );
+    const ledger = readLedger(paths);
+    const result = checkLedger(diffs, ledger);
+    writeFileSync(join(out, "roundtrip-report.md"), roundTripReport(diffs, result));
+    for (const d of result.unexplained) {
+      console.error(
+        `${d.sheet} ${d.column}${d.row} ${d.header}: source "${d.source}", database "${d.database}"`,
+      );
+    }
+    for (const e of result.stale)
+      console.error(`Ledger entry no longer observed: ${e.sheet} ${e.cell}`);
+    console.log(
+      `Round trip: ${diffs.length} differing cells, ${diffs.length - result.unexplained.length} explained by owner rulings, ${result.unexplained.length} unexplained, ${result.stale.length} stale ledger entries.`,
+    );
+    process.exitCode = result.unexplained.length === 0 && result.stale.length === 0 ? 0 : 1;
     break;
   }
   case "map": {

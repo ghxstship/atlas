@@ -39,7 +39,12 @@ begin
      where n.nspname = 'xpms' and c.relkind = 'v'
   loop
     execute format('revoke all on table xpms.%I from public, anon, authenticated', t.relname);
-    execute format('grant select on table xpms.%I to authenticated, service_role', t.relname);
+    -- Round-trip export views read the private template; only service_role uses them.
+    if t.relname like 'v\_sheet\_%' or t.relname like 'v\_playbook\_%' then
+      execute format('grant select on table xpms.%I to service_role', t.relname);
+    else
+      execute format('grant select on table xpms.%I to authenticated, service_role', t.relname);
+    end if;
   end loop;
 end;
 $$;

@@ -89,30 +89,35 @@ sheets:
         disposition: field
         target: app.projects.project_name
         type: text
+        real_world: company
       - letter: C
         header: CLIENT NAME
         key: client_name
         disposition: field
         target: app.projects.client_name
         type: text
+        real_world: company
       - letter: D
         header: ORGANIZATION
         key: organization
         disposition: field
         target: app.projects.organization
         type: text
+        real_world: company
       - letter: E
         header: VENUE
         key: venue
         disposition: field
         target: app.projects.venue
         type: text
+        real_world: venue
       - letter: F
         header: LOCATION
         key: location
         disposition: field
         target: app.projects.location
         type: text
+        real_world: venue
       - letter: G
         header: START DATE
         key: start_date
@@ -143,6 +148,7 @@ sheets:
         disposition: field
         target: app.projects.budget_envelope
         type: numeric
+        real_world: price
       - letter: L
         header: COMMITTED AMOUNT
         key: committed_amount
@@ -150,6 +156,7 @@ sheets:
         target: app.projects.committed_amount
         type: numeric
         formula: =SUMIFS('Budget Expenses'!$X:$X, 'Budget Expenses'!$B:$B, A2)
+        sql: coalesce((select sum(x.committed) from xpms.v_sheet_budget_expenses x where x.project_id = r.project_id), 0)
       - letter: M
         header: ACTUAL SPEND
         key: actual_spend
@@ -157,6 +164,7 @@ sheets:
         target: app.projects.actual_spend
         type: numeric
         formula: =SUMIFS('Budget Expenses'!$Z:$Z, 'Budget Expenses'!$B:$B, A2)
+        sql: coalesce((select sum(xpms.pb_n(x.actual)) from xpms.v_sheet_budget_expenses x where x.project_id = r.project_id), 0)
       - letter: N
         header: APPROVED CHANGE ORDERS
         key: approved_change_orders
@@ -164,6 +172,7 @@ sheets:
         target: app.projects.approved_change_orders
         type: numeric
         formula: =SUMIFS('Change Orders'!$M:$M, 'Change Orders'!$B:$B, A2, 'Change Orders'!$W:$W, "Approved")
+        sql: coalesce((select sum(x.total_amount) from xpms.v_sheet_change_orders x where x.project_id = r.project_id and x.status = 'Approved'), 0)
       - letter: O
         header: PRODUCTION TASKS
         key: production_tasks
@@ -171,6 +180,7 @@ sheets:
         target: app.projects.production_tasks
         type: numeric
         formula: =COUNTIFS('Production Tasks'!$B:$B, A2, 'Production Tasks'!$V:$V, "Active")
+        sql: (select count(*) from xpms.v_sheet_production_tasks x where x.project_id = r.project_id and x.status = 'Active')
       - letter: P
         header: OPERATIONAL STATE
         key: operational_state
@@ -189,6 +199,7 @@ sheets:
         disposition: field
         target: app.projects.executive_producer
         type: text
+        real_world: person
       - letter: S
         header: NOTES
         key: notes
@@ -448,6 +459,7 @@ sheets:
         target: app.records.total_tasks
         type: numeric
         formula: =COUNTIF('Production Tasks'!$C$2:$C$25, A2)
+        sql: case when r.activity_type = 'Milestone Gate' then coalesce((select sum((select count(*) from xpms.v_sheet_production_tasks t where t.activity_id = c.activity_id)) from s0 c where c.parent_activity_id = r.activity_id and c.activity_type = 'Summary Activity'), 0) else (select count(*) from xpms.v_sheet_production_tasks t where t.activity_id = r.activity_id) end
       - letter: T
         header: COMPLETED TASKS
         key: completed_tasks
@@ -455,6 +467,7 @@ sheets:
         target: app.records.completed_tasks
         type: numeric
         formula: =COUNTIFS('Production Tasks'!$C$2:$C$25, A2, 'Production Tasks'!$V$2:$V$25, "Complete")
+        sql: case when r.activity_type = 'Milestone Gate' then coalesce((select sum((select count(*) from xpms.v_sheet_production_tasks t where t.activity_id = c.activity_id and t.status = 'Complete')) from s0 c where c.parent_activity_id = r.activity_id and c.activity_type = 'Summary Activity'), 0) else (select count(*) from xpms.v_sheet_production_tasks t where t.activity_id = r.activity_id and t.status = 'Complete') end
       - letter: U
         header: PROGRESS (%)
         key: progress_pct
@@ -462,6 +475,7 @@ sheets:
         target: app.records.progress_pct
         type: numeric
         formula: =IF(S2>0, T2/S2, IF(V2="Complete", 1, 0))
+        sql: case when r.total_tasks > 0 then r.completed_tasks::numeric / r.total_tasks when r.status = 'Complete' then 1 else 0 end
       - letter: V
         header: STATUS
         key: status
@@ -558,6 +572,7 @@ sheets:
         disposition: field
         target: app.records.assignee_name
         type: text
+        real_world: person
       - letter: M
         header: START DATE
         key: start_date
@@ -649,6 +664,7 @@ sheets:
         target: app.records.project_id
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: C
         header: DEPARTMENT
         key: department
@@ -692,6 +708,7 @@ sheets:
         target: app.records.location_name
         type: text
         formula: =IF(ISBLANK(H2), "", _xlfn.XLOOKUP(H2, Locations!$A$2:$A100, Locations!$F$2:$F100, ""))
+        sql: case when r.location_id is null then null else (select x.location from xpms.v_sheet_locations x where x.record_id = r.location_id order by x.source_row limit 1) end
       - letter: J
         header: ITEM ID
         key: item_id
@@ -717,6 +734,7 @@ sheets:
         target: app.records.lead_assignee_name
         type: text
         formula: =IF(ISBLANK(L2), "", TRIM(_xlfn.XLOOKUP(L2, 'Personnel Roster'!$A$2:$A100, 'Personnel Roster'!$D$2:$D100, "") & " " & _xlfn.XLOOKUP(L2, 'Personnel Roster'!$A$2:$A100, 'Personnel Roster'!$E$2:$E100, "")))
+        sql: case when r.personnel_id is null then null else nullif(btrim(coalesce((select p.first_name from xpms.v_sheet_personnel_roster p where p.personnel_id = r.personnel_id order by p.source_row limit 1), '') || ' ' || coalesce((select p.last_name from xpms.v_sheet_personnel_roster p where p.personnel_id = r.personnel_id order by p.source_row limit 1), '')), '') end
       - letter: N
         header: TASK TITLE
         key: task_title
@@ -777,6 +795,7 @@ sheets:
         disposition: field
         target: app.records.labor_rate
         type: numeric
+        real_world: price
       - letter: X
         header: TOTAL LABOR COST
         key: total_labor_cost
@@ -784,6 +803,7 @@ sheets:
         target: app.records.total_labor_cost
         type: numeric
         formula: =V2*W2
+        sql: coalesce(xpms.pb_n(r.actual_hours), 0) * coalesce(xpms.pb_n(r.labor_rate), 0)
       - letter: Y
         header: SAFETY HAZARD LEVEL
         key: safety_hazard_level
@@ -892,6 +912,7 @@ sheets:
         disposition: field
         target: app.cues.description
         type: text
+        real_world: person
       - letter: I
         header: START TIME
         key: start_time
@@ -1060,6 +1081,7 @@ sheets:
         target: xpms.std_sop.accountable_role_title
         type: text
         formula: =_xlfn.XLOOKUP(J2, 'Roles Library'!$A$2:$A100, 'Roles Library'!$B$2:$B100, "")
+        sql: (select x.job_title from xpms.role x where x.role_code = r.accountable_role_code)
       - letter: L
         header: REQUIRED PPE / COMPLIANCE TAG
         key: required_ppe_compliance_tag
@@ -1109,6 +1131,7 @@ sheets:
         target: xpms.std_sop.reference_document_name
         type: text
         formula: =_xlfn.XLOOKUP(R2, 'Document & Asset Library'!$A$2:$A100, 'Document & Asset Library'!$B$2:$B100, "")
+        sql: (select x.document_name from xpms.std_document_library x where x.record_id = r.reference_doc_id)
       - letter: T
         header: STATUS
         key: status
@@ -1164,6 +1187,7 @@ sheets:
         target: app.spaces.project_id
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: C
         header: DEPARTMENT
         key: department
@@ -1188,6 +1212,7 @@ sheets:
         disposition: field
         target: app.spaces.location
         type: text
+        real_world: venue
       - letter: G
         header: DESCRIPTION
         key: description
@@ -1249,6 +1274,7 @@ sheets:
         target: app.shipments.project_id
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: C
         header: DEPARTMENT
         key: department
@@ -1328,6 +1354,7 @@ sheets:
         target: app.shipments.volume_cu_ft
         type: numeric
         formula: =ROUND(L2*M2*N2, 2)
+        sql: round(xpms.pb_n(r.length_ft) * xpms.pb_n(r.width_ft) * xpms.pb_n(r.height_ft), 2)
       - letter: P
         header: DIMENSIONS
         key: dimensions
@@ -1335,6 +1362,7 @@ sheets:
         target: app.shipments.dimensions
         type: text
         formula: =L2 & " ft x " & M2 & " ft x " & N2 & " ft"
+        sql: coalesce(r.length_ft, '') || ' ft x ' || coalesce(r.width_ft, '') || ' ft x ' || coalesce(r.height_ft, '') || ' ft'
       - letter: Q
         header: WEIGHT
         key: weight
@@ -1353,6 +1381,7 @@ sheets:
         disposition: field
         target: app.shipments.sender
         type: text
+        real_world: company
       - letter: T
         header: ORIGIN
         key: origin
@@ -1377,24 +1406,28 @@ sheets:
         disposition: field
         target: app.shipments.carrier
         type: text
+        real_world: company
       - letter: X
         header: CARRIER PHONE
         key: carrier_phone
         disposition: field
         target: app.shipments.carrier_phone
         type: text
+        real_world: contact
       - letter: Y
         header: TRAILER LICENSE
         key: trailer_license
         disposition: field
         target: app.shipments.trailer_license
         type: text
+        real_world: identifier
       - letter: Z
         header: SEAL NUMBER
         key: seal_number
         disposition: field
         target: app.shipments.seal_number
         type: text
+        real_world: identifier
       - letter: AA
         header: FREIGHT TYPE
         key: freight_type
@@ -1407,12 +1440,14 @@ sheets:
         disposition: field
         target: app.shipments.tracking_number
         type: text
+        real_world: identifier
       - letter: AC
         header: BILL OF LADING (BOL)
         key: bill_of_lading_bol
         disposition: field
         target: app.shipments.bill_of_lading_bol
         type: text
+        real_world: identifier
       - letter: AD
         header: STATUS
         key: status
@@ -1468,6 +1503,7 @@ sheets:
         target: app.marshalling_log.project_id
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: C
         header: DEPARTMENT
         key: department
@@ -1516,24 +1552,28 @@ sheets:
         disposition: field
         target: app.marshalling_log.driver_name
         type: text
+        real_world: person
       - letter: K
         header: CARRIER PHONE
         key: carrier_phone
         disposition: field
         target: app.marshalling_log.carrier_phone
         type: text
+        real_world: contact
       - letter: L
         header: TRAILER LICENSE
         key: trailer_license
         disposition: field
         target: app.marshalling_log.trailer_license
         type: text
+        real_world: identifier
       - letter: M
         header: SEAL NUMBER
         key: seal_number
         disposition: field
         target: app.marshalling_log.seal_number
         type: text
+        real_world: identifier
       - letter: N
         header: DIMENSIONS
         key: dimensions
@@ -1931,6 +1971,7 @@ sheets:
         target: app.asset_units.project_id
         type: text
         formula: ='Cover Page'!$C$7
+        sql: case when r.record_id is null then null else xpms.pb_cover(7, 3) end
       - letter: C
         header: ITEM ID
         key: item_id
@@ -1944,6 +1985,7 @@ sheets:
         target: app.asset_units.item
         type: text
         formula: =IF(ISBLANK(C2), "", _xlfn.XLOOKUP(C2, 'Procurement Catalog'!$A$2:$A1038, 'Procurement Catalog'!$C$2:$C1038, ""))
+        sql: case when r.item_id is null then null else (select x.item_name from xpms.v_sheet_procurement_catalog x where x.item_id = r.item_id order by x.source_row limit 1) end
       - letter: E
         header: DESCRIPTION
         key: description
@@ -1951,6 +1993,7 @@ sheets:
         target: app.asset_units.description
         type: text
         formula: =IF(ISBLANK(C2), "", _xlfn.XLOOKUP(C2, 'Procurement Catalog'!$A$2:$A1038, 'Procurement Catalog'!$M$2:$M1038, ""))
+        sql: case when r.item_id is null then null else (select x.description from xpms.v_sheet_procurement_catalog x where x.item_id = r.item_id order by x.source_row limit 1) end
       - letter: F
         header: SPECIFICATIONS
         key: specifications
@@ -1958,6 +2001,7 @@ sheets:
         target: app.asset_units.specifications
         type: text
         formula: =IF(ISBLANK(C2), "", _xlfn.XLOOKUP(C2, 'Procurement Catalog'!$A$2:$A1038, 'Procurement Catalog'!$N$2:$N1038, ""))
+        sql: case when r.item_id is null then null else (select x.specifications from xpms.v_sheet_procurement_catalog x where x.item_id = r.item_id order by x.source_row limit 1) end
       - letter: G
         header: COLOR
         key: color
@@ -1976,6 +2020,7 @@ sheets:
         disposition: field
         target: app.asset_units.serial_number
         type: text
+        real_world: identifier
       - letter: J
         header: LABEL
         key: label
@@ -2013,6 +2058,7 @@ sheets:
         target: app.asset_units.unit_cost
         type: numeric
         formula: =IF(ISBLANK(C2), "", _xlfn.XLOOKUP(C2, 'Procurement Catalog'!$A$2:$A1038, 'Procurement Catalog'!$K$2:$K1038, ""))
+        sql: xpms.pb_n(case when r.item_id is null then null else (select x.grade_2_standard_cost from xpms.v_sheet_procurement_catalog x where x.item_id = r.item_id order by x.source_row limit 1) end)
       - letter: P
         header: STATUS
         key: status
@@ -2175,36 +2221,42 @@ sheets:
         disposition: field
         target: app.role_assignments.first_name
         type: text
+        real_world: person
       - letter: E
         header: LAST NAME
         key: last_name
         disposition: field
         target: app.role_assignments.last_name
         type: text
+        real_world: person
       - letter: F
         header: PREFERRED NAME
         key: preferred_name
         disposition: field
         target: app.role_assignments.preferred_name
         type: text
+        real_world: person
       - letter: G
         header: EMAIL
         key: email
         disposition: field
         target: app.role_assignments.email
         type: text
+        real_world: contact
       - letter: H
         header: PHONE
         key: phone
         disposition: field
         target: app.role_assignments.phone
         type: text
+        real_world: contact
       - letter: I
         header: COMPANY
         key: company
         disposition: field
         target: app.role_assignments.company
         type: text
+        real_world: company
       - letter: J
         header: ROLE CODE
         key: role_code
@@ -2218,6 +2270,7 @@ sheets:
         target: app.role_assignments.position
         type: text
         formula: =VLOOKUP(J2, 'Roles Library'!$A$2:$B$36, 2, FALSE)
+        sql: (select x.job_title from xpms.role x where x.role_code = r.role_code)
       - letter: L
         header: DEPARTMENT
         key: department
@@ -2296,12 +2349,14 @@ sheets:
         disposition: field
         target: app.role_assignments.emergency_contact_name
         type: text
+        real_world: person
       - letter: Y
         header: EMERGENCY CONTACT PHONE
         key: emergency_contact_phone
         disposition: field
         target: app.role_assignments.emergency_contact_phone
         type: text
+        real_world: contact
       - letter: Z
         header: STATUS
         key: status
@@ -2369,6 +2424,7 @@ sheets:
         target: app.requisitions.rate_card_id
         type: text
         formula: =_xlfn.XLOOKUP(C2, 'Labor Rate Cards'!$B$2:$B$36, 'Labor Rate Cards'!$A$2:$A$36)
+        sql: (select x.rate_card_id from xpms.rate_card x where x.role_code = r.role_code order by x.source_row limit 1)
       - letter: E
         header: JOB TITLE
         key: job_title
@@ -2376,6 +2432,7 @@ sheets:
         target: app.requisitions.job_title
         type: text
         formula: =_xlfn.XLOOKUP(C2, 'Roles Library'!$A$2:$A$36, 'Roles Library'!$B$2:$B$36)
+        sql: (select x.job_title from xpms.role x where x.role_code = r.role_code)
       - letter: F
         header: HEADCOUNT
         key: headcount
@@ -2395,6 +2452,7 @@ sheets:
         target: app.requisitions.standard_rate
         type: numeric
         formula: =_xlfn.XLOOKUP(D2, 'Labor Rate Cards'!$A$2:$A$36, 'Labor Rate Cards'!$F$2:$F$36)
+        sql: (select x.standard_rate_minor / 100.0 from xpms.rate_card x where x.rate_card_id = r.rate_card_id)
       - letter: I
         header: TOTAL ESTIMATED COST
         key: total_estimated_cost
@@ -2402,6 +2460,7 @@ sheets:
         target: app.requisitions.total_estimated_cost
         type: numeric
         formula: =F2*G2*H2
+        sql: xpms.pb_n(r.headcount) * xpms.pb_n(r.duration_days) * r.standard_rate
       - letter: J
         header: STATUS
         key: status
@@ -2474,6 +2533,7 @@ sheets:
         disposition: field
         target: app.shifts.location_name
         type: text
+        real_world: venue
       - letter: F
         header: PERSONNEL ID
         key: personnel_id
@@ -2487,6 +2547,7 @@ sheets:
         target: app.shifts.crew_name
         type: text
         formula: =TRIM(_xlfn.XLOOKUP(F2, 'Personnel Roster'!$A$2:$A100, 'Personnel Roster'!$D$2:$D100, "") & " " & _xlfn.XLOOKUP(F2, 'Personnel Roster'!$A$2:$A100, 'Personnel Roster'!$E$2:$E100, ""))
+        sql: nullif(btrim(coalesce((select p.first_name from xpms.v_sheet_personnel_roster p where p.personnel_id = r.personnel_id order by p.source_row limit 1), '') || ' ' || coalesce((select p.last_name from xpms.v_sheet_personnel_roster p where p.personnel_id = r.personnel_id order by p.source_row limit 1), '')), '')
       - letter: H
         header: ROLE CODE
         key: role_code
@@ -2506,6 +2567,7 @@ sheets:
         target: app.shifts.job_title
         type: text
         formula: =IFERROR(_xlfn.XLOOKUP(I2, 'Labor Rate Cards'!$A$2:$A$36, 'Labor Rate Cards'!$C$2:$C$36), "")
+        sql: (select ro.job_title from xpms.rate_card rc join xpms.role ro on ro.role_code = rc.role_code where rc.rate_card_id = r.rate_card_id)
       - letter: K
         header: SCHEDULED CALL TIME
         key: scheduled_call_time
@@ -2531,6 +2593,7 @@ sheets:
         target: app.shifts.net_scheduled_hours
         type: numeric
         formula: =ROUND((L2-K2)*24 - M2, 2)
+        sql: round(xpms.pb_hours(r.scheduled_call_time, r.scheduled_wrap_time) - xpms.pb_n(r.scheduled_meal_break_hrs), 2)
       - letter: O
         header: PAY BASIS
         key: pay_basis
@@ -2538,6 +2601,7 @@ sheets:
         target: app.shifts.pay_basis
         type: text
         formula: =IFERROR(_xlfn.XLOOKUP(I2, 'Labor Rate Cards'!$A$2:$A$36, 'Labor Rate Cards'!$E$2:$E$36), "Day Rate")
+        sql: coalesce((select x.pay_basis from xpms.rate_card x where x.rate_card_id = r.rate_card_id), 'Day Rate')
       - letter: P
         header: STANDARD RATE
         key: standard_rate
@@ -2545,6 +2609,7 @@ sheets:
         target: app.shifts.standard_rate
         type: numeric
         formula: =IFERROR(_xlfn.XLOOKUP(I2, 'Labor Rate Cards'!$A$2:$A$36, 'Labor Rate Cards'!$F$2:$F$36), 0)
+        sql: coalesce((select x.standard_rate_minor / 100.0 from xpms.rate_card x where x.rate_card_id = r.rate_card_id), 0)
       - letter: Q
         header: HOURLY BASE RATE
         key: hourly_base_rate
@@ -2552,6 +2617,7 @@ sheets:
         target: app.shifts.hourly_base_rate
         type: numeric
         formula: =ROUND(P2/10, 2)
+        sql: round(r.standard_rate / 10, 2)
       - letter: R
         header: SCHEDULED PAY
         key: scheduled_pay
@@ -2559,6 +2625,7 @@ sheets:
         target: app.shifts.scheduled_pay
         type: numeric
         formula: =IF(O2="Day Rate", P2, ROUND(Q2*N2, 2))
+        sql: case when r.pay_basis = 'Day Rate' then r.standard_rate else round(r.hourly_base_rate * r.net_scheduled_hours, 2) end
       - letter: S
         header: STATUS
         key: status
@@ -2626,6 +2693,7 @@ sheets:
         target: app.timesheets.work_date
         type: date
         formula: ='Crew Shifts'!C2
+        sql: (select x.shift_date::date from xpms.v_sheet_crew_shifts x where x.source_row = r.source_row)
       - letter: E
         header: PERSONNEL ID
         key: personnel_id
@@ -2633,6 +2701,7 @@ sheets:
         target: app.timesheets.personnel_id
         type: text
         formula: ='Crew Shifts'!F2
+        sql: (select x.personnel_id from xpms.v_sheet_crew_shifts x where x.source_row = r.source_row)
       - letter: F
         header: CREW NAME
         key: crew_name
@@ -2640,6 +2709,7 @@ sheets:
         target: app.timesheets.crew_name
         type: text
         formula: =TRIM(_xlfn.XLOOKUP(E2, 'Personnel Roster'!$A$2:$A100, 'Personnel Roster'!$D$2:$D100, "") & " " & _xlfn.XLOOKUP(E2, 'Personnel Roster'!$A$2:$A100, 'Personnel Roster'!$E$2:$E100, ""))
+        sql: nullif(btrim(coalesce((select p.first_name from xpms.v_sheet_personnel_roster p where p.personnel_id = r.personnel_id order by p.source_row limit 1), '') || ' ' || coalesce((select p.last_name from xpms.v_sheet_personnel_roster p where p.personnel_id = r.personnel_id order by p.source_row limit 1), '')), '')
       - letter: G
         header: ROLE CODE
         key: role_code
@@ -2647,6 +2717,7 @@ sheets:
         target: app.timesheets.role_code
         type: text
         formula: ='Crew Shifts'!H2
+        sql: (select x.role_code from xpms.v_sheet_crew_shifts x where x.source_row = r.source_row)
       - letter: H
         header: RATE CARD ID
         key: rate_card_id
@@ -2654,6 +2725,7 @@ sheets:
         target: app.timesheets.rate_card_id
         type: text
         formula: ='Crew Shifts'!I2
+        sql: (select x.rate_card_id from xpms.v_sheet_crew_shifts x where x.source_row = r.source_row)
       - letter: I
         header: JOB TITLE
         key: job_title
@@ -2661,6 +2733,7 @@ sheets:
         target: app.timesheets.job_title
         type: text
         formula: ='Crew Shifts'!J2
+        sql: (select x.job_title from xpms.v_sheet_crew_shifts x where x.source_row = r.source_row)
       - letter: J
         header: ACTUAL IN TIME
         key: actual_in_time
@@ -2692,6 +2765,7 @@ sheets:
         target: app.timesheets.meal_duration_hrs
         type: numeric
         formula: =ROUND((L2-K2)*24, 2)
+        sql: round(xpms.pb_hours(r.meal_out_time, r.meal_in_time), 2)
       - letter: O
         header: TOTAL ELAPSED HOURS
         key: total_elapsed_hours
@@ -2699,6 +2773,7 @@ sheets:
         target: app.timesheets.total_elapsed_hours
         type: numeric
         formula: =ROUND((M2-J2)*24, 2)
+        sql: round(xpms.pb_hours(r.actual_in_time, r.actual_out_time), 2)
       - letter: P
         header: NET WORKED HOURS
         key: net_worked_hours
@@ -2706,6 +2781,7 @@ sheets:
         target: app.timesheets.net_worked_hours
         type: numeric
         formula: =ROUND(O2-N2, 2)
+        sql: round(r.total_elapsed_hours - r.meal_duration_hrs, 2)
       - letter: Q
         header: REGULAR HOURS (1.0x)
         key: regular_hours_1_0x
@@ -2713,6 +2789,7 @@ sheets:
         target: app.timesheets.regular_hours_1_0x
         type: numeric
         formula: =ROUND(MIN(8, P2), 2)
+        sql: round(least(8, r.net_worked_hours), 2)
       - letter: R
         header: OVERTIME HOURS (1.5x)
         key: overtime_hours_1_5x
@@ -2720,6 +2797,7 @@ sheets:
         target: app.timesheets.overtime_hours_1_5x
         type: numeric
         formula: =ROUND(MAX(0, MIN(4, P2-8)), 2)
+        sql: round(greatest(0, least(4, r.net_worked_hours - 8)), 2)
       - letter: S
         header: DOUBLE TIME HOURS (2.0x)
         key: double_time_hours_2_0x
@@ -2727,6 +2805,7 @@ sheets:
         target: app.timesheets.double_time_hours_2_0x
         type: numeric
         formula: =ROUND(MAX(0, P2-12), 2)
+        sql: round(greatest(0, r.net_worked_hours - 12), 2)
       - letter: T
         header: HOURLY BASE RATE
         key: hourly_base_rate
@@ -2734,6 +2813,7 @@ sheets:
         target: app.timesheets.hourly_base_rate
         type: numeric
         formula: ='Crew Shifts'!Q2
+        sql: (select x.hourly_base_rate from xpms.v_sheet_crew_shifts x where x.source_row = r.source_row)
       - letter: U
         header: REGULAR PAY
         key: regular_pay
@@ -2741,6 +2821,7 @@ sheets:
         target: app.timesheets.regular_pay
         type: numeric
         formula: =ROUND(Q2*T2, 2)
+        sql: round(r.regular_hours_1_0x * r.hourly_base_rate, 2)
       - letter: V
         header: OVERTIME PAY
         key: overtime_pay
@@ -2748,6 +2829,7 @@ sheets:
         target: app.timesheets.overtime_pay
         type: numeric
         formula: =ROUND(R2*T2*1.5, 2)
+        sql: round(r.overtime_hours_1_5x * r.hourly_base_rate * 1.5, 2)
       - letter: W
         header: DOUBLE TIME PAY
         key: double_time_pay
@@ -2755,6 +2837,7 @@ sheets:
         target: app.timesheets.double_time_pay
         type: numeric
         formula: =ROUND(S2*T2*2, 2)
+        sql: round(r.double_time_hours_2_0x * r.hourly_base_rate * 2, 2)
       - letter: X
         header: MEAL PENALTY PAY
         key: meal_penalty_pay
@@ -2762,6 +2845,7 @@ sheets:
         target: app.timesheets.meal_penalty_pay
         type: numeric
         formula: =IF((K2-J2)*24 > 6, 50, 0)
+        sql: case when xpms.pb_hours(r.actual_in_time, r.meal_out_time) > 6 then 50 else 0 end
       - letter: Y
         header: PER DIEM PAY
         key: per_diem_pay
@@ -2769,6 +2853,7 @@ sheets:
         target: app.timesheets.per_diem_pay
         type: numeric
         formula: =IFERROR(VLOOKUP(H2, 'Labor Rate Cards'!$A$2:$K$36, 11, FALSE), 0)
+        sql: coalesce((select x.per_diem_rate_minor / 100.0 from xpms.rate_card x where x.rate_card_id = r.rate_card_id), 0)
       - letter: Z
         header: GROSS EARNINGS
         key: gross_earnings
@@ -2776,6 +2861,7 @@ sheets:
         target: app.timesheets.gross_earnings
         type: numeric
         formula: =ROUND(U2+V2+W2+X2+Y2, 2)
+        sql: round(r.regular_pay + r.overtime_pay + r.double_time_pay + r.meal_penalty_pay + r.per_diem_pay, 2)
       - letter: AA
         header: EXPENSE GL ACCOUNT
         key: expense_gl_account
@@ -2783,6 +2869,7 @@ sheets:
         target: app.timesheets.expense_gl_account
         type: numeric
         formula: =IFERROR(VLOOKUP(H2, 'Labor Rate Cards'!$A$2:$L$36, 12, FALSE), "")
+        sql: (select x.gl_account::numeric from xpms.rate_card_resolved x where x.rate_card_id = r.rate_card_id)
       - letter: AB
         header: EXPENSE GL NAME
         key: expense_gl_name
@@ -2790,6 +2877,7 @@ sheets:
         target: app.timesheets.expense_gl_name
         type: text
         formula: =IFERROR(VLOOKUP(H2, 'Labor Rate Cards'!$A$2:$M$36, 13, FALSE), "")
+        sql: (select x.gl_account_name from xpms.rate_card_resolved x where x.rate_card_id = r.rate_card_id)
       - letter: AC
         header: STATUS
         key: status
@@ -2846,16 +2934,18 @@ sheets:
       - letter: C
         header: JOB TITLE
         key: job_title
-        disposition: computed
-        target: xpms.rate_card.job_title
+        disposition: field
+        target: xpms.role.job_title
         type: text
         formula: =_xlfn.XLOOKUP(B2, 'Roles Library'!$A$2:$A$12, 'Roles Library'!$B$2:$B$12)
+        transform: "Ruling D12: the title is read from the Roles Library through the role code."
       - letter: D
         header: ENGAGEMENT TYPE
         key: engagement_type
         disposition: field
-        target: xpms.rate_card.engagement_type
+        target: xpms.rate_card.worker_classification
         type: text
+        transform: "Ruling D16: Engagement Type becomes worker_classification and arrangement (canon/rulings/owner-rulings.yaml engagement_types)."
       - letter: E
         header: PAY BASIS
         key: pay_basis
@@ -2866,56 +2956,64 @@ sheets:
         header: STANDARD RATE
         key: standard_rate
         disposition: field
-        target: xpms.rate_card.standard_rate
+        target: xpms.rate_card.standard_rate_minor
         type: numeric
+        transform: Dollars to minor units of currency_code.
       - letter: G
         header: MIN GRADE RATE
         key: min_grade_rate
         disposition: field
-        target: xpms.rate_card.min_grade_rate
+        target: xpms.rate_card.min_grade_rate_minor
         type: numeric
+        transform: Dollars to minor units of currency_code.
       - letter: H
         header: MAX GRADE RATE
         key: max_grade_rate
         disposition: field
-        target: xpms.rate_card.max_grade_rate
+        target: xpms.rate_card.max_grade_rate_minor
         type: numeric
+        transform: Dollars to minor units of currency_code.
       - letter: I
         header: OT MULTIPLIER
         key: ot_multiplier
         disposition: field
-        target: xpms.rate_card.ot_multiplier
+        target: xpms.rate_card.overtime_rule_id
         type: text
+        transform: "Ruling D14: the multiplier pair resolves to an overtime_rule; 1.5x text is parsed."
       - letter: J
         header: DT MULTIPLIER
         key: dt_multiplier
         disposition: field
-        target: xpms.rate_card.dt_multiplier
+        target: xpms.rate_card.overtime_rule_id
         type: text
+        transform: "Ruling D14: the multiplier pair resolves to an overtime_rule."
       - letter: K
         header: PER DIEM RATE
         key: per_diem_rate
         disposition: field
-        target: xpms.rate_card.per_diem_rate
+        target: xpms.rate_card.per_diem_rate_minor
         type: numeric
+        transform: Dollars to minor units of currency_code.
       - letter: L
         header: DEFAULT GL ACCOUNT
         key: default_gl_account
         disposition: field
-        target: xpms.rate_card.default_gl_account
+        target: xpms.rate_card_resolved.gl_account
         type: numeric
+        transform: "Ruling D13: derived from the role's class; not stored."
       - letter: M
         header: DEFAULT GL NAME
         key: default_gl_name
-        disposition: computed
-        target: xpms.rate_card.default_gl_name
+        disposition: field
+        target: xpms.rate_card_resolved.gl_account_name
         type: text
         formula: =IFERROR(__xludf.DUMMYFUNCTION("XLOOKUP(TO_TEXT(L2), 'GL Accounts'!$A$2:$A$24, 'GL Accounts'!$B$2:$B$24)"),"Expense · Executive")
+        transform: "Ruling D13: derived from the role's class; not stored."
       - letter: N
         header: STATUS
         key: status
         disposition: field
-        target: xpms.rate_card.status
+        target: xpms.rate_card.source_status
         type: text
       - letter: O
         header: FLAG
@@ -2933,20 +3031,21 @@ sheets:
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.rate_card.created_by
+        target: xpms.rate_card.source_created_by
         type: text
       - letter: R
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.rate_card.created_at
+        target: xpms.rate_card.source_created_at
         type: date
       - letter: S
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.rate_card.updated_at
+        target: xpms.rate_card.source_updated_at
         type: date
+    query: select rc.source_row, xpms.pb_text(rc.rate_card_id) as rate_card_id, xpms.pb_text(rc.role_code) as role_code, xpms.pb_text(v.job_title) as job_title, case when rc.worker_classification = 'EMPLOYEE' then 'W2 Daily' when rc.worker_classification = 'VENDOR_SUPPLIED' then 'Vendor Master' when rc.arrangement = 'Retainer' then 'Retainer' else 'Contractor 1099' end as engagement_type, xpms.pb_text(rc.pay_basis) as pay_basis, xpms.pb_num(rc.standard_rate_minor / 100.0) as standard_rate, xpms.pb_num(rc.min_grade_rate_minor / 100.0) as min_grade_rate, xpms.pb_num(rc.max_grade_rate_minor / 100.0) as max_grade_rate, xpms.pb_num(v.ot_multiplier) as ot_multiplier, xpms.pb_num(v.dt_multiplier) as dt_multiplier, xpms.pb_num(rc.per_diem_rate_minor / 100.0) as per_diem_rate, xpms.pb_text(v.gl_account) as default_gl_account, xpms.pb_text(v.gl_account_name) as default_gl_name, xpms.pb_text(rc.source_status) as status, xpms.pb_bool(rc.flag) as flag, xpms.pb_text(rc.notes) as notes, xpms.pb_text(rc.source_created_by) as created_by, xpms.pb_ts(rc.source_created_at) as created_at, xpms.pb_ts(rc.source_updated_at) as updated_at from xpms.rate_card rc join xpms.rate_card_resolved v on v.rate_card_id = rc.rate_card_id
   - sheet: Roles Library
     key: roles_library
     destination: standard-library
@@ -2968,8 +3067,9 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: xpms.role.department
+        target: xpms.role.class_code
         type: text
+        transform: "Ruling D12: department derives from the role code (class_code) and is rendered as code and label."
       - letter: D
         header: DISCIPLINE
         key: discipline
@@ -3028,7 +3128,7 @@ sheets:
         header: STATUS
         key: status
         disposition: field
-        target: xpms.role.status
+        target: xpms.role.source_status
         type: text
       - letter: N
         header: FLAG
@@ -3046,20 +3146,21 @@ sheets:
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.role.created_by
+        target: xpms.role.source_created_by
         type: text
       - letter: Q
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.role.created_at
+        target: xpms.role.source_created_at
         type: date
       - letter: R
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.role.updated_at
+        target: xpms.role.source_updated_at
         type: date
+    query: select r.source_row, xpms.pb_text(r.role_code) as role_code, xpms.pb_text(r.job_title) as job_title, xpms.pb_text(d.dept_code || ' ' || d.department) as department, xpms.pb_text(r.discipline) as discipline, xpms.pb_text(r.rank) as rank, xpms.pb_text(r.job_summary) as job_summary, xpms.pb_text(r.key_responsibilities) as key_responsibilities, xpms.pb_text(r.qualifications) as qualifications, xpms.pb_text(r.physical_requirements) as physical_requirements, xpms.pb_text(r.required_certifications) as required_certifications, xpms.pb_text(r.default_clearance_tier) as default_clearance_tier, xpms.pb_text(r.default_radio_channel) as default_radio_channel, xpms.pb_text(r.source_status) as status, xpms.pb_bool(r.flag) as flag, xpms.pb_text(r.notes) as notes, xpms.pb_text(r.source_created_by) as created_by, xpms.pb_ts(r.source_created_at) as created_at, xpms.pb_ts(r.source_updated_at) as updated_at from xpms.role r join xpms.dim_department d on d.dept_code = r.class_code
   - sheet: Credential Issuance
     key: credential_issuance
     destination: production-template
@@ -3079,6 +3180,7 @@ sheets:
         target: app.credentials.organization
         type: text
         formula: ='Cover Page'!$I$8
+        sql: xpms.pb_cover(8, 9)
       - letter: C
         header: PROJECT ID
         key: project_id
@@ -3086,6 +3188,7 @@ sheets:
         target: app.credentials.project_id
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: D
         header: DEPARTMENT
         key: department
@@ -3110,6 +3213,7 @@ sheets:
         disposition: field
         target: app.credentials.credential_serial
         type: text
+        real_world: identifier
       - letter: H
         header: PERSONNEL ID
         key: personnel_id
@@ -3320,6 +3424,7 @@ sheets:
         disposition: field
         target: app.budget_lines.location
         type: text
+        real_world: venue
       - letter: E
         header: ZONE
         key: zone
@@ -3410,6 +3515,7 @@ sheets:
         disposition: field
         target: app.budget_lines.quantity
         type: numeric
+        real_world: price
       - letter: T
         header: RATE
         key: rate
@@ -3417,6 +3523,7 @@ sheets:
         target: app.budget_lines.rate
         type: numeric
         formula: =SUMIFS('PO Line Items'!$H:$H, 'PO Line Items'!$C:$C, $A2) + SUMIFS('Change Orders'!$M:$M, 'Change Orders'!$E:$E, $A2, 'Change Orders'!$W:$W, "Approved")
+        sql: coalesce((select sum(x.total_amount) from xpms.v_sheet_po_line_items x where x.expense_ref_id = r.record_id), 0) + coalesce((select sum(x.total_amount) from xpms.v_sheet_change_orders x where x.expense_ref_id = r.record_id and x.status = 'Approved'), 0)
       - letter: U
         header: UNIT BASIS
         key: unit_basis
@@ -3430,6 +3537,7 @@ sheets:
         target: app.budget_lines.estimate
         type: numeric
         formula: =IF(OR(S2="",T2=""),"",ROUND(S2*T2,2))
+        sql: case when r.quantity is null then null else round(xpms.pb_n(r.quantity) * r.rate, 2) end
       - letter: W
         header: BUDGET
         key: budget
@@ -3437,6 +3545,7 @@ sheets:
         target: app.budget_lines.budget
         type: numeric
         formula: =IF(V2="","",V2)
+        sql: r.estimate
       - letter: X
         header: COMMITTED
         key: committed
@@ -3444,6 +3553,7 @@ sheets:
         target: app.budget_lines.committed
         type: numeric
         formula: =SUMIFS('PO Line Items'!$H:$H, 'PO Line Items'!$C:$C, $A2) + SUMIFS('Change Orders'!$M:$M, 'Change Orders'!$E:$E, $A2, 'Change Orders'!$W:$W, "Approved")
+        sql: coalesce((select sum(x.total_amount) from xpms.v_sheet_po_line_items x where x.expense_ref_id = r.record_id), 0) + coalesce((select sum(x.total_amount) from xpms.v_sheet_change_orders x where x.expense_ref_id = r.record_id and x.status = 'Approved'), 0)
       - letter: Y
         header: FORECAST
         key: forecast
@@ -3451,12 +3561,14 @@ sheets:
         target: app.budget_lines.forecast
         type: numeric
         formula: =IF(AND(W2="",X2=""),"",MAX(N(W2),N(X2)))
+        sql: case when r.budget is null and r.committed is null then null else greatest(coalesce(r.budget, 0), coalesce(r.committed, 0)) end
       - letter: Z
         header: ACTUAL
         key: actual
         disposition: field
         target: app.budget_lines.actual
         type: text
+        real_world: price
       - letter: AA
         header: VARIANCE
         key: variance
@@ -3464,12 +3576,14 @@ sheets:
         target: app.budget_lines.variance
         type: numeric
         formula: =W2-Z2
+        sql: coalesce(r.budget, 0) - coalesce(xpms.pb_n(r.actual), 0)
       - letter: AB
         header: VENDOR
         key: vendor
         disposition: field
         target: app.budget_lines.vendor
         type: text
+        real_world: company
       - letter: AC
         header: STATUS
         key: status
@@ -3507,6 +3621,7 @@ sheets:
         target: app.budget_lines.account_name
         type: text
         formula: =_xlfn.XLOOKUP(AG2, 'GL Accounts'!$A$2:$A271, 'GL Accounts'!$B$2:$B271, "")
+        sql: (select g.account_name from xpms.dim_gl_account g where g.account_code = r.account_code)
       - letter: AI
         header: COST CENTER
         key: cost_center
@@ -3627,6 +3742,7 @@ sheets:
         disposition: field
         target: app.change_orders.unit_rate
         type: numeric
+        real_world: price
       - letter: M
         header: TOTAL AMOUNT
         key: total_amount
@@ -3634,6 +3750,7 @@ sheets:
         target: app.change_orders.total_amount
         type: numeric
         formula: =K2*L2
+        sql: xpms.pb_n(r.quantity) * xpms.pb_n(r.unit_rate)
       - letter: N
         header: GL ACCOUNT
         key: gl_account
@@ -3676,12 +3793,14 @@ sheets:
         disposition: field
         target: app.change_orders.requested_by
         type: text
+        real_world: person
       - letter: U
         header: APPROVED BY
         key: approved_by
         disposition: field
         target: app.change_orders.approved_by
         type: text
+        real_world: person
       - letter: V
         header: APPROVAL DATE
         key: approval_date
@@ -3755,6 +3874,7 @@ sheets:
         target: app.purchase_orders.vendor_name
         type: text
         formula: =_xlfn.XLOOKUP(C2, 'Vendor Directory'!$A$2:$A100, 'Vendor Directory'!$G$2:$G100, "")
+        sql: (select x.company from xpms.v_sheet_vendor_directory x where x.vendor_id = r.vendor_id order by x.source_row limit 1)
       - letter: E
         header: ISSUE DATE
         key: issue_date
@@ -3780,18 +3900,21 @@ sheets:
         target: app.purchase_orders.subtotal_amount
         type: numeric
         formula: =SUMIF('PO Line Items'!$B:$B, A2, 'PO Line Items'!$H:$H)
+        sql: coalesce((select sum(x.total_amount) from xpms.v_sheet_po_line_items x where x.po_number = r.po_number), 0)
       - letter: I
         header: TAX AMOUNT
         key: tax_amount
         disposition: field
         target: app.purchase_orders.tax_amount
         type: numeric
+        real_world: price
       - letter: J
         header: SHIPPING AMOUNT
         key: shipping_amount
         disposition: field
         target: app.purchase_orders.shipping_amount
         type: numeric
+        real_world: price
       - letter: K
         header: TOTAL AMOUNT
         key: total_amount
@@ -3799,6 +3922,7 @@ sheets:
         target: app.purchase_orders.total_amount
         type: numeric
         formula: =H2+I2+J2
+        sql: r.subtotal_amount + coalesce(xpms.pb_n(r.tax_amount), 0) + coalesce(xpms.pb_n(r.shipping_amount), 0)
       - letter: L
         header: COMMITTED AMOUNT
         key: committed_amount
@@ -3806,18 +3930,21 @@ sheets:
         target: app.purchase_orders.committed_amount
         type: numeric
         formula: =K2
+        sql: r.total_amount
       - letter: M
         header: INVOICED AMOUNT
         key: invoiced_amount
         disposition: field
         target: app.purchase_orders.invoiced_amount
         type: numeric
+        real_world: price
       - letter: N
         header: PAID AMOUNT
         key: paid_amount
         disposition: field
         target: app.purchase_orders.paid_amount
         type: numeric
+        real_world: price
       - letter: O
         header: CURRENCY
         key: currency
@@ -3908,6 +4035,7 @@ sheets:
         disposition: field
         target: app.po_lines.unit_rate
         type: numeric
+        real_world: price
       - letter: H
         header: TOTAL AMOUNT
         key: total_amount
@@ -3915,6 +4043,7 @@ sheets:
         target: app.po_lines.total_amount
         type: numeric
         formula: =F2*G2
+        sql: xpms.pb_n(r.quantity) * xpms.pb_n(r.unit_rate)
       - letter: I
         header: GL ACCOUNT
         key: gl_account
@@ -3964,6 +4093,7 @@ sheets:
         target: app.posting_lines.urid
         type: text
         formula: =IF(ISBLANK(F2), "", IFERROR(VLOOKUP(F2, 'Procurement Catalog'!$A$2:$B$1212, 2, FALSE), "INVALID ITEM"))
+        sql: case when r.item_id is null then null else coalesce((select x.urid from xpms.v_sheet_procurement_catalog x where x.item_id = r.item_id order by x.source_row limit 1), 'INVALID ITEM') end
       - letter: E
         header: VENDOR ID
         key: vendor_id
@@ -4000,6 +4130,7 @@ sheets:
         disposition: field
         target: app.posting_lines.amount
         type: numeric
+        real_world: price
       - letter: K
         header: TAX TYPE
         key: tax_type
@@ -4027,116 +4158,135 @@ sheets:
   - sheet: Procurement Catalog
     key: procurement_catalog
     destination: canon-mirror
-    entity: xpms
+    entity: xpms.elements
     columns:
       - letter: A
         header: ITEM ID
         key: item_id
         disposition: field
-        target: xpms.item_id
+        target: xpms.elements.element_id
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: B
         header: URID
         key: urid
         disposition: field
-        target: xpms.urid
+        target: xpms.elements.urid
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: C
         header: ITEM NAME
         key: item_name
         disposition: field
-        target: xpms.item_name
+        target: xpms.elements.item
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: D
         header: RESOURCE KIND
         key: resource_kind
         disposition: field
-        target: xpms.resource_kind
+        target: xpms.elements.kind
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: E
         header: SCHEMA FAMILY (XYZ)
         key: schema_family_xyz
         disposition: field
-        target: xpms.schema_family_xyz
+        target: xpms.elements.xyz
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: F
         header: DEFAULT GL ACCOUNT
         key: default_gl_account
         disposition: field
-        target: xpms.default_gl_account
+        target: xpms.elements.purchase_account
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: G
         header: DEFAULT GL NAME
         key: default_gl_name
         disposition: field
-        target: xpms.default_gl_name
+        target: xpms.dim_gl_account.account_name
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: H
         header: DEFAULT COST CENTER
         key: default_cost_center
         disposition: field
-        target: xpms.default_cost_center
+        target: xpms.elements.default_cost_center
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: I
         header: UNIT OF MEASURE
         key: unit_of_measure
         disposition: field
-        target: xpms.unit_of_measure
+        target: xpms.elements.unit_basis
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: J
         header: GRADE 1 BASIC ($ LOW)
         key: grade_1_basic_low
         disposition: field
-        target: xpms.grade_1_basic_low
+        target: xpms.element_price_bands.amount_minor
         type: numeric
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: K
         header: GRADE 2 STANDARD ($ COST)
         key: grade_2_standard_cost
         disposition: field
-        target: xpms.grade_2_standard_cost
+        target: xpms.element_price_bands.amount_minor
         type: numeric
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: L
         header: GRADE 3 PREMIUM ($ HIGH)
         key: grade_3_premium_high
         disposition: field
-        target: xpms.grade_3_premium_high
+        target: xpms.element_price_bands.amount_minor
         type: numeric
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: M
         header: DESCRIPTION
         key: description
         disposition: field
-        target: xpms.description
+        target: xpms.elements.description
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: N
         header: SPECIFICATIONS
         key: specifications
         disposition: field
-        target: xpms.specifications
+        target: xpms.elements.specification
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: O
         header: LEAD TIME (HRS)
         key: lead_time_hrs
         disposition: field
-        target: xpms.lead_time_hrs
+        target: xpms.elements.lead_time_hours
         type: numeric
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: P
         header: TIER
         key: tier
         disposition: field
-        target: xpms.tier
+        target: xpms.elements.tier_code
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: Q
         header: DEFAULT PHASE
         key: default_phase
         disposition: field
-        target: xpms.default_phase
+        target: xpms.bridge_element_phase.phase_code
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: R
         header: EXTERNAL REF
         key: external_ref
         disposition: field
-        target: xpms.external_ref
+        target: xpms.elements.external_ref
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
+    query: select e.source_row, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'ITEM ID', (e.element_id)::text)) as item_id, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'URID', (e.urid)::text)) as urid, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'ITEM NAME', (e.item)::text)) as item_name, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'RESOURCE KIND', (e.kind)::text)) as resource_kind, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'SCHEMA FAMILY (XYZ)', (e.xyz)::text)) as schema_family_xyz, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'DEFAULT GL ACCOUNT', (coalesce(e.purchase_account, e.sales_account))::text)) as default_gl_account, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'DEFAULT GL NAME', (g.account_name)::text)) as default_gl_name, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'DEFAULT COST CENTER', (e.default_cost_center)::text)) as default_cost_center, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'UNIT OF MEASURE', (e.unit_basis)::text)) as unit_of_measure, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'GRADE 1 BASIC ($ LOW)', (nullif(xpms.pb_num((select b.amount_minor / 100.0 from xpms.element_price_bands b where b.element_id = e.element_id and b.grade_code = 'base')), ''))::text)) as grade_1_basic_low, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'GRADE 2 STANDARD ($ COST)', (nullif(xpms.pb_num((select b.amount_minor / 100.0 from xpms.element_price_bands b where b.element_id = e.element_id and b.grade_code = 'elevated')), ''))::text)) as grade_2_standard_cost, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'GRADE 3 PREMIUM ($ HIGH)', (nullif(xpms.pb_num((select b.amount_minor / 100.0 from xpms.element_price_bands b where b.element_id = e.element_id and b.grade_code = 'premium')), ''))::text)) as grade_3_premium_high, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'DESCRIPTION', (e.description)::text)) as description, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'SPECIFICATIONS', (e.specification)::text)) as specifications, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'LEAD TIME (HRS)', (nullif(xpms.pb_num(e.lead_time_hours), ''))::text)) as lead_time_hrs, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'TIER', (t.tier_code || ' ' || t.tier)::text)) as tier, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'DEFAULT PHASE', (coalesce(p.phase, (select i.proposed_value from xpms.intake i where i.source_column = 'default_phase' and i.target_key = e.element_id)))::text)) as default_phase, xpms.pb_text(xpms.pb_overlay('Procurement Catalog', e.source_row::integer, 'EXTERNAL REF', (e.external_ref)::text)) as external_ref from xpms.elements e join xpms.dim_tier t on t.tier_code = e.tier_code left join xpms.dim_gl_account g on g.account_code = coalesce(e.purchase_account, e.sales_account) left join xpms.bridge_element_phase bp on bp.element_id = e.element_id and bp.is_default left join xpms.dim_phase p on p.phase_code = bp.phase_code where e.source_row is not null
   - sheet: Vendor Directory
     key: vendor_directory
     destination: production-template
@@ -4156,6 +4306,7 @@ sheets:
         target: app.vendors.organization
         type: text
         formula: ='Cover Page'!$I$8
+        sql: xpms.pb_cover(8, 9)
       - letter: C
         header: PROJECT ID
         key: project_id
@@ -4163,6 +4314,7 @@ sheets:
         target: app.vendors.project_id
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: D
         header: DEPARTMENT
         key: department
@@ -4187,6 +4339,7 @@ sheets:
         disposition: field
         target: app.vendors.company
         type: text
+        real_world: company
       - letter: H
         header: COUNTERPARTY TYPE
         key: counterparty_type
@@ -4199,30 +4352,35 @@ sheets:
         disposition: field
         target: app.vendors.website
         type: text
+        real_world: contact
       - letter: J
         header: PRIMARY CONTACT
         key: primary_contact
         disposition: field
         target: app.vendors.primary_contact
         type: text
+        real_world: person
       - letter: K
         header: PRIMARY EMAIL
         key: primary_email
         disposition: field
         target: app.vendors.primary_email
         type: text
+        real_world: contact
       - letter: L
         header: PRIMARY PHONE
         key: primary_phone
         disposition: field
         target: app.vendors.primary_phone
         type: text
+        real_world: contact
       - letter: M
         header: TAX ID
         key: tax_id
         disposition: field
         target: app.vendors.tax_id
         type: text
+        real_world: identifier
       - letter: N
         header: DEFAULT GL ACCOUNT
         key: default_gl_account
@@ -4331,6 +4489,7 @@ sheets:
         target: xpms.std_vendor_class.organization
         type: text
         formula: ='Cover Page'!$I$8
+        sql: xpms.pb_cover(8, 9)
       - letter: C
         header: PROJECT
         key: project
@@ -4338,6 +4497,7 @@ sheets:
         target: xpms.std_vendor_class.project
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: D
         header: DEPARTMENT
         key: department
@@ -4428,6 +4588,7 @@ sheets:
         target: xpms.std_vendor_entitlement.organization
         type: text
         formula: ='Cover Page'!$I$8
+        sql: xpms.pb_cover(8, 9)
       - letter: C
         header: PROJECT
         key: project
@@ -4435,6 +4596,7 @@ sheets:
         target: xpms.std_vendor_entitlement.project
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: D
         header: VENDOR CLASS
         key: vendor_class
@@ -4508,6 +4670,7 @@ sheets:
         target: app.inspections.organization
         type: text
         formula: ='Cover Page'!$I$8
+        sql: xpms.pb_cover(8, 9)
       - letter: C
         header: PROJECT ID
         key: project_id
@@ -4515,6 +4678,7 @@ sheets:
         target: app.inspections.project_id
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: D
         header: DEPARTMENT
         key: department
@@ -4545,6 +4709,7 @@ sheets:
         disposition: field
         target: app.inspections.agency
         type: text
+        real_world: company
       - letter: I
         header: AHJ JURISDICTION CODE
         key: ahj_jurisdiction_code
@@ -4557,6 +4722,7 @@ sheets:
         disposition: field
         target: app.inspections.permit_number
         type: text
+        real_world: identifier
       - letter: K
         header: PERMIT DOC ID
         key: permit_doc_id
@@ -4581,6 +4747,7 @@ sheets:
         disposition: field
         target: app.inspections.inspector_name
         type: text
+        real_world: person
       - letter: O
         header: SCHEDULED DATE
         key: scheduled_date
@@ -4824,22 +4991,24 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: xpms.emergency_protocol.record_id
+        target: xpms.emergency_protocol.record_key
         type: text
       - letter: B
         header: ORGANIZATION
         key: organization
-        disposition: computed
-        target: xpms.emergency_protocol.organization
+        disposition: field
+        target: xpms.production_template_metadata.value_text
         type: text
         formula: ='Cover Page'!$I$8
+        transform: Formula reference to Cover Page I8; ruling D15 drops organization from protocols, so it is read from the template metadata.
       - letter: C
         header: PROJECT
         key: project
-        disposition: computed
-        target: xpms.emergency_protocol.project
+        disposition: field
+        target: xpms.production_template_metadata.value_text
         type: text
         formula: ='Cover Page'!$C$7
+        transform: Formula reference to Cover Page C7; ruling D15 drops project from protocols.
       - letter: D
         header: DEPARTMENT
         key: department
@@ -4862,31 +5031,33 @@ sheets:
         header: EMERGENCY
         key: emergency
         disposition: field
-        target: xpms.emergency_protocol.emergency
+        target: xpms.emergency_code.emergency
         type: text
       - letter: H
         header: RADIO CALL
         key: radio_call
         disposition: field
-        target: xpms.emergency_protocol.radio_call
+        target: xpms.emergency_code.code
         type: text
+        transform: CODE RED becomes the code token CODE_RED and the label Code Red.
       - letter: I
         header: OPERATIONAL DOMAIN
         key: operational_domain
         disposition: field
-        target: xpms.emergency_protocol.operational_domain
+        target: xpms.emergency_protocol.domain
         type: text
       - letter: J
         header: ACTION PROTOCOL
         key: action_protocol
         disposition: field
-        target: xpms.emergency_protocol.action_protocol
+        target: xpms.emergency_protocol_step.body
         type: text
+        transform: Split into numbered steps; ruling D15 replaces agency names with service tokens.
       - letter: K
         header: STATUS
         key: status
         disposition: field
-        target: xpms.emergency_protocol.status
+        target: xpms.emergency_protocol.source_status
         type: text
       - letter: L
         header: FLAG
@@ -4904,20 +5075,21 @@ sheets:
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.emergency_protocol.created_by
+        target: xpms.emergency_protocol.source_created_by
         type: text
       - letter: O
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.emergency_protocol.created_at
+        target: xpms.emergency_protocol.source_created_at
         type: timestamp
       - letter: P
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.emergency_protocol.updated_at
+        target: xpms.emergency_protocol.source_updated_at
         type: timestamp
+    query: "select p.source_row, xpms.pb_text(p.record_key) as record_id, xpms.pb_text(xpms.pb_cover(8, 9)) as organization, xpms.pb_text(xpms.pb_cover(7, 3)) as project, xpms.pb_text(p.department) as department, xpms.pb_text(p.category) as category, xpms.pb_text(p.sub_category) as sub_category, xpms.pb_text(c.emergency) as emergency, replace(c.code, '_', ' ') as radio_call, xpms.pb_text(p.domain) as operational_domain, xpms.pb_text('Actions: ' || (select string_agg(s.step_no || '. ' || s.body, ' ' order by s.step_no) from xpms.emergency_protocol_step s where s.record_key = p.record_key)) as action_protocol, xpms.pb_text(p.source_status) as status, xpms.pb_bool(p.flag) as flag, xpms.pb_text(p.notes) as notes, xpms.pb_text(p.source_created_by) as created_by, xpms.pb_ts(p.source_created_at) as created_at, xpms.pb_ts(p.source_updated_at) as updated_at from xpms.emergency_protocol p join xpms.emergency_code c on c.code = p.code"
   - sheet: Radio Channels
     key: radio_channels
     destination: standard-library
@@ -4936,6 +5108,7 @@ sheets:
         target: xpms.std_radio_channel.organization
         type: text
         formula: ='Cover Page'!$I$8
+        sql: xpms.pb_cover(8, 9)
       - letter: C
         header: PROJECT ID
         key: project_id
@@ -4943,6 +5116,7 @@ sheets:
         target: xpms.std_radio_channel.project_id
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: D
         header: DEPARTMENT
         key: department
@@ -5149,440 +5323,517 @@ sheets:
   - sheet: GL Accounts
     key: gl_accounts
     destination: canon-mirror
-    entity: xpms
+    entity: xpms.dim_gl_account
     columns:
       - letter: A
         header: ACCOUNT CODE
         key: account_code
         disposition: field
-        target: xpms.account_code
+        target: xpms.dim_gl_account.account_code
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: B
         header: ACCOUNT NAME
         key: account_name
         disposition: field
-        target: xpms.account_name
+        target: xpms.dim_gl_account.account_name
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: C
         header: ACCOUNT TYPE
         key: account_type
         disposition: field
-        target: xpms.account_type
+        target: xpms.dim_gl_account.account_type
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: D
         header: TAX TYPE
         key: tax_type
         disposition: field
-        target: xpms.tax_type
+        target: xpms.dim_gl_account.tax_type
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: E
         header: NORMAL BALANCE
         key: normal_balance
         disposition: field
-        target: xpms.normal_balance
+        target: xpms.dim_gl_account_type.normal_balance
         type: text
+        transform: Normal balance depends on the account type; stored once per type.
       - letter: F
         header: DESCRIPTION
         key: description
         disposition: field
-        target: xpms.description
+        target: xpms.dim_gl_account.description
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: G
         header: STATUS
         key: status
         disposition: field
-        target: xpms.status
+        target: xpms.dim_gl_account.source_status
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: H
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.created_by
+        target: xpms.dim_gl_account.source_created_by
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: I
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.created_at
+        target: xpms.dim_gl_account.source_created_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
       - letter: J
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.updated_at
+        target: xpms.dim_gl_account.source_updated_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
+    query: select d.source_row, xpms.pb_text(xpms.pb_overlay('GL Accounts', d.source_row::integer, 'ACCOUNT CODE', (d.account_code)::text)) as account_code, xpms.pb_text(xpms.pb_overlay('GL Accounts', d.source_row::integer, 'ACCOUNT NAME', (d.account_name)::text)) as account_name, xpms.pb_text(xpms.pb_overlay('GL Accounts', d.source_row::integer, 'ACCOUNT TYPE', (d.account_type)::text)) as account_type, xpms.pb_text(xpms.pb_overlay('GL Accounts', d.source_row::integer, 'TAX TYPE', (d.tax_type)::text)) as tax_type, xpms.pb_text(t.normal_balance) as normal_balance, xpms.pb_text(xpms.pb_overlay('GL Accounts', d.source_row::integer, 'DESCRIPTION', (d.description)::text)) as description, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_gl_account d join xpms.dim_gl_account_type t on t.account_type = d.account_type where d.source_row is not null
   - sheet: Cost Centers
     key: cost_centers
     destination: canon-mirror
-    entity: xpms
+    entity: xpms.dim_cost_center_template
     columns:
       - letter: A
         header: COST CENTER CODE
         key: cost_center_code
         disposition: field
-        target: xpms.cost_center_code
+        target: xpms.dim_cost_center_template.cost_center_id
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: B
         header: COST CENTER NAME
         key: cost_center_name
         disposition: field
-        target: xpms.cost_center_name
+        target: xpms.dim_cost_center_template.cost_center
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: C
         header: DIMENSION
         key: dimension
         disposition: field
-        target: xpms.dimension
+        target: xpms.dim_cost_center_template.kind
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: D
         header: SCOPE CODE
         key: scope_code
         disposition: field
-        target: xpms.scope_code
+        target: xpms.dim_cost_center_template.scope_code
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: E
         header: ALLOCATION SCOPE
         key: allocation_scope
         disposition: field
-        target: xpms.allocation_scope
+        target: xpms.dim_cost_center_template.note
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: F
         header: STATUS
         key: status
         disposition: field
-        target: xpms.status
+        target: xpms.dim_cost_center_template.source_status
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: G
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.created_by
+        target: xpms.dim_cost_center_template.source_created_by
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: H
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.created_at
+        target: xpms.dim_cost_center_template.source_created_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
       - letter: I
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.updated_at
+        target: xpms.dim_cost_center_template.source_updated_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
+    query: select d.source_row, xpms.pb_text(xpms.pb_overlay('Cost Centers', d.source_row::integer, 'COST CENTER CODE', (d.cost_center_id)::text)) as cost_center_code, xpms.pb_text(xpms.pb_overlay('Cost Centers', d.source_row::integer, 'COST CENTER NAME', (d.cost_center)::text)) as cost_center_name, xpms.pb_text(xpms.pb_overlay('Cost Centers', d.source_row::integer, 'DIMENSION', (d.kind)::text)) as dimension, xpms.pb_text(xpms.pb_overlay('Cost Centers', d.source_row::integer, 'SCOPE CODE', (d.scope_code)::text)) as scope_code, xpms.pb_text(xpms.pb_overlay('Cost Centers', d.source_row::integer, 'ALLOCATION SCOPE', (d.note)::text)) as allocation_scope, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_cost_center_template d where d.source_row is not null
   - sheet: Departments
     key: departments
     destination: canon-mirror
-    entity: xpms
+    entity: xpms.dim_department
     columns:
       - letter: A
         header: CLASS CODE
         key: class_code
         disposition: field
-        target: xpms.class_code
+        target: xpms.dim_department.dept_code
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: B
         header: DEPARTMENT NAME
         key: department_name
         disposition: field
-        target: xpms.department_name
+        target: xpms.dim_department.department
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: C
         header: EXECUTIVE LEAD
         key: executive_lead
         disposition: field
-        target: xpms.executive_lead
+        target: xpms.dim_department.executive_lead
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: D
         header: CORE FUNCTION
         key: core_function
         disposition: field
-        target: xpms.core_function
+        target: xpms.dim_department.core_function
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: E
         header: SCOPE
         key: scope
         disposition: field
-        target: xpms.scope
+        target: xpms.dim_department.scope
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: F
         header: STATUS
         key: status
         disposition: field
-        target: xpms.status
+        target: xpms.dim_department.source_status
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: G
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.created_by
+        target: xpms.dim_department.source_created_by
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: H
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.created_at
+        target: xpms.dim_department.source_created_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
       - letter: I
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.updated_at
+        target: xpms.dim_department.source_updated_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
+    query: select d.source_row, xpms.pb_text(xpms.pb_overlay('Departments', d.source_row::integer, 'CLASS CODE', (d.dept_code)::text)) as class_code, xpms.pb_text(xpms.pb_overlay('Departments', d.source_row::integer, 'DEPARTMENT NAME', (d.department)::text)) as department_name, xpms.pb_text(d.executive_lead) as executive_lead, xpms.pb_text(d.core_function) as core_function, xpms.pb_text(d.scope) as scope, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_department d where d.source_row is not null
   - sheet: Disciplines
     key: disciplines
     destination: canon-mirror
-    entity: xpms
+    entity: xpms.dim_discipline
     columns:
       - letter: A
         header: DISCIPLINE CODE
         key: discipline_code
         disposition: field
-        target: xpms.discipline_code
+        target: xpms.dim_discipline.disc_code
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: B
         header: DISCIPLINE NAME
         key: discipline_name
         disposition: field
-        target: xpms.discipline_name
+        target: xpms.dim_discipline.discipline
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: C
         header: DEPARTMENT CLASS
         key: department_class
         disposition: field
-        target: xpms.department_class
+        target: xpms.dim_discipline.dept_code
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: D
         header: DESCRIPTION
         key: description
         disposition: field
-        target: xpms.description
+        target: xpms.dim_discipline.source
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: E
         header: STATUS
         key: status
         disposition: field
-        target: xpms.status
+        target: xpms.dim_discipline.source_status
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: F
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.created_by
+        target: xpms.dim_discipline.source_created_by
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: G
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.created_at
+        target: xpms.dim_discipline.source_created_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
       - letter: H
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.updated_at
+        target: xpms.dim_discipline.source_updated_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
+    query: select d.source_row, xpms.pb_text(xpms.pb_overlay('Disciplines', d.source_row::integer, 'DISCIPLINE CODE', (d.disc_code)::text)) as discipline_code, xpms.pb_text(xpms.pb_overlay('Disciplines', d.source_row::integer, 'DISCIPLINE NAME', (d.discipline)::text)) as discipline_name, xpms.pb_text(xpms.pb_overlay('Disciplines', d.source_row::integer, 'DEPARTMENT CLASS', (d.dept_code)::text)) as department_class, xpms.pb_text(xpms.pb_overlay('Disciplines', d.source_row::integer, 'DESCRIPTION', (d.source)::text)) as description, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_discipline d where d.source_row is not null
   - sheet: Categories & URID Master
     key: categories_urid_master
     destination: canon-mirror
-    entity: xpms
+    entity: xpms.dim_category
     columns:
       - letter: A
         header: URID
         key: urid
         disposition: field
-        target: xpms.urid
+        target: xpms.dim_category.cat_urid
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: B
         header: DEPARTMENT
         key: department
         disposition: field
-        target: xpms.department
+        target: xpms.dim_department.department
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: C
         header: DISCIPLINE
         key: discipline
         disposition: field
-        target: xpms.discipline
+        target: xpms.dim_discipline.discipline
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: D
         header: CATEGORY
         key: category
         disposition: field
-        target: xpms.category
+        target: xpms.dim_category.category
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: E
         header: DEFAULT COST CENTER
         key: default_cost_center
         disposition: field
-        target: xpms.default_cost_center
+        target: xpms.dim_category_gl.default_cost_center
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: F
         header: DEFAULT GL ACCOUNT
         key: default_gl_account
         disposition: field
-        target: xpms.default_gl_account
+        target: xpms.v_category_gl.account_code
         type: numeric
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: G
         header: SCHEMA FAMILY (XYZ)
         key: schema_family_xyz
         disposition: field
-        target: xpms.schema_family_xyz
+        target: xpms.dim_category.xyz
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: H
         header: STATUS
         key: status
         disposition: field
-        target: xpms.status
+        target: xpms.dim_category.source_status
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: I
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.created_by
+        target: xpms.dim_category.source_created_by
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: J
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.created_at
+        target: xpms.dim_category.source_created_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
       - letter: K
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.updated_at
+        target: xpms.dim_category.source_updated_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
+    query: select d.source_row, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'URID', (d.cat_urid)::text)) as urid, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'DEPARTMENT', (dep.department)::text)) as department, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'DISCIPLINE', (dis.discipline)::text)) as discipline, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'CATEGORY', (d.category)::text)) as category, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'DEFAULT COST CENTER', (gl.default_cost_center)::text)) as default_cost_center, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'DEFAULT GL ACCOUNT', (gl.account_code)::text)) as default_gl_account, xpms.pb_text(d.xyz) as schema_family_xyz, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_category d join xpms.dim_discipline dis on dis.disc_code = d.disc_code join xpms.dim_department dep on dep.dept_code = dis.dept_code join xpms.v_category_gl gl on gl.cat_urid = d.cat_urid where d.source_row is not null
   - sheet: Teams
     key: teams
     destination: canon-mirror
-    entity: xpms
+    entity: xpms.dim_team
     columns:
       - letter: A
         header: TEAM CODE
         key: team_code
         disposition: field
-        target: xpms.team_code
+        target: xpms.dim_team.team_id
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: B
         header: TEAM NAME
         key: team_name
         disposition: field
-        target: xpms.team_name
+        target: xpms.dim_team.team
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: C
         header: WORKGROUP TAG
         key: workgroup_tag
         disposition: field
-        target: xpms.workgroup_tag
+        target: xpms.dim_team.workgroup_tag
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: D
         header: DEPARTMENT CLASS
         key: department_class
         disposition: field
-        target: xpms.department_class
+        target: xpms.dim_team.dept_code
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: E
         header: LEAD ROLE
         key: lead_role
         disposition: field
-        target: xpms.lead_role
+        target: xpms.dim_team.lead_role
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: F
         header: RESPONSIBILITIES
         key: responsibilities
         disposition: field
-        target: xpms.responsibilities
+        target: xpms.dim_team.responsibilities
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: G
         header: STATUS
         key: status
         disposition: field
-        target: xpms.status
+        target: xpms.dim_team.source_status
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: H
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.created_by
+        target: xpms.dim_team.source_created_by
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: I
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.created_at
+        target: xpms.dim_team.source_created_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
       - letter: J
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.updated_at
+        target: xpms.dim_team.source_updated_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
+    query: select d.source_row, xpms.pb_text(xpms.pb_overlay('Teams', d.source_row::integer, 'TEAM CODE', (d.team_id)::text)) as team_code, xpms.pb_text(xpms.pb_overlay('Teams', d.source_row::integer, 'TEAM NAME', (d.team)::text)) as team_name, xpms.pb_text(d.workgroup_tag) as workgroup_tag, xpms.pb_text(xpms.pb_overlay('Teams', d.source_row::integer, 'DEPARTMENT CLASS', (d.dept_code)::text)) as department_class, xpms.pb_text(d.lead_role) as lead_role, xpms.pb_text(d.responsibilities) as responsibilities, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_team d where d.source_row is not null
   - sheet: Counterparty Types
     key: counterparty_types
     destination: canon-mirror
-    entity: xpms
+    entity: xpms.dim_counterparty_type
     columns:
       - letter: A
         header: CLASSIFICATION CODE
         key: classification_code
         disposition: field
-        target: xpms.classification_code
+        target: xpms.dim_counterparty_type.classification_code
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: B
         header: COUNTERPARTY TYPE
         key: counterparty_type
         disposition: field
-        target: xpms.counterparty_type
+        target: xpms.dim_counterparty_type.counterparty_type
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: C
         header: VENDOR CLASS
         key: vendor_class
         disposition: field
-        target: xpms.vendor_class
+        target: xpms.dim_counterparty_type.vendor_class
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: D
         header: CLEARANCE TIER
         key: clearance_tier
         disposition: field
-        target: xpms.clearance_tier
+        target: xpms.dim_counterparty_type.clearance_tier
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: E
         header: COMPLIANCE REQUIREMENTS
         key: compliance_requirements
         disposition: field
-        target: xpms.compliance_requirements
+        target: xpms.dim_counterparty_type.definition
         type: text
+        transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
       - letter: F
         header: DEFAULT GL ACCOUNT
         key: default_gl_account
         disposition: field
-        target: xpms.default_gl_account
+        target: xpms.dim_counterparty_type.default_account_code
         type: numeric
+        transform: Playbook-only column, stored on the canon row.
       - letter: G
         header: STATUS
         key: status
         disposition: field
-        target: xpms.status
+        target: xpms.dim_counterparty_type.source_status
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: H
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.created_by
+        target: xpms.dim_counterparty_type.source_created_by
         type: text
+        transform: Playbook-only column, stored on the canon row.
       - letter: I
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.created_at
+        target: xpms.dim_counterparty_type.source_created_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
       - letter: J
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.updated_at
+        target: xpms.dim_counterparty_type.source_updated_at
         type: date
+        transform: Playbook-only column, stored on the canon row.
+    query: |-
+      select d.source_row, xpms.pb_text(d.classification_code) as classification_code, xpms.pb_text(xpms.pb_overlay('Counterparty Types', d.source_row::integer, 'COUNTERPARTY TYPE', (d.counterparty_type)::text)) as counterparty_type, xpms.pb_text(d.vendor_class) as vendor_class, xpms.pb_text(d.clearance_tier) as clearance_tier, xpms.pb_text(xpms.pb_overlay('Counterparty Types', d.source_row::integer, 'COMPLIANCE REQUIREMENTS', (d.definition)::text)) as compliance_requirements, xpms.pb_text(d.default_account_code) as default_gl_account, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_counterparty_type d where d.source_row is not null
+      union all
+      select i.source_row, xpms.pb_text(max(i.proposed_value) filter (where i.source_column = 'CLASSIFICATION CODE')) as c0, xpms.pb_text(max(i.proposed_value) filter (where i.source_column = 'COUNTERPARTY TYPE')) as c1, xpms.pb_text(max(i.proposed_value) filter (where i.source_column = 'VENDOR CLASS')) as c2, xpms.pb_text(max(i.proposed_value) filter (where i.source_column = 'CLEARANCE TIER')) as c3, xpms.pb_text(max(i.proposed_value) filter (where i.source_column = 'COMPLIANCE REQUIREMENTS')) as c4, xpms.pb_text(max(i.proposed_value) filter (where i.source_column = 'DEFAULT GL ACCOUNT')) as c5, xpms.pb_text(max(i.proposed_value) filter (where i.source_column = 'STATUS')) as c6, xpms.pb_text(max(i.proposed_value) filter (where i.source_column = 'CREATED BY')) as c7, xpms.pb_text(max(i.proposed_value) filter (where i.source_column = 'CREATED AT')) as c8, xpms.pb_text(max(i.proposed_value) filter (where i.source_column = 'UPDATED AT')) as c9 from xpms.intake i where i.source_file = 'XOS-4.0_Production-Playbook_2026.xlsx' and i.source_sheet = 'Counterparty Types' and i.reason like 'Row % is in the Playbook %' group by i.source_row
   - sheet: Verbiage Library
     key: verbiage_library
     destination: standard-library
@@ -5601,6 +5852,7 @@ sheets:
         target: xpms.std_verbiage.organization
         type: text
         formula: ='Cover Page'!$I$8
+        sql: xpms.pb_cover(8, 9)
       - letter: C
         header: PROJECT
         key: project
@@ -5608,6 +5860,7 @@ sheets:
         target: xpms.std_verbiage.project
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: D
         header: DEPARTMENT
         key: department
@@ -5704,6 +5957,7 @@ sheets:
         target: xpms.std_enumeration.organization
         type: text
         formula: ='Cover Page'!$I$8
+        sql: xpms.pb_cover(8, 9)
       - letter: C
         header: PROJECT
         key: project
@@ -5711,6 +5965,7 @@ sheets:
         target: xpms.std_enumeration.project
         type: text
         formula: ='Cover Page'!$C$7
+        sql: xpms.pb_cover(7, 3)
       - letter: D
         header: DEPARTMENT
         key: department
@@ -5790,6 +6045,7 @@ sheets:
         target: xpms.std_enumeration.workflow_status
         type: text
         formula: =IFERROR(__xludf.DUMMYFUNCTION("UNIQUE({FILTER(I$2:I$110, G$2:G$110=""Workflow Status""); ""Planned""; ""Behind""; ""Milestone Met""})"),"Active")
+        sql: (select u.v from (select distinct on (v) v, ord from (select e.enum_label::text as v, e.source_row as ord from xpms.std_enumeration e where e.enum_domain = 'Workflow Status' union all select x.v, 100000 + x.k from (values ('Planned', 1), ('Behind', 2), ('Milestone Met', 3)) as x(v, k)) a order by v, ord) u order by u.ord offset (r.source_row - 2) limit 1)
       - letter: Q
         header: Incident Priority
         key: incident_priority
@@ -5797,6 +6053,7 @@ sheets:
         target: xpms.std_enumeration.incident_priority
         type: text
         formula: =IFERROR(__xludf.DUMMYFUNCTION("UNIQUE({FILTER(I$2:I$110, G$2:G$110=""Incident Priority""); ""Critical""; ""High""; ""Medium""; ""Low""})"),"Critical (P1)")
+        sql: (select u.v from (select distinct on (v) v, ord from (select e.enum_label::text as v, e.source_row as ord from xpms.std_enumeration e where e.enum_domain = 'Incident Priority' union all select x.v, 100000 + x.k from (values ('Critical', 1), ('High', 2), ('Medium', 3), ('Low', 4)) as x(v, k)) a order by v, ord) u order by u.ord offset (r.source_row - 2) limit 1)
       - letter: R
         header: Shift & Timesheet Status
         key: shift_and_timesheet_status
@@ -5804,6 +6061,7 @@ sheets:
         target: xpms.std_enumeration.shift_and_timesheet_status
         type: text
         formula: =IFERROR(__xludf.DUMMYFUNCTION("UNIQUE({FILTER(I$2:I$110, (G$2:G$110=""Workflow Status"")+(G$2:G$110=""Payment Status"")); ""Draft""; ""Published""; ""Confirmed""; ""Checked-In""; ""Rejected""; ""Exported""})"),"Active")
+        sql: (select u.v from (select distinct on (v) v, ord from (select e.enum_label::text as v, e.source_row as ord from xpms.std_enumeration e where e.enum_domain in ('Workflow Status', 'Payment Status') union all select x.v, 100000 + x.k from (values ('Draft', 1), ('Published', 2), ('Confirmed', 3), ('Checked-In', 4), ('Rejected', 5), ('Exported', 6)) as x(v, k)) a order by v, ord) u order by u.ord offset (r.source_row - 2) limit 1)
       - letter: S
         header: Clearance Tier
         key: clearance_tier
@@ -5811,6 +6069,7 @@ sheets:
         target: xpms.std_enumeration.clearance_tier
         type: text
         formula: =IFERROR(__xludf.DUMMYFUNCTION("UNIQUE({FILTER(I$2:I$110, G$2:G$110=""Clearance Tier""); ""Tier 1 All-Access""; ""Tier 2 Production""; ""Tier 3 Crew""; ""Tier 4 Guest""})"),"Tier 1 - Executive Master")
+        sql: (select u.v from (select distinct on (v) v, ord from (select e.enum_label::text as v, e.source_row as ord from xpms.std_enumeration e where e.enum_domain = 'Clearance Tier' union all select x.v, 100000 + x.k from (values ('Tier 1 All-Access', 1), ('Tier 2 Production', 2), ('Tier 3 Crew', 3), ('Tier 4 Guest', 4)) as x(v, k)) a order by v, ord) u order by u.ord offset (r.source_row - 2) limit 1)
       - letter: T
         header: Commercial State
         key: commercial_state
@@ -5818,6 +6077,7 @@ sheets:
         target: xpms.std_enumeration.commercial_state
         type: text
         formula: =IFERROR(__xludf.DUMMYFUNCTION("UNIQUE({FILTER(I$2:I$110, (G$2:G$110=""Order Type"")+(G$2:G$110=""Payment Status"")+(G$2:G$110=""Workflow Status"")); ""Quoted""; ""Committed""; ""Invoiced""; ""Draft""; ""Issued""; ""Acknowledged""; ""Received""; ""Closed""; ""Submitted""; ""Under Review"&"""})"),"Active")
+        sql: (select u.v from (select distinct on (v) v, ord from (select e.enum_label::text as v, e.source_row as ord from xpms.std_enumeration e where e.enum_domain in ('Order Type', 'Payment Status', 'Workflow Status') union all select x.v, 100000 + x.k from (values ('Quoted', 1), ('Committed', 2), ('Invoiced', 3), ('Draft', 4), ('Issued', 5), ('Acknowledged', 6), ('Received', 7), ('Closed', 8), ('Submitted', 9), ('Under Review', 10)) as x(v, k)) a order by v, ord) u order by u.ord offset (r.source_row - 2) limit 1)
       - letter: U
         header: Asset Condition
         key: asset_condition
@@ -5825,6 +6085,7 @@ sheets:
         target: xpms.std_enumeration.asset_condition
         type: text
         formula: =IFERROR(__xludf.DUMMYFUNCTION("UNIQUE({FILTER(I$2:I$110, G$2:G$110=""Asset Condition""); ""Poor""; ""Damaged""})"),"New")
+        sql: (select u.v from (select distinct on (v) v, ord from (select e.enum_label::text as v, e.source_row as ord from xpms.std_enumeration e where e.enum_domain = 'Asset Condition' union all select x.v, 100000 + x.k from (values ('Poor', 1), ('Damaged', 2)) as x(v, k)) a order by v, ord) u order by u.ord offset (r.source_row - 2) limit 1)
       - letter: V
         header: Deployment State
         key: deployment_state
@@ -5832,6 +6093,7 @@ sheets:
         target: xpms.std_enumeration.deployment_state
         type: text
         formula: =IFERROR(__xludf.DUMMYFUNCTION("UNIQUE({FILTER(I$2:I$110, (G$2:G$110=""Workflow Status"")*((M$2:M$110=""Asset Inventory"")+(M$2:M$110=""Shipping Manifest"")+(M$2:M$110=""Universal""))); ""In Warehouse""; ""Under Repair""; ""Decommissioned""})"),"Active")
+        sql: (select u.v from (select distinct on (v) v, ord from (select e.enum_label::text as v, e.source_row as ord from xpms.std_enumeration e where e.enum_domain = 'Workflow Status' and e.target_entity in ('Asset Inventory', 'Shipping Manifest', 'Universal') union all select x.v, 100000 + x.k from (values ('In Warehouse', 1), ('Under Repair', 2), ('Decommissioned', 3)) as x(v, k)) a order by v, ord) u order by u.ord offset (r.source_row - 2) limit 1)
       - letter: W
         header: FLAG
         key: flag

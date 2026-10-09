@@ -1,0 +1,516 @@
+# Round-trip ledger: every Playbook cell an owner ruling changes (decisions D11 to D17, D19).
+# The round trip fails on any other difference and on any entry it no longer observes.
+cells:
+  - sheet: Crew Timesheets
+    cell: AA3
+    ruling: D13
+    source: "5500"
+    database: "5900"
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Crew Timesheets
+    cell: AB3
+    ruling: D13
+    source: Expense · Production
+    database: Expense · Technology
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Crew Timesheets
+    cell: AA9
+    ruling: D13
+    source: "5500"
+    database: "5900"
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Crew Timesheets
+    cell: AB9
+    ruling: D13
+    source: Expense · Production
+    database: Expense · Technology
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Labor Rate Cards
+    cell: L9
+    ruling: D13
+    source: "5500"
+    database: "5900"
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Labor Rate Cards
+    cell: M9
+    ruling: D13
+    source: Expense · Production
+    database: Expense · Technology
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Labor Rate Cards
+    cell: L10
+    ruling: D13
+    source: "5500"
+    database: "5900"
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Labor Rate Cards
+    cell: M10
+    ruling: D13
+    source: Expense · Production
+    database: Expense · Technology
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Labor Rate Cards
+    cell: L11
+    ruling: D13
+    source: "5500"
+    database: "5900"
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Labor Rate Cards
+    cell: M11
+    ruling: D13
+    source: Expense · Production
+    database: Expense · Technology
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Labor Rate Cards
+    cell: L12
+    ruling: D13
+    source: "5500"
+    database: "5900"
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Labor Rate Cards
+    cell: M12
+    ruling: D13
+    source: Expense · Production
+    database: Expense · Technology
+    reason: GL posting is derived from the role's class; 9000 roles post to 5900 Expense · Technology.
+  - sheet: Labor Rate Cards
+    cell: I13
+    ruling: D14
+    source: 1.0x
+    database: "1"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J13
+    ruling: D14
+    source: 1.0x
+    database: "1"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I14
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J14
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I15
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J15
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I16
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J16
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I17
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J17
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I18
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J18
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I19
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J19
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I20
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J20
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I21
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J21
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I22
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J22
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I23
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J23
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I24
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J24
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I25
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J25
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I26
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J26
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I27
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J27
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I28
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J28
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I29
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J29
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I30
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J30
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I31
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J31
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I32
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J32
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I33
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J33
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I34
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J34
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I35
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J35
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: I36
+    ruling: D14
+    source: 1.5x
+    database: "1.5"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Labor Rate Cards
+    cell: J36
+    ruling: D14
+    source: 2.0x
+    database: "2"
+    reason: Multipliers are numbers on an overtime rule; the text form 1.5x is display formatting.
+  - sheet: Roles Library
+    cell: C9
+    ruling: D12
+    source: 5000 Production
+    database: 9000 Technology
+    reason: Department derives from the role code; the stored department is dropped.
+  - sheet: Roles Library
+    cell: C10
+    ruling: D12
+    source: 5000 Production
+    database: 9000 Technology
+    reason: Department derives from the role code; the stored department is dropped.
+  - sheet: Roles Library
+    cell: C11
+    ruling: D12
+    source: 5000 Production
+    database: 9000 Technology
+    reason: Department derives from the role code; the stored department is dropped.
+  - sheet: Roles Library
+    cell: C12
+    ruling: D12
+    source: 5000 Production
+    database: 9000 Technology
+    reason: Department derives from the role code; the stored department is dropped.
+  - sheet: Emergency Codes
+    cell: J2
+    ruling: D15
+    source: "Actions: 1. Identify fire source and immediately activate fire extinguishers. 2. Contact fire department (Miami Fire-Rescue / MDFR). 3. Clear and cordon off affected areas. 4. Shut off utilities (gas/electric)."
+    database: "Actions: 1. Identify fire source and immediately activate fire extinguishers. 2. Contact {fire}. 3. Clear and cordon off affected areas. 4. Shut off utilities (gas/electric)."
+    reason: Protocol steps name services, never agencies.
+  - sheet: Emergency Codes
+    cell: J8
+    ruling: D15
+    source: "Actions: 1. Alert security teams and LAPD immediately. 2. Isolate aggressors and provide crowd control to prevent escalation. 3. Assess if evacuation is necessary."
+    database: "Actions: 1. Alert security teams and {lawEnforcement} immediately. 2. Isolate aggressors and provide crowd control to prevent escalation. 3. Assess if evacuation is necessary."
+    reason: Protocol steps name services, never agencies.
+  - sheet: Emergency Codes
+    cell: J20
+    ruling: D15
+    source: "Actions: 1. Increase security patrols in sensitive areas (e.g., entrances, high-traffic areas). 2. Report all thefts to LAPD. 3. Conduct bag checks at exits, if needed."
+    database: "Actions: 1. Increase security patrols in sensitive areas (e.g., entrances, high-traffic areas). 2. Report all thefts to {lawEnforcement}. 3. Conduct bag checks at exits, if needed."
+    reason: Protocol steps name services, never agencies.
+  - sheet: Emergency Codes
+    cell: J26
+    ruling: D15
+    source: "Actions: 1. Immediately call EMS or direct on-site medical personnel. 2. Clear space for medical teams to access the affected individual. 3. Use first aid kits if necessary."
+    database: "Actions: 1. Immediately call {ems} or direct on-site medical personnel. 2. Clear space for medical teams to access the affected individual. 3. Use first aid kits if necessary."
+    reason: Protocol steps name services, never agencies.
+  - sheet: Emergency Codes
+    cell: J28
+    ruling: D15
+    source: "Actions: 1. Offer water or basic care (if applicable). 2. Instruct staff to guide EMS to the food area if needed."
+    database: "Actions: 1. Offer water or basic care (if applicable). 2. Instruct staff to guide {ems} to the food area if needed."
+    reason: Protocol steps name services, never agencies.
+  - sheet: Emergency Codes
+    cell: J29
+    ruling: D15
+    source: "Actions: 1. Alert guests to make way for medical personnel. 2. Provide support to affected individuals until EMS arrives."
+    database: "Actions: 1. Alert guests to make way for medical personnel. 2. Provide support to affected individuals until {ems} arrives."
+    reason: Protocol steps name services, never agencies.
+  - sheet: Emergency Codes
+    cell: J32
+    ruling: D15
+    source: "Actions: 1. Activate emergency protocol and increase security presence. 2. Prepare evacuation routes and ensure exits are clear. 3. Work with LAPD for guidance and assistance."
+    database: "Actions: 1. Activate emergency protocol and increase security presence. 2. Prepare evacuation routes and ensure exits are clear. 3. Work with {lawEnforcement} for guidance and assistance."
+    reason: Protocol steps name services, never agencies.
+  - sheet: Emergency Codes
+    cell: J44
+    ruling: D15
+    source: "Actions: 1. Immediately contact LAPD, LAFD, and federal authorities. 2. Activate emergency evacuation protocols. 3. Secure all entrances and exits."
+    database: "Actions: 1. Immediately contact {lawEnforcement}, {fire}, and {federal}. 2. Activate emergency evacuation protocols. 3. Secure all entrances and exits."
+    reason: Protocol steps name services, never agencies.
+  - sheet: Emergency Codes
+    cell: J62
+    ruling: D15
+    source: "Actions: 1. Immediately notify LAPD and security personnel. 2. Lock down all entrances and exits. 3. Instruct staff to move guests to pre-designated secure areas or evacuate."
+    database: "Actions: 1. Immediately notify {lawEnforcement} and security personnel. 2. Lock down all entrances and exits. 3. Instruct staff to move guests to pre-designated secure areas or evacuate."
+    reason: Protocol steps name services, never agencies.
+  - sheet: Emergency Codes
+    cell: J68
+    ruling: D15
+    source: "Actions: 1. Notify LAPD and bomb squad immediately. 2. Clear and evacuate areas as directed by law enforcement. 3. Avoid using radios or cell phones in case of detonation risk."
+    database: "Actions: 1. Notify {lawEnforcement} and {bombSquad} immediately. 2. Clear and evacuate areas as directed by law enforcement. 3. Avoid using radios or cell phones in case of detonation risk."
+    reason: Protocol steps name services, never agencies.
+removed_rows:
+  - sheet: Enumerations
+    row: 26
+    ruling: D16
+    reason: The Employment Type enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 27
+    ruling: D16
+    reason: The Employment Type enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 28
+    ruling: D16
+    reason: The Employment Type enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 29
+    ruling: D16
+    reason: The Employment Type enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 30
+    ruling: D16
+    reason: The Employment Type enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 41
+    ruling: D15
+    reason: The Emergency Radio Code enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 42
+    ruling: D15
+    reason: The Emergency Radio Code enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 43
+    ruling: D15
+    reason: The Emergency Radio Code enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 44
+    ruling: D15
+    reason: The Emergency Radio Code enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 45
+    ruling: D15
+    reason: The Emergency Radio Code enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 46
+    ruling: D15
+    reason: The Emergency Radio Code enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 47
+    ruling: D15
+    reason: The Emergency Radio Code enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 88
+    ruling: D15
+    reason: The Regulatory Agency enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 89
+    ruling: D15
+    reason: The Regulatory Agency enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 90
+    ruling: D15
+    reason: The Regulatory Agency enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 91
+    ruling: D15
+    reason: The Regulatory Agency enumeration is retired; its facts live in the reference model tables.
+  - sheet: Enumerations
+    row: 92
+    ruling: D15
+    reason: The Regulatory Agency enumeration is retired; its facts live in the reference model tables.
