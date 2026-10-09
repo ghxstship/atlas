@@ -1,0 +1,44 @@
+{
+  "name": "@xos/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "description": "XOS design tokens: the token source of truth, DTCG files, the Style Dictionary build for CSS and React Native, and the contrast gate.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./tokens.json": "./xos.tokens.json",
+    "./name-map.json": "./tokens/name-map.json",
+    "./contrast": "./scripts/check-contrast.js",
+    "./contrast-pairs.json": "./scripts/contrast-pairs.json",
+    "./css/base.css": "./dist/css/base.css",
+    "./css/theme.dark.css": "./dist/css/theme.dark.css",
+    "./css/theme.light.css": "./dist/css/theme.light.css",
+    "./css/theme.sunlight.css": "./dist/css/theme.sunlight.css",
+    "./native/base": "./dist/native/base.js",
+    "./native/theme.dark": "./dist/native/theme.dark.js",
+    "./native/theme.light": "./dist/native/theme.light.js",
+    "./native/theme.sunlight": "./dist/native/theme.sunlight.js"
+  },
+  "files": [
+    "dist",
+    "scripts",
+    "tokens",
+    "xos.tokens.json"
+  ],
+  "scripts": {
+    "build": "node build-tokens.mjs",
+    "contrast": "node scripts/check-contrast.js xos.tokens.json scripts/contrast-pairs.json",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/check-contrast.js xos.tokens.json scripts/contrast-pairs.json && vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "style-dictionary": "5.6.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
