@@ -301,6 +301,7 @@ function actionRoute(spec: ResourceSpec, action: ActionSpec, params: SharedParam
   return {
     route: createRoute({
       ...base(spec, action.verb, action.method),
+      ...(action.rpc === undefined ? {} : { "x-xos-rpc": action.rpc }),
       method: action.method,
       path,
       summary: action.summary,

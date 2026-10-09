@@ -46,8 +46,36 @@ function deref(obj: Json): Json {
 
 /** Views (`v_` tables) are derived rows without an ETag. */
 function hasResourceBody(op: Operation): boolean {
-  return !/\.v_/.test(String(op["x-xos-table"]));
+  return !/\.v_/.test(String(op["x-xos-table"])) && op["x-xos-rpc"] === undefined;
 }
+
+/** A02's identity RPCs (migration 0206) and the operation that calls each. */
+const IDENTITY_RPCS: Record<string, string> = {
+  "organizations.create": "app.create_organization",
+  "organizations.createClient": "app.create_client_organization",
+  "invites.create": "app.invite_member",
+  "invites.preview": "app.preview_invite",
+  "invites.accept": "app.accept_invite",
+  "memberships.leave": "app.leave_organization",
+  "memberships.end": "app.end_membership",
+};
+
+describe("identity RPC operations", () => {
+  it.each(Object.entries(IDENTITY_RPCS))("%s calls %s", (operationId, rpc) => {
+    const found = operations.find((o) => o.op.operationId === operationId);
+    expect(found?.method).toBe("post");
+    expect(found?.op["x-xos-rpc"]).toBe(rpc);
+    expect(Object.keys(found?.op.responses ?? {})).toContain("422");
+  });
+
+  it("never puts an invite token in a URL", () => {
+    for (const { path, op } of operations) {
+      expect(path, op.operationId).not.toMatch(/token/);
+      const names = (op.parameters ?? []).map(deref).map((p) => String(p["name"]));
+      expect(names, op.operationId).not.toContain("token");
+    }
+  });
+});
 
 function headerParams(op: Operation): string[] {
   return (op.parameters ?? [])

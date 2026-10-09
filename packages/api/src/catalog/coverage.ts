@@ -339,7 +339,11 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     entity: "Org",
     operations: ["organizations.get", "organizations.update", ...crud("orgBrandings")],
   },
-  { module: "Settings", entity: "Members", operations: crud("memberships") },
+  {
+    module: "Settings",
+    entity: "Members",
+    operations: [...read("memberships"), "memberships.update", "memberships.end", "invites.create"],
+  },
   { module: "Settings", entity: "Roles", operations: [...crud("roles"), "capabilities.list"] },
   {
     module: "Settings",
@@ -420,12 +424,34 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
 
   // Section 4.8 Identity
   { module: "Identity", entity: "Person", operations: ["me.get", "people.get", "people.update"] },
-  { module: "Identity", entity: "Organization", operations: crud("organizations") },
+  {
+    module: "Identity",
+    entity: "Organization",
+    operations: [...read("organizations"), "organizations.update", "organizations.create"],
+  },
+  {
+    module: "Identity",
+    entity: "Identity RPCs (migration 0206)",
+    operations: [
+      "organizations.create",
+      "organizations.createClient",
+      "invites.create",
+      "invites.preview",
+      "invites.accept",
+      "memberships.leave",
+      "memberships.end",
+    ],
+  },
   { module: "Identity", entity: "Subscription", operations: ["subscriptions.get"] },
   {
     module: "Identity",
     entity: "Membership",
-    operations: [...crud("memberships"), ...read("membershipRoles"), "memberships.offboard"],
+    operations: [
+      ...read("memberships"),
+      "memberships.update",
+      ...read("membershipRoles"),
+      "memberships.offboard",
+    ],
   },
   { module: "Identity", entity: "Engagement", operations: read("engagements") },
   {

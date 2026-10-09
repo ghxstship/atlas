@@ -337,10 +337,16 @@ export const RESOURCE_CAPABILITIES: Readonly<Record<string, CapabilityRule>> = {
   // Identity
   me: { actions: { get: "me.profile.write" } },
   people: rw("people.directory.read", "people.profile.write"),
-  organizations: rw("org.settings.read", "org.general.write", { create: "me.account.write" }),
+  organizations: rw("org.settings.read", "org.general.write", {
+    actions: { create: "me.account.write", createClient: "org.partner.manage" },
+  }),
   memberships: rw("org.members.read", "org.members.manage", {
     create: "org.members.invite",
-    actions: { offboard: "org.members.manage" },
+    actions: {
+      offboard: "org.members.manage",
+      end: "org.members.manage",
+      leave: "me.account.write",
+    },
   }),
   membershipRoles: rw("org.members.read", "org.members.manage"),
   projectAssignments: rw("projects.project.read", "projects.members.manage"),
@@ -355,7 +361,9 @@ export const RESOURCE_CAPABILITIES: Readonly<Record<string, CapabilityRule>> = {
   invitationLinks: rw("org.members.read", "org.members.invite", {
     actions: { revoke: "org.members.invite" },
   }),
-  invites: rw("org.members.read", "org.members.invite"),
+  invites: rw("org.members.read", "org.members.invite", {
+    actions: { preview: "me.account.write", accept: "me.account.write" },
+  }),
   verifiedDomains: rw("org.settings.read", "org.security.write"),
   offboardingChecklists: rw("org.members.read", "org.members.manage"),
   personProfiles: rw("people.directory.read", "me.profile.write"),
@@ -496,7 +504,6 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "org.help.write": "Help settings are setting values (A31).",
   "org.localization.write": "Localization defaults are setting values.",
   "org.usage.read": "Usage reads arrive with A18 billing in Wave 2.",
-  "org.partner.manage": "Used by the create client organization operation.",
   "org.legal.read": "Legal acceptance records arrive with A21.",
   "org.legal.accept": "Legal acceptance records arrive with A21.",
   "org.support_session.grant":

@@ -82,6 +82,7 @@ interface ActionInput {
   readonly status?: 200 | 201 | 202;
   readonly paged?: boolean;
   readonly segment?: string;
+  readonly rpc?: string;
 }
 
 function kebab(verb: string): string {

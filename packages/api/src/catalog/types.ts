@@ -54,6 +54,8 @@ export interface ActionSpec {
   readonly response?: z.ZodType;
   /** Status of the success response; defaults to 200. */
   readonly status?: 200 | 201 | 202;
+  /** The database RPC the operation calls, recorded as `x-xos-rpc`. */
+  readonly rpc?: string;
   /** A `{ data: [...] }` page of the response schema instead of one value. */
   readonly paged?: boolean;
 }

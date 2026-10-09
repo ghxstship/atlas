@@ -30396,51 +30396,6 @@
         ],
         "description": "Every company on the platform: a tenant (with a subscription), an external account, or both. A partner org cannot have a parent partner."
       },
-      "OrganizationCreate": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Trade name.",
-            "example": "Northwind Live"
-          },
-          "legal_name": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Legal name.",
-            "example": "Northwind Live LLC"
-          },
-          "slug": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "URL slug.",
-            "example": "northwind-live"
-          },
-          "parent_org_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the partner organization.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "base_currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "Base currency.",
-            "example": "USD"
-          },
-          "country": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}$",
-            "description": "ISO 3166-1 alpha-2 country code.",
-            "example": "US"
-          }
-        },
-        "required": ["name", "slug", "base_currency", "country"],
-        "description": "Fields accepted when creating a Organization."
-      },
       "OrganizationUpdate": {
         "type": "object",
         "properties": {
@@ -30484,6 +30439,83 @@
           }
         },
         "description": "Fields accepted when updating a Organization. Omitted fields are unchanged."
+      },
+      "CreateOrganizationRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Organization name.",
+            "example": "Northwind Live"
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$",
+            "description": "URL slug; reserved and taken slugs are refused.",
+            "example": "northwind-live"
+          }
+        },
+        "required": ["name", "slug"],
+        "description": "Creates an organization on the Access plan with the caller as its Owner."
+      },
+      "CreateClientOrganizationResult": {
+        "type": "object",
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the client organization.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "invite_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the Owner invite.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "invite_token": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Invite token from the invitation email. Sent in the body, never in a URL.",
+            "example": "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e"
+          }
+        },
+        "required": ["org_id", "invite_id", "invite_token"],
+        "description": "The created client org and its Owner invite. The token is shown once."
+      },
+      "CreateClientOrganizationRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Client organization name.",
+            "example": "Harbor City Events"
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$",
+            "description": "URL slug; reserved and taken slugs are refused.",
+            "example": "northwind-live"
+          },
+          "owner_email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email of the client's first Owner, who receives an invite.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "plan_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Plan code from `plans.yaml`; defaults to access.",
+            "example": "access"
+          }
+        },
+        "required": ["name", "slug", "owner_email"],
+        "description": "Creates a client organization under the caller's partner organization (Section 4.6.1)."
       },
       "MembershipPage": {
         "type": "object",
@@ -30579,37 +30611,6 @@
           "persona"
         ],
         "description": "A person in an organization as an internal member, with time-boxed validity."
-      },
-      "MembershipCreate": {
-        "type": "object",
-        "properties": {
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the member.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "valid_from": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Start of membership.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "valid_to": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "End of membership.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "persona": {
-            "type": ["string", "null"],
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Primary persona. A Title Case value from the lifecycle's database enum.",
-            "example": "Producer"
-          }
-        },
-        "required": ["person_id", "valid_from"],
-        "description": "Fields accepted when creating a Membership."
       },
       "MembershipUpdate": {
         "type": "object",
@@ -31762,17 +31763,34 @@
             "description": "Invitee email.",
             "example": "alex.rivera@northwindlive.example"
           },
-          "role": { "$ref": "#/components/schemas/OrgRole" },
+          "role_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the role offered.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
           "expires_at": {
             "type": "string",
             "format": "date-time",
             "description": "When the invite expires.",
             "example": "2026-10-08T14:30:00Z"
           },
+          "invited_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the inviting person.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
           "accepted_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When it was accepted.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was revoked or replaced.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
@@ -31784,13 +31802,34 @@
           "updated_at",
           "updated_by",
           "email",
-          "role",
+          "role_id",
           "expires_at",
-          "accepted_at"
+          "invited_by",
+          "accepted_at",
+          "revoked_at"
         ],
-        "description": "An email invitation to join an org."
+        "description": "An email invitation to join an org. Created through `invites.create` (the `app.invite_member` RPC); the token is never stored or returned again."
       },
-      "InviteCreate": {
+      "InviteMemberResult": {
+        "type": "object",
+        "properties": {
+          "invite_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the invite.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "invite_token": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Invite token from the invitation email. Sent in the body, never in a URL.",
+            "example": "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e"
+          }
+        },
+        "required": ["invite_id", "invite_token"],
+        "description": "The created invite. The token is shown once; only its hash is stored."
+      },
+      "InviteMemberRequest": {
         "type": "object",
         "properties": {
           "email": {
@@ -31799,7 +31838,46 @@
             "description": "Invitee email.",
             "example": "alex.rivera@northwindlive.example"
           },
-          "role": { "$ref": "#/components/schemas/OrgRole" },
+          "role_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the role offered, at or below the inviter's band.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "valid_for_hours": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 720,
+            "description": "Hours until the invite expires, from 1 to 720. Default 336 (14 days).",
+            "example": 336
+          }
+        },
+        "required": ["email", "role_id"],
+        "description": "Invites an email to the caller's organization, replacing any pending invite for it."
+      },
+      "InvitePreview": {
+        "type": "object",
+        "properties": {
+          "org_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Organization the invite joins.",
+            "example": "Northwind Live"
+          },
+          "role_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Offered role code.",
+            "example": "member"
+          },
+          "role_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Offered role name.",
+            "example": "Member"
+          },
           "expires_at": {
             "type": "string",
             "format": "date-time",
@@ -31807,8 +31885,34 @@
             "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["email", "role", "expires_at"],
-        "description": "Fields accepted when creating a Invite."
+        "required": ["org_name", "role_code", "role_name", "expires_at"],
+        "description": "What an invite offers, shown only to its confirmed recipient."
+      },
+      "InviteTokenRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Invite token from the invitation email. Sent in the body, never in a URL.",
+            "example": "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e"
+          }
+        },
+        "required": ["token"],
+        "description": "An invite token presented by its recipient."
+      },
+      "AcceptInviteResult": {
+        "type": "object",
+        "properties": {
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership joined or reused.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["membership_id"],
+        "description": "The membership the accepted invite joined."
       },
       "VerifiedDomainPage": {
         "type": "object",
@@ -93096,30 +93200,23 @@
         "x-xos-table": "app.organizations",
         "x-xos-capability": "me.account.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.create_organization",
         "summary": "Create an organization",
-        "description": "Every company on the platform: a tenant (with a subscription), an external account, or both. A partner org cannot have a parent partner. Creates an organization. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "Creates an organization on the Access plan with the caller as its Owner, in one transaction, through `app.create_organization`. A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "name": "Northwind Live",
-                "legal_name": "Northwind Live LLC",
-                "slug": "northwind-live",
-                "parent_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "base_currency": "USD",
-                "country": "US"
-              },
-              "schema": { "$ref": "#/components/schemas/OrganizationCreate" }
+              "example": { "name": "Northwind Live", "slug": "northwind-live" },
+              "schema": { "$ref": "#/components/schemas/CreateOrganizationRequest" }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "The created organization.",
+            "description": "The result.",
             "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
               "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
@@ -93283,6 +93380,58 @@
         }
       }
     },
+    "/organizations/clients": {
+      "post": {
+        "operationId": "organizations.createClient",
+        "tags": ["Identity"],
+        "x-xos-table": "app.organizations",
+        "x-xos-capability": "org.partner.manage",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "app.create_client_organization",
+        "summary": "Create a client organization",
+        "description": "Partner console (Section 4.6.1): creates a client organization under the caller's partner organization, on the given plan, with an Owner invite for the client, through `app.create_client_organization`. Requires `org.partner.manage` in the partner organization; partner staff gain no access to the client organization. The invite token is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Harbor City Events",
+                "slug": "northwind-live",
+                "owner_email": "alex.rivera@northwindlive.example",
+                "plan_code": "access"
+              },
+              "schema": { "$ref": "#/components/schemas/CreateClientOrganizationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "invite_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "invite_token": "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e"
+                },
+                "schema": { "$ref": "#/components/schemas/CreateClientOrganizationResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/memberships": {
       "get": {
         "operationId": "memberships.list",
@@ -93333,63 +93482,6 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "post": {
-        "operationId": "memberships.create",
-        "tags": ["Identity"],
-        "x-xos-table": "app.memberships",
-        "x-xos-capability": "org.members.invite",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "summary": "Create a membership",
-        "description": "A person in an organization as an internal member, with time-boxed validity. Creates a membership. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "valid_from": "2026-10-08T14:30:00Z",
-                "valid_to": "2026-10-08T14:30:00Z",
-                "persona": "Producer"
-              },
-              "schema": { "$ref": "#/components/schemas/MembershipCreate" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The created membership.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z",
-                  "persona": "Producer"
-                },
-                "schema": { "$ref": "#/components/schemas/Membership" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -93522,15 +93614,64 @@
           "428": { "$ref": "#/components/responses/PreconditionRequired" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
-      },
-      "delete": {
-        "operationId": "memberships.delete",
+      }
+    },
+    "/memberships/leave": {
+      "post": {
+        "operationId": "memberships.leave",
+        "tags": ["Identity"],
+        "x-xos-table": "app.memberships",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.leave_organization",
+        "summary": "Leave the organization",
+        "description": "Ends the caller's membership in the organization the credential is bound to, now, through `app.leave_organization`; access ends at once (Section 7.5 invariant 3). The sole Owner is refused with 422. Returns the ended membership. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "persona": "Producer"
+                },
+                "schema": { "$ref": "#/components/schemas/Membership" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/memberships/{id}/end": {
+      "post": {
+        "operationId": "memberships.end",
         "tags": ["Identity"],
         "x-xos-table": "app.memberships",
         "x-xos-capability": "org.members.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "summary": "Delete a membership",
-        "description": "A person in an organization as an internal member, with time-boxed validity. Soft-deletes the membership: it moves to Trash and can be restored for its table's retention period.",
+        "x-xos-rpc": "app.end_membership",
+        "summary": "End a membership",
+        "description": "Ends another member's membership now through `app.end_membership`. Requires `org.members.manage` at or above the member's band; the sole Owner is refused with 422. Returns the ended membership. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -93543,12 +93684,40 @@
             "description": "Identifier of the membership.",
             "name": "id",
             "in": "path"
-          }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
         "responses": {
-          "204": { "description": "The membership moved to Trash." },
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "persona": "Producer"
+                },
+                "schema": { "$ref": "#/components/schemas/Membership" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
@@ -95828,7 +95997,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
         "summary": "List invite rows",
-        "description": "An email invitation to join an org. Returns a cursor page of invite rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "An email invitation to join an org. Created through `invites.create` (the `app.invite_member` RPC); the token is never stored or returned again. Returns a cursor page of invite rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -95856,9 +96025,11 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "email": "alex.rivera@northwindlive.example",
-                      "role": "Manager",
+                      "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "expires_at": "2026-10-08T14:30:00Z",
-                      "accepted_at": "2026-10-08T14:30:00Z"
+                      "invited_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "accepted_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -95878,8 +96049,9 @@
         "x-xos-table": "app.invites",
         "x-xos-capability": "org.members.invite",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "summary": "Create an invite",
-        "description": "An email invitation to join an org. Creates an invite. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "x-xos-rpc": "app.invite_member",
+        "summary": "Invite a member",
+        "description": "Invites an email to the caller's organization with a role the inviter may grant and an expiry of 1 hour to 30 days, through `app.invite_member`. Replaces any pending invite for the same email. Refused with 422 for a role above the inviter's band, a capability the inviter does not hold, an out-of-range expiry or a self-invite. The token is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -95887,18 +96059,17 @@
             "application/json": {
               "example": {
                 "email": "alex.rivera@northwindlive.example",
-                "role": "Manager",
-                "expires_at": "2026-10-08T14:30:00Z"
+                "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "valid_for_hours": 336
               },
-              "schema": { "$ref": "#/components/schemas/InviteCreate" }
+              "schema": { "$ref": "#/components/schemas/InviteMemberRequest" }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "The created invite.",
+            "description": "The result.",
             "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
               "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
@@ -95906,18 +96077,10 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "email": "alex.rivera@northwindlive.example",
-                  "role": "Manager",
-                  "expires_at": "2026-10-08T14:30:00Z",
-                  "accepted_at": "2026-10-08T14:30:00Z"
+                  "invite_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "invite_token": "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e"
                 },
-                "schema": { "$ref": "#/components/schemas/Invite" }
+                "schema": { "$ref": "#/components/schemas/InviteMemberResult" }
               }
             }
           },
@@ -95937,7 +96100,7 @@
         "x-xos-capability": "org.members.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Get an invite",
-        "description": "An email invitation to join an org. Returns one invite with its `ETag`. A invite the caller may not see returns 404.",
+        "description": "An email invitation to join an org. Created through `invites.create` (the `app.invite_member` RPC); the token is never stored or returned again. Returns one invite with its `ETag`. A invite the caller may not see returns 404.",
         "parameters": [
           {
             "schema": {
@@ -95972,9 +96135,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "email": "alex.rivera@northwindlive.example",
-                  "role": "Manager",
+                  "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "expires_at": "2026-10-08T14:30:00Z",
-                  "accepted_at": "2026-10-08T14:30:00Z"
+                  "invited_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Invite" }
               }
@@ -95993,7 +96158,7 @@
         "x-xos-capability": "org.members.invite",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Delete an invite",
-        "description": "An email invitation to join an org. Soft-deletes the invite: it moves to Trash and can be restored for its table's retention period.",
+        "description": "An email invitation to join an org. Created through `invites.create` (the `app.invite_member` RPC); the token is never stored or returned again. Soft-deletes the invite: it moves to Trash and can be restored for its table's retention period.",
         "parameters": [
           {
             "schema": {
@@ -96012,6 +96177,97 @@
           "204": { "description": "The invite moved to Trash." },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/invites/preview": {
+      "post": {
+        "operationId": "invites.preview",
+        "tags": ["Identity"],
+        "x-xos-table": "app.invites",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.preview_invite",
+        "summary": "Preview an invite",
+        "description": "Shows the organization, role and expiry an invite offers, only to the confirmed sign-in it was sent to, through `app.preview_invite`. An invalid, expired, locked or mismatched token returns a 422 `REFUSE` with its reason; repeated failures rate-limit the caller. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "token": "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e" },
+              "schema": { "$ref": "#/components/schemas/InviteTokenRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "org_name": "Northwind Live",
+                  "role_code": "member",
+                  "role_name": "Member",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/InvitePreview" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/invites/accept": {
+      "post": {
+        "operationId": "invites.accept",
+        "tags": ["Identity"],
+        "x-xos-table": "app.invites",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.accept_invite",
+        "summary": "Accept an invite",
+        "description": "Accepts an invite for the confirmed sign-in it was sent to, through `app.accept_invite`: joins the organization, or reuses the active membership, and receives the role. Refused with 422 when the token is invalid or the inviter no longer holds `org.members.invite`. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "token": "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e" },
+              "schema": { "$ref": "#/components/schemas/InviteTokenRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/AcceptInviteResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
