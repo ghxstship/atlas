@@ -11,7 +11,8 @@
     "./tsconfig/base.json": "./tsconfig/base.json",
     "./tsconfig/library.json": "./tsconfig/library.json",
     "./tsconfig/nextjs.json": "./tsconfig/nextjs.json",
-    "./finish-guard": "./src/finish-guard.ts"
+    "./finish-guard": "./src/finish-guard.ts",
+    "./tailwind/preset.js": "./tailwind/preset.js"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

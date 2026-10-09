@@ -1,25 +1,14 @@
-import { execFileSync } from "node:child_process";
-import { cpSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { THEMES, dtcgLeaves, pkgPath, readJson } from "./source.ts";
+import { buildTokens, cssVars, type TokenBuild } from "./build.ts";
+import { THEMES, dtcgLeaves, readJson } from "./source.ts";
 
-/** Runs build-tokens.mjs against a scratch copy of tokens/ so the test never depends on a prior build. */
-let out: string;
-
+let build: TokenBuild;
 beforeAll(() => {
-  out = mkdtempSync(join(tmpdir(), "xos-tokens-"));
-  cpSync(pkgPath("tokens"), join(out, "tokens"), { recursive: true });
-  execFileSync(process.execPath, [pkgPath("build-tokens.mjs")], { cwd: out, stdio: "pipe" });
+  build = buildTokens();
 });
+afterAll(() => build.dispose());
 
-afterAll(() => {
-  rmSync(out, { recursive: true, force: true });
-});
-
-const read = (file: string) => readFileSync(join(out, "dist", file), "utf8");
-const cssVars = (css: string) => [...css.matchAll(/^\s*(--[\w-]+):/gm)].map((m) => m[1]);
+const read = (file: string) => build.read(file);
 const nativeExports = (js: string) => [...js.matchAll(/^export const (\w+)/gm)].map((m) => m[1]);
 const cssName = (path: string) => `--${path.replace(/\./g, "-")}`;
 
