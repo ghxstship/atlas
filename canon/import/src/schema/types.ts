@@ -25,6 +25,8 @@ export interface ColumnSpec {
   readonly nullable?: boolean;
   /** Target as "table(column)" inside xpms. */
   readonly references?: string;
+  /** Delete rule of the reference; restrict when absent. */
+  readonly onDelete?: "cascade";
   readonly check?: string;
   /** SQL expression for a stored generated column; generated columns are never seeded. */
   readonly generated?: string;

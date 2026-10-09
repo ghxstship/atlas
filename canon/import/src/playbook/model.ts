@@ -14,6 +14,9 @@ import { COVER_SHEET } from "./layout.ts";
 import { MIRRORS } from "./mirror.ts";
 import type { MirrorContext } from "./mirror.ts";
 import { stdColumnName, stdTableSpec } from "./tables.ts";
+import { STD_TABLES } from "./column-map.ts";
+import { buildReferenceModel } from "./reference-model.ts";
+import type { Rulings } from "../rulings.ts";
 
 export const TEMPLATE_CODE = "XOS-4.0";
 export const PLAYBOOK_FILE = "XOS-4.0_Production-Playbook_2026.xlsx";
@@ -43,6 +46,8 @@ export interface PlaybookResult {
   readonly intake: IntakeRow[];
   readonly diff: DiffEntry[];
   readonly realWorld: RealWorldRow[];
+  /** Every Playbook value an owner ruling changes (canon/reports/migration-report.txt). */
+  readonly report: string[];
 }
 
 function same(a: string | null, b: string | null): boolean {
@@ -284,13 +289,31 @@ function buildStandardLibrary(
   map: ColumnMap,
   tables: Map<string, SqlRow[]>,
   findings: Findings,
+  retired: readonly string[],
+  report: string[],
 ): void {
-  for (const entry of map.sheets.filter((s) => s.destination === "standard-library")) {
+  for (const entry of map.sheets.filter(
+    (s) => s.destination === "standard-library" && STD_TABLES[s.sheet] !== undefined,
+  )) {
     const spec = stdTableSpec(entry);
     const sheet = sheetByName(playbook, entry.sheet);
     const grid = sheetGrid(sheet);
     const hasMoney = entry.columns.some((c) => c.type === "money");
-    const rows: SqlRow[] = grid.dataRows.map((r) => {
+    const domainIndex = entry.columns.findIndex((c) => c.key === "enum_domain");
+    const kept = grid.dataRows.filter((r) => {
+      if (domainIndex < 0) return true;
+      const domain = normalizeCell(getCell(sheet, r, domainIndex + 1));
+      if (!retired.includes(domain)) return true;
+      const label = normalizeCell(
+        getCell(sheet, r, entry.columns.findIndex((c) => c.key === "enum_label") + 1),
+      );
+      const id = normalizeCell(getCell(sheet, r, 1));
+      report.push(
+        `Enumerations: ${domain} "${label}" (${id}) retired by ruling; its facts live in the reference tables.`,
+      );
+      return false;
+    });
+    const rows: SqlRow[] = kept.map((r) => {
       const row: Record<string, string | boolean | null> = { source_row: String(r) };
       entry.columns.forEach((c, i) => {
         if (c.disposition !== "field") return;
@@ -314,7 +337,7 @@ function crossCheckLibrary(
   diff: DiffEntry[],
 ): void {
   const roles = new Set((tables.get("dim_role") ?? []).map((r) => r["role_code"]));
-  for (const r of tables.get("std_role") ?? []) {
+  for (const r of tables.get("role") ?? []) {
     const code = r["role_code"];
     if (!roles.has(code)) {
       diff.push({
@@ -325,7 +348,7 @@ function crossCheckLibrary(
         key: String(code),
         bible: null,
         playbook: String(code),
-        note: "Role code is not in Bible tab 27.",
+        note: "Role code is not in Bible tab 27; the Roles Library owns role codes (ruling D12).",
       });
     }
   }
@@ -482,17 +505,49 @@ export function applyPlaybook(
   canonIntake: readonly IntakeRow[],
   playbook: WorkbookData,
   map: ColumnMap,
+  rulings: Rulings,
   findings: Findings,
   sha: string,
 ): PlaybookResult {
-  const tables = new Map<string, SqlRow[]>();
-  for (const [k, v] of canon) tables.set(k, [...v]);
+  const start = new Map<string, SqlRow[]>();
+  for (const [k, v] of canon) start.set(k, [...v]);
   const intake = [...canonIntake];
   const diff: DiffEntry[] = [];
-  applyMirrors(playbook, tables, intake, diff, findings);
-  buildStandardLibrary(playbook, map, tables, findings);
+  applyMirrors(playbook, start, intake, diff, findings);
+  const reference = buildReferenceModel(playbook, rulings, start, findings);
+  const tables = reference.tables;
+  const report = [...reference.report];
+  buildStandardLibrary(
+    playbook,
+    map,
+    tables,
+    findings,
+    rulings.retired_enumeration_domains,
+    report,
+  );
   crossCheckLibrary(playbook, tables, diff);
   registry(playbook, map, tables);
   const realWorld = buildTemplate(playbook, map, tables, findings, sha);
-  return { tables, intake, diff, realWorld };
+  report.push(...jurisdictionReport(tables), ...rulingNotes(rulings));
+  return { tables, intake, diff, realWorld, report };
+}
+
+function jurisdictionReport(tables: ReadonlyMap<string, readonly SqlRow[]>): string[] {
+  const j = tables.get("jurisdiction") ?? [];
+  const sets = tables.get("jurisdiction_code_set") ?? [];
+  const inherited = j
+    .filter((r) => r["parent"] !== null && r["unit_system"] === null)
+    .map((r) => String(r["jurisdiction_id"]));
+  return [
+    `Jurisdictions: ${j.length} rows mirrored from Bible tab 11 (${j.map((r) => String(r["jurisdiction_id"])).join(", ")}).`,
+    `Jurisdictions: tab 11 values are unchanged, but each is stored once. Country derives from the ID; unit system and currency are stored on the country and inherited by ${inherited.join(" and ")}; Primary Code Sets (a comma list) becomes one jurisdiction_code_set row per set (${sets.length} rows). jurisdiction_resolved returns tab 11 exactly.`,
+  ];
+}
+
+function rulingNotes(rulings: Rulings): string[] {
+  const agencies = rulings.jurisdiction_agencies.map(([j, f, a]) => `${f} ${a} (${j})`).join("; ");
+  return [
+    `Enumerations: "Regulatory Agency" moved to jurisdiction_agency: ${agencies}.`,
+    "Worker classification: Volunteer is permitted only for Nonprofit and Public Agency organizations (decision D17).",
+  ];
 }

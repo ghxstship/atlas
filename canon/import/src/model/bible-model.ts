@@ -7,6 +7,7 @@ import { EMPTY } from "../cell.ts";
 import { normalizeCell, normalizeText } from "../normalize.ts";
 import type { SqlRow } from "../sql.ts";
 import type { WorkbookData } from "../workbook.ts";
+import type { Rulings } from "../rulings.ts";
 import { RowReader, toMinorUnits } from "./values.ts";
 
 /**
@@ -45,6 +46,7 @@ export interface CanonInputs {
   readonly bible: WorkbookData;
   readonly itemCatalog: CsvTable;
   readonly glChart: CsvTable;
+  readonly rulings: Rulings;
   /** SHA-256 of each input file, recorded in xpms.version. */
   readonly files: {
     readonly bible: string;
@@ -64,9 +66,11 @@ class Builder {
   readonly intake: IntakeRow[] = [];
   readonly findings: Findings;
   readonly bible: WorkbookData;
+  readonly rulings: Rulings;
 
-  constructor(bible: WorkbookData, findings: Findings) {
+  constructor(bible: WorkbookData, rulings: Rulings, findings: Findings) {
     this.bible = bible;
+    this.rulings = rulings;
     this.findings = findings;
   }
 
@@ -302,21 +306,7 @@ function buildDimensions(b: Builder): void {
       detail: r.opt("detail"),
     })),
   );
-  b.put(
-    "dim_jurisdiction",
-    b.tab("11").readers.map((r, i) => ({
-      jurisdiction_id: r.req("jurisdiction_id"),
-      ordinal: String(i + 1),
-      level: r.req("level"),
-      country: r.req("country"),
-      parent_id: r.opt("parent"),
-      unit_system: r.req("unit_system"),
-      currency_code: r.req("currency"),
-      primary_code_sets: r.req("primary_code_sets"),
-      status: r.req("status"),
-      note: r.opt("note"),
-    })),
-  );
+  buildJurisdictions(b);
   const multipliers: SqlRow[] = [];
   b.put(
     "dim_region",
@@ -594,16 +584,71 @@ function buildDimensions(b: Builder): void {
     .split(",")
     .map((s) => s.trim())
     .filter((s) => /^Grade [1-3] /.test(s));
-  b.expect(grades.length === 3, `Bible 34 Columns names ${grades.length} price grades; expected 3`);
-  const gradeColumns = ["cost_low_usd", "unit_cost_usd", "cost_high_usd"];
-  b.put(
-    "dim_price_grade",
-    grades.map((g, i) => ({
-      grade_code: `G${g.slice(6, 7)}`,
-      grade: g,
-      catalog_column: gradeColumns[i] ?? "",
-    })),
+  const ruled = [...b.rulings.grades].sort((x, y) => x.sort_order - y.sort_order);
+  if (grades.length !== ruled.length) {
+    b.problems.push(
+      `Bible 34 names ${grades.length} price grades; ruling D11 names ${ruled.length}`,
+    );
+  }
+  b.findings.add(
+    "ruling",
+    "Bible 34 · Budget Template Spec Columns",
+    `Price grade labels ${grades.join(", ")} are superseded by ruling D11: ${ruled.map((g) => g.label).join(", ")} (xpms.grade).`,
   );
+  b.put(
+    "grade",
+    ruled.map((g) => ({ code: g.code, label: g.label, sort_order: String(g.sort_order) })),
+  );
+}
+
+/**
+ * Bible tab 11 in third normal form (ruling D19): the country is derived from the
+ * ID, unit system and currency are stored where they first appear in the chain and
+ * inherited below, and each code set is a row. jurisdiction_resolved re-forms the tab.
+ */
+function buildJurisdictions(b: Builder): void {
+  const rows = b.tab("11").readers.map((r, i) => ({
+    reader: r,
+    id: r.req("jurisdiction_id"),
+    ordinal: String(i + 1),
+    level: r.req("level"),
+    country: r.req("country"),
+    parent: r.opt("parent"),
+    unit: r.req("unit_system"),
+    currency: r.req("currency"),
+    codeSets: r.req("primary_code_sets"),
+    status: r.req("status"),
+    note: r.opt("note"),
+  }));
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const out: SqlRow[] = [];
+  const sets: SqlRow[] = [];
+  for (const j of rows) {
+    b.expect(
+      j.country === j.id.slice(0, 2),
+      `${j.reader.location("country")}: country ${j.country} is not the first segment of ${j.id}`,
+    );
+    const parent = j.parent === null ? undefined : byId.get(j.parent);
+    out.push({
+      jurisdiction_id: j.id,
+      ordinal: j.ordinal,
+      level: j.level,
+      parent: j.parent,
+      unit_system: parent && parent.unit === j.unit ? null : j.unit,
+      currency: parent && parent.currency === j.currency ? null : j.currency,
+      status: j.status,
+      note: j.note,
+    });
+    j.codeSets
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s !== "")
+      .forEach((code_set, k) =>
+        sets.push({ jurisdiction_id: j.id, code_set, sort_order: String(k + 1) }),
+      );
+  }
+  b.put("jurisdiction", out);
+  b.put("jurisdiction_code_set", sets);
 }
 
 function verifyNamesAgainstHome(b: Builder): void {
@@ -650,11 +695,16 @@ function verifyNamesAgainstHome(b: Builder): void {
       lookup(accounts, "account_code", account, "account_name") === r.req("account_name"),
       `${r.location("account_name")}: disagrees with tab 29`,
     );
-    rows.push({
-      cat_urid: urid,
-      account_code: account,
-      default_cost_center: r.req("default_cost_center"),
-    });
+    const byClass = accounts.find(
+      (a) =>
+        a["account_type"] === "Expense" &&
+        String(a["account_code"]).slice(1, 2) === urid.slice(0, 1),
+    );
+    b.expect(
+      byClass?.["account_code"] === account,
+      `${r.location("account_code")}: states ${account}; the class expense account is ${String(byClass?.["account_code"] ?? "")} (decision D13 derives it)`,
+    );
+    rows.push({ cat_urid: urid, default_cost_center: r.req("default_cost_center") });
   }
   b.put("dim_category_gl", rows);
 }
@@ -781,7 +831,7 @@ function buildCatalog(b: Builder, items: CsvTable, generatedAt: string): void {
   const tiers = b.rows("dim_tier");
   const phases = b.rows("dim_phase");
   const accounts = b.rows("dim_gl_account");
-  const grades = b.rows("dim_price_grade");
+  const grades = b.rulings.grades;
   const elements: SqlRow[] = [];
   const bands: SqlRow[] = [];
   const phaseBridge: SqlRow[] = [];
@@ -865,12 +915,12 @@ function buildCatalog(b: Builder, items: CsvTable, generatedAt: string): void {
     }
 
     for (const g of grades) {
-      const column = g["catalog_column"] as string;
+      const column = g.catalog_column;
       const amount = text(column);
       if (amount === null) continue;
       bands.push({
         element_id: id,
-        grade_code: g["grade_code"] as string,
+        grade_code: g.code,
         amount_minor: toMinorUnits(amount),
         currency_code: "USD",
         assertion_word: null,
@@ -1109,7 +1159,7 @@ function systemRows(b: Builder): void {
     },
     {
       kind: "jurisdiction",
-      table_name: "dim_jurisdiction",
+      table_name: "jurisdiction",
       key_column: "jurisdiction_id",
       label_column: "jurisdiction_id",
     },
@@ -1151,7 +1201,7 @@ function systemRows(b: Builder): void {
 }
 
 export function buildCanonModel(inputs: CanonInputs, findings: Findings): CanonModel {
-  const b = new Builder(inputs.bible, findings);
+  const b = new Builder(inputs.bible, inputs.rulings, findings);
   buildDimensions(b);
   buildGl(b, inputs.glChart);
   verifyNamesAgainstHome(b);

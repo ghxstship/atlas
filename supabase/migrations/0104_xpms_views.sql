@@ -71,8 +71,8 @@ select
   e.item,
   e.urid,
   e.unit_basis,
-  g.grade_code,
-  g.grade,
+  g.code as grade_code,
+  g.label as grade,
   b.amount_minor,
   b.currency_code,
   b.assertion_word,
@@ -81,8 +81,9 @@ select
   xpms.band_effective_confidence(b.assertion_word, b.valid_from, b.valid_to, current_date) as effective_confidence,
   b.element_id is null as is_unpriced
 from xpms.elements e
-cross join xpms.dim_price_grade g
-left join xpms.element_price_bands b on b.element_id = e.element_id and b.grade_code = g.grade_code;
+cross join xpms.grade g
+left join xpms.element_price_bands b on b.element_id = e.element_id and b.grade_code = g.code
+order by e.element_id, g.sort_order;
 
 comment on view xpms.v_element_economics is
   'Every element at every price grade. A missing band is unpriced (amount NULL, never 0); effective confidence is computed at read time from the staleness policy.';

@@ -2829,236 +2829,236 @@ sheets:
   - sheet: Labor Rate Cards
     key: labor_rate_cards
     destination: standard-library
-    entity: xpms.std_labor_rate_card
+    entity: xpms.rate_card
     columns:
       - letter: A
         header: RATE CARD ID
         key: rate_card_id
         disposition: field
-        target: xpms.std_labor_rate_card.rate_card_id
+        target: xpms.rate_card.rate_card_id
         type: text
       - letter: B
         header: ROLE CODE
         key: role_code
         disposition: field
-        target: xpms.std_labor_rate_card.role_code
+        target: xpms.rate_card.role_code
         type: text
       - letter: C
         header: JOB TITLE
         key: job_title
         disposition: computed
-        target: xpms.std_labor_rate_card.job_title
+        target: xpms.rate_card.job_title
         type: text
         formula: =_xlfn.XLOOKUP(B2, 'Roles Library'!$A$2:$A$12, 'Roles Library'!$B$2:$B$12)
       - letter: D
         header: ENGAGEMENT TYPE
         key: engagement_type
         disposition: field
-        target: xpms.std_labor_rate_card.engagement_type
+        target: xpms.rate_card.engagement_type
         type: text
       - letter: E
         header: PAY BASIS
         key: pay_basis
         disposition: field
-        target: xpms.std_labor_rate_card.pay_basis
+        target: xpms.rate_card.pay_basis
         type: text
       - letter: F
         header: STANDARD RATE
         key: standard_rate
         disposition: field
-        target: xpms.std_labor_rate_card.standard_rate
+        target: xpms.rate_card.standard_rate
         type: numeric
       - letter: G
         header: MIN GRADE RATE
         key: min_grade_rate
         disposition: field
-        target: xpms.std_labor_rate_card.min_grade_rate
+        target: xpms.rate_card.min_grade_rate
         type: numeric
       - letter: H
         header: MAX GRADE RATE
         key: max_grade_rate
         disposition: field
-        target: xpms.std_labor_rate_card.max_grade_rate
+        target: xpms.rate_card.max_grade_rate
         type: numeric
       - letter: I
         header: OT MULTIPLIER
         key: ot_multiplier
         disposition: field
-        target: xpms.std_labor_rate_card.ot_multiplier
+        target: xpms.rate_card.ot_multiplier
         type: text
       - letter: J
         header: DT MULTIPLIER
         key: dt_multiplier
         disposition: field
-        target: xpms.std_labor_rate_card.dt_multiplier
+        target: xpms.rate_card.dt_multiplier
         type: text
       - letter: K
         header: PER DIEM RATE
         key: per_diem_rate
         disposition: field
-        target: xpms.std_labor_rate_card.per_diem_rate
+        target: xpms.rate_card.per_diem_rate
         type: numeric
       - letter: L
         header: DEFAULT GL ACCOUNT
         key: default_gl_account
         disposition: field
-        target: xpms.std_labor_rate_card.default_gl_account
+        target: xpms.rate_card.default_gl_account
         type: numeric
       - letter: M
         header: DEFAULT GL NAME
         key: default_gl_name
         disposition: computed
-        target: xpms.std_labor_rate_card.default_gl_name
+        target: xpms.rate_card.default_gl_name
         type: text
         formula: =IFERROR(__xludf.DUMMYFUNCTION("XLOOKUP(TO_TEXT(L2), 'GL Accounts'!$A$2:$A$24, 'GL Accounts'!$B$2:$B$24)"),"Expense · Executive")
       - letter: N
         header: STATUS
         key: status
         disposition: field
-        target: xpms.std_labor_rate_card.status
+        target: xpms.rate_card.status
         type: text
       - letter: O
         header: FLAG
         key: flag
         disposition: field
-        target: xpms.std_labor_rate_card.flag
+        target: xpms.rate_card.flag
         type: bool
       - letter: P
         header: NOTES
         key: notes
         disposition: field
-        target: xpms.std_labor_rate_card.notes
+        target: xpms.rate_card.notes
         type: text
       - letter: Q
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.std_labor_rate_card.created_by
+        target: xpms.rate_card.created_by
         type: text
       - letter: R
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.std_labor_rate_card.created_at
+        target: xpms.rate_card.created_at
         type: date
       - letter: S
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.std_labor_rate_card.updated_at
+        target: xpms.rate_card.updated_at
         type: date
   - sheet: Roles Library
     key: roles_library
     destination: standard-library
-    entity: xpms.std_role
+    entity: xpms.role
     columns:
       - letter: A
         header: ROLE CODE
         key: role_code
         disposition: field
-        target: xpms.std_role.role_code
+        target: xpms.role.role_code
         type: text
       - letter: B
         header: JOB TITLE
         key: job_title
         disposition: field
-        target: xpms.std_role.job_title
+        target: xpms.role.job_title
         type: text
       - letter: C
         header: DEPARTMENT
         key: department
         disposition: field
-        target: xpms.std_role.department
+        target: xpms.role.department
         type: text
       - letter: D
         header: DISCIPLINE
         key: discipline
         disposition: field
-        target: xpms.std_role.discipline
+        target: xpms.role.discipline
         type: text
       - letter: E
         header: RANK
         key: rank
         disposition: field
-        target: xpms.std_role.rank
+        target: xpms.role.rank
         type: text
       - letter: F
         header: JOB SUMMARY
         key: job_summary
         disposition: field
-        target: xpms.std_role.job_summary
+        target: xpms.role.job_summary
         type: text
       - letter: G
         header: KEY RESPONSIBILITIES
         key: key_responsibilities
         disposition: field
-        target: xpms.std_role.key_responsibilities
+        target: xpms.role.key_responsibilities
         type: text
       - letter: H
         header: QUALIFICATIONS
         key: qualifications
         disposition: field
-        target: xpms.std_role.qualifications
+        target: xpms.role.qualifications
         type: text
       - letter: I
         header: PHYSICAL REQUIREMENTS
         key: physical_requirements
         disposition: field
-        target: xpms.std_role.physical_requirements
+        target: xpms.role.physical_requirements
         type: text
       - letter: J
         header: REQUIRED CERTIFICATIONS
         key: required_certifications
         disposition: field
-        target: xpms.std_role.required_certifications
+        target: xpms.role.required_certifications
         type: text
       - letter: K
         header: DEFAULT CLEARANCE TIER
         key: default_clearance_tier
         disposition: field
-        target: xpms.std_role.default_clearance_tier
+        target: xpms.role.default_clearance_tier
         type: text
       - letter: L
         header: DEFAULT RADIO CHANNEL
         key: default_radio_channel
         disposition: field
-        target: xpms.std_role.default_radio_channel
+        target: xpms.role.default_radio_channel
         type: text
       - letter: M
         header: STATUS
         key: status
         disposition: field
-        target: xpms.std_role.status
+        target: xpms.role.status
         type: text
       - letter: N
         header: FLAG
         key: flag
         disposition: field
-        target: xpms.std_role.flag
+        target: xpms.role.flag
         type: bool
       - letter: O
         header: NOTES
         key: notes
         disposition: field
-        target: xpms.std_role.notes
+        target: xpms.role.notes
         type: text
       - letter: P
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.std_role.created_by
+        target: xpms.role.created_by
         type: text
       - letter: Q
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.std_role.created_at
+        target: xpms.role.created_at
         type: date
       - letter: R
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.std_role.updated_at
+        target: xpms.role.updated_at
         type: date
   - sheet: Credential Issuance
     key: credential_issuance
@@ -4818,105 +4818,105 @@ sheets:
   - sheet: Emergency Codes
     key: emergency_codes
     destination: standard-library
-    entity: xpms.std_emergency_code
+    entity: xpms.emergency_protocol
     columns:
       - letter: A
         header: RECORD ID
         key: record_id
         disposition: field
-        target: xpms.std_emergency_code.record_id
+        target: xpms.emergency_protocol.record_id
         type: text
       - letter: B
         header: ORGANIZATION
         key: organization
         disposition: computed
-        target: xpms.std_emergency_code.organization
+        target: xpms.emergency_protocol.organization
         type: text
         formula: ='Cover Page'!$I$8
       - letter: C
         header: PROJECT
         key: project
         disposition: computed
-        target: xpms.std_emergency_code.project
+        target: xpms.emergency_protocol.project
         type: text
         formula: ='Cover Page'!$C$7
       - letter: D
         header: DEPARTMENT
         key: department
         disposition: field
-        target: xpms.std_emergency_code.department
+        target: xpms.emergency_protocol.department
         type: text
       - letter: E
         header: CATEGORY
         key: category
         disposition: field
-        target: xpms.std_emergency_code.category
+        target: xpms.emergency_protocol.category
         type: text
       - letter: F
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: xpms.std_emergency_code.sub_category
+        target: xpms.emergency_protocol.sub_category
         type: text
       - letter: G
         header: EMERGENCY
         key: emergency
         disposition: field
-        target: xpms.std_emergency_code.emergency
+        target: xpms.emergency_protocol.emergency
         type: text
       - letter: H
         header: RADIO CALL
         key: radio_call
         disposition: field
-        target: xpms.std_emergency_code.radio_call
+        target: xpms.emergency_protocol.radio_call
         type: text
       - letter: I
         header: OPERATIONAL DOMAIN
         key: operational_domain
         disposition: field
-        target: xpms.std_emergency_code.operational_domain
+        target: xpms.emergency_protocol.operational_domain
         type: text
       - letter: J
         header: ACTION PROTOCOL
         key: action_protocol
         disposition: field
-        target: xpms.std_emergency_code.action_protocol
+        target: xpms.emergency_protocol.action_protocol
         type: text
       - letter: K
         header: STATUS
         key: status
         disposition: field
-        target: xpms.std_emergency_code.status
+        target: xpms.emergency_protocol.status
         type: text
       - letter: L
         header: FLAG
         key: flag
         disposition: field
-        target: xpms.std_emergency_code.flag
+        target: xpms.emergency_protocol.flag
         type: bool
       - letter: M
         header: NOTES
         key: notes
         disposition: field
-        target: xpms.std_emergency_code.notes
+        target: xpms.emergency_protocol.notes
         type: text
       - letter: N
         header: CREATED BY
         key: created_by
         disposition: field
-        target: xpms.std_emergency_code.created_by
+        target: xpms.emergency_protocol.created_by
         type: text
       - letter: O
         header: CREATED AT
         key: created_at
         disposition: field
-        target: xpms.std_emergency_code.created_at
+        target: xpms.emergency_protocol.created_at
         type: timestamp
       - letter: P
         header: UPDATED AT
         key: updated_at
         disposition: field
-        target: xpms.std_emergency_code.updated_at
+        target: xpms.emergency_protocol.updated_at
         type: timestamp
   - sheet: Radio Channels
     key: radio_channels

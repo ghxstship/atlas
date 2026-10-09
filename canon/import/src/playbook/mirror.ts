@@ -115,10 +115,17 @@ export const MIRRORS: readonly MirrorSpec[] = [
       },
       "DEFAULT GL ACCOUNT": {
         kind: "canon",
-        table: "dim_category_gl",
+        table: "v_category_gl",
         column: "account_code",
-        read: (row, ctx) =>
-          str(find(ctx, "dim_category_gl", "cat_urid", row["cat_urid"])?.["account_code"]),
+        read: (row, ctx) => {
+          const cls = str(row["cat_urid"])?.slice(0, 1);
+          const a = ctx.tables
+            .get("dim_gl_account")
+            ?.find(
+              (x) => x["account_type"] === "Expense" && str(x["account_code"])?.slice(1, 2) === cls,
+            );
+          return str(a?.["account_code"]);
+        },
       },
       "SCHEMA FAMILY (XYZ)": { kind: "playbook", column: "xyz" },
       ...META,

@@ -4,6 +4,8 @@ import { parseCsv } from "./csv.ts";
 import type { CsvTable } from "./csv.ts";
 import { sha256 } from "./manifest.ts";
 import type { RepoPaths } from "./paths.ts";
+import { loadRulings } from "./rulings.ts";
+import type { Rulings } from "./rulings.ts";
 import { sourceByRole } from "./sources.ts";
 import { readWorkbook } from "./workbook.ts";
 import type { WorkbookData } from "./workbook.ts";
@@ -13,6 +15,7 @@ export interface LoadedInputs {
   readonly playbook: WorkbookData;
   readonly itemCatalog: CsvTable;
   readonly glChart: CsvTable;
+  readonly rulings: Rulings;
   readonly sha: {
     readonly bible: string;
     readonly playbook: string;
@@ -39,6 +42,7 @@ export async function loadInputs(paths: RepoPaths): Promise<LoadedInputs> {
     playbook,
     itemCatalog: parseCsv(item.toString("utf8")),
     glChart: parseCsv(gl.toString("utf8")),
+    rulings: loadRulings(join(paths.root, "canon")),
     sha: {
       bible: sha256(bibleBytes),
       playbook: sha256(playbookBytes),

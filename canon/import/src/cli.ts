@@ -11,7 +11,7 @@ import {
   verifyFileManifest,
 } from "./manifest.ts";
 import type { FileManifest } from "./manifest.ts";
-import { generateCanon, writeGenerated } from "./generate.ts";
+import { generateCanon, generateOptions, writeGenerated } from "./generate.ts";
 import { buildCanonModel } from "./model/bible-model.ts";
 import { defaultRoot, repoPaths } from "./paths.ts";
 import type { RepoPaths } from "./paths.ts";
@@ -43,6 +43,7 @@ async function check(paths: RepoPaths): Promise<number> {
     {
       bible: inputs.bible,
       itemCatalog: inputs.itemCatalog,
+      rulings: inputs.rulings,
       glChart: inputs.glChart,
       files: inputs.sha,
     },
@@ -66,7 +67,7 @@ switch (command) {
     process.exitCode = await check(paths);
     break;
   case "generate": {
-    const result = generateCanon(await loadInputs(paths));
+    const result = generateCanon(await loadInputs(paths), generateOptions(paths));
     writeGenerated(paths, result.files);
     for (const f of result.files) console.log(`wrote ${f.path}`);
     console.log(`${result.findings.items.length} findings recorded`);

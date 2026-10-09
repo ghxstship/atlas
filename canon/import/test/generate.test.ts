@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { generateCanon, staleFiles, writeGenerated } from "../src/generate.ts";
+import { generateCanon, generateOptions, staleFiles, writeGenerated } from "../src/generate.ts";
 import type { GenerateResult } from "../src/generate.ts";
 import { loadInputs } from "../src/inputs.ts";
 import type { LoadedInputs } from "../src/inputs.ts";
@@ -13,12 +13,12 @@ let first: GenerateResult;
 
 beforeAll(async () => {
   inputs = await loadInputs(PATHS);
-  first = generateCanon(inputs);
+  first = generateCanon(inputs, generateOptions(PATHS));
 });
 
 describe("generateCanon", () => {
   it("is byte-identical on re-run", () => {
-    const second = generateCanon(inputs);
+    const second = generateCanon(inputs, generateOptions(PATHS));
     expect(second.files.map((f) => f.content)).toEqual(first.files.map((f) => f.content));
   });
 
@@ -47,7 +47,7 @@ describe("generateCanon", () => {
       ...inputs,
       itemCatalog: { ...inputs.itemCatalog, records: inputs.itemCatalog.records.slice(1) },
     };
-    expect(() => generateCanon(broken)).toThrow(
+    expect(() => generateCanon(broken, generateOptions(PATHS))).toThrow(
       /Canon import stopped:\nBible tab 32 item .* is not in the Item Catalog CSV/,
     );
   });

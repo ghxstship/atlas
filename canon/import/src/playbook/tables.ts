@@ -291,5 +291,7 @@ export function stdTableSpec(entry: SheetEntry): TableSpec {
 }
 
 export function stdTableSpecs(map: ColumnMap): TableSpec[] {
-  return map.sheets.filter((s) => s.destination === "standard-library").map(stdTableSpec);
+  return map.sheets
+    .filter((s) => s.destination === "standard-library" && STD_TABLES[s.sheet] !== undefined)
+    .map(stdTableSpec);
 }

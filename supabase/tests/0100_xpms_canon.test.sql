@@ -16,7 +16,7 @@ select is((select count(*)::int from xpms.dim_gate_criterion), 35, '35 gate crit
 select is((select count(*)::int from xpms.dim_tier), 6, '6 tiers');
 select is((select count(*)::int from xpms.dim_tag), 42, '42 tags');
 select is((select count(*)::int from xpms.dim_touchpoint), 90, '90 touchpoints');
-select is((select count(*)::int from xpms.dim_jurisdiction), 7, '7 jurisdictions');
+select is((select count(*)::int from xpms.jurisdiction), 7, '7 jurisdictions');
 select is((select count(*)::int from xpms.dim_region), 5, '5 regions');
 select is((select count(*)::int from xpms.dim_permit_rule), 22, '22 permit rules');
 select is((select count(*)::int from xpms.dim_metric), 39, '39 metrics');

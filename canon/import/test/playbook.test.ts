@@ -40,6 +40,7 @@ beforeAll(async () => {
     {
       bible: inputs.bible,
       itemCatalog: inputs.itemCatalog,
+      rulings: inputs.rulings,
       glChart: inputs.glChart,
       files: inputs.sha,
     },
@@ -50,6 +51,7 @@ beforeAll(async () => {
     model.intake,
     inputs.playbook,
     map,
+    inputs.rulings,
     findings,
     inputs.sha.playbook,
   );
@@ -110,11 +112,8 @@ describe("Playbook model", () => {
     const specs = stdTableSpecs(map);
     expect(specs.map((s) => s.name).sort()).toEqual([
       "std_document_library",
-      "std_emergency_code",
       "std_enumeration",
-      "std_labor_rate_card",
       "std_radio_channel",
-      "std_role",
       "std_sop",
       "std_vendor_class",
       "std_vendor_entitlement",

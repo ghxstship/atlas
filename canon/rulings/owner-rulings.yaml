@@ -1,0 +1,162 @@
+# Owner canon rulings D11 to D17 and D19, as data the importer applies.
+# Source: design/xos-design-system/README.md (Decisions log) and HANDOFF.md section 7,
+# with values from the owner's reference model design/xos-design-system/export/canon/0101_xpms_canon_seed.sql.
+# Only values that no canon file states live here. Everything else is read from canon/source.
+
+# D11. Grades are Base, Elevated and Premium; the Bible tab 34 labels are superseded.
+# Each grade takes its amount from one Item Catalog price column, in sort order.
+grades:
+  - code: base
+    label: Base
+    sort_order: 1
+    catalog_column: cost_low_usd
+  - code: elevated
+    label: Elevated
+    sort_order: 2
+    catalog_column: unit_cost_usd
+  - code: premium
+    label: Premium
+    sort_order: 3
+    catalog_column: cost_high_usd
+
+# D14. Overtime rules. Multipliers come from the Labor Rate Cards; the rule identity and name are the ruling.
+overtime_rules:
+  - rule_id: OTR-001
+    name: Standard Overtime
+    ot_multiplier: "1.5"
+    dt_multiplier: "2"
+  - rule_id: OTR-002
+    name: Exempt
+    ot_multiplier: "1"
+    dt_multiplier: "1"
+
+# D16. Worker classification, pay basis and arrangement replace Engagement Type and Employment Type.
+worker_classifications:
+  - code: EMPLOYEE
+    label: Employee
+    is_employee: true
+    payment_channel: Payroll
+    sort_order: 1
+  - code: INDEPENDENT_CONTRACTOR
+    label: Independent Contractor
+    is_employee: false
+    payment_channel: Accounts Payable
+    sort_order: 2
+  - code: VENDOR_SUPPLIED
+    label: Vendor-Supplied
+    is_employee: false
+    payment_channel: Accounts Payable
+    sort_order: 3
+  - code: UNPAID_INTERN
+    label: Unpaid Intern
+    is_employee: false
+    payment_channel: None
+    sort_order: 4
+  - code: VOLUNTEER
+    label: Volunteer
+    is_employee: false
+    payment_channel: None
+    sort_order: 5
+
+classification_documents:
+  - [EMPLOYEE, US, Form I-9, Onboarding]
+  - [EMPLOYEE, US, Form W-2, Year-End]
+  - [EMPLOYEE, US, Form W-4, Onboarding]
+  - [INDEPENDENT_CONTRACTOR, US, Form 1099-NEC, Year-End]
+  - [INDEPENDENT_CONTRACTOR, US, Form W-9, Onboarding]
+  - [VENDOR_SUPPLIED, US, Form W-9, Onboarding]
+
+pay_bases: [Day Rate, Flat Fee, Hourly, Salary]
+arrangements: [Per Engagement, Retainer]
+
+pay_basis_classifications:
+  - [Day Rate, EMPLOYEE]
+  - [Day Rate, INDEPENDENT_CONTRACTOR]
+  - [Day Rate, VENDOR_SUPPLIED]
+  - [Flat Fee, INDEPENDENT_CONTRACTOR]
+  - [Flat Fee, VENDOR_SUPPLIED]
+  - [Hourly, EMPLOYEE]
+  - [Hourly, INDEPENDENT_CONTRACTOR]
+  - [Hourly, VENDOR_SUPPLIED]
+  - [Salary, EMPLOYEE]
+
+# Retainer is always Independent Contractor (owner ruling).
+arrangement_classifications:
+  - [Per Engagement, EMPLOYEE]
+  - [Per Engagement, INDEPENDENT_CONTRACTOR]
+  - [Per Engagement, VENDOR_SUPPLIED]
+  - [Retainer, INDEPENDENT_CONTRACTOR]
+
+# The Labor Rate Cards ENGAGEMENT TYPE column becomes a classification and an arrangement.
+engagement_types:
+  W2 Daily:
+    worker_classification: EMPLOYEE
+    arrangement: Per Engagement
+  Contractor 1099:
+    worker_classification: INDEPENDENT_CONTRACTOR
+    arrangement: Per Engagement
+  Vendor Master:
+    worker_classification: VENDOR_SUPPLIED
+    arrangement: Per Engagement
+  Retainer:
+    worker_classification: INDEPENDENT_CONTRACTOR
+    arrangement: Retainer
+
+# D17. Volunteer is permitted only for Nonprofit and Public Agency organizations.
+organization_types: [For-Profit, Nonprofit, Public Agency]
+classification_organization_types:
+  - [EMPLOYEE, For-Profit]
+  - [EMPLOYEE, Nonprofit]
+  - [EMPLOYEE, Public Agency]
+  - [INDEPENDENT_CONTRACTOR, For-Profit]
+  - [INDEPENDENT_CONTRACTOR, Nonprofit]
+  - [INDEPENDENT_CONTRACTOR, Public Agency]
+  - [VENDOR_SUPPLIED, For-Profit]
+  - [VENDOR_SUPPLIED, Nonprofit]
+  - [VENDOR_SUPPLIED, Public Agency]
+  - [UNPAID_INTERN, For-Profit]
+  - [UNPAID_INTERN, Nonprofit]
+  - [UNPAID_INTERN, Public Agency]
+  - [VOLUNTEER, Nonprofit]
+  - [VOLUNTEER, Public Agency]
+
+# D16. Wage-and-hour minimums hang off the Bible tab 11 jurisdiction hierarchy.
+wage_hour_rules:
+  - jurisdiction_id: US
+    source: Fair Labor Standards Act, 29 U.S.C. 207
+    weekly_ot_after_hours: "40"
+    daily_ot_after_hours: null
+    daily_dt_after_hours: null
+    min_ot_multiplier: "1.5"
+    min_dt_multiplier: null
+
+# D15. Emergency protocol steps name services, never agencies. Each phrase is replaced exactly, in order.
+emergency_service_tokens:
+  - [fire department (Miami Fire-Rescue / MDFR), "{fire}"]
+  - [LAPD, "{lawEnforcement}"]
+  - [LAFD, "{fire}"]
+  - [EMS, "{ems}"]
+  - [federal authorities, "{federal}"]
+  - [bomb squad, "{bombSquad}"]
+
+agency_functions:
+  - [fire, Fire, true, 1]
+  - [ems, EMS, true, 2]
+  - [lawEnforcement, Law Enforcement, true, 3]
+  - [bombSquad, Bomb Squad, true, 4]
+  - [federal, Federal, true, 5]
+  - [building, Building, false, 6]
+  - [health, Health, false, 7]
+  - [occupationalSafety, Occupational Safety, false, 8]
+
+# D15 and D19. Agencies per jurisdiction; replaces the Playbook Regulatory Agency enumeration.
+jurisdiction_agencies:
+  - [US-FL-MIAMI-DADE, fire, Miami Fire-Rescue, "911"]
+  - [US-FL-MIAMI-DADE, ems, Miami Fire-Rescue, "911"]
+  - [US-FL-MIAMI-DADE, lawEnforcement, Miami Police Department, "911"]
+  - [US-FL-MIAMI-DADE, building, City of Miami Building Department, null]
+  - [US-FL-MIAMI-DADE, health, Florida Department of Health, null]
+  - [US-FL-MIAMI-DADE, occupationalSafety, Occupational Safety and Health Administration, null]
+
+# Enumeration domains the rulings retire (D15, D16): their facts now live in the tables above.
+retired_enumeration_domains: [Employment Type, Emergency Radio Code, Regulatory Agency]

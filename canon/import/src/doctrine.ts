@@ -7,7 +7,12 @@ import { scanText } from "@xos/config/finish-guard";
  */
 
 export type FindingKind =
-  "em-dash-substituted" | "guard-reserved-word" | "unresolved-reference" | "structure" | "conflict";
+  | "em-dash-substituted"
+  | "guard-reserved-word"
+  | "unresolved-reference"
+  | "structure"
+  | "conflict"
+  | "ruling";
 
 export interface Finding {
   readonly kind: FindingKind;

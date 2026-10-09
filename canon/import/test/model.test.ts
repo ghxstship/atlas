@@ -19,6 +19,7 @@ beforeAll(async () => {
     {
       bible: inputs.bible,
       itemCatalog: inputs.itemCatalog,
+      rulings: inputs.rulings,
       glChart: inputs.glChart,
       files: inputs.sha,
     },

@@ -93,15 +93,22 @@ export const TEMPLATE_ENTITIES: Readonly<Record<string, string>> = {
 /** Standard Library tables (Section 7.2). */
 export const STD_TABLES: Readonly<Record<string, string>> = {
   "Document & Asset Library": "std_document_library",
-  "Emergency Codes": "std_emergency_code",
   Enumerations: "std_enumeration",
-  "Labor Rate Cards": "std_labor_rate_card",
   "Radio Channels": "std_radio_channel",
-  "Roles Library": "std_role",
   "SOP Library": "std_sop",
   "Vendor Classes": "std_vendor_class",
   "Vendor Entitlements": "std_vendor_entitlement",
   "Verbiage Library": "std_verbiage",
+};
+
+/**
+ * Standard Library sheets the owner's reference model normalizes (decisions D12
+ * to D16): they land in reference tables rather than a std_* copy of the sheet.
+ */
+export const REFERENCE_SHEETS: Readonly<Record<string, string>> = {
+  "Emergency Codes": "emergency_protocol",
+  "Labor Rate Cards": "rate_card",
+  "Roles Library": "role",
 };
 
 export function columnKey(header: string, letter: string, taken: ReadonlySet<string>): string {
@@ -156,7 +163,7 @@ function columnFacts(sheet: SheetData, column: number, rows: readonly number[]):
 function entityOf(sheet: string, destination: Destination): string {
   switch (destination) {
     case "standard-library":
-      return `xpms.${STD_TABLES[sheet] ?? sheetKey(sheet)}`;
+      return `xpms.${STD_TABLES[sheet] ?? REFERENCE_SHEETS[sheet] ?? sheetKey(sheet)}`;
     case "production-template":
       return TEMPLATE_ENTITIES[sheet] ?? `app.${sheetKey(sheet)}`;
     case "template-metadata":

@@ -6,7 +6,7 @@ import type { ColumnSpec, TableSpec } from "./types.ts";
  * and the four row metadata columns the Playbook records.
  */
 
-const sourceRow: ColumnSpec = {
+export const sourceRow: ColumnSpec = {
   name: "source_row",
   type: "int",
   nullable: true,
@@ -14,7 +14,7 @@ const sourceRow: ColumnSpec = {
     "Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.",
 };
 
-const sourceMeta: readonly ColumnSpec[] = [
+export const sourceMeta: readonly ColumnSpec[] = [
   sourceRow,
   {
     name: "source_status",
@@ -406,34 +406,59 @@ export const CANON_TABLES: readonly TableSpec[] = [
     ],
   },
   {
-    name: "dim_jurisdiction",
+    name: "jurisdiction",
     comment:
-      "Jurisdictions (Bible tab 11). An unpopulated jurisdiction returns no answer for permit and code questions; it never passes.",
+      "Jurisdictions (Bible tab 11) in third normal form (decision D19): the country derives from the ID; unit system and currency are stored on the country and inherited; code sets are rows of jurisdiction_code_set; jurisdiction_resolved returns tab 11 exactly. An unpopulated jurisdiction returns no answer; it never passes.",
     primaryKey: ["jurisdiction_id"],
+    unique: [["ordinal"]],
     orderBy: ["ordinal"],
+    checks: [
+      "(level = 'country') = (parent is null)",
+      "level <> 'country' or (unit_system is not null and currency is not null)",
+      "parent is null or left(parent, 2) = left(jurisdiction_id, 2)",
+    ],
     columns: [
       {
         name: "jurisdiction_id",
         type: "code",
         comment: "Jurisdiction code, country first (US, US-FL, US-FL-MIAMI-DADE).",
+        check: "jurisdiction_id ~ '^[A-Z]{2}(-[A-Z0-9]+)*$'",
       },
       ordinal("jurisdiction"),
-      { name: "level", type: "code", comment: "country, region or ahj." },
-      { name: "country", type: "code", comment: "ISO 3166-1 alpha-2 country." },
       {
-        name: "parent_id",
+        name: "level",
+        type: "code",
+        comment: "country, region or ahj.",
+        check: "level in ('country', 'region', 'ahj')",
+      },
+      {
+        name: "country",
+        type: "code",
+        comment: "ISO 3166-1 alpha-2 country, derived from the ID.",
+        generated: "(left(jurisdiction_id, 2))",
+      },
+      {
+        name: "parent",
         type: "code",
         nullable: true,
-        references: "dim_jurisdiction(jurisdiction_id)",
-        comment: "Enclosing jurisdiction.",
+        references: "jurisdiction(jurisdiction_id)",
+        comment: "Enclosing jurisdiction; NULL for a country.",
       },
-      { name: "unit_system", type: "code", comment: "imperial or metric." },
       {
-        name: "currency_code",
-        type: "currency",
-        comment: "ISO 4217 currency of the jurisdiction.",
+        name: "unit_system",
+        type: "code",
+        nullable: true,
+        comment:
+          "imperial or metric; stated on the country and inherited unless a lower level states its own.",
+        check: "unit_system in ('imperial', 'metric')",
       },
-      { name: "primary_code_sets", type: "text", comment: "Code sets the jurisdiction adopts." },
+      {
+        name: "currency",
+        type: "currency",
+        nullable: true,
+        comment:
+          "ISO 4217 currency; stated on the country and inherited unless a lower level states its own.",
+      },
       {
         name: "status",
         type: "code",
@@ -456,7 +481,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
       {
         name: "jurisdiction_id",
         type: "code",
-        references: "dim_jurisdiction(jurisdiction_id)",
+        references: "jurisdiction(jurisdiction_id)",
         comment: "Jurisdiction the region resolves to.",
       },
       { name: "currency_code", type: "currency", comment: "ISO 4217 currency of the region." },
@@ -498,7 +523,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
       {
         name: "applies_to",
         type: "code",
-        references: "dim_jurisdiction(jurisdiction_id)",
+        references: "jurisdiction(jurisdiction_id)",
         comment: "Jurisdiction the index applies to.",
       },
       { name: "note", type: "text", nullable: true, comment: "Canon note." },
@@ -525,7 +550,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
       {
         name: "jurisdiction_id",
         type: "code",
-        references: "dim_jurisdiction(jurisdiction_id)",
+        references: "jurisdiction(jurisdiction_id)",
         comment: "Jurisdiction the rule binds to.",
       },
       {
@@ -576,7 +601,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
         name: "jurisdiction_id",
         type: "code",
         nullable: true,
-        references: "dim_jurisdiction(jurisdiction_id)",
+        references: "jurisdiction(jurisdiction_id)",
         comment: "Jurisdiction a code-derived value binds to.",
       },
       {
@@ -844,8 +869,19 @@ export const CANON_TABLES: readonly TableSpec[] = [
         comment: "Default tax type: Tax on Purchases, Tax on Sales, Tax Exempt or None.",
       },
       { name: "description", type: "text", comment: "What posts to the account." },
+      {
+        name: "class_code",
+        type: "code",
+        nullable: true,
+        references: "dim_department(dept_code)",
+        comment:
+          "Department class of a revenue or expense account, derived from the class digit; NULL for balance sheet accounts (decision D13: postings resolve by class).",
+        generated:
+          "(case when account_type in ('Revenue', 'Expense') then substr(account_code, 2, 1) || '000' end)",
+      },
       ...sourceMeta,
     ],
+    unique: [["class_code", "account_type"]],
   },
   {
     name: "dim_cost_center_template",
@@ -910,7 +946,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
   {
     name: "dim_category_gl",
     comment:
-      "Category to GL account and default cost center (Bible tab 31). Every category posts to exactly one account.",
+      "Default cost center of each category (Bible tab 31). The GL account is derived by class (decision D13, view xpms.v_category_gl); the importer verifies tab 31 states the same account.",
     primaryKey: ["cat_urid"],
     columns: [
       {
@@ -918,12 +954,6 @@ export const CANON_TABLES: readonly TableSpec[] = [
         type: "code",
         references: "dim_category(cat_urid)",
         comment: "Category.",
-      },
-      {
-        name: "account_code",
-        type: "code",
-        references: "dim_gl_account(account_code)",
-        comment: "Account the category posts to.",
       },
       {
         name: "default_cost_center",
@@ -1010,23 +1040,21 @@ export const CANON_TABLES: readonly TableSpec[] = [
     ],
   },
   {
-    name: "dim_price_grade",
+    name: "grade",
     comment:
-      "The three price grades of the budget template (Bible tab 34): Grade 1 Basic, Grade 2 Standard and Grade 3 Premium.",
-    primaryKey: ["grade_code"],
+      "Price grades Base, Elevated and Premium (decision D11). Labels are data; the Bible tab 34 labels Grade 1 Basic, Grade 2 Standard and Grade 3 Premium are superseded.",
+    primaryKey: ["code"],
+    unique: [["label"], ["sort_order"]],
+    orderBy: ["sort_order"],
     columns: [
       {
-        name: "grade_code",
+        name: "code",
         type: "code",
-        comment: "G1, G2 or G3.",
-        check: "grade_code ~ '^G[1-3]$'",
+        comment: "base, elevated or premium.",
+        check: "code in ('base', 'elevated', 'premium')",
       },
-      { name: "grade", type: "text", comment: "Grade label as the Bible names it." },
-      {
-        name: "catalog_column",
-        type: "code",
-        comment: "Item Catalog column holding the grade amount.",
-      },
+      { name: "label", type: "text", comment: "Grade label." },
+      { name: "sort_order", type: "int", comment: "Display order." },
     ],
   },
   {
@@ -1221,7 +1249,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
       {
         name: "grade_code",
         type: "code",
-        references: "dim_price_grade(grade_code)",
+        references: "grade(code)",
         comment: "Price grade.",
       },
       {

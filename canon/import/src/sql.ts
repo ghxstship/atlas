@@ -166,7 +166,10 @@ function columnDdl(c: ColumnSpec): string {
   const parts = [c.name, SQL_TYPES[c.type]];
   if (c.generated !== undefined) parts.push(`generated always as ${c.generated} stored`);
   if (!c.nullable) parts.push("not null");
-  if (c.references !== undefined) parts.push(`references xpms.${c.references}`);
+  if (c.references !== undefined) {
+    const rule = c.onDelete === "cascade" ? " on delete cascade" : "";
+    parts.push(`references xpms.${c.references}${rule}`);
+  }
   if (c.check !== undefined) parts.push(`check (${c.check})`);
   return `  ${parts.join(" ")}`;
 }
