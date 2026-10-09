@@ -1,0 +1,636 @@
+{
+  "$description": "XOS Design System tokens in W3C Design Tokens (DTCG) format for packages/tokens. Generated from project/tokens.json; do not edit by hand. Spec names from Build Prompt Section 11.3.",
+  "space": {
+    "2": {
+      "$type": "dimension",
+      "$value": "2px",
+      "$description": "Hairline gaps: icon to badge, chip inner offsets."
+    },
+    "4": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$description": "Gap inside chips; tight icon and label pairs."
+    },
+    "6": {
+      "$type": "dimension",
+      "$value": "6px",
+      "$description": "Chip horizontal padding; icon to label in buttons."
+    },
+    "8": {
+      "$type": "dimension",
+      "$value": "8px",
+      "$description": "Control horizontal padding; gaps between chips."
+    },
+    "12": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$description": "Row horizontal padding; gaps in toolbars."
+    },
+    "16": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$description": "Card padding; grid gutter below lg."
+    },
+    "20": {
+      "$type": "dimension",
+      "$value": "20px",
+      "$description": "Side peek padding."
+    },
+    "24": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$description": "Page gutters; grid gutter from lg up."
+    },
+    "32": {
+      "$type": "dimension",
+      "$value": "32px",
+      "$description": "Section spacing on pages."
+    },
+    "40": {
+      "$type": "dimension",
+      "$value": "40px",
+      "$description": "Empty and system state padding."
+    },
+    "48": {
+      "$type": "dimension",
+      "$value": "48px",
+      "$description": "Large section breaks; Compass minimum touch target."
+    },
+    "64": {
+      "$type": "dimension",
+      "$value": "64px",
+      "$description": "Page top spacing on Auth and System templates."
+    }
+  },
+  "radius": {
+    "chip": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$description": "Chips, tags, Kbd, checkboxes."
+    },
+    "control": {
+      "$type": "dimension",
+      "$value": "6px",
+      "$description": "Inputs, buttons, segmented controls."
+    },
+    "card": {
+      "$type": "dimension",
+      "$value": "8px",
+      "$description": "Cards, menus, popovers, toasts."
+    },
+    "dialog": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$description": "Dialogs and the command menu."
+    },
+    "mark": {
+      "$type": "dimension",
+      "$value": "2px",
+      "$description": "Marks under 12 px: pips, legend swatches, milestone diamonds, small close buttons."
+    },
+    "pill": {
+      "$type": "dimension",
+      "$value": "9999px",
+      "$description": "Fully rounded ends: badges, filter chips, progress tracks, sliders, grabbers."
+    },
+    "widget": {
+      "$type": "dimension",
+      "$value": "22px",
+      "$description": "iOS Live Activity and widget surfaces in Compass; matches the platform corner."
+    },
+    "device": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$description": "Phone frame for Compass previews in documentation only; never in product UI."
+    }
+  },
+  "stroke": {
+    "width": {
+      "hairline": {
+        "$type": "dimension",
+        "$value": "1px",
+        "$description": "Every border and divider. Elevation is border-first."
+      },
+      "focus": {
+        "$type": "dimension",
+        "$value": "2px",
+        "$description": "Focus rings, selected matrix cells and Sunlight control borders."
+      },
+      "accent": {
+        "$type": "dimension",
+        "$value": "3px",
+        "$description": "Accent edges: Banner severity edge, live Run of Show cue, Payment Tracker steps."
+      },
+      "swatch": {
+        "$type": "dimension",
+        "$value": "4px",
+        "$description": "Emergency code edge and the camera shutter ring."
+      },
+      "stripe": {
+        "$type": "dimension",
+        "$value": "12px",
+        "$description": "Credential category stripe, readable at arm length."
+      }
+    }
+  },
+  "opacity": {
+    "disabled": {
+      "$type": "number",
+      "$value": 0.48,
+      "$description": "Disabled controls."
+    },
+    "scrim-dark": {
+      "$type": "number",
+      "$value": 0.64,
+      "$description": "Scrim behind dialogs in dark."
+    },
+    "scrim-light": {
+      "$type": "number",
+      "$value": 0.4,
+      "$description": "Scrim behind dialogs in light."
+    },
+    "hover": {
+      "$type": "number",
+      "$value": 0.06,
+      "$description": "Hover overlay on colored fills."
+    },
+    "pressed": {
+      "$type": "number",
+      "$value": 0.1,
+      "$description": "Pressed overlay on colored fills."
+    }
+  },
+  "z": {
+    "base": {
+      "$type": "number",
+      "$value": 0,
+      "$description": "Page content."
+    },
+    "sticky": {
+      "$type": "number",
+      "$value": 100,
+      "$description": "Sticky headers and totals rows."
+    },
+    "sidebar": {
+      "$type": "number",
+      "$value": 200,
+      "$description": "Sidebar."
+    },
+    "header": {
+      "$type": "number",
+      "$value": 300,
+      "$description": "App header."
+    },
+    "dropdown": {
+      "$type": "number",
+      "$value": 1000,
+      "$description": "Dropdown menus."
+    },
+    "popover": {
+      "$type": "number",
+      "$value": 1100,
+      "$description": "Popovers and hover cards."
+    },
+    "peek": {
+      "$type": "number",
+      "$value": 1200,
+      "$description": "Side peek and drawers."
+    },
+    "dialog": {
+      "$type": "number",
+      "$value": 1300,
+      "$description": "Dialogs."
+    },
+    "command": {
+      "$type": "number",
+      "$value": 1400,
+      "$description": "Command menu."
+    },
+    "toast": {
+      "$type": "number",
+      "$value": 1500,
+      "$description": "Toasts."
+    },
+    "tooltip": {
+      "$type": "number",
+      "$value": 1600,
+      "$description": "Tooltips."
+    }
+  },
+  "breakpoint": {
+    "sm": {
+      "$type": "dimension",
+      "$value": "640px",
+      "$description": "Large phones."
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "768px",
+      "$description": "Below md: Atlas bottom bar and full-screen side peek."
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "1024px",
+      "$description": "Below lg: sidebar becomes a drawer."
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": "1280px",
+      "$description": "Laptop."
+    },
+    "2xl": {
+      "$type": "dimension",
+      "$value": "1536px",
+      "$description": "Desktop."
+    },
+    "3xl": {
+      "$type": "dimension",
+      "$value": "1920px",
+      "$description": "Wide desktop."
+    }
+  },
+  "layout": {
+    "sidebar": {
+      "$type": "dimension",
+      "$value": "240px",
+      "$description": "Sidebar expanded; resizable from 200 px to 360 px."
+    },
+    "sidebar-collapsed": {
+      "$type": "dimension",
+      "$value": "56px",
+      "$description": "Sidebar collapsed to icons."
+    },
+    "sidebar-min": {
+      "$type": "dimension",
+      "$value": "200px",
+      "$description": "Sidebar minimum width."
+    },
+    "sidebar-max": {
+      "$type": "dimension",
+      "$value": "360px",
+      "$description": "Sidebar maximum width."
+    },
+    "peek": {
+      "$type": "dimension",
+      "$value": "560px",
+      "$description": "Side peek default; resizable from 440 px to 960 px."
+    },
+    "peek-min": {
+      "$type": "dimension",
+      "$value": "440px",
+      "$description": "Side peek minimum width."
+    },
+    "peek-max": {
+      "$type": "dimension",
+      "$value": "960px",
+      "$description": "Side peek maximum width."
+    },
+    "property-column": {
+      "$type": "dimension",
+      "$value": "320px",
+      "$description": "Property column in the Record template."
+    },
+    "auth": {
+      "$type": "dimension",
+      "$value": "400px",
+      "$description": "Auth card width."
+    },
+    "form": {
+      "$type": "dimension",
+      "$value": "640px",
+      "$description": "Settings and form column."
+    },
+    "reading": {
+      "$type": "dimension",
+      "$value": "720px",
+      "$description": "Document reading column."
+    },
+    "wide": {
+      "$type": "dimension",
+      "$value": "1200px",
+      "$description": "Wide content."
+    },
+    "columns": {
+      "$type": "number",
+      "$value": 12,
+      "$description": "Dashboard and page grid columns."
+    },
+    "gutter": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$description": "Grid gutter below lg."
+    },
+    "gutter-lg": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$description": "Grid gutter from lg up."
+    }
+  },
+  "icon": {
+    "size": {
+      "12": {
+        "$type": "dimension",
+        "$value": "12px",
+        "$description": "Inline with text-11."
+      },
+      "14": {
+        "$type": "dimension",
+        "$value": "14px",
+        "$description": "Inside chips."
+      },
+      "16": {
+        "$type": "dimension",
+        "$value": "16px",
+        "$description": "Web default. Lucide at 1.5 stroke."
+      },
+      "20": {
+        "$type": "dimension",
+        "$value": "20px",
+        "$description": "Web large; Compass small."
+      },
+      "24": {
+        "$type": "dimension",
+        "$value": "24px",
+        "$description": "Web extra large; Compass default."
+      },
+      "28": {
+        "$type": "dimension",
+        "$value": "28px",
+        "$description": "Compass large: tab bar and ClockButton."
+      }
+    }
+  },
+  "density": {
+    "row-compact": {
+      "$type": "dimension",
+      "$value": "32px",
+      "$description": "Table row, compact density."
+    },
+    "row-default": {
+      "$type": "dimension",
+      "$value": "36px",
+      "$description": "Table row, default density."
+    },
+    "row-comfortable": {
+      "$type": "dimension",
+      "$value": "44px",
+      "$description": "Table row, comfortable density (Gateway default)."
+    },
+    "control-sm": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$description": "Web control height, small."
+    },
+    "control-md": {
+      "$type": "dimension",
+      "$value": "28px",
+      "$description": "Web control height, default."
+    },
+    "control-lg": {
+      "$type": "dimension",
+      "$value": "32px",
+      "$description": "Web control height, large."
+    },
+    "touch-min": {
+      "$type": "dimension",
+      "$value": "48px",
+      "$description": "Compass minimum touch target (48 pt)."
+    },
+    "target-fine": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$description": "Minimum target on a fine pointer (WCAG 2.2 SC 2.5.8 AA). Every web control meets it at control-sm and up."
+    },
+    "target-coarse": {
+      "$type": "dimension",
+      "$value": "44px",
+      "$description": "Minimum target on a coarse pointer (touch) for Atlas and Gateway on phones and tablets (WCAG 2.2 SC 2.5.5 AAA). Compass uses touch-min."
+    }
+  },
+  "motion": {
+    "duration": {
+      "instant": {
+        "$type": "duration",
+        "$value": "0ms",
+        "$description": "State changes with no movement."
+      },
+      "fast": {
+        "$type": "duration",
+        "$value": "120ms",
+        "$description": "Hover, press, chip and toggle changes."
+      },
+      "base": {
+        "$type": "duration",
+        "$value": "160ms",
+        "$description": "Menus, popovers, tooltips."
+      },
+      "slow": {
+        "$type": "duration",
+        "$value": "200ms",
+        "$description": "Side peek, drawers, toasts."
+      },
+      "deliberate": {
+        "$type": "duration",
+        "$value": "280ms",
+        "$description": "Dialogs and route transitions."
+      },
+      "reduced": {
+        "$type": "duration",
+        "$value": "80ms",
+        "$description": "Opacity fade that replaces movement under prefers-reduced-motion."
+      }
+    },
+    "easing": {
+      "standard": {
+        "$type": "cubicBezier",
+        "$value": [0.2, 0.0, 0.0, 1.0],
+        "$description": "Moving within the screen."
+      },
+      "enter": {
+        "$type": "cubicBezier",
+        "$value": [0.0, 0.0, 0.2, 1.0],
+        "$description": "Elements appearing."
+      },
+      "exit": {
+        "$type": "cubicBezier",
+        "$value": [0.4, 0.0, 1.0, 1.0],
+        "$description": "Elements leaving."
+      }
+    },
+    "spring": {
+      "default": {
+        "$type": "string",
+        "$value": "damping 20 stiffness 220 mass 1",
+        "$description": "Sheets and cards."
+      },
+      "snappy": {
+        "$type": "string",
+        "$value": "damping 26 stiffness 320 mass 1",
+        "$description": "Buttons, toggles, scan confirmation."
+      },
+      "gentle": {
+        "$type": "string",
+        "$value": "damping 18 stiffness 140 mass 1",
+        "$description": "Shared-element transitions."
+      }
+    }
+  },
+  "font": {
+    "weight": {
+      "regular": {
+        "$type": "fontWeight",
+        "$value": 400,
+        "$description": "Body text, inputs, table cells."
+      },
+      "medium": {
+        "$type": "fontWeight",
+        "$value": 500,
+        "$description": "Labels, buttons, tabs, selected navigation."
+      },
+      "semibold": {
+        "$type": "fontWeight",
+        "$value": 600,
+        "$description": "Headings, totals, emphasized figures."
+      },
+      "bold": {
+        "$type": "fontWeight",
+        "$value": 700,
+        "$description": "Monogram tiles and map pin numerals only; never running text."
+      }
+    },
+    "family": {
+      "sans": {
+        "$type": "fontFamily",
+        "$value": "Inter, \"Inter Variable\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+        "$description": "Inter (variable, SIL OFL) for all UI text."
+      },
+      "mono": {
+        "$type": "fontFamily",
+        "$value": "\"JetBrains Mono\", ui-monospace, \"SF Mono\", Menlo, monospace",
+        "$description": "JetBrains Mono (SIL OFL) for URIDs, codes, keys and URNs."
+      }
+    }
+  },
+  "typography": {
+    "text-11": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "11px",
+        "lineHeight": 1.45,
+        "fontWeight": "{font.weight.regular}"
+      },
+      "$description": "Captions, table footnotes, keyboard hints."
+    },
+    "text-12": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "12px",
+        "lineHeight": 1.45,
+        "fontWeight": "{font.weight.regular}"
+      },
+      "$description": "Metadata, chips, property labels."
+    },
+    "text-13": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "13px",
+        "lineHeight": 1.45,
+        "fontWeight": "{font.weight.regular}"
+      },
+      "$description": "Base UI text in Atlas: body, rows, inputs, buttons."
+    },
+    "text-14": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "14px",
+        "lineHeight": 1.45,
+        "fontWeight": "{font.weight.regular}"
+      },
+      "$description": "Base text in Gateway (comfortable density) and long-form reading."
+    },
+    "text-16": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "16px",
+        "lineHeight": 1.45,
+        "fontWeight": "{font.weight.regular}"
+      },
+      "$description": "Compass body text and lead paragraphs."
+    },
+    "label-13": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "13px",
+        "lineHeight": 1.45,
+        "fontWeight": "{font.weight.medium}"
+      },
+      "$description": "Emphasized inline labels, button labels, selected nav items."
+    },
+    "heading-16": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "16px",
+        "lineHeight": 1.2,
+        "fontWeight": "{font.weight.semibold}"
+      },
+      "$description": "Section and panel titles."
+    },
+    "heading-20": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "20px",
+        "lineHeight": 1.2,
+        "fontWeight": "{font.weight.semibold}"
+      },
+      "$description": "Record titles in the side peek; dialog titles."
+    },
+    "heading-24": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "24px",
+        "lineHeight": 1.2,
+        "fontWeight": "{font.weight.semibold}"
+      },
+      "$description": "Page titles."
+    },
+    "heading-32": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": "32px",
+        "lineHeight": 1.2,
+        "fontWeight": "{font.weight.semibold}"
+      },
+      "$description": "Dashboard figures, show mode cues, auth headings."
+    },
+    "mono-12": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": "12px",
+        "lineHeight": 1.45,
+        "fontWeight": "{font.weight.regular}"
+      },
+      "$description": "URIDs, codes, item IDs and URNs inside chips."
+    },
+    "mono-13": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": "13px",
+        "lineHeight": 1.45,
+        "fontWeight": "{font.weight.regular}"
+      },
+      "$description": "Record keys and codes in body text and tables."
+    }
+  }
+}

@@ -1,25 +1,29 @@
 {
-  "name": "@xos/i18n",
+  "name": "@xos/icons",
   "version": "0.0.0",
   "private": true,
-  "description": "ICU message catalogs for every XOS shell. The only home of user-facing copy.",
+  "description": "XOS glyph map: the Lucide icon for every department, phase and record kind, and the record state glyph shapes.",
   "license": "MIT",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./messages/pseudo/en-XA.json": "./messages/pseudo/en-XA.json",
-    "./messages/pseudo/ar-XB.json": "./messages/pseudo/ar-XB.json"
+    "./map.json": "./src/map.json"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "lucide-react": "1.53.0"
   },
   "devDependencies": {
-    "@formatjs/icu-messageformat-parser": "3.5.21",
     "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@vitest/coverage-v8": "5.0.3",
     "@xos/config": "workspace:*",
     "eslint": "10.12.0",
+    "react": "19.3.0",
     "typescript": "6.0.3",
     "vite": "8.3.3",
     "vitest": "5.0.3"

@@ -1,0 +1,71 @@
+{
+  "$description": "XOS glyph assignments for packages/icons. Every glyph is a lucide-react icon (production pin 1.53.0, ISC; every name also resolves in 0.460.0, which renders the design previews) drawn at 1.5 stroke; record state icons are custom and live in StateIcon. Keys are canon codes in numeric order.",
+  "library": {
+    "name": "lucide-react",
+    "version": "1.53.0",
+    "license": "ISC",
+    "strokeWidth": 1.5
+  },
+  "departments": {
+    "1000": "Palette",
+    "2000": "MicVocal",
+    "3000": "Megaphone",
+    "4000": "Tent",
+    "5000": "SlidersHorizontal",
+    "6000": "ClipboardList",
+    "7000": "Sparkles",
+    "8000": "ConciergeBell",
+    "9000": "Cpu",
+    "0000": "Briefcase"
+  },
+  "phases": {
+    "SCP": "Crosshair",
+    "ENG": "Handshake",
+    "ADV": "ClipboardCheck",
+    "PRC": "ShoppingCart",
+    "BLD": "Hammer",
+    "INS": "Wrench",
+    "OPR": "Play",
+    "AMP": "Share2",
+    "CLS": "Archive"
+  },
+  "recordKinds": {
+    "Build": "Construction",
+    "Rehearsal": "Repeat",
+    "Shift": "CalendarClock",
+    "Strike": "PackageX",
+    "Task": "SquareCheck",
+    "Training": "GraduationCap",
+    "Document": "FileText",
+    "Supply": "Package",
+    "Booking": "CalendarCheck",
+    "Contract": "FileSignature",
+    "Payment": "Banknote",
+    "Recruitment": "UserPlus",
+    "Approval": "Stamp",
+    "Compliance": "ShieldCheck",
+    "Deadline": "AlarmClock",
+    "Decision": "Split",
+    "Inspection": "ScanSearch",
+    "Permit": "BadgeCheck",
+    "Distribution": "Send",
+    "Event": "Ticket",
+    "Goal": "Target",
+    "Meeting": "Users",
+    "Milestone": "Milestone",
+    "Report": "ChartColumn",
+    "Risk": "TriangleAlert",
+    "Timeline": "ChartGantt"
+  },
+  "stateIcons": {
+    "proposed": "dashed circle",
+    "ready": "empty circle",
+    "scheduled": "clock circle",
+    "active": "half circle",
+    "blocked": "octagon",
+    "in-review": "eye circle",
+    "complete": "check circle",
+    "deferred": "pause circle",
+    "canceled": "slashed circle"
+  }
+}

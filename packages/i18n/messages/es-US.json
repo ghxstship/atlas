@@ -516,5 +516,502 @@
         "record": "Registro"
       }
     }
+  },
+  "ui": {
+    "access": {
+      "allowed": "{cat} en {zone}: permitido",
+      "credential": "Credencial",
+      "denied": "{cat} en {zone}: denegado"
+    },
+    "action": {
+      "cancel": "Cancelar",
+      "clear": "Borrar",
+      "close": "Cerrar",
+      "copyLink": "Copiar enlace",
+      "dismiss": "Descartar",
+      "done": "Listo",
+      "download": "Descargar",
+      "later": "Más tarde",
+      "reset": "Restablecer",
+      "retry": "Reintentar",
+      "save": "Guardar",
+      "saved": "Guardado",
+      "send": "Enviar",
+      "snooze": "Posponer",
+      "start": "Iniciar",
+      "undo": "Deshacer",
+      "view": "Ver"
+    },
+    "apply": {
+      "available": "Estoy disponible en todas las fechas indicadas",
+      "draftSaved": "Borrador guardado",
+      "shared": "Lo que verá {org}",
+      "submit": "Enviar solicitud",
+      "title": "Postularse: {role}"
+    },
+    "assertion": {
+      "aria": "{label}, nivel {rank} de 4"
+    },
+    "availability": {
+      "available": "Disponible",
+      "booked": "Reservado"
+    },
+    "avatar": {
+      "more": "{n} más"
+    },
+    "badge": {
+      "brightness": "Subir el brillo",
+      "label": "Credencial de {name}",
+      "qr": "Código de credencial {key}",
+      "valid": "Válida del {from} al {to}",
+      "wallet": "Agregar a Wallet",
+      "zones": "Zonas"
+    },
+    "bid": {
+      "extended": "Extendido",
+      "item": "Artículo",
+      "line": "Línea",
+      "lines": "Líneas de la oferta",
+      "qty": "Cantidad",
+      "sealed": "Oferta sellada",
+      "sealedBody": "Las ofertas permanecen selladas hasta {deadline}. Ningún oferente ve otra oferta.",
+      "total": "Total de la oferta",
+      "unit": "Unidad",
+      "unitPrice": "Precio unitario"
+    },
+    "board": {
+      "add": "Nuevo registro"
+    },
+    "budget": {
+      "amount": "Monto",
+      "costCenter": "Centro de costos",
+      "gl": "Cuenta GL",
+      "grade": "Grado",
+      "line": "Línea",
+      "qty": "Cantidad",
+      "rate": "Tarifa",
+      "unmapped": "Cuenta sin asignar",
+      "urid": "URID"
+    },
+    "bulk": {
+      "clear": "Borrar selección",
+      "label": "Acciones masivas",
+      "selected": "{n} seleccionados"
+    },
+    "calendar": {
+      "agenda": "Agenda",
+      "day": "Día",
+      "month": "Mes",
+      "more": "+{n} más",
+      "range": "Rango",
+      "week": "Semana"
+    },
+    "camera": {
+      "viewfinder": "Visor de la cámara"
+    },
+    "chart": {
+      "chart": "Gráfico",
+      "legend": "Leyenda",
+      "noValue": "Sin valor",
+      "other": "Otros",
+      "table": "Tabla",
+      "tableHint": "Cambie a Tabla para ver todos los valores.",
+      "view": "Vista"
+    },
+    "chip": {
+      "remove": "Quitar {label}"
+    },
+    "clock": {
+      "break": "Descanso",
+      "endBreak": "Terminar descanso",
+      "out": "Registrar salida"
+    },
+    "color": {
+      "blocked": "Este color no se puede guardar hasta que pasen todas las verificaciones.",
+      "hex": "Valor hex de {label}",
+      "invalid": "Ingrese un color hex como #4F57D9."
+    },
+    "command": {
+      "label": "Menú de comandos",
+      "results": "Resultados"
+    },
+    "conflict": {
+      "keep": "Conservar selección",
+      "server": "Guardado en el servidor",
+      "title": "Resolver conflicto",
+      "yours": "Suyo"
+    },
+    "contact": {
+      "call": "Llamar a {name}",
+      "message": "Enviar mensaje a {name}"
+    },
+    "contrast": {
+      "fail": "No cumple AA",
+      "pass": "Cumple AA",
+      "ratio": "{r}:1"
+    },
+    "count": {
+      "of": "{n} de {total}",
+      "step": "Paso {n} de {total}"
+    },
+    "date": {
+      "choose": "Elegir fecha",
+      "chooseRange": "Elegir fechas",
+      "days": "{n} días",
+      "nextMonth": "Mes siguiente",
+      "pick": "Elija una fecha",
+      "prevMonth": "Mes anterior",
+      "rangeTo": "a"
+    },
+    "daysheet": {
+      "contacts": "Contactos",
+      "now": "Ahora"
+    },
+    "diff": {
+      "after": "Después",
+      "before": "Antes",
+      "field": "Campo"
+    },
+    "ecode": {
+      "authorities": "Autoridades locales",
+      "role": {
+        "bombSquad": "Escuadrón antibombas",
+        "ems": "EMS",
+        "federal": "Federal",
+        "fire": "Bomberos",
+        "lawEnforcement": "Policía"
+      },
+      "service": {
+        "bombSquad": "el escuadrón antibombas local",
+        "ems": "los servicios médicos de emergencia",
+        "federal": "las autoridades federales",
+        "fire": "el departamento de bomberos local",
+        "lawEnforcement": "la policía local"
+      }
+    },
+    "engagement": {
+      "stages": "Etapas de la contratación"
+    },
+    "feedback": {
+      "hint": "Describa lo que esperaba y lo que vio.",
+      "privacy": "Solo se envía lo que elija aquí. No se captura nada más.",
+      "question": "¿Qué pasó?",
+      "screenshot": "Adjuntar una captura de esta página",
+      "thanks": "Gracias. El equipo de la plataforma lo leerá.",
+      "title": "Enviar comentarios"
+    },
+    "file": {
+      "drop": "Suelte los archivos",
+      "kb": "{n} KB",
+      "orBrowse": "o explore",
+      "page": "Página {n}",
+      "zoomIn": "Acercar",
+      "zoomOut": "Alejar"
+    },
+    "filter": {
+      "add": "Agregar filtro",
+      "label": "Filtros",
+      "remove": "Quitar filtro {field}"
+    },
+    "fmt": {
+      "multiplier": "{n}x"
+    },
+    "gate": {
+      "allMet": "Se cumplen todos los criterios bloqueantes.",
+      "blocking": "Bloqueante",
+      "criteriaMet": "Criterios cumplidos",
+      "metCount": "{met} de {total} cumplidos",
+      "openMany": "{n} criterios bloqueantes abiertos.",
+      "openOne": "{n} criterio bloqueante abierto.",
+      "readiness": "Preparación del Gate"
+    },
+    "grid": {
+      "derived": "Derivado del canon. Edite el registro de origen para cambiarlo.",
+      "hint": "Las flechas mueven, Enter edita, Supr borra a Sin precio, pegar desde Excel llena el rango.",
+      "row": "Fila"
+    },
+    "help": {
+      "ask": "Haga una pregunta sobre esta página",
+      "assistant": "Asistente",
+      "contact": "Contactar a soporte",
+      "forThisPage": "Para esta página",
+      "learnMore": "Más información",
+      "search": "Buscar en la ayuda",
+      "shortcuts": "Atajos",
+      "title": "Ayuda",
+      "whatsNew": "Novedades"
+    },
+    "inbox": {
+      "fyi": "Para su información",
+      "label": "Bandeja de entrada",
+      "needsYou": "Requiere su atención"
+    },
+    "incident": {
+      "help": "Los tipos críticos se confirman manteniendo presionado. Los reportes se ponen en cola sin conexión y se envían al reconectarse.",
+      "title": "Reportar incidente"
+    },
+    "inspection": {
+      "addPhoto": "Agregar foto",
+      "fail": "No aprobado",
+      "pass": "Aprobado",
+      "whatFailed": "¿Qué falló?"
+    },
+    "key": {
+      "esc": "Esc",
+      "space": "Espacio"
+    },
+    "link": {
+      "newTab": "Se abre en una pestaña nueva"
+    },
+    "list": {
+      "noMatch": "Sin coincidencias. Pruebe otra palabra."
+    },
+    "live": {
+      "label": "Actividad en vivo"
+    },
+    "matrix": {
+      "cell": "{row}, {col}: {n} registros",
+      "empty": "{row}, {col}: ninguno"
+    },
+    "menu": {
+      "actions": "Acciones",
+      "more": "Más acciones"
+    },
+    "money": {
+      "blankHelp": "En blanco significa sin precio. Ingrese 0 solo para un cero confirmado.",
+      "rateOnRequest": "Tarifa a solicitud",
+      "unpriced": "Sin precio"
+    },
+    "nav": {
+      "account": "Menú de la cuenta de {name}",
+      "breadcrumb": "Ruta de navegación",
+      "main": "Principal",
+      "next": "Siguiente",
+      "pagination": "Paginación",
+      "previous": "Anterior"
+    },
+    "number": {
+      "decrease": "Disminuir",
+      "increase": "Aumentar"
+    },
+    "offline": {
+      "queued": "{n} en cola"
+    },
+    "opp": {
+      "apply": "Postularse",
+      "missing": "Falta: {list}",
+      "qualified": "Cumple todos los requisitos",
+      "search": "Buscar oportunidades"
+    },
+    "org": {
+      "marketplace": "Explorar el marketplace",
+      "vacant": "Vacante",
+      "verified": "Organización verificada"
+    },
+    "packet": {
+      "expired": "Vencido",
+      "minutes": "{n} min",
+      "minutesLeft": "Quedan unos {n} min",
+      "required": "Obligatorio",
+      "review": "En revisión",
+      "title": "Paquete de incorporación",
+      "todo": "Pendiente",
+      "verified": "Verificado",
+      "verifiedCount": "{n} de {total} verificados"
+    },
+    "panel": {
+      "resize": "Cambiar tamaño del panel"
+    },
+    "pay": {
+      "approved": "Aprobado",
+      "expected": "Previsto para {date}",
+      "label": "Pago de {key}",
+      "paid": "Pagado",
+      "scheduled": "Programado",
+      "submitted": "Enviado"
+    },
+    "payout": {
+      "account": "Número de cuenta",
+      "accountHelp": "Se cifra al ingresarlo. Después de guardar, solo se muestran los últimos cuatro dígitos.",
+      "checking": "Corriente",
+      "routing": "Número de ruta",
+      "routingHint": "9 dígitos",
+      "save": "Guardar de forma segura",
+      "savings": "Ahorros",
+      "title": "Datos de pago",
+      "type": "Tipo de cuenta"
+    },
+    "peek": {
+      "openFull": "Abrir página completa"
+    },
+    "phase": {
+      "gate": "Gate {n}",
+      "gateName": "Gate {n} · {name}"
+    },
+    "photo": {
+      "annotate": "Anotar",
+      "n": "Foto {n}",
+      "take": "Tomar foto"
+    },
+    "presence": {
+      "editing": "{n} editando",
+      "viewing": "{n} viendo"
+    },
+    "profile": {
+      "complete": "{n}% completo",
+      "title": "Perfil"
+    },
+    "provenance": {
+      "rank": "Nivel de procedencia {rank}",
+      "source": "Fuente"
+    },
+    "quickAdd": {
+      "label": "Agregar rápido"
+    },
+    "radio": {
+      "assignment": "Asignación",
+      "channel": "Canal",
+      "notes": "Notas",
+      "zone": "Zona"
+    },
+    "rating": {
+      "comment": "Comentario público",
+      "label": "Calificación",
+      "release": "Ambas calificaciones se publican juntas cuando estén las dos, o después de 14 días.",
+      "star": "{n} estrella",
+      "stars": "{n} estrellas",
+      "submit": "Enviar calificación",
+      "title": "Calificar a {name}"
+    },
+    "recon": {
+      "capability": "Capacidad del recinto",
+      "notDeclared": "No declarado",
+      "requirement": "Requisito",
+      "result": "Resultado"
+    },
+    "record": {
+      "untitled": "Sin título"
+    },
+    "resource": {
+      "doubleBooked": "Reserva duplicada",
+      "person": "Persona"
+    },
+    "result": {
+      "gap": "Brecha",
+      "met": "Cumplido",
+      "unknown": "Desconocido"
+    },
+    "ros": {
+      "go": "Go",
+      "label": "Guion del evento",
+      "live": "En vivo",
+      "nextIn": "Siguiente cue en"
+    },
+    "rte": {
+      "bold": "Negrita",
+      "bullets": "Lista con viñetas",
+      "checklist": "Lista de verificación",
+      "hint": "Escriba / para bloques, @ para mencionar, # para vincular un registro.",
+      "italic": "Cursiva",
+      "link": "Enlace",
+      "mention": "Mencionar",
+      "table": "Tabla",
+      "toolbar": "Formato"
+    },
+    "scan": {
+      "asset": "Activo",
+      "credential": "Credencial",
+      "mode": "Modo de escaneo",
+      "nfc": "Leer NFC",
+      "receiving": "Recepción",
+      "torch": "Linterna"
+    },
+    "scroll": {
+      "region": "Contenido desplazable"
+    },
+    "shell": {
+      "menu": "Abrir navegación"
+    },
+    "shortcutEditor": {
+      "action": "Acción",
+      "change": "Cambiar",
+      "edit": "Editar",
+      "press": "Presione las teclas",
+      "shortcut": "Atajo"
+    },
+    "shortcuts": {
+      "title": "Atajos de teclado"
+    },
+    "signature": {
+      "area": "Área de firma. Dibuje con el dedo, un lápiz óptico o el mouse."
+    },
+    "slate": {
+      "filled": "Puestos cubiertos",
+      "include": "Incluir a {name}",
+      "positions": "{n} de {total} puestos",
+      "submit": "Enviar nómina",
+      "title": "Nómina de personal"
+    },
+    "stale": {
+      "basis": "la fecha de la evidencia",
+      "current": "Vigente",
+      "degraded": "Degradado un nivel",
+      "expired": "Vencido",
+      "modeled": "Modelado",
+      "months": "{n} meses",
+      "title": "{n} meses desde {basis}"
+    },
+    "tabbar": {
+      "badge": "{n} nuevos"
+    },
+    "table": {
+      "total": "Total"
+    },
+    "timeline": {
+      "critical": "ruta crítica",
+      "dependsOn": "Depende de",
+      "end": "Fin",
+      "key": "Clave",
+      "milestone": "hito",
+      "record": "Registro",
+      "start": "Inicio",
+      "state": "Estado"
+    },
+    "tooltip": {
+      "withShortcut": "{label} ({shortcut})"
+    },
+    "update": {
+      "action": "Actualizar",
+      "title": "Actualización obligatoria"
+    },
+    "upnext": {
+      "bring": "Traer",
+      "calendar": "Agregar al calendario",
+      "call": "Hora de llamada",
+      "contact": "Contacto",
+      "directions": "Cómo llegar",
+      "label": "A continuación",
+      "parking": "Estacionamiento",
+      "when": "Cuándo",
+      "where": "Dónde"
+    },
+    "view": {
+      "cards": "Tarjetas",
+      "label": "Vista",
+      "map": "Mapa"
+    },
+    "visibility": {
+      "application": "Al postularse",
+      "private": "Privado",
+      "public": "Público"
+    },
+    "whatsNew": {
+      "changelog": "Registro de cambios",
+      "title": "Novedades"
+    },
+    "widget": {
+      "label": "Widget de pantalla de inicio",
+      "nextShift": "Próximo turno"
+    }
   }
 }

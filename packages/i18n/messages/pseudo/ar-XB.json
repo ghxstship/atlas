@@ -1,0 +1,499 @@
+{
+  "ui": {
+    "access": {
+      "allowed": "‮{cat} ıu {zone}: ɐlloʍǝp‬",
+      "credential": "‮Ɔɹǝpǝuʇıɐl‬",
+      "denied": "‮{cat} ıu {zone}: pǝuıǝp‬"
+    },
+    "action": {
+      "cancel": "‮Ɔɐuɔǝl‬",
+      "clear": "‮Ɔlǝɐɹ‬",
+      "close": "‮Ɔlosǝ‬",
+      "copyLink": "‮Ɔodʎ ⅂ıuʞ‬",
+      "dismiss": "‮ꓷısɯıss‬",
+      "done": "‮ꓷouǝ‬",
+      "download": "‮ꓷoʍuloɐp‬",
+      "later": "‮⅂ɐʇǝɹ‬",
+      "reset": "‮ꓤǝsǝʇ‬",
+      "retry": "‮ꓤǝʇɹʎ‬",
+      "save": "‮Sɐʌǝ‬",
+      "saved": "‮Sɐʌǝp‬",
+      "send": "‮Sǝup‬",
+      "snooze": "‮Suoozǝ‬",
+      "start": "‮Sʇɐɹʇ‬",
+      "undo": "‮Ոupo‬",
+      "view": "‮Ʌıǝʍ‬"
+    },
+    "apply": {
+      "available": "‮I'ɯ ɐʌɐılɐqlǝ ou ǝʌǝɹʎ lısʇǝp pɐʇǝ‬",
+      "draftSaved": "‮ꓷɹɐɟʇ sɐʌǝp‬",
+      "shared": "‮Mɥɐʇ {org} ʍıll sǝǝ‬",
+      "submit": "‮Snqɯıʇ ∀ddlıɔɐʇıou‬",
+      "title": "‮∀ddlʎ: {role}‬"
+    },
+    "assertion": {
+      "aria": "‮{label}, ɹɐuʞ {rank} oɟ 4‬"
+    },
+    "availability": {
+      "available": "‮∀ʌɐılɐqlǝ‬",
+      "booked": "‮ꓭooʞǝp‬"
+    },
+    "avatar": {
+      "more": "‮{n} ɯoɹǝ‬"
+    },
+    "badge": {
+      "brightness": "‮ꓤɐısǝ qɹıƃɥʇuǝss‬",
+      "label": "‮Ɔɹǝpǝuʇıɐl ɟoɹ {name}‬",
+      "qr": "‮Ɔɹǝpǝuʇıɐl ɔopǝ {key}‬",
+      "valid": "‮Ʌɐlıp {from} ʇo {to}‬",
+      "wallet": "‮∀pp ʇo Mɐllǝʇ‬",
+      "zones": "‮Zouǝs‬"
+    },
+    "bid": {
+      "extended": "‮Ǝxʇǝupǝp‬",
+      "item": "‮Iʇǝɯ‬",
+      "line": "‮⅂ıuǝ‬",
+      "lines": "‮ꓭıp lıuǝs‬",
+      "qty": "‮Ꝺʇʎ‬",
+      "sealed": "‮Sǝɐlǝp qıp‬",
+      "sealedBody": "‮ꓭıps sʇɐʎ sǝɐlǝp nuʇıl {deadline}. No qıppǝɹ sǝǝs ɐuoʇɥǝɹ qıp.‬",
+      "total": "‮ꓭıp ꓕoʇɐl‬",
+      "unit": "‮Ոuıʇ‬",
+      "unitPrice": "‮Ոuıʇ Ԁɹıɔǝ‬"
+    },
+    "board": {
+      "add": "‮Nǝʍ ꓤǝɔoɹp‬"
+    },
+    "budget": {
+      "amount": "‮∀ɯonuʇ‬",
+      "costCenter": "‮Ɔosʇ Ɔǝuʇǝɹ‬",
+      "gl": "‮⅁⅂ ∀ɔɔonuʇ‬",
+      "grade": "‮⅁ɹɐpǝ‬",
+      "line": "‮⅂ıuǝ‬",
+      "qty": "‮Ꝺʇʎ‬",
+      "rate": "‮ꓤɐʇǝ‬",
+      "unmapped": "‮Ոuɯɐddǝp ∀ɔɔonuʇ‬",
+      "urid": "‮ՈꓤIꓷ‬"
+    },
+    "bulk": {
+      "clear": "‮Ɔlǝɐɹ sǝlǝɔʇıou‬",
+      "label": "‮ꓭnlʞ ɐɔʇıous‬",
+      "selected": "‮{n} sǝlǝɔʇǝp‬"
+    },
+    "calendar": {
+      "agenda": "‮∀ƃǝupɐ‬",
+      "day": "‮ꓷɐʎ‬",
+      "month": "‮Wouʇɥ‬",
+      "more": "‮+{n} ɯoɹǝ‬",
+      "range": "‮ꓤɐuƃǝ‬",
+      "week": "‮Mǝǝʞ‬"
+    },
+    "camera": {
+      "viewfinder": "‮Ɔɐɯǝɹɐ ʌıǝʍɟıupǝɹ‬"
+    },
+    "chart": {
+      "chart": "‮Ɔɥɐɹʇ‬",
+      "legend": "‮⅂ǝƃǝup‬",
+      "noValue": "‮No ʌɐlnǝ‬",
+      "other": "‮Oʇɥǝɹ‬",
+      "table": "‮ꓕɐqlǝ‬",
+      "tableHint": "‮Sʍıʇɔɥ ʇo ꓕɐqlǝ ɟoɹ ǝʌǝɹʎ ʌɐlnǝ.‬",
+      "view": "‮Ʌıǝʍ‬"
+    },
+    "chip": {
+      "remove": "‮ꓤǝɯoʌǝ {label}‬"
+    },
+    "clock": {
+      "break": "‮ꓭɹǝɐʞ‬",
+      "endBreak": "‮Ǝpu Bɹǝɐʞ‬",
+      "out": "‮Ɔloɔʞ Onʇ‬"
+    },
+    "color": {
+      "blocked": "‮ꓕɥıs ɔoloɹ ɔɐu'ʇ qǝ sɐʌǝp nuʇıl ǝʌǝɹʎ ɔɥǝɔʞ dɐssǝs.‬",
+      "hex": "‮{label} ɥǝx ʌɐlnǝ‬",
+      "invalid": "‮Ǝuʇǝɹ ɐ ɥǝx ɔoloɹ snɔɥ ɐs #4Ⅎ57ꓷ9.‬"
+    },
+    "command": {
+      "label": "‮Ɔoɯɯɐup ɯǝun‬",
+      "results": "‮ꓤǝsnlʇs‬"
+    },
+    "conflict": {
+      "keep": "‮ꓘǝǝd Sǝlǝɔʇǝp‬",
+      "server": "‮Sɐʌǝp ou Sǝɹʌǝɹ‬",
+      "title": "‮ꓤǝsolʌǝ Ɔouɟlıɔʇ‬",
+      "yours": "‮⅄onɹs‬"
+    },
+    "contact": {
+      "call": "‮Ɔɐll {name}‬",
+      "message": "‮Wǝssɐƃǝ {name}‬"
+    },
+    "contrast": {
+      "fail": "‮Ⅎɐıls ∀∀‬",
+      "pass": "‮Ԁɐssǝs ∀∀‬",
+      "ratio": "‮{r}:1‬"
+    },
+    "count": {
+      "of": "‮{n} oɟ {total}‬",
+      "step": "‮Sʇǝd {n} oɟ {total}‬"
+    },
+    "date": {
+      "choose": "‮Ɔɥoosǝ pɐʇǝ‬",
+      "chooseRange": "‮Ɔɥoosǝ pɐʇǝs‬",
+      "days": "‮{n} pɐʎs‬",
+      "nextMonth": "‮Nǝxʇ ɯouʇɥ‬",
+      "pick": "‮Ԁıɔʞ ɐ pɐʇǝ‬",
+      "prevMonth": "‮Ԁɹǝʌıons ɯouʇɥ‬",
+      "rangeTo": "‮ʇo‬"
+    },
+    "daysheet": {
+      "contacts": "‮Ɔouʇɐɔʇs‬",
+      "now": "‮Noʍ‬"
+    },
+    "diff": {
+      "after": "‮∀ɟʇǝɹ‬",
+      "before": "‮ꓭǝɟoɹǝ‬",
+      "field": "‮Ⅎıǝlp‬"
+    },
+    "ecode": {
+      "authorities": "‮⅂oɔɐl ɐnʇɥoɹıʇıǝs‬",
+      "role": {
+        "bombSquad": "‮ꓭoɯq Sbnɐp‬",
+        "ems": "‮ƎWS‬",
+        "federal": "‮Ⅎǝpǝɹɐl‬",
+        "fire": "‮Ⅎıɹǝ‬",
+        "lawEnforcement": "‮⅂ɐʍ Ǝuɟoɹɔǝɯǝuʇ‬"
+      },
+      "service": {
+        "bombSquad": "‮ʇɥǝ loɔɐl qoɯq sbnɐp‬",
+        "ems": "‮ǝɯǝɹƃǝuɔʎ ɯǝpıɔɐl sǝɹʌıɔǝs‬",
+        "federal": "‮ɟǝpǝɹɐl ɐnʇɥoɹıʇıǝs‬",
+        "fire": "‮ʇɥǝ loɔɐl ɟıɹǝ pǝdɐɹʇɯǝuʇ‬",
+        "lawEnforcement": "‮loɔɐl lɐʍ ǝuɟoɹɔǝɯǝuʇ‬"
+      }
+    },
+    "engagement": {
+      "stages": "‮Ǝuƃɐƃǝɯǝuʇ sʇɐƃǝs‬"
+    },
+    "feedback": {
+      "hint": "‮ꓷǝsɔɹıqǝ ʍɥɐʇ ʎon ǝxdǝɔʇǝp ɐup ʍɥɐʇ ʎon sɐʍ.‬",
+      "privacy": "‮Oulʎ ʍɥɐʇ ʎon ɔɥoosǝ ɥǝɹǝ ıs sǝuʇ. Noʇɥıuƃ ǝlsǝ ıs ɔɐdʇnɹǝp.‬",
+      "question": "‮Mɥɐʇ ɥɐddǝuǝp?‬",
+      "screenshot": "‮∀ʇʇɐɔɥ ɐ sɔɹǝǝusɥoʇ oɟ ʇɥıs dɐƃǝ‬",
+      "thanks": "‮ꓕɥɐuʞs. ꓕɥǝ dlɐʇɟoɹɯ ʇǝɐɯ ʍıll ɹǝɐp ʇɥıs.‬",
+      "title": "‮Sǝup Ⅎǝǝpqɐɔʞ‬"
+    },
+    "file": {
+      "drop": "‮ꓷɹod ɟılǝs‬",
+      "kb": "‮{n} ꓘꓭ‬",
+      "orBrowse": "‮oɹ qɹoʍsǝ‬",
+      "page": "‮Ԁɐƃǝ {n}‬",
+      "zoomIn": "‮Zooɯ ıu‬",
+      "zoomOut": "‮Zooɯ onʇ‬"
+    },
+    "filter": {
+      "add": "‮∀pp Ⅎılʇǝɹ‬",
+      "label": "‮Ⅎılʇǝɹs‬",
+      "remove": "‮ꓤǝɯoʌǝ ɟılʇǝɹ {field}‬"
+    },
+    "fmt": {
+      "multiplier": "‮{n}x‬"
+    },
+    "gate": {
+      "allMet": "‮∀ll qloɔʞıuƃ ɔɹıʇǝɹıɐ ɯǝʇ.‬",
+      "blocking": "‮ꓭloɔʞıuƃ‬",
+      "criteriaMet": "‮Ɔɹıʇǝɹıɐ ɯǝʇ‬",
+      "metCount": "‮{met} oɟ {total} ɯǝʇ‬",
+      "openMany": "‮{n} qloɔʞıuƃ ɔɹıʇǝɹıɐ odǝu.‬",
+      "openOne": "‮{n} qloɔʞıuƃ ɔɹıʇǝɹıou odǝu.‬",
+      "readiness": "‮⅁ɐʇǝ ɹǝɐpıuǝss‬"
+    },
+    "grid": {
+      "derived": "‮ꓷǝɹıʌǝp ɟɹoɯ ɔɐuou. Ǝpıʇ ʇɥǝ sonɹɔǝ ɹǝɔoɹp ʇo ɔɥɐuƃǝ ıʇ.‬",
+      "hint": "‮∀ɹɹoʍ ʞǝʎs ɯoʌǝ, Ǝuʇǝɹ ǝpıʇs, ꓷǝlǝʇǝ ɔlǝɐɹs ʇo Ոudɹıɔǝp, dɐsʇǝ ɟɹoɯ Ǝxɔǝl ɟılls ʇɥǝ ɹɐuƃǝ.‬",
+      "row": "‮ꓤoʍ‬"
+    },
+    "help": {
+      "ask": "‮∀sʞ ɐ bnǝsʇıou ɐqonʇ ʇɥıs dɐƃǝ‬",
+      "assistant": "‮∀ssısʇɐuʇ‬",
+      "contact": "‮Ɔouʇɐɔʇ Snddoɹʇ‬",
+      "forThisPage": "‮Ⅎoɹ ʇɥıs dɐƃǝ‬",
+      "learnMore": "‮⅂ǝɐɹu ɯoɹǝ‬",
+      "search": "‮Sǝɐɹɔɥ ɥǝld‬",
+      "shortcuts": "‮Sɥoɹʇɔnʇs‬",
+      "title": "‮Hǝld‬",
+      "whatsNew": "‮Mɥɐʇ's Nǝʍ‬"
+    },
+    "inbox": {
+      "fyi": "‮Ⅎoɹ ⅄onɹ Iuɟoɹɯɐʇıou‬",
+      "label": "‮Iuqox‬",
+      "needsYou": "‮Nǝǝps ⅄on‬"
+    },
+    "incident": {
+      "help": "‮Ɔɹıʇıɔɐl ʇʎdǝs nsǝ ɥolp ʇo ɔouɟıɹɯ. ꓤǝdoɹʇs bnǝnǝ oɟɟlıuǝ ɐup sǝup ʍɥǝu ʎon ɹǝɔouuǝɔʇ.‬",
+      "title": "‮ꓤǝdoɹʇ Iuɔıpǝuʇ‬"
+    },
+    "inspection": {
+      "addPhoto": "‮∀pp Ԁɥoʇo‬",
+      "fail": "‮Ⅎɐıl‬",
+      "pass": "‮Ԁɐss‬",
+      "whatFailed": "‮Mɥɐʇ ɟɐılǝp?‬"
+    },
+    "key": {
+      "esc": "‮Ǝsɔ‬",
+      "space": "‮Sdɐɔǝ‬"
+    },
+    "link": {
+      "newTab": "‮Odǝus ıu ɐ uǝʍ ʇɐq‬"
+    },
+    "list": {
+      "noMatch": "‮No ɯɐʇɔɥ. ꓕɹʎ ɐuoʇɥǝɹ ʍoɹp.‬"
+    },
+    "live": {
+      "label": "‮⅂ıʌǝ ∀ɔʇıʌıʇʎ‬"
+    },
+    "matrix": {
+      "cell": "‮{row}, {col}: {n} ɹǝɔoɹps‬",
+      "empty": "‮{row}, {col}: uouǝ‬"
+    },
+    "menu": {
+      "actions": "‮∀ɔʇıous‬",
+      "more": "‮Woɹǝ ∀ɔʇıous‬"
+    },
+    "money": {
+      "blankHelp": "‮ꓭlɐuʞ ɯǝɐus nudɹıɔǝp. Ǝuʇǝɹ 0 oulʎ ɟoɹ ɐ ɔouɟıɹɯǝp zǝɹo.‬",
+      "rateOnRequest": "‮ꓤɐʇǝ ou ꓤǝbnǝsʇ‬",
+      "unpriced": "‮Ոudɹıɔǝp‬"
+    },
+    "nav": {
+      "account": "‮∀ɔɔonuʇ ɯǝun ɟoɹ {name}‬",
+      "breadcrumb": "‮ꓭɹǝɐpɔɹnɯq‬",
+      "main": "‮Wɐıu‬",
+      "next": "‮Nǝxʇ‬",
+      "pagination": "‮Ԁɐƃıuɐʇıou‬",
+      "previous": "‮Ԁɹǝʌıons‬"
+    },
+    "number": {
+      "decrease": "‮ꓷǝɔɹǝɐsǝ‬",
+      "increase": "‮Iuɔɹǝɐsǝ‬"
+    },
+    "offline": {
+      "queued": "‮{n} bnǝnǝp‬"
+    },
+    "opp": {
+      "apply": "‮∀ddlʎ‬",
+      "missing": "‮Wıssıuƃ: {list}‬",
+      "qualified": "‮⅄on ɯǝǝʇ ǝʌǝɹʎ ɹǝbnıɹǝɯǝuʇ‬",
+      "search": "‮Sǝɐɹɔɥ oddoɹʇnuıʇıǝs‬"
+    },
+    "org": {
+      "marketplace": "‮ꓭɹoʍsǝ Wɐɹʞǝʇdlɐɔǝ‬",
+      "vacant": "‮Ʌɐɔɐuʇ‬",
+      "verified": "‮Ʌǝɹıɟıǝp oɹƃɐuızɐʇıou‬"
+    },
+    "packet": {
+      "expired": "‮Ǝxdıɹǝp‬",
+      "minutes": "‮{n} ɯıu‬",
+      "minutesLeft": "‮∀qonʇ {n} ɯıu lǝɟʇ‬",
+      "required": "‮ꓤǝbnıɹǝp‬",
+      "review": "‮Iu ꓤǝʌıǝʍ‬",
+      "title": "‮Ouqoɐɹpıuƃ Ԁɐɔʞǝʇ‬",
+      "todo": "‮ꓕo ꓷo‬",
+      "verified": "‮Ʌǝɹıɟıǝp‬",
+      "verifiedCount": "‮{n} oɟ {total} ʌǝɹıɟıǝp‬"
+    },
+    "panel": {
+      "resize": "‮ꓤǝsızǝ dɐuǝl‬"
+    },
+    "pay": {
+      "approved": "‮∀ddɹoʌǝp‬",
+      "expected": "‮Ǝxdǝɔʇǝp {date}‬",
+      "label": "‮Ԁɐʎɯǝuʇ ɟoɹ {key}‬",
+      "paid": "‮Ԁɐıp‬",
+      "scheduled": "‮Sɔɥǝpnlǝp‬",
+      "submitted": "‮Snqɯıʇʇǝp‬"
+    },
+    "payout": {
+      "account": "‮∀ɔɔonuʇ Nnɯqǝɹ‬",
+      "accountHelp": "‮Ǝuɔɹʎdʇǝp ou ǝuʇɹʎ. Oulʎ ʇɥǝ lɐsʇ ɟonɹ pıƃıʇs ɐɹǝ sɥoʍu ɐɟʇǝɹ sɐʌıuƃ.‬",
+      "checking": "‮Ɔɥǝɔʞıuƃ‬",
+      "routing": "‮ꓤonʇıuƃ Nnɯqǝɹ‬",
+      "routingHint": "‮9 pıƃıʇs‬",
+      "save": "‮Sɐʌǝ Sǝɔnɹǝlʎ‬",
+      "savings": "‮Sɐʌıuƃs‬",
+      "title": "‮Ԁɐʎonʇ ꓷǝʇɐıls‬",
+      "type": "‮∀ɔɔonuʇ ꓕʎdǝ‬"
+    },
+    "peek": {
+      "openFull": "‮Odǝu ɟnll dɐƃǝ‬"
+    },
+    "phase": {
+      "gate": "‮⅁ɐʇǝ {n}‬",
+      "gateName": "‮⅁ɐʇǝ {n} · {name}‬"
+    },
+    "photo": {
+      "annotate": "‮∀uuoʇɐʇǝ‬",
+      "n": "‮Ԁɥoʇo {n}‬",
+      "take": "‮ꓕɐʞǝ dɥoʇo‬"
+    },
+    "presence": {
+      "editing": "‮{n} ǝpıʇıuƃ‬",
+      "viewing": "‮{n} ʌıǝʍıuƃ‬"
+    },
+    "profile": {
+      "complete": "‮{n}% ɔoɯdlǝʇǝ‬",
+      "title": "‮Ԁɹoɟılǝ‬"
+    },
+    "provenance": {
+      "rank": "‮Ԁɹoʌǝuɐuɔǝ ɹɐuʞ {rank}‬",
+      "source": "‮Sonɹɔǝ‬"
+    },
+    "quickAdd": {
+      "label": "‮Ꝺnıɔʞ ɐpp‬"
+    },
+    "radio": {
+      "assignment": "‮∀ssıƃuɯǝuʇ‬",
+      "channel": "‮Ɔɥɐuuǝl‬",
+      "notes": "‮Noʇǝs‬",
+      "zone": "‮Zouǝ‬"
+    },
+    "rating": {
+      "comment": "‮Ԁnqlıɔ ɔoɯɯǝuʇ‬",
+      "label": "‮ꓤɐʇıuƃ‬",
+      "release": "‮ꓭoʇɥ ɹɐʇıuƃs ɐɹǝ ɹǝlǝɐsǝp ʇoƃǝʇɥǝɹ ouɔǝ qoʇɥ ɐɹǝ ıu, oɹ ɐɟʇǝɹ 14 pɐʎs.‬",
+      "star": "‮{n} sʇɐɹ‬",
+      "stars": "‮{n} sʇɐɹs‬",
+      "submit": "‮Snqɯıʇ ꓤɐʇıuƃ‬",
+      "title": "‮ꓤɐʇǝ {name}‬"
+    },
+    "recon": {
+      "capability": "‮Ʌǝunǝ Ɔɐdɐqılıʇʎ‬",
+      "notDeclared": "‮Noʇ pǝɔlɐɹǝp‬",
+      "requirement": "‮ꓤǝbnıɹǝɯǝuʇ‬",
+      "result": "‮ꓤǝsnlʇ‬"
+    },
+    "record": {
+      "untitled": "‮Ոuʇıʇlǝp‬"
+    },
+    "resource": {
+      "doubleBooked": "‮ꓷonqlǝ-qooʞǝp‬",
+      "person": "‮Ԁǝɹsou‬"
+    },
+    "result": {
+      "gap": "‮⅁ɐd‬",
+      "met": "‮Wǝʇ‬",
+      "unknown": "‮Ոuʞuoʍu‬"
+    },
+    "ros": {
+      "go": "‮⅁o‬",
+      "label": "‮ꓤnu oɟ sɥoʍ‬",
+      "live": "‮⅂ıʌǝ‬",
+      "nextIn": "‮Nǝxʇ ɔnǝ ıu‬"
+    },
+    "rte": {
+      "bold": "‮ꓭolp‬",
+      "bullets": "‮ꓭnllǝʇǝp lısʇ‬",
+      "checklist": "‮Ɔɥǝɔʞlısʇ‬",
+      "hint": "‮ꓕʎdǝ / ɟoɹ qloɔʞs, @ ʇo ɯǝuʇıou, # ʇo lıuʞ ɐ ɹǝɔoɹp.‬",
+      "italic": "‮Iʇɐlıɔ‬",
+      "link": "‮⅂ıuʞ‬",
+      "mention": "‮Wǝuʇıou‬",
+      "table": "‮ꓕɐqlǝ‬",
+      "toolbar": "‮Ⅎoɹɯɐʇʇıuƃ‬"
+    },
+    "scan": {
+      "asset": "‮∀ssǝʇ‬",
+      "credential": "‮Ɔɹǝpǝuʇıɐl‬",
+      "mode": "‮Sɔɐu ɯopǝ‬",
+      "nfc": "‮ꓤǝɐp NℲƆ‬",
+      "receiving": "‮ꓤǝɔǝıʌıuƃ‬",
+      "torch": "‮ꓕoɹɔɥ‬"
+    },
+    "scroll": {
+      "region": "‮Sɔɹollɐqlǝ ɔouʇǝuʇ‬"
+    },
+    "shell": {
+      "menu": "‮Odǝu uɐʌıƃɐʇıou‬"
+    },
+    "shortcutEditor": {
+      "action": "‮∀ɔʇıou‬",
+      "change": "‮Ɔɥɐuƃǝ‬",
+      "edit": "‮Ǝpıʇ‬",
+      "press": "‮Ԁɹǝss ꓘǝʎs‬",
+      "shortcut": "‮Sɥoɹʇɔnʇ‬"
+    },
+    "shortcuts": {
+      "title": "‮ꓘǝʎqoɐɹp Sɥoɹʇɔnʇs‬"
+    },
+    "signature": {
+      "area": "‮Sıƃuɐʇnɹǝ ɐɹǝɐ. ꓷɹɐʍ ʍıʇɥ ɐ ɟıuƃǝɹ, sʇʎlns oɹ ɯonsǝ.‬"
+    },
+    "slate": {
+      "filled": "‮Ԁosıʇıous ɟıllǝp‬",
+      "include": "‮Iuɔlnpǝ {name}‬",
+      "positions": "‮{n} oɟ {total} dosıʇıous‬",
+      "submit": "‮Snqɯıʇ Slɐʇǝ‬",
+      "title": "‮Sʇɐɟɟ Slɐʇǝ‬"
+    },
+    "stale": {
+      "basis": "‮ǝʌıpǝuɔǝ pɐʇǝ‬",
+      "current": "‮Ɔnɹɹǝuʇ‬",
+      "degraded": "‮ꓷǝƃɹɐpǝp Ouǝ Sʇǝd‬",
+      "expired": "‮Ǝxdıɹǝp‬",
+      "modeled": "‮Wopǝlǝp‬",
+      "months": "‮{n} ɯo‬",
+      "title": "‮{n} ɯouʇɥs sıuɔǝ {basis}‬"
+    },
+    "tabbar": {
+      "badge": "‮{n} uǝʍ‬"
+    },
+    "table": {
+      "total": "‮ꓕoʇɐl‬"
+    },
+    "timeline": {
+      "critical": "‮ɔɹıʇıɔɐl dɐʇɥ‬",
+      "dependsOn": "‮ꓷǝdǝups ou‬",
+      "end": "‮Ǝup‬",
+      "key": "‮ꓘǝʎ‬",
+      "milestone": "‮ɯılǝsʇouǝ‬",
+      "record": "‮ꓤǝɔoɹp‬",
+      "start": "‮Sʇɐɹʇ‬",
+      "state": "‮Sʇɐʇǝ‬"
+    },
+    "tooltip": {
+      "withShortcut": "‮{label} ({shortcut})‬"
+    },
+    "update": {
+      "action": "‮Ոdpɐʇǝ‬",
+      "title": "‮Ոdpɐʇǝ ꓤǝbnıɹǝp‬"
+    },
+    "upnext": {
+      "bring": "‮ꓭɹıuƃ‬",
+      "calendar": "‮∀pp ʇo Ɔɐlǝupɐɹ‬",
+      "call": "‮Ɔɐll ʇıɯǝ‬",
+      "contact": "‮Ɔouʇɐɔʇ‬",
+      "directions": "‮ꓷıɹǝɔʇıous‬",
+      "label": "‮Ոd Nǝxʇ‬",
+      "parking": "‮Ԁɐɹʞıuƃ‬",
+      "when": "‮Mɥǝu‬",
+      "where": "‮Mɥǝɹǝ‬"
+    },
+    "view": {
+      "cards": "‮Ɔɐɹps‬",
+      "label": "‮Ʌıǝʍ‬",
+      "map": "‮Wɐd‬"
+    },
+    "visibility": {
+      "application": "‮Ou ∀ddlʎ‬",
+      "private": "‮Ԁɹıʌɐʇǝ‬",
+      "public": "‮Ԁnqlıɔ‬"
+    },
+    "whatsNew": {
+      "changelog": "‮Ɔɥɐuƃǝloƃ‬",
+      "title": "‮Mɥɐʇ's Nǝʍ‬"
+    },
+    "widget": {
+      "label": "‮Hoɯǝ sɔɹǝǝu ʍıpƃǝʇ‬",
+      "nextShift": "‮Nǝxʇ sɥıɟʇ‬"
+    }
+  }
+}
