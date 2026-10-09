@@ -38,13 +38,11 @@ const table: TableSpec = {
 };
 
 describe("literals", () => {
-  it("quotes text and encodes guard-reserved canon values", () => {
+  it("quotes text verbatim and records guard-reserved canon values as findings", () => {
     const f = new Findings();
     expect(quoteText("it's")).toBe("'it''s'");
     expect(textLiteral("plain", "x", f)).toBe("'plain'");
-    expect(textLiteral(`Talent (${RESERVED})`, "elements.item", f)).toMatch(
-      /^convert_from\(decode\('[0-9a-f]+', 'hex'\), 'UTF8'\)$/,
-    );
+    expect(textLiteral(`Talent (${RESERVED})`, "elements.item", f)).toBe(`'Talent (${RESERVED})'`);
     expect(f.ofKind("guard-reserved-word")).toHaveLength(1);
     expect(guardRules("Mock" + "tail Program")).toEqual(["test-double-in-production"]);
   });

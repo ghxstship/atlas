@@ -20,24 +20,21 @@ export function quoteText(value: string): string {
   return `'${value.replace(/'/g, "''")}'`;
 }
 
-function hexOf(value: string): string {
-  return Buffer.from(value, "utf8").toString("hex");
-}
-
 /**
- * A text literal. A canon value the finish guard would read as unfinished work
- * is written hex-encoded so the verbatim canon value survives, and the value is
- * recorded as a finding for an owner decision.
+ * A text literal, always written verbatim and readable. A canon value the finish
+ * guard would read as unfinished work is recorded as a finding for an owner
+ * decision; the guard applies only its em dash rule to importer-generated files.
  */
 export function textLiteral(value: string, location: string, findings: Findings): string {
   const rules = guardRules(value);
-  if (rules.length === 0) return quoteText(value);
-  findings.add(
-    "guard-reserved-word",
-    location,
-    `Canon value trips finish guard rule ${rules.join(", ")}; stored verbatim, hex-encoded in the seed: ${hexOf(value)}`,
-  );
-  return `convert_from(decode('${hexOf(value)}', 'hex'), 'UTF8')`;
+  if (rules.length > 0) {
+    findings.add(
+      "guard-reserved-word",
+      location,
+      `Canon value trips finish guard rule ${rules.join(", ")}; stored verbatim for an owner decision.`,
+    );
+  }
+  return quoteText(value);
 }
 
 const NUMERIC = /^-?[0-9]+(\.[0-9]+)?$/;
