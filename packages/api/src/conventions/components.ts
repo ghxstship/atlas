@@ -5,7 +5,8 @@
  */
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "@hono/zod-openapi";
-import { Problem, RefusalProblem, ValidationProblem } from "@xos/resource-schemas";
+import { Problem, RefusalProblem, ValidationProblem } from "@xos/schemas";
+import type { CapabilityRegistry } from "@xos/schemas/capabilities";
 
 export const PROBLEM_MEDIA_TYPE = "application/problem+json";
 
@@ -357,8 +358,34 @@ export const SECURITY_SCHEMES = {
 
 export const SECURITY_REQUIREMENT = [{ bearerJwt: [] }, { apiKey: [] }, { oauth2: [] }];
 
-export function registerSecuritySchemes(registry: Registry): void {
+/**
+ * OAuth scopes: one per capability group (Section 8.5), where a group is the module that
+ * prefixes every capability code in `capabilities.yaml`. Ordered as the registry orders them.
+ */
+export function oauthScopes(capabilityRegistry: CapabilityRegistry): Record<string, string> {
+  return Object.fromEntries(
+    capabilityRegistry.modules.map((m) => [
+      m.code,
+      `Capability group \`${m.code}\`: ${m.capabilities.map((c) => c.code).join(", ")}.`,
+    ]),
+  );
+}
+
+export function registerSecuritySchemes(
+  registry: Registry,
+  capabilityRegistry: CapabilityRegistry,
+): void {
+  const scopes = oauthScopes(capabilityRegistry);
   for (const [name, scheme] of Object.entries(SECURITY_SCHEMES)) {
-    registry.registerComponent("securitySchemes", name, scheme);
+    const filled =
+      name === "oauth2"
+        ? {
+            ...SECURITY_SCHEMES.oauth2,
+            flows: {
+              authorizationCode: { ...SECURITY_SCHEMES.oauth2.flows.authorizationCode, scopes },
+            },
+          }
+        : scheme;
+    registry.registerComponent("securitySchemes", name, filled);
   }
 }

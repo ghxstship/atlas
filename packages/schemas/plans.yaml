@@ -1,0 +1,133 @@
+# XOS plans, limits, features and price books (Section 16, Section 3.15, ADR 0008).
+#
+# This file is the single source of every plan. The generator in src/plans emits the plan
+# seed migration (supabase/migrations/0207_plan_seed.sql) from it; the pricing page, Stripe
+# products and private.org_plan_limits read the same data.
+#
+# Rules the validator enforces:
+#   - limits and features list exactly the values of the Postgres enums
+#     app.plan_limit_code and app.plan_feature_code, in enum order.
+#   - plans are listed from the free plan upward; that order is the sort order.
+#   - every plan states every limit. A null limit means unlimited.
+#   - a plan lists only the features it adds; it includes every feature of the plan it extends,
+#     so features only accumulate upward, and no plan allows less of a limit than the plan below.
+#   - every plan prices every currency. A null amount is unpriced (Section 3.7), never zero;
+#     only a free plan carries a price of 0.
+
+version: 1
+
+limits:
+  - seats
+  - active_projects
+  - field_members
+  - active_external_engagements_per_month
+
+features:
+  - approvals
+  - advancing
+  - procurement
+  - upl_export
+  - white_label
+  - custom_domain
+  - automations
+  - api_keys
+  - webhooks
+  - public_marketplace_listings
+  - custom_roles
+  - ip_allowlist
+  - audit_export
+  - payroll_export
+  - priority_support
+  - saml_sso
+  - scim
+  - eu_data_residency
+  - branded_compass_build
+  - sla_credits
+  - support_session_controls
+
+currencies: [USD, EUR, GBP, CAD, AUD]
+
+plans:
+  - code: access
+    free: true
+    limits:
+      seats: 1
+      active_projects: 2
+      field_members: 10
+      active_external_engagements_per_month: 25
+    features: []
+    prices:
+      USD: { monthly_minor: 0, annual_minor: 0 }
+      EUR: { monthly_minor: 0, annual_minor: 0 }
+      GBP: { monthly_minor: 0, annual_minor: 0 }
+      CAD: { monthly_minor: 0, annual_minor: 0 }
+      AUD: { monthly_minor: 0, annual_minor: 0 }
+
+  - code: core
+    extends: access
+    limits:
+      seats: null
+      active_projects: null
+      field_members: null
+      active_external_engagements_per_month: 250
+    features: [approvals, advancing, procurement, upl_export]
+    prices:
+      USD: { monthly_minor: null, annual_minor: null }
+      EUR: { monthly_minor: null, annual_minor: null }
+      GBP: { monthly_minor: null, annual_minor: null }
+      CAD: { monthly_minor: null, annual_minor: null }
+      AUD: { monthly_minor: null, annual_minor: null }
+
+  - code: pro
+    extends: core
+    limits:
+      seats: null
+      active_projects: null
+      field_members: null
+      active_external_engagements_per_month: 2500
+    features:
+      [white_label, custom_domain, automations, api_keys, webhooks, public_marketplace_listings]
+    prices:
+      USD: { monthly_minor: null, annual_minor: null }
+      EUR: { monthly_minor: null, annual_minor: null }
+      GBP: { monthly_minor: null, annual_minor: null }
+      CAD: { monthly_minor: null, annual_minor: null }
+      AUD: { monthly_minor: null, annual_minor: null }
+
+  - code: team
+    extends: pro
+    limits:
+      seats: null
+      active_projects: null
+      field_members: null
+      active_external_engagements_per_month: null
+    features: [custom_roles, ip_allowlist, audit_export, payroll_export, priority_support]
+    prices:
+      USD: { monthly_minor: null, annual_minor: null }
+      EUR: { monthly_minor: null, annual_minor: null }
+      GBP: { monthly_minor: null, annual_minor: null }
+      CAD: { monthly_minor: null, annual_minor: null }
+      AUD: { monthly_minor: null, annual_minor: null }
+
+  - code: enterprise
+    extends: team
+    limits:
+      seats: null
+      active_projects: null
+      field_members: null
+      active_external_engagements_per_month: null
+    features:
+      [
+        saml_sso,
+        scim,
+        eu_data_residency,
+        branded_compass_build,
+        sla_credits,
+        support_session_controls,
+      ]
+    prices:
+      USD: { monthly_minor: null, annual_minor: null }
+      EUR: { monthly_minor: null, annual_minor: null }
+      GBP: { monthly_minor: null, annual_minor: null }
+      CAD: { monthly_minor: null, annual_minor: null }
+      AUD: { monthly_minor: null, annual_minor: null }

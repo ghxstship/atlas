@@ -11,7 +11,7 @@ import {
   records as rec,
   safety as saf,
   workforce as wf,
-} from "@xos/resource-schemas";
+} from "@xos/schemas";
 import {
   collectionAction,
   collectionQuery,

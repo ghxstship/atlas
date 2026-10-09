@@ -6,15 +6,20 @@
   "license": "MIT",
   "type": "module",
   "exports": {
+    ".": "./src/index.ts",
     "./capabilities": "./src/capabilities/index.ts",
-    "./capabilities.yaml": "./capabilities.yaml"
+    "./capabilities.yaml": "./capabilities.yaml",
+    "./plans": "./src/plans/index.ts",
+    "./plans.yaml": "./plans.yaml"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
     "generate:capabilities": "node --experimental-strip-types --no-warnings src/capabilities/generate-cli.ts",
-    "check:capabilities": "node --experimental-strip-types --no-warnings src/capabilities/generate-cli.ts --check"
+    "check:capabilities": "node --experimental-strip-types --no-warnings src/capabilities/generate-cli.ts --check",
+    "generate:plans": "node --experimental-strip-types --no-warnings src/plans/generate-cli.ts",
+    "check:plans": "node --experimental-strip-types --no-warnings src/plans/generate-cli.ts --check"
   },
   "dependencies": {
     "yaml": "2.9.1",

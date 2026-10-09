@@ -2,7 +2,7 @@
  * Helpers that keep the catalog declarative: one call per resource, one call per action.
  */
 import { z } from "@hono/zod-openapi";
-import type { ResourceDefinition } from "@xos/resource-schemas";
+import type { ResourceDefinition } from "@xos/schemas";
 import type { ActionSpec, Module, OrderSpec, ResourceSpec, Verb } from "./types.ts";
 
 export interface ResourceOptions {
@@ -82,6 +82,7 @@ interface ActionInput {
   readonly status?: 200 | 201 | 202;
   readonly paged?: boolean;
   readonly segment?: string;
+  readonly rpc?: string;
 }
 
 function kebab(verb: string): string {

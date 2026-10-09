@@ -2,7 +2,7 @@
  * Canon read endpoints (Section 7.2, Section 10.1). Read-only, cached by canon generation.
  */
 import { z } from "@hono/zod-openapi";
-import { canon, canonCodes } from "@xos/resource-schemas";
+import { canon, canonCodes } from "@xos/schemas";
 import { collectionAction, collectionQuery, numericOrder, resource } from "./define.ts";
 import type { ResourceSpec } from "./types.ts";
 

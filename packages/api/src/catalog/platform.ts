@@ -3,7 +3,7 @@
  * (Sections 4.6 and 4.10).
  */
 import { z } from "@hono/zod-openapi";
-import { identity as id, platform as pf } from "@xos/resource-schemas";
+import { identity as id, platform as pf } from "@xos/schemas";
 import { collectionAction, collectionQuery, itemAction, resource } from "./define.ts";
 import type { ResourceSpec } from "./types.ts";
 
@@ -25,10 +25,45 @@ export const platformResources: readonly ResourceSpec[] = [
   }),
   resource("Identity", "/people", id.Person, { verbs: ["list", "get", "update"] }),
   resource("Identity", "/organizations", id.Organization, {
-    verbs: ["list", "get", "create", "update"],
+    verbs: ["list", "get", "update"],
+    actions: [
+      collectionAction("create", {
+        segment: "",
+        summary: "Create an organization",
+        description:
+          "Creates an organization on the Access plan with the caller as its Owner, in one transaction, through `app.create_organization`. A reserved or taken slug is refused with 422.",
+        body: id.CreateOrganizationRequest,
+        rpc: "app.create_organization",
+        response: id.Organization.read,
+        status: 201,
+      }),
+      collectionAction("createClient", {
+        segment: "clients",
+        summary: "Create a client organization",
+        description:
+          "Partner console (Section 4.6.1): creates a client organization under the caller's partner organization, on the given plan, with an Owner invite for the client, through `app.create_client_organization`. Requires `org.partner.manage` in the partner organization; partner staff gain no access to the client organization. The invite token is returned once.",
+        body: id.CreateClientOrganizationRequest,
+        rpc: "app.create_client_organization",
+        response: id.CreateClientOrganizationResult,
+        status: 201,
+      }),
+    ],
   }),
   resource("Identity", "/memberships", id.Membership, {
+    verbs: ["list", "get", "update"],
     actions: [
+      collectionAction("leave", {
+        summary: "Leave the organization",
+        description:
+          "Ends the caller's membership in the organization the credential is bound to, now, through `app.leave_organization`; access ends at once (Section 7.5 invariant 3). The sole Owner is refused with 422. Returns the ended membership.",
+        rpc: "app.leave_organization",
+      }),
+      itemAction("end", {
+        summary: "End a membership",
+        description:
+          "Ends another member's membership now through `app.end_membership`. Requires `org.members.manage` at or above the member's band; the sole Owner is refused with 422. Returns the ended membership.",
+        rpc: "app.end_membership",
+      }),
       itemAction("offboard", {
         summary: "Offboard a member",
         description:
@@ -78,7 +113,37 @@ export const platformResources: readonly ResourceSpec[] = [
       }),
     ],
   }),
-  resource("Identity", "/invites", id.Invite, { verbs: ["list", "get", "create", "delete"] }),
+  resource("Identity", "/invites", id.Invite, {
+    verbs: ["list", "get", "delete"],
+    actions: [
+      collectionAction("create", {
+        segment: "",
+        summary: "Invite a member",
+        description:
+          "Invites an email to the caller's organization with a role the inviter may grant and an expiry of 1 hour to 30 days, through `app.invite_member`. Replaces any pending invite for the same email. Refused with 422 for a role above the inviter's band, a capability the inviter does not hold, an out-of-range expiry or a self-invite. The token is returned once.",
+        body: id.InviteMemberRequest,
+        rpc: "app.invite_member",
+        response: id.InviteMemberResult,
+        status: 201,
+      }),
+      collectionAction("preview", {
+        summary: "Preview an invite",
+        description:
+          "Shows the organization, role and expiry an invite offers, only to the confirmed sign-in it was sent to, through `app.preview_invite`. An invalid, expired, locked or mismatched token returns a 422 `REFUSE` with its reason; repeated failures rate-limit the caller.",
+        body: id.InviteTokenRequest,
+        response: id.InvitePreview,
+        rpc: "app.preview_invite",
+      }),
+      collectionAction("accept", {
+        summary: "Accept an invite",
+        description:
+          "Accepts an invite for the confirmed sign-in it was sent to, through `app.accept_invite`: joins the organization, or reuses the active membership, and receives the role. Refused with 422 when the token is invalid or the inviter no longer holds `org.members.invite`.",
+        body: id.InviteTokenRequest,
+        response: id.AcceptInviteResult,
+        rpc: "app.accept_invite",
+      }),
+    ],
+  }),
   resource("Identity", "/verified-domains", id.VerifiedDomain, {
     actions: [
       itemAction("verify", {

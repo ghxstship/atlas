@@ -6,6 +6,8 @@ import { Validator } from "@seriousme/openapi-schema-validator";
 import { beforeAll, describe, expect, it } from "vitest";
 import { MODULES, buildOpenApiDocument, catalog } from "../src/index.ts";
 import { SECTION_COVERAGE } from "../src/catalog/coverage.ts";
+import { UNUSED_CAPABILITY_ALLOWLIST } from "../src/catalog/capabilities.ts";
+import { allCapabilities, loadCapabilityRegistry } from "@xos/schemas/capabilities";
 import { DOCUMENT_FILE, renderOpenApiDocument } from "../src/document.ts";
 
 type Json = Record<string, unknown>;
@@ -44,8 +46,36 @@ function deref(obj: Json): Json {
 
 /** Views (`v_` tables) are derived rows without an ETag. */
 function hasResourceBody(op: Operation): boolean {
-  return !/\.v_/.test(String(op["x-xos-table"]));
+  return !/\.v_/.test(String(op["x-xos-table"])) && op["x-xos-rpc"] === undefined;
 }
+
+/** A02's identity RPCs (migration 0206) and the operation that calls each. */
+const IDENTITY_RPCS: Record<string, string> = {
+  "organizations.create": "app.create_organization",
+  "organizations.createClient": "app.create_client_organization",
+  "invites.create": "app.invite_member",
+  "invites.preview": "app.preview_invite",
+  "invites.accept": "app.accept_invite",
+  "memberships.leave": "app.leave_organization",
+  "memberships.end": "app.end_membership",
+};
+
+describe("identity RPC operations", () => {
+  it.each(Object.entries(IDENTITY_RPCS))("%s calls %s", (operationId, rpc) => {
+    const found = operations.find((o) => o.op.operationId === operationId);
+    expect(found?.method).toBe("post");
+    expect(found?.op["x-xos-rpc"]).toBe(rpc);
+    expect(Object.keys(found?.op.responses ?? {})).toContain("422");
+  });
+
+  it("never puts an invite token in a URL", () => {
+    for (const { path, op } of operations) {
+      expect(path, op.operationId).not.toMatch(/token/);
+      const names = (op.parameters ?? []).map(deref).map((p) => String(p["name"]));
+      expect(names, op.operationId).not.toContain("token");
+    }
+  });
+});
 
 function headerParams(op: Operation): string[] {
   return (op.parameters ?? [])
@@ -328,6 +358,48 @@ describe("coverage of the spec", () => {
         (p) => p === spec.path || p.startsWith(`${spec.path}/`),
       );
       expect(has, spec.path).toBe(true);
+    }
+  });
+});
+
+describe("capabilities and scopes", () => {
+  const registry = loadCapabilityRegistry();
+  const codes = new Set(allCapabilities(registry).map((c) => c.code));
+  const used = new Set(operations.map((o) => String(o.op["x-xos-capability"])));
+
+  it("declares one OAuth scope per capability group", () => {
+    const oauth = (doc.components["securitySchemes"] as Record<string, Json>)["oauth2"] as {
+      flows: { authorizationCode: { scopes: Record<string, string> } };
+    };
+    expect(Object.keys(oauth.flows.authorizationCode.scopes)).toEqual(
+      registry.modules.map((m) => m.code),
+    );
+  });
+
+  it("names a registry capability on every operation, with the matching scope", () => {
+    for (const { op } of operations) {
+      const capability = String(op["x-xos-capability"]);
+      expect(codes.has(capability), `${op.operationId}: ${capability}`).toBe(true);
+      expect(op["security"], op.operationId).toEqual([
+        { bearerJwt: [] },
+        { apiKey: [] },
+        { oauth2: [capability.split(".")[0]] },
+      ]);
+    }
+  });
+
+  it("uses every registry capability or allowlists it with a reason", () => {
+    const unaccounted = [...codes].filter(
+      (c) => !used.has(c) && UNUSED_CAPABILITY_ALLOWLIST[c] === undefined,
+    );
+    expect(unaccounted).toEqual([]);
+  });
+
+  it("keeps the allowlist free of used or unknown capabilities", () => {
+    for (const [code, reason] of Object.entries(UNUSED_CAPABILITY_ALLOWLIST)) {
+      expect(codes.has(code), `${code} is not in the registry`).toBe(true);
+      expect(used.has(code), `${code} is used and should leave the allowlist`).toBe(false);
+      expect(reason).toMatch(/^[A-Z].*\.$/);
     }
   });
 });

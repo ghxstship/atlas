@@ -208,13 +208,16 @@ export const InvitationLink = defineResource({
 export const Invite = defineResource({
   name: "Invite",
   table: "app.invites",
-  description: "An email invitation to join an org.",
-  serverSet: ["accepted_at"],
+  description:
+    "An email invitation to join an org. Created through `invites.create` (the `app.invite_member` RPC); the token is never stored or returned again.",
+  serverSet: ["email", "role_id", "expires_at", "invited_by", "accepted_at", "revoked_at"],
   fields: {
     email: f.email("Invitee email."),
-    role: OrgRole,
+    role_id: f.ref("role offered"),
     expires_at: f.instant("When the invite expires."),
+    invited_by: f.ref("inviting person"),
     accepted_at: f.instant("When it was accepted.").nullable(),
+    revoked_at: f.instant("When it was revoked or replaced.").nullable(),
   },
 });
 
@@ -370,3 +373,91 @@ export const Me = defineResource({
     engagement_count: f.int("External engagements held.", 5),
   },
 });
+
+// Requests and results of the identity RPCs (migration 0206, ADR 0008).
+
+const slug = z
+  .string()
+  .regex(/^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])?$/)
+  .meta({
+    description: "URL slug; reserved and taken slugs are refused.",
+    example: "northwind-live",
+  });
+
+const inviteToken = z.string().min(1).meta({
+  description: "Invite token from the invitation email. Sent in the body, never in a URL.",
+  example: "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e",
+});
+
+export const CreateOrganizationRequest = z
+  .object({ name: f.text("Organization name.", "Northwind Live"), slug })
+  .meta({
+    id: "CreateOrganizationRequest",
+    description: "Creates an organization on the Access plan with the caller as its Owner.",
+  });
+
+export const CreateClientOrganizationRequest = z
+  .object({
+    name: f.text("Client organization name.", "Harbor City Events"),
+    slug,
+    owner_email: f.email("Email of the client's first Owner, who receives an invite."),
+    plan_code: f.code("Plan code from `plans.yaml`; defaults to access.", "access").optional(),
+  })
+  .meta({
+    id: "CreateClientOrganizationRequest",
+    description:
+      "Creates a client organization under the caller's partner organization (Section 4.6.1).",
+  });
+
+export const CreateClientOrganizationResult = z
+  .object({
+    org_id: f.ref("client organization"),
+    invite_id: f.ref("Owner invite"),
+    invite_token: inviteToken,
+  })
+  .meta({
+    id: "CreateClientOrganizationResult",
+    description: "The created client org and its Owner invite. The token is shown once.",
+  });
+
+export const InviteMemberRequest = z
+  .object({
+    email: f.email("Invitee email."),
+    role_id: f.ref("role offered, at or below the inviter's band"),
+    valid_for_hours: z.int().min(1).max(720).optional().meta({
+      description: "Hours until the invite expires, from 1 to 720. Default 336 (14 days).",
+      example: 336,
+    }),
+  })
+  .meta({
+    id: "InviteMemberRequest",
+    description:
+      "Invites an email to the caller's organization, replacing any pending invite for it.",
+  });
+
+export const InviteMemberResult = z
+  .object({ invite_id: f.ref("invite"), invite_token: inviteToken })
+  .meta({
+    id: "InviteMemberResult",
+    description: "The created invite. The token is shown once; only its hash is stored.",
+  });
+
+export const InviteTokenRequest = z
+  .object({ token: inviteToken })
+  .meta({ id: "InviteTokenRequest", description: "An invite token presented by its recipient." });
+
+export const InvitePreview = z
+  .object({
+    org_name: f.text("Organization the invite joins.", "Northwind Live"),
+    role_code: f.code("Offered role code.", "member"),
+    role_name: f.text("Offered role name.", "Member"),
+    expires_at: f.instant("When the invite expires."),
+  })
+  .meta({
+    id: "InvitePreview",
+    description: "What an invite offers, shown only to its confirmed recipient.",
+  });
+
+export const AcceptInviteResult = z
+  .object({ membership_id: f.ref("membership joined or reused") })
+  .meta({ id: "AcceptInviteResult", description: "The membership the accepted invite joined." });

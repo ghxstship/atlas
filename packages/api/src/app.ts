@@ -4,6 +4,7 @@
  * unimplemented operation answers with a stub.
  */
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { loadCapabilityRegistry } from "@xos/schemas/capabilities";
 import { atlasResources } from "./catalog/atlas.ts";
 import { canonResources } from "./catalog/canon.ts";
 import { marketplaceResources } from "./catalog/marketplace.ts";
@@ -90,7 +91,7 @@ export const DOCUMENT_INFO = {
 export function createApiApp(): OpenAPIHono {
   const app = new OpenAPIHono({ defaultHook: validationHook });
   const registry = app.openAPIRegistry;
-  registerSecuritySchemes(registry);
+  registerSecuritySchemes(registry, loadCapabilityRegistry());
   registerHeaders(registry);
   registerProblemResponses(registry);
   const params = registerParameters(registry);

@@ -3,7 +3,7 @@
  * is generated. Handlers are not part of the catalog; they mount module by module.
  */
 import type { z } from "@hono/zod-openapi";
-import type { ResourceDefinition } from "@xos/resource-schemas";
+import type { ResourceDefinition } from "@xos/schemas";
 
 /** Tags: the Atlas modules of Section 4.2, plus Gateway (4.4), Identity (4.8) and Platform (4.6, 4.10). */
 export const MODULES = [
@@ -54,6 +54,8 @@ export interface ActionSpec {
   readonly response?: z.ZodType;
   /** Status of the success response; defaults to 200. */
   readonly status?: 200 | 201 | 202;
+  /** The database RPC the operation calls, recorded as `x-xos-rpc`. */
+  readonly rpc?: string;
   /** A `{ data: [...] }` page of the response schema instead of one value. */
   readonly paged?: boolean;
 }
