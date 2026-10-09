@@ -6,7 +6,9 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./messages/pseudo/en-XA.json": "./messages/pseudo/en-XA.json",
+    "./messages/pseudo/ar-XB.json": "./messages/pseudo/ar-XB.json"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -14,6 +16,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@formatjs/icu-messageformat-parser": "3.5.21",
     "@types/node": "22.20.5",
     "@xos/config": "workspace:*",
     "eslint": "10.12.0",

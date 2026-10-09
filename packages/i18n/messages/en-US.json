@@ -516,5 +516,502 @@
         "record": "Record"
       }
     }
+  },
+  "ui": {
+    "access": {
+      "allowed": "{cat} in {zone}: allowed",
+      "credential": "Credential",
+      "denied": "{cat} in {zone}: denied"
+    },
+    "action": {
+      "cancel": "Cancel",
+      "clear": "Clear",
+      "close": "Close",
+      "copyLink": "Copy Link",
+      "dismiss": "Dismiss",
+      "done": "Done",
+      "download": "Download",
+      "later": "Later",
+      "reset": "Reset",
+      "retry": "Retry",
+      "save": "Save",
+      "saved": "Saved",
+      "send": "Send",
+      "snooze": "Snooze",
+      "start": "Start",
+      "undo": "Undo",
+      "view": "View"
+    },
+    "apply": {
+      "available": "I'm available on every listed date",
+      "draftSaved": "Draft saved",
+      "shared": "What {org} will see",
+      "submit": "Submit Application",
+      "title": "Apply: {role}"
+    },
+    "assertion": {
+      "aria": "{label}, rank {rank} of 4"
+    },
+    "availability": {
+      "available": "Available",
+      "booked": "Booked"
+    },
+    "avatar": {
+      "more": "{n} more"
+    },
+    "badge": {
+      "brightness": "Raise brightness",
+      "label": "Credential for {name}",
+      "qr": "Credential code {key}",
+      "valid": "Valid {from} to {to}",
+      "wallet": "Add to Wallet",
+      "zones": "Zones"
+    },
+    "bid": {
+      "extended": "Extended",
+      "item": "Item",
+      "line": "Line",
+      "lines": "Bid lines",
+      "qty": "Qty",
+      "sealed": "Sealed bid",
+      "sealedBody": "Bids stay sealed until {deadline}. No bidder sees another bid.",
+      "total": "Bid Total",
+      "unit": "Unit",
+      "unitPrice": "Unit Price"
+    },
+    "board": {
+      "add": "New Record"
+    },
+    "budget": {
+      "amount": "Amount",
+      "costCenter": "Cost Center",
+      "gl": "GL Account",
+      "grade": "Grade",
+      "line": "Line",
+      "qty": "Qty",
+      "rate": "Rate",
+      "unmapped": "Unmapped Account",
+      "urid": "URID"
+    },
+    "bulk": {
+      "clear": "Clear selection",
+      "label": "Bulk actions",
+      "selected": "{n} selected"
+    },
+    "calendar": {
+      "agenda": "Agenda",
+      "day": "Day",
+      "month": "Month",
+      "more": "+{n} more",
+      "range": "Range",
+      "week": "Week"
+    },
+    "camera": {
+      "viewfinder": "Camera viewfinder"
+    },
+    "chart": {
+      "chart": "Chart",
+      "legend": "Legend",
+      "noValue": "No value",
+      "other": "Other",
+      "table": "Table",
+      "tableHint": "Switch to Table for every value.",
+      "view": "View"
+    },
+    "chip": {
+      "remove": "Remove {label}"
+    },
+    "clock": {
+      "break": "Break",
+      "endBreak": "End Break",
+      "out": "Clock Out"
+    },
+    "color": {
+      "blocked": "This color can't be saved until every check passes.",
+      "hex": "{label} hex value",
+      "invalid": "Enter a hex color such as #4F57D9."
+    },
+    "command": {
+      "label": "Command menu",
+      "results": "Results"
+    },
+    "conflict": {
+      "keep": "Keep Selected",
+      "server": "Saved on Server",
+      "title": "Resolve Conflict",
+      "yours": "Yours"
+    },
+    "contact": {
+      "call": "Call {name}",
+      "message": "Message {name}"
+    },
+    "contrast": {
+      "fail": "Fails AA",
+      "pass": "Passes AA",
+      "ratio": "{r}:1"
+    },
+    "count": {
+      "of": "{n} of {total}",
+      "step": "Step {n} of {total}"
+    },
+    "date": {
+      "choose": "Choose date",
+      "chooseRange": "Choose dates",
+      "days": "{n} days",
+      "nextMonth": "Next month",
+      "pick": "Pick a date",
+      "prevMonth": "Previous month",
+      "rangeTo": "to"
+    },
+    "daysheet": {
+      "contacts": "Contacts",
+      "now": "Now"
+    },
+    "diff": {
+      "after": "After",
+      "before": "Before",
+      "field": "Field"
+    },
+    "ecode": {
+      "authorities": "Local authorities",
+      "role": {
+        "bombSquad": "Bomb Squad",
+        "ems": "EMS",
+        "federal": "Federal",
+        "fire": "Fire",
+        "lawEnforcement": "Law Enforcement"
+      },
+      "service": {
+        "bombSquad": "the local bomb squad",
+        "ems": "emergency medical services",
+        "federal": "federal authorities",
+        "fire": "the local fire department",
+        "lawEnforcement": "local law enforcement"
+      }
+    },
+    "engagement": {
+      "stages": "Engagement stages"
+    },
+    "feedback": {
+      "hint": "Describe what you expected and what you saw.",
+      "privacy": "Only what you choose here is sent. Nothing else is captured.",
+      "question": "What happened?",
+      "screenshot": "Attach a screenshot of this page",
+      "thanks": "Thanks. The platform team will read this.",
+      "title": "Send Feedback"
+    },
+    "file": {
+      "drop": "Drop files",
+      "kb": "{n} KB",
+      "orBrowse": "or browse",
+      "page": "Page {n}",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out"
+    },
+    "filter": {
+      "add": "Add Filter",
+      "label": "Filters",
+      "remove": "Remove filter {field}"
+    },
+    "fmt": {
+      "multiplier": "{n}x"
+    },
+    "gate": {
+      "allMet": "All blocking criteria met.",
+      "blocking": "Blocking",
+      "criteriaMet": "Criteria met",
+      "metCount": "{met} of {total} met",
+      "openMany": "{n} blocking criteria open.",
+      "openOne": "{n} blocking criterion open.",
+      "readiness": "Gate readiness"
+    },
+    "grid": {
+      "derived": "Derived from canon. Edit the source record to change it.",
+      "hint": "Arrow keys move, Enter edits, Delete clears to Unpriced, paste from Excel fills the range.",
+      "row": "Row"
+    },
+    "help": {
+      "ask": "Ask a question about this page",
+      "assistant": "Assistant",
+      "contact": "Contact Support",
+      "forThisPage": "For this page",
+      "learnMore": "Learn more",
+      "search": "Search help",
+      "shortcuts": "Shortcuts",
+      "title": "Help",
+      "whatsNew": "What's New"
+    },
+    "inbox": {
+      "fyi": "For Your Information",
+      "label": "Inbox",
+      "needsYou": "Needs You"
+    },
+    "incident": {
+      "help": "Critical types use hold to confirm. Reports queue offline and send when you reconnect.",
+      "title": "Report Incident"
+    },
+    "inspection": {
+      "addPhoto": "Add Photo",
+      "fail": "Fail",
+      "pass": "Pass",
+      "whatFailed": "What failed?"
+    },
+    "key": {
+      "esc": "Esc",
+      "space": "Space"
+    },
+    "link": {
+      "newTab": "Opens in a new tab"
+    },
+    "list": {
+      "noMatch": "No match. Try another word."
+    },
+    "live": {
+      "label": "Live Activity"
+    },
+    "matrix": {
+      "cell": "{row}, {col}: {n} records",
+      "empty": "{row}, {col}: none"
+    },
+    "menu": {
+      "actions": "Actions",
+      "more": "More Actions"
+    },
+    "money": {
+      "blankHelp": "Blank means unpriced. Enter 0 only for a confirmed zero.",
+      "rateOnRequest": "Rate on Request",
+      "unpriced": "Unpriced"
+    },
+    "nav": {
+      "account": "Account menu for {name}",
+      "breadcrumb": "Breadcrumb",
+      "main": "Main",
+      "next": "Next",
+      "pagination": "Pagination",
+      "previous": "Previous"
+    },
+    "number": {
+      "decrease": "Decrease",
+      "increase": "Increase"
+    },
+    "offline": {
+      "queued": "{n} queued"
+    },
+    "opp": {
+      "apply": "Apply",
+      "missing": "Missing: {list}",
+      "qualified": "You meet every requirement",
+      "search": "Search opportunities"
+    },
+    "org": {
+      "marketplace": "Browse Marketplace",
+      "vacant": "Vacant",
+      "verified": "Verified organization"
+    },
+    "packet": {
+      "expired": "Expired",
+      "minutes": "{n} min",
+      "minutesLeft": "About {n} min left",
+      "required": "Required",
+      "review": "In Review",
+      "title": "Onboarding Packet",
+      "todo": "To Do",
+      "verified": "Verified",
+      "verifiedCount": "{n} of {total} verified"
+    },
+    "panel": {
+      "resize": "Resize panel"
+    },
+    "pay": {
+      "approved": "Approved",
+      "expected": "Expected {date}",
+      "label": "Payment for {key}",
+      "paid": "Paid",
+      "scheduled": "Scheduled",
+      "submitted": "Submitted"
+    },
+    "payout": {
+      "account": "Account Number",
+      "accountHelp": "Encrypted on entry. Only the last four digits are shown after saving.",
+      "checking": "Checking",
+      "routing": "Routing Number",
+      "routingHint": "9 digits",
+      "save": "Save Securely",
+      "savings": "Savings",
+      "title": "Payout Details",
+      "type": "Account Type"
+    },
+    "peek": {
+      "openFull": "Open full page"
+    },
+    "phase": {
+      "gate": "Gate {n}",
+      "gateName": "Gate {n} · {name}"
+    },
+    "photo": {
+      "annotate": "Annotate",
+      "n": "Photo {n}",
+      "take": "Take photo"
+    },
+    "presence": {
+      "editing": "{n} editing",
+      "viewing": "{n} viewing"
+    },
+    "profile": {
+      "complete": "{n}% complete",
+      "title": "Profile"
+    },
+    "provenance": {
+      "rank": "Provenance rank {rank}",
+      "source": "Source"
+    },
+    "quickAdd": {
+      "label": "Quick add"
+    },
+    "radio": {
+      "assignment": "Assignment",
+      "channel": "Channel",
+      "notes": "Notes",
+      "zone": "Zone"
+    },
+    "rating": {
+      "comment": "Public comment",
+      "label": "Rating",
+      "release": "Both ratings are released together once both are in, or after 14 days.",
+      "star": "{n} star",
+      "stars": "{n} stars",
+      "submit": "Submit Rating",
+      "title": "Rate {name}"
+    },
+    "recon": {
+      "capability": "Venue Capability",
+      "notDeclared": "Not declared",
+      "requirement": "Requirement",
+      "result": "Result"
+    },
+    "record": {
+      "untitled": "Untitled"
+    },
+    "resource": {
+      "doubleBooked": "Double-booked",
+      "person": "Person"
+    },
+    "result": {
+      "gap": "Gap",
+      "met": "Met",
+      "unknown": "Unknown"
+    },
+    "ros": {
+      "go": "Go",
+      "label": "Run of show",
+      "live": "Live",
+      "nextIn": "Next cue in"
+    },
+    "rte": {
+      "bold": "Bold",
+      "bullets": "Bulleted list",
+      "checklist": "Checklist",
+      "hint": "Type / for blocks, @ to mention, # to link a record.",
+      "italic": "Italic",
+      "link": "Link",
+      "mention": "Mention",
+      "table": "Table",
+      "toolbar": "Formatting"
+    },
+    "scan": {
+      "asset": "Asset",
+      "credential": "Credential",
+      "mode": "Scan mode",
+      "nfc": "Read NFC",
+      "receiving": "Receiving",
+      "torch": "Torch"
+    },
+    "scroll": {
+      "region": "Scrollable content"
+    },
+    "shell": {
+      "menu": "Open navigation"
+    },
+    "shortcutEditor": {
+      "action": "Action",
+      "change": "Change",
+      "edit": "Edit",
+      "press": "Press Keys",
+      "shortcut": "Shortcut"
+    },
+    "shortcuts": {
+      "title": "Keyboard Shortcuts"
+    },
+    "signature": {
+      "area": "Signature area. Draw with a finger, stylus or mouse."
+    },
+    "slate": {
+      "filled": "Positions filled",
+      "include": "Include {name}",
+      "positions": "{n} of {total} positions",
+      "submit": "Submit Slate",
+      "title": "Staff Slate"
+    },
+    "stale": {
+      "basis": "evidence date",
+      "current": "Current",
+      "degraded": "Degraded One Step",
+      "expired": "Expired",
+      "modeled": "Modeled",
+      "months": "{n} mo",
+      "title": "{n} months since {basis}"
+    },
+    "tabbar": {
+      "badge": "{n} new"
+    },
+    "table": {
+      "total": "Total"
+    },
+    "timeline": {
+      "critical": "critical path",
+      "dependsOn": "Depends on",
+      "end": "End",
+      "key": "Key",
+      "milestone": "milestone",
+      "record": "Record",
+      "start": "Start",
+      "state": "State"
+    },
+    "tooltip": {
+      "withShortcut": "{label} ({shortcut})"
+    },
+    "update": {
+      "action": "Update",
+      "title": "Update Required"
+    },
+    "upnext": {
+      "bring": "Bring",
+      "calendar": "Add to Calendar",
+      "call": "Call time",
+      "contact": "Contact",
+      "directions": "Directions",
+      "label": "Up Next",
+      "parking": "Parking",
+      "when": "When",
+      "where": "Where"
+    },
+    "view": {
+      "cards": "Cards",
+      "label": "View",
+      "map": "Map"
+    },
+    "visibility": {
+      "application": "On Apply",
+      "private": "Private",
+      "public": "Public"
+    },
+    "whatsNew": {
+      "changelog": "Changelog",
+      "title": "What's New"
+    },
+    "widget": {
+      "label": "Home screen widget",
+      "nextShift": "Next shift"
+    }
   }
 }
