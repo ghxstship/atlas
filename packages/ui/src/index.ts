@@ -39,7 +39,6 @@ export type {
   PhaseCode,
   RecordKind,
   Option,
-  MenuItem,
 } from "./types/reference";
 
 /* Foundations */
@@ -136,3 +135,58 @@ export {
   type ToastProps,
   type UndoToastProps,
 } from "./Feedback/Feedback.tsx";
+
+/* Overlays and navigation */
+export { useControllable, useHotkey, rovingIndex, type HotkeyOptions } from "./lib/hooks.ts";
+export { BrandMark, monogram, type BrandMarkProps } from "./BrandMark/BrandMark.tsx";
+export {
+  Dialog,
+  Drawer,
+  SidePeek,
+  ShortcutSheet,
+  Popover,
+  HoverCard,
+  Tooltip,
+  PropertyList,
+  type OverlayControl,
+  type DialogProps,
+  type DrawerProps,
+  type SidePeekProps,
+  type ShortcutSheetProps,
+  type PopoverProps,
+  type HoverCardProps,
+  type TooltipProps,
+} from "./Overlays/Overlays.tsx";
+export {
+  DropdownMenu,
+  ContextMenu,
+  OrgSwitcher,
+  type MenuItem,
+  type DropdownMenuProps,
+  type ContextMenuProps,
+  type OrgSwitcherProps,
+} from "./Menus/Menus.tsx";
+export {
+  CommandMenu,
+  type CommandMenuProps,
+  type CommandItem,
+} from "./CommandMenu/CommandMenu.tsx";
+export {
+  Tabs,
+  SegmentedControl,
+  Accordion,
+  Breadcrumbs,
+  Pagination,
+  Sidebar,
+  TopNav,
+  TabBar,
+  type NavItem,
+  type TabsProps,
+  type SegmentedControlProps,
+  type AccordionProps,
+  type BreadcrumbsProps,
+  type PaginationProps,
+  type SidebarProps,
+  type TopNavProps,
+  type TabBarProps,
+} from "./Navigation/Navigation.tsx";
