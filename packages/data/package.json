@@ -1,0 +1,32 @@
+{
+  "name": "@xos/data",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Typed data access for XOS: generated Supabase database types and repository functions over the RPCs and tables.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./database.types": "./src/database.types.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "types:generate": "node --experimental-strip-types --no-warnings scripts/generate-types.ts",
+    "types:check": "node --experimental-strip-types --no-warnings scripts/generate-types.ts --check"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.117.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.0.3",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "prettier": "3.9.9",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
