@@ -10,7 +10,7 @@ schemaVersion: 1
 shell: atlas
 home: home
 params:
-  org: { type: slug, reserved: [advance, sign, legal, partner, ical, api] }
+  org: { type: slug, reserved: [advance, sign, legal, partner, ical, api, auth] }
   projectKey: { type: project-key }
   recordKey: { type: record-key }
   viewId: { type: uuid }

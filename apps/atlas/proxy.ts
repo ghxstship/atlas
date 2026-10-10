@@ -1,13 +1,57 @@
+import { getCurrentPerson } from "@xos/data";
 import { NextResponse, type NextRequest } from "next/server";
+import { sitemap } from "@/ia/sitemap.generated";
+import { decideRoute } from "@/lib/shell/guard";
+import { resolveMembership } from "@/lib/shell/membership";
 import { createProxySupabase } from "@/lib/supabase/proxy";
 
 /**
- * Atlas proxy (Next 16 renames middleware to proxy). Refreshes the Supabase session on every page
- * and server action request so tokens renew silently (Section 11.7).
+ * Atlas proxy (Next 16 renames middleware to proxy), run before every page and server action:
+ *   1. refreshes the Supabase session so tokens renew silently (Section 11.7);
+ *   2. guards routes from the sitemap: signed-out visitors go to sign in, and a route the viewer
+ *      may not see renders the 404 page with status 404, never 403 (ADR 0006).
+ * Pages repeat the visibility check (components/shell/sitemap-page.tsx), so a matcher change can
+ * never open a hidden page.
  */
+
+/** A path no route serves; rewriting to it renders app/not-found.tsx with status 404. */
+const NOT_FOUND_PATH = "/auth/not-found";
+
 export async function proxy(request: NextRequest): Promise<NextResponse> {
-  const { db, response } = createProxySupabase(request, () => NextResponse.next({ request }));
-  await db.auth.getClaims();
+  const forward = () => NextResponse.next({ request });
+  const { db, response } = createProxySupabase(request, forward);
+  const { data } = await db.auth.getUser();
+  const user = data.user;
+
+  let personId: string | null | undefined;
+  const decision = await decideRoute(sitemap, {
+    path: request.nextUrl.pathname,
+    search: request.nextUrl.search,
+    signedIn: user !== null,
+    navFor: async (slug) => {
+      if (!user) return null;
+      if (personId === undefined) {
+        const person = await getCurrentPerson(db, user.id);
+        personId = person.ok ? person.data.id : null;
+      }
+      if (personId === null) return null;
+      const membership = await resolveMembership(db, personId, slug, request.headers);
+      return membership?.nav ?? null;
+    },
+  });
+
+  if (decision.kind === "redirect") {
+    const redirect = NextResponse.redirect(new URL(decision.to, request.url));
+    for (const cookie of response().cookies.getAll()) redirect.cookies.set(cookie);
+    return redirect;
+  }
+  if (decision.kind === "not-found") {
+    const rewrite = NextResponse.rewrite(new URL(NOT_FOUND_PATH, request.url), {
+      request,
+    });
+    for (const cookie of response().cookies.getAll()) rewrite.cookies.set(cookie);
+    return rewrite;
+  }
   return response();
 }
 

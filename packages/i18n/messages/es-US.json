@@ -7,6 +7,920 @@
     "gateway": {
       "name": "Gateway",
       "tagline": "Encuentra trabajo, completa tu incorporación, entrega y recibe tu pago."
+    },
+    "pages": {
+      "home": {
+        "today": {
+          "empty": "No hay nada pendiente hoy. Planifica un proyecto para llenar tu día.",
+          "action": "Planificar proyecto"
+        },
+        "gateReadiness": {
+          "empty": "Aún no hay proyectos avanzando por compuertas. Inicia un proyecto para seguir su preparación.",
+          "action": "Iniciar proyecto"
+        },
+        "alerts": {
+          "empty": "No hay alertas por ahora. Aquí aparecen bloqueos y pendientes vencidos.",
+          "action": "Ver mi trabajo"
+        },
+        "recent": {
+          "empty": "Aún no has abierto ningún registro. Abre un proyecto para iniciar tu historial.",
+          "action": "Abrir proyectos"
+        }
+      },
+      "inbox": {
+        "empty": "Tu bandeja está vacía. Aquí llegan aprobaciones, menciones y notificaciones.",
+        "action": "Ver mi trabajo"
+      },
+      "myWork": {
+        "empty": "Aún no tienes nada asignado. Aquí se reúnen los registros que te pertenecen.",
+        "action": "Ver proyectos"
+      },
+      "projects": {
+        "all": {
+          "empty": "Aún no hay proyectos. Crea el primero con su clave, jurisdicción y fase.",
+          "action": "Nuevo proyecto"
+        },
+        "byPhase": {
+          "empty": "Aún no hay proyectos en el tablero de compuertas. Crea uno para empezar en Alcance.",
+          "action": "Nuevo proyecto"
+        },
+        "portfolioTimeline": {
+          "empty": "La línea de tiempo del portafolio está vacía. Agrega fechas de proyecto para compararlas.",
+          "action": "Nuevo proyecto"
+        },
+        "templates": {
+          "empty": "Aún no hay plantillas de proyecto. Guarda un proyecto como plantilla para reutilizarlo.",
+          "action": "Nueva plantilla"
+        }
+      },
+      "schedule": {
+        "timeline": {
+          "empty": "Aún no hay trabajo programado. Agrega hitos y registros con fechas para armar la línea de tiempo.",
+          "action": "Agregar hito"
+        },
+        "calendar": {
+          "empty": "El calendario está vacío. Programa un registro para verlo aquí.",
+          "action": "Programar registro"
+        },
+        "milestones": {
+          "empty": "Aún no hay hitos. Define las fechas hacia las que trabaja cada departamento.",
+          "action": "Agregar hito"
+        },
+        "baselines": {
+          "empty": "Aún no hay líneas base. Captura una línea base para medir desviaciones del calendario.",
+          "action": "Capturar línea base"
+        }
+      },
+      "work": {
+        "allRecords": {
+          "empty": "Aún no hay registros. Crea una tarea, permiso, reserva o cualquier tipo de registro.",
+          "action": "Nuevo registro"
+        },
+        "byKind": {
+          "empty": "Aún no hay registros para agrupar por tipo. Crea un registro para ver su tipo aquí.",
+          "action": "Nuevo registro"
+        },
+        "workOrders": {
+          "empty": "Aún no hay órdenes de trabajo. Emite una para dirigir a un equipo o proveedor.",
+          "action": "Nueva orden"
+        },
+        "punchLists": {
+          "empty": "Aún no hay listas de pendientes. Inicia una durante los recorridos para seguir correcciones.",
+          "action": "Nueva lista"
+        },
+        "recurring": {
+          "empty": "Aún no hay trabajo recurrente. Configura un registro para que se repita.",
+          "action": "Nueva recurrencia"
+        }
+      },
+      "show": {
+        "runOfShow": {
+          "empty": "Aún no hay guion de evento. Arma la lista de cues para tu primer día de show.",
+          "action": "Armar guion"
+        },
+        "daySheets": {
+          "empty": "Aún no hay hojas del día. Publica una para informar a todos en sitio.",
+          "action": "Nueva hoja"
+        },
+        "callSheets": {
+          "empty": "Aún no hay hojas de llamado. Envía horarios de llamado al equipo y talento.",
+          "action": "Nueva hoja"
+        }
+      },
+      "advancing": {
+        "packets": {
+          "empty": "Aún no hay paquetes de avanzada. Envía uno para reunir lo que trae cada parte.",
+          "action": "Nuevo paquete"
+        },
+        "submissions": {
+          "empty": "Aún no hay envíos. Llegan cuando los destinatarios responden un paquete de avanzada.",
+          "action": "Ver paquetes"
+        },
+        "riders": {
+          "empty": "Aún no hay riders. Sube un rider para conciliarlo con el sitio.",
+          "action": "Subir rider"
+        },
+        "reconciliation": {
+          "empty": "Aún no hay nada que conciliar. Aquí aparecen riders y envíos para revisión.",
+          "action": "Ver riders"
+        }
+      },
+      "places": {
+        "venues": {
+          "empty": "Aún no hay recintos. Agrega los recintos donde produces.",
+          "action": "Agregar recinto"
+        },
+        "spacesAndZones": {
+          "empty": "Aún no hay espacios ni zonas. Divide un recinto en las áreas que programas y aseguras.",
+          "action": "Agregar espacio"
+        },
+        "capabilityDocuments": {
+          "empty": "Aún no hay documentos de capacidades. Sube las especificaciones de un recinto para conciliar requisitos.",
+          "action": "Subir documento"
+        },
+        "sitePlans": {
+          "empty": "Aún no hay planos del sitio. Sube un plano para ubicar zonas, accesos y activos.",
+          "action": "Subir plano"
+        }
+      },
+      "logistics": {
+        "shipments": {
+          "empty": "Aún no hay envíos. Registra uno para seguir la carga que entra y sale.",
+          "action": "Nuevo envío"
+        },
+        "dockSchedule": {
+          "empty": "La agenda del muelle está vacía. Reserva turnos de muelle para las entregas.",
+          "action": "Reservar turno"
+        },
+        "marshallingYardLog": {
+          "empty": "Aún no hay vehículos registrados. Registra la entrada y salida de camiones del patio.",
+          "action": "Registrar vehículo"
+        }
+      },
+      "hospitality": {
+        "fulfillments": {
+          "empty": "Aún no hay solicitudes de hospitalidad. Agrega necesidades de catering, hospedaje o viaje.",
+          "action": "Nueva solicitud"
+        },
+        "beos": {
+          "empty": "Aún no hay órdenes de banquete. Crea una BEO para cada servicio de catering.",
+          "action": "Nueva BEO"
+        },
+        "accommodationBlocks": {
+          "empty": "Aún no hay bloques de habitaciones. Reserva habitaciones para el equipo y el talento.",
+          "action": "Nuevo bloque"
+        }
+      },
+      "assets": {
+        "assetClasses": {
+          "empty": "Aún no hay clases de activos. Define los tipos de equipo que tienes o rentas.",
+          "action": "Nueva clase"
+        },
+        "units": {
+          "empty": "Aún no hay unidades de activos. Registra equipo serializado para seguir su custodia.",
+          "action": "Registrar unidad"
+        },
+        "lots": {
+          "empty": "Aún no hay lotes. Agrupa artículos a granel que cuentas en vez de serializar.",
+          "action": "Nuevo lote"
+        },
+        "custodyLedger": {
+          "empty": "Aún no hay movimientos de custodia. Entrega equipo a una persona o lugar.",
+          "action": "Entregar equipo"
+        },
+        "maintenance": {
+          "empty": "Aún no hay mantenimiento programado. Planifica el servicio del equipo que lo necesita.",
+          "action": "Programar servicio"
+        },
+        "damage": {
+          "empty": "No hay daños reportados. Registra daños en cuanto el equipo regrese afectado.",
+          "action": "Reportar daño"
+        }
+      },
+      "credentials": {
+        "categories": {
+          "empty": "Aún no hay categorías de credenciales. Define quién entra a dónde con niveles de acceso.",
+          "action": "Nueva categoría"
+        },
+        "issued": {
+          "empty": "Aún no hay credenciales emitidas. Emite gafetes para equipo, proveedores e invitados.",
+          "action": "Emitir credencial"
+        },
+        "accessGrid": {
+          "empty": "La matriz de acceso está vacía. Agrega categorías y zonas para mapear el acceso.",
+          "action": "Nueva categoría"
+        },
+        "scanLog": {
+          "empty": "Aún no hay escaneos. Los escaneos de Compass aparecen aquí al entrar a zonas.",
+          "action": "Emitir credencial"
+        }
+      },
+      "safety": {
+        "permits": {
+          "empty": "Aún no hay permisos. Encuentra los permisos que exige tu jurisdicción.",
+          "action": "Nuevo permiso"
+        },
+        "inspections": {
+          "empty": "Aún no hay inspecciones. Programa una a partir de una plantilla de inspección.",
+          "action": "Programar inspección"
+        },
+        "inspectionTemplates": {
+          "empty": "Aún no hay plantillas de inspección. Escribe la lista que siguen tus inspectores.",
+          "action": "Nueva plantilla"
+        },
+        "incidents": {
+          "empty": "No hay incidentes reportados. Reporta uno en cuanto ocurra.",
+          "action": "Reportar incidente"
+        },
+        "dispatchBoard": {
+          "empty": "No hay nada que despachar. Aquí aparecen incidentes abiertos y llamados para respuesta.",
+          "action": "Reportar incidente"
+        },
+        "emergencyCodes": {
+          "empty": "Aún no hay códigos de emergencia. Define los códigos a los que responde todo el sitio.",
+          "action": "Agregar código"
+        },
+        "radioChannels": {
+          "empty": "Aún no hay canales de radio. Asigna canales a los departamentos para el día del show.",
+          "action": "Agregar canal"
+        }
+      },
+      "people": {
+        "directory": {
+          "empty": "Aún no hay personas en el directorio. Invita a tu equipo o agrega un contacto.",
+          "action": "Agregar persona"
+        },
+        "roles": {
+          "empty": "Aún no hay roles de producción. Define los roles que asignas en los proyectos.",
+          "action": "Nuevo rol"
+        },
+        "requisitions": {
+          "empty": "Aún no hay requisiciones. Solicita las personas que necesita un proyecto.",
+          "action": "Nueva requisición"
+        },
+        "offers": {
+          "empty": "Aún no hay ofertas. Envía una oferta para sumar a alguien.",
+          "action": "Nueva oferta"
+        },
+        "agreements": {
+          "empty": "Aún no hay acuerdos. Envía un acuerdo para firma.",
+          "action": "Nuevo acuerdo"
+        },
+        "certifications": {
+          "empty": "Aún no se siguen certificaciones. Registra las certificaciones que tienen las personas.",
+          "action": "Agregar certificación"
+        }
+      },
+      "opportunities": {
+        "requisitions": {
+          "empty": "Aún no hay requisiciones abiertas. Abre una para empezar a contratar un rol.",
+          "action": "Nueva requisición"
+        },
+        "postings": {
+          "empty": "Aún no hay publicaciones. Publica una oportunidad en Gateway.",
+          "action": "Nueva publicación"
+        },
+        "pipeline": {
+          "empty": "Aún no hay postulantes. Las postulaciones de Gateway avanzan por este tablero.",
+          "action": "Nueva publicación"
+        },
+        "pools": {
+          "empty": "Aún no hay grupos de talento. Agrupa a las personas que quieres volver a contratar.",
+          "action": "Nuevo grupo"
+        },
+        "onboarding": {
+          "empty": "Nadie está en incorporación. Las ofertas aceptadas inician aquí su incorporación.",
+          "action": "Ver ofertas"
+        },
+        "engagements": {
+          "empty": "Aún no hay contrataciones. Contrata a un proveedor, miembro del equipo o artista.",
+          "action": "Nueva contratación"
+        },
+        "ratings": {
+          "empty": "Aún no hay calificaciones. Califica las contrataciones cuando terminen.",
+          "action": "Ver contrataciones"
+        },
+        "marketplaceSettings": {
+          "empty": "Elige cómo aparecen tus oportunidades en el mercado de Gateway.",
+          "action": "Definir visibilidad"
+        }
+      },
+      "crew": {
+        "schedule": {
+          "empty": "Aún no hay equipo programado. Crea turnos para cubrir tus días.",
+          "action": "Nuevo turno"
+        },
+        "shifts": {
+          "empty": "Aún no hay turnos. Crea un turno y asígnale equipo.",
+          "action": "Nuevo turno"
+        },
+        "swaps": {
+          "empty": "No hay solicitudes de cambio. Aquí el equipo pide intercambiar turnos.",
+          "action": "Ver turnos"
+        },
+        "timeEntries": {
+          "empty": "Aún no hay registros de tiempo. El equipo marca entrada desde Compass.",
+          "action": "Ver turnos"
+        },
+        "timesheets": {
+          "empty": "Aún no hay hojas de horas. Los registros de tiempo se agrupan aquí para aprobación.",
+          "action": "Ver registros"
+        },
+        "rateCards": {
+          "empty": "Aún no hay tarifarios. Define las tarifas que pagas por rol.",
+          "action": "Nuevo tarifario"
+        },
+        "payPeriods": {
+          "empty": "Aún no hay periodos de pago. Define el periodo en que corres la nómina.",
+          "action": "Nuevo periodo"
+        },
+        "payrollExports": {
+          "empty": "Aún no hay exportaciones de nómina. Exporta hojas de horas aprobadas para la nómina.",
+          "action": "Nueva exportación"
+        },
+        "timeOff": {
+          "empty": "No hay ausencias solicitadas. Aquí aparecen las solicitudes del equipo para aprobación.",
+          "action": "Solicitar ausencia"
+        }
+      },
+      "finance": {
+        "budgets": {
+          "empty": "Aún no hay presupuestos. Arma un presupuesto para tu primer proyecto.",
+          "action": "Nuevo presupuesto"
+        },
+        "expenses": {
+          "empty": "Aún no hay gastos. Envía un gasto con su comprobante.",
+          "action": "Nuevo gasto"
+        },
+        "changeOrders": {
+          "empty": "Aún no hay órdenes de cambio. Crea una cuando cambien el alcance o el costo.",
+          "action": "Nueva orden"
+        },
+        "invoices": {
+          "empty": "Aún no hay facturas. Aquí se reúnen facturas de proveedores y a clientes.",
+          "action": "Nueva factura"
+        },
+        "payments": {
+          "empty": "Aún no hay pagos. Las facturas aprobadas se convierten aquí en pagos.",
+          "action": "Ver facturas"
+        },
+        "journal": {
+          "empty": "Aún no hay asientos contables. Registra un asiento para anotar una transacción.",
+          "action": "Nuevo asiento"
+        },
+        "periods": {
+          "empty": "Aún no hay periodos contables. Abre un periodo para empezar a registrar.",
+          "action": "Abrir periodo"
+        },
+        "universalPostingLineExport": {
+          "empty": "Aún no hay exportaciones. Exporta líneas contables para tu sistema de contabilidad.",
+          "action": "Nueva exportación"
+        },
+        "chartOfAccounts": {
+          "empty": "El catálogo de cuentas viene del canon. Vincula tu libro mayor con él.",
+          "action": "Ver canon"
+        },
+        "costCenters": {
+          "empty": "Aún no hay centros de costo. Agrega los centros de costo que reportas.",
+          "action": "Nuevo centro"
+        }
+      },
+      "procurement": {
+        "rfqs": {
+          "empty": "Aún no hay solicitudes de cotización. Invita a proveedores a cotizar.",
+          "action": "Nueva cotización"
+        },
+        "purchaseOrders": {
+          "empty": "Aún no hay órdenes de compra. Emite una OC para comprometer gasto con un proveedor.",
+          "action": "Nueva OC"
+        },
+        "receipts": {
+          "empty": "Aún no hay recepciones. Recibe bienes contra una orden de compra.",
+          "action": "Ver OC"
+        },
+        "invoiceMatching": {
+          "empty": "Aún no hay nada que cotejar. Aquí se cotejan facturas con OC y recepciones.",
+          "action": "Ver facturas"
+        },
+        "catalog": {
+          "empty": "Tu catálogo está vacío. Vincula artículos del canon con tus proveedores y precios.",
+          "action": "Agregar artículo"
+        }
+      },
+      "vendors": {
+        "directory": {
+          "empty": "Aún no hay proveedores. Agrega los proveedores con los que trabajas.",
+          "action": "Agregar proveedor"
+        },
+        "classes": {
+          "empty": "Aún no hay clases de proveedor. Clasifica a los proveedores por lo que suministran.",
+          "action": "Nueva clase"
+        },
+        "prequalification": {
+          "empty": "Aún no hay precalificaciones. Evalúa a un proveedor antes de contratarlo.",
+          "action": "Iniciar revisión"
+        },
+        "insuranceCertificates": {
+          "empty": "Aún no hay certificados de seguro. Solicita un certificado a cada proveedor.",
+          "action": "Solicitar certificado"
+        },
+        "scorecards": {
+          "empty": "Aún no hay evaluaciones. Califica a los proveedores después de cada contratación.",
+          "action": "Nueva evaluación"
+        },
+        "sponsorEntitlements": {
+          "empty": "Aún no hay beneficios de patrocinio. Enumera lo que se debe a cada patrocinador.",
+          "action": "Nuevo beneficio"
+        }
+      },
+      "knowledge": {
+        "sops": {
+          "empty": "Aún no hay procedimientos operativos. Escribe el primero que sigue tu equipo.",
+          "action": "Nuevo procedimiento"
+        },
+        "documents": {
+          "empty": "Aún no hay documentos. Sube los archivos que necesita tu equipo.",
+          "action": "Subir documento"
+        },
+        "verbiageLibrary": {
+          "empty": "Aún no hay textos estándar. Guarda cláusulas y redacciones que reutilizas.",
+          "action": "Nueva entrada"
+        }
+      },
+      "reports": {
+        "gateReadiness": {
+          "empty": "Aún no hay preparación de compuertas que reportar. Aquí aparecen los proyectos con compuertas.",
+          "action": "Ver proyectos"
+        },
+        "coordinateMatrix": {
+          "empty": "La matriz de coordenadas está vacía. Aquí aparecen los proyectos con alcance.",
+          "action": "Ver proyectos"
+        },
+        "budgetVersusActual": {
+          "empty": "Aún no hay presupuesto que comparar. Arma un presupuesto para compararlo con lo real.",
+          "action": "Ver presupuestos"
+        },
+        "labor": {
+          "empty": "Aún no hay mano de obra que reportar. Las hojas de horas aprobadas alimentan este informe.",
+          "action": "Ver hojas"
+        },
+        "purchaseOrderExposure": {
+          "empty": "Aún no hay exposición de órdenes de compra. Aquí aparecen las OC abiertas.",
+          "action": "Ver OC"
+        },
+        "incidents": {
+          "empty": "No hay incidentes que reportar. Aquí se resumen los incidentes reportados.",
+          "action": "Ver incidentes"
+        },
+        "finalCostReport": {
+          "empty": "Aún no hay informes de costo final. Se genera uno al cerrar un proyecto.",
+          "action": "Ver proyectos"
+        },
+        "savedReports": {
+          "empty": "Aún no hay informes guardados. Arma un informe y guárdalo aquí.",
+          "action": "Armar informe"
+        },
+        "builder": {
+          "empty": "Elige una colección y los campos para armar un informe o tablero.",
+          "action": "Elegir colección"
+        }
+      },
+      "canon": {
+        "departments": {
+          "empty": "Los diez departamentos del canon se cargan con el canon de XOS.",
+          "action": "Ver disciplinas"
+        },
+        "disciplines": {
+          "empty": "Las disciplinas se cargan con el canon de XOS, agrupadas por departamento.",
+          "action": "Ver departamentos"
+        },
+        "categories": {
+          "empty": "Las categorías se cargan con el canon de XOS, agrupadas por disciplina.",
+          "action": "Ver disciplinas"
+        },
+        "elements": {
+          "empty": "Los elementos se cargan con el canon de XOS, agrupados por categoría.",
+          "action": "Ver categorías"
+        },
+        "phasesAndGates": {
+          "empty": "Las nueve fases y sus compuertas se cargan con el canon de XOS.",
+          "action": "Ver tipos"
+        },
+        "recordKinds": {
+          "empty": "Los 26 tipos de registro se cargan con el canon de XOS.",
+          "action": "Ver fases"
+        },
+        "roles": {
+          "empty": "Los roles del canon se cargan con el canon de XOS, por departamento.",
+          "action": "Ver departamentos"
+        },
+        "jurisdictionsAndPermitRules": {
+          "empty": "Las jurisdicciones y sus reglas de permisos se cargan con el canon de XOS.",
+          "action": "Ver permisos"
+        },
+        "metrics": {
+          "empty": "Las métricas del canon se cargan con el canon de XOS.",
+          "action": "Ver departamentos"
+        },
+        "orgExtensions": {
+          "empty": "Aún no hay extensiones de la organización. Amplía el canon con los valores que necesitas.",
+          "action": "Nueva extensión"
+        }
+      },
+      "activity": {
+        "feed": {
+          "empty": "Aún no hay actividad. Aquí aparecen los cambios de tu organización al momento.",
+          "action": "Ver mi trabajo"
+        },
+        "auditLog": {
+          "empty": "Aún no hay eventos auditados. Aquí se registra cada cambio de accesos y ajustes.",
+          "action": "Ver miembros"
+        }
+      },
+      "settings": {
+        "organizationProfile": {
+          "empty": "Define el perfil público, las secciones y el identificador que ven otras organizaciones.",
+          "action": "Editar perfil"
+        },
+        "legalEntitiesAndFiscal": {
+          "empty": "Agrega tus entidades legales, identificadores fiscales, año fiscal y moneda base.",
+          "action": "Agregar entidad"
+        },
+        "rolesAndCapabilities": {
+          "empty": "Crea roles personalizados a partir del conjunto de capacidades.",
+          "action": "Nuevo rol"
+        },
+        "teams": {
+          "empty": "Aún no hay equipos. Agrupa a los miembros en equipos que comparten trabajo.",
+          "action": "Nuevo equipo"
+        },
+        "workspaces": {
+          "empty": "Aún no hay espacios de trabajo. Divide tu organización por oficina o grupo de recintos.",
+          "action": "Nuevo espacio"
+        },
+        "departmentsAndDisciplines": {
+          "empty": "Elige los departamentos y disciplinas del canon en los que trabaja tu organización.",
+          "action": "Elegir departamentos"
+        },
+        "locationsAndVenues": {
+          "empty": "Define los valores predeterminados de tus ubicaciones y recintos.",
+          "action": "Definir valores"
+        },
+        "security": {
+          "empty": "Define la política de MFA, la duración de sesión, las IP permitidas y el inicio de sesión único.",
+          "action": "Definir MFA"
+        },
+        "accessReviews": {
+          "empty": "Aún no hay revisiones de acceso. Haz una cada trimestre para confirmar cada rol.",
+          "action": "Iniciar revisión"
+        },
+        "canonExtensions": {
+          "empty": "Aún no hay extensiones del canon. Agrega valores que tu organización necesita.",
+          "action": "Nueva extensión"
+        },
+        "templates": {
+          "empty": "Aún no hay plantillas de la organización. Guarda plantillas para proyectos, documentos y paquetes.",
+          "action": "Nueva plantilla"
+        },
+        "customFields": {
+          "empty": "Aún no hay campos personalizados. Agrega los campos que necesitan tus registros.",
+          "action": "Nuevo campo"
+        },
+        "customObjects": {
+          "empty": "Aún no hay objetos personalizados. Define un objeto para seguir algo nuevo.",
+          "action": "Nuevo objeto"
+        },
+        "viewsAndDefaults": {
+          "empty": "Define la vista predeterminada de cada colección y comparte vistas guardadas.",
+          "action": "Definir vistas"
+        },
+        "numbering": {
+          "empty": "Define los formatos de claves de registro y números de documento.",
+          "action": "Editar formatos"
+        },
+        "automations": {
+          "empty": "Aún no hay automatizaciones. Automatiza un paso que se repite.",
+          "action": "Nueva automatización"
+        },
+        "approvalPolicies": {
+          "empty": "Aún no hay políticas de aprobación. Decide quién aprueba qué.",
+          "action": "Nueva política"
+        },
+        "spendAuthority": {
+          "empty": "Aún no hay límites de gasto. Define cuánto puede aprobar cada rol.",
+          "action": "Definir límites"
+        },
+        "separationOfDuties": {
+          "empty": "Se aplican las reglas predeterminadas de separación de funciones. Ajústalas para tu organización.",
+          "action": "Revisar reglas"
+        },
+        "timeAndAttendance": {
+          "empty": "Define reglas de marcaje, geocercas, redondeo, descansos y horas extra.",
+          "action": "Definir reglas"
+        },
+        "scheduling": {
+          "empty": "Define plantillas de turno, toma de turnos abiertos y reglas de cambio.",
+          "action": "Definir reglas"
+        },
+        "payrollAndTimeOff": {
+          "empty": "Define periodos de pago, códigos de ingreso y políticas de ausencia.",
+          "action": "Definir periodos"
+        },
+        "gatewayAndMarketplace": {
+          "empty": "Define la visibilidad en el mercado, valores de oportunidades y paquetes de incorporación.",
+          "action": "Definir visibilidad"
+        },
+        "communication": {
+          "empty": "Define reglas del feed, grupos, confirmaciones obligatorias y retención.",
+          "action": "Definir reglas"
+        },
+        "notifications": {
+          "empty": "Define los valores de notificación de la organización y las categorías obligatorias.",
+          "action": "Definir valores"
+        },
+        "aiFeatures": {
+          "empty": "Elige qué funciones de IA usa tu organización.",
+          "action": "Elegir funciones"
+        },
+        "helpAndSupport": {
+          "empty": "Agrega contactos de soporte interno, enlaces de ayuda y horarios de soporte.",
+          "action": "Agregar contacto"
+        },
+        "integrations": {
+          "empty": "Aún no hay integraciones conectadas. Conecta las herramientas que usa tu equipo.",
+          "action": "Conectar herramienta"
+        },
+        "apiKeysAndServiceAccounts": {
+          "empty": "Aún no hay claves de API. Crea una clave limitada a las capacidades que necesita.",
+          "action": "Nueva clave"
+        },
+        "webhooks": {
+          "empty": "Aún no hay webhooks. Envía eventos a tus sistemas en cuanto ocurren.",
+          "action": "Nuevo webhook"
+        },
+        "localization": {
+          "empty": "Define el idioma predeterminado, los formatos, las unidades y la zona horaria.",
+          "action": "Definir idioma"
+        },
+        "partner": {
+          "empty": "Aún no hay organizaciones cliente. Crea una y define su plan.",
+          "action": "Nueva organización"
+        },
+        "usage": {
+          "empty": "Aún no hay uso registrado. Aquí aparecen asientos, contrataciones y almacenamiento.",
+          "action": "Ver miembros"
+        },
+        "dataAndPrivacy": {
+          "empty": "Define la clasificación de datos, exportaciones, retención y retenciones legales.",
+          "action": "Definir retención"
+        },
+        "auditLog": {
+          "empty": "Aún no hay eventos auditados. Aquí se registran los cambios de accesos y ajustes.",
+          "action": "Ver miembros"
+        },
+        "legal": {
+          "empty": "Aquí aparecen los términos y acuerdos que aceptó tu organización, con sus versiones.",
+          "action": "Ver miembros"
+        },
+        "dangerZone": {
+          "empty": "Transfiere la propiedad, archiva o elimina esta organización.",
+          "action": "Transferir propiedad"
+        },
+        "general": {
+          "empty": "Define el nombre de tu organización, su nombre legal, logotipo, espacio de trabajo y página de inicio.",
+          "action": "Editar general"
+        },
+        "members": {
+          "empty": "Invita personas, elige sus roles y finaliza membresías.",
+          "action": "Invitar miembro"
+        },
+        "whiteLabel": {
+          "empty": "Define el color de acento y los logotipos de tu marca para Atlas, Gateway, correo y documentos.",
+          "action": "Definir marca"
+        },
+        "modules": {
+          "empty": "Desactiva módulos para ocultarlos de la navegación, la búsqueda y el menú de comandos.",
+          "action": "Elegir módulos"
+        },
+        "billingAndPlan": {
+          "empty": "Compara los planes y elige el que se ajusta a tu equipo.",
+          "action": "Comparar planes"
+        }
+      },
+      "me": {
+        "profile": {
+          "empty": "Agrega tu foto, titular, habilidades y disponibilidad.",
+          "action": "Editar perfil"
+        },
+        "profilePrivacy": {
+          "empty": "Elige quién ve tu perfil y cada uno de sus campos.",
+          "action": "Definir visibilidad"
+        },
+        "account": {
+          "empty": "Administra tu correo, teléfono, inicios de sesión vinculados y exportación de datos.",
+          "action": "Editar cuenta"
+        },
+        "security": {
+          "empty": "Agrega una llave de acceso o MFA y revisa tus sesiones y dispositivos.",
+          "action": "Agregar llave"
+        },
+        "preferences": {
+          "empty": "Elige tu tema, densidad, idioma, formatos y página de inicio.",
+          "action": "Definir preferencias"
+        },
+        "accessibility": {
+          "empty": "Define el tamaño de texto, contraste, movimiento, sonidos y subtítulos.",
+          "action": "Definir accesibilidad"
+        },
+        "notifications": {
+          "empty": "Elige cómo recibes cada categoría y define horas de silencio.",
+          "action": "Definir avisos"
+        },
+        "outOfOffice": {
+          "empty": "Define tus fechas de ausencia y un delegado para tus aprobaciones.",
+          "action": "Definir fechas"
+        },
+        "workDetails": {
+          "empty": "Agrega contactos de emergencia, tallas y necesidades alimentarias, compartidos solo con consentimiento.",
+          "action": "Agregar datos"
+        },
+        "payoutAndTax": {
+          "empty": "Agrega datos de pago y formularios fiscales para el trabajo que se te paga.",
+          "action": "Agregar pago"
+        },
+        "calendarFeeds": {
+          "empty": "Aún no hay calendarios suscritos. Suscríbete a tu agenda desde cualquier app de calendario.",
+          "action": "Nuevo calendario"
+        },
+        "connectedApps": {
+          "empty": "No hay apps conectadas. Aquí aparecen las apps que autorizas.",
+          "action": "Ver integraciones"
+        },
+        "keyboardShortcuts": {
+          "empty": "Revisa y reasigna tus atajos de teclado.",
+          "action": "Editar atajos"
+        },
+        "developer": {
+          "empty": "Aún no hay tokens personales de API. Crea uno para tus propios scripts.",
+          "action": "Nuevo token"
+        },
+        "organizations": {
+          "empty": "Consulta cada organización a la que perteneces y sal de las que ya no trabajas.",
+          "action": "Ver organizaciones"
+        }
+      },
+      "import": {
+        "empty": "Trae registros desde una hoja de cálculo. Elige un archivo para mapear sus columnas.",
+        "action": "Elegir archivo"
+      },
+      "partnerConsole": {
+        "clientOrgs": {
+          "empty": "Aún no hay organizaciones cliente. Crea una y define su plan.",
+          "action": "Nueva organización"
+        },
+        "defaultBrand": {
+          "empty": "Define la marca que heredan tus organizaciones cliente.",
+          "action": "Definir marca"
+        },
+        "usage": {
+          "empty": "Aún no hay uso que sumar. Aquí aparece el uso de tus organizaciones cliente.",
+          "action": "Ver clientes"
+        },
+        "wholesaleBilling": {
+          "empty": "Aún no hay facturas mayoristas. Aquí aparece la facturación de tus organizaciones cliente.",
+          "action": "Ver clientes"
+        }
+      }
+    },
+    "system": {
+      "notFound": {
+        "title": "Página no encontrada",
+        "body": "Esta página no existe o no tienes acceso a ella.",
+        "action": "Ir al inicio"
+      },
+      "error": {
+        "title": "Esta sección no se cargó",
+        "body": "Algo salió mal al cargarla. Inténtalo de nuevo; si sigue fallando, recarga la página.",
+        "action": "Reintentar"
+      },
+      "fatal": {
+        "title": "Atlas no se cargó",
+        "body": "Algo salió mal antes de que la página se cargara. Recarga para intentarlo de nuevo.",
+        "action": "Recargar"
+      }
+    },
+    "page": {
+      "sections": "Páginas en {section}",
+      "skipToContent": "Ir al contenido"
+    },
+    "legal": {
+      "inReview": "La versión {version} está en revisión y aún no está vigente. El texto publicado aparecerá aquí cuando entre en vigor.",
+      "action": "Volver a Atlas"
+    },
+    "home": {
+      "welcome": "Te damos la bienvenida a {org}",
+      "lead": "Atlas está listo. Completa estos pasos para configurar tu organización.",
+      "checklist": {
+        "title": "Prepara {org}",
+        "progress": "{done} de {total} completados",
+        "done": "Hecho",
+        "todo": "Pendiente",
+        "steps": {
+          "brand": {
+            "title": "Define tu marca",
+            "body": "Agrega tu color de acento y tus logotipos para que Atlas, Gateway y tus documentos te representen."
+          },
+          "members": {
+            "title": "Invita a tu equipo",
+            "body": "Invita a las personas con las que produces y elige sus roles."
+          },
+          "project": {
+            "title": "Crea tu primer proyecto",
+            "body": "Asígnale una clave, una jurisdicción y una fase."
+          },
+          "jurisdiction": {
+            "title": "Revisa las jurisdicciones",
+            "body": "Consulta las reglas de permisos que aplican donde produces."
+          },
+          "budget": {
+            "title": "Arma un presupuesto",
+            "body": "Inicia el presupuesto contra el que gasta tu proyecto."
+          },
+          "schedule": {
+            "title": "Define el calendario",
+            "body": "Agrega los hitos hacia los que trabaja cada departamento."
+          },
+          "compass": {
+            "title": "Invita a tu equipo de campo",
+            "body": "Los miembros de campo usan Compass en sitio para turnos, escaneos e incidentes."
+          },
+          "integration": {
+            "title": "Conecta una herramienta",
+            "body": "Conecta contabilidad, calendarios y las herramientas que ya usas."
+          }
+        }
+      },
+      "plan": {
+        "title": "Tu plan",
+        "current": "{org} está en el plan {plan}.",
+        "action": "Comparar planes"
+      }
+    },
+    "plans": {
+      "access": {
+        "name": "Access",
+        "audience": "Gratis, para un solo productor"
+      },
+      "core": {
+        "name": "Core",
+        "audience": "Para equipos pequeños"
+      },
+      "pro": {
+        "name": "Pro",
+        "audience": "Para productoras"
+      },
+      "team": {
+        "name": "Team",
+        "audience": "Para operadores con varios departamentos"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "audience": "Para agencias y grupos de recintos"
+      },
+      "free": "Gratis",
+      "unpriced": "Aún sin precio",
+      "current": "Plan actual",
+      "unlimited": "Ilimitado",
+      "includesPrevious": "Todo lo de {plan}, más:",
+      "limits": {
+        "seats": "Asientos",
+        "active_projects": "Proyectos activos",
+        "field_members": "Miembros de campo",
+        "active_external_engagements_per_month": "Contrataciones externas por mes"
+      },
+      "features": {
+        "approvals": "Aprobaciones",
+        "advancing": "Avanzada",
+        "procurement": "Compras",
+        "upl_export": "Exportación de líneas contables universales",
+        "white_label": "Marca blanca sin la marca XOS",
+        "custom_domain": "Dominio propio",
+        "automations": "Automatizaciones",
+        "api_keys": "Claves de API",
+        "webhooks": "Webhooks",
+        "public_marketplace_listings": "Publicaciones en el mercado público",
+        "custom_roles": "Roles personalizados",
+        "ip_allowlist": "Lista de IP permitidas",
+        "audit_export": "Exportación de auditoría",
+        "payroll_export": "Exportación de nómina",
+        "priority_support": "Soporte prioritario",
+        "saml_sso": "Inicio de sesión único SAML",
+        "scim": "Aprovisionamiento SCIM",
+        "eu_data_residency": "Residencia de datos en la UE",
+        "branded_compass_build": "Compilación de Compass con tu marca",
+        "sla_credits": "Créditos de SLA",
+        "support_session_controls": "Controles de sesiones de soporte"
+      }
     }
   },
   "nav": {

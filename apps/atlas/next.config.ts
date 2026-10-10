@@ -8,6 +8,8 @@ const config: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ["@xos/i18n", "@xos/ia", "@xos/data", "@xos/icons"],
   typedRoutes: true,
+  // next dev writes an AGENTS.md whose em dashes the finish guard (Section 18, gate 2) refuses.
+  agentRules: false,
 };
 
 export default withNextIntl(config);

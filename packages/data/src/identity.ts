@@ -512,3 +512,20 @@ export async function getSubscription(db: XosClient, orgId: string): Promise<Res
   if (!data) return fail({ kind: "not-found" });
   return ok({ planCode: data.plan_code, state: data.subscription_state });
 }
+
+/**
+ * Whether an org is a partner (Section 4.6.1): it has at least one client org. Partner staff with
+ * org.partner.manage can read their client orgs (policy organizations_read).
+ */
+export async function hasClientOrganizations(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<boolean>> {
+  const { count, error } = await db
+    .from("organizations")
+    .select("id", { count: "exact", head: true })
+    .eq("parent_org_id", orgId)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  return ok((count ?? 0) > 0);
+}

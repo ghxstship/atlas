@@ -11,7 +11,9 @@
     "start": "next start --port 3000",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "generate:routes": "XOS_WRITE_GENERATED=1 vitest run test/routes.test.ts",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
@@ -41,6 +43,7 @@
     "@xos/config": "workspace:*",
     "eslint": "10.12.0",
     "eslint-config-next": "16.4.0",
+    "prettier": "3.9.9",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "vite": "8.3.3",

@@ -6,6 +6,7 @@ import {
   getCurrentPerson,
   getMyOrganization,
   getSubscription,
+  hasClientOrganizations,
   inviteMember,
   isOrgSlug,
   leaveOrganization,
@@ -398,6 +399,21 @@ describe("invitations", () => {
     });
     expect(await acceptInvite(db, "t")).toMatchObject({ error: { kind: "unexpected" } });
     expect((await acceptInvite(db, "t")).ok).toBe(false);
+  });
+});
+
+describe("partner orgs", () => {
+  it("reports whether an org has client orgs", async () => {
+    const { db } = fakeClient({
+      "from:organizations": [
+        { data: null, error: null, count: 2 } as never,
+        { data: null, error: null, count: null } as never,
+        errorResponse("08006", "down"),
+      ],
+    });
+    expect(await hasClientOrganizations(db, "o1")).toEqual({ ok: true, data: true });
+    expect(await hasClientOrganizations(db, "o1")).toEqual({ ok: true, data: false });
+    expect((await hasClientOrganizations(db, "o1")).ok).toBe(false);
   });
 });
 
