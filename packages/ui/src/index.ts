@@ -230,3 +230,81 @@ export {
   type TemplateGatewayShellProps,
   type TemplateSystemProps,
 } from "./Templates/Templates.tsx";
+
+/* Data components */
+export { DataTable, type DataTableProps, type DataTableColumn } from "./DataTable/DataTable.tsx";
+export {
+  RecordRow,
+  RecordList,
+  Board,
+  TreeView,
+  BulkActionBar,
+  ActivityFeedItem,
+  StatTile,
+  type RecordRowProps,
+  type RecordListProps,
+  type BoardProps,
+  type TreeNode,
+  type TreeViewProps,
+  type BulkActionBarProps,
+  type ActivityFeedItemProps,
+  type StatTileProps,
+} from "./Views/Views.tsx";
+
+/* XOS components */
+export {
+  GateReadinessPanel,
+  ProvenanceBadge,
+  AssertionRankBadge,
+  StalenessIndicator,
+  ReconciliationTable,
+  EmergencyCodeCard,
+  RadioChannelTable,
+  RunOfShowLive,
+  CoordinateMatrix,
+  AccessGridMatrix,
+  resolveStep,
+  type GateReadinessPanelProps,
+  type ProvenanceBadgeProps,
+  type AssertionRankBadgeProps,
+  type StalenessIndicatorProps,
+  type ReconciliationTableProps,
+  type EmergencyCodeCardProps,
+  type RadioChannelTableProps,
+  type RunOfShowLiveProps,
+  type CoordinateMatrixProps,
+  type AccessGridMatrixProps,
+} from "./XOS/XOS.tsx";
+export type { EmergencyAuthority } from "./types/reference";
+
+/* Gateway components */
+export {
+  ProgressBar,
+  OpportunityCard,
+  OpportunityFilters,
+  ApplicationForm,
+  AgencySlate,
+  ProfileEditor,
+  EPKViewer,
+  AvailabilityCalendar,
+  OnboardingPacket,
+  EngagementTimeline,
+  RatingDialog,
+  PayoutDetailsForm,
+  PaymentTracker,
+  UpNextCard,
+  type ProgressBarProps,
+  type OpportunityCardProps,
+  type OpportunityFiltersProps,
+  type ApplicationFormProps,
+  type AgencySlateProps,
+  type ProfileEditorProps,
+  type EPKViewerProps,
+  type AvailabilityCalendarProps,
+  type OnboardingPacketProps,
+  type EngagementTimelineProps,
+  type RatingDialogProps,
+  type PayoutDetailsFormProps,
+  type PaymentTrackerProps,
+  type UpNextCardProps,
+} from "./Gateway/Gateway.tsx";
