@@ -19,6 +19,14 @@ function walk(dir: string): string[] {
 
 const sources = walk(src).filter((f) => f.endsWith(".tsx") || f.endsWith(".ts"));
 
+/** Comparison operands (`size === "lg"`) are values, not classes. */
+const COMPARISONS = new Set([
+  ts.SyntaxKind.EqualsEqualsEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsEqualsToken,
+  ts.SyntaxKind.EqualsEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsToken,
+]);
+
 /** String literals that hold class names: `className="..."` attributes and every literal passed to `cx(...)`. */
 function classLiterals(file: string): string[] {
   const text = readFileSync(file, "utf8");
@@ -26,6 +34,7 @@ function classLiterals(file: string): string[] {
   const out: string[] = [];
   const collect = (node: ts.Node) => {
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) out.push(node.text);
+    else if (ts.isBinaryExpression(node) && COMPARISONS.has(node.operatorToken.kind)) return;
     else if (!ts.isCallExpression(node)) ts.forEachChild(node, collect);
   };
   const visit = (node: ts.Node) => {
@@ -78,7 +87,7 @@ beforeAll(async () => {
 
 describe("component styles on Tailwind 4.3.3 with the token preset", () => {
   it("scans class names from the components", () => {
-    expect(used.size).toBeGreaterThanOrEqual(0);
+    expect(used.size).toBeGreaterThan(100);
   });
 
   it("compiles a rule for every class a component uses", () => {
