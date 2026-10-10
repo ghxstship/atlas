@@ -26,43 +26,44 @@ The owner tracks the build in Linear and asked for the project to sync at each c
 
 ## Issue map
 
-| Work                                           | Issue            |
-| ---------------------------------------------- | ---------------- |
-| Wave 0 foundation                              | RRR-5            |
-| A01 canon                                      | RRR-6            |
-| A02 identity core                              | RRR-7            |
-| A04 API contract                               | RRR-8            |
-| A05 design system foundations                  | RRR-9            |
-| A21 legal                                      | RRR-10           |
-| Sitemaps                                       | RRR-11           |
-| Wave 1 freeze                                  | RRR-12           |
-| A03 domain schema                              | RRR-13           |
-| A05 packages/ui                                | RRR-14           |
-| A06 Atlas shell                                | RRR-15           |
-| A18 platform services                          | RRR-16           |
-| A28 engagement schema                          | RRR-17           |
-| Orchestrator carry-overs (plan seed, CI gates) | RRR-18           |
-| A07 to A16 modules                             | RRR-19 to RRR-28 |
-| A27 Gateway                                    | RRR-29           |
-| A28 marketplace                                | RRR-30           |
-| A29 workforce suite                            | RRR-31           |
-| A30 identity, profiles, settings               | RRR-32           |
-| A31 views, help, support                       | RRR-33           |
-| A05 Storybook                                  | RRR-34           |
-| A17 Compass                                    | RRR-35           |
-| A05 packages/ui-native                         | RRR-36           |
-| A19 integrations                               | RRR-37           |
-| A20 SDKs and docs                              | RRR-38           |
-| A25 AI features                                | RRR-39           |
-| A26 reliability                                | RRR-40           |
-| A22 security review                            | RRR-41           |
-| A23 accessibility review                       | RRR-42           |
-| A24 QA and performance                         | RRR-43           |
-| Release and BUILD_REPORT                       | RRR-44           |
-| Quality gate groups                            | RRR-45 to RRR-52 |
-| Acceptance criteria and journeys               | RRR-53 to RRR-60 |
-| Owner decisions                                | RRR-61 to RRR-68 |
-| Linear tracking and commit sync                | RRR-69           |
+| Work                                              | Issue            |
+| ------------------------------------------------- | ---------------- |
+| Wave 0 foundation                                 | RRR-5            |
+| A01 canon                                         | RRR-6            |
+| A02 identity core                                 | RRR-7            |
+| A04 API contract                                  | RRR-8            |
+| A05 design system foundations                     | RRR-9            |
+| A21 legal                                         | RRR-10           |
+| Sitemaps                                          | RRR-11           |
+| Wave 1 freeze                                     | RRR-12           |
+| A03 domain schema                                 | RRR-13           |
+| A05 packages/ui                                   | RRR-14           |
+| A06 Atlas shell                                   | RRR-15           |
+| A18 platform services                             | RRR-16           |
+| A28 engagement schema                             | RRR-17           |
+| Orchestrator carry-overs (plan seed, CI gates)    | RRR-18           |
+| A07 to A16 modules                                | RRR-19 to RRR-28 |
+| A27 Gateway                                       | RRR-29           |
+| A28 marketplace                                   | RRR-30           |
+| A29 workforce suite                               | RRR-31           |
+| A30 identity, profiles, settings                  | RRR-32           |
+| A31 views, help, support                          | RRR-33           |
+| A05 Storybook                                     | RRR-34           |
+| A17 Compass                                       | RRR-35           |
+| A05 packages/ui-native                            | RRR-36           |
+| A19 integrations                                  | RRR-37           |
+| A20 SDKs and docs                                 | RRR-38           |
+| A25 AI features                                   | RRR-39           |
+| A26 reliability                                   | RRR-40           |
+| A22 security review                               | RRR-41           |
+| A23 accessibility review                          | RRR-42           |
+| A24 QA and performance                            | RRR-43           |
+| Release and BUILD_REPORT                          | RRR-44           |
+| Quality gate groups                               | RRR-45 to RRR-52 |
+| Acceptance criteria and journeys                  | RRR-53 to RRR-60 |
+| Owner decisions                                   | RRR-61 to RRR-68 |
+| Linear tracking and commit sync                   | RRR-69           |
+| A05 icon bundle size (performance gate follow-up) | RRR-70           |
 
 New issues are added to Linear first, then to this table in the same commit that references them.
 
