@@ -126,6 +126,12 @@ export type PropContracts = [
   Assert<Same<Ui.CredentialBadgeProps, Ref.CredentialBadgeProps>>,
   Assert<Same<Ui.BrandSlotProps, Ref.BrandSlotProps>>,
   Assert<Same<Ui.WhiteLabelPreviewProps, Ref.WhiteLabelPreviewProps>>,
+  Assert<Same<Ui.NotificationCenterProps, Ref.NotificationCenterProps>>,
+  Assert<Same<Ui.OnboardingChecklistProps, Ref.OnboardingChecklistProps>>,
+  Assert<Same<Ui.WhatsNewProps, Ref.WhatsNewProps>>,
+  Assert<Same<Ui.FeedbackWidgetProps, Ref.FeedbackWidgetProps>>,
+  Assert<Same<Ui.ShortcutEditorProps, Ref.ShortcutEditorProps>>,
+  Assert<Same<Ui.HelpPanelProps, Ref.HelpPanelProps>>,
 ];
 
 export type ComponentContracts = [
@@ -237,6 +243,12 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.CredentialBadge, Ref.CredentialBadgeProps>>,
   Assert<Fits<typeof Ui.BrandSlot, Ref.BrandSlotProps>>,
   Assert<Fits<typeof Ui.WhiteLabelPreview, Ref.WhiteLabelPreviewProps>>,
+  Assert<Fits<typeof Ui.NotificationCenter, Ref.NotificationCenterProps>>,
+  Assert<Fits<typeof Ui.OnboardingChecklist, Ref.OnboardingChecklistProps>>,
+  Assert<Fits<typeof Ui.WhatsNew, Ref.WhatsNewProps>>,
+  Assert<Fits<typeof Ui.FeedbackWidget, Ref.FeedbackWidgetProps>>,
+  Assert<Fits<typeof Ui.ShortcutEditor, Ref.ShortcutEditorProps>>,
+  Assert<Fits<typeof Ui.HelpPanel, Ref.HelpPanelProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -350,6 +362,12 @@ describe("reference contracts", () => {
       "CredentialBadge",
       "BrandSlot",
       "WhiteLabelPreview",
+      "NotificationCenter",
+      "OnboardingChecklist",
+      "WhatsNew",
+      "FeedbackWidget",
+      "ShortcutEditor",
+      "HelpPanel",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);

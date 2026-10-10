@@ -343,3 +343,19 @@ export {
   type BrandSlotProps,
   type WhiteLabelPreviewProps,
 } from "./Identity/Identity.tsx";
+
+/* Feedback and help */
+export {
+  NotificationCenter,
+  OnboardingChecklist,
+  WhatsNew,
+  FeedbackWidget,
+  ShortcutEditor,
+  HelpPanel,
+  type NotificationCenterProps,
+  type OnboardingChecklistProps,
+  type WhatsNewProps,
+  type FeedbackWidgetProps,
+  type ShortcutEditorProps,
+  type HelpPanelProps,
+} from "./Help/Help.tsx";
