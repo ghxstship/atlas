@@ -62,7 +62,11 @@
       "unitPrice": "[Ûñît Prîçé ···]"
     },
     "board": {
-      "add": "[Ñéw Réçörd ···]"
+      "add": "[Ñéw Réçörd ···]",
+      "dropped": "[{title} dröppéd îñ {column}. ··········]",
+      "moved": "[{title} mövéd tö {column}. ·········]",
+      "picked": "[{title} pîçkéd ûp îñ {column}. Àrröw kéýs mövé ît, Spàçé dröps ît, Ésçàpé çàñçéls. ·····························]",
+      "returned": "[{title} rétûrñéd tö {column}. ··········]"
     },
     "budget": {
       "amount": "[Àmöûñt ··]",
@@ -447,6 +451,7 @@
       "badge": "[{n} ñéw ··]"
     },
     "table": {
+      "resizeColumn": "[Résîzé çölûmñ {column} ········]",
       "total": "[Tötàl ·]"
     },
     "timeline": {

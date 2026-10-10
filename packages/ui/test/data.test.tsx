@@ -214,7 +214,9 @@ describe("Board", () => {
     act(() => moved.focus());
     await userEvent.keyboard(" ");
     expect(onMove).toHaveBeenCalledWith("NWL-1", "ready", "active");
-    expect(screen.getByText("Hang truss, Active", { selector: "[aria-live]" })).toBeTruthy();
+    expect(
+      screen.getByText("Hang truss dropped in Active.", { selector: "[aria-live]" }),
+    ).toBeTruthy();
     await userEvent.click(
       within(screen.getByRole("region", { name: "Complete" })).getByRole("button", {
         name: /New Record/,

@@ -62,7 +62,11 @@
       "unitPrice": "‮Ոuıʇ Ԁɹıɔǝ‬"
     },
     "board": {
-      "add": "‮Nǝʍ ꓤǝɔoɹp‬"
+      "add": "‮Nǝʍ ꓤǝɔoɹp‬",
+      "dropped": "‮{title} pɹoddǝp ıu {column}.‬",
+      "moved": "‮{title} ɯoʌǝp ʇo {column}.‬",
+      "picked": "‮{title} dıɔʞǝp nd ıu {column}. ∀ɹɹoʍ ʞǝʎs ɯoʌǝ ıʇ, Sdɐɔǝ pɹods ıʇ, Ǝsɔɐdǝ ɔɐuɔǝls.‬",
+      "returned": "‮{title} ɹǝʇnɹuǝp ʇo {column}.‬"
     },
     "budget": {
       "amount": "‮∀ɯonuʇ‬",
@@ -447,6 +451,7 @@
       "badge": "‮{n} uǝʍ‬"
     },
     "table": {
+      "resizeColumn": "‮ꓤǝsızǝ ɔolnɯu {column}‬",
       "total": "‮ꓕoʇɐl‬"
     },
     "timeline": {

@@ -311,7 +311,9 @@ export function DataTable({
                     <div
                       role="separator"
                       aria-orientation="vertical"
-                      aria-label={`${t("panel.resize")}: ${String(header.column.columnDef.header ?? "")}`}
+                      aria-label={t("table.resizeColumn", {
+                        column: String(header.column.columnDef.header ?? ""),
+                      })}
                       aria-valuenow={header.column.getSize()}
                       aria-valuemin={64}
                       aria-valuemax={640}

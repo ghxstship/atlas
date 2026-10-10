@@ -226,12 +226,16 @@ export function Board({
       e.preventDefault();
       if (held === null) {
         setHeld({ key: card.key, origin: colIndex, at: colIndex });
-        setAnnouncement(`${card.title}, ${cols[colIndex]?.label ?? ""}`);
+        setAnnouncement(
+          t("board.picked", { title: card.title, column: cols[colIndex]?.label ?? "" }),
+        );
       } else {
         const from = cols[held.origin]?.state;
         const to = cols[held.at]?.state;
         if (from && to && held.origin !== held.at) onMove?.(held.key, from, to);
-        setAnnouncement(`${card.title}, ${cols[held.at]?.label ?? ""}`);
+        setAnnouncement(
+          t("board.dropped", { title: card.title, column: cols[held.at]?.label ?? "" }),
+        );
         setHeld(null);
       }
     } else if (held && (e.key === forward || e.key === back)) {
@@ -239,11 +243,13 @@ export function Board({
       const to = Math.max(0, Math.min(cols.length - 1, held.at + (e.key === forward ? 1 : -1)));
       move(held.key, held.at, to);
       setHeld({ ...held, at: to });
-      setAnnouncement(`${card.title}, ${cols[to]?.label ?? ""}`);
+      setAnnouncement(t("board.moved", { title: card.title, column: cols[to]?.label ?? "" }));
     } else if (held && e.key === "Escape") {
       e.preventDefault();
       move(held.key, held.at, held.origin);
-      setAnnouncement(`${card.title}, ${cols[held.origin]?.label ?? ""}`);
+      setAnnouncement(
+        t("board.returned", { title: card.title, column: cols[held.origin]?.label ?? "" }),
+      );
       setHeld(null);
     } else if (e.key === "Enter" && !held) {
       onOpen?.(card.key);

@@ -580,7 +580,11 @@
       "unitPrice": "Unit Price"
     },
     "board": {
-      "add": "New Record"
+      "add": "New Record",
+      "dropped": "{title} dropped in {column}.",
+      "moved": "{title} moved to {column}.",
+      "picked": "{title} picked up in {column}. Arrow keys move it, Space drops it, Escape cancels.",
+      "returned": "{title} returned to {column}."
     },
     "budget": {
       "amount": "Amount",
@@ -965,6 +969,7 @@
       "badge": "{n} new"
     },
     "table": {
+      "resizeColumn": "Resize column {column}",
       "total": "Total"
     },
     "timeline": {

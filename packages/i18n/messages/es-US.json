@@ -580,7 +580,11 @@
       "unitPrice": "Precio unitario"
     },
     "board": {
-      "add": "Nuevo registro"
+      "add": "Nuevo registro",
+      "dropped": "{title} soltado en {column}.",
+      "moved": "{title} movido a {column}.",
+      "picked": "{title} tomado en {column}. Las flechas lo mueven, Espacio lo suelta, Escape cancela.",
+      "returned": "{title} devuelto a {column}."
     },
     "budget": {
       "amount": "Monto",
@@ -965,6 +969,7 @@
       "badge": "{n} nuevos"
     },
     "table": {
+      "resizeColumn": "Cambiar el ancho de la columna {column}",
       "total": "Total"
     },
     "timeline": {

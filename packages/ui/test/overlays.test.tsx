@@ -571,6 +571,9 @@ describe("navigation", () => {
       </div>,
     );
     expect(screen.getByRole("link", { name: /Home/ }).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("button", { name: /Messages/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Today/ }).getAttribute("aria-current")).toBe("page");
+    expect(screen.queryAllByRole("link").filter((a) => a.getAttribute("href") === "#")).toEqual([]);
     expect(screen.getByRole("button", { name: "Account menu for Dana Ortiz" })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: "Command menu" }));
     expect(onSearch).toHaveBeenCalled();
