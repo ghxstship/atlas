@@ -18,5 +18,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0012](0012-canon-rulings.md)                     | Canon Rulings                         | Accepted |
 | [0013](0013-responsive-and-cross-engine-rules.md) | Responsive and Cross-Engine Rules     | Accepted |
 | [0014](0014-wave-1-contract-freeze.md)            | Wave 1 Contract Freeze                | Accepted |
+| [0015](0015-linear-tracking-and-commit-sync.md)   | Linear Tracking and Commit Sync       | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.

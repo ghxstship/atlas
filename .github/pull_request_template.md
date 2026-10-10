@@ -12,4 +12,4 @@ Refs:
 - [ ] Copy is in `packages/i18n` catalogs (en-US and es-US)
 - [ ] Empty, loading, error and refusal states are implemented
 - [ ] `pnpm verify` and `supabase test db` pass locally
-- [ ] Commits are signed off (DCO) and follow Conventional Commits
+- [ ] Commits are signed off (DCO), follow Conventional Commits and name their Linear issue (`Part of RRR-n` or `Fixes RRR-n`)

@@ -16,7 +16,7 @@ Signed-off-by: Your Name <you@example.com>
 
 1. Open an issue or reference an ADR in `docs/adr/` before starting non-trivial work.
 2. Branch from `main`. Each change stays inside the paths its owner holds (ADR 0004).
-3. Write commit messages in Conventional Commits form, for example `feat(finance): add change order pricing`.
+3. Write commit messages in Conventional Commits form, for example `feat(finance): add change order pricing`. Name the Linear issue in a trailer: `Part of RRR-n` while work continues, `Fixes RRR-n` on the commit that completes it (ADR 0015).
 4. Run `pnpm verify` and `supabase test db` locally. Both must pass.
 5. Open a pull request with the template filled in, referencing the issue or ADR.
 
