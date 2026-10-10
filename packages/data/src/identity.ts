@@ -4,6 +4,8 @@ import type { Database, XosClient } from "./client";
 type DerivedOrgInsert = Database["app"]["Tables"]["membership_roles"]["Insert"];
 import { fail, ok, rowRefusal, toDataError, type Result } from "./result";
 
+export { isOrgSlug, slugFromName } from "./slug";
+
 /**
  * Identity repository (Section 4.8.1): people, organizations, memberships, roles and invitations.
  * Mutations go through A02's RPCs (migration 0206) or the column grants of 0205; reads go through
@@ -244,24 +246,6 @@ export async function renameOrganization(
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
-}
-
-/** Whether a value has the org slug format (organizations_slug_format); the RPC still decides. */
-export function isOrgSlug(value: string): boolean {
-  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(value) && value.length >= 2 && value.length <= 48;
-}
-
-/** A slug suggestion from an org name: lowercase, hyphenated, 2 to 48 characters. */
-export function slugFromName(name: string): string {
-  const slug = name
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48)
-    .replace(/-+$/g, "");
-  return slug.length >= 2 ? slug : "";
 }
 
 // Capabilities ---------------------------------------------------------------------------------

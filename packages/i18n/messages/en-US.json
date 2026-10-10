@@ -921,6 +921,96 @@
         "sla_credits": "SLA credits",
         "support_session_controls": "Support session controls"
       }
+    },
+    "auth": {
+      "fields": {
+        "fullName": "Full name",
+        "email": "Email",
+        "password": "Password",
+        "passwordHelp": "At least 8 characters.",
+        "orgName": "Organization name",
+        "orgSlug": "Web address",
+        "orgSlugHelp": "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}."
+      },
+      "or": "or",
+      "signIn": {
+        "title": "Sign in to Atlas",
+        "magicLink": "Email me a sign-in link",
+        "password": "Sign in with password",
+        "noAccount": "New to Atlas?",
+        "toSignUp": "Create an account"
+      },
+      "signUp": {
+        "title": "Create your Atlas account",
+        "submit": "Create account",
+        "haveAccount": "Already have an account?",
+        "toSignIn": "Sign in"
+      },
+      "providers": {
+        "continueWith": "Continue with {provider}",
+        "google": "Google",
+        "apple": "Apple",
+        "azure": "Microsoft"
+      },
+      "checkEmail": {
+        "title": "Check your email",
+        "body": "We sent a link to {email}. Open it on this device to continue.",
+        "bodyNoEmail": "We sent you a link. Open it on this device to continue.",
+        "back": "Back to sign in"
+      },
+      "organization": {
+        "title": "Create your organization",
+        "lead": "You will be its Owner. You can invite your team next.",
+        "accept": "I accept the <termsLink>{terms}</termsLink> and the <dpaLink>{dpa}</dpaLink> on behalf of this organization.",
+        "submit": "Create organization"
+      },
+      "invite": {
+        "title": "Join {org}",
+        "body": "You are invited to join {org} as {role}. The invitation expires {expires}.",
+        "accept": "Accept invitation",
+        "signInFirst": "Sign in with the email address the invitation was sent to.",
+        "refused": {
+          "invite_invalid": "This invitation is no longer valid, or it was sent to a different email address. Ask the person who invited you for a new one.",
+          "invite_rate_limited": "Too many attempts. Wait 15 minutes, then open the invitation link again.",
+          "invite_inviter_inactive": "The person who invited you can no longer add members. Ask an admin of the organization for a new invitation."
+        },
+        "home": "Go to Atlas"
+      },
+      "signOut": "Sign out",
+      "session": {
+        "expiredTitle": "Your session expired",
+        "expiredBody": "Sign in again to keep working. Nothing on this page is lost.",
+        "submit": "Sign in",
+        "signedOutElsewhere": "You signed out in another tab."
+      },
+      "errors": {
+        "invalid_credentials": "That email and password do not match. Check both, or use a sign-in link instead.",
+        "email_not_confirmed": "Confirm your email first: open the link we sent you, then sign in.",
+        "user_already_exists": "An account with this email already exists. Sign in instead.",
+        "weak_password": "Choose a stronger password: at least 8 characters that are hard to guess.",
+        "over_email_send_rate_limit": "We sent too many emails to this address. Wait a few minutes, then try again.",
+        "over_request_rate_limit": "Too many attempts. Wait a minute, then try again.",
+        "provider_disabled": "That sign-in method is not turned on for Atlas yet. Use email instead.",
+        "link_invalid": "This link expired or was already used. Request a new one.",
+        "unexpected": "Something went wrong on our side. Try again in a moment.",
+        "fullName": "Enter your full name.",
+        "email": "Enter an email address like name@company.com.",
+        "password": "Enter a password of at least 8 characters.",
+        "orgName": "Enter your organization's name.",
+        "orgSlug": "Use 2 to 48 lowercase letters, numbers and single hyphens.",
+        "accept": "Accept the Terms of Service and the Data Processing Agreement to continue.",
+        "slug_taken": "That web address is already in use. Choose another.",
+        "slug_reserved": "That web address is reserved by Atlas. Choose another."
+      }
+    },
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "manager": "Manager",
+      "member": "Member",
+      "collaborator": "Collaborator",
+      "field": "Field",
+      "viewer": "Viewer"
     }
   },
   "nav": {

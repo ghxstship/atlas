@@ -921,6 +921,96 @@
         "sla_credits": "Créditos de SLA",
         "support_session_controls": "Controles de sesiones de soporte"
       }
+    },
+    "auth": {
+      "fields": {
+        "fullName": "Nombre completo",
+        "email": "Correo electrónico",
+        "password": "Contraseña",
+        "passwordHelp": "Al menos 8 caracteres.",
+        "orgName": "Nombre de la organización",
+        "orgSlug": "Dirección web",
+        "orgSlugHelp": "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}."
+      },
+      "or": "o",
+      "signIn": {
+        "title": "Inicia sesión en Atlas",
+        "magicLink": "Envíame un enlace de acceso",
+        "password": "Iniciar sesión con contraseña",
+        "noAccount": "¿Eres nuevo en Atlas?",
+        "toSignUp": "Crear una cuenta"
+      },
+      "signUp": {
+        "title": "Crea tu cuenta de Atlas",
+        "submit": "Crear cuenta",
+        "haveAccount": "¿Ya tienes una cuenta?",
+        "toSignIn": "Iniciar sesión"
+      },
+      "providers": {
+        "continueWith": "Continuar con {provider}",
+        "google": "Google",
+        "apple": "Apple",
+        "azure": "Microsoft"
+      },
+      "checkEmail": {
+        "title": "Revisa tu correo",
+        "body": "Enviamos un enlace a {email}. Ábrelo en este dispositivo para continuar.",
+        "bodyNoEmail": "Te enviamos un enlace. Ábrelo en este dispositivo para continuar.",
+        "back": "Volver a iniciar sesión"
+      },
+      "organization": {
+        "title": "Crea tu organización",
+        "lead": "Serás su propietario. Después podrás invitar a tu equipo.",
+        "accept": "Acepto los <termsLink>{terms}</termsLink> y el <dpaLink>{dpa}</dpaLink> en nombre de esta organización.",
+        "submit": "Crear organización"
+      },
+      "invite": {
+        "title": "Únete a {org}",
+        "body": "Te invitaron a unirte a {org} como {role}. La invitación vence {expires}.",
+        "accept": "Aceptar invitación",
+        "signInFirst": "Inicia sesión con el correo al que se envió la invitación.",
+        "refused": {
+          "invite_invalid": "Esta invitación ya no es válida o se envió a otro correo. Pide una nueva a la persona que te invitó.",
+          "invite_rate_limited": "Demasiados intentos. Espera 15 minutos y vuelve a abrir el enlace de la invitación.",
+          "invite_inviter_inactive": "La persona que te invitó ya no puede agregar miembros. Pide una nueva invitación a un administrador de la organización."
+        },
+        "home": "Ir a Atlas"
+      },
+      "signOut": "Cerrar sesión",
+      "session": {
+        "expiredTitle": "Tu sesión expiró",
+        "expiredBody": "Vuelve a iniciar sesión para seguir trabajando. No se pierde nada de esta página.",
+        "submit": "Iniciar sesión",
+        "signedOutElsewhere": "Cerraste sesión en otra pestaña."
+      },
+      "errors": {
+        "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace de acceso.",
+        "email_not_confirmed": "Primero confirma tu correo: abre el enlace que te enviamos y luego inicia sesión.",
+        "user_already_exists": "Ya existe una cuenta con este correo. Inicia sesión.",
+        "weak_password": "Elige una contraseña más segura: al menos 8 caracteres difíciles de adivinar.",
+        "over_email_send_rate_limit": "Enviamos demasiados correos a esta dirección. Espera unos minutos y vuelve a intentarlo.",
+        "over_request_rate_limit": "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
+        "provider_disabled": "Ese método de acceso aún no está activado en Atlas. Usa tu correo.",
+        "link_invalid": "Este enlace venció o ya se usó. Solicita uno nuevo.",
+        "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
+        "fullName": "Escribe tu nombre completo.",
+        "email": "Escribe un correo como nombre@empresa.com.",
+        "password": "Escribe una contraseña de al menos 8 caracteres.",
+        "orgName": "Escribe el nombre de tu organización.",
+        "orgSlug": "Usa de 2 a 48 letras minúsculas, números y guiones sencillos.",
+        "accept": "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
+        "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
+        "slug_reserved": "Atlas reserva esa dirección web. Elige otra."
+      }
+    },
+    "roles": {
+      "owner": "Propietario",
+      "admin": "Administrador",
+      "manager": "Gerente",
+      "member": "Miembro",
+      "collaborator": "Colaborador",
+      "field": "Campo",
+      "viewer": "Observador"
     }
   },
   "nav": {

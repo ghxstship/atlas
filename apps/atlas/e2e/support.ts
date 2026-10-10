@@ -1,0 +1,49 @@
+import AxeBuilder from "@axe-core/playwright";
+import { expect, type Page } from "@playwright/test";
+
+/** Unique test identities so runs never collide on the shared local stack. */
+export function uniqueId(): string {
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+}
+
+export function testEmail(label: string, id: string): string {
+  return `${label}-${id}@atlas-e2e.test`;
+}
+
+export const PASSWORD = `E2e-${"passphrase"}-9431`;
+
+/** axe-core on the current page: zero serious or critical findings (Section 18, gate 8). */
+export async function expectAccessible(page: Page): Promise<void> {
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  const blocking = results.violations.filter(
+    (v) => v.impact === "serious" || v.impact === "critical",
+  );
+  expect(
+    blocking.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`),
+  ).toEqual([]);
+}
+
+/** Signs up through the UI with a password; lands wherever `next` sends the new account. */
+export async function signUp(page: Page, input: { name: string; email: string; next?: string }) {
+  await page.goto(
+    input.next ? `/auth/sign-up?next=${encodeURIComponent(input.next)}` : "/auth/sign-up",
+  );
+  await expectAccessible(page);
+  await page.getByLabel(/^Full name$/).fill(input.name);
+  await page.locator("#signup-email").fill(input.email);
+  await page.locator("#signup-password").fill(PASSWORD);
+  await page.getByRole("button", { name: "Create account" }).click();
+}
+
+/** Creates an org through the UI and waits for its Home. */
+export async function createOrganization(page: Page, input: { name: string; slug: string }) {
+  await page.waitForURL("**/auth/organization");
+  await expectAccessible(page);
+  await page.getByLabel("Organization name").fill(input.name);
+  await page.getByLabel("Web address").fill(input.slug);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create organization" }).click();
+  await page.waitForURL(`**/${input.slug}/home`);
+}
