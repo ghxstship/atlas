@@ -1,8 +1,8 @@
 import { getNode, isNodeVisible } from "@xos/ia";
-import { ChevronRight, Inbox } from "lucide-react";
-import type { Route } from "next";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EmptyStateLink, PageHeader } from "@/components/ui";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import {
   emptyStateHref,
@@ -13,23 +13,21 @@ import {
   sitemap,
 } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
-import { ButtonLink, PageHeader } from "./primitives";
-import { SystemMessage } from "./system-message";
 
 type Params = Readonly<Record<string, string>>;
 
 /**
  * Route guard for a page (ADR 0006, Section 4.5.9): the org context must exist, the node must be
- * visible to the viewer's role and conditions, and any data row the route names must resolve.
- * Anything else is 404, never 403. The proxy runs the same guard before the request reaches here.
+ * visible to the viewer's role, conditions and modules, and any data row the route names must
+ * resolve. Anything else is 404, never 403. The proxy runs the same guard first.
  */
 export async function requireNode(node: string, params: Params): Promise<OrgContext> {
   const slug = params["org"] ?? params["partnerSlug"];
   const ctx = slug === undefined ? null : await getOrgContext(slug);
   if (!ctx || !isNodeVisible(sitemap, node, ctx.nav)) notFound();
   const route = getNode(sitemap, node).node.route ?? "";
-  // Projects (A03), records (A03), saved views (A31) and custom objects (A18) have no table yet,
-  // so no key resolves and these routes answer 404 until their owners add the lookup.
+  // Projects and records (A03), saved views (A31) and custom objects (A18) have no table yet, so
+  // no key resolves and these routes answer 404 until their owners add the lookup.
   if (namesDataRow(route)) notFound();
   return ctx;
 }
@@ -50,7 +48,7 @@ export async function SitemapPage({ node, params }: { node: string; params: Para
     return (
       <>
         <PageHeader title={title} />
-        <nav aria-label={t("shell.page.sections", { section: title })} className="px-24 py-16">
+        <nav aria-label={t("shell.page.sections", { section: title })}>
           <ul className="flex max-w-layout-form flex-col divide-y divide-border-subtle rounded-card border border-border-subtle">
             {children.map((child) => {
               const href = nodeHref(child.id, params);
@@ -79,15 +77,11 @@ export async function SitemapPage({ node, params }: { node: string; params: Para
   return (
     <>
       <PageHeader title={title} />
-      <SystemMessage
-        icon={Inbox}
-        headingLevel={2}
-        body={t(`${copy}.empty`)}
-        action={
-          <ButtonLink href={emptyStateHref(node, params, ctx.nav) as Route} variant="primary">
-            {t(`${copy}.action`)}
-          </ButtonLink>
-        }
+      <EmptyStateLink
+        icon="Inbox"
+        sentence={t(`${copy}.empty`)}
+        actionLabel={t(`${copy}.action`)}
+        href={emptyStateHref(node, params, ctx.nav)}
       />
     </>
   );

@@ -2,7 +2,7 @@ import { MailCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { ButtonLink } from "@/components/shell/primitives";
+import { ButtonLink } from "@/components/ui";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("shell.auth.checkEmail");

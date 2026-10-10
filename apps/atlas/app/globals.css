@@ -1,10 +1,8 @@
-/* Atlas styles: design tokens from @xos/tokens (CSS variables), then Tailwind with the XOS preset.
-   Dark is the default theme on :root; data-theme="light" on <html> switches to light. */
-@import "@xos/tokens/css/base.css";
-@import "@xos/tokens/css/theme.dark.css";
-@import "@xos/tokens/css/theme.light.css";
-@import "tailwindcss";
-@config "../tailwind.config.mjs";
+/* Atlas styles: the @xos/ui entry (Tailwind 4 with the token preset, the token variables for
+   every theme and the component styles), then the app's base rules. Dark is the default theme;
+   data-theme on <html> switches it. Atlas's own sources are scanned from this file's project. */
+@import "@xos/ui/styles.css";
+@source "../";
 
 @layer base {
   html {
@@ -36,4 +34,14 @@
       animation-duration: var(--motion-duration-reduced) !important;
     }
   }
+}
+
+/* Focus mode (Cmd or Ctrl+.): hide the sidebar and the page chrome, keep only the page. */
+.xos-shell[data-focus="true"] .group\/shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.xos-shell[data-focus="true"] .group\/shell > div:first-child,
+.xos-shell[data-focus="true"] .group\/shell > main > div:first-child {
+  display: none;
 }

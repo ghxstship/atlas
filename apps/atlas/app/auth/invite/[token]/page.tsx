@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { AcceptInviteForm, errorMessage } from "@/components/auth/forms";
-import { FormAlert } from "@/components/shell/field";
-import { ButtonLink } from "@/components/shell/primitives";
+import { ButtonLink, InlineAlert } from "@/components/ui";
 import { getViewer } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
 
@@ -35,7 +34,9 @@ export default async function InvitePage({ params }: PageProps<"/auth/invite/[to
     return (
       <div className="flex flex-col gap-16">
         <h1 className="text-heading-20 font-semibold">{t("accept")}</h1>
-        <FormAlert>{errorMessage((k) => translate(`shell.auth.${k}`), key)}</FormAlert>
+        <InlineAlert tone="danger">
+          {errorMessage((k) => translate(`shell.auth.${k}`), key)}
+        </InlineAlert>
         <p className="text-text-13 text-text-secondary">{t("signInFirst")}</p>
         <ButtonLink href="/">{t("home")}</ButtonLink>
       </div>

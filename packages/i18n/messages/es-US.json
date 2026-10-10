@@ -1011,6 +1011,28 @@
       "collaborator": "Colaborador",
       "field": "Campo",
       "viewer": "Observador"
+    },
+    "chrome": {
+      "search": "Buscar",
+      "searchHint": "Busca páginas y ajustes",
+      "favoritesEmpty": "Fija proyectos, vistas guardadas y registros para tenerlos aquí.",
+      "organizations": "Organizaciones",
+      "createOrganization": "Crear organización",
+      "workspace": "Espacio de trabajo",
+      "allWorkspaces": "Todos los espacios",
+      "account": "Cuenta",
+      "language": "Idioma",
+      "theme": "Tema",
+      "themeDark": "Oscuro",
+      "themeLight": "Claro",
+      "focusMode": "Modo enfoque",
+      "focusModeOn": "El modo enfoque está activo. Presiona Ctrl o Cmd y punto para mostrar la navegación.",
+      "locales": {
+        "en-US": "English (US)",
+        "es-US": "Español (EE. UU.)",
+        "en-XA": "Pseudolocalización (acentos)",
+        "ar-XB": "Pseudolocalización (derecha a izquierda)"
+      }
     }
   },
   "nav": {

@@ -3,7 +3,7 @@ import { isNodeVisible } from "@xos/ia";
 import { CircleCheck, Circle } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { ButtonLink, PageHeader } from "@/components/shell/primitives";
+import { ButtonLink, PageHeader } from "@/components/ui";
 import { requireNode } from "@/components/shell/sitemap-page";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -52,7 +52,7 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
   return (
     <>
       <PageHeader title={translate("nav.atlas.items.home")} />
-      <div className="grid grid-cols-1 gap-16 px-24 py-24 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-16 lg:grid-cols-12">
         <section
           aria-labelledby="home-checklist"
           className="rounded-card border border-border-subtle bg-bg-surface p-16 lg:col-span-8"

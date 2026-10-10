@@ -1,15 +1,13 @@
-import { FileText } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { ButtonLink } from "@/components/shell/primitives";
-import { SystemMessage } from "@/components/shell/system-message";
+import { SystemPage } from "@/components/ui";
 import { LEGAL_DOCUMENTS } from "@/lib/legal.generated";
 
 /**
  * Published legal documents (Section 14.4), public. Publishing the text with version history
- * belongs to A21 and waits on legal/OWNER_INPUTS.md; until a version takes effect (no "-draft"
- * suffix) the page states which version is in review. Internal documents are never served.
+ * belongs to A21 and waits on legal/OWNER_INPUTS.md; while a document's current version is a
+ * draft the page states which version is in review. Internal documents are never served.
  */
 function publicDocument(slug: string) {
   return LEGAL_DOCUMENTS.find((d) => d.slug === slug && d.publish === "public");
@@ -28,11 +26,12 @@ export default async function LegalPage({ params }: PageProps<"/legal/[document]
   const t = await getTranslations("shell.legal");
   return (
     <main id="content">
-      <SystemMessage
-        icon={FileText}
+      <SystemPage
+        icon="FileText"
         title={doc.title}
-        body={t("inReview", { version: doc.version })}
-        action={<ButtonLink href="/">{t("action")}</ButtonLink>}
+        sentence={t("inReview", { version: doc.version })}
+        actionLabel={t("action")}
+        href="/"
       />
     </main>
   );

@@ -1,7 +1,9 @@
 import { getCurrentPerson } from "@xos/data";
 import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
+import { findRoute } from "@xos/ia";
 import { decideRoute } from "@/lib/shell/guard";
+import { LAST_ORG_COOKIE } from "@/lib/shell/last-org";
 import { resolveMembership } from "@/lib/shell/membership";
 import { createProxySupabase } from "@/lib/supabase/proxy";
 
@@ -52,7 +54,19 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     for (const cookie of response().cookies.getAll()) rewrite.cookies.set(cookie);
     return rewrite;
   }
-  return response();
+  const result = response();
+  // Remember the org this device opened last, so the entry route returns to it.
+  const slug = findRoute(sitemap, request.nextUrl.pathname)?.params["org"];
+  if (slug && user && request.cookies.get(LAST_ORG_COOKIE)?.value !== slug) {
+    result.cookies.set(LAST_ORG_COOKIE, slug, {
+      path: "/",
+      sameSite: "lax",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 365,
+    });
+  }
+  return result;
 }
 
 export const config = {

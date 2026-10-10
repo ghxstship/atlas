@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { signInWithProvider } from "@/app/auth/actions";
 import { enabledProviders } from "@/lib/auth/providers";
-import { Button } from "@/components/shell/primitives";
+import { Button } from "@/components/ui";
 
 /**
  * OAuth buttons for the providers Supabase Auth has enabled (Section 9: Google, Apple and

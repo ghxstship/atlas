@@ -1011,6 +1011,28 @@
       "collaborator": "Collaborator",
       "field": "Field",
       "viewer": "Viewer"
+    },
+    "chrome": {
+      "search": "Search",
+      "searchHint": "Search pages and settings",
+      "favoritesEmpty": "Pin projects, saved views and records to keep them here.",
+      "organizations": "Organizations",
+      "createOrganization": "Create organization",
+      "workspace": "Workspace",
+      "allWorkspaces": "All workspaces",
+      "account": "Account",
+      "language": "Language",
+      "theme": "Theme",
+      "themeDark": "Dark",
+      "themeLight": "Light",
+      "focusMode": "Focus mode",
+      "focusModeOn": "Focus mode is on. Press Ctrl or Cmd and period to show navigation.",
+      "locales": {
+        "en-US": "English (US)",
+        "es-US": "Español (EE. UU.)",
+        "en-XA": "Pseudo-locale (accented)",
+        "ar-XB": "Pseudo-locale (right to left)"
+      }
     }
   },
   "nav": {

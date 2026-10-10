@@ -1,12 +1,10 @@
 "use client";
 
-import { TriangleAlert } from "lucide-react";
+import { ErrorState } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
-import { Button } from "@/components/shell/primitives";
-import { SystemMessage } from "@/components/shell/system-message";
 
-/** Error boundary with a retry (Section 11.7, loading): the System template for a failed region. */
+/** Error boundary with a retry (Section 11.7, loading): @xos/ui ErrorState for a failed region. */
 export default function ErrorBoundary({
   error,
   reset,
@@ -19,15 +17,12 @@ export default function ErrorBoundary({
     console.error(error);
   }, [error]);
   return (
-    <SystemMessage
-      icon={TriangleAlert}
+    <ErrorState
       title={t("title")}
-      body={t("body")}
-      action={
-        <Button variant="primary" onClick={reset}>
-          {t("action")}
-        </Button>
-      }
+      sentence={t("body")}
+      actionLabel={t("action")}
+      onRetry={reset}
+      {...(error.digest ? { reference: error.digest } : {})}
     />
   );
 }

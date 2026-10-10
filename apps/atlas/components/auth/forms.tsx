@@ -11,8 +11,7 @@ import {
   signUp,
   type FormState,
 } from "@/app/auth/actions";
-import { Field, FormAlert } from "@/components/shell/field";
-import { Button } from "@/components/shell/primitives";
+import { Button, Checkbox, InlineAlert, Input } from "@xos/ui";
 
 /** Auth forms (Auth template). Each keeps typed input after a failed submit (Section 11.7). */
 
@@ -30,9 +29,10 @@ export function errorMessage(t: Translate, key: string): string {
     : t(`errors.${key}`);
 }
 
-function fieldError(t: Translate, state: FormState, field: string): string | undefined {
+/** The field's error message, or an empty string (no error shown). */
+function fieldError(t: Translate, state: FormState, field: string): string {
   const key = state.fieldErrors?.[field];
-  return key === undefined ? undefined : t(`errors.${key}`);
+  return key === undefined ? "" : t(`errors.${key}`);
 }
 
 const INITIAL: FormState = {};
@@ -56,9 +56,10 @@ export function PasswordSignInForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(signInWithPassword, INITIAL);
   return (
     <form action={action} className="flex flex-col gap-12" noValidate>
-      {state.error ? <FormAlert>{errorMessage(t, state.error)}</FormAlert> : null}
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
-      <Field
+      <Input
+        width="100%"
         id="signin-email"
         name="email"
         type="email"
@@ -68,7 +69,8 @@ export function PasswordSignInForm({ next }: { next: string }) {
         defaultValue={state.values?.["email"] ?? ""}
         error={fieldError(t, state, "email")}
       />
-      <Field
+      <Input
+        width="100%"
         id="signin-password"
         name="password"
         type="password"
@@ -87,10 +89,11 @@ export function MagicLinkForm({ next, intent }: { next: string; intent: "sign-in
   const [state, action, pending] = useActionState(sendMagicLink, INITIAL);
   return (
     <form action={action} className="flex flex-col gap-12" noValidate>
-      {state.error ? <FormAlert>{errorMessage(t, state.error)}</FormAlert> : null}
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
       <input type="hidden" name="intent" value={intent} />
-      <Field
+      <Input
+        width="100%"
         id="magic-email"
         name="email"
         type="email"
@@ -110,9 +113,10 @@ export function SignUpForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(signUp, INITIAL);
   return (
     <form action={action} className="flex flex-col gap-12" noValidate>
-      {state.error ? <FormAlert>{errorMessage(t, state.error)}</FormAlert> : null}
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
-      <Field
+      <Input
+        width="100%"
         id="signup-name"
         name="fullName"
         autoComplete="name"
@@ -121,7 +125,8 @@ export function SignUpForm({ next }: { next: string }) {
         defaultValue={state.values?.["fullName"] ?? ""}
         error={fieldError(t, state, "fullName")}
       />
-      <Field
+      <Input
+        width="100%"
         id="signup-email"
         name="email"
         type="email"
@@ -131,7 +136,8 @@ export function SignUpForm({ next }: { next: string }) {
         defaultValue={state.values?.["email"] ?? ""}
         error={fieldError(t, state, "email")}
       />
-      <Field
+      <Input
+        width="100%"
         id="signup-password"
         name="password"
         type="password"
@@ -163,8 +169,9 @@ export function OrganizationForm({
   const shownSlug = slugEdited ? slug : slugFromName(name);
   return (
     <form action={action} className="flex flex-col gap-12" noValidate>
-      {state.error ? <FormAlert>{errorMessage(t, state.error)}</FormAlert> : null}
-      <Field
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
+      <Input
+        width="100%"
         id="org-name"
         name="orgName"
         autoComplete="organization"
@@ -174,7 +181,8 @@ export function OrganizationForm({
         onChange={(e) => setName(e.target.value)}
         error={fieldError(t, state, "orgName")}
       />
-      <Field
+      <Input
+        width="100%"
         id="org-slug"
         name="orgSlug"
         required
@@ -189,33 +197,31 @@ export function OrganizationForm({
         }}
         error={fieldError(t, state, "orgSlug")}
       />
-      <div className="flex items-start gap-8">
-        <input
-          id="org-accept"
-          name="accept"
-          type="checkbox"
-          required
-          aria-invalid={state.fieldErrors?.["accept"] ? true : undefined}
-          aria-describedby={state.fieldErrors?.["accept"] ? "org-accept-error" : undefined}
-          className="mt-2 size-16 accent-accent"
-        />
-        <label htmlFor="org-accept" className="text-text-13 text-text-secondary">
-          {tr.rich("accept", {
-            terms: terms.title,
-            dpa: dpa.title,
-            termsLink: (chunks) => (
-              <a className="text-accent-text underline" href={terms.href} target="_blank">
-                {chunks}
-              </a>
-            ),
-            dpaLink: (chunks) => (
-              <a className="text-accent-text underline" href={dpa.href} target="_blank">
-                {chunks}
-              </a>
-            ),
-          })}
-        </label>
-      </div>
+      <Checkbox
+        id="org-accept"
+        name="accept"
+        required
+        aria-invalid={state.fieldErrors?.["accept"] ? true : undefined}
+        aria-describedby={state.fieldErrors?.["accept"] ? "org-accept-error" : undefined}
+        label={
+          <span className="text-text-13 text-text-secondary">
+            {tr.rich("accept", {
+              terms: terms.title,
+              dpa: dpa.title,
+              termsLink: (chunks) => (
+                <a className="text-accent-text underline" href={terms.href} target="_blank">
+                  {chunks}
+                </a>
+              ),
+              dpaLink: (chunks) => (
+                <a className="text-accent-text underline" href={dpa.href} target="_blank">
+                  {chunks}
+                </a>
+              ),
+            })}
+          </span>
+        }
+      />
       {state.fieldErrors?.["accept"] ? (
         <p id="org-accept-error" className="text-text-12 text-danger-text">
           {t("errors.accept")}
@@ -231,7 +237,7 @@ export function AcceptInviteForm({ token }: { token: string }) {
   const [state, action, pending] = useActionState(acceptInvitation, INITIAL);
   return (
     <form action={action} className="flex flex-col gap-12">
-      {state.error ? <FormAlert>{errorMessage(t, state.error)}</FormAlert> : null}
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="token" value={token} />
       <Submit pending={pending}>{t("invite.accept")}</Submit>
     </form>

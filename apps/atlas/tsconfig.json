@@ -1,7 +1,10 @@
 {
   "extends": "@xos/config/tsconfig/nextjs.json",
   "compilerOptions": {
-    "paths": { "@/*": ["./*"] }
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "allowImportingTsExtensions": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
