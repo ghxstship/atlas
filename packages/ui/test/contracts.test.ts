@@ -90,6 +90,16 @@ export type PropContracts = [
   Assert<Same<Ui.BulkActionBarProps, Ref.BulkActionBarProps>>,
   Assert<Same<Ui.ActivityFeedItemProps, Ref.ActivityFeedItemProps>>,
   Assert<Same<Ui.StatTileProps, Ref.StatTileProps>>,
+  Assert<Same<Ui.GateReadinessPanelProps, Ref.GateReadinessPanelProps>>,
+  Assert<Same<Ui.ProvenanceBadgeProps, Ref.ProvenanceBadgeProps>>,
+  Assert<Same<Ui.AssertionRankBadgeProps, Ref.AssertionRankBadgeProps>>,
+  Assert<Same<Ui.StalenessIndicatorProps, Ref.StalenessIndicatorProps>>,
+  Assert<Same<Ui.ReconciliationTableProps, Ref.ReconciliationTableProps>>,
+  Assert<Same<Ui.EmergencyCodeCardProps, Ref.EmergencyCodeCardProps>>,
+  Assert<Same<Ui.RadioChannelTableProps, Ref.RadioChannelTableProps>>,
+  Assert<Same<Ui.RunOfShowLiveProps, Ref.RunOfShowLiveProps>>,
+  Assert<Same<Ui.CoordinateMatrixProps, Ref.CoordinateMatrixProps>>,
+  Assert<Same<Ui.AccessGridMatrixProps, Ref.AccessGridMatrixProps>>,
 ];
 
 export type ComponentContracts = [
@@ -165,6 +175,16 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.BulkActionBar, Ref.BulkActionBarProps>>,
   Assert<Fits<typeof Ui.ActivityFeedItem, Ref.ActivityFeedItemProps>>,
   Assert<Fits<typeof Ui.StatTile, Ref.StatTileProps>>,
+  Assert<Fits<typeof Ui.GateReadinessPanel, Ref.GateReadinessPanelProps>>,
+  Assert<Fits<typeof Ui.ProvenanceBadge, Ref.ProvenanceBadgeProps>>,
+  Assert<Fits<typeof Ui.AssertionRankBadge, Ref.AssertionRankBadgeProps>>,
+  Assert<Fits<typeof Ui.StalenessIndicator, Ref.StalenessIndicatorProps>>,
+  Assert<Fits<typeof Ui.ReconciliationTable, Ref.ReconciliationTableProps>>,
+  Assert<Fits<typeof Ui.EmergencyCodeCard, Ref.EmergencyCodeCardProps>>,
+  Assert<Fits<typeof Ui.RadioChannelTable, Ref.RadioChannelTableProps>>,
+  Assert<Fits<typeof Ui.RunOfShowLive, Ref.RunOfShowLiveProps>>,
+  Assert<Fits<typeof Ui.CoordinateMatrix, Ref.CoordinateMatrixProps>>,
+  Assert<Fits<typeof Ui.AccessGridMatrix, Ref.AccessGridMatrixProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -242,6 +262,16 @@ describe("reference contracts", () => {
       "BulkActionBar",
       "ActivityFeedItem",
       "StatTile",
+      "GateReadinessPanel",
+      "ProvenanceBadge",
+      "AssertionRankBadge",
+      "StalenessIndicator",
+      "ReconciliationTable",
+      "EmergencyCodeCard",
+      "RadioChannelTable",
+      "RunOfShowLive",
+      "CoordinateMatrix",
+      "AccessGridMatrix",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);

@@ -315,6 +315,23 @@
   }
 }
 
+/* Gate criteria reflow by the width of the list: the statement takes its own line under the code,
+   with the tag and action after it. */
+.xos-criteria {
+  container: xos-criteria / inline-size;
+}
+
+@container xos-criteria (max-width: 719.98px) {
+  .xos-criteria li {
+    flex-wrap: wrap;
+    padding-block: var(--space-8);
+  }
+
+  .xos-criteria-label {
+    flex-basis: 100%;
+  }
+}
+
 /* Compass surfaces raise every target to touch-min (48 pt). */
 .xos-compass {
   font: var(--typography-text-16);

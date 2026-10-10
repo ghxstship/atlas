@@ -250,3 +250,29 @@ export {
   type ActivityFeedItemProps,
   type StatTileProps,
 } from "./Views/Views.tsx";
+
+/* XOS components */
+export {
+  GateReadinessPanel,
+  ProvenanceBadge,
+  AssertionRankBadge,
+  StalenessIndicator,
+  ReconciliationTable,
+  EmergencyCodeCard,
+  RadioChannelTable,
+  RunOfShowLive,
+  CoordinateMatrix,
+  AccessGridMatrix,
+  resolveStep,
+  type GateReadinessPanelProps,
+  type ProvenanceBadgeProps,
+  type AssertionRankBadgeProps,
+  type StalenessIndicatorProps,
+  type ReconciliationTableProps,
+  type EmergencyCodeCardProps,
+  type RadioChannelTableProps,
+  type RunOfShowLiveProps,
+  type CoordinateMatrixProps,
+  type AccessGridMatrixProps,
+} from "./XOS/XOS.tsx";
+export type { EmergencyAuthority } from "./types/reference";
