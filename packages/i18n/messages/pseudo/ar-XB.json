@@ -103,6 +103,7 @@
       "legend": "‮⅂ǝƃǝup‬",
       "noValue": "‮No ʌɐlnǝ‬",
       "other": "‮Oʇɥǝɹ‬",
+      "point": "‮{series}, {category}: {value}‬",
       "table": "‮ꓕɐqlǝ‬",
       "tableHint": "‮Sʍıʇɔɥ ʇo ꓕɐqlǝ ɟoɹ ǝʌǝɹʎ ʌɐlnǝ.‬",
       "view": "‮Ʌıǝʍ‬"
@@ -455,6 +456,9 @@
       "modeled": "‮Wopǝlǝp‬",
       "months": "‮{n} ɯo‬",
       "title": "‮{n} ɯouʇɥs sıuɔǝ {basis}‬"
+    },
+    "stat": {
+      "trend": "‮ꓕɹǝup ɟoɹ {label}‬"
     },
     "tabbar": {
       "badge": "‮{n} uǝʍ‬"

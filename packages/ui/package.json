@@ -22,6 +22,10 @@
   "dependencies": {
     "@tanstack/react-table": "9.2.6",
     "@tanstack/react-virtual": "3.14.13",
+    "@visx/group": "4.0.0",
+    "@visx/pattern": "4.0.0",
+    "@visx/scale": "4.0.0",
+    "@visx/shape": "4.0.0",
     "@xos/i18n": "workspace:*",
     "@xos/icons": "workspace:*",
     "@xos/tokens": "workspace:*",

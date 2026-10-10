@@ -103,6 +103,7 @@
       "legend": "[Légéñd ··]",
       "noValue": "[Ñö vàlûé ···]",
       "other": "[Ötĥér ·]",
+      "point": "[{series}, {category}: {value} ··········]",
       "table": "[Tàblé ·]",
       "tableHint": "[Swîtçh tö Tàblé för évérý vàlûé. ············]",
       "view": "[Vîéw ·]"
@@ -455,6 +456,9 @@
       "modeled": "[Mödéléd ··]",
       "months": "[{n} mö ··]",
       "title": "[{n} möñths sîñçé {basis} ·········]"
+    },
+    "stat": {
+      "trend": "[Tréñd för {label} ······]"
     },
     "tabbar": {
       "badge": "[{n} ñéw ··]"

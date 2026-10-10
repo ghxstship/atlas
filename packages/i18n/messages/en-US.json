@@ -621,6 +621,7 @@
       "legend": "Legend",
       "noValue": "No value",
       "other": "Other",
+      "point": "{series}, {category}: {value}",
       "table": "Table",
       "tableHint": "Switch to Table for every value.",
       "view": "View"
@@ -973,6 +974,9 @@
       "modeled": "Modeled",
       "months": "{n} mo",
       "title": "{n} months since {basis}"
+    },
+    "stat": {
+      "trend": "Trend for {label}"
     },
     "tabbar": {
       "badge": "{n} new"

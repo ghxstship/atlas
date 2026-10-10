@@ -359,3 +359,22 @@ export {
   type ShortcutEditorProps,
   type HelpPanelProps,
 } from "./Help/Help.tsx";
+
+/* Views and charts */
+export {
+  Gallery,
+  Calendar,
+  Timeline,
+  ResourceSchedule,
+  OrgChart,
+  Chart,
+  Sparkline,
+  foldSeries,
+  type GalleryProps,
+  type CalendarProps,
+  type TimelineProps,
+  type ResourceScheduleProps,
+  type OrgChartProps,
+  type ChartProps,
+  type SparklineProps,
+} from "./Charts/Charts.tsx";

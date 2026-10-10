@@ -621,6 +621,7 @@
       "legend": "Leyenda",
       "noValue": "Sin valor",
       "other": "Otros",
+      "point": "{series}, {category}: {value}",
       "table": "Tabla",
       "tableHint": "Cambie a Tabla para ver todos los valores.",
       "view": "Vista"
@@ -973,6 +974,9 @@
       "modeled": "Modelado",
       "months": "{n} meses",
       "title": "{n} meses desde {basis}"
+    },
+    "stat": {
+      "trend": "Tendencia de {label}"
     },
     "tabbar": {
       "badge": "{n} nuevos"

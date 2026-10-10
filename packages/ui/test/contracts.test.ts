@@ -132,6 +132,12 @@ export type PropContracts = [
   Assert<Same<Ui.FeedbackWidgetProps, Ref.FeedbackWidgetProps>>,
   Assert<Same<Ui.ShortcutEditorProps, Ref.ShortcutEditorProps>>,
   Assert<Same<Ui.HelpPanelProps, Ref.HelpPanelProps>>,
+  Assert<Same<Ui.GalleryProps, Ref.GalleryProps>>,
+  Assert<Same<Ui.CalendarProps, Ref.CalendarProps>>,
+  Assert<Same<Ui.TimelineProps, Ref.TimelineProps>>,
+  Assert<Same<Ui.ResourceScheduleProps, Ref.ResourceScheduleProps>>,
+  Assert<Same<Ui.OrgChartProps, Ref.OrgChartProps>>,
+  Assert<Same<Ui.ChartProps, Ref.ChartProps>>,
 ];
 
 export type ComponentContracts = [
@@ -249,6 +255,12 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.FeedbackWidget, Ref.FeedbackWidgetProps>>,
   Assert<Fits<typeof Ui.ShortcutEditor, Ref.ShortcutEditorProps>>,
   Assert<Fits<typeof Ui.HelpPanel, Ref.HelpPanelProps>>,
+  Assert<Fits<typeof Ui.Gallery, Ref.GalleryProps>>,
+  Assert<Fits<typeof Ui.Calendar, Ref.CalendarProps>>,
+  Assert<Fits<typeof Ui.Timeline, Ref.TimelineProps>>,
+  Assert<Fits<typeof Ui.ResourceSchedule, Ref.ResourceScheduleProps>>,
+  Assert<Fits<typeof Ui.OrgChart, Ref.OrgChartProps>>,
+  Assert<Fits<typeof Ui.Chart, Ref.ChartProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -368,6 +380,12 @@ describe("reference contracts", () => {
       "FeedbackWidget",
       "ShortcutEditor",
       "HelpPanel",
+      "Gallery",
+      "Calendar",
+      "Timeline",
+      "ResourceSchedule",
+      "OrgChart",
+      "Chart",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);

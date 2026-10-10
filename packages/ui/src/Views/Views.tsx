@@ -29,6 +29,7 @@ import { RecordKindGlyph } from "../Glyphs/Glyphs.tsx";
 import { PropertyChip, RecordKindChip, chipClass } from "../Chips/Chips.tsx";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
 import { Money } from "../Forms/Forms.tsx";
+import { Sparkline } from "../Charts/Charts.tsx";
 
 export type RecordRowProps = ReferenceRecordRowProps & {
   /** X toggles selection of the focused row. */
@@ -60,7 +61,11 @@ export type BulkActionBarProps = Omit<ReferenceBulkActionBarProps, "actions"> & 
 export type ActivityFeedItemProps = ReferenceActivityFeedItemProps & {
   onReact?: (label: string) => void;
 };
-export type StatTileProps = ReferenceStatTileProps & { onDrill?: () => void };
+export type StatTileProps = ReferenceStatTileProps & {
+  onDrill?: () => void;
+  /** Recent values drawn as a sparkline; blanks are gaps. */
+  trend?: (number | null)[];
+};
 
 /** One list row that answers what now: state, key, title, chips, next date, owner and the next action. */
 export function RecordRow({
@@ -626,6 +631,7 @@ export function StatTile({
   goodWhen,
   caption,
   onDrill,
+  trend,
 }: StatTileProps): ReactElement {
   const t = useT();
   const fmt = useFormat();
@@ -683,6 +689,9 @@ export function StatTile({
           </span>
           {deltaLabel ? <span className="text-text-secondary">{deltaLabel}</span> : null}
         </span>
+      ) : null}
+      {trend && trend.length > 1 ? (
+        <Sparkline values={trend} label={t("stat.trend", { label })} />
       ) : null}
       {caption ? <span className="text-text-secondary">{caption}</span> : null}
     </section>
