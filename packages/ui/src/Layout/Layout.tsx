@@ -4,7 +4,9 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
+  type Ref,
   type ReactElement,
   type ReactNode,
 } from "react";
@@ -33,7 +35,11 @@ export type ResizablePanelProps = ReferenceResizablePanelProps & {
   /** Keyboard step in pixels; 16 by default. */
   step?: number;
 };
-export type ScrollRegionProps = ReferenceScrollRegionProps & { className?: string };
+export type ScrollRegionProps = ReferenceScrollRegionProps & {
+  className?: string;
+  style?: CSSProperties;
+  ref?: Ref<HTMLDivElement>;
+};
 export type SplitViewProps = ReferenceSplitViewProps & {
   onSelect?: (index: number) => void;
 };
@@ -234,8 +240,19 @@ export function ResizablePanel({
  * Keeps wide content inside the page width: it scrolls horizontally in a labeled region that joins
  * the tab order only while it overflows.
  */
-export function ScrollRegion({ label, children, className }: ScrollRegionProps): ReactElement {
+export function ScrollRegion({
+  label,
+  children,
+  className,
+  style,
+  ref: outer,
+}: ScrollRegionProps): ReactElement {
   const ref = useRef<HTMLDivElement>(null);
+  const setRef = (el: HTMLDivElement | null) => {
+    ref.current = el;
+    if (typeof outer === "function") outer(el);
+    else if (outer) outer.current = el;
+  };
   const [overflows, setOverflows] = useState(false);
   useLayoutEffect(() => {
     const el = ref.current;
@@ -249,10 +266,11 @@ export function ScrollRegion({ label, children, className }: ScrollRegionProps):
   }, []);
   return (
     <div
-      ref={ref}
+      ref={setRef}
       role="region"
       aria-label={label}
       tabIndex={overflows ? 0 : undefined}
+      style={style}
       className={cx("relative max-w-full overflow-x-auto overscroll-x-contain", className)}
     >
       {children}

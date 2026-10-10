@@ -233,6 +233,88 @@
   }
 }
 
+/* RecordList and RecordRow. Rows reflow by the width of their own list, not the viewport, so a list
+   in a half-width column reflows too (decision D18): state, title and owner on the first line; key,
+   chips, next date and action wrap beneath, indented under the title. Only the visual order
+   changes; focus order stays the source order. */
+.xos-rlist {
+  container: xos-rlist / inline-size;
+}
+
+.xos-rrow {
+  display: grid;
+  grid-template-columns:
+    var(--space-20) calc(var(--space-64) + var(--space-8)) minmax(0, 1fr) auto
+    calc(var(--space-48) * 2) var(--density-control-md) calc(var(--space-40) * 3);
+  align-items: center;
+  gap: var(--space-8);
+  min-block-size: var(--density-row-default);
+  padding-inline: var(--space-12);
+}
+
+.xos-rrow-action {
+  opacity: 0;
+}
+
+.xos-rrow:hover .xos-rrow-action,
+.xos-rrow:focus-within .xos-rrow-action {
+  opacity: 1;
+}
+
+@media (pointer: coarse) {
+  .xos-rrow-action {
+    opacity: 1;
+  }
+}
+
+@container xos-rlist (max-width: 719.98px) {
+  .xos-rrow {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--space-8);
+    row-gap: var(--space-4);
+    padding-block: var(--space-8);
+  }
+
+  .xos-rrow > :nth-child(1) {
+    order: 1;
+    flex: none;
+    inline-size: var(--space-20);
+  }
+
+  .xos-rrow > :nth-child(3) {
+    order: 2;
+    flex: 1 1 0;
+    min-inline-size: 0;
+  }
+
+  .xos-rrow > :nth-child(6) {
+    order: 3;
+    flex: none;
+  }
+
+  .xos-rrow::after {
+    content: "";
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .xos-rrow > :nth-child(2),
+  .xos-rrow > :nth-child(4),
+  .xos-rrow > :nth-child(5) {
+    order: 4;
+  }
+
+  .xos-rrow > :nth-child(2) {
+    margin-inline-start: calc(var(--space-20) + var(--space-8));
+  }
+
+  .xos-rrow > :nth-child(7) {
+    order: 5;
+    margin-inline-start: auto;
+  }
+}
+
 /* Compass surfaces raise every target to touch-min (48 pt). */
 .xos-compass {
   font: var(--typography-text-16);

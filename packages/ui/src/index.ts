@@ -230,3 +230,23 @@ export {
   type TemplateGatewayShellProps,
   type TemplateSystemProps,
 } from "./Templates/Templates.tsx";
+
+/* Data components */
+export { DataTable, type DataTableProps, type DataTableColumn } from "./DataTable/DataTable.tsx";
+export {
+  RecordRow,
+  RecordList,
+  Board,
+  TreeView,
+  BulkActionBar,
+  ActivityFeedItem,
+  StatTile,
+  type RecordRowProps,
+  type RecordListProps,
+  type BoardProps,
+  type TreeNode,
+  type TreeViewProps,
+  type BulkActionBarProps,
+  type ActivityFeedItemProps,
+  type StatTileProps,
+} from "./Views/Views.tsx";

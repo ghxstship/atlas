@@ -82,6 +82,14 @@ export type PropContracts = [
   Assert<Same<Ui.ScrollRegionProps, Ref.ScrollRegionProps>>,
   Assert<Same<Ui.StepperProps, Ref.StepperProps>>,
   Assert<Same<Ui.SplitViewProps, Ref.SplitViewProps>>,
+  Assert<Same<Ui.DataTableProps, Ref.DataTableProps>>,
+  Assert<Same<Ui.RecordRowProps, Ref.RecordRowProps>>,
+  Assert<Same<Ui.RecordListProps, Ref.RecordListProps>>,
+  Assert<Same<Ui.BoardProps, Ref.BoardProps>>,
+  Assert<Same<Ui.TreeViewProps, Ref.TreeViewProps>>,
+  Assert<Same<Ui.BulkActionBarProps, Ref.BulkActionBarProps>>,
+  Assert<Same<Ui.ActivityFeedItemProps, Ref.ActivityFeedItemProps>>,
+  Assert<Same<Ui.StatTileProps, Ref.StatTileProps>>,
 ];
 
 export type ComponentContracts = [
@@ -149,6 +157,14 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.ScrollRegion, Ref.ScrollRegionProps>>,
   Assert<Fits<typeof Ui.Stepper, Ref.StepperProps>>,
   Assert<Fits<typeof Ui.SplitView, Ref.SplitViewProps>>,
+  Assert<Fits<typeof Ui.DataTable, Ref.DataTableProps>>,
+  Assert<Fits<typeof Ui.RecordRow, Ref.RecordRowProps>>,
+  Assert<Fits<typeof Ui.RecordList, Ref.RecordListProps>>,
+  Assert<Fits<typeof Ui.Board, Ref.BoardProps>>,
+  Assert<Fits<typeof Ui.TreeView, Ref.TreeViewProps>>,
+  Assert<Fits<typeof Ui.BulkActionBar, Ref.BulkActionBarProps>>,
+  Assert<Fits<typeof Ui.ActivityFeedItem, Ref.ActivityFeedItemProps>>,
+  Assert<Fits<typeof Ui.StatTile, Ref.StatTileProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -218,6 +234,14 @@ describe("reference contracts", () => {
       "ScrollRegion",
       "Stepper",
       "SplitView",
+      "DataTable",
+      "RecordRow",
+      "RecordList",
+      "Board",
+      "TreeView",
+      "BulkActionBar",
+      "ActivityFeedItem",
+      "StatTile",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);
