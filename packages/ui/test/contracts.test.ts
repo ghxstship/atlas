@@ -121,6 +121,11 @@ export type PropContracts = [
   Assert<Same<Ui.DateRangePickerProps, Ref.DateRangePickerProps>>,
   Assert<Same<Ui.TimePickerProps, Ref.TimePickerProps>>,
   Assert<Same<Ui.FileDropProps, Ref.FileDropProps>>,
+  Assert<Same<Ui.PresenceIndicatorProps, Ref.PresenceIndicatorProps>>,
+  Assert<Same<Ui.QRCodeProps, Ref.QRCodeProps>>,
+  Assert<Same<Ui.CredentialBadgeProps, Ref.CredentialBadgeProps>>,
+  Assert<Same<Ui.BrandSlotProps, Ref.BrandSlotProps>>,
+  Assert<Same<Ui.WhiteLabelPreviewProps, Ref.WhiteLabelPreviewProps>>,
 ];
 
 export type ComponentContracts = [
@@ -227,6 +232,11 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.DateRangePicker, Ref.DateRangePickerProps>>,
   Assert<Fits<typeof Ui.TimePicker, Ref.TimePickerProps>>,
   Assert<Fits<typeof Ui.FileDrop, Ref.FileDropProps>>,
+  Assert<Fits<typeof Ui.PresenceIndicator, Ref.PresenceIndicatorProps>>,
+  Assert<Fits<typeof Ui.QRCode, Ref.QRCodeProps>>,
+  Assert<Fits<typeof Ui.CredentialBadge, Ref.CredentialBadgeProps>>,
+  Assert<Fits<typeof Ui.BrandSlot, Ref.BrandSlotProps>>,
+  Assert<Fits<typeof Ui.WhiteLabelPreview, Ref.WhiteLabelPreviewProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -335,6 +345,11 @@ describe("reference contracts", () => {
       "DateRangePicker",
       "TimePicker",
       "FileDrop",
+      "PresenceIndicator",
+      "QRCode",
+      "CredentialBadge",
+      "BrandSlot",
+      "WhiteLabelPreview",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);

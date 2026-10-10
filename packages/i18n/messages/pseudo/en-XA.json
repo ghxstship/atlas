@@ -68,6 +68,9 @@
       "picked": "[{title} pîçkéd ûp îñ {column}. Àrröw kéýs mövé ît, Spàçé dröps ît, Ésçàpé çàñçéls. ·····························]",
       "returned": "[{title} rétûrñéd tö {column}. ··········]"
     },
+    "brand": {
+      "size": "[{width} x {height} ······]"
+    },
     "budget": {
       "amount": "[Àmöûñt ··]",
       "costCenter": "[Çöst Çéñtér ····]",
@@ -342,6 +345,8 @@
     },
     "presence": {
       "editing": "[{n} édîtîñg ····]",
+      "namesEditing": "[{names}, édîtîñg ñöw ·······]",
+      "namesViewing": "[{names}, vîéwîñg ñöw ·······]",
       "viewing": "[{n} vîéwîñg ····]"
     },
     "profile": {

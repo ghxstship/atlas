@@ -327,3 +327,19 @@ export {
   type TimePickerProps,
   type FileDropProps,
 } from "./Pickers/Pickers.tsx";
+
+/* Identity and white label */
+export {
+  PresenceIndicator,
+  QRCode,
+  CredentialBadge,
+  BrandSlot,
+  WhiteLabelPreview,
+  qrPath,
+  tokenVariable,
+  type PresenceIndicatorProps,
+  type QRCodeProps,
+  type CredentialBadgeProps,
+  type BrandSlotProps,
+  type WhiteLabelPreviewProps,
+} from "./Identity/Identity.tsx";

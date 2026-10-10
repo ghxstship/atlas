@@ -586,6 +586,9 @@
       "picked": "{title} picked up in {column}. Arrow keys move it, Space drops it, Escape cancels.",
       "returned": "{title} returned to {column}."
     },
+    "brand": {
+      "size": "{width} x {height}"
+    },
     "budget": {
       "amount": "Amount",
       "costCenter": "Cost Center",
@@ -860,6 +863,8 @@
     },
     "presence": {
       "editing": "{n} editing",
+      "namesEditing": "{names}, editing now",
+      "namesViewing": "{names}, viewing now",
       "viewing": "{n} viewing"
     },
     "profile": {

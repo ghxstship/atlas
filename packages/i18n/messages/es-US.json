@@ -586,6 +586,9 @@
       "picked": "{title} tomado en {column}. Las flechas lo mueven, Espacio lo suelta, Escape cancela.",
       "returned": "{title} devuelto a {column}."
     },
+    "brand": {
+      "size": "{width} x {height}"
+    },
     "budget": {
       "amount": "Monto",
       "costCenter": "Centro de costos",
@@ -860,6 +863,8 @@
     },
     "presence": {
       "editing": "{n} editando",
+      "namesEditing": "{names}, editando ahora",
+      "namesViewing": "{names}, viendo ahora",
       "viewing": "{n} viendo"
     },
     "profile": {

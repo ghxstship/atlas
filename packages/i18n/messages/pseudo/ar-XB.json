@@ -68,6 +68,9 @@
       "picked": "‮{title} dıɔʞǝp nd ıu {column}. ∀ɹɹoʍ ʞǝʎs ɯoʌǝ ıʇ, Sdɐɔǝ pɹods ıʇ, Ǝsɔɐdǝ ɔɐuɔǝls.‬",
       "returned": "‮{title} ɹǝʇnɹuǝp ʇo {column}.‬"
     },
+    "brand": {
+      "size": "‮{width} x {height}‬"
+    },
     "budget": {
       "amount": "‮∀ɯonuʇ‬",
       "costCenter": "‮Ɔosʇ Ɔǝuʇǝɹ‬",
@@ -342,6 +345,8 @@
     },
     "presence": {
       "editing": "‮{n} ǝpıʇıuƃ‬",
+      "namesEditing": "‮{names}, ǝpıʇıuƃ uoʍ‬",
+      "namesViewing": "‮{names}, ʌıǝʍıuƃ uoʍ‬",
       "viewing": "‮{n} ʌıǝʍıuƃ‬"
     },
     "profile": {
