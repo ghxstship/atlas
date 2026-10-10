@@ -23,8 +23,8 @@ describe("ICU messages", () => {
     expect(() => icuArguments("{broken")).toThrow();
   });
 
-  it("merges the 319 design system messages under the ui namespace", () => {
-    expect(ui.size).toBe(319);
+  it("keeps the 319 design system messages under the ui namespace; additions are allowed (ADR 0014)", () => {
+    expect(ui.size).toBeGreaterThanOrEqual(319);
     expect(Object.keys(getMessages("en-US"))).toEqual(["shell", "nav", "ui"]);
   });
 
