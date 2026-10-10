@@ -14,7 +14,7 @@ export async function createServerSupabase(): Promise<XosClient> {
   const config = env();
   return createServerClient<Database, "app">(config.SUPABASE_URL, config.SUPABASE_ANON_KEY, {
     db: { schema: "app" },
-    cookieOptions: authCookieOptions(config.NODE_ENV === "production"),
+    cookieOptions: authCookieOptions(config.ATLAS_SITE_URL.startsWith("https:")),
     cookies: {
       getAll: () => store.getAll(),
       setAll(toSet) {

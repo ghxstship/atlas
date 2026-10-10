@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";
+import { env } from "@/lib/env";
 import { THEME_COOKIE, THEMES } from "@/lib/theme";
 import { WORKSPACE_COOKIE } from "./workspace";
 
@@ -18,7 +19,7 @@ async function setPreference(name: string, value: string): Promise<void> {
     path: "/",
     sameSite: "lax",
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: env().ATLAS_SITE_URL.startsWith("https:"),
     maxAge: YEAR,
   });
 }
