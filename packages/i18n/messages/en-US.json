@@ -1033,6 +1033,90 @@
         "en-XA": "Pseudo-locale (accented)",
         "ar-XB": "Pseudo-locale (right to left)"
       }
+    },
+    "settings": {
+      "sections": "Settings sections",
+      "save": "Save",
+      "saved": "Saved.",
+      "general": {
+        "name": "Organization name",
+        "address": "Web address",
+        "addressHelp": "Your Atlas address is /{slug}."
+      },
+      "members": {
+        "invite": {
+          "title": "Invite a member",
+          "email": "Email",
+          "role": "Role",
+          "expires": "Invitation expires in",
+          "days": "{count, plural, one {# day} other {# days}}",
+          "submit": "Create invite",
+          "created": "Invitation created for {email}. Send them this link; it works once and expires {expires}.",
+          "link": "Invitation link",
+          "copy": "Copy link",
+          "copied": "Link copied."
+        },
+        "list": "Members",
+        "pending": "Pending invitations",
+        "noPending": "No pending invitations. Invite someone above.",
+        "you": "You",
+        "unnamed": "Name not set",
+        "roleFor": "Role for {name}",
+        "since": "Member since {date}",
+        "expiresOn": "Expires {date}",
+        "remove": "Remove",
+        "removeTitle": "Remove {name}?",
+        "removeBody": "{name} loses access to {org} at once. Their records stay.",
+        "revoke": "Revoke",
+        "cancel": "Cancel",
+        "errors": {
+          "email": "Enter an email address like name@company.com.",
+          "role_band": "You can give only roles at or below your own.",
+          "role_unknown": "That role is not available in this organization.",
+          "sod_self_grant": "You cannot invite yourself or change your own role.",
+          "invite_expiry_range": "Choose an expiry between 1 and 30 days.",
+          "grant_exceeds_holder": "You can give only roles whose capabilities you hold yourself.",
+          "sole_owner": "An organization keeps at least one Owner. Make someone else Owner first.",
+          "plan_limit_exceeded": "Your plan has no seat left for that role. Choose Viewer or Field, or compare plans.",
+          "not_member": "That membership has already ended.",
+          "not-found": "That member or invitation is no longer here. Reload the page.",
+          "unexpected": "Something went wrong on our side. Try again in a moment."
+        }
+      },
+      "whiteLabel": {
+        "accent": "Brand accent",
+        "accentHelp": "A six-digit hex color, for example #5B63E8.",
+        "passes": "Passes WCAG 2.2 AA in every theme.",
+        "fails": "Fails WCAG 2.2 AA in {count, plural, one {# pair} other {# pairs}}. Choose a darker or more saturated accent.",
+        "failure": "{rule}, {theme} theme: {ratio}:1, needs {min}:1",
+        "invalid": "Enter a six-digit hex color, for example #5B63E8.",
+        "preview": "Preview",
+        "previewAction": "Primary action",
+        "logos": "Logos",
+        "logoLight": "Logo for light backgrounds",
+        "logoDark": "Logo for dark backgrounds",
+        "logoHelp": "SVG or PNG, at least 256 pixels wide.",
+        "notStored": "Brand settings are checked here but cannot be saved yet: the brand settings store is not available. Your accent is not kept."
+      },
+      "modules": {
+        "notStored": "Turning modules off needs the module settings store, which is not available yet. Every module stays on."
+      },
+      "billing": {
+        "current": "{org} is on the {plan} plan.",
+        "perMonth": "{price} per month",
+        "choose": "Choose {plan}",
+        "notAvailable": "Paid plans open when billing is connected. Until then every organization stays on Access."
+      },
+      "organizations": {
+        "leave": "Leave",
+        "leaveTitle": "Leave {org}?",
+        "leaveBody": "You lose access to {org} at once. Your personal profile and documents stay yours.",
+        "current": "Current organization",
+        "errors": {
+          "sole_owner": "You are the only Owner of {org}. Make someone else Owner before you leave.",
+          "unexpected": "Something went wrong on our side. Try again in a moment."
+        }
+      }
     }
   },
   "nav": {

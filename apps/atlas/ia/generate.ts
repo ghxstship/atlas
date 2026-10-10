@@ -86,13 +86,50 @@ export function parseLegalRegistry(text: string): LegalDocument[] {
   }));
 }
 
+/** A plan as the Billing and Plan page shows it, from packages/schemas/plans.yaml (Section 16). */
+export interface PlanSummary {
+  readonly code: string;
+  readonly free: boolean;
+  /** The plan this one extends; its features are included. */
+  readonly extends: string | null;
+  /** Features this plan adds over the one it extends. */
+  readonly adds: readonly string[];
+  /** Limit code to value; null is unlimited. */
+  readonly limits: Readonly<Record<string, number | null>>;
+  /** USD monthly price in minor units; null is unpriced (Section 3.7). */
+  readonly usdMonthlyMinor: number | null;
+}
+
+export function parsePlanRegistry(text: string): PlanSummary[] {
+  const data = parse(text) as {
+    plans: {
+      code: string;
+      free?: boolean;
+      extends?: string;
+      features: string[];
+      limits: Record<string, number | null>;
+      prices: Record<string, { monthly_minor: number | null }>;
+    }[];
+  };
+  return data.plans.map((p) => ({
+    code: p.code,
+    free: p.free === true,
+    extends: p.extends ?? null,
+    adds: p.features,
+    limits: p.limits,
+    usdMonthlyMinor: p.prices["USD"]?.monthly_minor ?? null,
+  }));
+}
+
 /**
  * Every generated file, unformatted, keyed by path: the sitemap module the runtime reads, the
- * legal registry module and one page per generated node. Throws when the sitemap fails validation.
+ * legal registry and plan modules, and one page per generated node. Throws when the sitemap fails
+ * validation.
  */
 export function generateFiles(
   sitemap: Sitemap,
   legal: readonly LegalDocument[],
+  plans: readonly PlanSummary[] = [],
 ): Map<string, string> {
   const issues = validateSitemap(sitemap, { messages: getMessages("en-US") });
   if (issues.length > 0) throw new Error(`ia/sitemap.yaml is invalid:\n${formatIssues(issues)}`);
@@ -107,6 +144,15 @@ export const sitemap: Sitemap = ${JSON.stringify(sitemap)};
 `,
   );
   files.set("lib/legal.generated.ts", legalSource(legal));
+  files.set(
+    "lib/plans.generated.ts",
+    `${GENERATED_STAMP.replace("ia/sitemap.yaml", "packages/schemas/plans.yaml")}
+import type { PlanSummary } from "@/ia/generate";
+
+/** Plans from the free plan upward (Section 16), from packages/schemas/plans.yaml. */
+export const PLANS: readonly PlanSummary[] = ${JSON.stringify(plans)};
+`,
+  );
   for (const node of generatedNodes(sitemap)) {
     files.set(pageFile(node.route), pageSource(node.id, node.route));
   }

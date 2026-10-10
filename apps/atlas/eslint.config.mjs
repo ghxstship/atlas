@@ -19,6 +19,8 @@ const config = [
       ],
     },
   },
+  // End-to-end specs enter literal values (a failing brand color) as test input.
+  { files: ["e2e/**"], rules: { "xos/no-raw-design-values": "off" } },
   { ignores: ["playwright-report/**", "test-results/**"] },
 ];
 

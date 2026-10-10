@@ -23,7 +23,7 @@ test("signed-out visitors are sent to sign in and the form keeps the email on fa
   await page.locator("#signin-email").fill("nobody@atlas-e2e.test");
   await page.locator("#signin-password").fill("wrong-password");
   await page.getByRole("button", { name: "Sign in with password" }).click();
-  await expect(page.getByRole("alert")).toContainText("do not match");
+  await expect(page.getByRole("alert").filter({ hasText: "do not match" })).toBeVisible();
   await expect(page.locator("#signin-email")).toHaveValue("nobody@atlas-e2e.test");
   await expectAccessible(page);
 });

@@ -8,7 +8,16 @@
  * Nodes whose page is written by hand. The generator never writes these files and fails when one
  * is missing. A module agent implementing a page adds its node id here and replaces the file.
  */
-export const IMPLEMENTED: ReadonlySet<string> = new Set(["home", "legal"]);
+export const IMPLEMENTED: ReadonlySet<string> = new Set([
+  "home",
+  "legal",
+  "settings.general",
+  "settings.members",
+  "settings.white-label",
+  "settings.modules",
+  "settings.billing-and-plan",
+  "me.organizations",
+]);
 
 /** Nodes Atlas routes do not serve, with who serves them. */
 export const DELEGATED: Readonly<Record<string, string>> = {

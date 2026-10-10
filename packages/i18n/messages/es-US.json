@@ -1033,6 +1033,90 @@
         "en-XA": "Pseudolocalización (acentos)",
         "ar-XB": "Pseudolocalización (derecha a izquierda)"
       }
+    },
+    "settings": {
+      "sections": "Secciones de ajustes",
+      "save": "Guardar",
+      "saved": "Guardado.",
+      "general": {
+        "name": "Nombre de la organización",
+        "address": "Dirección web",
+        "addressHelp": "Tu dirección de Atlas es /{slug}."
+      },
+      "members": {
+        "invite": {
+          "title": "Invitar a un miembro",
+          "email": "Correo electrónico",
+          "role": "Rol",
+          "expires": "La invitación vence en",
+          "days": "{count, plural, one {# día} other {# días}}",
+          "submit": "Crear invitación",
+          "created": "Invitación creada para {email}. Envíale este enlace; funciona una sola vez y vence {expires}.",
+          "link": "Enlace de invitación",
+          "copy": "Copiar enlace",
+          "copied": "Enlace copiado."
+        },
+        "list": "Miembros",
+        "pending": "Invitaciones pendientes",
+        "noPending": "No hay invitaciones pendientes. Invita a alguien arriba.",
+        "you": "Tú",
+        "unnamed": "Nombre sin definir",
+        "roleFor": "Rol de {name}",
+        "since": "Miembro desde {date}",
+        "expiresOn": "Vence {date}",
+        "remove": "Quitar",
+        "removeTitle": "¿Quitar a {name}?",
+        "removeBody": "{name} pierde el acceso a {org} de inmediato. Sus registros se conservan.",
+        "revoke": "Revocar",
+        "cancel": "Cancelar",
+        "errors": {
+          "email": "Escribe un correo como nombre@empresa.com.",
+          "role_band": "Solo puedes asignar roles iguales o inferiores al tuyo.",
+          "role_unknown": "Ese rol no está disponible en esta organización.",
+          "sod_self_grant": "No puedes invitarte ni cambiar tu propio rol.",
+          "invite_expiry_range": "Elige un vencimiento de entre 1 y 30 días.",
+          "grant_exceeds_holder": "Solo puedes asignar roles cuyas capacidades tienes tú.",
+          "sole_owner": "Una organización conserva al menos un propietario. Primero nombra a otra persona propietaria.",
+          "plan_limit_exceeded": "Tu plan no tiene asientos libres para ese rol. Elige Observador o Campo, o compara planes.",
+          "not_member": "Esa membresía ya terminó.",
+          "not-found": "Ese miembro o invitación ya no está aquí. Recarga la página.",
+          "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento."
+        }
+      },
+      "whiteLabel": {
+        "accent": "Color de acento de la marca",
+        "accentHelp": "Un color hexadecimal de seis dígitos, por ejemplo #5B63E8.",
+        "passes": "Cumple WCAG 2.2 AA en todos los temas.",
+        "fails": "No cumple WCAG 2.2 AA en {count, plural, one {# par} other {# pares}}. Elige un acento más oscuro o saturado.",
+        "failure": "{rule}, tema {theme}: {ratio}:1, necesita {min}:1",
+        "invalid": "Escribe un color hexadecimal de seis dígitos, por ejemplo #5B63E8.",
+        "preview": "Vista previa",
+        "previewAction": "Acción principal",
+        "logos": "Logotipos",
+        "logoLight": "Logotipo para fondos claros",
+        "logoDark": "Logotipo para fondos oscuros",
+        "logoHelp": "SVG o PNG, de al menos 256 píxeles de ancho.",
+        "notStored": "Los ajustes de marca se verifican aquí pero aún no se pueden guardar: el almacén de ajustes de marca no está disponible. Tu acento no se conserva."
+      },
+      "modules": {
+        "notStored": "Desactivar módulos requiere el almacén de ajustes de módulos, que aún no está disponible. Todos los módulos siguen activos."
+      },
+      "billing": {
+        "current": "{org} está en el plan {plan}.",
+        "perMonth": "{price} al mes",
+        "choose": "Elegir {plan}",
+        "notAvailable": "Los planes de pago se abren cuando se conecte la facturación. Hasta entonces, todas las organizaciones siguen en Access."
+      },
+      "organizations": {
+        "leave": "Salir",
+        "leaveTitle": "¿Salir de {org}?",
+        "leaveBody": "Pierdes el acceso a {org} de inmediato. Tu perfil personal y tus documentos siguen siendo tuyos.",
+        "current": "Organización actual",
+        "errors": {
+          "sole_owner": "Eres el único propietario de {org}. Nombra a otra persona propietaria antes de salir.",
+          "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento."
+        }
+      }
     }
   },
   "nav": {
