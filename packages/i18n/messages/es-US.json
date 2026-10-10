@@ -665,7 +665,8 @@
       "nextMonth": "Mes siguiente",
       "pick": "Elija una fecha",
       "prevMonth": "Mes anterior",
-      "rangeTo": "a"
+      "rangeTo": "a",
+      "rangeValue": "{start} al {end}"
     },
     "daysheet": {
       "contacts": "Contactos",
@@ -955,6 +956,9 @@
       "positions": "{n} de {total} puestos",
       "submit": "Enviar nómina",
       "title": "Nómina de personal"
+    },
+    "slider": {
+      "value": "{value} {unit}"
     },
     "stale": {
       "basis": "la fecha de la evidencia",

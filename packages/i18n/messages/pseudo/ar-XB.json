@@ -147,7 +147,8 @@
       "nextMonth": "‮Nǝxʇ ɯouʇɥ‬",
       "pick": "‮Ԁıɔʞ ɐ pɐʇǝ‬",
       "prevMonth": "‮Ԁɹǝʌıons ɯouʇɥ‬",
-      "rangeTo": "‮ʇo‬"
+      "rangeTo": "‮ʇo‬",
+      "rangeValue": "‮{start} ʇo {end}‬"
     },
     "daysheet": {
       "contacts": "‮Ɔouʇɐɔʇs‬",
@@ -437,6 +438,9 @@
       "positions": "‮{n} oɟ {total} dosıʇıous‬",
       "submit": "‮Snqɯıʇ Slɐʇǝ‬",
       "title": "‮Sʇɐɟɟ Slɐʇǝ‬"
+    },
+    "slider": {
+      "value": "‮{value} {unit}‬"
     },
     "stale": {
       "basis": "‮ǝʌıpǝuɔǝ pɐʇǝ‬",

@@ -665,7 +665,8 @@
       "nextMonth": "Next month",
       "pick": "Pick a date",
       "prevMonth": "Previous month",
-      "rangeTo": "to"
+      "rangeTo": "to",
+      "rangeValue": "{start} to {end}"
     },
     "daysheet": {
       "contacts": "Contacts",
@@ -955,6 +956,9 @@
       "positions": "{n} of {total} positions",
       "submit": "Submit Slate",
       "title": "Staff Slate"
+    },
+    "slider": {
+      "value": "{value} {unit}"
     },
     "stale": {
       "basis": "evidence date",

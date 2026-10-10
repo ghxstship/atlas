@@ -147,7 +147,8 @@
       "nextMonth": "[Ñéxt möñth ···]",
       "pick": "[Pîçk à dàté ····]",
       "prevMonth": "[Prévîöûs möñth ·····]",
-      "rangeTo": "[tö ·]"
+      "rangeTo": "[tö ·]",
+      "rangeValue": "[{start} tö {end} ······]"
     },
     "daysheet": {
       "contacts": "[Çöñtàçts ···]",
@@ -437,6 +438,9 @@
       "positions": "[{n} öf {total} pösîtîöñs ·········]",
       "submit": "[Sûbmît Slàté ····]",
       "title": "[Stàff Slàté ····]"
+    },
+    "slider": {
+      "value": "[{value} {unit} ·····]"
     },
     "stale": {
       "basis": "[évîdéñçé dàté ·····]",

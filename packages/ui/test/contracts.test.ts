@@ -114,6 +114,13 @@ export type PropContracts = [
   Assert<Same<Ui.PayoutDetailsFormProps, Ref.PayoutDetailsFormProps>>,
   Assert<Same<Ui.PaymentTrackerProps, Ref.PaymentTrackerProps>>,
   Assert<Same<Ui.UpNextCardProps, Ref.UpNextCardProps>>,
+  Assert<Same<Ui.ComboboxProps, Ref.ComboboxProps>>,
+  Assert<Same<Ui.MultiSelectProps, Ref.MultiSelectProps>>,
+  Assert<Same<Ui.SliderProps, Ref.SliderProps>>,
+  Assert<Same<Ui.DatePickerProps, Ref.DatePickerProps>>,
+  Assert<Same<Ui.DateRangePickerProps, Ref.DateRangePickerProps>>,
+  Assert<Same<Ui.TimePickerProps, Ref.TimePickerProps>>,
+  Assert<Same<Ui.FileDropProps, Ref.FileDropProps>>,
 ];
 
 export type ComponentContracts = [
@@ -213,6 +220,13 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.PayoutDetailsForm, Ref.PayoutDetailsFormProps>>,
   Assert<Fits<typeof Ui.PaymentTracker, Ref.PaymentTrackerProps>>,
   Assert<Fits<typeof Ui.UpNextCard, Ref.UpNextCardProps>>,
+  Assert<Fits<typeof Ui.Combobox, Ref.ComboboxProps>>,
+  Assert<Fits<typeof Ui.MultiSelect, Ref.MultiSelectProps>>,
+  Assert<Fits<typeof Ui.Slider, Ref.SliderProps>>,
+  Assert<Fits<typeof Ui.DatePicker, Ref.DatePickerProps>>,
+  Assert<Fits<typeof Ui.DateRangePicker, Ref.DateRangePickerProps>>,
+  Assert<Fits<typeof Ui.TimePicker, Ref.TimePickerProps>>,
+  Assert<Fits<typeof Ui.FileDrop, Ref.FileDropProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -314,6 +328,13 @@ describe("reference contracts", () => {
       "PayoutDetailsForm",
       "PaymentTracker",
       "UpNextCard",
+      "Combobox",
+      "MultiSelect",
+      "Slider",
+      "DatePicker",
+      "DateRangePicker",
+      "TimePicker",
+      "FileDrop",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);
