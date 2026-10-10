@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="160" viewBox="0 0 640 160" role="img" aria-label="Tenant Logo, Light slot, 160 x 40">
+<rect width="640" height="160" fill="#FFFFFF"></rect>
+<rect x="6" y="6" width="628" height="148" rx="12" fill="none" stroke="#D1D2D6" stroke-width="3" stroke-dasharray="12 10"></rect>
+<text x="320.0" y="76.8" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="600" fill="#6B6E76">Tenant Logo, Light</text>
+<text x="320.0" y="97.6" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#6B6E76">160 x 40</text>
+</svg>
