@@ -276,3 +276,35 @@ export {
   type AccessGridMatrixProps,
 } from "./XOS/XOS.tsx";
 export type { EmergencyAuthority } from "./types/reference";
+
+/* Gateway components */
+export {
+  ProgressBar,
+  OpportunityCard,
+  OpportunityFilters,
+  ApplicationForm,
+  AgencySlate,
+  ProfileEditor,
+  EPKViewer,
+  AvailabilityCalendar,
+  OnboardingPacket,
+  EngagementTimeline,
+  RatingDialog,
+  PayoutDetailsForm,
+  PaymentTracker,
+  UpNextCard,
+  type ProgressBarProps,
+  type OpportunityCardProps,
+  type OpportunityFiltersProps,
+  type ApplicationFormProps,
+  type AgencySlateProps,
+  type ProfileEditorProps,
+  type EPKViewerProps,
+  type AvailabilityCalendarProps,
+  type OnboardingPacketProps,
+  type EngagementTimelineProps,
+  type RatingDialogProps,
+  type PayoutDetailsFormProps,
+  type PaymentTrackerProps,
+  type UpNextCardProps,
+} from "./Gateway/Gateway.tsx";

@@ -100,6 +100,20 @@ export type PropContracts = [
   Assert<Same<Ui.RunOfShowLiveProps, Ref.RunOfShowLiveProps>>,
   Assert<Same<Ui.CoordinateMatrixProps, Ref.CoordinateMatrixProps>>,
   Assert<Same<Ui.AccessGridMatrixProps, Ref.AccessGridMatrixProps>>,
+  Assert<Same<Ui.ProgressBarProps, Ref.ProgressBarProps>>,
+  Assert<Same<Ui.OpportunityCardProps, Ref.OpportunityCardProps>>,
+  Assert<Same<Ui.OpportunityFiltersProps, Ref.OpportunityFiltersProps>>,
+  Assert<Same<Ui.ApplicationFormProps, Ref.ApplicationFormProps>>,
+  Assert<Same<Ui.AgencySlateProps, Ref.AgencySlateProps>>,
+  Assert<Same<Ui.ProfileEditorProps, Ref.ProfileEditorProps>>,
+  Assert<Same<Ui.EPKViewerProps, Ref.EPKViewerProps>>,
+  Assert<Same<Ui.AvailabilityCalendarProps, Ref.AvailabilityCalendarProps>>,
+  Assert<Same<Ui.OnboardingPacketProps, Ref.OnboardingPacketProps>>,
+  Assert<Same<Ui.EngagementTimelineProps, Ref.EngagementTimelineProps>>,
+  Assert<Same<Ui.RatingDialogProps, Ref.RatingDialogProps>>,
+  Assert<Same<Ui.PayoutDetailsFormProps, Ref.PayoutDetailsFormProps>>,
+  Assert<Same<Ui.PaymentTrackerProps, Ref.PaymentTrackerProps>>,
+  Assert<Same<Ui.UpNextCardProps, Ref.UpNextCardProps>>,
 ];
 
 export type ComponentContracts = [
@@ -185,6 +199,20 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.RunOfShowLive, Ref.RunOfShowLiveProps>>,
   Assert<Fits<typeof Ui.CoordinateMatrix, Ref.CoordinateMatrixProps>>,
   Assert<Fits<typeof Ui.AccessGridMatrix, Ref.AccessGridMatrixProps>>,
+  Assert<Fits<typeof Ui.ProgressBar, Ref.ProgressBarProps>>,
+  Assert<Fits<typeof Ui.OpportunityCard, Ref.OpportunityCardProps>>,
+  Assert<Fits<typeof Ui.OpportunityFilters, Ref.OpportunityFiltersProps>>,
+  Assert<Fits<typeof Ui.ApplicationForm, Ref.ApplicationFormProps>>,
+  Assert<Fits<typeof Ui.AgencySlate, Ref.AgencySlateProps>>,
+  Assert<Fits<typeof Ui.ProfileEditor, Ref.ProfileEditorProps>>,
+  Assert<Fits<typeof Ui.EPKViewer, Ref.EPKViewerProps>>,
+  Assert<Fits<typeof Ui.AvailabilityCalendar, Ref.AvailabilityCalendarProps>>,
+  Assert<Fits<typeof Ui.OnboardingPacket, Ref.OnboardingPacketProps>>,
+  Assert<Fits<typeof Ui.EngagementTimeline, Ref.EngagementTimelineProps>>,
+  Assert<Fits<typeof Ui.RatingDialog, Ref.RatingDialogProps>>,
+  Assert<Fits<typeof Ui.PayoutDetailsForm, Ref.PayoutDetailsFormProps>>,
+  Assert<Fits<typeof Ui.PaymentTracker, Ref.PaymentTrackerProps>>,
+  Assert<Fits<typeof Ui.UpNextCard, Ref.UpNextCardProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -272,6 +300,20 @@ describe("reference contracts", () => {
       "RunOfShowLive",
       "CoordinateMatrix",
       "AccessGridMatrix",
+      "ProgressBar",
+      "OpportunityCard",
+      "OpportunityFilters",
+      "ApplicationForm",
+      "AgencySlate",
+      "ProfileEditor",
+      "EPKViewer",
+      "AvailabilityCalendar",
+      "OnboardingPacket",
+      "EngagementTimeline",
+      "RatingDialog",
+      "PayoutDetailsForm",
+      "PaymentTracker",
+      "UpNextCard",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);
