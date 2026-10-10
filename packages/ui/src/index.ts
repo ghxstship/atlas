@@ -190,3 +190,43 @@ export {
   type TopNavProps,
   type TabBarProps,
 } from "./Navigation/Navigation.tsx";
+
+/* Layout and templates */
+export {
+  AppShell,
+  PageHeader,
+  ResizablePanel,
+  ScrollRegion,
+  Stepper,
+  SplitView,
+  type AppShellProps,
+  type PageHeaderProps,
+  type ResizablePanelProps,
+  type ScrollRegionProps,
+  type StepperProps,
+  type SplitViewProps,
+} from "./Layout/Layout.tsx";
+export {
+  TemplateCollection,
+  TemplateRecord,
+  TemplateSplitView,
+  TemplateDashboard,
+  TemplateSettings,
+  TemplateWizard,
+  TemplateGridEditor,
+  TemplateDocument,
+  TemplateAuth,
+  TemplateGatewayShell,
+  TemplateSystem,
+  type TemplateCollectionProps,
+  type TemplateRecordProps,
+  type TemplateSplitViewProps,
+  type TemplateDashboardProps,
+  type TemplateSettingsProps,
+  type TemplateWizardProps,
+  type TemplateGridEditorProps,
+  type TemplateDocumentProps,
+  type TemplateAuthProps,
+  type TemplateGatewayShellProps,
+  type TemplateSystemProps,
+} from "./Templates/Templates.tsx";

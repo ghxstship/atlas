@@ -76,6 +76,12 @@ export type PropContracts = [
   Assert<Same<Ui.TopNavProps, Ref.TopNavProps>>,
   Assert<Same<Ui.TabBarProps, Ref.TabBarProps>>,
   Assert<Same<Ui.BrandMarkProps, Ref.BrandMarkProps>>,
+  Assert<Same<Ui.AppShellProps, Ref.AppShellProps>>,
+  Assert<Same<Ui.PageHeaderProps, Ref.PageHeaderProps>>,
+  Assert<Same<Ui.ResizablePanelProps, Ref.ResizablePanelProps>>,
+  Assert<Same<Ui.ScrollRegionProps, Ref.ScrollRegionProps>>,
+  Assert<Same<Ui.StepperProps, Ref.StepperProps>>,
+  Assert<Same<Ui.SplitViewProps, Ref.SplitViewProps>>,
 ];
 
 export type ComponentContracts = [
@@ -137,6 +143,12 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.TopNav, Ref.TopNavProps>>,
   Assert<Fits<typeof Ui.TabBar, Ref.TabBarProps>>,
   Assert<Fits<typeof Ui.BrandMark, Ref.BrandMarkProps>>,
+  Assert<Fits<typeof Ui.AppShell, Ref.AppShellProps>>,
+  Assert<Fits<typeof Ui.PageHeader, Ref.PageHeaderProps>>,
+  Assert<Fits<typeof Ui.ResizablePanel, Ref.ResizablePanelProps>>,
+  Assert<Fits<typeof Ui.ScrollRegion, Ref.ScrollRegionProps>>,
+  Assert<Fits<typeof Ui.Stepper, Ref.StepperProps>>,
+  Assert<Fits<typeof Ui.SplitView, Ref.SplitViewProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -200,6 +212,12 @@ describe("reference contracts", () => {
       "TopNav",
       "TabBar",
       "BrandMark",
+      "AppShell",
+      "PageHeader",
+      "ResizablePanel",
+      "ScrollRegion",
+      "Stepper",
+      "SplitView",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);

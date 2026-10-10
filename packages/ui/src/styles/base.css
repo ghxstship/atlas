@@ -51,6 +51,9 @@
   --ui-accordion-indent: calc(var(--space-12) + var(--icon-size-14) + var(--space-6));
   --ui-step-line: var(--space-24);
   --ui-peek-min: calc(var(--space-40) * 8);
+  --ui-settings-nav: calc(var(--space-20) * 11);
+  --ui-outline: calc(var(--space-20) * 9);
+  --ui-gateway-aside: calc(var(--space-20) * 19);
 }
 
 @layer base {
