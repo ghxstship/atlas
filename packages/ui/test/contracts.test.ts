@@ -138,6 +138,10 @@ export type PropContracts = [
   Assert<Same<Ui.ResourceScheduleProps, Ref.ResourceScheduleProps>>,
   Assert<Same<Ui.OrgChartProps, Ref.OrgChartProps>>,
   Assert<Same<Ui.ChartProps, Ref.ChartProps>>,
+  Assert<Same<Ui.FilterBuilderProps, Ref.FilterBuilderProps>>,
+  Assert<Same<Ui.QuickAddProps, Ref.QuickAddProps>>,
+  Assert<Same<Ui.ColorPickerProps, Ref.ColorPickerProps>>,
+  Assert<Same<Ui.DiffViewerProps, Ref.DiffViewerProps>>,
 ];
 
 export type ComponentContracts = [
@@ -261,6 +265,10 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.ResourceSchedule, Ref.ResourceScheduleProps>>,
   Assert<Fits<typeof Ui.OrgChart, Ref.OrgChartProps>>,
   Assert<Fits<typeof Ui.Chart, Ref.ChartProps>>,
+  Assert<Fits<typeof Ui.FilterBuilder, Ref.FilterBuilderProps>>,
+  Assert<Fits<typeof Ui.QuickAdd, Ref.QuickAddProps>>,
+  Assert<Fits<typeof Ui.ColorPicker, Ref.ColorPickerProps>>,
+  Assert<Fits<typeof Ui.DiffViewer, Ref.DiffViewerProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -386,6 +394,10 @@ describe("reference contracts", () => {
       "ResourceSchedule",
       "OrgChart",
       "Chart",
+      "FilterBuilder",
+      "QuickAdd",
+      "ColorPicker",
+      "DiffViewer",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);

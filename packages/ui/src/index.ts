@@ -378,3 +378,19 @@ export {
   type ChartProps,
   type SparklineProps,
 } from "./Charts/Charts.tsx";
+
+/* Editing */
+export {
+  FilterBuilder,
+  QuickAdd,
+  ColorPicker,
+  DiffViewer,
+  parseQuickAdd,
+  contrastRatio,
+  type FilterBuilderProps,
+  type QuickAddProps,
+  type ColorPickerProps,
+  type DiffViewerProps,
+  type QuickAddResult,
+  type QuickAddToken,
+} from "./Editing/Editing.tsx";

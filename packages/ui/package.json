@@ -29,6 +29,7 @@
     "@xos/i18n": "workspace:*",
     "@xos/icons": "workspace:*",
     "@xos/tokens": "workspace:*",
+    "chrono-node": "2.10.2",
     "cmdk": "1.1.1",
     "lucide-react": "1.53.0",
     "qrcode-generator": "1.4.4",
