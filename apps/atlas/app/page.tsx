@@ -1,11 +1,11 @@
-import { defaultLocale, getMessages } from "@xos/i18n";
+import { getTranslations } from "next-intl/server";
 
-export default function HomePage() {
-  const messages = getMessages(defaultLocale).shell.atlas;
+export default async function HomePage() {
+  const t = await getTranslations("shell.atlas");
   return (
     <main>
-      <h1>{messages.name}</h1>
-      <p>{messages.tagline}</p>
+      <h1>{t("name")}</h1>
+      <p>{t("tagline")}</p>
     </main>
   );
 }
