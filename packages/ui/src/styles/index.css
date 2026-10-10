@@ -1,0 +1,16 @@
+/* @xos/ui stylesheet: the Tailwind 4 entry for every app that renders these components.
+   An app's global stylesheet imports this file once (`@import "@xos/ui/styles.css";`) and the
+   Tailwind PostCSS plugin compiles it. Utilities come from the shared token preset through
+   tailwind.config.cjs, `@source` adds this package's components to the app's own sources, and the
+   token build supplies every variable, scoped to `[data-theme]` for Dark, Light and Sunlight. */
+@import "tailwindcss";
+@config "../../tailwind.config.cjs";
+@source "../";
+
+@import "@xos/tokens/css/base.css";
+@import "@xos/tokens/css/theme.dark.css";
+@import "@xos/tokens/css/theme.light.css";
+@import "@xos/tokens/css/theme.sunlight.css";
+
+@import "./base.css";
+@import "./components.css";

@@ -1,0 +1,252 @@
+/* Component rules that utilities cannot express: keyframes, pseudo-element marks, invisible hit
+   areas for coarse pointers and container queries. Ported from the design reference. */
+
+/* Motion: 120 to 280 ms, transform and opacity only. Reduced motion keeps an 80 ms fade. */
+@keyframes xos-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes xos-peek-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--space-16));
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes xos-peek-in-rtl {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--space-16) * -1));
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes xos-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes xos-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes xos-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes xos-drain {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.xos-anim-pop {
+  animation: xos-pop-in var(--motion-duration-base) var(--motion-easing-enter);
+  transform-origin: top;
+}
+
+.xos-anim-dialog {
+  animation: xos-pop-in var(--motion-duration-deliberate) var(--motion-easing-enter);
+}
+
+.xos-anim-peek {
+  animation: xos-peek-in var(--motion-duration-slow) var(--motion-easing-enter);
+}
+
+[dir="rtl"] .xos-anim-peek,
+.xos-anim-peek[dir="rtl"] {
+  animation-name: xos-peek-in-rtl;
+}
+
+.xos-anim-fade {
+  animation: xos-fade-in var(--motion-duration-slow) var(--motion-easing-enter);
+}
+
+.xos-anim-spin {
+  animation: xos-spin calc(var(--motion-duration-slow) * 4) linear infinite;
+}
+
+.xos-anim-pulse {
+  animation: xos-pulse calc(var(--motion-duration-deliberate) * 5) var(--motion-easing-standard)
+    infinite;
+}
+
+/* The undo countdown drains over the toast's own seconds (`--xos-seconds`, unitless). */
+.xos-anim-drain {
+  transform-origin: left;
+  animation: xos-drain calc(var(--xos-seconds, 8) * var(--motion-duration-slow) * 5) linear forwards;
+}
+
+[dir="rtl"] .xos-anim-drain {
+  transform-origin: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xos-anim-pop,
+  .xos-anim-dialog,
+  .xos-anim-peek,
+  .xos-anim-fade {
+    animation: xos-fade-in var(--motion-duration-reduced) linear !important;
+  }
+
+  .xos-anim-spin,
+  .xos-anim-pulse,
+  .xos-anim-drain {
+    animation: none !important;
+  }
+}
+
+/* Icons that point along the reading direction mirror in right-to-left locales. */
+[dir="rtl"] .xos-flip-rtl {
+  transform: scaleX(-1);
+}
+
+/* Checkbox, radio and switch marks drawn on the native input. */
+.xos-check-input {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  flex: none;
+  margin: 0;
+  inline-size: var(--ui-check);
+  block-size: var(--ui-check);
+  border: var(--stroke-width-hairline) solid var(--color-border-control);
+  border-radius: var(--radius-chip);
+  background: var(--color-bg-surface);
+  cursor: pointer;
+}
+
+.xos-check-input:checked {
+  background: var(--color-accent-default);
+  border-color: var(--color-accent-default);
+}
+
+.xos-check-input:checked::after {
+  content: "";
+  inline-size: var(--space-8);
+  block-size: var(--space-4);
+  border: solid var(--color-accent-text-on);
+  border-width: 0 0 var(--ui-hairline-half) var(--ui-hairline-half);
+  transform: translateY(calc(var(--stroke-width-hairline) * -1)) rotate(-45deg);
+}
+
+.xos-check-input[type="radio"] {
+  border-radius: var(--radius-pill);
+}
+
+.xos-check-input[type="radio"]:checked::after {
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-text-on);
+  transform: none;
+}
+
+.xos-check-input[role="switch"] {
+  position: relative;
+  display: block;
+  inline-size: var(--density-control-md);
+  block-size: var(--space-16);
+  border-radius: var(--space-8);
+}
+
+.xos-check-input[role="switch"]::after {
+  content: "";
+  position: absolute;
+  inset-block-start: var(--space-2);
+  inset-inline-start: var(--space-2);
+  inline-size: var(--ui-switch-knob);
+  block-size: var(--ui-switch-knob);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-secondary);
+  transform: none;
+  transition: transform var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.xos-check-input[role="switch"]:checked::after {
+  background: var(--color-accent-text-on);
+  transform: translateX(var(--space-12));
+}
+
+[dir="rtl"] .xos-check-input[role="switch"]:checked::after {
+  transform: translateX(calc(var(--space-12) * -1));
+}
+
+.xos-check-input:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+[data-theme="sunlight"] .xos-check-input {
+  border-width: var(--stroke-width-focus);
+}
+
+/* Touch: dense controls keep their visual size and gain an invisible hit area of at least
+   target-coarse, centered on the control (decision D18). */
+@media (pointer: coarse) {
+  .xos-hit {
+    position: relative;
+  }
+
+  .xos-hit::before {
+    content: "";
+    position: absolute;
+    inset-inline: min(0%, calc(50% - var(--density-target-coarse) / 2));
+    inset-block: min(0%, calc(50% - var(--density-target-coarse) / 2));
+  }
+
+  .xos-check {
+    min-block-size: var(--density-target-coarse);
+    min-inline-size: var(--density-target-coarse);
+  }
+}
+
+/* Compass surfaces raise every target to touch-min (48 pt). */
+.xos-compass {
+  font: var(--typography-text-16);
+}
+
+.xos-compass :where(button, input, select, [role="radio"], [role="tab"], a) {
+  min-block-size: var(--density-touch-min);
+}
+
+.xos-compass :where(button[aria-label]) {
+  min-inline-size: var(--density-touch-min);
+}
+
+[data-theme="sunlight"] .xos-compass :where(button, input, select),
+.xos-compass[data-theme="sunlight"] :where(button, input, select) {
+  border-width: var(--stroke-width-focus);
+}

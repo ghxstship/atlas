@@ -1,0 +1,145 @@
+/* Base layer, ported from the design reference (components/bundle.css): the browser reset that the
+   Tailwind preflight does not cover, color-scheme per theme, the focus ring, platform defaults
+   (decision D7) and the component dimensions. Every value reads a token. */
+
+/* Component dimensions. Sizes the token set does not name directly are derived from the 4 px space
+   scale here, once, so components never carry a raw length. */
+:root {
+  --ui-hairline-half: calc(var(--stroke-width-hairline) * 1.5);
+  --ui-kbd: calc(var(--space-16) + var(--space-2));
+  --ui-tag: var(--space-20);
+  --ui-chip: calc(var(--space-20) + var(--space-2));
+  --ui-check: var(--space-16);
+  --ui-switch-knob: calc(var(--space-8) + var(--space-2));
+  --ui-avatar: var(--density-control-sm);
+  --ui-avatar-lg: var(--density-control-lg);
+  --ui-avatar-overlap: calc(var(--space-6) * -1);
+  --ui-dot: var(--space-6);
+  --ui-pip-inline: var(--space-4);
+  --ui-pip-block: calc(var(--space-8) + var(--space-2));
+  --ui-field: calc(var(--space-40) * 7);
+  --ui-alert: calc(var(--space-40) * 13);
+  --ui-empty: calc(var(--space-20) * 21);
+  --ui-skeleton-inline: calc(var(--space-40) * 4);
+  --ui-skeleton-block: var(--space-12);
+  --ui-command: var(--layout-peek);
+  --ui-dialog: var(--layout-peek-min);
+  --ui-drawer: var(--layout-auth);
+  --ui-popover: calc(var(--space-20) * 15);
+  --ui-hovercard: var(--layout-property-column);
+  --ui-menu-min: calc(var(--space-20) * 11);
+  --ui-listbox-max: calc(var(--space-40) * 6);
+  --ui-props-label: calc(var(--space-40) * 3);
+  --ui-sheet: var(--layout-form);
+  --ui-day-inline: calc(var(--space-32) + var(--space-2));
+  --ui-day-block: var(--space-32);
+  --ui-cmd-input: var(--space-48);
+  --ui-handle: var(--space-6);
+  --ui-split-list: calc(var(--space-20) * 15);
+  --ui-shell-head: calc(var(--space-40) + var(--space-4));
+  --ui-shell-min: calc(var(--space-20) * 21);
+  --ui-board-col: calc(var(--space-20) * 13);
+  --ui-tree: calc(var(--space-20) * 17);
+  --ui-rail-gap: var(--space-24);
+  --ui-topnav: calc(var(--space-48) + var(--space-8));
+  --ui-tabbar: calc(var(--space-64) * 6 + var(--space-6));
+  --ui-orgsw: var(--ui-field);
+  --ui-stat-min: calc(var(--space-40) * 5);
+  --ui-resizable-min: calc(var(--space-40) * 4);
+  --ui-split-min: calc(var(--space-40) * 7);
+  --ui-accordion-row: var(--space-40);
+  --ui-accordion-indent: calc(var(--space-12) + var(--icon-size-14) + var(--space-6));
+  --ui-step-line: var(--space-24);
+  --ui-peek-min: calc(var(--space-40) * 8);
+}
+
+@layer base {
+  html,
+  body {
+    background: var(--color-bg-canvas);
+    color: var(--color-text-primary);
+  }
+
+  /* Native controls, scrollbars and the overscroll canvas follow the theme, not the OS. */
+  :root,
+  [data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  [data-theme="light"],
+  [data-theme="sunlight"] {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    font: var(--typography-text-13);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Reset the defaults that differ between engines, matching the reference reset. */
+  :where(button) {
+    padding: 0;
+    font: inherit;
+    color: inherit;
+  }
+
+  :where(th, td) {
+    padding: 0;
+  }
+
+  :where(input, select, textarea) {
+    font: inherit;
+    padding: 0;
+  }
+
+  /* Focus is a 2 px focus-ring outline with a 2 px offset on every interactive element. */
+  :where(button, input, select, textarea, a, summary, [tabindex]):focus-visible {
+    outline: var(--stroke-width-focus) solid var(--color-focus-ring);
+    outline-offset: var(--space-2);
+  }
+
+  :where(input, select, textarea):focus-visible {
+    outline-offset: 0;
+  }
+}
+
+/* Reduced motion: movement becomes a short opacity fade or nothing. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: var(--motion-duration-reduced) !important;
+    animation-duration: var(--motion-duration-reduced) !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Forced colors: controls switch to system colors and keep borders and focus. */
+@media (forced-colors: active) {
+  :where(button, input, [tabindex]):focus-visible {
+    outline-color: Highlight;
+  }
+
+  [aria-selected="true"],
+  [aria-current="page"] {
+    outline: var(--stroke-width-focus) solid Highlight;
+  }
+}
+
+/* Print: records, lists and reports on paper with no navigation chrome. */
+@media print {
+  html,
+  body {
+    background: var(--color-paper) !important;
+    color: var(--color-paper-ink) !important;
+  }
+
+  table thead {
+    display: table-header-group;
+  }
+
+  table tr {
+    break-inside: avoid;
+  }
+}

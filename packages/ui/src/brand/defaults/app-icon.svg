@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="App Icon slot, 1024 x 1024">
+<rect width="512" height="512" fill="#F7F7F8"></rect>
+<rect x="6" y="6" width="500" height="500" rx="12" fill="none" stroke="#D1D2D6" stroke-width="3" stroke-dasharray="12 10"></rect>
+<text x="256.0" y="245.8" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="51" font-weight="600" fill="#6B6E76">App Icon</text>
+<text x="256.0" y="312.1" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="40" fill="#6B6E76">1024 x 1024</text>
+</svg>

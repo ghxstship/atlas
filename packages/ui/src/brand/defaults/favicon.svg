@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Favicon slot, 32 x 32">
+<rect width="256" height="256" fill="#FFFFFF"></rect>
+<rect x="6" y="6" width="244" height="244" rx="12" fill="none" stroke="#D1D2D6" stroke-width="3" stroke-dasharray="12 10"></rect>
+<text x="128.0" y="123.0" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="25" font-weight="600" fill="#6B6E76">Favicon</text>
+<text x="128.0" y="155.5" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#6B6E76">32 x 32</text>
+</svg>
