@@ -18,6 +18,8 @@ export default defineConfig({
   retries: process.env["CI"] ? 1 : 0,
   timeout: 60_000,
   reporter: [["list"]],
+  // Kept under node_modules so formatters and the finish guard never scan run output.
+  outputDir: "node_modules/.cache/playwright",
   use: {
     baseURL,
     trace: "retain-on-failure",

@@ -8,7 +8,7 @@ test("the shell navigates from the sitemap: sidebar, command menu, breadcrumbs, 
   const slug = `shell-${id}`;
   await signUp(page, { name: "Sam Shell", email: testEmail("shell", id) });
   await createOrganization(page, { name: `Shell ${id}`, slug });
-  await page.screenshot({ path: "test-results/shell-home.png", fullPage: true });
+  await page.screenshot({ path: "node_modules/.cache/playwright/shell-home.png", fullPage: true });
 
   const main = page.getByRole("navigation", { name: "Quick Access" });
   await expect(main.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
