@@ -6,15 +6,15 @@ set search_path = extensions, public;
 
 select plan(17);
 
-select tables_are(
-  'app',
+-- Later ranges (A03 and on) add their own tables to app, so this checks containment, not equality.
+select ok(
   array[
     'capabilities', 'capability_modules', 'delegations', 'invites', 'membership_roles', 'memberships',
     'organizations', 'people', 'plans', 'record_grants', 'role_capabilities', 'roles',
     'subscription_state_transition_rules', 'subscription_state_transitions', 'subscriptions',
     'team_members', 'teams', 'user_capability_grants', 'workspace_members', 'workspaces'
-  ],
-  'app holds exactly the platform identity tables'
+  ]::name[] <@ (select array_agg(tablename) from pg_tables where schemaname = 'app'),
+  'app holds every platform identity table'
 );
 
 -- Every table and column in app carries a comment (Section 7.1).

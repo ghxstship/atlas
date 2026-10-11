@@ -6,7 +6,8 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(148);
+-- Catalog checks run once per app table, and later ranges add tables, so the count is not fixed.
+select * from no_plan();
 
 create function pg_temp.visible(p_table text, p_org text) returns integer
 language plpgsql as $$
