@@ -84,5 +84,6 @@ describe("proxy route guard", () => {
         expect((await decide(path, role)).kind, `${role} ${path}`).toBe(expected);
       }
     }
-  });
+    // Exhaustive over every org route and all seven roles; CI runners need more than the 5 s default.
+  }, 30_000);
 });
