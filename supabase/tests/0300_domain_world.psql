@@ -1,0 +1,58 @@
+-- Shared pgTAP fixture for the 03xx and 04xx suites, included with \ir inside each test transaction.
+-- Builds on A02's identity world (0200_identity_world.psql) and adds domain scope. Every name is
+-- fictional; Northwind Live is the demo tenant (Section 3.14). Nothing persists: each suite rolls back.
+--
+-- Venues: venue_a (Northwind, Miami-Dade), venue_b (Harbor Lights, Miami-Dade).
+-- Projects: prj_a NWL Northwind Summer Series and prj_a2 NWX Northwind Winter Gala in org_a,
+--   prj_b HLP Harbor Lights Pier Nights in org_b.
+-- Project members of prj_a: dave Coordinator, erin Coordinator, frank Field. prj_a2 has no members.
+-- Scope roots: root_a (NWL), root_a2 (NWX), root_b (HLP); show_a (NWL-E01) under root_a.
+\ir 0200_identity_world.psql
+
+create function pg_temp.build_domain_world() returns void
+language plpgsql as $$
+declare
+  v_id uuid;
+begin
+  perform pg_temp.as_user('alice');
+  insert into app.venues (org_id, name, jurisdiction_id, time_zone)
+  values (pg_temp.id('org_a'), 'Northwind Pier Pavilion', 'US-FL-MIAMI-DADE', 'America/New_York') returning id into v_id;
+  insert into world values ('venue_a', v_id);
+  insert into app.projects (org_id, project_key, name, venue_id, time_zone, jurisdiction_id, tier_code)
+  values (pg_temp.id('org_a'), 'NWL', 'Northwind Summer Series', pg_temp.id('venue_a'), 'America/New_York',
+          'US-FL-MIAMI-DADE', '05') returning id into v_id;
+  insert into world values ('prj_a', v_id);
+  insert into app.projects (org_id, project_key, name, time_zone)
+  values (pg_temp.id('org_a'), 'NWX', 'Northwind Winter Gala', 'America/New_York') returning id into v_id;
+  insert into world values ('prj_a2', v_id);
+  insert into app.project_members (project_id, membership_id, project_role) values
+    (pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), 'Coordinator'),
+    (pg_temp.id('prj_a'), pg_temp.id('erin@org_a'), 'Coordinator'),
+    (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), 'Field');
+  insert into app.scope_nodes (project_id, scope_kind, scope_code, name)
+  values (pg_temp.id('prj_a'), 'Engagement Root', 'NWL', 'Northwind Summer Series') returning id into v_id;
+  insert into world values ('root_a', v_id);
+  insert into app.scope_nodes (project_id, parent_id, scope_kind, scope_code, name, venue_id)
+  values (pg_temp.id('prj_a'), pg_temp.id('root_a'), 'Show', 'NWL-E01', 'Opening Night', pg_temp.id('venue_a'))
+  returning id into v_id;
+  insert into world values ('show_a', v_id);
+  insert into app.scope_nodes (project_id, scope_kind, scope_code, name)
+  values (pg_temp.id('prj_a2'), 'Engagement Root', 'NWX', 'Northwind Winter Gala') returning id into v_id;
+  insert into world values ('root_a2', v_id);
+
+  perform pg_temp.as_user('xavier');
+  insert into app.venues (org_id, name, jurisdiction_id, time_zone)
+  values (pg_temp.id('org_b'), 'Harbor Lights Dock Stage', 'US-FL-MIAMI-DADE', 'America/New_York') returning id into v_id;
+  insert into world values ('venue_b', v_id);
+  insert into app.projects (org_id, project_key, name, venue_id, time_zone)
+  values (pg_temp.id('org_b'), 'HLP', 'Harbor Lights Pier Nights', pg_temp.id('venue_b'), 'America/New_York')
+  returning id into v_id;
+  insert into world values ('prj_b', v_id);
+  insert into app.scope_nodes (project_id, scope_kind, scope_code, name)
+  values (pg_temp.id('prj_b'), 'Engagement Root', 'HLP', 'Harbor Lights Pier Nights') returning id into v_id;
+  insert into world values ('root_b', v_id);
+
+  perform pg_temp.as_platform();
+end $$;
+
+select pg_temp.build_domain_world();
