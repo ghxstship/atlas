@@ -142,6 +142,9 @@ export type PropContracts = [
   Assert<Same<Ui.QuickAddProps, Ref.QuickAddProps>>,
   Assert<Same<Ui.ColorPickerProps, Ref.ColorPickerProps>>,
   Assert<Same<Ui.DiffViewerProps, Ref.DiffViewerProps>>,
+  Assert<Same<Ui.SpreadsheetGridProps, Ref.SpreadsheetGridProps>>,
+  Assert<Same<Ui.BudgetGridProps, Ref.BudgetGridProps>>,
+  Assert<Same<Ui.BidSheetProps, Ref.BidSheetProps>>,
 ];
 
 export type ComponentContracts = [
@@ -269,6 +272,9 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.QuickAdd, Ref.QuickAddProps>>,
   Assert<Fits<typeof Ui.ColorPicker, Ref.ColorPickerProps>>,
   Assert<Fits<typeof Ui.DiffViewer, Ref.DiffViewerProps>>,
+  Assert<Fits<typeof Ui.SpreadsheetGrid, Ref.SpreadsheetGridProps>>,
+  Assert<Fits<typeof Ui.BudgetGrid, Ref.BudgetGridProps>>,
+  Assert<Fits<typeof Ui.BidSheet, Ref.BidSheetProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -398,6 +404,9 @@ describe("reference contracts", () => {
       "QuickAdd",
       "ColorPicker",
       "DiffViewer",
+      "SpreadsheetGrid",
+      "BudgetGrid",
+      "BidSheet",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);

@@ -275,7 +275,7 @@ export {
   type CoordinateMatrixProps,
   type AccessGridMatrixProps,
 } from "./XOS/XOS.tsx";
-export type { EmergencyAuthority } from "./types/reference";
+export type { EmergencyAuthority, GLAccount, GridColumn, BudgetLine } from "./types/reference";
 
 /* Gateway components */
 export {
@@ -394,3 +394,16 @@ export {
   type QuickAddResult,
   type QuickAddToken,
 } from "./Editing/Editing.tsx";
+
+/* Grids */
+export {
+  SpreadsheetGrid,
+  BudgetGrid,
+  BidSheet,
+  glForCode,
+  parseCell,
+  columnTotal,
+  type SpreadsheetGridProps,
+  type BudgetGridProps,
+  type BidSheetProps,
+} from "./Grids/Grids.tsx";
