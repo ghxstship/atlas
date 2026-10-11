@@ -1,0 +1,107 @@
+/**
+ * How the Atlas route tree is generated from ia/sitemap.yaml (Section 3.15: routes are generated
+ * from the sitemap). The generator writes one page file per routed node; this file names the
+ * exceptions, so every route in app/ is accounted for (Section 18, gate 15).
+ */
+
+/**
+ * Nodes whose page is written by hand. The generator never writes these files and fails when one
+ * is missing. A module agent implementing a page adds its node id here and replaces the file.
+ */
+export const IMPLEMENTED: ReadonlySet<string> = new Set([
+  "home",
+  "legal",
+  "settings.general",
+  "settings.members",
+  "settings.white-label",
+  "settings.modules",
+  "settings.billing-and-plan",
+  "me.organizations",
+]);
+
+/** Nodes Atlas routes do not serve, with who serves them. */
+export const DELEGATED: Readonly<Record<string, string>> = {
+  "advance-form": "Served by Gateway (servedBy: gateway, ADR 0006 item 5).",
+  "agreement-signing": "Served by Gateway (servedBy: gateway, ADR 0006 item 5).",
+  "calendar-feed":
+    "A route handler at /ical/{feedToken}.ics owned by A18 (calendar feeds, Section 4.6.5).",
+};
+
+/**
+ * Routes outside the sitemap that the shell owns: the entry redirect, the Auth template flows
+ * (all under /auth, which private.reserved_org_slugs reserves) and the public API mount. Patterns
+ * use the sitemap's `{param}` syntax.
+ */
+export const SHELL_ROUTES: Readonly<Record<string, string>> = {
+  "/": "Entry: sends a signed-in person to their org's Home, everyone else to sign in.",
+  "/auth/sign-in": "Auth template: password, magic link and OAuth sign-in.",
+  "/auth/sign-up": "Auth template: account creation with legal acceptance.",
+  "/auth/check-email": "Auth template: magic link and confirmation sent.",
+  "/auth/callback": "Route handler: OAuth and PKCE code exchange.",
+  "/auth/confirm": "Route handler: email link token verification.",
+  "/auth/sign-out": "Route handler: ends the session (POST only).",
+  "/auth/session": "Route handler: session expiry for the re-authentication dialog.",
+  "/auth/organization": "Auth template: create an organization.",
+  "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
+  "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",
+};
+
+/**
+ * Where an empty state's action leads when it names another page ("View invoices"). Pages not
+ * listed act on themselves: their action opens the page's create flow (`?create=1`), which the
+ * module agent implements with the page.
+ */
+export const EMPTY_STATE_TARGETS: Readonly<Record<string, string>> = {
+  "home.today": "projects.all",
+  "home.gate-readiness": "projects.all",
+  "home.alerts": "my-work",
+  "home.recent": "projects.all",
+  inbox: "my-work",
+  "my-work": "projects.all",
+  "projects.by-phase": "projects.all",
+  "projects.portfolio-timeline": "projects.all",
+  "advancing.submissions": "advancing.packets",
+  "advancing.reconciliation": "advancing.riders",
+  "credentials.access-grid": "credentials.categories",
+  "credentials.scan-log": "credentials.issued",
+  "safety.dispatch-board": "safety.incidents",
+  "opportunities.pipeline": "opportunities.postings",
+  "opportunities.onboarding": "people.offers",
+  "opportunities.ratings": "opportunities.engagements",
+  "crew.schedule": "crew.shifts",
+  "crew.swaps": "crew.shifts",
+  "crew.time-entries": "crew.shifts",
+  "crew.timesheets": "crew.time-entries",
+  "finance.payments": "finance.invoices",
+  "finance.chart-of-accounts": "canon",
+  "procurement.receipts": "procurement.purchase-orders",
+  "procurement.invoice-matching": "finance.invoices",
+  "reports.gate-readiness": "projects.all",
+  "reports.coordinate-matrix": "projects.all",
+  "reports.budget-versus-actual": "finance.budgets",
+  "reports.labor": "crew.timesheets",
+  "reports.purchase-order-exposure": "procurement.purchase-orders",
+  "reports.incidents": "safety.incidents",
+  "reports.final-cost-report": "projects.all",
+  "reports.saved-reports": "reports.builder",
+  "canon.departments": "canon.disciplines",
+  "canon.disciplines": "canon.departments",
+  "canon.categories": "canon.disciplines",
+  "canon.elements": "canon.categories",
+  "canon.phases-and-gates": "canon.record-kinds",
+  "canon.record-kinds": "canon.phases-and-gates",
+  "canon.roles": "canon.departments",
+  "canon.jurisdictions-and-permit-rules": "safety.permits",
+  "canon.metrics": "canon.departments",
+  "activity.feed": "my-work",
+  "activity.audit-log": "settings.members",
+  "settings.usage": "settings.members",
+  "settings.audit-log": "settings.members",
+  "settings.legal": "settings.members",
+  "me.connected-apps": "settings.integrations",
+  "partner-console.usage": "partner-console.client-orgs",
+  "partner-console.wholesale-billing": "partner-console.client-orgs",
+};
+
+/** Route parameters that name data rows; a page whose row does not resolve answers 404. */
+export const DATA_PARAMS = ["projectKey", "recordKey", "viewId", "objectKey"] as const;
