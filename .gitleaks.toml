@@ -1,0 +1,17 @@
+# Secret scan configuration (Section 9). Extends the default gitleaks rules and allowlists
+# only exact values that were reviewed and verified fake: documented API examples, a test
+# fixture and a canon column name. Add a value here only after confirming it is not a secret.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Reviewed example and fixture values (2026-10-11)"
+regexTarget = "secret"
+regexes = [
+  '''^regular_hours_1_0x$''',
+  '''^xos_live_7Hq2$''',
+  '''^xos_live_7Hq2wQ1nC8vL0pR4tY6u$''',
+  '''^xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e$''',
+  '''^0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f$''',
+  '''^abcdefghijklmnop1234$''',
+]
