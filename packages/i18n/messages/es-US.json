@@ -580,7 +580,14 @@
       "unitPrice": "Precio unitario"
     },
     "board": {
-      "add": "Nuevo registro"
+      "add": "Nuevo registro",
+      "dropped": "{title} soltado en {column}.",
+      "moved": "{title} movido a {column}.",
+      "picked": "{title} tomado en {column}. Las flechas lo mueven, Espacio lo suelta, Escape cancela.",
+      "returned": "{title} devuelto a {column}."
+    },
+    "brand": {
+      "size": "{width} x {height}"
     },
     "budget": {
       "amount": "Monto",
@@ -614,6 +621,7 @@
       "legend": "Leyenda",
       "noValue": "Sin valor",
       "other": "Otros",
+      "point": "{series}, {category}: {value}",
       "table": "Tabla",
       "tableHint": "Cambie a Tabla para ver todos los valores.",
       "view": "Vista"
@@ -661,7 +669,8 @@
       "nextMonth": "Mes siguiente",
       "pick": "Elija una fecha",
       "prevMonth": "Mes anterior",
-      "rangeTo": "a"
+      "rangeTo": "a",
+      "rangeValue": "{start} al {end}"
     },
     "daysheet": {
       "contacts": "Contactos",
@@ -855,6 +864,8 @@
     },
     "presence": {
       "editing": "{n} editando",
+      "namesEditing": "{names}, editando ahora",
+      "namesViewing": "{names}, viendo ahora",
       "viewing": "{n} viendo"
     },
     "profile": {
@@ -952,6 +963,9 @@
       "submit": "Enviar nómina",
       "title": "Nómina de personal"
     },
+    "slider": {
+      "value": "{value} {unit}"
+    },
     "stale": {
       "basis": "la fecha de la evidencia",
       "current": "Vigente",
@@ -961,10 +975,14 @@
       "months": "{n} meses",
       "title": "{n} meses desde {basis}"
     },
+    "stat": {
+      "trend": "Tendencia de {label}"
+    },
     "tabbar": {
       "badge": "{n} nuevos"
     },
     "table": {
+      "resizeColumn": "Cambiar el ancho de la columna {column}",
       "total": "Total"
     },
     "timeline": {

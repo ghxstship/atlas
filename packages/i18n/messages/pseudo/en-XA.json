@@ -62,7 +62,14 @@
       "unitPrice": "[Ûñît Prîçé ···]"
     },
     "board": {
-      "add": "[Ñéw Réçörd ···]"
+      "add": "[Ñéw Réçörd ···]",
+      "dropped": "[{title} dröppéd îñ {column}. ··········]",
+      "moved": "[{title} mövéd tö {column}. ·········]",
+      "picked": "[{title} pîçkéd ûp îñ {column}. Àrröw kéýs mövé ît, Spàçé dröps ît, Ésçàpé çàñçéls. ·····························]",
+      "returned": "[{title} rétûrñéd tö {column}. ··········]"
+    },
+    "brand": {
+      "size": "[{width} x {height} ······]"
     },
     "budget": {
       "amount": "[Àmöûñt ··]",
@@ -96,6 +103,7 @@
       "legend": "[Légéñd ··]",
       "noValue": "[Ñö vàlûé ···]",
       "other": "[Ötĥér ·]",
+      "point": "[{series}, {category}: {value} ··········]",
       "table": "[Tàblé ·]",
       "tableHint": "[Swîtçh tö Tàblé för évérý vàlûé. ············]",
       "view": "[Vîéw ·]"
@@ -143,7 +151,8 @@
       "nextMonth": "[Ñéxt möñth ···]",
       "pick": "[Pîçk à dàté ····]",
       "prevMonth": "[Prévîöûs möñth ·····]",
-      "rangeTo": "[tö ·]"
+      "rangeTo": "[tö ·]",
+      "rangeValue": "[{start} tö {end} ······]"
     },
     "daysheet": {
       "contacts": "[Çöñtàçts ···]",
@@ -337,6 +346,8 @@
     },
     "presence": {
       "editing": "[{n} édîtîñg ····]",
+      "namesEditing": "[{names}, édîtîñg ñöw ·······]",
+      "namesViewing": "[{names}, vîéwîñg ñöw ·······]",
       "viewing": "[{n} vîéwîñg ····]"
     },
     "profile": {
@@ -434,6 +445,9 @@
       "submit": "[Sûbmît Slàté ····]",
       "title": "[Stàff Slàté ····]"
     },
+    "slider": {
+      "value": "[{value} {unit} ·····]"
+    },
     "stale": {
       "basis": "[évîdéñçé dàté ·····]",
       "current": "[Çûrréñt ··]",
@@ -443,10 +457,14 @@
       "months": "[{n} mö ··]",
       "title": "[{n} möñths sîñçé {basis} ·········]"
     },
+    "stat": {
+      "trend": "[Tréñd för {label} ······]"
+    },
     "tabbar": {
       "badge": "[{n} ñéw ··]"
     },
     "table": {
+      "resizeColumn": "[Résîzé çölûmñ {column} ········]",
       "total": "[Tötàl ·]"
     },
     "timeline": {

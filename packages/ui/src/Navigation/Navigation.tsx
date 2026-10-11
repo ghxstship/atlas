@@ -350,6 +350,35 @@ export function Sidebar({ label, active, groups }: SidebarProps): ReactElement {
   );
 }
 
+/** A destination: a link when it has an href, otherwise a button that runs the item's action. */
+function ItemAction({
+  item,
+  active,
+  className,
+  children,
+}: {
+  item: NavItem;
+  active: boolean;
+  className: string;
+  children: ReactNode;
+}) {
+  const current = active ? ("page" as const) : undefined;
+  return item.href ? (
+    <a href={item.href} aria-current={current} onClick={item.onSelect} className={className}>
+      {children}
+    </a>
+  ) : (
+    <button
+      type="button"
+      aria-current={current}
+      onClick={item.onSelect}
+      className={cx(className, "bg-transparent border-0 cursor-pointer")}
+    >
+      {children}
+    </button>
+  );
+}
+
 /** The Gateway top bar on desktop: brand, the five destinations, search, help and the account menu. */
 export function TopNav({
   brand,
@@ -380,10 +409,9 @@ export function TopNav({
           <ul className="flex gap-4 m-0 p-0 list-none">
             {items.map((item) => (
               <li key={item.label}>
-                <a
-                  href={item.href ?? "#"}
-                  aria-current={item.label === active ? "page" : undefined}
-                  onClick={item.onSelect}
+                <ItemAction
+                  item={item}
+                  active={item.label === active}
                   className={cx(
                     "inline-flex items-center gap-6 h-row-default px-12 max-lg:px-8 rounded-control no-underline",
                     "font-medium text-text-14 text-text-secondary hover:bg-bg-hover hover:text-text-primary",
@@ -400,7 +428,7 @@ export function TopNav({
                       label={t("tabbar.badge", { n: item.badge })}
                     />
                   ) : null}
-                </a>
+                </ItemAction>
               </li>
             ))}
           </ul>
@@ -445,11 +473,10 @@ export function TabBar({
       {items.map((item) => {
         const center = item.label === centerLabel;
         return (
-          <a
+          <ItemAction
             key={item.label}
-            href={item.href ?? "#"}
-            aria-current={item.label === active ? "page" : undefined}
-            onClick={item.onSelect}
+            item={item}
+            active={item.label === active}
             className={cx(
               "flex flex-1 flex-col items-center justify-center gap-2 min-h-touch-min rounded-control no-underline",
               "text-text-11 font-medium text-text-secondary aria-[current=page]:text-accent-text",
@@ -473,7 +500,7 @@ export function TabBar({
               ) : null}
             </span>
             <span>{item.label}</span>
-          </a>
+          </ItemAction>
         );
       })}
     </nav>

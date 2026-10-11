@@ -62,7 +62,14 @@
       "unitPrice": "‮Ոuıʇ Ԁɹıɔǝ‬"
     },
     "board": {
-      "add": "‮Nǝʍ ꓤǝɔoɹp‬"
+      "add": "‮Nǝʍ ꓤǝɔoɹp‬",
+      "dropped": "‮{title} pɹoddǝp ıu {column}.‬",
+      "moved": "‮{title} ɯoʌǝp ʇo {column}.‬",
+      "picked": "‮{title} dıɔʞǝp nd ıu {column}. ∀ɹɹoʍ ʞǝʎs ɯoʌǝ ıʇ, Sdɐɔǝ pɹods ıʇ, Ǝsɔɐdǝ ɔɐuɔǝls.‬",
+      "returned": "‮{title} ɹǝʇnɹuǝp ʇo {column}.‬"
+    },
+    "brand": {
+      "size": "‮{width} x {height}‬"
     },
     "budget": {
       "amount": "‮∀ɯonuʇ‬",
@@ -96,6 +103,7 @@
       "legend": "‮⅂ǝƃǝup‬",
       "noValue": "‮No ʌɐlnǝ‬",
       "other": "‮Oʇɥǝɹ‬",
+      "point": "‮{series}, {category}: {value}‬",
       "table": "‮ꓕɐqlǝ‬",
       "tableHint": "‮Sʍıʇɔɥ ʇo ꓕɐqlǝ ɟoɹ ǝʌǝɹʎ ʌɐlnǝ.‬",
       "view": "‮Ʌıǝʍ‬"
@@ -143,7 +151,8 @@
       "nextMonth": "‮Nǝxʇ ɯouʇɥ‬",
       "pick": "‮Ԁıɔʞ ɐ pɐʇǝ‬",
       "prevMonth": "‮Ԁɹǝʌıons ɯouʇɥ‬",
-      "rangeTo": "‮ʇo‬"
+      "rangeTo": "‮ʇo‬",
+      "rangeValue": "‮{start} ʇo {end}‬"
     },
     "daysheet": {
       "contacts": "‮Ɔouʇɐɔʇs‬",
@@ -337,6 +346,8 @@
     },
     "presence": {
       "editing": "‮{n} ǝpıʇıuƃ‬",
+      "namesEditing": "‮{names}, ǝpıʇıuƃ uoʍ‬",
+      "namesViewing": "‮{names}, ʌıǝʍıuƃ uoʍ‬",
       "viewing": "‮{n} ʌıǝʍıuƃ‬"
     },
     "profile": {
@@ -434,6 +445,9 @@
       "submit": "‮Snqɯıʇ Slɐʇǝ‬",
       "title": "‮Sʇɐɟɟ Slɐʇǝ‬"
     },
+    "slider": {
+      "value": "‮{value} {unit}‬"
+    },
     "stale": {
       "basis": "‮ǝʌıpǝuɔǝ pɐʇǝ‬",
       "current": "‮Ɔnɹɹǝuʇ‬",
@@ -443,10 +457,14 @@
       "months": "‮{n} ɯo‬",
       "title": "‮{n} ɯouʇɥs sıuɔǝ {basis}‬"
     },
+    "stat": {
+      "trend": "‮ꓕɹǝup ɟoɹ {label}‬"
+    },
     "tabbar": {
       "badge": "‮{n} uǝʍ‬"
     },
     "table": {
+      "resizeColumn": "‮ꓤǝsızǝ ɔolnɯu {column}‬",
       "total": "‮ꓕoʇɐl‬"
     },
     "timeline": {

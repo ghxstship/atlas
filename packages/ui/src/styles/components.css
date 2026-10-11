@@ -332,6 +332,21 @@
   }
 }
 
+/* In a narrow inbox the item text takes its own line and the actions wrap beneath it. */
+.xos-notif {
+  container: xos-notif / inline-size;
+}
+
+@container xos-notif (max-width: 399.98px) {
+  .xos-notif-item {
+    flex-wrap: wrap;
+  }
+
+  .xos-notif-text {
+    flex: 1 1 calc(100% - var(--space-32));
+  }
+}
+
 /* Compass surfaces raise every target to touch-min (48 pt). */
 .xos-compass {
   font: var(--typography-text-16);

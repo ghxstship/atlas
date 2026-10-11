@@ -275,7 +275,7 @@ export {
   type CoordinateMatrixProps,
   type AccessGridMatrixProps,
 } from "./XOS/XOS.tsx";
-export type { EmergencyAuthority } from "./types/reference";
+export type { EmergencyAuthority, GLAccount, GridColumn, BudgetLine } from "./types/reference";
 
 /* Gateway components */
 export {
@@ -308,3 +308,102 @@ export {
   type PaymentTrackerProps,
   type UpNextCardProps,
 } from "./Gateway/Gateway.tsx";
+
+/* Pickers */
+export {
+  Combobox,
+  MultiSelect,
+  Slider,
+  DatePicker,
+  DateRangePicker,
+  TimePicker,
+  FileDrop,
+  rankOptions,
+  type ComboboxProps,
+  type MultiSelectProps,
+  type SliderProps,
+  type DatePickerProps,
+  type DateRangePickerProps,
+  type TimePickerProps,
+  type FileDropProps,
+} from "./Pickers/Pickers.tsx";
+
+/* Identity and white label */
+export {
+  PresenceIndicator,
+  QRCode,
+  CredentialBadge,
+  BrandSlot,
+  WhiteLabelPreview,
+  qrPath,
+  tokenVariable,
+  type PresenceIndicatorProps,
+  type QRCodeProps,
+  type CredentialBadgeProps,
+  type BrandSlotProps,
+  type WhiteLabelPreviewProps,
+} from "./Identity/Identity.tsx";
+
+/* Feedback and help */
+export {
+  NotificationCenter,
+  OnboardingChecklist,
+  WhatsNew,
+  FeedbackWidget,
+  ShortcutEditor,
+  HelpPanel,
+  type NotificationCenterProps,
+  type OnboardingChecklistProps,
+  type WhatsNewProps,
+  type FeedbackWidgetProps,
+  type ShortcutEditorProps,
+  type HelpPanelProps,
+} from "./Help/Help.tsx";
+
+/* Views and charts */
+export {
+  Gallery,
+  Calendar,
+  Timeline,
+  ResourceSchedule,
+  OrgChart,
+  Chart,
+  Sparkline,
+  foldSeries,
+  type GalleryProps,
+  type CalendarProps,
+  type TimelineProps,
+  type ResourceScheduleProps,
+  type OrgChartProps,
+  type ChartProps,
+  type SparklineProps,
+} from "./Charts/Charts.tsx";
+
+/* Editing */
+export {
+  FilterBuilder,
+  QuickAdd,
+  ColorPicker,
+  DiffViewer,
+  parseQuickAdd,
+  contrastRatio,
+  type FilterBuilderProps,
+  type QuickAddProps,
+  type ColorPickerProps,
+  type DiffViewerProps,
+  type QuickAddResult,
+  type QuickAddToken,
+} from "./Editing/Editing.tsx";
+
+/* Grids */
+export {
+  SpreadsheetGrid,
+  BudgetGrid,
+  BidSheet,
+  glForCode,
+  parseCell,
+  columnTotal,
+  type SpreadsheetGridProps,
+  type BudgetGridProps,
+  type BidSheetProps,
+} from "./Grids/Grids.tsx";

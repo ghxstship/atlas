@@ -580,7 +580,14 @@
       "unitPrice": "Unit Price"
     },
     "board": {
-      "add": "New Record"
+      "add": "New Record",
+      "dropped": "{title} dropped in {column}.",
+      "moved": "{title} moved to {column}.",
+      "picked": "{title} picked up in {column}. Arrow keys move it, Space drops it, Escape cancels.",
+      "returned": "{title} returned to {column}."
+    },
+    "brand": {
+      "size": "{width} x {height}"
     },
     "budget": {
       "amount": "Amount",
@@ -614,6 +621,7 @@
       "legend": "Legend",
       "noValue": "No value",
       "other": "Other",
+      "point": "{series}, {category}: {value}",
       "table": "Table",
       "tableHint": "Switch to Table for every value.",
       "view": "View"
@@ -661,7 +669,8 @@
       "nextMonth": "Next month",
       "pick": "Pick a date",
       "prevMonth": "Previous month",
-      "rangeTo": "to"
+      "rangeTo": "to",
+      "rangeValue": "{start} to {end}"
     },
     "daysheet": {
       "contacts": "Contacts",
@@ -855,6 +864,8 @@
     },
     "presence": {
       "editing": "{n} editing",
+      "namesEditing": "{names}, editing now",
+      "namesViewing": "{names}, viewing now",
       "viewing": "{n} viewing"
     },
     "profile": {
@@ -952,6 +963,9 @@
       "submit": "Submit Slate",
       "title": "Staff Slate"
     },
+    "slider": {
+      "value": "{value} {unit}"
+    },
     "stale": {
       "basis": "evidence date",
       "current": "Current",
@@ -961,10 +975,14 @@
       "months": "{n} mo",
       "title": "{n} months since {basis}"
     },
+    "stat": {
+      "trend": "Trend for {label}"
+    },
     "tabbar": {
       "badge": "{n} new"
     },
     "table": {
+      "resizeColumn": "Resize column {column}",
       "total": "Total"
     },
     "timeline": {
