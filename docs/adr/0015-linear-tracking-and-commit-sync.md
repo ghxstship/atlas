@@ -65,6 +65,7 @@ The owner tracks the build in Linear and asked for the project to sync at each c
 | Linear tracking and commit sync                       | RRR-69           |
 | A05 icon bundle size (performance gate follow-up)     | RRR-70           |
 | A03 follow-up: People schema, postings, RLS benchmark | RRR-71           |
+| Owner decision: hosted Supabase for staging           | RRR-72           |
 
 New issues are added to Linear first, then to this table in the same commit that references them.
 
