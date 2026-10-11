@@ -112,6 +112,7 @@ Dependencies the Wave 1 agents needed that the original table did not list, each
 2. **pnpm 10.15.1, not 12.10.1.** Corepack bundled with Node 22.14 cannot launch the pnpm 12 package layout. Upgrade together with the Node runtime.
 3. **Local Supabase port block 554xx and project id `xos4`.** The build host already runs an unrelated Supabase stack named `xos` on the default and 544xx ports. Moving this project avoids touching that stack.
 4. **stylelint 16.26.1, not 17.16.0.** `stylelint-use-logical-spec` 5.0.1, the plugin ADR 0010 relies on, declares `stylelint >=11 <17` and has not been updated since 2024. 16.26.1 is the newest release inside that range. Renovate holds stylelint below 17 until the plugin widens its range or is replaced through a new ADR.
+5. **Glide Data Grid not installed.** `@glideapps/glide-data-grid` 6.0.3 declares peers `react` and `react-dom` 16 to 18 (the repo pins 19.3.0) plus `lodash`, `marked` and `react-responsive-carousel`. SpreadsheetGrid, BudgetGrid and BidSheet ship on the accessible ARIA grid model from the design reference (keyboard editing, Excel paste, NULL-aware cells and totals). Glide is adopted when a release supports React 19, behind the same component props.
 
 ## Alternatives considered
 
