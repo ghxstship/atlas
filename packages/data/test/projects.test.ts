@@ -112,46 +112,41 @@ describe("projects", () => {
     expect((await getProjectByKey(db, "o1", "NWL")).ok).toBe(false);
   });
 
-  it("creates a project with its engagement root", async () => {
+  it("creates a project with its engagement root through the RPC", async () => {
     const { db, calls } = fakeClient({
-      "from:projects": [okResponse({ id: "p1", project_key: "NWL" })],
-      "from:scope_nodes": [okResponse({ id: "s1" })],
-    });
-    const result = await createProject(db, {
-      orgId: "o1",
-      key: "NWL",
-      name: " Northwind ",
-      timeZone: "America/New_York",
-    });
-    expect(result).toEqual({ ok: true, data: { id: "p1", key: "NWL", rootScopeNodeId: "s1" } });
-    const insert = calls[1]?.steps.find(([m]) => m === "insert")?.[1][0] as Record<string, unknown>;
-    expect(insert).toMatchObject({
-      scope_kind: "Engagement Root",
-      scope_code: "NWL-E01",
-      parent_id: null,
-      name: "Northwind",
-    });
-  });
-
-  it("returns the refusal when the plan limit or the root insert refuses", async () => {
-    const limit = fakeClient({
-      "from:projects": [
+      "rpc:create_project": [
+        okResponse("p1"),
+        okResponse(null),
         errorResponse("XR001", "plan_limit_exceeded: Upgrade.", "plan_limit_exceeded"),
       ],
     });
-    expect(
-      await createProject(limit.db, { orgId: "o1", key: "NWL", name: "N", timeZone: "UTC" }),
-    ).toEqual({
+    const input = { orgId: "o1", key: "NWL", name: " Northwind ", timeZone: "America/New_York" };
+    expect(await createProject(db, input)).toEqual({ ok: true, data: { id: "p1" } });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_org_id: "o1",
+          p_project_key: "NWL",
+          p_name: "Northwind",
+          p_time_zone: "America/New_York",
+          p_jurisdiction_id: null,
+          p_region_code: null,
+          p_tier_code: null,
+          p_venue_id: null,
+          p_starts_on: null,
+          p_ends_on: null,
+        },
+      ],
+    ]);
+    expect(await createProject(db, input)).toMatchObject({
+      ok: false,
+      error: { kind: "unexpected" },
+    });
+    expect(await createProject(db, input)).toEqual({
       ok: false,
       error: { kind: "refusal", rule: "plan_limit_exceeded", message: "Upgrade." },
     });
-    const root = fakeClient({
-      "from:projects": [okResponse({ id: "p1", project_key: "NWL" })],
-      "from:scope_nodes": [errorResponse("23505", "dup")],
-    });
-    expect(
-      await createProject(root.db, { orgId: "o1", key: "NWL", name: "N", timeZone: "UTC" }),
-    ).toEqual({ ok: false, error: { kind: "conflict", message: "dup" } });
   });
 
   it("updates only the fields given and answers not-found for zero rows", async () => {
@@ -326,22 +321,7 @@ describe("scope tree", () => {
       data: null,
     });
     expect(calls[4]?.steps[0]).toEqual(["update", [{ name: "C", venue_id: null }]]);
-    expect(await removeScopeNode(db, { id: "s2", parentId: "s1" }, 0)).toEqual({
-      ok: true,
-      data: null,
-    });
-  });
-
-  it("keeps the root and refuses a node with children", async () => {
-    const { db } = fakeClient({});
-    expect(await removeScopeNode(db, { id: "s1", parentId: null }, 0)).toMatchObject({
-      ok: false,
-      error: { rule: "scope_root_retained" },
-    });
-    expect(await removeScopeNode(db, { id: "s2", parentId: "s1" }, 2)).toMatchObject({
-      ok: false,
-      error: { rule: "scope_node_has_children" },
-    });
+    expect(await removeScopeNode(db, "s2")).toEqual({ ok: true, data: null });
   });
 });
 
