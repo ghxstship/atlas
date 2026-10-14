@@ -14,6 +14,16 @@ export interface PlanPrice {
   readonly annualMinor: number | null;
 }
 
+/**
+ * Stripe catalog references for a paid plan, by lookup key rather than id, so one file
+ * serves test mode and live mode as long as both carry the same lookup keys.
+ */
+export interface PlanStripeRefs {
+  readonly productLookupKey: string;
+  readonly monthlyPriceLookupKey: string;
+  readonly annualPriceLookupKey: string;
+}
+
 export interface PlanDefinition {
   readonly code: string;
   /** 1 for the free plan, rising upward. */
@@ -25,6 +35,8 @@ export interface PlanDefinition {
   /** Every feature the plan includes, own and inherited, in registry feature order. */
   readonly features: readonly string[];
   readonly prices: Readonly<Record<PriceBookCurrency, PlanPrice>>;
+  /** Present on every paid plan; null on the free plan, which has no Stripe price. */
+  readonly stripe: PlanStripeRefs | null;
 }
 
 export interface PlanRegistry {

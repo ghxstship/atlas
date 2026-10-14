@@ -13,6 +13,17 @@ const minor = z.int().min(0).nullable();
 
 const priceSchema = z.strictObject({ monthly_minor: minor, annual_minor: minor });
 
+/** Stripe lookup keys: lowercase letters, digits and underscores. */
+const LOOKUP_KEY = /^[a-z0-9_]+$/;
+
+const stripeSchema = z.strictObject({
+  product_lookup_key: z.string().regex(LOOKUP_KEY),
+  prices: z.strictObject({
+    monthly: z.string().regex(LOOKUP_KEY),
+    annual: z.string().regex(LOOKUP_KEY),
+  }),
+});
+
 const planSchema = z.strictObject({
   code: z.string().regex(CODE),
   free: z.boolean().optional(),
@@ -20,6 +31,7 @@ const planSchema = z.strictObject({
   limits: z.record(z.string(), z.int().min(0).nullable()),
   features: z.array(z.string()),
   prices: z.record(z.string(), priceSchema),
+  stripe: stripeSchema.optional(),
 });
 
 const registrySchema = z.strictObject({
@@ -92,6 +104,13 @@ export function validatePlans(raw: RawRegistry): string[] {
       }
     }
 
+    if (plan.free === true && plan.stripe !== undefined) {
+      issues.push(`${at} is free, so it has no Stripe price`);
+    }
+    if (plan.free !== true && plan.stripe === undefined) {
+      issues.push(`${at} is paid, so it must name its Stripe product and price lookup keys`);
+    }
+
     const previous = index === 0 ? undefined : raw.plans[index - 1];
     if (index === 0) {
       if (plan.extends !== undefined)
@@ -121,6 +140,12 @@ export function validatePlans(raw: RawRegistry): string[] {
       }
     }
   });
+  const lookupKeys = raw.plans.flatMap((p) =>
+    p.stripe === undefined
+      ? []
+      : [p.stripe.product_lookup_key, p.stripe.prices.monthly, p.stripe.prices.annual],
+  );
+  for (const d of duplicates(lookupKeys)) issues.push(`Stripe lookup key ${d} is used twice`);
   return issues;
 }
 
@@ -149,6 +174,14 @@ function toRegistry(raw: RawRegistry): PlanRegistry {
           toPrice(p.prices[c] as RawRegistry["plans"][number]["prices"][string]),
         ]),
       ) as Record<PriceBookCurrency, PlanPrice>,
+      stripe:
+        p.stripe === undefined
+          ? null
+          : {
+              productLookupKey: p.stripe.product_lookup_key,
+              monthlyPriceLookupKey: p.stripe.prices.monthly,
+              annualPriceLookupKey: p.stripe.prices.annual,
+            },
     };
   });
   return {

@@ -13,6 +13,15 @@
 #     so features only accumulate upward, and no plan allows less of a limit than the plan below.
 #   - every plan prices every currency. A null amount is unpriced (Section 3.7), never zero;
 #     only a free plan carries a price of 0.
+#   - every paid plan names its Stripe product and its monthly and annual price by lookup key;
+#     the free plan has none. Lookup keys, not ids, so test and live mode share this file.
+#     A price lookup key is the Stripe price's lookup_key; a product key is the product's
+#     metadata.lookup_key, because Stripe products have no native lookup key.
+#
+# Prices come from the existing ATLVS catalogue v3 in Stripe (read 2026-10-14): USD only, the
+# "unlimited" purchase mode, annual at ten times monthly. Other currencies stay unpriced until
+# Stripe carries prices for them. The catalogue's per-project purchase mode
+# (atlvs_plan_<tier>_project_<period>_v3) has no Section 16 counterpart and awaits an owner decision.
 
 version: 1
 
@@ -72,11 +81,16 @@ plans:
       active_external_engagements_per_month: 250
     features: [approvals, advancing, procurement, upl_export]
     prices:
-      USD: { monthly_minor: null, annual_minor: null }
+      USD: { monthly_minor: 4900, annual_minor: 49000 }
       EUR: { monthly_minor: null, annual_minor: null }
       GBP: { monthly_minor: null, annual_minor: null }
       CAD: { monthly_minor: null, annual_minor: null }
       AUD: { monthly_minor: null, annual_minor: null }
+    stripe:
+      product_lookup_key: atlvs_plan_core_v3
+      prices:
+        monthly: atlvs_plan_core_unlimited_monthly_v3
+        annual: atlvs_plan_core_unlimited_annual_v3
 
   - code: pro
     extends: core
@@ -88,11 +102,16 @@ plans:
     features:
       [white_label, custom_domain, automations, api_keys, webhooks, public_marketplace_listings]
     prices:
-      USD: { monthly_minor: null, annual_minor: null }
+      USD: { monthly_minor: 7900, annual_minor: 79000 }
       EUR: { monthly_minor: null, annual_minor: null }
       GBP: { monthly_minor: null, annual_minor: null }
       CAD: { monthly_minor: null, annual_minor: null }
       AUD: { monthly_minor: null, annual_minor: null }
+    stripe:
+      product_lookup_key: atlvs_plan_pro_v3
+      prices:
+        monthly: atlvs_plan_pro_unlimited_monthly_v3
+        annual: atlvs_plan_pro_unlimited_annual_v3
 
   - code: team
     extends: pro
@@ -103,11 +122,16 @@ plans:
       active_external_engagements_per_month: null
     features: [custom_roles, ip_allowlist, audit_export, payroll_export, priority_support]
     prices:
-      USD: { monthly_minor: null, annual_minor: null }
+      USD: { monthly_minor: 34900, annual_minor: 349000 }
       EUR: { monthly_minor: null, annual_minor: null }
       GBP: { monthly_minor: null, annual_minor: null }
       CAD: { monthly_minor: null, annual_minor: null }
       AUD: { monthly_minor: null, annual_minor: null }
+    stripe:
+      product_lookup_key: atlvs_plan_team_v3
+      prices:
+        monthly: atlvs_plan_team_unlimited_monthly_v3
+        annual: atlvs_plan_team_unlimited_annual_v3
 
   - code: enterprise
     extends: team
@@ -126,8 +150,13 @@ plans:
         support_session_controls,
       ]
     prices:
-      USD: { monthly_minor: null, annual_minor: null }
+      USD: { monthly_minor: 89900, annual_minor: 899000 }
       EUR: { monthly_minor: null, annual_minor: null }
       GBP: { monthly_minor: null, annual_minor: null }
       CAD: { monthly_minor: null, annual_minor: null }
       AUD: { monthly_minor: null, annual_minor: null }
+    stripe:
+      product_lookup_key: atlvs_plan_enterprise_v3
+      prices:
+        monthly: atlvs_plan_enterprise_unlimited_monthly_v3
+        annual: atlvs_plan_enterprise_unlimited_annual_v3

@@ -172,7 +172,7 @@ describe("plan registry validation", () => {
     ["a non-zero free price", "USD: { monthly_minor: 0,", "USD: { monthly_minor: 5,", /is free/],
     [
       "a zero paid price",
-      "  - code: core\n    extends: access\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n    features: [approvals, advancing, procurement, upl_export]\n    prices:\n      USD: { monthly_minor: null,",
+      "  - code: core\n    extends: access\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n    features: [approvals, advancing, procurement, upl_export]\n    prices:\n      USD: { monthly_minor: 4900,",
       "  - code: core\n    extends: access\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n    features: [approvals, advancing, procurement, upl_export]\n    prices:\n      USD: { monthly_minor: 0,",
       /cannot be 0/,
     ],
@@ -218,5 +218,59 @@ describe("plan registry validation", () => {
     expect(broken("      AUD: { monthly_minor: 0, annual_minor: 0 }\n", "")).toThrow(
       /price every currency/,
     );
+  });
+
+  const coreStripe =
+    "    stripe:\n      product_lookup_key: atlvs_plan_core_v3\n      prices:\n        monthly: atlvs_plan_core_unlimited_monthly_v3\n        annual: atlvs_plan_core_unlimited_annual_v3\n";
+
+  it("rejects a paid plan without Stripe lookup keys", () => {
+    expect(broken(coreStripe, "")).toThrow(/must name its Stripe product/);
+  });
+
+  it("rejects Stripe lookup keys on the free plan", () => {
+    expect(
+      broken(
+        "    features: []\n",
+        "    features: []\n    stripe:\n      product_lookup_key: atlvs_plan_access_v3\n      prices:\n        monthly: access_monthly\n        annual: access_annual\n",
+      ),
+    ).toThrow(/is free, so it has no Stripe price/);
+  });
+
+  it("rejects a Stripe lookup key used twice", () => {
+    expect(
+      broken("atlvs_plan_core_unlimited_annual_v3", "atlvs_plan_core_unlimited_monthly_v3"),
+    ).toThrow(/used twice/);
+  });
+});
+
+describe("Stripe mapping to the ATLVS catalogue v3", () => {
+  it("names the ATLVS product and unlimited-mode prices for every paid plan", () => {
+    for (const plan of registry.plans) {
+      if (plan.free) {
+        expect(plan.stripe).toBeNull();
+        continue;
+      }
+      expect(plan.stripe).toEqual({
+        productLookupKey: `atlvs_plan_${plan.code}_v3`,
+        monthlyPriceLookupKey: `atlvs_plan_${plan.code}_unlimited_monthly_v3`,
+        annualPriceLookupKey: `atlvs_plan_${plan.code}_unlimited_annual_v3`,
+      });
+    }
+  });
+
+  it("carries the Stripe USD amounts, annual at ten times monthly, other currencies unpriced", () => {
+    const usd = Object.fromEntries(registry.plans.map((p) => [p.code, p.prices.USD]));
+    expect(usd).toEqual({
+      access: { monthlyMinor: 0, annualMinor: 0 },
+      core: { monthlyMinor: 4900, annualMinor: 49000 },
+      pro: { monthlyMinor: 7900, annualMinor: 79000 },
+      team: { monthlyMinor: 34900, annualMinor: 349000 },
+      enterprise: { monthlyMinor: 89900, annualMinor: 899000 },
+    });
+    for (const plan of registry.plans.filter((p) => !p.free)) {
+      for (const currency of ["EUR", "GBP", "CAD", "AUD"] as const) {
+        expect(plan.prices[currency]).toEqual({ monthlyMinor: null, annualMinor: null });
+      }
+    }
   });
 });

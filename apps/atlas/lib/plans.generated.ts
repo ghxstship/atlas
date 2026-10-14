@@ -27,7 +27,7 @@ export const PLANS: readonly PlanSummary[] = [
       field_members: null,
       active_external_engagements_per_month: 250,
     },
-    usdMonthlyMinor: null,
+    usdMonthlyMinor: 4900,
   },
   {
     code: "pro",
@@ -47,7 +47,7 @@ export const PLANS: readonly PlanSummary[] = [
       field_members: null,
       active_external_engagements_per_month: 2500,
     },
-    usdMonthlyMinor: null,
+    usdMonthlyMinor: 7900,
   },
   {
     code: "team",
@@ -60,7 +60,7 @@ export const PLANS: readonly PlanSummary[] = [
       field_members: null,
       active_external_engagements_per_month: null,
     },
-    usdMonthlyMinor: null,
+    usdMonthlyMinor: 34900,
   },
   {
     code: "enterprise",
@@ -80,6 +80,6 @@ export const PLANS: readonly PlanSummary[] = [
       field_members: null,
       active_external_engagements_per_month: null,
     },
-    usdMonthlyMinor: null,
+    usdMonthlyMinor: 89900,
   },
 ];
