@@ -1,4 +1,4 @@
-import type { XosClient } from "./client";
+import type { Database, XosClient } from "./client";
 import { fail, ok, toDataError, type Result } from "./result";
 
 /**
@@ -199,7 +199,11 @@ export async function listPeopleRefs(
   if (error) return fail(toDataError(error));
   return ok(
     data
-      .map((m) => ({ membershipId: m.id, personId: m.person_id, name: m.person?.full_name ?? null }))
+      .map((m) => ({
+        membershipId: m.id,
+        personId: m.person_id,
+        name: m.person?.full_name ?? null,
+      }))
       .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "")),
   );
 }
@@ -449,7 +453,11 @@ export async function getRecordByKey(
 
 /** One record by id, or not-found. */
 export async function getRecord(db: XosClient, id: string): Promise<Result<RecordSummary>> {
-  const { data, error } = await db.from("records").select(RECORD_COLUMNS).eq("id", id).maybeSingle();
+  const { data, error } = await db
+    .from("records")
+    .select(RECORD_COLUMNS)
+    .eq("id", id)
+    .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "not-found" });
   return ok(toRecordSummary(data as unknown as RecordRow));
@@ -571,18 +579,18 @@ export async function updateRecord(
   id: string,
   patch: RecordPatch,
 ): Promise<Result<null>> {
-  const row: Record<string, string | null> = {};
-  if (patch.title !== undefined) row["title"] = patch.title.trim();
-  if (patch.subtype !== undefined) row["record_subtype"] = patch.subtype;
-  if (patch.scopeNodeId !== undefined) row["scope_node_id"] = patch.scopeNodeId;
-  if (patch.phaseCode !== undefined) row["phase_code"] = patch.phaseCode;
-  if (patch.ownerId !== undefined) row["owner_party_id"] = patch.ownerId;
-  if (patch.accountableId !== undefined) row["accountable_party_id"] = patch.accountableId;
-  if (patch.startsAt !== undefined) row["starts_at"] = patch.startsAt;
-  if (patch.endsAt !== undefined) row["ends_at"] = patch.endsAt;
-  if (patch.dueAt !== undefined) row["due_at"] = patch.dueAt;
-  if (patch.timeZone !== undefined) row["time_zone"] = patch.timeZone;
-  if (patch.replanReason !== undefined) row["replan_reason"] = patch.replanReason;
+  const row: Database["app"]["Tables"]["records"]["Update"] = {};
+  if (patch.title !== undefined) row.title = patch.title.trim();
+  if (patch.subtype !== undefined) row.record_subtype = patch.subtype;
+  if (patch.scopeNodeId !== undefined) row.scope_node_id = patch.scopeNodeId;
+  if (patch.phaseCode !== undefined) row.phase_code = patch.phaseCode;
+  if (patch.ownerId !== undefined) row.owner_party_id = patch.ownerId;
+  if (patch.accountableId !== undefined) row.accountable_party_id = patch.accountableId;
+  if (patch.startsAt !== undefined) row.starts_at = patch.startsAt;
+  if (patch.endsAt !== undefined) row.ends_at = patch.endsAt;
+  if (patch.dueAt !== undefined) row.due_at = patch.dueAt;
+  if (patch.timeZone !== undefined) row.time_zone = patch.timeZone;
+  if (patch.replanReason !== undefined) row.replan_reason = patch.replanReason;
   if (Object.keys(row).length === 0) return ok(null);
   const { data, error } = await db.from("records").update(row).eq("id", id).select("id");
   if (error) return fail(toDataError(error));
@@ -673,7 +681,8 @@ export async function getRecordExtension(
   if (error) return fail(toDataError(error));
   const values: Record<string, string | number | boolean | null> = {};
   for (const [column, value] of Object.entries(data ?? {})) {
-    if (!EXTENSION_MACHINERY.has(column)) values[column] = value as string | number | boolean | null;
+    if (!EXTENSION_MACHINERY.has(column))
+      values[column] = value as string | number | boolean | null;
   }
   return ok(values);
 }
@@ -784,10 +793,7 @@ export interface ReplanEntry {
 }
 
 /** The record's replan log (Section 3.10), oldest first. */
-export async function listReplans(
-  db: XosClient,
-  recordId: string,
-): Promise<Result<ReplanEntry[]>> {
+export async function listReplans(db: XosClient, recordId: string): Promise<Result<ReplanEntry[]>> {
   const { data, error } = await db
     .from("record_replans")
     .select(
@@ -921,7 +927,9 @@ export async function listAssignments(
 ): Promise<Result<Assignment[]>> {
   const { data, error } = await db
     .from("record_assignments")
-    .select("id, membership_id, membership:memberships!inner(person:people!memberships_person_id_fkey(full_name))")
+    .select(
+      "id, membership_id, membership:memberships!inner(person:people!memberships_person_id_fkey(full_name))",
+    )
     .eq("record_id", recordId)
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
@@ -1202,8 +1210,13 @@ export interface CanonOption {
 }
 
 /** Gated phases in gate order, for the phase picker (Section 3.4). */
-export async function listPhaseOptions(db: XosClient): Promise<Result<(CanonOption & { gate: number })[]>> {
-  const { data, error } = await db.schema("xpms").from("dim_phase").select("phase_code, gate, phase");
+export async function listPhaseOptions(
+  db: XosClient,
+): Promise<Result<(CanonOption & { gate: number })[]>> {
+  const { data, error } = await db
+    .schema("xpms")
+    .from("dim_phase")
+    .select("phase_code, gate, phase");
   if (error) return fail(toDataError(error));
   return ok(
     data
@@ -1214,7 +1227,11 @@ export async function listPhaseOptions(db: XosClient): Promise<Result<(CanonOpti
 
 /** The XYZ tags canon categories carry, plus Z (Timeline), in letter order (Section 3.6). */
 export async function listXyzTags(db: XosClient): Promise<Result<string[]>> {
-  const { data, error } = await db.schema("xpms").from("dim_category").select("xyz").not("xyz", "is", null);
+  const { data, error } = await db
+    .schema("xpms")
+    .from("dim_category")
+    .select("xyz")
+    .not("xyz", "is", null);
   if (error) return fail(toDataError(error));
   const tags = new Set(data.flatMap((c) => (c.xyz ? [c.xyz] : [])));
   return ok([...tags].sort());
@@ -1240,7 +1257,11 @@ export async function searchCategories(
 
 /** Canon roles in code order, for Shift and Recruitment records. */
 export async function listRoleOptions(db: XosClient): Promise<Result<CanonOption[]>> {
-  const { data, error } = await db.schema("xpms").from("role").select("role_code, job_title").order("role_code");
+  const { data, error } = await db
+    .schema("xpms")
+    .from("role")
+    .select("role_code, job_title")
+    .order("role_code");
   if (error) return fail(toDataError(error));
   return ok(data.map((r) => ({ value: r.role_code, label: r.job_title, code: r.role_code })));
 }
@@ -1265,10 +1286,15 @@ export async function listEnumerationOptions(
 
 /** Permit rules in canon order, for Permit records. */
 export async function listPermitRuleOptions(db: XosClient): Promise<Result<CanonOption[]>> {
-  const { data, error } = await db.schema("xpms").from("dim_permit_rule").select("rule, permit, ordinal");
+  const { data, error } = await db
+    .schema("xpms")
+    .from("dim_permit_rule")
+    .select("rule, permit, ordinal");
   if (error) return fail(toDataError(error));
   return ok(
-    data.sort((a, b) => a.ordinal - b.ordinal).map((r) => ({ value: r.rule, label: r.permit, code: r.rule })),
+    data
+      .sort((a, b) => a.ordinal - b.ordinal)
+      .map((r) => ({ value: r.rule, label: r.permit, code: r.rule })),
   );
 }
 
@@ -1302,12 +1328,19 @@ export async function listCounterpartyOptions(
 }
 
 /** The org's venues by name, for Event records. */
-export async function listVenueOptions(db: XosClient, orgId: string): Promise<Result<CanonOption[]>> {
+export async function listVenueOptions(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<CanonOption[]>> {
   const { data, error } = await db
     .from("venues")
     .select("id, name")
     .eq("org_id", orgId)
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
-  return ok(data.map((v) => ({ value: v.id, label: v.name })).sort((a, b) => a.label.localeCompare(b.label)));
+  return ok(
+    data
+      .map((v) => ({ value: v.id, label: v.name }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+  );
 }
