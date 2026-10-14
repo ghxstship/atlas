@@ -39,17 +39,59 @@ export const handlers = defineHandlers("Canon", {
   `ifMatch` on every PATCH; the runtime answers 400 and 428 when they are missing.
 - **The response** is one of the operation's documented success statuses, built with `ok`,
   `created`, `accepted` or `noContent`. The body type is the contract's response schema.
-- **The context** (second argument) carries `user`, `org` (bound to the credential), `locale`,
-  `requestId` and `db`, a Supabase client acting as the caller. RLS decides access; never use a
-  service-role client for a user request.
+- **The context** (second argument) carries `user`, `personId`, `org` (bound to the credential),
+  `locale`, `requestId`, `credential`, `scopes` (API keys) and `db`, a Supabase client acting as
+  the caller. RLS decides access; never use a service-role client for a user request. Use
+  `requireOrg(context)` and `requirePerson(context)` when an operation needs them.
 - **Errors.** Throw a problem from `src/problem.ts` (`notFound`, `conflict`, `refused`,
   `preconditionFailed`, `badRequest`) or throw the supabase-js `error` as is: SQLSTATE `XR001`
   becomes a 422 refusal carrying its rule, `42501` and `PGRST116` become 404, `23505` becomes 409. Anything else is reported and answered with a 500 problem that names the request id.
-- **Lists.** Use `pageSize`, `decodeCursor`, `toPage` and `selectColumns` from
-  `src/runtime/pagination.ts` for cursor pages and sparse fieldsets.
+- **Lists.** `listPage(db.from("table"), query, { columns, key, defaultOrder })` from
+  `src/runtime/listing.ts` applies the filter grammar, `sort`, sparse fieldsets and keyset cursor
+  pagination, and returns the `{ data, next_cursor }` page.
+- **Updates.** The runtime adds `ETag` wherever the contract declares it. For a row with
+  `updated_at`, `versionFromIfMatch(ifMatch)` (`src/runtime/etag.ts`) returns the version to
+  compare and set in the same statement: `.eq("id", id).eq("updated_at", version)`. No row back
+  means stale (`preconditionFailed()`) or missing (`notFound()`); read once to tell them apart.
+- **Restricted fields.** `maskRestricted(row, restricted, canRead, capabilityFor)` keeps each
+  unreadable field present as `{ masked: true, reason }`.
 
 An operation without a handler is never added to the router: it stays in the document and the
 API answers 404 for it, never a stub.
+
+## What the runtime does for every request
+
+1. Authenticates: a bearer Supabase session JWT, the Atlas `xos-auth` cookie (same-origin only on
+   writes) or an `xos_live_` API key, which the `api-token` Edge Function exchanges for a
+   5-minute JWT acting as the key's service account. The org comes from the token's `org_id`
+   claim (set by the context switcher through `app.set_active_org`), then the org Atlas last
+   opened, then the person's only membership. 401 without a valid credential.
+2. Limits an API key to the capability groups in its scopes.
+3. Applies the rate limit: `RateLimit-*` headers on every response, 429 with `Retry-After`.
+4. Validates params, query and body (422 with JSON Pointers), `Idempotency-Key` on POST (400
+   when absent) and `If-Match` on PATCH (428 when absent).
+5. Claims, replays or refuses the Idempotency-Key in A18's per-tenant ledger
+   (`app.begin_idempotent_request`); a replay carries `Idempotent-Replayed: true`.
+6. Runs the handler and maps problems and database errors to RFC 9457 responses.
+
+## Contract tests
+
+Test every handler through `test/support/contract.ts`:
+
+```ts
+import { handlers } from "../src/handlers/canon.ts";
+import { contractApp, expectContract } from "./support/contract.ts";
+
+const app = contractApp({ handlers: [handlers], db });
+const page = await expectContract(await app.request("/canon/departments"), "canonDepartments.list");
+```
+
+`expectContract` checks the status, media type and body against `openapi/v1.json` itself, not
+the zod schemas. `contractApp` fixes the caller (`context`), turns response validation on and
+keeps idempotency in memory. Section 18 gate 5: `test/operation-coverage.test.ts` fails when a
+handled operation is never named in an `expectContract(response, "<operationId>")` call.
+`pnpm --filter @xos/api coverage:operations` prints handled operations by module (`--json`
+lists the missing ones).
 
 ## Adding operations
 
