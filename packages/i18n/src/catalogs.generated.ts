@@ -3,16 +3,19 @@
 
 import enUS_email from "../messages/en-US/email.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
+import enUS_projects from "../messages/en-US/projects.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
 import esUS_email from "../messages/es-US/email.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
+import esUS_projects from "../messages/es-US/projects.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
 import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
 
 export const enUS = {
   email: enUS_email,
   nav: enUS_nav,
+  projects: enUS_projects,
   shell: enUS_shell,
   ui: enUS_ui,
 };
@@ -20,6 +23,7 @@ export const enUS = {
 export const esUS = {
   email: esUS_email,
   nav: esUS_nav,
+  projects: esUS_projects,
   shell: esUS_shell,
   ui: esUS_ui,
 };
