@@ -11,6 +11,7 @@ import {
   displayKey,
   findIdByKey,
   findOperationsProject,
+  getOperationsAccess,
   getShipment,
   instantToLocal,
   listCounterpartyOptions,
@@ -509,5 +510,29 @@ describe("gate queue and yard log", () => {
     expect(
       await addMarshallingEntry(db, "p1", { entry: "", shipmentId: null, zoneId: null }),
     ).toEqual({ ok: false, error: { kind: "invalid", message: "entry length" } });
+  });
+});
+
+describe("access", () => {
+  it("answers per project and capability from the database rule", async () => {
+    const { db } = client({
+      "rpc:operations_project_capabilities": [
+        okResponse([
+          { project_id: "p1", capability_code: "logistics.shipment.write" },
+          { project_id: "p2", capability_code: "logistics.shipment.write" },
+          { project_id: "p1", capability_code: "logistics.release.approve" },
+        ]),
+        errorResponse("42501", "no"),
+      ],
+    });
+    const result = await getOperationsAccess(db, "o1");
+    expect(result.ok && result.data.can("p1", "logistics.release.approve")).toBe(true);
+    expect(result.ok && result.data.can("p2", "logistics.release.approve")).toBe(false);
+    expect(result.ok && [...result.data.projectsWith("logistics.shipment.write")]).toEqual([
+      "p1",
+      "p2",
+    ]);
+    expect(result.ok && result.data.projectsWith("hospitality.beo.approve").size).toBe(0);
+    expect((await getOperationsAccess(db, "o1")).ok).toBe(false);
   });
 });

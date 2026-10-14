@@ -29489,6 +29489,13 @@ export type Database = {
       };
       leave_organization: { Args: { p_org_id: string }; Returns: undefined };
       mark_notifications_read: { Args: { p_before?: string; p_org_id: string }; Returns: number };
+      operations_project_capabilities: {
+        Args: { p_org_id: string };
+        Returns: {
+          capability_code: string;
+          project_id: string;
+        }[];
+      };
       org_feature_flags: {
         Args: { p_org_id: string };
         Returns: {

@@ -887,3 +887,32 @@ export async function findIdByKey(
   if (error) return fail(toDataError(error));
   return data ? ok(data.id) : fail({ kind: "not-found" });
 }
+
+// Access ---------------------------------------------------------------------------------------------
+
+/** Logistics and hospitality capabilities the viewer may use, per project (migration 0441). */
+export interface OperationsAccess {
+  /** True when the viewer may use the capability on the project. */
+  can(projectId: string, capability: string): boolean;
+  /** Projects on which the viewer may use the capability. */
+  projectsWith(capability: string): ReadonlySet<string>;
+}
+
+export async function getOperationsAccess(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<OperationsAccess>> {
+  const { data, error } = await db.rpc("operations_project_capabilities", { p_org_id: orgId });
+  if (error) return fail(toDataError(error));
+  const byCapability = new Map<string, Set<string>>();
+  for (const row of data) {
+    const set = byCapability.get(row.capability_code) ?? new Set<string>();
+    set.add(row.project_id);
+    byCapability.set(row.capability_code, set);
+  }
+  const none: ReadonlySet<string> = new Set();
+  return ok({
+    can: (projectId, capability) => byCapability.get(capability)?.has(projectId) ?? false,
+    projectsWith: (capability) => byCapability.get(capability) ?? none,
+  });
+}
