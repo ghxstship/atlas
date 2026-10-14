@@ -1,0 +1,137 @@
+{
+  "common": {
+    "preview": "{orgName} en XOS",
+    "greeting": "Hola, {name}:",
+    "open": "Abrir en XOS",
+    "managePreferences": "Administrar preferencias de notificaciones",
+    "unsubscribe": "Cancelar la suscripción a estos correos",
+    "sentBy": "Enviado por {orgName}, {postalAddress}.",
+    "whyTransactional": "Recibes este correo por actividad en tu cuenta.",
+    "whyNotification": "Recibes este correo porque sigues esto en {orgName}.",
+    "poweredBy": "Entregado por XOS"
+  },
+  "kinds": {
+    "mention": {
+      "created": {
+        "subject": "{actorName} te mencionó en {title}",
+        "body": "{actorName} te mencionó en un comentario sobre {title}."
+      }
+    },
+    "assignment": {
+      "created": {
+        "subject": "Se te asignó {title}",
+        "body": "{actorName} te asignó {title}."
+      }
+    },
+    "approval": {
+      "requested": {
+        "subject": "Aprobación solicitada: {title}",
+        "body": "{actorName} te pidió aprobar {title}."
+      },
+      "decided": {
+        "subject": "{title} fue {decision, select, approved {aprobado} other {rechazado}}",
+        "body": "{actorName} {decision, select, approved {aprobó} other {rechazó}} {title}."
+      }
+    },
+    "comment": {
+      "created": {
+        "subject": "Nuevo comentario en {title}",
+        "body": "{actorName} comentó en {title}."
+      }
+    },
+    "shift": {
+      "assigned": {
+        "subject": "Nuevo turno: {title}",
+        "body": "Tienes programado {title} a partir del {startsAt, date, full} a las {startsAt, time, short}."
+      },
+      "changed": {
+        "subject": "Turno modificado: {title}",
+        "body": "Tu turno {title} ahora empieza el {startsAt, date, full} a las {startsAt, time, short}."
+      }
+    },
+    "invoice": {
+      "approved": {
+        "subject": "Factura aprobada: {title}",
+        "body": "{actorName} aprobó la factura {title}."
+      }
+    },
+    "incident": {
+      "reported": {
+        "subject": "Incidente reportado: {title}",
+        "body": "{actorName} reportó {title}. Ábrelo para ver los detalles y la respuesta."
+      }
+    },
+    "account": {
+      "security_changed": {
+        "subject": "Cambió la seguridad de tu cuenta",
+        "body": "Cambió un ajuste de seguridad de tu cuenta: {change}. Si no fuiste tú, restablece tu contraseña ahora."
+      }
+    },
+    "report": {
+      "delivered": {
+        "subject": "Informe listo: {title}",
+        "body": "Tu informe programado {title} está listo."
+      }
+    },
+    "import": {
+      "finished": {
+        "subject": "Importación terminada: {title}",
+        "body": "La importación {title} terminó."
+      }
+    },
+    "export": {
+      "ready": {
+        "subject": "Exportación lista: {title}",
+        "body": "La exportación {title} está lista para descargar."
+      }
+    },
+    "billing": {
+      "payment_failed": {
+        "subject": "Tu pago no se procesó",
+        "body": "No pudimos cobrar el pago de tu suscripción {days, plural, =0 {hoy} one {hace # día} other {hace # días}}. Actualiza tu método de pago para conservar el acceso completo."
+      },
+      "read_only": {
+        "subject": "Tu organización está en modo de solo lectura",
+        "body": "Tu pago está vencido, así que tu organización queda en modo de solo lectura hasta que actualices el método de pago. No se eliminó ningún dato."
+      }
+    }
+  },
+  "notification": {
+    "heading": "{subject}"
+  },
+  "digest": {
+    "subject": "{count, plural, one {# novedad} other {# novedades}} de {orgName}",
+    "heading": "Tu resumen {frequency, select, weekly {semanal} other {diario}}",
+    "intro": "Esto es lo que pasó en {orgName} desde tu último resumen."
+  },
+  "invite": {
+    "subject": "{inviterName} te invitó a unirte a {orgName}",
+    "heading": "Únete a {orgName} en XOS",
+    "body": "{inviterName} te invitó a unirte a {orgName} como {roleName}.",
+    "accept": "Aceptar invitación",
+    "expires": "Esta invitación vence el {expiresAt, date, long}. Si no la esperabas, ignora este correo."
+  },
+  "report_delivery": {
+    "subject": "{reportName}: {periodLabel}",
+    "heading": "{reportName}",
+    "body": "Tu informe programado de {periodLabel} va adjunto en formato {format}.",
+    "membersOnly": "Los informes programados se envían solo a miembros de {orgName}."
+  },
+  "export_ready": {
+    "subject": "Tu exportación {exportName} está lista",
+    "heading": "Exportación lista",
+    "body": "{exportName} está lista para descargar hasta el {expiresAt, date, long}.",
+    "download": "Descargar exportación"
+  },
+  "import_finished": {
+    "subject": "La importación {importName} terminó",
+    "heading": "Importación terminada",
+    "body": "{written, plural, one {# fila escrita} other {# filas escritas}}, {refused, plural, one {# rechazada} other {# rechazadas}} y {skipped, plural, one {# omitida} other {# omitidas}}.",
+    "review": "Revisar importación"
+  },
+  "dsar_received": {
+    "subject": "Recibimos tu solicitud de {requestType}",
+    "heading": "Solicitud recibida",
+    "body": "{orgName} recibió tu solicitud de {requestType} el {receivedAt, date, long} y responderá a más tardar el {dueAt, date, long}."
+  }
+}
