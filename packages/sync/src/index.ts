@@ -67,3 +67,4 @@ export {
   type TableRule,
 } from "./scope";
 export { SyncSession, type IngestReport } from "./session";
+export { PersistentStore, SCHEMA_SQL, type SqlExecutor } from "./persistent";
