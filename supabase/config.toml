@@ -421,3 +421,7 @@ verify_jwt = false
 
 [functions.kiosk-punch]
 verify_jwt = false
+
+[functions.api-token]
+# Authenticates its caller by the API key itself (A04R, migration 0922).
+verify_jwt = false

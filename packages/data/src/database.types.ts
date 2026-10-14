@@ -2911,6 +2911,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "api_keys_service_account_id_fkey";
+            columns: ["service_account_id"];
+            isOneToOne: false;
+            referencedRelation: "service_accounts";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "api_keys_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
@@ -26306,6 +26313,98 @@ export type Database = {
           },
         ];
       };
+      service_accounts: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_at: string | null;
+          id: string;
+          membership_id: string;
+          name: string;
+          org_id: string;
+          owner_person_id: string;
+          person_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          membership_id: string;
+          name: string;
+          org_id: string;
+          owner_person_id: string;
+          person_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          name?: string;
+          org_id?: string;
+          owner_person_id?: string;
+          person_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_accounts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_accounts_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_accounts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_accounts_owner_person_id_fkey";
+            columns: ["owner_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_accounts_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_accounts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       setting_values: {
         Row: {
           created_at: string;
@@ -33790,13 +33889,27 @@ export type Database = {
         };
         Returns: string;
       };
-      create_api_key: {
-        Args: { p_expires_at: string; p_name: string; p_org_id: string; p_scopes: string[] };
-        Returns: {
-          api_key_id: string;
-          secret: string;
-        }[];
-      };
+      create_api_key:
+        | {
+            Args: { p_expires_at: string; p_name: string; p_org_id: string; p_scopes: string[] };
+            Returns: {
+              api_key_id: string;
+              secret: string;
+            }[];
+          }
+        | {
+            Args: {
+              p_expires_at: string;
+              p_name: string;
+              p_org_id: string;
+              p_scopes: string[];
+              p_service_account_id: string;
+            };
+            Returns: {
+              api_key_id: string;
+              secret: string;
+            }[];
+          };
       create_calendar_feed: {
         Args: { p_org_id: string; p_project_id?: string };
         Returns: {
@@ -33844,6 +33957,10 @@ export type Database = {
           p_what: string;
           p_zone_id?: string;
         };
+        Returns: string;
+      };
+      create_service_account: {
+        Args: { p_expires_at?: string; p_name: string; p_org_id: string; p_role_id: string };
         Returns: string;
       };
       create_webhook_endpoint: {
@@ -33905,6 +34022,16 @@ export type Database = {
       end_account_membership: { Args: { p_account_membership_id: string }; Returns: undefined };
       end_membership: { Args: { p_membership_id: string }; Returns: undefined };
       engaged_person_name: { Args: { p_engagement_id: string }; Returns: string };
+      exchange_api_key: {
+        Args: { p_secret: string };
+        Returns: {
+          api_key_id: string;
+          org_id: string;
+          scopes: string[];
+          service_account_id: string;
+          user_id: string;
+        }[];
+      };
       expire_offers: { Args: Record<PropertyKey, never>; Returns: number };
       finish_import_batch: { Args: { p_import_batch_id: string }; Returns: undefined };
       finish_job: {
@@ -34270,6 +34397,7 @@ export type Database = {
           value_type: Database["app"]["Enums"]["setting_value_type"];
         }[];
       };
+      retire_service_account: { Args: { p_service_account_id: string }; Returns: undefined };
       revise_offer: {
         Args: {
           p_amount_minor: number;
