@@ -1,0 +1,44 @@
+{
+  "header": {
+    "tabs": "Pestañas del proyecto",
+    "scope": "Alcance",
+    "wholeProject": "Todo el proyecto",
+    "archived": "Archivado"
+  },
+  "states": {
+    "Proposed": "Propuesto",
+    "Active": "Activo",
+    "Blocked": "Bloqueado",
+    "Complete": "Completo",
+    "Canceled": "Cancelado",
+    "Closed": "Cerrado"
+  },
+  "phases": {
+    "SCP": "Alcance",
+    "ENG": "Contratación",
+    "ADV": "Avance",
+    "PRC": "Compras",
+    "BLD": "Construcción",
+    "INS": "Instalación",
+    "OPR": "Operación",
+    "AMP": "Amplificación",
+    "CLS": "Cierre"
+  },
+  "acts": {
+    "PLAN": "Planificar",
+    "BUILD": "Construir",
+    "SHOW": "Presentar"
+  },
+  "scopeKinds": {
+    "engagementRoot": "Raíz del encargo",
+    "standingVenue": "Recinto permanente",
+    "show": "Función"
+  },
+  "roles": {
+    "producer": "Productor",
+    "departmentHead": "Jefe de departamento",
+    "coordinator": "Coordinador",
+    "fieldSupervisor": "Supervisor de campo",
+    "field": "Campo"
+  }
+}

@@ -539,11 +539,7 @@ export async function removeScopeNode(
     });
   }
   return writeOne(
-    db
-      .from("scope_nodes")
-      .update({ deleted_at: now.toISOString() })
-      .eq("id", node.id)
-      .select("id"),
+    db.from("scope_nodes").update({ deleted_at: now.toISOString() }).eq("id", node.id).select("id"),
   );
 }
 
@@ -607,7 +603,9 @@ export async function listCriterionStatus(
   if (projectIds.length === 0) return ok([]);
   const { data, error } = await db
     .from("gate_criteria_status")
-    .select("project_id, criterion_id, gate, is_blocking, evidence_count, best_assertion_rank, gate_passed")
+    .select(
+      "project_id, criterion_id, gate, is_blocking, evidence_count, best_assertion_rank, gate_passed",
+    )
     .in("project_id", [...projectIds]);
   if (error) return fail(toDataError(error));
   return ok(
