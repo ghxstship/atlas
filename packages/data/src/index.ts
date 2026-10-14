@@ -9,3 +9,4 @@ export {
   type Result,
 } from "./result";
 export * from "./identity";
+export * from "./gateway";
