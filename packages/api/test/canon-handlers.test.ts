@@ -66,6 +66,7 @@ function fakeDb(rows: Row[], fail?: { code: string; message: string }): XosClien
 function app(db: XosClient) {
   const context: RequestContext = {
     user: { id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f", email: null },
+    personId: null,
     org: null,
     locale: "en-US",
     db,

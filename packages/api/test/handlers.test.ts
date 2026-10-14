@@ -24,7 +24,8 @@ import { parseQuery } from "../src/runtime/query.ts";
 
 const context: RequestContext = {
   user: { id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f", email: "ada@example.com" },
-  org: { id: "0192f1e2-7c3a-7b4d-9e8f-000000000001" },
+  personId: "0192f1e2-7c3a-7b4d-9e8f-00000000000p",
+  org: { id: "0192f1e2-7c3a-7b4d-9e8f-000000000001", slug: "demo" },
   locale: "en-US",
   db: {} as XosClient,
   credential: "session",
