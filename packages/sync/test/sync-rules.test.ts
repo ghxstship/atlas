@@ -58,7 +58,7 @@ function grantsFromYaml(): Grant[] {
 }
 
 function grantsFromScope(): Grant[] {
-  return TABLE_RULES.flatMap((rule) =>
+  return TABLE_RULES.flatMap((rule): Grant[] =>
     rule.global
       ? [{ table: rule.table, column: null, key: null, audiences: ALL }]
       : rule.anyOf.map((alt) => ({
