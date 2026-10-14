@@ -80,9 +80,10 @@ describe("plans.yaml", () => {
       "team",
       "enterprise",
     ]);
+    // Section 16 allowed 2 active projects on Access; the owner set the first project free (ADR 0018).
     expect(byCode["access"]?.limits).toEqual({
       seats: 1,
-      active_projects: 2,
+      active_projects: 1,
       field_members: 10,
       active_external_engagements_per_month: 25,
     });
@@ -121,17 +122,22 @@ describe("generated plan seed migration", () => {
     expect(read(PLAN_SEED_MIGRATION)).toBe(sql);
   });
 
-  it("produces exactly the plan, limit and feature rows 0201 seeds", () => {
+  it("keeps 0201's plans and features and differs from its limits only where ADR 0018 says", () => {
     expect(registry.plans.map((p) => [p.code, p.sortOrder])).toEqual(seededPlans());
-    expect(
-      registry.plans.flatMap((p) => registry.limits.map((l) => [p.code, l, p.limits[l]])),
-    ).toEqual(seededLimits());
+    const generatedLimits = registry.plans.flatMap((p) =>
+      registry.limits.map((l) => [p.code, l, p.limits[l]] as [string, string, number | null]),
+    );
+    const changed = generatedLimits.filter(
+      ([plan, limit, value]) =>
+        seededLimits().find(([p, l]) => p === plan && l === limit)?.[2] !== value,
+    );
+    expect(changed).toEqual([["access", "active_projects", 1]]);
     const generated = registry.plans.flatMap((p) => p.features.map((f) => `${p.code}:${f}`)).sort();
     expect(seededFeatures()).toHaveLength(50);
     expect(generated).toEqual(seededFeatures());
   });
 
-  it("upserts so applying 0201 and 0207 from empty is consistent", () => {
+  it("upserts, so applying 0201 and every plan seed in order ends in the registry state", () => {
     expect(sql).toContain("on conflict (code) do update set sort_order = excluded.sort_order;");
     expect(sql).toContain(
       "on conflict (plan_code, limit_code) do update set limit_value = excluded.limit_value;",

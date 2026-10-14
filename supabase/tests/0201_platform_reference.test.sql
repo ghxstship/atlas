@@ -18,8 +18,8 @@ select is(
 );
 select is(
   (select limit_value from private.plan_limits where plan_code = 'access' and limit_code = 'active_projects'),
-  2::bigint,
-  'Access allows two active projects'
+  1::bigint,
+  'Access allows one active project: the first project is free (ADR 0018, seed 0900)'
 );
 select is(
   (select limit_value from private.plan_limits where plan_code = 'access' and limit_code = 'field_members'),

@@ -10,7 +10,7 @@ export const PLANS: readonly PlanSummary[] = [
     adds: [],
     limits: {
       seats: 1,
-      active_projects: 2,
+      active_projects: 1,
       field_members: 10,
       active_external_engagements_per_month: 25,
     },

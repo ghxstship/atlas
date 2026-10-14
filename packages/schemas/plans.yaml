@@ -18,10 +18,10 @@
 #     A price lookup key is the Stripe price's lookup_key; a product key is the product's
 #     metadata.lookup_key, because Stripe products have no native lookup key.
 #
-# Prices come from the existing ATLVS catalogue v3 in Stripe (read 2026-10-14): USD only, the
-# "unlimited" purchase mode, annual at ten times monthly. Other currencies stay unpriced until
-# Stripe carries prices for them. The catalogue's per-project purchase mode
-# (atlvs_plan_<tier>_project_<period>_v3) has no Section 16 counterpart and awaits an owner decision.
+# Prices come from the existing ATLVS catalogue v3 in Stripe (read 2026-10-14): USD only,
+# annual at ten times monthly. Other currencies stay unpriced until Stripe carries prices for
+# them. Per-project pricing is dropped by owner decision (ADR 0018): the first project is free
+# on the Access plan, and paid plans have unlimited projects.
 
 version: 1
 
@@ -61,7 +61,7 @@ plans:
     free: true
     limits:
       seats: 1
-      active_projects: 2
+      active_projects: 1
       field_members: 10
       active_external_engagements_per_month: 25
     features: []

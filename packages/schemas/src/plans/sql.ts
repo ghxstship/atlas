@@ -1,7 +1,14 @@
 import type { PlanRegistry } from "./model.ts";
 
-/** Repository-relative path of the generated plan seed migration (ADR 0004 range 0200 to 0299). */
-export const PLAN_SEED_MIGRATION = "supabase/migrations/0207_plan_seed.sql";
+/**
+ * Repository-relative path of the current generated plan seed migration (ADR 0018).
+ * Applied migrations are never edited (ADR 0004), so when plans.yaml changes after a seed has
+ * shipped, this moves to the next number in the orchestrator range and the earlier seeds stay
+ * as history. Each seed is a complete idempotent upsert, so the latest one decides the state.
+ */
+export const PLAN_SEED_MIGRATION = "supabase/migrations/0900_plan_seed.sql";
+
+const PLAN_SEED_FILE = PLAN_SEED_MIGRATION.slice(PLAN_SEED_MIGRATION.lastIndexOf("/") + 1);
 
 function literal(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
@@ -30,14 +37,14 @@ export function renderPlanSeedSql(registry: PlanRegistry): string {
     p.features.map((f) => [literal(p.code), `${literal(f)}::app.plan_feature_code`]),
   );
 
-  return `-- 0207_plan_seed.sql
+  return `-- ${PLAN_SEED_FILE}
 -- Generated from packages/schemas/plans.yaml by
 -- \`pnpm --filter @xos/schemas generate:plans\`. Never edit by hand: the
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Plan registry version ${registry.version}: ${plans.length} plans, ${limits.length} plan limits,
--- ${features.length} plan features. Upserts the rows 0201_platform_reference.sql seeds, so
--- plans.yaml is the single source from here on (ADR 0008).
+-- ${features.length} plan features. Upserts every plan, limit and feature, so it ends in the
+-- registry state whatever earlier seeds applied (ADR 0008, ADR 0018).
 
 -- Plans -----------------------------------------------------------------------
 

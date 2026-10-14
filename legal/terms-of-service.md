@@ -67,7 +67,7 @@ These Terms of Service (the "Terms") are a subscription agreement between GHXSTS
 
 | Plan       | Summary                                                                                                                                            |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Access     | Free for a single producer: 1 seat, 2 active projects, Compass for 10 crew, community support                                                      |
+| Access     | Free for a single producer: 1 seat, 1 active project, Compass for 10 crew, community support                                                       |
 | Core       | Unlimited projects, approvals, advancing, procurement and accounting export                                                                        |
 | Pro        | Adds white label, custom domain, automations, API keys, webhooks and public marketplace listings                                                   |
 | Team       | Adds custom roles, IP allow-list, audit export, payroll export and priority support                                                                |

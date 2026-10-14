@@ -94,10 +94,11 @@ select pg_temp.as_platform();
 
 -- Plan limit ----------------------------------------------------------------------------------------------------
 select pg_temp.as_user('xavier');
-select lives_ok($$insert into app.projects (org_id, project_key, name, time_zone) values ((select id from world where key = 'org_b'), 'HLQ', 'Harbor Second', 'UTC')$$,
-  'the Access plan allows a second active project');
-select throws_ok($$insert into app.projects (org_id, project_key, name, time_zone) values ((select id from world where key = 'org_b'), 'HLR', 'Harbor Third', 'UTC')$$,
-  'XR001', null, 'the Access plan refuses a third active project');
+-- The first project is free on Access; it allows one active project (ADR 0018, seed 0900).
+select throws_ok($$insert into app.projects (org_id, project_key, name, time_zone) values ((select id from world where key = 'org_b'), 'HLQ', 'Harbor Second', 'UTC')$$,
+  'XR001', null, 'the Access plan refuses a second active project');
+select is((select count(*) from app.projects where org_id = (select id from world where key = 'org_b') and deleted_at is null),
+  1::bigint, 'the Access org keeps its one free project');
 select pg_temp.as_platform();
 
 -- Project state machine -------------------------------------------------------------------------------------------
