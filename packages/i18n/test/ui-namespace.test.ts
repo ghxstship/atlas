@@ -25,7 +25,10 @@ describe("ICU messages", () => {
 
   it("keeps the 319 design system messages under the ui namespace; additions are allowed (ADR 0014)", () => {
     expect(ui.size).toBeGreaterThanOrEqual(319);
-    expect(Object.keys(getMessages("en-US"))).toEqual(["shell", "nav", "ui"]);
+    // Agents add their own namespaces (ADR 0004), so require these three rather than exactly these.
+    expect(Object.keys(getMessages("en-US"))).toEqual(
+      expect.arrayContaining(["shell", "nav", "ui"]),
+    );
   });
 
   it.each(locales)("%s: every message parses as ICU", (locale) => {
