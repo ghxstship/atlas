@@ -61,14 +61,14 @@ export function totalOf(lines: readonly PricedLine[]): MoneyTotal {
   if (priced.length === 0 || currencies.size > 1) {
     return {
       amountMinor: null,
-      currencyCode: currencies.size === 1 ? [...currencies][0]! : null,
+      currencyCode: null,
       unpricedCount,
       mixedCurrencies: currencies.size > 1,
     };
   }
   return {
     amountMinor: priced.reduce((sum, l) => sum + (lineAmount(l) ?? 0), 0),
-    currencyCode: priced[0]!.currencyCode,
+    currencyCode: priced[0]?.currencyCode ?? null,
     unpricedCount,
     mixedCurrencies: false,
   };
@@ -567,7 +567,10 @@ export function removeBeoLine(db: XosClient, id: string): Promise<Result<null>> 
 
 /** Currencies a price may use, in code order (private.currencies through app.currencies). */
 export async function listCurrencyCodes(db: XosClient): Promise<Result<string[]>> {
-  const { data, error } = await db.from("currencies").select("currency_code").order("currency_code");
+  const { data, error } = await db
+    .from("currencies")
+    .select("currency_code")
+    .order("currency_code");
   if (error) return fail(toDataError(error));
   return ok(data.map((c) => c.currency_code as string));
 }

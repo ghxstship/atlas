@@ -563,10 +563,7 @@ function toDockSlot(row: DockRow): DockSlot {
 }
 
 /** Live dock slots in start order. An empty orgId means the scope is a shipment. */
-export async function listDockSlots(
-  db: XosClient,
-  scope: DockScope,
-): Promise<Result<DockSlot[]>> {
+export async function listDockSlots(db: XosClient, scope: DockScope): Promise<Result<DockSlot[]>> {
   let query = db.from("dock_slots").select(DOCK_COLUMNS).is("deleted_at", null);
   if (scope.orgId) query = query.eq("org_id", scope.orgId);
   if (scope.projectId) query = query.eq("project_id", scope.projectId);
@@ -672,10 +669,7 @@ function toGateEntry(row: GateRow): GateEntry {
 }
 
 /** Gate queue entries in arrival order. */
-export async function listGateQueue(
-  db: XosClient,
-  scope: GateScope,
-): Promise<Result<GateEntry[]>> {
+export async function listGateQueue(db: XosClient, scope: GateScope): Promise<Result<GateEntry[]>> {
   let query = db.from("gate_queue").select(GATE_COLUMNS).is("deleted_at", null);
   if (scope.orgId) query = query.eq("org_id", scope.orgId);
   if (scope.projectId) query = query.eq("project_id", scope.projectId);
@@ -780,7 +774,11 @@ export async function listMarshallingLog(
 export async function addMarshallingEntry(
   db: XosClient,
   projectId: string,
-  input: { readonly entry: string; readonly shipmentId: string | null; readonly zoneId: string | null },
+  input: {
+    readonly entry: string;
+    readonly shipmentId: string | null;
+    readonly zoneId: string | null;
+  },
 ): Promise<Result<{ id: string }>> {
   const row: MarshallingInsert = {
     project_id: projectId,
