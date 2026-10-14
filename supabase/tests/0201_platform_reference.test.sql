@@ -4,7 +4,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 
-select plan(14);
+select plan(17);
 
 select results_eq(
   'select code from app.plans order by sort_order',
@@ -19,7 +19,7 @@ select is(
 select is(
   (select limit_value from private.plan_limits where plan_code = 'access' and limit_code = 'active_projects'),
   1::bigint,
-  'Access allows one active project: the first project is free (ADR 0018, seed 0900)'
+  'Access allows one active project: the first project is free (ADR 0018)'
 );
 select is(
   (select limit_value from private.plan_limits where plan_code = 'access' and limit_code = 'field_members'),
@@ -47,6 +47,24 @@ select is(
   (select count(*)::integer from private.plan_features where plan_code = 'access'),
   0,
   'Access includes no gated feature'
+);
+select results_eq(
+  $$select plan_code from private.plan_features where feature_code = 'aurora_ai'
+    order by (select sort_order from app.plans p where p.code = plan_code)$$,
+  array['core', 'pro', 'team', 'enterprise'],
+  'Aurora AI is in every paid plan (ADR 0020, seed 0902)'
+);
+select results_eq(
+  $$select limit_value from private.plan_limits
+    where limit_code = 'aurora_requests_per_month'
+    order by (select sort_order from app.plans p where p.code = plan_code)$$,
+  $$values (0::bigint), (500::bigint), (2000::bigint), (10000::bigint), (null::bigint)$$,
+  'Aurora AI allowances rise by tier and Enterprise is unlimited (ADR 0020)'
+);
+select results_eq(
+  $$select plan_code from private.plan_features where feature_code = 'legend_early_access'$$,
+  array['enterprise'],
+  'Legend early access is Enterprise only (ADR 0020)'
 );
 select ok(
   not exists (select 1 from app.subscription_state_transition_rules where from_state = 'canceled'),

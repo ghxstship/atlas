@@ -6,7 +6,7 @@ import type { PlanRegistry } from "./model.ts";
  * shipped, this moves to the next number in the orchestrator range and the earlier seeds stay
  * as history. Each seed is a complete idempotent upsert, so the latest one decides the state.
  */
-export const PLAN_SEED_MIGRATION = "supabase/migrations/0900_plan_seed.sql";
+export const PLAN_SEED_MIGRATION = "supabase/migrations/0902_plan_seed.sql";
 
 const PLAN_SEED_FILE = PLAN_SEED_MIGRATION.slice(PLAN_SEED_MIGRATION.lastIndexOf("/") + 1);
 

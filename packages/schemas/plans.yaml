@@ -1,8 +1,8 @@
 # XOS plans, limits, features and price books (Section 16, Section 3.15, ADR 0008).
 #
 # This file is the single source of every plan. The generator in src/plans emits the plan
-# seed migration (supabase/migrations/0207_plan_seed.sql) from it; the pricing page, Stripe
-# products and private.org_plan_limits read the same data.
+# current plan seed migration (see PLAN_SEED_MIGRATION in src/plans/sql.ts) from it; the pricing
+# page, Stripe products and private.org_plan_limits read the same data.
 #
 # Rules the validator enforces:
 #   - limits and features list exactly the values of the Postgres enums
@@ -22,6 +22,11 @@
 # annual at ten times monthly. Other currencies stay unpriced until Stripe carries prices for
 # them. Per-project pricing is dropped by owner decision (ADR 0018): the first project is free
 # on the Access plan, and paid plans have unlimited projects.
+#
+# Packaging (ADR 0020): every plan includes Atlas and Compass, and Gateway for the parties an org
+# engages. Access is Atlas Lite (1 seat, 1 project). Tiers differ by Gateway reach (public
+# marketplace and white label from Pro), by the monthly Aurora AI allowance, and by Legend, which
+# Enterprise receives as early access. Workers and other external users are free on every plan.
 
 version: 1
 
@@ -30,6 +35,7 @@ limits:
   - active_projects
   - field_members
   - active_external_engagements_per_month
+  - aurora_requests_per_month
 
 features:
   - approvals
@@ -53,6 +59,8 @@ features:
   - branded_compass_build
   - sla_credits
   - support_session_controls
+  - aurora_ai
+  - legend_early_access
 
 currencies: [USD, EUR, GBP, CAD, AUD]
 
@@ -64,6 +72,7 @@ plans:
       active_projects: 1
       field_members: 10
       active_external_engagements_per_month: 25
+      aurora_requests_per_month: 0
     features: []
     prices:
       USD: { monthly_minor: 0, annual_minor: 0 }
@@ -79,7 +88,8 @@ plans:
       active_projects: null
       field_members: null
       active_external_engagements_per_month: 250
-    features: [approvals, advancing, procurement, upl_export]
+      aurora_requests_per_month: 500
+    features: [approvals, advancing, procurement, upl_export, aurora_ai]
     prices:
       USD: { monthly_minor: 4900, annual_minor: 49000 }
       EUR: { monthly_minor: null, annual_minor: null }
@@ -99,6 +109,7 @@ plans:
       active_projects: null
       field_members: null
       active_external_engagements_per_month: 2500
+      aurora_requests_per_month: 2000
     features:
       [white_label, custom_domain, automations, api_keys, webhooks, public_marketplace_listings]
     prices:
@@ -120,6 +131,7 @@ plans:
       active_projects: null
       field_members: null
       active_external_engagements_per_month: null
+      aurora_requests_per_month: 10000
     features: [custom_roles, ip_allowlist, audit_export, payroll_export, priority_support]
     prices:
       USD: { monthly_minor: 34900, annual_minor: 349000 }
@@ -140,6 +152,7 @@ plans:
       active_projects: null
       field_members: null
       active_external_engagements_per_month: null
+      aurora_requests_per_month: null
     features:
       [
         saml_sso,
@@ -148,6 +161,7 @@ plans:
         branded_compass_build,
         sla_credits,
         support_session_controls,
+        legend_early_access,
       ]
     prices:
       USD: { monthly_minor: 89900, annual_minor: 899000 }

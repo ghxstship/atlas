@@ -896,7 +896,8 @@
         "seats": "Seats",
         "active_projects": "Active projects",
         "field_members": "Field members",
-        "active_external_engagements_per_month": "External engagements per month"
+        "active_external_engagements_per_month": "External engagements per month",
+        "aurora_requests_per_month": "Aurora AI requests per month"
       },
       "features": {
         "approvals": "Approvals",
@@ -919,7 +920,9 @@
         "eu_data_residency": "EU data residency",
         "branded_compass_build": "Branded Compass build",
         "sla_credits": "SLA credits",
-        "support_session_controls": "Support session controls"
+        "support_session_controls": "Support session controls",
+        "aurora_ai": "Aurora AI",
+        "legend_early_access": "Legend early access"
       }
     },
     "auth": {

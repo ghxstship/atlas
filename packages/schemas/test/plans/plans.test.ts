@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
@@ -17,12 +17,20 @@ const reference = read("supabase/migrations/0201_platform_reference.sql");
 const yamlText = readFileSync(PLANS_YAML_PATH, "utf8");
 const registry = loadPlanRegistry();
 
-function enumValues(sql: string, type: string): string[] {
-  const match = new RegExp(`create type ${type.replace(".", "\\.")} as enum \\(([^)]*)\\)`).exec(
-    sql,
-  );
+const migrations = readdirSync(`${repoRoot}supabase/migrations`)
+  .filter((f) => f.endsWith(".sql"))
+  .sort()
+  .map((f) => read(`supabase/migrations/${f}`));
+
+/** Enum values in enum order: the create type in 0201, then every later add value, in migration order. */
+function enumValues(type: string): string[] {
+  const escaped = type.replace(".", "\\.");
+  const match = new RegExp(`create type ${escaped} as enum \\(([^)]*)\\)`).exec(reference);
   if (match?.[1] === undefined) throw new Error(`enum ${type} not found`);
-  return [...match[1].matchAll(/'([^']+)'/g)].map((m) => m[1] ?? "");
+  const values = [...match[1].matchAll(/'([^']+)'/g)].map((m) => m[1] ?? "");
+  const added = new RegExp(`alter type ${escaped} add value (?:if not exists )?'([^']+)'`, "g");
+  for (const sql of migrations) for (const m of sql.matchAll(added)) values.push(m[1] ?? "");
+  return values;
 }
 
 function statement(sql: string, start: string): string {
@@ -67,8 +75,8 @@ function seededFeatures(): string[] {
 
 describe("plans.yaml", () => {
   it("lists the Postgres enum values in enum order", () => {
-    expect([...registry.limits]).toEqual(enumValues(reference, "app.plan_limit_code"));
-    expect([...registry.features]).toEqual(enumValues(reference, "app.plan_feature_code"));
+    expect([...registry.limits]).toEqual(enumValues("app.plan_limit_code"));
+    expect([...registry.features]).toEqual(enumValues("app.plan_feature_code"));
   });
 
   it("states the Section 16 gates", () => {
@@ -86,6 +94,7 @@ describe("plans.yaml", () => {
       active_projects: 1,
       field_members: 10,
       active_external_engagements_per_month: 25,
+      aurora_requests_per_month: 0,
     });
     expect(registry.plans.map((p) => p.limits["active_external_engagements_per_month"])).toEqual([
       25,
@@ -99,6 +108,20 @@ describe("plans.yaml", () => {
     );
     expect(marketplace.map((p) => p.code)).toEqual(["pro", "team", "enterprise"]);
     expect(byCode["enterprise"]?.features).toEqual(registry.features);
+  });
+
+  it("packages Aurora and Legend by tier (ADR 0020)", () => {
+    const withFeature = (f: string) =>
+      registry.plans.filter((p) => p.features.includes(f)).map((p) => p.code);
+    expect(withFeature("aurora_ai")).toEqual(["core", "pro", "team", "enterprise"]);
+    expect(withFeature("legend_early_access")).toEqual(["enterprise"]);
+    expect(registry.plans.map((p) => p.limits["aurora_requests_per_month"])).toEqual([
+      0,
+      500,
+      2000,
+      10000,
+      null,
+    ]);
   });
 
   it("prices every plan in USD, EUR, GBP, CAD and AUD, never coercing unpriced to zero", () => {
@@ -122,7 +145,7 @@ describe("generated plan seed migration", () => {
     expect(read(PLAN_SEED_MIGRATION)).toBe(sql);
   });
 
-  it("keeps 0201's plans and features and differs from its limits only where ADR 0018 says", () => {
+  it("keeps 0201's plans and differs from its limits and features only where ADR 0018 and ADR 0020 say", () => {
     expect(registry.plans.map((p) => [p.code, p.sortOrder])).toEqual(seededPlans());
     const generatedLimits = registry.plans.flatMap((p) =>
       registry.limits.map((l) => [p.code, l, p.limits[l]] as [string, string, number | null]),
@@ -131,10 +154,24 @@ describe("generated plan seed migration", () => {
       ([plan, limit, value]) =>
         seededLimits().find(([p, l]) => p === plan && l === limit)?.[2] !== value,
     );
-    expect(changed).toEqual([["access", "active_projects", 1]]);
+    expect(changed).toEqual([
+      ["access", "active_projects", 1],
+      ["access", "aurora_requests_per_month", 0],
+      ["core", "aurora_requests_per_month", 500],
+      ["pro", "aurora_requests_per_month", 2000],
+      ["team", "aurora_requests_per_month", 10000],
+      ["enterprise", "aurora_requests_per_month", null],
+    ]);
     const generated = registry.plans.flatMap((p) => p.features.map((f) => `${p.code}:${f}`)).sort();
     expect(seededFeatures()).toHaveLength(50);
-    expect(generated).toEqual(seededFeatures());
+    const added = [
+      "core:aurora_ai",
+      "enterprise:aurora_ai",
+      "enterprise:legend_early_access",
+      "pro:aurora_ai",
+      "team:aurora_ai",
+    ];
+    expect(generated).toEqual([...seededFeatures(), ...added].sort());
   });
 
   it("upserts, so applying 0201 and every plan seed in order ends in the registry state", () => {
@@ -178,8 +215,8 @@ describe("plan registry validation", () => {
     ["a non-zero free price", "USD: { monthly_minor: 0,", "USD: { monthly_minor: 5,", /is free/],
     [
       "a zero paid price",
-      "  - code: core\n    extends: access\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n    features: [approvals, advancing, procurement, upl_export]\n    prices:\n      USD: { monthly_minor: 4900,",
-      "  - code: core\n    extends: access\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n    features: [approvals, advancing, procurement, upl_export]\n    prices:\n      USD: { monthly_minor: 0,",
+      "  - code: core\n    extends: access\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n      aurora_requests_per_month: 500\n    features: [approvals, advancing, procurement, upl_export, aurora_ai]\n    prices:\n      USD: { monthly_minor: 4900,",
+      "  - code: core\n    extends: access\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n      aurora_requests_per_month: 500\n    features: [approvals, advancing, procurement, upl_export, aurora_ai]\n    prices:\n      USD: { monthly_minor: 0,",
       /cannot be 0/,
     ],
     ["a wrong parent", "extends: core", "extends: access", /must extend the plan before it/],
@@ -214,8 +251,8 @@ describe("plan registry validation", () => {
   it("rejects a limit on a plan above an unlimited one", () => {
     expect(
       broken(
-        "      active_external_engagements_per_month: null\n    features: [custom_roles",
-        "      active_external_engagements_per_month: 9\n    features: [custom_roles",
+        "      active_external_engagements_per_month: null\n      aurora_requests_per_month: null\n",
+        "      active_external_engagements_per_month: 9\n      aurora_requests_per_month: null\n",
       ),
     ).toThrow(/fewer|although/);
   });

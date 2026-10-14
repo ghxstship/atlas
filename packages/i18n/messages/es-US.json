@@ -896,7 +896,8 @@
         "seats": "Asientos",
         "active_projects": "Proyectos activos",
         "field_members": "Miembros de campo",
-        "active_external_engagements_per_month": "Contrataciones externas por mes"
+        "active_external_engagements_per_month": "Contrataciones externas por mes",
+        "aurora_requests_per_month": "Solicitudes de Aurora AI por mes"
       },
       "features": {
         "approvals": "Aprobaciones",
@@ -919,7 +920,9 @@
         "eu_data_residency": "Residencia de datos en la UE",
         "branded_compass_build": "Compilación de Compass con tu marca",
         "sla_credits": "Créditos de SLA",
-        "support_session_controls": "Controles de sesiones de soporte"
+        "support_session_controls": "Controles de sesiones de soporte",
+        "aurora_ai": "Aurora AI",
+        "legend_early_access": "Acceso anticipado a Legend"
       }
     },
     "auth": {

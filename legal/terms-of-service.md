@@ -65,13 +65,13 @@ These Terms of Service (the "Terms") are a subscription agreement between GHXSTS
 
 5.1 **Plans.** The Service is offered on these Plans:
 
-| Plan       | Summary                                                                                                                                            |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Access     | Free for a single producer: 1 seat, 1 active project, Compass for 10 crew, community support                                                       |
-| Core       | Unlimited projects, approvals, advancing, procurement and accounting export                                                                        |
-| Pro        | Adds white label, custom domain, automations, API keys, webhooks and public marketplace listings                                                   |
-| Team       | Adds custom roles, IP allow-list, audit export, payroll export and priority support                                                                |
-| Enterprise | Adds SAML single sign-on, SCIM, EU data residency, a dedicated branded Compass build, Service Level Agreement credits and support session controls |
+| Plan       | Summary                                                                                                                                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Access     | Free for a single producer: Atlas for 1 seat and 1 active project, Compass for 10 crew, Gateway for engaged parties, community support                                                                       |
+| Core       | Unlimited projects, approvals, advancing, procurement, accounting export and Aurora AI with 500 requests a month                                                                                             |
+| Pro        | Adds white label, custom domain, automations, API keys, webhooks, public marketplace listings and 2,000 Aurora AI requests a month                                                                           |
+| Team       | Adds custom roles, IP allow-list, audit export, payroll export, priority support and 10,000 Aurora AI requests a month                                                                                       |
+| Enterprise | Adds SAML single sign-on, SCIM, EU data residency, a dedicated branded Compass build, Service Level Agreement credits, support session controls, Aurora AI limits set by contract and early access to Legend |
 
 5.2 **Trial.** A new organization receives a 14-day trial with Pro features and no card required. At the end of the trial the organization moves to the Access Plan unless the Customer selects a paid Plan. No data is deleted at the end of a trial. Objects over the Access limits become read-only.
 
