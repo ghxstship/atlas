@@ -7,3 +7,4 @@ export * from "./framework/repository.ts";
 export * from "./framework/runner.ts";
 export * from "./framework/store.ts";
 export * from "./framework/support.ts";
+export * from "./connectors/accounting/index.ts";
