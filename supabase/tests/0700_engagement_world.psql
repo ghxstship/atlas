@@ -1,0 +1,77 @@
+-- Shared pgTAP fixture for the 07xx suites, included with \ir inside each test transaction.
+-- Builds on A03's domain world (0300_domain_world.psql). Every name is fictional; Northwind Live is the
+-- demo tenant (Section 3.14). Nothing persists: each suite rolls back.
+--
+-- External people (Gateway users with no membership in org_a or org_b):
+--   ivy    freelance crew, engaged by org_a on prj_a and by org_b on prj_b (gate 33: several engagements across orgs)
+--   victor Account Owner of the vendor account Bayside Audio (acct_v)
+--   fiona  Account Finance of acct_v
+--   sam    Account Member of acct_v, the technician acct_v supplies
+--   rita   Account Admin of the artist agency Lumen Artists (acct_t), representing art
+--   art    artist, engaged by org_a on prj_a
+--   quinn  another freelancer, engaged by org_b only (the other party for denial tests)
+-- Counterparties: cp_v_a (acct_v as org_a's vendor), cp_v_b (acct_v as org_b's vendor).
+-- Engagements: eng_ivy_a (Crew, prj_a), eng_ivy_b (Crew, prj_b), eng_vendor_a (Vendor-supplied sam via acct_v,
+--   prj_a), eng_art_a (Artist, prj_a), eng_quinn_b (Crew, prj_b), eng_mia_b (mia, a member of org_a, booked
+--   externally by org_b as an Artist).
+\ir 0300_domain_world.psql
+
+create function pg_temp.build_engagement_world() returns void
+language plpgsql as $$
+declare
+  v_id uuid;
+begin
+  perform pg_temp.new_user('ivy', 'ivy@freelance.test', 'Ivy Marchetti');
+  perform pg_temp.new_user('victor', 'victor@bayside-audio.test', 'Victor Osei');
+  perform pg_temp.new_user('fiona', 'fiona@bayside-audio.test', 'Fiona Ward');
+  perform pg_temp.new_user('sam', 'sam@bayside-audio.test', 'Sam Kowalski');
+  perform pg_temp.new_user('rita', 'rita@lumen-artists.test', 'Rita Alvarez');
+  perform pg_temp.new_user('art', 'art@performer.test', 'Arturo Bell');
+  perform pg_temp.new_user('quinn', 'quinn@freelance.test', 'Quinn Ashby');
+
+  perform pg_temp.as_platform();
+  insert into app.organizations (slug, name) values ('bayside-audio', 'Bayside Audio') returning id into v_id;
+  insert into world values ('acct_v', v_id);
+  insert into app.organizations (slug, name) values ('lumen-artists', 'Lumen Artists') returning id into v_id;
+  insert into world values ('acct_t', v_id);
+
+  perform pg_temp.as_user('alice');
+  insert into world values ('cp_v_a', app.create_counterparty(pg_temp.id('org_a'), null, null, pg_temp.id('acct_v')));
+  insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis, arrangement,
+    agreed_rate_minor, currency_code, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('ivy'), 'Crew', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement',
+    99000, 'USD', '2027-06-01') returning id into v_id;
+  insert into world values ('eng_ivy_a', v_id);
+  insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification, pay_basis,
+    arrangement, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('sam'), pg_temp.id('cp_v_a'), 'Vendor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate',
+    'Per Engagement', '2027-06-01') returning id into v_id;
+  insert into world values ('eng_vendor_a', v_id);
+  insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis, arrangement,
+    agreed_rate_minor, currency_code, start_date, internal_note)
+  values (pg_temp.id('prj_a'), pg_temp.id('art'), 'Artist', '2000.50.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement',
+    500000, 'USD', '2027-06-02', 'Headliner fee is above the talent budget line.') returning id into v_id;
+  insert into world values ('eng_art_a', v_id);
+
+  perform pg_temp.as_user('xavier');
+  insert into world values ('cp_v_b', app.create_counterparty(pg_temp.id('org_b'), null, null, pg_temp.id('acct_v')));
+  insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis, arrangement,
+    agreed_rate_minor, currency_code, start_date)
+  values (pg_temp.id('prj_b'), pg_temp.id('ivy'), 'Crew', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement',
+    88000, 'USD', '2027-07-01') returning id into v_id;
+  insert into world values ('eng_ivy_b', v_id);
+  insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis, arrangement,
+    agreed_rate_minor, currency_code, start_date)
+  values (pg_temp.id('prj_b'), pg_temp.id('quinn'), 'Crew', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement',
+    77000, 'USD', '2027-07-01') returning id into v_id;
+  insert into world values ('eng_quinn_b', v_id);
+  insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis, arrangement,
+    start_date)
+  values (pg_temp.id('prj_b'), pg_temp.id('mia'), 'Artist', '2000.50.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement',
+    '2027-07-02') returning id into v_id;
+  insert into world values ('eng_mia_b', v_id);
+
+  perform pg_temp.as_platform();
+end $$;
+
+select pg_temp.build_engagement_world();
