@@ -2144,5 +2144,132 @@
       "label": "Home screen widget",
       "nextShift": "Next shift"
     }
+  },
+  "email": {
+    "common": {
+      "preview": "{orgName} on XOS",
+      "greeting": "Hi {name},",
+      "open": "Open in XOS",
+      "managePreferences": "Manage notification preferences",
+      "unsubscribe": "Unsubscribe from these emails",
+      "sentBy": "Sent by {orgName}, {postalAddress}.",
+      "whyTransactional": "You are receiving this email because of activity on your account.",
+      "whyNotification": "You are receiving this email because you follow this in {orgName}.",
+      "poweredBy": "Delivered by XOS"
+    },
+    "kinds": {
+      "mention": {
+        "created": {
+          "subject": "{actorName} mentioned you on {title}",
+          "body": "{actorName} mentioned you in a comment on {title}."
+        }
+      },
+      "assignment": {
+        "created": {
+          "subject": "You were assigned {title}",
+          "body": "{actorName} assigned {title} to you."
+        }
+      },
+      "approval": {
+        "requested": {
+          "subject": "Approval requested: {title}",
+          "body": "{actorName} asked you to approve {title}."
+        },
+        "decided": {
+          "subject": "{title} was {decision, select, approved {approved} other {rejected}}",
+          "body": "{actorName} {decision, select, approved {approved} other {rejected}} {title}."
+        }
+      },
+      "comment": {
+        "created": {
+          "subject": "New comment on {title}",
+          "body": "{actorName} commented on {title}."
+        }
+      },
+      "shift": {
+        "assigned": {
+          "subject": "New shift: {title}",
+          "body": "You are scheduled for {title} starting {startsAt, date, full} at {startsAt, time, short}."
+        },
+        "changed": {
+          "subject": "Shift changed: {title}",
+          "body": "Your shift {title} now starts {startsAt, date, full} at {startsAt, time, short}."
+        }
+      },
+      "invoice": {
+        "approved": {
+          "subject": "Invoice approved: {title}",
+          "body": "{actorName} approved invoice {title}."
+        }
+      },
+      "incident": {
+        "reported": {
+          "subject": "Incident reported: {title}",
+          "body": "{actorName} reported {title}. Open it to see the details and response."
+        }
+      },
+      "account": {
+        "security_changed": {
+          "subject": "Your account security changed",
+          "body": "A security setting on your account changed: {change}. If this was not you, reset your password now."
+        }
+      },
+      "report": {
+        "delivered": {
+          "subject": "Report ready: {title}",
+          "body": "Your scheduled report {title} is ready."
+        }
+      },
+      "import": {
+        "finished": {
+          "subject": "Import finished: {title}",
+          "body": "The import {title} finished."
+        }
+      },
+      "export": {
+        "ready": {
+          "subject": "Export ready: {title}",
+          "body": "The export {title} is ready to download."
+        }
+      }
+    },
+    "notification": {
+      "heading": "{subject}"
+    },
+    "digest": {
+      "subject": "{count, plural, one {# update} other {# updates}} from {orgName}",
+      "heading": "Your {frequency, select, weekly {weekly} other {daily}} summary",
+      "intro": "Here is what happened in {orgName} since your last summary."
+    },
+    "invite": {
+      "subject": "{inviterName} invited you to join {orgName}",
+      "heading": "Join {orgName} on XOS",
+      "body": "{inviterName} invited you to join {orgName} as {roleName}.",
+      "accept": "Accept invitation",
+      "expires": "This invitation expires on {expiresAt, date, long}. If you were not expecting it, ignore this email."
+    },
+    "report_delivery": {
+      "subject": "{reportName}: {periodLabel}",
+      "heading": "{reportName}",
+      "body": "Your scheduled report for {periodLabel} is attached as {format}.",
+      "membersOnly": "Scheduled reports go only to members of {orgName}."
+    },
+    "export_ready": {
+      "subject": "Your export {exportName} is ready",
+      "heading": "Export ready",
+      "body": "{exportName} is ready to download until {expiresAt, date, long}.",
+      "download": "Download export"
+    },
+    "import_finished": {
+      "subject": "Import {importName} finished",
+      "heading": "Import finished",
+      "body": "{written, plural, one {# row written} other {# rows written}}, {refused, plural, one {# refused} other {# refused}} and {skipped, plural, one {# skipped} other {# skipped}}.",
+      "review": "Review import"
+    },
+    "dsar_received": {
+      "subject": "We received your {requestType} request",
+      "heading": "Request received",
+      "body": "{orgName} received your {requestType} request on {receivedAt, date, long} and will respond by {dueAt, date, long}."
+    }
   }
 }
