@@ -1,0 +1,31 @@
+{
+  "name": "@xos/infra",
+  "version": "0.0.0",
+  "private": true,
+  "description": "XOS reliability stack: observability with personal data redaction, synthetic checks, the status page, feature flag evaluation, progressive delivery gates, backup and restore drills.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    "./observability": "./observability/src/index.ts",
+    "./flags": "./flags/src/index.ts",
+    "./delivery": "./delivery/src/index.ts",
+    "./synthetics": "./synthetics/src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "synthetics": "node --experimental-strip-types --no-warnings synthetics/src/cli.ts",
+    "status:build": "node --experimental-strip-types --no-warnings status/src/cli.ts",
+    "rollout:gate": "node --experimental-strip-types --no-warnings delivery/src/cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.0.3",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
