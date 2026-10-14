@@ -1,0 +1,10 @@
+{
+  "features": {
+    "assistant": { "threshold": 0.8, "baseline": null, "baselineAt": null },
+    "plain_language": { "threshold": 0.8, "baseline": null, "baselineAt": null },
+    "extraction": { "threshold": 0.8, "baseline": null, "baselineAt": null },
+    "drafting": { "threshold": 0.8, "baseline": null, "baselineAt": null },
+    "summaries": { "threshold": 0.8, "baseline": null, "baselineAt": null },
+    "mapping": { "threshold": 0.8, "baseline": null, "baselineAt": null }
+  }
+}

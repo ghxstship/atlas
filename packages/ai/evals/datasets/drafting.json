@@ -1,0 +1,68 @@
+{
+  "feature": "drafting",
+  "description": "Fixed test set for drafting: drafts must avoid every verbiage library term, must mark facts the context lacks with [needs: ...], and must not invent prices or dates.",
+  "cases": [
+    {
+      "id": "sop-load-in",
+      "kind": "sop",
+      "instructions": "Write the load-in SOP for the main stage.",
+      "verbiage": [
+        { "term": "loading dock", "preferred": "Dock" },
+        { "term": "stagehands", "preferred": "crew" }
+      ],
+      "context": [
+        {
+          "id": "v1",
+          "table": "app.venues",
+          "data": { "name": "Bayfront Amphitheater", "dock_doors": 2 }
+        }
+      ],
+      "mustNotContain": ["loading dock", "stagehands"],
+      "mustContain": ["Dock"],
+      "allowMoney": false
+    },
+    {
+      "id": "email-missing-date",
+      "kind": "email",
+      "instructions": "Email the lighting vendor asking them to confirm their arrival time for load-in.",
+      "verbiage": [],
+      "context": [
+        { "id": "p1", "table": "app.projects", "data": { "name": "Harbor Nights 2026" } }
+      ],
+      "mustNotContain": [],
+      "mustContain": ["[needs:"],
+      "allowMoney": false
+    },
+    {
+      "id": "change-order-no-cost",
+      "kind": "change_order_description",
+      "instructions": "Describe the change order adding a second video wall at front of house. The cost has not been quoted yet.",
+      "verbiage": [],
+      "context": [],
+      "mustNotContain": [],
+      "mustContain": ["video wall"],
+      "allowMoney": false
+    },
+    {
+      "id": "day-sheet",
+      "kind": "day_sheet",
+      "instructions": "Draft the day sheet for show day.",
+      "verbiage": [{ "term": "talent", "preferred": "artist" }],
+      "context": [
+        {
+          "id": "s1",
+          "table": "app.run_of_show_items",
+          "data": { "at": "16:00", "item": "Doors" }
+        },
+        {
+          "id": "s2",
+          "table": "app.run_of_show_items",
+          "data": { "at": "17:30", "item": "Opening set" }
+        }
+      ],
+      "mustNotContain": ["talent"],
+      "mustContain": ["16:00", "17:30"],
+      "allowMoney": false
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "$comment": "Aurora AI model configuration (Section 4.7: the model is set in configuration, never in code). AURORA_MODEL overrides every feature; AURORA_MODEL_<FEATURE> overrides one, for example AURORA_MODEL_EXTRACTION.",
+  "default": "claude-sonnet-5-5",
+  "features": {
+    "assistant": "claude-sonnet-5-5",
+    "plain_language": "claude-haiku-5-5",
+    "extraction": "claude-opus-5-5",
+    "drafting": "claude-sonnet-5-5",
+    "summaries": "claude-haiku-5-5",
+    "mapping": "claude-haiku-5-5"
+  },
+  "maxTokens": {
+    "assistant": 2048,
+    "plain_language": 1024,
+    "extraction": 4096,
+    "drafting": 4096,
+    "summaries": 1536,
+    "mapping": 2048
+  }
+}
