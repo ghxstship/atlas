@@ -140,12 +140,12 @@ begin
                  order by pr.effective_from desc, pr.created_at desc limit 1) as rate_minor
     from totals t
   )
-  insert into app.payroll_lines (payroll_run_id, membership_id, earning_code_id, hours, rate_minor)
-  select p_payroll_run_id, r.membership_id, v_regular, round(r.regular_minutes / 60.0, 2), r.rate_minor
+  insert into app.payroll_lines (payroll_run_id, membership_id, earning_code_id, hours, rate_minor, role_code)
+  select p_payroll_run_id, r.membership_id, v_regular, round(r.regular_minutes / 60.0, 2), r.rate_minor, r.role_code
   from rated r where r.regular_minutes > 0
   union all
   select p_payroll_run_id, r.membership_id, coalesce(v_overtime, v_regular), round(r.ot_minutes / 60.0, 2),
-    round(r.rate_minor * coalesce(r.multiplier, 1))::bigint
+    round(r.rate_minor * coalesce(r.multiplier, 1))::bigint, r.role_code
   from rated r where r.ot_minutes > 0;
 
   if v_overtime is null and exists (select 1 from app.payroll_lines l where l.payroll_run_id = p_payroll_run_id and l.deleted_at is null

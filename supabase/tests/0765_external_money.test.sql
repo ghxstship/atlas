@@ -77,11 +77,14 @@ select pg_temp.as_platform();
 select hasnt_column('api_external', 'invoice_lines', 'budget_line_id', 'budget lines never reach externals');
 
 -- Receivables: visible once issued, with status dates ---------------------------------------------------------------------------------------
+select pg_temp.as_platform();
+insert into app.accounting_periods (org_id, starts_on, ends_on)
+  values ((select org_id from app.projects where id = pg_temp.id('prj_a')), date_trunc('month', current_date)::date, (date_trunc('month', current_date) + interval '1 month - 1 day')::date);
 select pg_temp.as_user('alice');
 with i as (insert into app.invoices (project_id, direction, counterparty_id, invoice_number, currency_code, due_on)
   values (pg_temp.id('prj_a'), 'Receivable', pg_temp.id('cp_c_a'), 'NWL-0001', 'USD', '2027-08-01') returning id)
   insert into world select 'inv_c', id from i;
-insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor) values (pg_temp.id('inv_c'), 1, 'Production fee', 1, 5000000);
+insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor, urid) values (pg_temp.id('inv_c'), 1, 'Production fee', 1, 5000000, '0000.01.01');
 select pg_temp.as_platform();
 select is(pg_temp.n('cleo', 'select 1 from api_external.invoices'), 0, 'a receivable draft stays internal');
 select pg_temp.as_user('alice');
