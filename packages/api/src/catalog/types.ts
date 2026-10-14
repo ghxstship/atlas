@@ -4,6 +4,7 @@
  */
 import type { z } from "@hono/zod-openapi";
 import type { ResourceDefinition } from "@xos/schemas";
+import type { CapabilityRule } from "./capabilities.ts";
 
 /** Tags: the Atlas modules of Section 4.2, plus Gateway (4.4), Identity (4.8) and Platform (4.6, 4.10). */
 export const MODULES = [
@@ -82,4 +83,6 @@ export interface ResourceSpec {
   readonly order: OrderSpec;
   /** Path parameter name for the item; defaults to the resource key. */
   readonly keyParam: string;
+  /** Capability rule of an additive resource (`catalog/additions.ts`); frozen ones use the table. */
+  readonly capabilityRule?: CapabilityRule;
 }
