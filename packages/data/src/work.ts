@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client";
 import { fail, ok, toDataError, type Result } from "./result";
+import { untyped } from "./untyped";
 
 /**
  * Work repository (Section 3.10, Section 4.2 Work): the record spine for all 26 record kinds, their
@@ -673,7 +674,7 @@ export async function getRecordExtension(
   kind: string,
   recordId: string,
 ): Promise<Result<ExtensionValues>> {
-  const { data, error } = await (db as unknown as GenericClient)
+  const { data, error } = await untyped(db)
     .from(extensionTable(kind))
     .select("*")
     .eq("record_id", recordId)
@@ -700,8 +701,7 @@ export async function saveRecordExtension(
   const fields = Object.fromEntries(
     Object.entries(input.fields).filter(([c]) => !EXTENSION_MACHINERY.has(c) && c !== "score"),
   );
-  const table = (db as unknown as GenericClient).from(extensionTable(input.kind));
-  const existing = await (db as unknown as GenericClient)
+  const existing = await untyped(db)
     .from(extensionTable(input.kind))
     .select("record_id")
     .eq("record_id", input.recordId)
@@ -709,36 +709,21 @@ export async function saveRecordExtension(
   if (existing.error) return fail(toDataError(existing.error));
   if (existing.data) {
     if (Object.keys(fields).length === 0) return ok(null);
-    const { error } = await table.update(fields).eq("record_id", input.recordId);
+    const { error } = await untyped(db)
+      .from(extensionTable(input.kind))
+      .update(fields)
+      .eq("record_id", input.recordId);
     return error ? fail(toDataError(error)) : ok(null);
   }
-  const { error } = await table.insert({
-    ...fields,
-    record_id: input.recordId,
-    org_id: input.orgId,
-    record_kind: input.kind,
-  });
+  const { error } = await untyped(db)
+    .from(extensionTable(input.kind))
+    .insert({
+      ...fields,
+      record_id: input.recordId,
+      org_id: input.orgId,
+      record_kind: input.kind,
+    });
   return error ? fail(toDataError(error)) : ok(null);
-}
-
-/**
- * The untyped view of the client for the kind extension tables, whose name is computed from the
- * kind. Their row shapes differ per kind; the record page renders them from a per-kind field map.
- */
-interface GenericResponse<T> {
-  data: T | null;
-  error: { code?: string; message: string; hint?: string | null } | null;
-}
-interface GenericFilter<T> extends PromiseLike<GenericResponse<T>> {
-  eq(column: string, value: unknown): GenericFilter<T>;
-  maybeSingle(): PromiseLike<GenericResponse<Record<string, unknown>>>;
-}
-interface GenericClient {
-  from(table: string): {
-    select(columns: string): GenericFilter<Record<string, unknown>[]>;
-    update(values: Record<string, unknown>): GenericFilter<null>;
-    insert(values: Record<string, unknown>): PromiseLike<GenericResponse<null>>;
-  };
 }
 
 // History ----------------------------------------------------------------------------------------------
