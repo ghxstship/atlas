@@ -2,6 +2,9 @@
   "$schema": "https://turborepo.com/schema.json",
   "extends": ["//"],
   "tasks": {
+    "build": {
+      "env": ["SUPABASE_URL", "SUPABASE_ANON_KEY", "ATLAS_SITE_URL", "SUPABASE_INBUCKET_URL"]
+    },
     "test": {
       "inputs": [
         "$TURBO_DEFAULT$",
