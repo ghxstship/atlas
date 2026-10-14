@@ -15,3 +15,10 @@ regexes = [
   '''^0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f$''',
   '''^abcdefghijklmnop1234$''',
 ]
+
+[[allowlists]]
+description = "Stripe lookup keys of the ATLVS catalogue v3 in packages/schemas/plans.yaml (public identifiers, 2026-10-14)"
+regexTarget = "secret"
+regexes = [
+  '''^atlvs_plan_(core|pro|team|enterprise)(_unlimited_(monthly|annual))?_v3$''',
+]
