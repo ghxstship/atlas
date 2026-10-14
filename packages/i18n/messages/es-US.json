@@ -2231,6 +2231,16 @@
           "subject": "Exportación lista: {title}",
           "body": "La exportación {title} está lista para descargar."
         }
+      },
+      "billing": {
+        "payment_failed": {
+          "subject": "Tu pago no se procesó",
+          "body": "No pudimos cobrar el pago de tu suscripción {days, plural, =0 {hoy} one {hace # día} other {hace # días}}. Actualiza tu método de pago para conservar el acceso completo."
+        },
+        "read_only": {
+          "subject": "Tu organización está en modo de solo lectura",
+          "body": "Tu pago está vencido, así que tu organización queda en modo de solo lectura hasta que actualices el método de pago. No se eliminó ningún dato."
+        }
       }
     },
     "notification": {

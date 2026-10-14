@@ -80,14 +80,20 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
   },
 };
 
-/** Notification kinds seeded in supabase/migrations/0520_notifications.sql, the database side of the catalog. */
+/** Notification kinds seeded in migrations 0520 and 0560, the database side of the catalog. */
 function seededKinds(): string[] {
-  const sql = readFileSync(
-    new URL("../../../supabase/migrations/0520_notifications.sql", import.meta.url),
-    "utf8",
+  const read = (file: string) =>
+    readFileSync(new URL(`../../../supabase/migrations/${file}`, import.meta.url), "utf8");
+  const notifications = read("0520_notifications.sql");
+  const block = notifications.slice(
+    notifications.indexOf("from (values"),
+    notifications.indexOf(") as k (kind, category)"),
   );
-  const block = sql.slice(sql.indexOf("from (values"), sql.indexOf(") as k (kind, category)"));
-  return [...block.matchAll(/\('([a-z_]+\.[a-z_]+)', '[a-z_]+'\)/g)].map((m) => m[1] ?? "");
+  const base = [...block.matchAll(/\('([a-z_]+\.[a-z_]+)', '[a-z_]+'\)/g)].map((m) => m[1] ?? "");
+  const billing = [
+    ...read("0560_billing.sql").matchAll(/select '([a-z_]+\.[a-z_]+)', c\.channel/g),
+  ].map((m) => m[1] ?? "");
+  return [...base, ...billing];
 }
 
 /** Template codes seeded in private.email_templates. */
@@ -131,7 +137,7 @@ describe("catalog", () => {
     "%s has a subject and body for every notification kind the database seeds",
     (locale) => {
       const kinds = seededKinds();
-      expect(kinds.length).toBe(13);
+      expect(kinds.length).toBe(15);
       for (const kind of kinds) {
         expect(hasMessage(locale, `kinds.${kind}.subject`), `${locale} ${kind}`).toBe(true);
         expect(hasMessage(locale, `kinds.${kind}.body`), `${locale} ${kind}`).toBe(true);

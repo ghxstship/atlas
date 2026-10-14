@@ -2231,6 +2231,16 @@
           "subject": "Export ready: {title}",
           "body": "The export {title} is ready to download."
         }
+      },
+      "billing": {
+        "payment_failed": {
+          "subject": "Your payment did not go through",
+          "body": "We could not collect your subscription payment {days, plural, =0 {today} one {# day ago} other {# days ago}}. Update your payment method to keep full access."
+        },
+        "read_only": {
+          "subject": "Your organization is read-only",
+          "body": "Your payment is overdue, so your organization is read-only until the payment method is updated. No data has been deleted."
+        }
       }
     },
     "notification": {
