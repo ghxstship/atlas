@@ -1,0 +1,42 @@
+/* Gateway styles: the @xos/ui entry (Tailwind 4 with the token preset, the token variables for
+   every theme and the component styles), then the app's base rules. Gateway defaults to the System
+   theme (Section 11.6, Gateway shell): data-theme on <html> carries the resolved theme. Comfortable
+   density and 14 px base text, because Gateway serves occasional users first on phones. */
+@import "@xos/ui/styles.css";
+@source "../";
+
+@layer base {
+  html {
+    background-color: var(--color-bg-canvas);
+    color: var(--color-text-primary);
+    font: var(--typography-text-14);
+    color-scheme: light dark;
+  }
+
+  html[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  html[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  body {
+    min-block-size: 100dvh;
+    background-color: var(--color-bg-canvas);
+  }
+
+  :focus-visible {
+    outline: var(--stroke-width-focus) solid var(--color-focus-ring);
+    outline-offset: var(--stroke-width-focus);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: var(--motion-duration-reduced) !important;
+      animation-duration: var(--motion-duration-reduced) !important;
+    }
+  }
+}

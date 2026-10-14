@@ -1,0 +1,18 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "env": [
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY",
+        "GATEWAY_SITE_URL",
+        "GATEWAY_PLATFORM_HOSTS",
+        "SUPABASE_INBUCKET_URL"
+      ]
+    },
+    "test": {
+      "inputs": ["$TURBO_DEFAULT$", "!e2e/**", "!test-results/**"]
+    }
+  }
+}
