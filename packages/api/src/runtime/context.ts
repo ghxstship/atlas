@@ -31,6 +31,8 @@ export interface RequestContext {
   /** Supabase client acting as the caller, with `db.schema` set to `app`. */
   readonly db: XosClient;
   readonly credential: CredentialKind;
+  /** Capability groups an API key may use; absent for session credentials (the role decides). */
+  readonly scopes?: readonly string[];
   /** Correlation id echoed as `X-Request-Id`. */
   readonly requestId: string;
 }

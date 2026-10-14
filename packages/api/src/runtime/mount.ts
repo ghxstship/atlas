@@ -66,6 +66,8 @@ export interface OperationRoute {
   readonly responses: ReadonlyMap<number, z.ZodType | undefined>;
   /** Success statuses whose response declares an `ETag` header. */
   readonly etag: ReadonlySet<number>;
+  /** `x-xos-capability`: the capability the operation requires. */
+  readonly capability: string | undefined;
 }
 
 function asZod(value: unknown): z.ZodType | undefined {
@@ -99,6 +101,7 @@ export function operationRoute(route: RouteConfig): OperationRoute {
     body: asZod(content?.[JSON_MEDIA_TYPE]?.schema),
     responses,
     etag,
+    capability: (route as { "x-xos-capability"?: string })["x-xos-capability"],
   };
 }
 
@@ -232,6 +235,17 @@ function checkBody(schema: z.ZodType, body: unknown, sparse: boolean): string[] 
     : issues(shaped.partial().safeParse(body));
 }
 
+/** An API key reaches only the capability groups in its scopes (OAuth scopes map the same way). */
+function assertScope(op: OperationRoute, context: RequestContext): void {
+  if (context.scopes === undefined || op.capability === undefined) return;
+  const group = op.capability.split(".")[0] as string;
+  if (!context.scopes.includes(group)) {
+    throw unauthorized(
+      `This credential's scopes do not include ${group}, which ${op.operationId} needs.`,
+    );
+  }
+}
+
 async function runIdempotent(
   store: IdempotencyStore | undefined,
   context: RequestContext,
@@ -277,6 +291,7 @@ function serve(
     try {
       const context = await options.authenticate(c.req.raw, requestId);
       if (context === null) throw unauthorized("Send a valid bearer token or session cookie.");
+      assertScope(op, context);
       if (limiter !== undefined) {
         const decision = await limiter.take(`${context.credential}:${context.user.id}`);
         base = { ...base, ...rateLimitHeaders(decision) };
