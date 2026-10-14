@@ -6,9 +6,12 @@
  * Time-ordered ids also keep the outbox and local tables in creation order.
  */
 
-export type RandomSource = (bytes: Uint8Array) => Uint8Array;
+export type RandomSource = (bytes: Uint8Array<ArrayBuffer>) => Uint8Array<ArrayBuffer>;
 
-const defaultRandom: RandomSource = (bytes) => globalThis.crypto.getRandomValues(bytes);
+const defaultRandom: RandomSource = (bytes) => {
+  globalThis.crypto.getRandomValues(bytes);
+  return bytes;
+};
 
 const UUID_V7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
@@ -17,7 +20,7 @@ export function uuidv7(nowMs: number = Date.now(), random: RandomSource = defaul
   if (!Number.isSafeInteger(nowMs) || nowMs < 0) {
     throw new RangeError("uuidv7 needs a non-negative integer millisecond timestamp");
   }
-  const bytes = random(new Uint8Array(16));
+  const bytes = random(new Uint8Array(new ArrayBuffer(16)));
   let ms = nowMs;
   for (let i = 5; i >= 0; i -= 1) {
     bytes[i] = ms % 256;
