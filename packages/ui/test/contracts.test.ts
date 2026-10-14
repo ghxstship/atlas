@@ -145,6 +145,9 @@ export type PropContracts = [
   Assert<Same<Ui.SpreadsheetGridProps, Ref.SpreadsheetGridProps>>,
   Assert<Same<Ui.BudgetGridProps, Ref.BudgetGridProps>>,
   Assert<Same<Ui.BidSheetProps, Ref.BidSheetProps>>,
+  Assert<Same<Ui.RichTextEditorProps, Ref.RichTextEditorProps>>,
+  Assert<Same<Ui.FilePreviewerProps, Ref.FilePreviewerProps>>,
+  Assert<Same<Ui.MapViewProps, Ref.MapViewProps>>,
 ];
 
 export type ComponentContracts = [
@@ -275,6 +278,9 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.SpreadsheetGrid, Ref.SpreadsheetGridProps>>,
   Assert<Fits<typeof Ui.BudgetGrid, Ref.BudgetGridProps>>,
   Assert<Fits<typeof Ui.BidSheet, Ref.BidSheetProps>>,
+  Assert<Fits<typeof Ui.RichTextEditor, Ref.RichTextEditorProps>>,
+  Assert<Fits<typeof Ui.FilePreviewer, Ref.FilePreviewerProps>>,
+  Assert<Fits<typeof Ui.MapView, Ref.MapViewProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -407,6 +413,9 @@ describe("reference contracts", () => {
       "SpreadsheetGrid",
       "BudgetGrid",
       "BidSheet",
+      "RichTextEditor",
+      "FilePreviewer",
+      "MapView",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);
