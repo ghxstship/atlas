@@ -81,20 +81,25 @@ Section 5 fixes the stack and requires every dependency pinned to the latest sta
 
 Dependencies the Wave 1 agents needed that the original table did not list, each pinned to the latest stable release compatible with the pins above.
 
-| Area       | Package                               | Version | Used by                      | Reason                                                                         |
-| ---------- | ------------------------------------- | ------- | ---------------------------- | ------------------------------------------------------------------------------ |
-| Parsing    | `yaml`                                | 2.9.1   | `@xos/ia`, `@xos/schemas`    | Loads the sitemaps, `capabilities.yaml` and `plans.yaml`                       |
-| Testing    | `@seriousme/openapi-schema-validator` | 2.11.0  | `@xos/api`                   | Validates the generated document as OpenAPI 3.1                                |
-| Tokens     | `@tailwindcss/node`                   | 4.3.3   | `@xos/tokens` (dev)          | Compiles the Tailwind preset through `@config` in tests; matches `tailwindcss` |
-| Lint       | `stylelint`                           | 16.26.1 | `@xos/config`, `@xos/tokens` | Deviation 4 below                                                              |
-| Lint       | `stylelint-use-logical-spec`          | 5.0.1   | `@xos/config`                | Provides `liberty/use-logical-spec` (ADR 0010)                                 |
-| i18n       | `@formatjs/icu-messageformat-parser`  | 3.5.21  | `@xos/i18n` (dev)            | Compares ICU arguments between catalogs                                        |
-| Components | `qrcode-generator`                    | 1.4.4   | `@xos/ui`                    | Same library the design reference uses for QRCode and CredentialBadge          |
-| Testing    | `@testing-library/react`              | 16.3.3  | `@xos/ui` (dev)              | Component render and interaction tests                                         |
-| Testing    | `@testing-library/dom`                | 10.4.2  | `@xos/ui` (dev)              | Peer of `@testing-library/react`                                               |
-| Testing    | `@testing-library/user-event`         | 14.6.7  | `@xos/ui` (dev)              | Keyboard and pointer interaction tests                                         |
-| Testing    | `axe-core`                            | 4.14.0  | `@xos/ui` (dev)              | Per-component accessibility checks (Section 18, gate 8)                        |
-| Testing    | `jsdom`                               | 29.1.1  | `@xos/ui` (dev)              | DOM environment for Vitest component tests                                     |
+| Area       | Package                                                      | Version | Used by                      | Reason                                                                                                                          |
+| ---------- | ------------------------------------------------------------ | ------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Parsing    | `yaml`                                                       | 2.9.1   | `@xos/ia`, `@xos/schemas`    | Loads the sitemaps, `capabilities.yaml` and `plans.yaml`                                                                        |
+| Testing    | `@seriousme/openapi-schema-validator`                        | 2.11.0  | `@xos/api`                   | Validates the generated document as OpenAPI 3.1                                                                                 |
+| Tokens     | `@tailwindcss/node`                                          | 4.3.3   | `@xos/tokens` (dev)          | Compiles the Tailwind preset through `@config` in tests; matches `tailwindcss`                                                  |
+| Lint       | `stylelint`                                                  | 16.26.1 | `@xos/config`, `@xos/tokens` | Deviation 4 below                                                                                                               |
+| Lint       | `stylelint-use-logical-spec`                                 | 5.0.1   | `@xos/config`                | Provides `liberty/use-logical-spec` (ADR 0010)                                                                                  |
+| i18n       | `@formatjs/icu-messageformat-parser`                         | 3.5.21  | `@xos/i18n` (dev)            | Compares ICU arguments between catalogs                                                                                         |
+| Components | `qrcode-generator`                                           | 1.4.4   | `@xos/ui`                    | Same library the design reference uses for QRCode and CredentialBadge                                                           |
+| Testing    | `@testing-library/react`                                     | 16.3.3  | `@xos/ui` (dev)              | Component render and interaction tests                                                                                          |
+| Testing    | `@testing-library/dom`                                       | 10.4.2  | `@xos/ui` (dev)              | Peer of `@testing-library/react`                                                                                                |
+| Testing    | `@testing-library/user-event`                                | 14.6.7  | `@xos/ui` (dev)              | Keyboard and pointer interaction tests                                                                                          |
+| Testing    | `axe-core`                                                   | 4.14.0  | `@xos/ui` (dev)              | Per-component accessibility checks (Section 18, gate 8)                                                                         |
+| Testing    | `jsdom`                                                      | 29.1.1  | `@xos/ui` (dev)              | DOM environment for Vitest component tests                                                                                      |
+| Charts     | `@visx/scale`, `@visx/shape`, `@visx/group`, `@visx/pattern` | 4.0.0   | `@xos/ui`                    | Modular Visx packages at the pinned version; the `@visx/visx` umbrella imports `@visx/xychart`, which needs `@react-spring/web` |
+| Editor     | `@tiptap/core`, `@tiptap/pm`                                 | 3.31.4  | `@xos/ui`                    | Peers of the pinned `@tiptap/react`                                                                                             |
+| Editor     | `@tiptap/starter-kit`, `@tiptap/extension-collaboration`     | 3.31.4  | `@xos/ui`                    | Editor features and the Yjs binding, at the Tiptap pin                                                                          |
+| Editor     | `@tiptap/y-tiptap`                                           | 3.0.9   | `@xos/ui`                    | Peer of the collaboration extension                                                                                             |
+| Editor     | `y-protocols`                                                | 1.0.7   | `@xos/ui`                    | Peer of `@tiptap/y-tiptap`                                                                                                      |
 
 ### CI actions (pinned by commit SHA, Section 9)
 
