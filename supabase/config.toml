@@ -276,9 +276,10 @@ max_frequency = "5s"
 # uri = "pg-functions://postgres/auth/before-user-created-hook"
 
 # This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
-# [auth.hook.custom_access_token]
-# enabled = true
-# uri = "pg-functions://<database>/<schema>/<hook_name>"
+# Writes the active org_id claim set by the context switcher (ADR 0007 item 1, migration 0920).
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/private/custom_access_token_hook"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]
@@ -406,3 +407,17 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# Public Edge Functions authenticate their callers themselves: Stripe and inbound mail by signature,
+# unsubscribe by a signed token, kiosks by device key and PIN (A18, migration 0570).
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.inbound-email]
+verify_jwt = false
+
+[functions.email-unsubscribe]
+verify_jwt = false
+
+[functions.kiosk-punch]
+verify_jwt = false

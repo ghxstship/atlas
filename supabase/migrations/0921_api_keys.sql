@@ -185,4 +185,5 @@ revoke all on function app.revoke_api_key(uuid) from public, anon;
 revoke all on function app.authenticate_api_key(text) from public;
 grant execute on function app.create_api_key(uuid, text, text[], timestamptz) to authenticated, service_role;
 grant execute on function app.revoke_api_key(uuid) to authenticated, service_role;
-grant execute on function app.authenticate_api_key(text) to anon, authenticated, service_role;
+-- Key verification runs before any session exists, so only the API runtime's service client may call it.
+grant execute on function app.authenticate_api_key(text) to service_role;

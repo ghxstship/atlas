@@ -5,7 +5,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(34);
+select plan(35);
 
 -- Creation ----------------------------------------------------------------------------------------------------
 select pg_temp.as_user('bob');
@@ -77,12 +77,15 @@ select pg_temp.as_user('bob');
 select is((select name from app.api_keys where id = (select api_key_id from key_a)), 'Ledger Sync', 'a manager cannot rename a key');
 
 -- Authentication -----------------------------------------------------------------------------------------------------
-select pg_temp.as_anon();
+select ok(not has_function_privilege('anon', 'app.authenticate_api_key(text)', 'execute')
+  and not has_function_privilege('authenticated', 'app.authenticate_api_key(text)', 'execute'),
+  'only the API runtime service client verifies keys');
+set local role service_role;
 select results_eq(format('select org_id, scopes from app.authenticate_api_key(%L)', (select secret from key_a)),
   format($$values (%L::uuid, array['finance']::text[])$$, pg_temp.id('org_a')), 'a valid secret resolves its org and scopes');
 select pg_temp.as_platform();
 select ok((select last_used_at is not null from app.api_keys where id = (select api_key_id from key_a)), 'use is recorded');
-select pg_temp.as_anon();
+set local role service_role;
 select is((select count(*)::integer from app.authenticate_api_key('xos_live_' || repeat('0', 48))), 0, 'an unknown secret resolves nothing');
 select is((select count(*)::integer from app.authenticate_api_key('not a key')), 0, 'a malformed secret resolves nothing');
 
@@ -93,7 +96,8 @@ select throws_ok(format('select app.revoke_api_key(%L)', (select api_key_id from
   'api_key_revoked: This key is already revoked.', 'a revoked key cannot be revoked again');
 select throws_ok(format($$update app.api_keys set name = 'Revived' where id = %L$$, (select api_key_id from key_a)), 'XR001', null,
   'a revoked key cannot be changed');
-select pg_temp.as_anon();
+select pg_temp.as_platform();
+set local role service_role;
 select is((select count(*)::integer from app.authenticate_api_key((select secret from key_a))), 0, 'a revoked key no longer authenticates');
 select pg_temp.as_user('alice');
 create temporary table key_b as select * from app.create_api_key(pg_temp.id('org_a'), 'Short', array['org'], now() + interval '1 day');
@@ -102,7 +106,8 @@ select pg_temp.as_platform();
 alter table app.api_keys disable trigger t20_guard_api_key;
 update app.api_keys set expires_at = now() - interval '1 second' where id = (select api_key_id from key_b);
 alter table app.api_keys enable trigger t20_guard_api_key;
-select pg_temp.as_anon();
+select pg_temp.as_platform();
+set local role service_role;
 select is((select count(*)::integer from app.authenticate_api_key((select secret from key_b))), 0, 'an expired key no longer authenticates');
 
 select * from finish();
