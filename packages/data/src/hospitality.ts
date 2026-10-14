@@ -1,5 +1,5 @@
 import type { Database, XosClient } from "./client";
-import type { OperationsScope } from "./logistics";
+import { displayKey, type OperationsScope } from "./logistics";
 import { fail, ok, toDataError, type Result } from "./result";
 
 /**
@@ -22,12 +22,15 @@ export const FULFILLMENT_KINDS: readonly FulfillmentKind[] = [
   "Amenity",
 ];
 
-/**
- * Where a fulfillment stands, derived from its lines and BEOs, never stored (Section 3.15):
- * Requested with no lines, Assigned once lines exist, Confirmed once an approved BEO covers it.
- */
-export const FULFILLMENT_PROGRESS = ["requested", "assigned", "confirmed"] as const;
-export type FulfillmentProgress = (typeof FULFILLMENT_PROGRESS)[number];
+/** The fulfillment lifecycle of migration 0440, in lifecycle order. */
+export type FulfillmentState = Database["app"]["Enums"]["fulfillment_state"];
+export const FULFILLMENT_STATES: readonly FulfillmentState[] = [
+  "Proposed",
+  "Active",
+  "Blocked",
+  "Complete",
+  "Canceled",
+];
 
 // Money -------------------------------------------------------------------------------------------
 
@@ -99,6 +102,8 @@ async function softDelete(
 
 export interface Fulfillment {
   readonly id: string;
+  /** Display key {projectKey}-{number} (Section 4.5.1). */
+  readonly key: string;
   readonly projectId: string;
   readonly projectKey: string;
   readonly projectName: string;
@@ -111,7 +116,9 @@ export interface Fulfillment {
   readonly endsAt: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
-  readonly progress: FulfillmentProgress;
+  readonly state: FulfillmentState;
+  /** Approved BEOs covering the fulfillment. */
+  readonly approvedBeoCount: number;
   readonly guestCount: number;
   readonly lineCount: number;
   readonly total: MoneyTotal;
@@ -143,6 +150,8 @@ interface LineRow {
 
 interface FulfillmentRow {
   id: string;
+  fulfillment_number: number;
+  fulfillment_state: FulfillmentState;
   project_id: string;
   fulfillment_kind: FulfillmentKind;
   title: string;
@@ -158,7 +167,7 @@ interface FulfillmentRow {
 }
 
 const FULFILLMENT_COLUMNS =
-  "id, project_id, fulfillment_kind, title, counterparty_id, starts_at, ends_at, created_at, updated_at, " +
+  "id, fulfillment_number, fulfillment_state, project_id, fulfillment_kind, title, counterparty_id, starts_at, ends_at, created_at, updated_at, " +
   "project:projects!fulfillments_project_id_fkey(project_key, name, time_zone), " +
   "supplier:counterparties!fulfillments_counterparty_id_fkey(counterparty_name), " +
   "fulfillment_lines(id, description, person_id, quantity, unit_price_minor, currency_code, deleted_at, person:people!fulfillment_lines_person_id_fkey(full_name)), " +
@@ -180,18 +189,11 @@ function toLine(row: LineRow): FulfillmentLine {
   };
 }
 
-export function fulfillmentProgress(
-  lineCount: number,
-  beos: readonly { approved_at: string | null; deleted_at: string | null }[],
-): FulfillmentProgress {
-  if (beos.some((b) => b.deleted_at === null && b.approved_at !== null)) return "confirmed";
-  return lineCount > 0 ? "assigned" : "requested";
-}
-
 function toFulfillment(row: FulfillmentRow): Fulfillment {
   const lines = row.fulfillment_lines.filter((l) => l.deleted_at === null).map(toLine);
   return {
     id: row.id,
+    key: displayKey(row.project?.project_key, row.fulfillment_number),
     projectId: row.project_id,
     projectKey: row.project?.project_key ?? "",
     projectName: row.project?.name ?? "",
@@ -204,7 +206,9 @@ function toFulfillment(row: FulfillmentRow): Fulfillment {
     endsAt: row.ends_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    progress: fulfillmentProgress(lines.length, row.beos),
+    state: row.fulfillment_state,
+    approvedBeoCount: row.beos.filter((b) => b.deleted_at === null && b.approved_at !== null)
+      .length,
     guestCount: new Set(lines.flatMap((l) => (l.personId ? [l.personId] : []))).size,
     lineCount: lines.length,
     total: totalOf(lines),
@@ -309,6 +313,77 @@ export async function updateFulfillment(
     : fail({ kind: "not-found" });
 }
 
+/** One entry of a fulfillment's state ledger. */
+export interface FulfillmentTransition {
+  readonly id: string;
+  readonly fromState: FulfillmentState | null;
+  readonly toState: FulfillmentState;
+  readonly reason: string;
+  readonly at: string;
+  readonly byName: string | null;
+}
+
+/**
+ * Moves a fulfillment to another state with a reason. The database checks the move against the
+ * lifecycle rules, compare-and-sets on `expected` (a stale page gets fulfillment_state_conflict) and
+ * writes the ledger; it needs hospitality.fulfillment.write on the project.
+ */
+export async function transitionFulfillment(
+  db: XosClient,
+  id: string,
+  expected: FulfillmentState,
+  next: FulfillmentState,
+  reason: string,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("transition_fulfillment", {
+    p_fulfillment_id: id,
+    p_expected: expected,
+    p_next: next,
+    p_reason: reason,
+  });
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/** The moves the lifecycle allows from a state, read from the database rules. */
+export async function listFulfillmentMoves(
+  db: XosClient,
+  from: FulfillmentState,
+): Promise<Result<FulfillmentState[]>> {
+  const { data, error } = await db
+    .from("lifecycle_transition_rules")
+    .select("to_state")
+    .eq("lifecycle", "fulfillment")
+    .eq("from_state", from);
+  if (error) return fail(toDataError(error));
+  const allowed = new Set(data.map((r) => r.to_state));
+  return ok(FULFILLMENT_STATES.filter((s) => allowed.has(s)));
+}
+
+/** The state ledger of a fulfillment, newest first. */
+export async function listFulfillmentTransitions(
+  db: XosClient,
+  id: string,
+): Promise<Result<FulfillmentTransition[]>> {
+  const { data, error } = await db
+    .from("fulfillment_state_transitions")
+    .select(
+      "id, from_state, to_state, reason, created_at, author:people!fulfillment_state_transitions_created_by_fkey(full_name)",
+    )
+    .eq("fulfillment_id", id)
+    .order("created_at", { ascending: false });
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((r) => ({
+      id: r.id,
+      fromState: r.from_state,
+      toState: r.to_state,
+      reason: r.reason,
+      at: r.created_at,
+      byName: r.author?.full_name ?? null,
+    })),
+  );
+}
+
 export function deleteFulfillment(db: XosClient, id: string): Promise<Result<null>> {
   return softDelete(db, "fulfillments", id, true);
 }
@@ -361,6 +436,8 @@ export interface BeoLine extends PricedLine {
 
 export interface Beo {
   readonly id: string;
+  /** Display key {projectKey}-{number} (Section 4.5.1). */
+  readonly key: string;
   readonly projectId: string;
   readonly projectKey: string;
   readonly timeZone: string;
@@ -391,6 +468,7 @@ interface BeoLineRow {
 
 interface BeoRow {
   id: string;
+  beo_number: number;
   project_id: string;
   fulfillment_id: string | null;
   event_at: string;
@@ -405,7 +483,7 @@ interface BeoRow {
 }
 
 const BEO_COLUMNS =
-  "id, project_id, fulfillment_id, event_at, guest_count, approved_at, created_by, created_at, " +
+  "id, beo_number, project_id, fulfillment_id, event_at, guest_count, approved_at, created_by, created_at, " +
   "project:projects!beos_project_id_fkey(project_key, time_zone), fulfillment:fulfillments!beos_fulfillment_id_fkey(title), " +
   "approver:people!beos_approved_by_fkey(full_name), " +
   "beo_lines(id, description, quantity, unit_price_minor, currency_code, deleted_at)";
@@ -427,6 +505,7 @@ function toBeo(row: BeoRow): Beo {
   const lines = liveBeoLines(row);
   return {
     id: row.id,
+    key: displayKey(row.project?.project_key, row.beo_number),
     projectId: row.project_id,
     projectKey: row.project?.project_key ?? "",
     timeZone: row.project?.time_zone ?? "UTC",
@@ -573,4 +652,319 @@ export async function listCurrencyCodes(db: XosClient): Promise<Result<string[]>
     .order("currency_code");
   if (error) return fail(toDataError(error));
   return ok(data.map((c) => c.currency_code as string));
+}
+
+// Accommodation blocks ------------------------------------------------------------------------------
+
+export interface AccommodationAssignment {
+  readonly id: string;
+  readonly personId: string;
+  readonly personName: string | null;
+  readonly checkInOn: string;
+  readonly checkOutOn: string;
+}
+
+/** Occupancy of a block, derived from its live assignments (Section 3.15). */
+export interface BlockOccupancy {
+  readonly nights: number;
+  readonly roomNightsHeld: number;
+  readonly roomNightsAssigned: number;
+  /** Most rooms assigned on any one night. */
+  readonly peakAssigned: number;
+  /** Rooms assigned on each night, in date order. */
+  readonly byNight: readonly { readonly night: string; readonly assigned: number }[];
+}
+
+export interface AccommodationBlock {
+  readonly id: string;
+  readonly key: string;
+  readonly projectId: string;
+  readonly projectKey: string;
+  readonly projectName: string;
+  readonly title: string;
+  readonly hotelId: string | null;
+  readonly hotelName: string | null;
+  readonly checkInOn: string;
+  readonly checkOutOn: string;
+  readonly roomsHeld: number;
+  readonly releaseOn: string | null;
+  readonly nightlyRateMinor: number | null;
+  readonly currencyCode: string | null;
+  readonly updatedAt: string;
+  readonly occupancy: BlockOccupancy;
+  /** Nightly rate times room nights held; NULL when the rate is unpriced. */
+  readonly contractTotal: MoneyTotal;
+}
+
+export interface AccommodationBlockDetail extends AccommodationBlock {
+  readonly assignments: readonly AccommodationAssignment[];
+}
+
+const DAY_MS = 86_400_000;
+
+function dayNumber(isoDate: string): number {
+  return Math.round(Date.parse(`${isoDate}T00:00:00Z`) / DAY_MS);
+}
+
+function isoDay(day: number): string {
+  return new Date(day * DAY_MS).toISOString().slice(0, 10);
+}
+
+/** Nightly occupancy of a block from check-in to the night before check-out. */
+export function blockOccupancy(
+  checkInOn: string,
+  checkOutOn: string,
+  roomsHeld: number,
+  stays: readonly { readonly checkInOn: string; readonly checkOutOn: string }[],
+): BlockOccupancy {
+  const first = dayNumber(checkInOn);
+  const nights = Math.max(0, dayNumber(checkOutOn) - first);
+  const byNight = Array.from({ length: nights }, (_, i) => {
+    const day = first + i;
+    const assigned = stays.filter(
+      (s) => dayNumber(s.checkInOn) <= day && day < dayNumber(s.checkOutOn),
+    ).length;
+    return { night: isoDay(day), assigned };
+  });
+  return {
+    nights,
+    roomNightsHeld: nights * roomsHeld,
+    roomNightsAssigned: byNight.reduce((sum, n) => sum + n.assigned, 0),
+    peakAssigned: byNight.reduce((max, n) => Math.max(max, n.assigned), 0),
+    byNight,
+  };
+}
+
+interface AssignmentRow {
+  id: string;
+  person_id: string;
+  check_in_on: string;
+  check_out_on: string;
+  deleted_at: string | null;
+  person: { full_name: string | null } | null;
+}
+
+interface BlockRow {
+  id: string;
+  block_number: number;
+  project_id: string;
+  title: string;
+  counterparty_id: string | null;
+  check_in_on: string;
+  check_out_on: string;
+  rooms_held: number;
+  release_on: string | null;
+  nightly_rate_minor: number | null;
+  currency_code: string | null;
+  updated_at: string;
+  project: { project_key: string; name: string } | null;
+  hotel: { counterparty_name: string | null } | null;
+  accommodation_assignments: AssignmentRow[];
+}
+
+const BLOCK_COLUMNS =
+  "id, block_number, project_id, title, counterparty_id, check_in_on, check_out_on, rooms_held, release_on, nightly_rate_minor, currency_code, updated_at, " +
+  "project:projects!accommodation_blocks_project_id_fkey(project_key, name), " +
+  "hotel:counterparties!accommodation_blocks_counterparty_id_fkey(counterparty_name), " +
+  "accommodation_assignments(id, person_id, check_in_on, check_out_on, deleted_at, person:people!accommodation_assignments_person_id_fkey(full_name))";
+
+function liveAssignments(row: BlockRow): AccommodationAssignment[] {
+  return row.accommodation_assignments
+    .filter((a) => a.deleted_at === null)
+    .map((a) => ({
+      id: a.id,
+      personId: a.person_id,
+      personName: a.person?.full_name ?? null,
+      checkInOn: a.check_in_on,
+      checkOutOn: a.check_out_on,
+    }))
+    .sort(
+      (a, b) =>
+        a.checkInOn.localeCompare(b.checkInOn) ||
+        (a.personName ?? "").localeCompare(b.personName ?? ""),
+    );
+}
+
+function toBlock(row: BlockRow): AccommodationBlock {
+  const occupancy = blockOccupancy(
+    row.check_in_on,
+    row.check_out_on,
+    row.rooms_held,
+    liveAssignments(row),
+  );
+  return {
+    id: row.id,
+    key: displayKey(row.project?.project_key, row.block_number),
+    projectId: row.project_id,
+    projectKey: row.project?.project_key ?? "",
+    projectName: row.project?.name ?? "",
+    title: row.title,
+    hotelId: row.counterparty_id,
+    hotelName: row.hotel?.counterparty_name ?? null,
+    checkInOn: row.check_in_on,
+    checkOutOn: row.check_out_on,
+    roomsHeld: row.rooms_held,
+    releaseOn: row.release_on,
+    nightlyRateMinor: row.nightly_rate_minor,
+    currencyCode: row.currency_code,
+    updatedAt: row.updated_at,
+    occupancy,
+    contractTotal: totalOf([
+      {
+        quantity: occupancy.roomNightsHeld,
+        unitPriceMinor: row.nightly_rate_minor,
+        currencyCode: row.currency_code,
+      },
+    ]),
+  };
+}
+
+/** Live accommodation blocks, earliest check-in first. */
+export async function listAccommodationBlocks(
+  db: XosClient,
+  scope: OperationsScope,
+): Promise<Result<AccommodationBlock[]>> {
+  let query = db
+    .from("accommodation_blocks")
+    .select(BLOCK_COLUMNS)
+    .eq("org_id", scope.orgId)
+    .is("deleted_at", null);
+  if (scope.projectId) query = query.eq("project_id", scope.projectId);
+  const { data, error } = await query.order("check_in_on").order("title");
+  if (error) return fail(toDataError(error));
+  return ok((data as unknown as BlockRow[]).map(toBlock));
+}
+
+export async function getAccommodationBlock(
+  db: XosClient,
+  id: string,
+): Promise<Result<AccommodationBlockDetail>> {
+  const { data, error } = await db
+    .from("accommodation_blocks")
+    .select(BLOCK_COLUMNS)
+    .eq("id", id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data) return fail({ kind: "not-found" });
+  const row = data as unknown as BlockRow;
+  return ok({ ...toBlock(row), assignments: liveAssignments(row) });
+}
+
+export interface AccommodationBlockInput {
+  readonly title: string;
+  readonly hotelId: string | null;
+  readonly checkInOn: string;
+  readonly checkOutOn: string;
+  readonly roomsHeld: number;
+  readonly releaseOn: string | null;
+  readonly nightlyRateMinor: number | null;
+  readonly currencyCode: string | null;
+}
+
+function blockColumns(input: AccommodationBlockInput) {
+  return {
+    title: input.title,
+    counterparty_id: input.hotelId,
+    check_in_on: input.checkInOn,
+    check_out_on: input.checkOutOn,
+    rooms_held: input.roomsHeld,
+    release_on: input.releaseOn,
+    nightly_rate_minor: input.nightlyRateMinor,
+    currency_code: input.currencyCode,
+  };
+}
+
+/** Contracts a block. Needs hospitality.accommodation.write on the project. */
+export async function createAccommodationBlock(
+  db: XosClient,
+  projectId: string,
+  input: AccommodationBlockInput,
+): Promise<Result<{ id: string }>> {
+  const row: Derived<Tables["accommodation_blocks"]["Insert"]> = {
+    project_id: projectId,
+    ...blockColumns(input),
+  };
+  const { data, error } = await db
+    .from("accommodation_blocks")
+    .insert(row as Tables["accommodation_blocks"]["Insert"])
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return one(data);
+}
+
+/**
+ * Edits a block. The database refuses a window that drops an assigned stay
+ * (accommodation_block_excludes_stays) or fewer rooms than are assigned on some night
+ * (accommodation_block_full); a stale `expectedUpdatedAt` is a conflict.
+ */
+export async function updateAccommodationBlock(
+  db: XosClient,
+  id: string,
+  input: AccommodationBlockInput,
+  expectedUpdatedAt?: string,
+): Promise<Result<null>> {
+  let query = db.from("accommodation_blocks").update(blockColumns(input)).eq("id", id);
+  if (expectedUpdatedAt) query = query.eq("updated_at", expectedUpdatedAt);
+  const { data, error } = await query.select("id");
+  if (error) return fail(toDataError(error));
+  if (data.length === 1) return ok(null);
+  return expectedUpdatedAt
+    ? fail({ kind: "conflict", message: "accommodation_block_changed" })
+    : fail({ kind: "not-found" });
+}
+
+/** Moves a block to Trash, or restores it with `deleted` false (the Undo). */
+export async function deleteAccommodationBlock(
+  db: XosClient,
+  id: string,
+  deleted = true,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("accommodation_blocks")
+    .update({ deleted_at: deleted ? new Date().toISOString() : null })
+    .eq("id", id)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+export interface AssignmentInput {
+  readonly personId: string;
+  readonly checkInOn: string;
+  readonly checkOutOn: string;
+}
+
+/**
+ * Assigns a guest a room. Refused with accommodation_block_full when every room is taken on one of
+ * the nights, accommodation_assignment_outside_block outside the window and
+ * accommodation_assignment_duplicate when the guest already has a room those nights.
+ */
+export async function assignRoom(
+  db: XosClient,
+  blockId: string,
+  input: AssignmentInput,
+): Promise<Result<{ id: string }>> {
+  const row: Derived<Tables["accommodation_assignments"]["Insert"]> = {
+    accommodation_block_id: blockId,
+    person_id: input.personId,
+    check_in_on: input.checkInOn,
+    check_out_on: input.checkOutOn,
+  };
+  const { data, error } = await db
+    .from("accommodation_assignments")
+    .insert(row as Tables["accommodation_assignments"]["Insert"])
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return one(data);
+}
+
+export async function removeRoomAssignment(db: XosClient, id: string): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("accommodation_assignments")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }

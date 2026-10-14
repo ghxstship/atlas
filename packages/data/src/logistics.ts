@@ -1,5 +1,5 @@
 import type { Database, XosClient } from "./client";
-import { fail, ok, toDataError, type Result } from "./result";
+import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result";
 
 /**
  * Logistics repository (Section 4.2, RRR-23): shipments and their lines, dock slots, the gate
@@ -23,10 +23,11 @@ export const SHIPMENT_DIRECTIONS: readonly ShipmentDirection[] = ["Inbound", "Ou
 
 /**
  * Where a shipment stands, derived from its dock slots and gate queue entries, never stored
- * (Section 3.15): Logged, then Booked once a dock slot holds it, At Gate while its vehicle waits,
- * Released once the vehicle is released into the site.
+ * (Section 3.15): Logged, then Booked once a dock slot holds it, At Gate while its vehicle waits in
+ * the marshalling yard, Checked In once it checks in at its dock, Released once the vehicle is
+ * released from the yard.
  */
-export const SHIPMENT_PROGRESS = ["logged", "booked", "at-gate", "released"] as const;
+export const SHIPMENT_PROGRESS = ["logged", "booked", "at-gate", "checked-in", "released"] as const;
 export type ShipmentProgress = (typeof SHIPMENT_PROGRESS)[number];
 
 // Shared lookups ---------------------------------------------------------------------------------
@@ -182,6 +183,19 @@ function one<T>(data: T[] | null): Result<T> {
   return row === undefined ? fail({ kind: "not-found" }) : ok(row);
 }
 
+/** {projectKey}-{number}, the display key of a numbered row (Section 4.5.1). */
+export function displayKey(projectKey: string | undefined, number: number): string {
+  return `${projectKey ?? ""}-${number}`;
+}
+
+const DISPLAY_KEY = /^([A-Z]{2,5})-([1-9][0-9]{0,17})$/;
+
+/** A display key split into its project key and number, or null when it is not one. */
+export function parseDisplayKey(key: string): { projectKey: string; number: number } | null {
+  const m = DISPLAY_KEY.exec(key);
+  return m ? { projectKey: m[1] as string, number: Number(m[2]) } : null;
+}
+
 // Time zones ---------------------------------------------------------------------------------------
 
 const LOCAL_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
@@ -237,6 +251,8 @@ export function instantToLocal(instant: string, timeZone: string): string {
 
 export interface Shipment {
   readonly id: string;
+  /** Display key {projectKey}-{number} (Section 4.5.1). */
+  readonly key: string;
   readonly projectId: string;
   readonly projectKey: string;
   readonly projectName: string;
@@ -269,8 +285,11 @@ export interface DockSlot {
   readonly zoneCode: string | null;
   readonly zoneName: string | null;
   readonly shipmentId: string | null;
+  readonly engagementId: string | null;
   readonly startsAt: string;
   readonly endsAt: string;
+  readonly checkedInAt: string | null;
+  readonly checkedInByName: string | null;
 }
 
 export interface GateEntry {
@@ -308,24 +327,27 @@ export interface ShipmentDetail extends Shipment {
 
 /** Progress from the facts that decide it: live slots and gate entries (deleted ones ignored). */
 export function shipmentProgress(
-  slots: readonly { deleted_at: string | null }[],
+  slots: readonly { deleted_at: string | null; checked_in_at: string | null }[],
   gate: readonly { deleted_at: string | null; released_at: string | null }[],
 ): ShipmentProgress {
   const liveGate = gate.filter((g) => g.deleted_at === null);
+  const liveSlots = slots.filter((s) => s.deleted_at === null);
   if (liveGate.some((g) => g.released_at !== null)) return "released";
+  if (liveSlots.some((s) => s.checked_in_at !== null)) return "checked-in";
   if (liveGate.length > 0) return "at-gate";
-  if (slots.some((s) => s.deleted_at === null)) return "booked";
+  if (liveSlots.length > 0) return "booked";
   return "logged";
 }
 
 const SHIPMENT_COLUMNS =
-  "id, project_id, direction, carrier_counterparty_id, freight_type_enum_id, tracking_identifier, ships_at, arrives_at, created_at, updated_at, " +
+  "id, shipment_number, project_id, direction, carrier_counterparty_id, freight_type_enum_id, tracking_identifier, ships_at, arrives_at, created_at, updated_at, " +
   "project:projects!shipments_project_id_fkey(project_key, name, time_zone), " +
   "carrier:counterparties!shipments_carrier_counterparty_id_fkey(counterparty_name), " +
-  "dock_slots(deleted_at), gate_queue(deleted_at, released_at), shipment_lines(deleted_at)";
+  "dock_slots(deleted_at, checked_in_at), gate_queue(deleted_at, released_at), shipment_lines(deleted_at)";
 
 interface ShipmentRow {
   id: string;
+  shipment_number: number;
   project_id: string;
   direction: ShipmentDirection;
   carrier_counterparty_id: string | null;
@@ -337,7 +359,7 @@ interface ShipmentRow {
   updated_at: string;
   project: { project_key: string; name: string; time_zone: string } | null;
   carrier: { counterparty_name: string | null } | null;
-  dock_slots: { deleted_at: string | null }[];
+  dock_slots: { deleted_at: string | null; checked_in_at: string | null }[];
   gate_queue: { deleted_at: string | null; released_at: string | null }[];
   shipment_lines: { deleted_at: string | null }[];
 }
@@ -345,6 +367,7 @@ interface ShipmentRow {
 function toShipment(row: ShipmentRow): Shipment {
   return {
     id: row.id,
+    key: displayKey(row.project?.project_key, row.shipment_number),
     projectId: row.project_id,
     projectKey: row.project?.project_key ?? "",
     projectName: row.project?.name ?? "",
@@ -533,18 +556,22 @@ export interface DockScope extends OperationsScope {
 }
 
 const DOCK_COLUMNS =
-  "id, project_id, zone_id, shipment_id, starts_at, ends_at, " +
-  "project:projects!dock_slots_project_id_fkey(project_key, time_zone), zone:zones!dock_slots_zone_id_fkey(code, name)";
+  "id, project_id, zone_id, shipment_id, engagement_id, starts_at, ends_at, checked_in_at, " +
+  "project:projects!dock_slots_project_id_fkey(project_key, time_zone), zone:zones!dock_slots_zone_id_fkey(code, name), " +
+  "checker:people!dock_slots_checked_in_by_fkey(full_name)";
 
 interface DockRow {
   id: string;
   project_id: string;
   zone_id: string;
   shipment_id: string | null;
+  engagement_id: string | null;
   starts_at: string;
   ends_at: string;
+  checked_in_at: string | null;
   project: { project_key: string; time_zone: string } | null;
   zone: { code: string; name: string } | null;
+  checker: { full_name: string | null } | null;
 }
 
 function toDockSlot(row: DockRow): DockSlot {
@@ -557,8 +584,11 @@ function toDockSlot(row: DockRow): DockSlot {
     zoneCode: row.zone?.code ?? null,
     zoneName: row.zone?.name ?? null,
     shipmentId: row.shipment_id,
+    engagementId: row.engagement_id,
     startsAt: row.starts_at,
     endsAt: row.ends_at,
+    checkedInAt: row.checked_in_at,
+    checkedInByName: row.checker?.full_name ?? null,
   };
 }
 
@@ -578,6 +608,8 @@ export async function listDockSlots(db: XosClient, scope: DockScope): Promise<Re
 export interface DockSlotInput {
   readonly zoneId: string;
   readonly shipmentId: string | null;
+  /** Vendor engagement of the same project the slot serves (migration 0970). */
+  readonly engagementId?: string | null;
   readonly startsAt: string;
   readonly endsAt: string;
 }
@@ -592,6 +624,7 @@ export async function bookDockSlot(
     project_id: projectId,
     zone_id: input.zoneId,
     shipment_id: input.shipmentId,
+    engagement_id: input.engagementId ?? null,
     starts_at: input.startsAt,
     ends_at: input.endsAt,
   };
@@ -614,10 +647,27 @@ export async function updateDockSlot(
     .update({
       zone_id: input.zoneId,
       shipment_id: input.shipmentId,
+      engagement_id: input.engagementId ?? null,
       starts_at: input.startsAt,
       ends_at: input.endsAt,
     })
     .eq("id", id)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Checks a shipment in at its dock slot. The database needs logistics.yard.write or
+ * logistics.dock_slot.write, stamps the time and person once, and freezes the slot afterwards.
+ */
+export async function checkInDockSlot(db: XosClient, id: string): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("dock_slots")
+    .update({ checked_in_at: new Date().toISOString() })
+    .eq("id", id)
+    .is("checked_in_at", null)
+    .is("deleted_at", null)
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
@@ -792,4 +842,48 @@ export async function addMarshallingEntry(
     .select("id");
   if (error) return fail(toDataError(error));
   return one(data);
+}
+
+// Display key lookup --------------------------------------------------------------------------------
+
+/** Tables whose rows carry a display number from the project record sequence (migration 0440). */
+export type NumberedTable = "shipments" | "fulfillments" | "beos" | "accommodation_blocks";
+
+const NUMBER_COLUMN = {
+  shipments: "shipment_number",
+  fulfillments: "fulfillment_number",
+  beos: "beo_number",
+  accommodation_blocks: "block_number",
+} as const satisfies Record<NumberedTable, string>;
+
+interface KeyQuery {
+  eq(column: string, value: string | number): KeyQuery;
+  is(column: string, value: null): KeyQuery;
+  maybeSingle(): PromiseLike<{ data: { id: string } | null; error: DatabaseErrorLike | null }>;
+}
+
+/**
+ * The id of a live row of `table` with the display key `key` in the org, or not-found. Pages use it
+ * for `?peek={key}`: a key that names a row in another table, another org or nothing at all is the
+ * same not-found (ADR 0003).
+ */
+export async function findIdByKey(
+  db: XosClient,
+  orgId: string,
+  table: NumberedTable,
+  key: string,
+): Promise<Result<string>> {
+  const parsed = parseDisplayKey(key);
+  if (!parsed) return fail({ kind: "not-found" });
+  const project = await findOperationsProject(db, orgId, parsed.projectKey);
+  if (!project.ok) return project;
+  // The number column differs per table, which the builder's generated types cannot express for a
+  // union of tables, so the query is typed by the columns it touches.
+  const { data, error } = await (db.from(table).select("id") as unknown as KeyQuery)
+    .eq("project_id", project.data.id)
+    .eq(NUMBER_COLUMN[table], parsed.number)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  return data ? ok(data.id) : fail({ kind: "not-found" });
 }
