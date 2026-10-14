@@ -4,28 +4,9 @@
    arithmetic and output; the functions are exported for tests and the white-label theme editor. */
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { ratio } from "./ratio.js";
 
-function lin(c) {
-  c /= 255;
-  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-}
-
-function lum(hex) {
-  let h = hex.replace("#", "");
-  if (h.length === 3) h = h.replace(/./g, "$&$&");
-  return (
-    0.2126 * lin(parseInt(h.substring(0, 2), 16)) +
-    0.7152 * lin(parseInt(h.substring(2, 4), 16)) +
-    0.0722 * lin(parseInt(h.substring(4, 6), 16))
-  );
-}
-
-/** WCAG 2.2 contrast ratio between two hex colors. */
-export function ratio(a, b) {
-  const x = lum(a);
-  const y = lum(b);
-  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
-}
+export { ratio };
 
 /** Resolves a color token to its hex value in a theme, following `{name}` references. */
 export function resolveColor(tokens, name, theme) {
