@@ -73,7 +73,7 @@ describe("isScannable", () => {
   it("scans source, seed and copy formats", () => {
     expect(isScannable("apps/atlas/app/page.tsx")).toBe(true);
     expect(isScannable("supabase/migrations/0001_foundation.sql")).toBe(true);
-    expect(isScannable("packages/i18n/messages/en-US.json")).toBe(true);
+    expect(isScannable("packages/i18n/messages/en-US/ui.json")).toBe(true);
   });
 
   it("skips binaries, canon inputs, design exports and third-party verbatim text", () => {

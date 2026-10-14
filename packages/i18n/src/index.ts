@@ -1,5 +1,4 @@
-import enUS from "../messages/en-US.json" with { type: "json" };
-import esUS from "../messages/es-US.json" with { type: "json" };
+import { enUS, esUS } from "./catalogs.generated.ts";
 
 /** en-US is the source locale; every other catalog must carry exactly its keys. */
 export type Messages = typeof enUS;

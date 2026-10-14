@@ -1,4 +1,4 @@
 {
   "extends": "@xos/config/tsconfig/library.json",
-  "include": ["src", "test", "messages", "*.mjs"]
+  "include": ["src", "test", "scripts", "messages", "*.mjs"]
 }

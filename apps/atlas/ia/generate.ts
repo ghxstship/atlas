@@ -1,7 +1,8 @@
 import { flattenRoutes, parseRoute, validateSitemap, formatIssues, type Sitemap } from "@xos/ia";
 import { getMessages } from "@xos/i18n";
 import { parse } from "yaml";
-import { DELEGATED, IMPLEMENTED } from "./routes.config";
+import { IMPLEMENTED } from "./implemented";
+import { DELEGATED } from "./routes.config";
 
 /**
  * Pure generation for the Atlas route tree (Section 3.15). `scripts/generate-routes.ts` writes the
@@ -31,7 +32,7 @@ export function routeKey(route: string): string {
 
 function pageSource(id: string, route: string): string {
   return `${GENERATED_STAMP}
-// To implement this page by hand, add "${id}" to IMPLEMENTED in ia/routes.config.ts.
+// To implement this page by hand, add "${id}" to your file in ia/implemented/.
 import { SitemapPage } from "@/components/shell/sitemap-page";
 
 export default async function Page({ params }: PageProps<"${routeKey(route)}">) {

@@ -5,7 +5,8 @@ import { flattenRoutes, matchRoute, routesOverlap } from "@xos/ia";
 import { loadSitemapFile } from "@xos/ia/node";
 import { pageFile } from "../ia/generate";
 import { appRoot, renderGeneratedFiles, routeFiles, stampedFiles } from "../ia/generate-node";
-import { DELEGATED, IMPLEMENTED, SHELL_ROUTES } from "../ia/routes.config";
+import { IMPLEMENTED } from "../ia/implemented";
+import { DELEGATED, SHELL_ROUTES } from "../ia/routes.config";
 
 /**
  * The route generator and gate 15. `pnpm --filter @xos/atlas generate:routes` runs this file with

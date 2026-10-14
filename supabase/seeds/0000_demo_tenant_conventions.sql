@@ -1,0 +1,25 @@
+-- 0000_demo_tenant_conventions.sql
+-- Demo tenant seed conventions (Section 19.6: a demo tenant seed exercises every feature).
+--
+-- Seeds load after migrations on `supabase db reset`, in file name order, from supabase/seeds/*.sql.
+-- Each agent writes its own file and never edits another agent's:
+--   0010_demo_identity.sql      A30: the demo org, its members, people and external parties
+--   0100 to 0199                A07 to A16: one file per module, numbered by agent (A07 0107 ...)
+--   0200 to 0299                A18, A19, A25, A27, A28, A29, A31 (A18 0218, A27 0227 ...)
+--
+-- Fixed ids every seed may reference. A30's 0010 file creates these rows. A seed that needs them
+-- guards its inserts with `where exists (select 1 from app.organizations where id = <demo org>)`,
+-- so it loads cleanly before 0010 exists.
+--   Demo org (Organization, For-Profit, Team plan)  01920000-0000-7000-8000-000000000001
+--   Demo Owner user and person                      01920000-0000-7000-8000-000000000101
+--   Demo Admin user and person                      01920000-0000-7000-8000-000000000102
+--   Demo Producer user and person                   01920000-0000-7000-8000-000000000103
+--   Demo Field user and person                      01920000-0000-7000-8000-000000000104
+--   Demo external crew person                       01920000-0000-7000-8000-000000000201
+--   Demo vendor organization                        01920000-0000-7000-8000-000000000301
+--   Demo project                                    01920000-0000-7000-8000-000000001001
+--
+-- Seed rules: idempotent (on conflict do nothing), canon values read from xpms, no real people's
+-- names or contact details, test email addresses on example.com only.
+
+select 1;

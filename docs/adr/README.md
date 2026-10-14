@@ -24,5 +24,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0018](0018-pricing-first-project-free.md)           | Pricing: Paid Plans, First Project Free, Plan Seed Numbering      | Accepted |
 | [0019](0019-engagement-and-marketplace-decisions.md) | Engagement and Marketplace Decisions                              | Accepted |
 | [0020](0020-plan-packaging.md)                       | Plan Packaging: Atlas in Every Plan, Aurora AI and Legend by Tier | Accepted |
+| [0021](0021-parallel-wave-conventions.md)            | Conventions for Running Agents in Parallel                        | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.
