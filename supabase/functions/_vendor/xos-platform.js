@@ -1403,6 +1403,50 @@ var nav_default$1 = {
     routes: { record: "Record" },
   },
 };
+var projects_default$1 = {
+  header: {
+    tabs: "Project tabs",
+    scope: "Scope",
+    wholeProject: "Whole project",
+    archived: "Archived",
+  },
+  states: {
+    Proposed: "Proposed",
+    Active: "Active",
+    Blocked: "Blocked",
+    Complete: "Complete",
+    Canceled: "Canceled",
+    Closed: "Closed",
+  },
+  phases: {
+    SCP: "Scope",
+    ENG: "Engage",
+    ADV: "Advance",
+    PRC: "Procure",
+    BLD: "Build",
+    INS: "Install",
+    OPR: "Operate",
+    AMP: "Amplify",
+    CLS: "Close",
+  },
+  acts: {
+    PLAN: "Plan",
+    BUILD: "Build",
+    SHOW: "Show",
+  },
+  scopeKinds: {
+    engagementRoot: "Engagement root",
+    standingVenue: "Standing venue",
+    show: "Show",
+  },
+  roles: {
+    producer: "Producer",
+    departmentHead: "Department Head",
+    coordinator: "Coordinator",
+    fieldSupervisor: "Field Supervisor",
+    field: "Field",
+  },
+};
 var shell_default$1 = {
   atlas: {
     name: "Atlas",
@@ -2868,6 +2912,50 @@ var nav_default = {
     routes: { record: "Registro" },
   },
 };
+var projects_default = {
+  header: {
+    tabs: "Pestañas del proyecto",
+    scope: "Alcance",
+    wholeProject: "Todo el proyecto",
+    archived: "Archivado",
+  },
+  states: {
+    Proposed: "Propuesto",
+    Active: "Activo",
+    Blocked: "Bloqueado",
+    Complete: "Completo",
+    Canceled: "Cancelado",
+    Closed: "Cerrado",
+  },
+  phases: {
+    SCP: "Alcance",
+    ENG: "Contratación",
+    ADV: "Avance",
+    PRC: "Compras",
+    BLD: "Construcción",
+    INS: "Instalación",
+    OPR: "Operación",
+    AMP: "Amplificación",
+    CLS: "Cierre",
+  },
+  acts: {
+    PLAN: "Planificar",
+    BUILD: "Construir",
+    SHOW: "Presentar",
+  },
+  scopeKinds: {
+    engagementRoot: "Raíz del encargo",
+    standingVenue: "Recinto permanente",
+    show: "Función",
+  },
+  roles: {
+    producer: "Productor",
+    departmentHead: "Jefe de departamento",
+    coordinator: "Coordinador",
+    fieldSupervisor: "Supervisor de campo",
+    field: "Campo",
+  },
+};
 var shell_default = {
   atlas: {
     name: "Atlas",
@@ -3706,12 +3794,14 @@ var ui_default = {
 var enUS = {
   email: email_default$1,
   nav: nav_default$1,
+  projects: projects_default$1,
   shell: shell_default$1,
   ui: ui_default$1,
 };
 var esUS = {
   email: email_default,
   nav: nav_default,
+  projects: projects_default,
   shell: shell_default,
   ui: ui_default,
 };

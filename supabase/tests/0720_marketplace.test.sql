@@ -231,7 +231,7 @@ select throws_ok($$select app.transition_application((select id from world where
 select pg_temp.as_user('rita');
 select lives_ok($$select app.transition_application((select id from world where key = 'app_art'), 'Submitted', 'Withdrawn', 'Conflict.')$$, 'the representative withdraws for the artist');
 select pg_temp.as_platform();
-select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'application'), 13, 'the application lifecycle declares thirteen moves');
+select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'application'), 14, 'the application lifecycle declares fourteen moves, with the org withdrawing an offer (0764)');
 
 -- Engagements come from accepted applications
 select pg_temp.as_user('carol');

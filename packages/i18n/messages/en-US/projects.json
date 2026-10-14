@@ -1,0 +1,44 @@
+{
+  "header": {
+    "tabs": "Project tabs",
+    "scope": "Scope",
+    "wholeProject": "Whole project",
+    "archived": "Archived"
+  },
+  "states": {
+    "Proposed": "Proposed",
+    "Active": "Active",
+    "Blocked": "Blocked",
+    "Complete": "Complete",
+    "Canceled": "Canceled",
+    "Closed": "Closed"
+  },
+  "phases": {
+    "SCP": "Scope",
+    "ENG": "Engage",
+    "ADV": "Advance",
+    "PRC": "Procure",
+    "BLD": "Build",
+    "INS": "Install",
+    "OPR": "Operate",
+    "AMP": "Amplify",
+    "CLS": "Close"
+  },
+  "acts": {
+    "PLAN": "Plan",
+    "BUILD": "Build",
+    "SHOW": "Show"
+  },
+  "scopeKinds": {
+    "engagementRoot": "Engagement root",
+    "standingVenue": "Standing venue",
+    "show": "Show"
+  },
+  "roles": {
+    "producer": "Producer",
+    "departmentHead": "Department Head",
+    "coordinator": "Coordinator",
+    "fieldSupervisor": "Field Supervisor",
+    "field": "Field"
+  }
+}
