@@ -35,6 +35,14 @@ function fakeDb(rows: Row[], fail?: { code: string; message: string }): XosClien
       limit: (n: number) => builder({ ...state, limit: n }),
       gt: (column: string, value: string) =>
         builder({ ...state, rows: state.rows.filter((r) => String(r[column]) > value) }),
+      // The keyset filter of a single-key order: `column.gt.value`.
+      or: (filter: string) => {
+        const [column, , value] = filter.split(".");
+        return builder({
+          ...state,
+          rows: state.rows.filter((r) => String(r[column as string]) > String(value)),
+        });
+      },
       eq: (column: string, value: string) =>
         builder({ ...state, rows: state.rows.filter((r) => r[column] === value) }),
       maybeSingle: () => {
