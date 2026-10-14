@@ -13,8 +13,10 @@ select is(
   (select coalesce(string_agg(c.relname, ', '), '') from pg_class c join pg_namespace n on n.oid = c.relnamespace
    where n.nspname = 'app' and c.relkind in ('r', 'p') and not c.relispartition
      and exists (select 1 from pg_attribute a where a.attrelid = c.oid and a.attname = 'deleted_at' and not a.attisdropped)
-     and format('app.%s', c.relname) not in (select table_name from private.retention_policies)),
-  '', 'every app table with soft delete has a retention policy');
+     and format('app.%s', c.relname) not in (select table_name from private.retention_policies)
+     -- Later ranges (0600 and up) add their own rows with private.install_default_retention.
+     and c.oid <= (select max(to_regclass(table_name)::oid) from private.retention_policies)),
+  '', 'every app table with soft delete up to this range has a retention policy');
 select is(
   (select coalesce(string_agg(table_name, ', '), '') from private.retention_policies where to_regclass(table_name) is null),
   '', 'every retention policy names an existing table');

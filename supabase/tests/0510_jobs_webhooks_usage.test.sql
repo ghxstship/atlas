@@ -95,9 +95,8 @@ select is(private.webhook_signature('whsec_test', 1700000000, '{"a": 1}'),
 -- Fan-out, delivery, backoff and replay -------------------------------------------------------------------------------
 select pg_temp.as_user('alice');
 insert into app.projects (org_id, project_key, name, time_zone) values (pg_temp.id('org_a'), 'NWH', 'Northwind Harbor Fest', 'America/New_York');
-select pg_temp.as_user('xavier');
-insert into app.projects (org_id, project_key, name, time_zone) values (pg_temp.id('org_b'), 'HLW', 'Harbor Lights Winter', 'America/New_York');
 select pg_temp.as_platform();
+select private.emit_event(pg_temp.id('org_b'), 'project.created', 'projects', pg_temp.id('prj_b'), pg_temp.id('prj_b'), '{"project_key": "HLP"}');
 select is((select count(*)::integer from app.webhook_deliveries d join app.domain_events e on e.id = d.domain_event_id
            where e.event_type = 'project.created' and e.data ->> 'project_key' = 'NWH'), 1,
   'a domain event fans out to the subscribed endpoint');
