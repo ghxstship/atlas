@@ -10,7 +10,7 @@ import { format, resolveConfig } from "prettier";
  * With --check, writes nothing and exits 1 when the committed file differs (gate 12 drift check).
  * Needs a running local stack with every migration applied (`supabase db start` or `db reset`).
  */
-const SCHEMAS = ["app", "xpms"] as const;
+const SCHEMAS = ["app", "xpms", "api_external"] as const;
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const target = fileURLToPath(new URL("../src/database.types.ts", import.meta.url));
 const STAMP = [
