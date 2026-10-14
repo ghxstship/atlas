@@ -2,7 +2,7 @@
   "name": "@xos/icons",
   "version": "0.0.0",
   "private": true,
-  "description": "XOS glyph map: the Lucide icon for every department, phase and record kind, and the record state glyph shapes.",
+  "description": "XOS glyph map and icon registry: the Lucide icon for every department, phase and record kind, the record state glyph shapes, and the closed set of icons XOS draws by name.",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -10,9 +10,10 @@
     "./map.json": "./src/map.json"
   },
   "scripts": {
+    "generate:registry": "node scripts/generate-registry.mjs",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --coverage"
+    "test": "node scripts/generate-registry.mjs --check && vitest run --coverage"
   },
   "dependencies": {
     "lucide-react": "1.53.0"
@@ -23,9 +24,11 @@
     "@vitest/coverage-v8": "5.0.3",
     "@xos/config": "workspace:*",
     "eslint": "10.12.0",
+    "prettier": "3.9.9",
     "react": "19.3.0",
     "typescript": "6.0.3",
     "vite": "8.3.3",
     "vitest": "5.0.3"
-  }
+  },
+  "sideEffects": false
 }
