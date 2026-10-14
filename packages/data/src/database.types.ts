@@ -27478,6 +27478,88 @@ export type Database = {
           },
         ];
       };
+      sync_mutations: {
+        Row: {
+          applied_at: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          device_id: string;
+          id: string;
+          org_id: string;
+          person_id: string;
+          result: NonNullable<Json>;
+          rpc: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          applied_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          device_id: string;
+          id: string;
+          org_id: string;
+          person_id: string;
+          result: NonNullable<Json>;
+          rpc: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          applied_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          device_id?: string;
+          id?: string;
+          org_id?: string;
+          person_id?: string;
+          result?: NonNullable<Json>;
+          rpc?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sync_mutations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sync_mutations_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sync_mutations_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sync_mutations_rpc_fkey";
+            columns: ["rpc"];
+            isOneToOne: false;
+            referencedRelation: "sync_rpcs";
+            referencedColumns: ["rpc"];
+          },
+          {
+            foreignKeyName: "sync_mutations_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       talent_pools: {
         Row: {
           created_at: string;
@@ -32417,6 +32499,22 @@ export type Database = {
           },
         ];
       };
+      sync_rpcs: {
+        Row: {
+          description: string | null;
+          rpc: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          description?: string | null;
+          rpc?: string | null;
+        };
+        Update: {
+          description?: string | null;
+          rpc?: string | null;
+        };
+        Relationships: [];
+      };
       timesheet_hours: {
         Row: {
           has_open_entry: boolean | null;
@@ -32560,6 +32658,16 @@ export type Database = {
           p_role: Database["app"]["Enums"]["account_role"];
         };
         Returns: string;
+      };
+      apply_sync_mutation: {
+        Args: {
+          p_args?: Json;
+          p_device_id: string;
+          p_mutation_id: string;
+          p_org_id: string;
+          p_rpc: string;
+        };
+        Returns: Json;
       };
       approve_change_order: {
         Args: { p_change_order_id: string; p_reason: string };
