@@ -44,6 +44,15 @@ function fakeSupabase(orgs: (typeof ORG_A)[], options: { person?: boolean } = {}
         return json({ id: USER_ID, email: "ada@example.com", aud: "authenticated" });
       return json({ code: 401, msg: "invalid JWT" }, 401);
     }
+    if (url.pathname === "/rest/v1/rpc/authenticate_api_key") {
+      const body = JSON.parse(String(init?.body)) as { p_secret: string };
+      if (body.p_secret === "xos_live_broken") return json({ message: "boom" }, 500);
+      return json(
+        body.p_secret === "xos_live_valid"
+          ? [{ api_key_id: "k", org_id: ORG_A.id, scopes: ["org"], service_account_id: null }]
+          : [],
+      );
+    }
     if (url.pathname === "/rest/v1/people") {
       return json(options.person === false ? [] : [{ id: PERSON_ID, full_name: "Ada" }]);
     }
@@ -116,9 +125,13 @@ describe("bearer session tokens", () => {
     await expect(resolve(authenticate, { authorization: "Basic abc" })).rejects.toBeInstanceOf(
       ApiProblem,
     );
+    expect(await resolve(authenticate, { authorization: "Bearer xos_live_abcdef" })).toBeNull();
+    await expect(resolve(authenticate, { authorization: "Bearer xos_live_valid" })).rejects.toThrow(
+      /not open yet/,
+    );
     await expect(
-      resolve(authenticate, { authorization: "Bearer xos_live_abcdef" }),
-    ).rejects.toThrow(/API keys/);
+      resolve(authenticate, { authorization: "Bearer xos_live_broken" }),
+    ).rejects.toThrow(/Cannot verify/);
     expect(await resolve(authenticate, {})).toBeNull();
   });
 

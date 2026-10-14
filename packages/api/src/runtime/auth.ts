@@ -122,7 +122,7 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 interface Credential {
   readonly token: string;
-  readonly kind: "session-bearer" | "session-cookie";
+  readonly kind: "session-bearer" | "session-cookie" | "api-key";
   readonly cookies: Map<string, string>;
 }
 
@@ -133,12 +133,11 @@ function readCredential(request: Request, options: SupabaseAuthOptions): Credent
     const match = /^Bearer\s+(\S+)$/i.exec(authorization.trim());
     if (match === null) throw unauthorized("Send the credential as Authorization: Bearer <token>.");
     const token = match[1] as string;
-    if (token.startsWith(API_KEY_PREFIX)) {
-      throw unauthorized(
-        "API keys are not accepted yet. Use a Supabase session token until API key access opens.",
-      );
-    }
-    return { token, kind: "session-bearer", cookies };
+    return {
+      token,
+      kind: token.startsWith(API_KEY_PREFIX) ? "api-key" : "session-bearer",
+      cookies,
+    };
   }
   const token = sessionTokenFromCookies(cookies, options.sessionCookie ?? SESSION_COOKIE);
   if (token === null) return null;
@@ -170,12 +169,44 @@ async function resolveOrg(
   return only === undefined ? null : { id: only.id, slug: only.slug };
 }
 
+/**
+ * Verifies an API key with `app.authenticate_api_key` (migration 0921). A valid key is still
+ * answered 401: queries must run as an identity RLS understands, and no API key identity exists
+ * in the database yet (reported as blocked). An unknown, revoked or expired key returns null.
+ */
+async function checkApiKey(secret: string, options: SupabaseAuthOptions): Promise<void> {
+  const db = createCallerClient({
+    url: options.url,
+    anonKey: options.anonKey,
+    accessToken: options.anonKey,
+    ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
+  });
+  // app.authenticate_api_key is newer than the generated database types; call it untyped.
+  const untyped = db as unknown as {
+    rpc(
+      name: string,
+      args: Record<string, unknown>,
+    ): PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>;
+  };
+  const { data, error } = await untyped.rpc("authenticate_api_key", { p_secret: secret });
+  if (error !== null) throw new Error(`Cannot verify the API key: ${error.message}`);
+  if ((data ?? []).length > 0) {
+    throw unauthorized(
+      "This API key is valid, but API key access to data is not open yet. Use a Supabase session token.",
+    );
+  }
+}
+
 /** The `Authenticate` dependency for Supabase sessions. */
 export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authenticate {
   const locales = options.locales ?? SUPPORTED_LOCALES;
   return async (request, requestId): Promise<RequestContext | null> => {
     const credential = readCredential(request, options);
     if (credential === null) return null;
+    if (credential.kind === "api-key") {
+      await checkApiKey(credential.token, options);
+      return null;
+    }
     const db = createCallerClient({
       url: options.url,
       anonKey: options.anonKey,
