@@ -88,3 +88,11 @@ Wallet
 WifiOff
 ZoomIn
 ZoomOut
+Camera
+Coffee
+Flashlight
+Nfc
+PenLine
+Phone
+Smartphone
+X

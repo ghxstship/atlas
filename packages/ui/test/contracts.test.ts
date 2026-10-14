@@ -281,6 +281,18 @@ export type ComponentContracts = [
   Assert<Fits<typeof Ui.RichTextEditor, Ref.RichTextEditorProps>>,
   Assert<Fits<typeof Ui.FilePreviewer, Ref.FilePreviewerProps>>,
   Assert<Fits<typeof Ui.MapView, Ref.MapViewProps>>,
+  Assert<Fits<typeof Ui.ClockButton, Ref.ClockButtonProps>>,
+  Assert<Fits<typeof Ui.ScanSheet, Ref.ScanSheetProps>>,
+  Assert<Fits<typeof Ui.OfflineBanner, Ref.OfflineBannerProps>>,
+  Assert<Fits<typeof Ui.QuickIncidentSheet, Ref.QuickIncidentSheetProps>>,
+  Assert<Fits<typeof Ui.ChecklistRunner, Ref.ChecklistRunnerProps>>,
+  Assert<Fits<typeof Ui.ShiftCard, Ref.ShiftCardProps>>,
+  Assert<Fits<typeof Ui.DaySheetView, Ref.DaySheetViewProps>>,
+  Assert<Fits<typeof Ui.SignaturePad, Ref.SignaturePadProps>>,
+  Assert<Fits<typeof Ui.PhotoCapture, Ref.PhotoCaptureProps>>,
+  Assert<Fits<typeof Ui.LiveActivity, Ref.LiveActivityProps>>,
+  Assert<Fits<typeof Ui.ForceUpdateScreen, Ref.ForceUpdateScreenProps>>,
+  Assert<Fits<typeof Ui.SyncConflictSheet, Ref.SyncConflictSheetProps>>,
 ];
 
 describe("reference contracts", () => {
@@ -416,6 +428,18 @@ describe("reference contracts", () => {
       "RichTextEditor",
       "FilePreviewer",
       "MapView",
+      "ClockButton",
+      "ScanSheet",
+      "OfflineBanner",
+      "QuickIncidentSheet",
+      "ChecklistRunner",
+      "ShiftCard",
+      "DaySheetView",
+      "SignaturePad",
+      "PhotoCapture",
+      "LiveActivity",
+      "ForceUpdateScreen",
+      "SyncConflictSheet",
     ];
     const exported = Ui as unknown as Record<string, unknown>;
     expect(names.filter((n) => typeof exported[n] !== "function")).toEqual([]);
