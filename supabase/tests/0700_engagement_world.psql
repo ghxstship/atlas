@@ -7,7 +7,8 @@
 --   victor Account Owner of the vendor account Bayside Audio (acct_v)
 --   fiona  Account Finance of acct_v
 --   sam    Account Member of acct_v, the technician acct_v supplies
---   rita   Account Admin of the artist agency Lumen Artists (acct_t), representing art
+--   rita   Account Owner of the artist agency Lumen Artists (acct_t), representing art (rep_art: Advance and
+--          Documents scopes, accepted by art)
 --   art    artist, engaged by org_a on prj_a
 --   quinn  another freelancer, engaged by org_b only (the other party for denial tests)
 -- Counterparties: cp_v_a (acct_v as org_a's vendor), cp_v_b (acct_v as org_b's vendor).
@@ -29,11 +30,16 @@ begin
   perform pg_temp.new_user('art', 'art@performer.test', 'Arturo Bell');
   perform pg_temp.new_user('quinn', 'quinn@freelance.test', 'Quinn Ashby');
 
-  perform pg_temp.as_platform();
-  insert into app.organizations (slug, name) values ('bayside-audio', 'Bayside Audio') returning id into v_id;
-  insert into world values ('acct_v', v_id);
-  insert into app.organizations (slug, name) values ('lumen-artists', 'Lumen Artists') returning id into v_id;
-  insert into world values ('acct_t', v_id);
+  perform pg_temp.as_user('victor');
+  insert into world values ('acct_v', app.create_external_account('Bayside Audio', 'bayside-audio'));
+  perform app.add_account_member(pg_temp.id('acct_v'), pg_temp.id('fiona'), 'Account Finance');
+  perform app.add_account_member(pg_temp.id('acct_v'), pg_temp.id('sam'), 'Account Member');
+  perform pg_temp.as_user('rita');
+  insert into world values ('acct_t', app.create_external_account('Lumen Artists', 'lumen-artists'));
+  insert into world values ('rep_art', app.propose_representation(pg_temp.id('acct_t'), pg_temp.id('art'), pg_temp.id('rita'),
+    (current_date + 365), array['Advance', 'Documents']::app.representation_scope[]));
+  perform pg_temp.as_user('art');
+  perform app.accept_representation(pg_temp.id('rep_art'));
 
   perform pg_temp.as_user('alice');
   insert into world values ('cp_v_a', app.create_counterparty(pg_temp.id('org_a'), null, null, pg_temp.id('acct_v')));
@@ -72,6 +78,32 @@ begin
   insert into world values ('eng_mia_b', v_id);
 
   perform pg_temp.as_platform();
+end $$;
+
+-- Moves an engagement as an org Manager (carol in Northwind, xavier in Harbor Lights), then returns to the platform.
+create function pg_temp.move_engagement(p_engagement text, p_expected text, p_next text) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_platform();
+  if (select e.org_id from app.engagements e where e.id = pg_temp.id(p_engagement)) = pg_temp.id('org_a') then
+    perform pg_temp.as_user('carol');
+  else
+    perform pg_temp.as_user('xavier');
+  end if;
+  perform app.transition_engagement(pg_temp.id(p_engagement), p_expected::app.engagement_state, p_next::app.engagement_state, 'Fixture move.');
+  perform pg_temp.as_platform();
+end $$;
+
+-- Moves the close of an engagement into the past, to test the 18-month time box (Section 8.7). Ledgers are
+-- append-only, so this replays the row with triggers off inside the test transaction only.
+create function pg_temp.backdate_close(p_engagement text, p_age interval) returns void
+language plpgsql as $$
+begin
+  perform pg_temp.as_platform();
+  alter table app.engagement_state_transitions disable trigger user;
+  update app.engagement_state_transitions set created_at = now() - p_age
+  where engagement_id = pg_temp.id(p_engagement) and to_state in ('Complete', 'Canceled');
+  alter table app.engagement_state_transitions enable trigger user;
 end $$;
 
 select pg_temp.build_engagement_world();
