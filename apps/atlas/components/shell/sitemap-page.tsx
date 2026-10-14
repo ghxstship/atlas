@@ -26,8 +26,9 @@ export async function requireNode(node: string, params: Params): Promise<OrgCont
   const ctx = slug === undefined ? null : await getOrgContext(slug);
   if (!ctx || !isNodeVisible(sitemap, node, ctx.nav)) notFound();
   const route = getNode(sitemap, node).node.route ?? "";
-  // Projects and records (A03), saved views (A31) and custom objects (A18) have no table yet, so
-  // no key resolves and these routes answer 404 until their owners add the lookup.
+  // The pages that name a data row belong to their module agents: projects and their tabs (A07,
+  // on app.projects), records (A08, on app.records), saved views (A31) and custom objects (A18).
+  // Each owner replaces its page with a lookup; until then these routes answer 404.
   if (namesDataRow(route)) notFound();
   return ctx;
 }

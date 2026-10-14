@@ -5,6 +5,2139 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   app: {
     Tables: {
+      access_grid: {
+        Row: {
+          access_level_enum_id: string;
+          created_at: string;
+          created_by: string | null;
+          credential_category_id: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          window_ends_at: string;
+          window_starts_at: string;
+          zone_id: string;
+        };
+        Insert: {
+          access_level_enum_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          credential_category_id: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          window_ends_at: string;
+          window_starts_at: string;
+          zone_id: string;
+        };
+        Update: {
+          access_level_enum_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          credential_category_id?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          window_ends_at?: string;
+          window_starts_at?: string;
+          zone_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "access_grid_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "access_grid_credential_category_id_fkey";
+            columns: ["credential_category_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "access_grid_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "access_grid_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "access_grid_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "zones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      access_scans: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          credential_id: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          result: Database["app"]["Enums"]["scan_result"];
+          scanned_at: string;
+          updated_at: string;
+          updated_by: string | null;
+          zone_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          credential_id: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          result?: Database["app"]["Enums"]["scan_result"];
+          scanned_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          credential_id?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          result?: Database["app"]["Enums"]["scan_result"];
+          scanned_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "access_scans_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "access_scans_credential_id_fkey";
+            columns: ["credential_id"];
+            isOneToOne: false;
+            referencedRelation: "credentials";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "access_scans_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "access_scans_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "access_scans_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "zones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      accounting_period_state_transitions: {
+        Row: {
+          accounting_period_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["accounting_period_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["accounting_period_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          accounting_period_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["accounting_period_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["accounting_period_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          accounting_period_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["accounting_period_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["accounting_period_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "accounting_period_state_transitions_accounting_period_id_fkey";
+            columns: ["accounting_period_id"];
+            isOneToOne: false;
+            referencedRelation: "accounting_periods";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "accounting_period_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "accounting_period_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "accounting_period_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      accounting_periods: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ends_on: string;
+          id: string;
+          org_id: string;
+          period_state: Database["app"]["Enums"]["accounting_period_state"];
+          starts_on: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_on: string;
+          id?: string;
+          org_id: string;
+          period_state?: Database["app"]["Enums"]["accounting_period_state"];
+          starts_on: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_on?: string;
+          id?: string;
+          org_id?: string;
+          period_state?: Database["app"]["Enums"]["accounting_period_state"];
+          starts_on?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "accounting_periods_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "accounting_periods_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "accounting_periods_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advance_packets: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          due_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          sent_at: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          sent_at?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          sent_at?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_packets_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_packets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "advance_packets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_packets_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advance_promotions: {
+        Row: {
+          advance_submission_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          record_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          advance_submission_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          record_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          advance_submission_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          record_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_promotions_advance_submission_id_fkey";
+            columns: ["advance_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_submissions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_promotions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_promotions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_promotions_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_promotions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advance_recipients: {
+        Row: {
+          advance_packet_id: string;
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          person_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          advance_packet_id: string;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          person_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          advance_packet_id?: string;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          person_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_recipients_advance_packet_id_fkey";
+            columns: ["advance_packet_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_packets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_recipients_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advance_sections: {
+        Row: {
+          advance_packet_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          position: number;
+          prompt: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          advance_packet_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          position: number;
+          prompt?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          advance_packet_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          position?: number;
+          prompt?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_sections_advance_packet_id_fkey";
+            columns: ["advance_packet_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_packets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_sections_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_sections_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_sections_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advance_submissions: {
+        Row: {
+          advance_recipient_id: string;
+          advance_section_id: string;
+          body: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          submitted_at: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          advance_recipient_id: string;
+          advance_section_id: string;
+          body: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          submitted_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          advance_recipient_id?: string;
+          advance_section_id?: string;
+          body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          submitted_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_submissions_advance_recipient_id_fkey";
+            columns: ["advance_recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_recipients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submissions_advance_section_id_fkey";
+            columns: ["advance_section_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_sections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submissions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submissions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submissions_reviewed_by_fkey";
+            columns: ["reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submissions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      asset_classes: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          element_id: string;
+          id: string;
+          name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          element_id: string;
+          id?: string;
+          name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          element_id?: string;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "asset_classes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_classes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_classes_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      asset_custody: {
+        Row: {
+          asset_unit_id: string;
+          created_at: string;
+          created_by: string | null;
+          custodian_membership_id: string | null;
+          deleted_at: string | null;
+          id: string;
+          note: string | null;
+          org_id: string;
+          project_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          venue_id: string | null;
+        };
+        Insert: {
+          asset_unit_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          custodian_membership_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          note?: string | null;
+          org_id: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+        };
+        Update: {
+          asset_unit_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          custodian_membership_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          note?: string | null;
+          org_id?: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "asset_custody_asset_unit_id_fkey";
+            columns: ["asset_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_units";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_custody_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_custody_custodian_membership_id_fkey";
+            columns: ["custodian_membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_custody_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_custody_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "asset_custody_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "asset_custody_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "asset_custody_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_custody_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_custody_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      asset_damage: {
+        Row: {
+          asset_unit_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          id: string;
+          org_id: string;
+          project_id: string | null;
+          reported_at: string;
+          responsible_counterparty_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          asset_unit_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          id?: string;
+          org_id: string;
+          project_id?: string | null;
+          reported_at?: string;
+          responsible_counterparty_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          asset_unit_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          id?: string;
+          org_id?: string;
+          project_id?: string | null;
+          reported_at?: string;
+          responsible_counterparty_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "asset_damage_asset_unit_id_fkey";
+            columns: ["asset_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_units";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_damage_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_damage_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_damage_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "asset_damage_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "asset_damage_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "asset_damage_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_damage_responsible_counterparty_id_fkey";
+            columns: ["responsible_counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_damage_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      asset_identifiers: {
+        Row: {
+          asset_unit_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          identifier_class: string;
+          org_id: string;
+          scheme: string;
+          updated_at: string;
+          updated_by: string | null;
+          value: string;
+        };
+        Insert: {
+          asset_unit_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          identifier_class?: string;
+          org_id: string;
+          scheme: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          value: string;
+        };
+        Update: {
+          asset_unit_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          identifier_class?: string;
+          org_id?: string;
+          scheme?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          value?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "asset_identifiers_asset_unit_id_fkey";
+            columns: ["asset_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_units";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_identifiers_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_identifiers_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_identifiers_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      asset_lots: {
+        Row: {
+          asset_class_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          quantity: number;
+          updated_at: string;
+          updated_by: string | null;
+          venue_id: string;
+        };
+        Insert: {
+          asset_class_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          quantity: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id: string;
+        };
+        Update: {
+          asset_class_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          quantity?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "asset_lots_asset_class_id_fkey";
+            columns: ["asset_class_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_classes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_lots_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_lots_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_lots_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_lots_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      asset_maintenance: {
+        Row: {
+          asset_unit_id: string;
+          cost_minor: number | null;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          deleted_at: string | null;
+          description: string;
+          id: string;
+          org_id: string;
+          performed_on: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          asset_unit_id: string;
+          cost_minor?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          id?: string;
+          org_id: string;
+          performed_on: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          asset_unit_id?: string;
+          cost_minor?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          id?: string;
+          org_id?: string;
+          performed_on?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "asset_maintenance_asset_unit_id_fkey";
+            columns: ["asset_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_units";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_maintenance_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_maintenance_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "asset_maintenance_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_maintenance_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      asset_state_transitions: {
+        Row: {
+          asset_unit_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["asset_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["asset_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          asset_unit_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["asset_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["asset_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          asset_unit_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["asset_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["asset_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "asset_state_transitions_asset_unit_id_fkey";
+            columns: ["asset_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_units";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      asset_units: {
+        Row: {
+          asset_class_id: string;
+          asset_state: Database["app"]["Enums"]["asset_state"];
+          asset_tag: string;
+          condition_enum_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          home_venue_id: string | null;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          asset_class_id: string;
+          asset_state?: Database["app"]["Enums"]["asset_state"];
+          asset_tag: string;
+          condition_enum_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          home_venue_id?: string | null;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          asset_class_id?: string;
+          asset_state?: Database["app"]["Enums"]["asset_state"];
+          asset_tag?: string;
+          condition_enum_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          home_venue_id?: string | null;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "asset_units_asset_class_id_fkey";
+            columns: ["asset_class_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_classes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_units_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_units_home_venue_id_fkey";
+            columns: ["home_venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_units_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_units_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      beo_lines: {
+        Row: {
+          beo_id: string;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          deleted_at: string | null;
+          description: string;
+          id: string;
+          org_id: string;
+          quantity: number;
+          unit_price_minor: number | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          beo_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          id?: string;
+          org_id: string;
+          quantity?: number;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          beo_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          id?: string;
+          org_id?: string;
+          quantity?: number;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "beo_lines_beo_id_fkey";
+            columns: ["beo_id"];
+            isOneToOne: false;
+            referencedRelation: "beos";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "beo_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "beo_lines_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "beo_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "beo_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      beos: {
+        Row: {
+          approved_at: string | null;
+          approved_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          event_at: string;
+          fulfillment_id: string | null;
+          guest_count: number | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          approved_at?: string | null;
+          approved_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          event_at: string;
+          fulfillment_id?: string | null;
+          guest_count?: number | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          approved_at?: string | null;
+          approved_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          event_at?: string;
+          fulfillment_id?: string | null;
+          guest_count?: number | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "beos_approved_by_fkey";
+            columns: ["approved_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "beos_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "beos_fulfillment_id_fkey";
+            columns: ["fulfillment_id"];
+            isOneToOne: false;
+            referencedRelation: "fulfillments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "beos_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "beos_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "beos_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "beos_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "beos_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "beos_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      billing_draws: {
+        Row: {
+          amount_requested_minor: number;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          draw_number: number;
+          id: string;
+          invoice_id: string | null;
+          org_id: string;
+          period_end: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          amount_requested_minor: number;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          draw_number: number;
+          id?: string;
+          invoice_id?: string | null;
+          org_id: string;
+          period_end: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_requested_minor?: number;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          draw_number?: number;
+          id?: string;
+          invoice_id?: string | null;
+          org_id?: string;
+          period_end?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "billing_draws_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_draws_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "billing_draws_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoice_totals";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "billing_draws_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_draws_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_draws_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "billing_draws_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "billing_draws_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "billing_draws_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_draws_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      budget_lines: {
+        Row: {
+          budget_id: string;
+          cost_center_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          element_id: string | null;
+          grade_code: string | null;
+          id: string;
+          line_number: number;
+          line_type: Database["app"]["Enums"]["budget_line_type"];
+          org_id: string;
+          quantity: number;
+          unit_basis: string | null;
+          unit_price_minor: number | null;
+          updated_at: string;
+          updated_by: string | null;
+          urid: string;
+          xyz: string;
+          xyz_basis: Database["app"]["Enums"]["xyz_basis"];
+        };
+        Insert: {
+          budget_id: string;
+          cost_center_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          element_id?: string | null;
+          grade_code?: string | null;
+          id?: string;
+          line_number: number;
+          line_type?: Database["app"]["Enums"]["budget_line_type"];
+          org_id: string;
+          quantity?: number;
+          unit_basis?: string | null;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid: string;
+          xyz: string;
+          xyz_basis: Database["app"]["Enums"]["xyz_basis"];
+        };
+        Update: {
+          budget_id?: string;
+          cost_center_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          element_id?: string | null;
+          grade_code?: string | null;
+          id?: string;
+          line_number?: number;
+          line_type?: Database["app"]["Enums"]["budget_line_type"];
+          org_id?: string;
+          quantity?: number;
+          unit_basis?: string | null;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid?: string;
+          xyz?: string;
+          xyz_basis?: Database["app"]["Enums"]["xyz_basis"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budgets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_lines_cost_center_id_fkey";
+            columns: ["cost_center_id"];
+            isOneToOne: false;
+            referencedRelation: "cost_centers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      budgets: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          id: string;
+          is_baseline: boolean;
+          name: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_baseline?: boolean;
+          name: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_baseline?: boolean;
+          name?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "budgets_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budgets_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "budgets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budgets_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      calendar_exceptions: {
+        Row: {
+          calendar_id: string;
+          created_at: string;
+          created_by: string | null;
+          day: string;
+          deleted_at: string | null;
+          id: string;
+          is_working: boolean;
+          note: string | null;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          calendar_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          day: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_working: boolean;
+          note?: string | null;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          calendar_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          day?: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_working?: boolean;
+          note?: string | null;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "calendar_exceptions_calendar_id_fkey";
+            columns: ["calendar_id"];
+            isOneToOne: false;
+            referencedRelation: "calendars";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "calendar_exceptions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "calendar_exceptions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "calendar_exceptions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      calendars: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          project_id: string;
+          time_zone: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          project_id: string;
+          time_zone: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          project_id?: string;
+          time_zone?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "calendars_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "calendars_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "calendars_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "calendars_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "calendars_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "calendars_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "calendars_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      call_sheets: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          day: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          published_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          day: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          published_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          day?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          published_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "call_sheets_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "call_sheets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "call_sheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "call_sheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "call_sheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "call_sheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "call_sheets_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       capabilities: {
         Row: {
           capability_class: Database["app"]["Enums"]["capability_class"];
@@ -37,6 +2170,83 @@ export type Database = {
           },
         ];
       };
+      capability_documents: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          document_uri: string;
+          id: string;
+          is_frozen: boolean;
+          org_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+          venue_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          document_uri: string;
+          id?: string;
+          is_frozen?: boolean;
+          org_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+          venue_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          document_uri?: string;
+          id?: string;
+          is_frozen?: boolean;
+          org_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+          venue_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "capability_documents_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_documents_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_documents_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_documents_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       capability_modules: {
         Row: {
           code: string;
@@ -57,6 +2267,1442 @@ export type Database = {
           sort_order?: number;
         };
         Relationships: [];
+      };
+      capability_statements: {
+        Row: {
+          assertion_domain: string;
+          assertion_word: string;
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          direction: Database["app"]["Enums"]["capability_direction"];
+          id: string;
+          is_critical: boolean;
+          org_id: string;
+          project_id: string;
+          quantity: number | null;
+          unit_basis: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          urid: string;
+          venue_id: string | null;
+        };
+        Insert: {
+          assertion_domain?: string;
+          assertion_word?: string;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          direction: Database["app"]["Enums"]["capability_direction"];
+          id?: string;
+          is_critical?: boolean;
+          org_id: string;
+          project_id: string;
+          quantity?: number | null;
+          unit_basis?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid: string;
+          venue_id?: string | null;
+        };
+        Update: {
+          assertion_domain?: string;
+          assertion_word?: string;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          direction?: Database["app"]["Enums"]["capability_direction"];
+          id?: string;
+          is_critical?: boolean;
+          org_id?: string;
+          project_id?: string;
+          quantity?: number | null;
+          unit_basis?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid?: string;
+          venue_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "capability_statements_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      catalog_bindings: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          default_unit_price_minor: number | null;
+          deleted_at: string | null;
+          element_id: string;
+          id: string;
+          item_id: string;
+          name: string;
+          org_id: string;
+          unit_basis: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          default_unit_price_minor?: number | null;
+          deleted_at?: string | null;
+          element_id: string;
+          id?: string;
+          item_id?: string;
+          name: string;
+          org_id: string;
+          unit_basis?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          default_unit_price_minor?: number | null;
+          deleted_at?: string | null;
+          element_id?: string;
+          id?: string;
+          item_id?: string;
+          name?: string;
+          org_id?: string;
+          unit_basis?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "catalog_bindings_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_bindings_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "catalog_bindings_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_bindings_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      certification_holders: {
+        Row: {
+          certification_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_on: string | null;
+          id: string;
+          issued_on: string;
+          org_id: string;
+          person_id: string;
+          public_verification_consented: boolean;
+          updated_at: string;
+          updated_by: string | null;
+          verification_code: string;
+          verified_by: string | null;
+        };
+        Insert: {
+          certification_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_on?: string | null;
+          id?: string;
+          issued_on: string;
+          org_id: string;
+          person_id: string;
+          public_verification_consented?: boolean;
+          updated_at?: string;
+          updated_by?: string | null;
+          verification_code?: string;
+          verified_by?: string | null;
+        };
+        Update: {
+          certification_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_on?: string | null;
+          id?: string;
+          issued_on?: string;
+          org_id?: string;
+          person_id?: string;
+          public_verification_consented?: boolean;
+          updated_at?: string;
+          updated_by?: string | null;
+          verification_code?: string;
+          verified_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "certification_holders_certification_id_fkey";
+            columns: ["certification_id"];
+            isOneToOne: false;
+            referencedRelation: "certifications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certification_holders_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certification_holders_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certification_holders_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certification_holders_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certification_holders_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      certifications: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          issuing_body: string;
+          name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          issuing_body: string;
+          name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          issuing_body?: string;
+          name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "certifications_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certifications_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certifications_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      change_order_lines: {
+        Row: {
+          budget_line_id: string | null;
+          change_order_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          id: string;
+          is_no_cost: boolean;
+          org_id: string;
+          quantity: number;
+          unit_price_minor: number | null;
+          updated_at: string;
+          updated_by: string | null;
+          urid: string;
+        };
+        Insert: {
+          budget_line_id?: string | null;
+          change_order_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          id?: string;
+          is_no_cost?: boolean;
+          org_id: string;
+          quantity?: number;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid: string;
+        };
+        Update: {
+          budget_line_id?: string | null;
+          change_order_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          id?: string;
+          is_no_cost?: boolean;
+          org_id?: string;
+          quantity?: number;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_amounts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_change_order_id_fkey";
+            columns: ["change_order_id"];
+            isOneToOne: false;
+            referencedRelation: "change_order_totals";
+            referencedColumns: ["change_order_id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_change_order_id_fkey";
+            columns: ["change_order_id"];
+            isOneToOne: false;
+            referencedRelation: "change_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_order_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      change_order_state_transitions: {
+        Row: {
+          change_order_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["change_order_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["change_order_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          change_order_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["change_order_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["change_order_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          change_order_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["change_order_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["change_order_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "change_order_state_transitions_change_order_id_fkey";
+            columns: ["change_order_id"];
+            isOneToOne: false;
+            referencedRelation: "change_order_totals";
+            referencedColumns: ["change_order_id"];
+          },
+          {
+            foreignKeyName: "change_order_state_transitions_change_order_id_fkey";
+            columns: ["change_order_id"];
+            isOneToOne: false;
+            referencedRelation: "change_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_order_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_order_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_order_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      change_orders: {
+        Row: {
+          budget_id: string;
+          change_order_number: number;
+          change_order_state: Database["app"]["Enums"]["change_order_state"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          order_type_enum_id: string | null;
+          org_id: string;
+          priced_by: string | null;
+          project_id: string;
+          reason: string | null;
+          requested_by: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          budget_id: string;
+          change_order_number?: number;
+          change_order_state?: Database["app"]["Enums"]["change_order_state"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          order_type_enum_id?: string | null;
+          org_id: string;
+          priced_by?: string | null;
+          project_id: string;
+          reason?: string | null;
+          requested_by?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          budget_id?: string;
+          change_order_number?: number;
+          change_order_state?: Database["app"]["Enums"]["change_order_state"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          order_type_enum_id?: string | null;
+          org_id?: string;
+          priced_by?: string | null;
+          project_id?: string;
+          reason?: string | null;
+          requested_by?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budgets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_orders_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_orders_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_orders_priced_by_fkey";
+            columns: ["priced_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "change_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "change_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "change_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_orders_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_orders_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      contingency_draws: {
+        Row: {
+          amount_minor: number;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_budget_line_id: string;
+          id: string;
+          org_id: string;
+          reason: string;
+          to_budget_line_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          amount_minor: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_budget_line_id: string;
+          id?: string;
+          org_id: string;
+          reason: string;
+          to_budget_line_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_minor?: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_budget_line_id?: string;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          to_budget_line_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contingency_draws_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_from_budget_line_id_fkey";
+            columns: ["from_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_amounts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_from_budget_line_id_fkey";
+            columns: ["from_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_to_budget_line_id_fkey";
+            columns: ["to_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_amounts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_to_budget_line_id_fkey";
+            columns: ["to_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      correction_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["correction_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          time_entry_correction_id: string;
+          to_state: Database["app"]["Enums"]["correction_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["correction_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          time_entry_correction_id: string;
+          to_state: Database["app"]["Enums"]["correction_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["correction_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          time_entry_correction_id?: string;
+          to_state?: Database["app"]["Enums"]["correction_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "correction_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "correction_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "correction_state_transitions_time_entry_correction_id_fkey";
+            columns: ["time_entry_correction_id"];
+            isOneToOne: false;
+            referencedRelation: "time_entry_corrections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "correction_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      cost_centers: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          kind: Database["app"]["Enums"]["cost_center_kind"];
+          name: string;
+          org_id: string;
+          scope_node_id: string | null;
+          template_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          kind: Database["app"]["Enums"]["cost_center_kind"];
+          name: string;
+          org_id: string;
+          scope_node_id?: string | null;
+          template_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          kind?: Database["app"]["Enums"]["cost_center_kind"];
+          name?: string;
+          org_id?: string;
+          scope_node_id?: string | null;
+          template_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cost_centers_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cost_centers_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cost_centers_scope_node_id_fkey";
+            columns: ["scope_node_id"];
+            isOneToOne: false;
+            referencedRelation: "scope_nodes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cost_centers_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      counterparties: {
+        Row: {
+          counterparty_type: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          organization_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          counterparty_type?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          organization_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          counterparty_type?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          organization_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "counterparties_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "counterparties_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      credential_categories: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "credential_categories_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_categories_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_categories_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "credential_categories_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "credential_categories_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "credential_categories_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credential_categories_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      credentials: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          credential_category_id: string;
+          credential_number: string;
+          deleted_at: string | null;
+          holder_person_id: string;
+          id: string;
+          issued_by: string | null;
+          org_id: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          credential_category_id: string;
+          credential_number?: string;
+          deleted_at?: string | null;
+          holder_person_id: string;
+          id?: string;
+          issued_by?: string | null;
+          org_id: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          credential_category_id?: string;
+          credential_number?: string;
+          deleted_at?: string | null;
+          holder_person_id?: string;
+          id?: string;
+          issued_by?: string | null;
+          org_id?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "credentials_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credentials_credential_category_id_fkey";
+            columns: ["credential_category_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credentials_holder_person_id_fkey";
+            columns: ["holder_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credentials_issued_by_fkey";
+            columns: ["issued_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credentials_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credentials_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credentials_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      crisis_alerts: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          emergency_code: string;
+          ended_at: string | null;
+          id: string;
+          issued_at: string;
+          message: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          emergency_code: string;
+          ended_at?: string | null;
+          id?: string;
+          issued_at?: string;
+          message: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          emergency_code?: string;
+          ended_at?: string | null;
+          id?: string;
+          issued_at?: string;
+          message?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "crisis_alerts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "crisis_alerts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "crisis_alerts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "crisis_alerts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "crisis_alerts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "crisis_alerts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "crisis_alerts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      cues: {
+        Row: {
+          called_at: string | null;
+          called_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          duration: string | null;
+          id: string;
+          label: string;
+          org_id: string;
+          planned_at: string | null;
+          position: number;
+          run_of_show_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          called_at?: string | null;
+          called_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          duration?: string | null;
+          id?: string;
+          label: string;
+          org_id: string;
+          planned_at?: string | null;
+          position: number;
+          run_of_show_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          called_at?: string | null;
+          called_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          duration?: string | null;
+          id?: string;
+          label?: string;
+          org_id?: string;
+          planned_at?: string | null;
+          position?: number;
+          run_of_show_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cues_called_by_fkey";
+            columns: ["called_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cues_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cues_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cues_run_of_show_id_fkey";
+            columns: ["run_of_show_id"];
+            isOneToOne: false;
+            referencedRelation: "run_of_show";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cues_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      day_sheets: {
+        Row: {
+          body: string;
+          created_at: string;
+          created_by: string | null;
+          day: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          body: string;
+          created_at?: string;
+          created_by?: string | null;
+          day: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          day?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "day_sheets_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "day_sheets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "day_sheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "day_sheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "day_sheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "day_sheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "day_sheets_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       delegations: {
         Row: {
@@ -145,6 +3791,2143 @@ export type Database = {
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      dispatch_assignments: {
+        Row: {
+          arrived_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          dispatched_at: string;
+          id: string;
+          incident_id: string;
+          membership_id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          arrived_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          dispatched_at?: string;
+          id?: string;
+          incident_id: string;
+          membership_id: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          arrived_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          dispatched_at?: string;
+          id?: string;
+          incident_id?: string;
+          membership_id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_assignments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dispatch_assignments_incident_id_fkey";
+            columns: ["incident_id"];
+            isOneToOne: false;
+            referencedRelation: "incidents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dispatch_assignments_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dispatch_assignments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dispatch_assignments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      dock_slots: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ends_at: string;
+          id: string;
+          org_id: string;
+          project_id: string;
+          shipment_id: string | null;
+          starts_at: string;
+          updated_at: string;
+          updated_by: string | null;
+          zone_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at: string;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          shipment_id?: string | null;
+          starts_at: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at?: string;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          shipment_id?: string | null;
+          starts_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "dock_slots_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dock_slots_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dock_slots_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "dock_slots_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "dock_slots_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "dock_slots_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dock_slots_shipment_id_fkey";
+            columns: ["shipment_id"];
+            isOneToOne: false;
+            referencedRelation: "shipments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dock_slots_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dock_slots_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "zones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      document_versions: {
+        Row: {
+          checksum_sha256: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          document_id: string;
+          id: string;
+          org_id: string;
+          storage_uri: string;
+          updated_at: string;
+          updated_by: string | null;
+          version_number: number;
+        };
+        Insert: {
+          checksum_sha256: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          document_id: string;
+          id?: string;
+          org_id: string;
+          storage_uri: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_number?: number;
+        };
+        Update: {
+          checksum_sha256?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          document_id?: string;
+          id?: string;
+          org_id?: string;
+          storage_uri?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "document_versions_document_id_fkey";
+            columns: ["document_id"];
+            isOneToOne: false;
+            referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "document_versions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "document_versions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      documents: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "documents_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "documents_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "documents_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "documents_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "documents_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "documents_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "documents_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      domain_events: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          data: Json;
+          deleted_at: string | null;
+          event_type: string;
+          id: string;
+          occurred_at: string;
+          org_id: string;
+          project_id: string | null;
+          subject_id: string;
+          subject_table: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          data?: Json;
+          deleted_at?: string | null;
+          event_type: string;
+          id?: string;
+          occurred_at?: string;
+          org_id: string;
+          project_id?: string | null;
+          subject_id: string;
+          subject_table: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          data?: Json;
+          deleted_at?: string | null;
+          event_type?: string;
+          id?: string;
+          occurred_at?: string;
+          org_id?: string;
+          project_id?: string | null;
+          subject_id?: string;
+          subject_table?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "domain_events_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "domain_events_event_type_fkey";
+            columns: ["event_type"];
+            isOneToOne: false;
+            referencedRelation: "domain_event_catalog";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "domain_events_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "domain_events_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "domain_events_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "domain_events_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "domain_events_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "domain_events_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      earning_codes: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          is_overtime: boolean;
+          name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          is_overtime?: boolean;
+          name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          is_overtime?: boolean;
+          name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "earning_codes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "earning_codes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "earning_codes_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      expense_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expense_id: string;
+          from_state: Database["app"]["Enums"]["expense_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["expense_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expense_id: string;
+          from_state?: Database["app"]["Enums"]["expense_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["expense_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expense_id?: string;
+          from_state?: Database["app"]["Enums"]["expense_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["expense_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "expense_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_state_transitions_expense_id_fkey";
+            columns: ["expense_id"];
+            isOneToOne: false;
+            referencedRelation: "expenses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      expenses: {
+        Row: {
+          amount_minor: number;
+          budget_line_id: string;
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          description: string;
+          expense_state: Database["app"]["Enums"]["expense_state"];
+          id: string;
+          incurred_on: string;
+          org_id: string;
+          submitter_person_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          amount_minor: number;
+          budget_line_id: string;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          description: string;
+          expense_state?: Database["app"]["Enums"]["expense_state"];
+          id?: string;
+          incurred_on: string;
+          org_id: string;
+          submitter_person_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_minor?: number;
+          budget_line_id?: string;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          description?: string;
+          expense_state?: Database["app"]["Enums"]["expense_state"];
+          id?: string;
+          incurred_on?: string;
+          org_id?: string;
+          submitter_person_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_amounts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "expenses_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_submitter_person_id_fkey";
+            columns: ["submitter_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      fulfillment_lines: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          deleted_at: string | null;
+          description: string;
+          fulfillment_id: string;
+          id: string;
+          org_id: string;
+          person_id: string | null;
+          quantity: number;
+          unit_price_minor: number | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          fulfillment_id: string;
+          id?: string;
+          org_id: string;
+          person_id?: string | null;
+          quantity?: number;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          fulfillment_id?: string;
+          id?: string;
+          org_id?: string;
+          person_id?: string | null;
+          quantity?: number;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fulfillment_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fulfillment_lines_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "fulfillment_lines_fulfillment_id_fkey";
+            columns: ["fulfillment_id"];
+            isOneToOne: false;
+            referencedRelation: "fulfillments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fulfillment_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fulfillment_lines_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fulfillment_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      fulfillments: {
+        Row: {
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ends_at: string | null;
+          fulfillment_kind: Database["app"]["Enums"]["fulfillment_kind"];
+          id: string;
+          org_id: string;
+          project_id: string;
+          starts_at: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at?: string | null;
+          fulfillment_kind: Database["app"]["Enums"]["fulfillment_kind"];
+          id?: string;
+          org_id: string;
+          project_id: string;
+          starts_at?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at?: string | null;
+          fulfillment_kind?: Database["app"]["Enums"]["fulfillment_kind"];
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          starts_at?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fulfillments_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fulfillments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fulfillments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fulfillments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "fulfillments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "fulfillments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "fulfillments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fulfillments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      fx_rates: {
+        Row: {
+          base_currency: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          effective_on: string;
+          id: string;
+          org_id: string;
+          quote_currency: string;
+          rate: number;
+          source: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          base_currency: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          effective_on: string;
+          id?: string;
+          org_id: string;
+          quote_currency: string;
+          rate: number;
+          source: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          base_currency?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          effective_on?: string;
+          id?: string;
+          org_id?: string;
+          quote_currency?: string;
+          rate?: number;
+          source?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fx_rates_base_currency_fkey";
+            columns: ["base_currency"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "fx_rates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fx_rates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fx_rates_quote_currency_fkey";
+            columns: ["quote_currency"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "fx_rates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      gate_evidence: {
+        Row: {
+          assertion_rank: number;
+          attested_at: string;
+          attested_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          criterion_id: string;
+          deleted_at: string | null;
+          evidence_uri: string | null;
+          id: string;
+          note: string | null;
+          org_id: string;
+          project_id: string;
+          record_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          assertion_rank: number;
+          attested_at?: string;
+          attested_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          criterion_id: string;
+          deleted_at?: string | null;
+          evidence_uri?: string | null;
+          id?: string;
+          note?: string | null;
+          org_id: string;
+          project_id: string;
+          record_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          assertion_rank?: number;
+          attested_at?: string;
+          attested_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          criterion_id?: string;
+          deleted_at?: string | null;
+          evidence_uri?: string | null;
+          id?: string;
+          note?: string | null;
+          org_id?: string;
+          project_id?: string;
+          record_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gate_evidence_attested_by_fkey";
+            columns: ["attested_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_criterion_id_fkey";
+            columns: ["criterion_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["criterion_id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      gate_queue: {
+        Row: {
+          arrived_at: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          released_at: string | null;
+          released_by: string | null;
+          shipment_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          vehicle_identifier: string;
+        };
+        Insert: {
+          arrived_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          released_at?: string | null;
+          released_by?: string | null;
+          shipment_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vehicle_identifier: string;
+        };
+        Update: {
+          arrived_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          released_at?: string | null;
+          released_by?: string | null;
+          shipment_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vehicle_identifier?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gate_queue_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_queue_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_queue_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "gate_queue_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "gate_queue_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "gate_queue_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_queue_released_by_fkey";
+            columns: ["released_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_queue_shipment_id_fkey";
+            columns: ["shipment_id"];
+            isOneToOne: false;
+            referencedRelation: "shipments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_queue_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      geofences: {
+        Row: {
+          boundary: unknown;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          venue_id: string;
+          zone_id: string | null;
+        };
+        Insert: {
+          boundary: unknown;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id: string;
+          zone_id?: string | null;
+        };
+        Update: {
+          boundary?: unknown;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string;
+          zone_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "geofences_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "geofences_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "geofences_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "geofences_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "geofences_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "zones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      goods_receipts: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          note: string | null;
+          org_id: string;
+          purchase_order_id: string;
+          received_at: string;
+          received_by: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          note?: string | null;
+          org_id: string;
+          purchase_order_id: string;
+          received_at?: string;
+          received_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          note?: string | null;
+          org_id?: string;
+          purchase_order_id?: string;
+          received_at?: string;
+          received_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "goods_receipts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "goods_receipts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "goods_receipts_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_order_totals";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "goods_receipts_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "goods_receipts_received_by_fkey";
+            columns: ["received_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "goods_receipts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      incident_media: {
+        Row: {
+          captured_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          incident_id: string;
+          media_uri: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          captured_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          incident_id: string;
+          media_uri: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          captured_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          incident_id?: string;
+          media_uri?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "incident_media_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incident_media_incident_id_fkey";
+            columns: ["incident_id"];
+            isOneToOne: false;
+            referencedRelation: "incidents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incident_media_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incident_media_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      incident_parties: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          id: string;
+          incident_id: string;
+          org_id: string;
+          person_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          id?: string;
+          incident_id: string;
+          org_id: string;
+          person_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          id?: string;
+          incident_id?: string;
+          org_id?: string;
+          person_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "incident_parties_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incident_parties_incident_id_fkey";
+            columns: ["incident_id"];
+            isOneToOne: false;
+            referencedRelation: "incidents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incident_parties_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incident_parties_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incident_parties_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      incident_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["incident_state"] | null;
+          id: string;
+          incident_id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["incident_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["incident_state"] | null;
+          id?: string;
+          incident_id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["incident_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["incident_state"] | null;
+          id?: string;
+          incident_id?: string;
+          org_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["incident_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "incident_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incident_state_transitions_incident_id_fkey";
+            columns: ["incident_id"];
+            isOneToOne: false;
+            referencedRelation: "incidents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incident_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incident_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      incidents: {
+        Row: {
+          closed_signed_off_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          incident_number: number;
+          incident_state: Database["app"]["Enums"]["incident_state"];
+          occurred_at: string;
+          org_id: string;
+          project_id: string;
+          reported_by: string | null;
+          severity_enum_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          zone_id: string | null;
+        };
+        Insert: {
+          closed_signed_off_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          incident_number?: number;
+          incident_state?: Database["app"]["Enums"]["incident_state"];
+          occurred_at: string;
+          org_id: string;
+          project_id: string;
+          reported_by?: string | null;
+          severity_enum_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id?: string | null;
+        };
+        Update: {
+          closed_signed_off_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          incident_number?: number;
+          incident_state?: Database["app"]["Enums"]["incident_state"];
+          occurred_at?: string;
+          org_id?: string;
+          project_id?: string;
+          reported_by?: string | null;
+          severity_enum_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "incidents_closed_signed_off_by_fkey";
+            columns: ["closed_signed_off_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incidents_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incidents_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incidents_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "incidents_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "incidents_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "incidents_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incidents_reported_by_fkey";
+            columns: ["reported_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incidents_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "incidents_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "zones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      inspection_items: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          inspection_template_id: string;
+          is_critical: boolean;
+          org_id: string;
+          position: number;
+          prompt: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          inspection_template_id: string;
+          is_critical?: boolean;
+          org_id: string;
+          position: number;
+          prompt: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          inspection_template_id?: string;
+          is_critical?: boolean;
+          org_id?: string;
+          position?: number;
+          prompt?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "inspection_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_items_inspection_template_id_fkey";
+            columns: ["inspection_template_id"];
+            isOneToOne: false;
+            referencedRelation: "inspection_templates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_items_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_items_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      inspection_results: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          inspection_id: string;
+          inspection_item_id: string;
+          note: string | null;
+          org_id: string;
+          result_enum_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          inspection_id: string;
+          inspection_item_id: string;
+          note?: string | null;
+          org_id: string;
+          result_enum_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          inspection_id?: string;
+          inspection_item_id?: string;
+          note?: string | null;
+          org_id?: string;
+          result_enum_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "inspection_results_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_results_inspection_id_fkey";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_results_inspection_item_id_fkey";
+            columns: ["inspection_item_id"];
+            isOneToOne: false;
+            referencedRelation: "inspection_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_results_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_results_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      inspection_templates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "inspection_templates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_templates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_templates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      inspections: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          inspected_at: string;
+          inspection_template_id: string;
+          inspector_person_id: string | null;
+          org_id: string;
+          project_id: string;
+          record_id: string | null;
+          signed_off_at: string | null;
+          signed_off_by: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          inspected_at?: string;
+          inspection_template_id: string;
+          inspector_person_id?: string | null;
+          org_id: string;
+          project_id: string;
+          record_id?: string | null;
+          signed_off_at?: string | null;
+          signed_off_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          inspected_at?: string;
+          inspection_template_id?: string;
+          inspector_person_id?: string | null;
+          org_id?: string;
+          project_id?: string;
+          record_id?: string | null;
+          signed_off_at?: string | null;
+          signed_off_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "inspections_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspections_inspection_template_id_fkey";
+            columns: ["inspection_template_id"];
+            isOneToOne: false;
+            referencedRelation: "inspection_templates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspections_inspector_person_id_fkey";
+            columns: ["inspector_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspections_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspections_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "inspections_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "inspections_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "inspections_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspections_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspections_signed_off_by_fkey";
+            columns: ["signed_off_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspections_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      insurance_certificates: {
+        Row: {
+          coverage_limit_minor: number | null;
+          coverage_type: string;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          deleted_at: string | null;
+          document_uri: string | null;
+          id: string;
+          insurer: string;
+          org_id: string;
+          policy_identifier: string;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string;
+          vendor_id: string;
+        };
+        Insert: {
+          coverage_limit_minor?: number | null;
+          coverage_type: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          document_uri?: string | null;
+          id?: string;
+          insurer: string;
+          org_id: string;
+          policy_identifier: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to: string;
+          vendor_id: string;
+        };
+        Update: {
+          coverage_limit_minor?: number | null;
+          coverage_type?: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          document_uri?: string | null;
+          id?: string;
+          insurer?: string;
+          org_id?: string;
+          policy_identifier?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "insurance_certificates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "insurance_certificates_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "insurance_certificates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "insurance_certificates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "insurance_certificates_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
             referencedColumns: ["id"];
           },
         ];
@@ -245,6 +6028,1089 @@ export type Database = {
           },
           {
             foreignKeyName: "invites_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      invoice_lines: {
+        Row: {
+          budget_line_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          id: string;
+          invoice_id: string;
+          line_number: number;
+          org_id: string;
+          quantity: number;
+          tax_rate_id: string | null;
+          unit_price_minor: number | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          budget_line_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          id?: string;
+          invoice_id: string;
+          line_number: number;
+          org_id: string;
+          quantity?: number;
+          tax_rate_id?: string | null;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          budget_line_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          id?: string;
+          invoice_id?: string;
+          line_number?: number;
+          org_id?: string;
+          quantity?: number;
+          tax_rate_id?: string | null;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_amounts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoice_totals";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_tax_rate_id_fkey";
+            columns: ["tax_rate_id"];
+            isOneToOne: false;
+            referencedRelation: "tax_rates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      invoice_matches: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          goods_receipt_id: string;
+          id: string;
+          invoice_id: string;
+          org_id: string;
+          purchase_order_id: string;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          goods_receipt_id: string;
+          id?: string;
+          invoice_id: string;
+          org_id: string;
+          purchase_order_id: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          goods_receipt_id?: string;
+          id?: string;
+          invoice_id?: string;
+          org_id?: string;
+          purchase_order_id?: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_matches_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_goods_receipt_id_fkey";
+            columns: ["goods_receipt_id"];
+            isOneToOne: false;
+            referencedRelation: "goods_receipts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoice_totals";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_order_totals";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_resolved_by_fkey";
+            columns: ["resolved_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      invoice_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["invoice_state"] | null;
+          id: string;
+          invoice_id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["invoice_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["invoice_state"] | null;
+          id?: string;
+          invoice_id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["invoice_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["invoice_state"] | null;
+          id?: string;
+          invoice_id?: string;
+          org_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["invoice_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_state_transitions_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoice_totals";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "invoice_state_transitions_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      invoices: {
+        Row: {
+          counterparty_id: string;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          direction: Database["app"]["Enums"]["money_direction"];
+          due_on: string | null;
+          id: string;
+          invoice_number: string | null;
+          invoice_state: Database["app"]["Enums"]["invoice_state"];
+          issued_on: string | null;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          counterparty_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          direction: Database["app"]["Enums"]["money_direction"];
+          due_on?: string | null;
+          id?: string;
+          invoice_number?: string | null;
+          invoice_state?: Database["app"]["Enums"]["invoice_state"];
+          issued_on?: string | null;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          counterparty_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          direction?: Database["app"]["Enums"]["money_direction"];
+          due_on?: string | null;
+          id?: string;
+          invoice_number?: string | null;
+          invoice_state?: Database["app"]["Enums"]["invoice_state"];
+          issued_on?: string | null;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoices_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "invoices_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      journal_entries: {
+        Row: {
+          accounting_period_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          entry_date: string;
+          id: string;
+          journal_state: Database["app"]["Enums"]["journal_state"];
+          memo: string;
+          org_id: string;
+          posted_at: string | null;
+          posted_by: string | null;
+          prepared_by: string | null;
+          project_id: string | null;
+          source_id: string | null;
+          source_table: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          accounting_period_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          entry_date: string;
+          id?: string;
+          journal_state?: Database["app"]["Enums"]["journal_state"];
+          memo: string;
+          org_id: string;
+          posted_at?: string | null;
+          posted_by?: string | null;
+          prepared_by?: string | null;
+          project_id?: string | null;
+          source_id?: string | null;
+          source_table?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          accounting_period_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          entry_date?: string;
+          id?: string;
+          journal_state?: Database["app"]["Enums"]["journal_state"];
+          memo?: string;
+          org_id?: string;
+          posted_at?: string | null;
+          posted_by?: string | null;
+          prepared_by?: string | null;
+          project_id?: string | null;
+          source_id?: string | null;
+          source_table?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_accounting_period_id_fkey";
+            columns: ["accounting_period_id"];
+            isOneToOne: false;
+            referencedRelation: "accounting_periods";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_entries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_entries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_entries_posted_by_fkey";
+            columns: ["posted_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_entries_prepared_by_fkey";
+            columns: ["prepared_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "journal_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "journal_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "journal_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_entries_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      journal_lines: {
+        Row: {
+          account_code: string;
+          cost_center_id: string | null;
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          credit_minor: number;
+          currency_code: string;
+          debit_minor: number;
+          deleted_at: string | null;
+          description: string;
+          element_id: string | null;
+          id: string;
+          journal_entry_id: string;
+          line_number: number;
+          org_id: string;
+          quantity: number | null;
+          unit_basis: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          urid: string | null;
+        };
+        Insert: {
+          account_code: string;
+          cost_center_id?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          credit_minor?: number;
+          currency_code: string;
+          debit_minor?: number;
+          deleted_at?: string | null;
+          description: string;
+          element_id?: string | null;
+          id?: string;
+          journal_entry_id: string;
+          line_number: number;
+          org_id: string;
+          quantity?: number | null;
+          unit_basis?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid?: string | null;
+        };
+        Update: {
+          account_code?: string;
+          cost_center_id?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          credit_minor?: number;
+          currency_code?: string;
+          debit_minor?: number;
+          deleted_at?: string | null;
+          description?: string;
+          element_id?: string | null;
+          id?: string;
+          journal_entry_id?: string;
+          line_number?: number;
+          org_id?: string;
+          quantity?: number | null;
+          unit_basis?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "journal_lines_cost_center_id_fkey";
+            columns: ["cost_center_id"];
+            isOneToOne: false;
+            referencedRelation: "cost_centers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_lines_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_lines_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "journal_lines_journal_entry_id_fkey";
+            columns: ["journal_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "journal_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      journal_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["journal_state"] | null;
+          id: string;
+          journal_entry_id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["journal_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["journal_state"] | null;
+          id?: string;
+          journal_entry_id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["journal_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["journal_state"] | null;
+          id?: string;
+          journal_entry_id?: string;
+          org_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["journal_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "journal_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_state_transitions_journal_entry_id_fkey";
+            columns: ["journal_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "journal_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      kiosk_devices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          device_key_hash: string;
+          id: string;
+          last_seen_at: string | null;
+          name: string;
+          org_id: string;
+          project_id: string | null;
+          revoked_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          device_key_hash: string;
+          id?: string;
+          last_seen_at?: string | null;
+          name: string;
+          org_id: string;
+          project_id?: string | null;
+          revoked_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          device_key_hash?: string;
+          id?: string;
+          last_seen_at?: string | null;
+          name?: string;
+          org_id?: string;
+          project_id?: string | null;
+          revoked_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "kiosk_devices_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "kiosk_devices_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "kiosk_devices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "kiosk_devices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "kiosk_devices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "kiosk_devices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "kiosk_devices_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      kiosk_pins: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          failed_attempts: number;
+          id: string;
+          locked_at: string | null;
+          membership_id: string;
+          org_id: string;
+          pin_hash: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          failed_attempts?: number;
+          id?: string;
+          locked_at?: string | null;
+          membership_id: string;
+          org_id: string;
+          pin_hash: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          failed_attempts?: number;
+          id?: string;
+          locked_at?: string | null;
+          membership_id?: string;
+          org_id?: string;
+          pin_hash?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "kiosk_pins_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "kiosk_pins_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "kiosk_pins_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "kiosk_pins_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      marshalling_log: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          entry: string;
+          id: string;
+          logged_at: string;
+          org_id: string;
+          project_id: string;
+          shipment_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          zone_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          entry: string;
+          id?: string;
+          logged_at?: string;
+          org_id: string;
+          project_id: string;
+          shipment_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          entry?: string;
+          id?: string;
+          logged_at?: string;
+          org_id?: string;
+          project_id?: string;
+          shipment_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "marshalling_log_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "marshalling_log_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "marshalling_log_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "marshalling_log_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "marshalling_log_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "marshalling_log_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "marshalling_log_shipment_id_fkey";
+            columns: ["shipment_id"];
+            isOneToOne: false;
+            referencedRelation: "shipments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "marshalling_log_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "marshalling_log_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "zones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      medical_encounters: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          disposition: string | null;
+          id: string;
+          incident_id: string;
+          org_id: string;
+          patient_description: string;
+          treatment_notes: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          disposition?: string | null;
+          id?: string;
+          incident_id: string;
+          org_id: string;
+          patient_description: string;
+          treatment_notes?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          disposition?: string | null;
+          id?: string;
+          incident_id?: string;
+          org_id?: string;
+          patient_description?: string;
+          treatment_notes?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "medical_encounters_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "medical_encounters_incident_id_fkey";
+            columns: ["incident_id"];
+            isOneToOne: false;
+            referencedRelation: "incidents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "medical_encounters_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "medical_encounters_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -460,6 +7326,764 @@ export type Database = {
           },
         ];
       };
+      pay_period_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["pay_period_state"] | null;
+          id: string;
+          org_id: string;
+          pay_period_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["pay_period_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["pay_period_state"] | null;
+          id?: string;
+          org_id: string;
+          pay_period_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["pay_period_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["pay_period_state"] | null;
+          id?: string;
+          org_id?: string;
+          pay_period_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["pay_period_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pay_period_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_period_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_period_state_transitions_pay_period_id_fkey";
+            columns: ["pay_period_id"];
+            isOneToOne: false;
+            referencedRelation: "pay_periods";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_period_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pay_periods: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ends_on: string;
+          id: string;
+          org_id: string;
+          pay_period_state: Database["app"]["Enums"]["pay_period_state"];
+          starts_on: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_on: string;
+          id?: string;
+          org_id: string;
+          pay_period_state?: Database["app"]["Enums"]["pay_period_state"];
+          starts_on: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_on?: string;
+          id?: string;
+          org_id?: string;
+          pay_period_state?: Database["app"]["Enums"]["pay_period_state"];
+          starts_on?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pay_periods_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_periods_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_periods_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pay_rates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          effective_from: string;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          rate_minor: number;
+          role_code: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          effective_from: string;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          rate_minor: number;
+          role_code: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          effective_from?: string;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          rate_minor?: number;
+          role_code?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pay_rates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_rates_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "pay_rates_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_rates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_rates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payment_applications: {
+        Row: {
+          amount_minor: number;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          invoice_id: string;
+          org_id: string;
+          payment_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          amount_minor: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          invoice_id: string;
+          org_id: string;
+          payment_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_minor?: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          invoice_id?: string;
+          org_id?: string;
+          payment_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payment_applications_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payment_applications_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoice_totals";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "payment_applications_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payment_applications_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payment_applications_payment_id_fkey";
+            columns: ["payment_id"];
+            isOneToOne: false;
+            referencedRelation: "payments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payment_applications_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payment_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["payment_state"] | null;
+          id: string;
+          org_id: string;
+          payment_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["payment_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["payment_state"] | null;
+          id?: string;
+          org_id: string;
+          payment_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["payment_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["payment_state"] | null;
+          id?: string;
+          org_id?: string;
+          payment_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["payment_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payment_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payment_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payment_state_transitions_payment_id_fkey";
+            columns: ["payment_id"];
+            isOneToOne: false;
+            referencedRelation: "payments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payment_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payments: {
+        Row: {
+          amount_minor: number;
+          counterparty_id: string;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          direction: Database["app"]["Enums"]["money_direction"];
+          id: string;
+          org_id: string;
+          paid_on: string;
+          payment_state: Database["app"]["Enums"]["payment_state"];
+          reference_identifier: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          amount_minor: number;
+          counterparty_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          direction: Database["app"]["Enums"]["money_direction"];
+          id?: string;
+          org_id: string;
+          paid_on: string;
+          payment_state?: Database["app"]["Enums"]["payment_state"];
+          reference_identifier?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_minor?: number;
+          counterparty_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          direction?: Database["app"]["Enums"]["money_direction"];
+          id?: string;
+          org_id?: string;
+          paid_on?: string;
+          payment_state?: Database["app"]["Enums"]["payment_state"];
+          reference_identifier?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payments_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payments_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "payments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payroll_exports: {
+        Row: {
+          checksum_sha256: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          file_uri: string;
+          id: string;
+          org_id: string;
+          payroll_run_id: string;
+          provider: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          checksum_sha256: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          file_uri: string;
+          id?: string;
+          org_id: string;
+          payroll_run_id: string;
+          provider: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          checksum_sha256?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          file_uri?: string;
+          id?: string;
+          org_id?: string;
+          payroll_run_id?: string;
+          provider?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_exports_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_exports_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_exports_payroll_run_id_fkey";
+            columns: ["payroll_run_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_exports_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payroll_lines: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          earning_code_id: string;
+          hours: number;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          payroll_run_id: string;
+          rate_minor: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          earning_code_id: string;
+          hours: number;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          payroll_run_id: string;
+          rate_minor: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          earning_code_id?: string;
+          hours?: number;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          payroll_run_id?: string;
+          rate_minor?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_lines_earning_code_id_fkey";
+            columns: ["earning_code_id"];
+            isOneToOne: false;
+            referencedRelation: "earning_codes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_lines_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_lines_payroll_run_id_fkey";
+            columns: ["payroll_run_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payroll_run_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["payroll_run_state"] | null;
+          id: string;
+          org_id: string;
+          payroll_run_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["payroll_run_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["payroll_run_state"] | null;
+          id?: string;
+          org_id: string;
+          payroll_run_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["payroll_run_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["payroll_run_state"] | null;
+          id?: string;
+          org_id?: string;
+          payroll_run_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["payroll_run_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_run_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_run_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_run_state_transitions_payroll_run_id_fkey";
+            columns: ["payroll_run_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_run_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payroll_runs: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          pay_period_id: string;
+          payroll_run_state: Database["app"]["Enums"]["payroll_run_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          pay_period_id: string;
+          payroll_run_state?: Database["app"]["Enums"]["payroll_run_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          pay_period_id?: string;
+          payroll_run_state?: Database["app"]["Enums"]["payroll_run_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_runs_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_runs_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "payroll_runs_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_runs_pay_period_id_fkey";
+            columns: ["pay_period_id"];
+            isOneToOne: false;
+            referencedRelation: "pay_periods";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_runs_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       people: {
         Row: {
           created_at: string;
@@ -508,6 +8132,211 @@ export type Database = {
           },
         ];
       };
+      per_diems: {
+        Row: {
+          amount_minor: number;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          day: string;
+          deleted_at: string | null;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          amount_minor: number;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          day: string;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_minor?: number;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          day?: string;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "per_diems_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "per_diems_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "per_diems_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "per_diems_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "per_diems_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "per_diems_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "per_diems_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "per_diems_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "per_diems_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      permit_requirements: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          permit_rule: string;
+          project_id: string;
+          record_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          permit_rule: string;
+          project_id: string;
+          record_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          permit_rule?: string;
+          project_id?: string;
+          record_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "permit_requirements_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "permit_requirements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "permit_requirements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "permit_requirements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "permit_requirements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "permit_requirements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "permit_requirements_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "permit_requirements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       plans: {
         Row: {
           code: string;
@@ -522,6 +8351,2734 @@ export type Database = {
           sort_order?: number;
         };
         Relationships: [];
+      };
+      po_change_order_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["po_change_order_state"] | null;
+          id: string;
+          org_id: string;
+          po_change_order_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["po_change_order_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["po_change_order_state"] | null;
+          id?: string;
+          org_id: string;
+          po_change_order_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["po_change_order_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["po_change_order_state"] | null;
+          id?: string;
+          org_id?: string;
+          po_change_order_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["po_change_order_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "po_change_order_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_change_order_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_change_order_state_transitions_po_change_order_id_fkey";
+            columns: ["po_change_order_id"];
+            isOneToOne: false;
+            referencedRelation: "po_change_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_change_order_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      po_change_orders: {
+        Row: {
+          amount_delta_minor: number | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          id: string;
+          org_id: string;
+          po_change_order_state: Database["app"]["Enums"]["po_change_order_state"];
+          purchase_order_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          amount_delta_minor?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          id?: string;
+          org_id: string;
+          po_change_order_state?: Database["app"]["Enums"]["po_change_order_state"];
+          purchase_order_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_delta_minor?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          id?: string;
+          org_id?: string;
+          po_change_order_state?: Database["app"]["Enums"]["po_change_order_state"];
+          purchase_order_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "po_change_orders_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_change_orders_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_change_orders_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_order_totals";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "po_change_orders_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_change_orders_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      po_lines: {
+        Row: {
+          budget_line_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          element_id: string | null;
+          id: string;
+          line_number: number;
+          org_id: string;
+          purchase_order_id: string;
+          quantity: number;
+          unit_basis: string | null;
+          unit_price_minor: number | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          budget_line_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          element_id?: string | null;
+          id?: string;
+          line_number: number;
+          org_id: string;
+          purchase_order_id: string;
+          quantity: number;
+          unit_basis?: string | null;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          budget_line_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          element_id?: string | null;
+          id?: string;
+          line_number?: number;
+          org_id?: string;
+          purchase_order_id?: string;
+          quantity?: number;
+          unit_basis?: string | null;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "po_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_line_amounts";
+            referencedColumns: ["budget_line_id"];
+          },
+          {
+            foreignKeyName: "po_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_lines_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_order_totals";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "po_lines_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      prequalifications: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          decision: Database["app"]["Enums"]["approval_decision"] | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          scope_note: string;
+          updated_at: string;
+          updated_by: string | null;
+          valid_to: string | null;
+          vendor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision?: Database["app"]["Enums"]["approval_decision"] | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          scope_note: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_to?: string | null;
+          vendor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision?: Database["app"]["Enums"]["approval_decision"] | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          scope_note?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_to?: string | null;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "prequalifications_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "prequalifications_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "prequalifications_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "prequalifications_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "prequalifications_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      production_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["production_state"] | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["production_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["production_state"] | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["production_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["production_state"] | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["production_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "production_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_state_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "production_state_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "production_state_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "production_state_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      project_members: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          project_id: string;
+          project_role: Database["app"]["Enums"]["project_role"];
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          project_id: string;
+          project_role: Database["app"]["Enums"]["project_role"];
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          project_id?: string;
+          project_role?: Database["app"]["Enums"]["project_role"];
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_members_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_members_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_members_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_members_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_members_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_members_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_members_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_members_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      project_phase_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_phase_code: string;
+          gate: number;
+          id: string;
+          org_id: string;
+          project_id: string;
+          reason: string;
+          to_phase_code: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_phase_code: string;
+          gate: number;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          reason: string;
+          to_phase_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_phase_code?: string;
+          gate?: number;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          reason?: string;
+          to_phase_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_phase_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_phase_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_phase_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_phase_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_phase_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_phase_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_phase_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      project_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["project_state"] | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["project_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["project_state"] | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["project_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["project_state"] | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["project_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_state_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_state_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_state_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_state_transitions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      projects: {
+        Row: {
+          archived_at: string | null;
+          client_counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          current_phase_code: string;
+          deleted_at: string | null;
+          ends_on: string | null;
+          id: string;
+          jurisdiction_id: string | null;
+          name: string;
+          org_id: string;
+          production_state: Database["app"]["Enums"]["production_state"];
+          project_key: string;
+          project_state: Database["app"]["Enums"]["project_state"];
+          region_code: string | null;
+          starts_on: string | null;
+          tier_code: string | null;
+          time_zone: string;
+          updated_at: string;
+          updated_by: string | null;
+          venue_id: string | null;
+          workspace_id: string | null;
+        };
+        Insert: {
+          archived_at?: string | null;
+          client_counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          current_phase_code?: string;
+          deleted_at?: string | null;
+          ends_on?: string | null;
+          id?: string;
+          jurisdiction_id?: string | null;
+          name: string;
+          org_id: string;
+          production_state?: Database["app"]["Enums"]["production_state"];
+          project_key: string;
+          project_state?: Database["app"]["Enums"]["project_state"];
+          region_code?: string | null;
+          starts_on?: string | null;
+          tier_code?: string | null;
+          time_zone: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+          workspace_id?: string | null;
+        };
+        Update: {
+          archived_at?: string | null;
+          client_counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          current_phase_code?: string;
+          deleted_at?: string | null;
+          ends_on?: string | null;
+          id?: string;
+          jurisdiction_id?: string | null;
+          name?: string;
+          org_id?: string;
+          production_state?: Database["app"]["Enums"]["production_state"];
+          project_key?: string;
+          project_state?: Database["app"]["Enums"]["project_state"];
+          region_code?: string | null;
+          starts_on?: string | null;
+          tier_code?: string | null;
+          time_zone?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+          workspace_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_counterparty_id_fkey";
+            columns: ["client_counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      purchase_order_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["po_state"] | null;
+          id: string;
+          org_id: string;
+          purchase_order_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["po_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["po_state"] | null;
+          id?: string;
+          org_id: string;
+          purchase_order_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["po_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["po_state"] | null;
+          id?: string;
+          org_id?: string;
+          purchase_order_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["po_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_order_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_order_state_transitions_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_order_totals";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "purchase_order_state_transitions_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_order_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      purchase_orders: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          po_number: number;
+          po_state: Database["app"]["Enums"]["po_state"];
+          project_id: string;
+          rfq_response_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          po_number?: number;
+          po_state?: Database["app"]["Enums"]["po_state"];
+          project_id: string;
+          rfq_response_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          po_number?: number;
+          po_state?: Database["app"]["Enums"]["po_state"];
+          project_id?: string;
+          rfq_response_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "purchase_orders_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_rfq_response_id_fkey";
+            columns: ["rfq_response_id"];
+            isOneToOne: false;
+            referencedRelation: "rfq_responses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      radio_channels: {
+        Row: {
+          channel_number: number;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          zone_id: string | null;
+        };
+        Insert: {
+          channel_number: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id?: string | null;
+        };
+        Update: {
+          channel_number?: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          zone_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "radio_channels_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "radio_channels_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "radio_channels_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "radio_channels_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "radio_channels_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "radio_channels_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "radio_channels_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "radio_channels_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "zones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rate_card_lines: {
+        Row: {
+          arrangement: string;
+          canon_rate_card_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          overtime_rule_id: string;
+          pay_basis: string;
+          rate_card_id: string;
+          rate_minor: number | null;
+          role_code: string;
+          updated_at: string;
+          updated_by: string | null;
+          worker_classification: string;
+        };
+        Insert: {
+          arrangement: string;
+          canon_rate_card_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          overtime_rule_id: string;
+          pay_basis: string;
+          rate_card_id: string;
+          rate_minor?: number | null;
+          role_code: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          worker_classification: string;
+        };
+        Update: {
+          arrangement?: string;
+          canon_rate_card_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          overtime_rule_id?: string;
+          pay_basis?: string;
+          rate_card_id?: string;
+          rate_minor?: number | null;
+          role_code?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          worker_classification?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rate_card_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rate_card_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rate_card_lines_rate_card_id_fkey";
+            columns: ["rate_card_id"];
+            isOneToOne: false;
+            referencedRelation: "rate_cards";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rate_card_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rate_cards: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          effective_from: string;
+          effective_to: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          effective_from: string;
+          effective_to?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          effective_from?: string;
+          effective_to?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rate_cards_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rate_cards_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "rate_cards_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rate_cards_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      receipt_lines: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          goods_receipt_id: string;
+          id: string;
+          org_id: string;
+          po_line_id: string;
+          quantity_received: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          goods_receipt_id: string;
+          id?: string;
+          org_id: string;
+          po_line_id: string;
+          quantity_received: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          goods_receipt_id?: string;
+          id?: string;
+          org_id?: string;
+          po_line_id?: string;
+          quantity_received?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "receipt_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "receipt_lines_goods_receipt_id_fkey";
+            columns: ["goods_receipt_id"];
+            isOneToOne: false;
+            referencedRelation: "goods_receipts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "receipt_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "receipt_lines_po_line_id_fkey";
+            columns: ["po_line_id"];
+            isOneToOne: false;
+            referencedRelation: "po_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "receipt_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      reconciliation_lines: {
+        Row: {
+          capability_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          reconciliation_id: string;
+          requirement_id: string;
+          result: Database["app"]["Enums"]["reconciliation_result"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          capability_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          reconciliation_id: string;
+          requirement_id: string;
+          result: Database["app"]["Enums"]["reconciliation_result"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          capability_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          reconciliation_id?: string;
+          requirement_id?: string;
+          result?: Database["app"]["Enums"]["reconciliation_result"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_lines_capability_id_fkey";
+            columns: ["capability_id"];
+            isOneToOne: false;
+            referencedRelation: "capability_statements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_capability_id_fkey";
+            columns: ["capability_id"];
+            isOneToOne: false;
+            referencedRelation: "project_capabilities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_capability_id_fkey";
+            columns: ["capability_id"];
+            isOneToOne: false;
+            referencedRelation: "project_requirements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_reconciliation_id_fkey";
+            columns: ["reconciliation_id"];
+            isOneToOne: false;
+            referencedRelation: "reconciliations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_requirement_id_fkey";
+            columns: ["requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "capability_statements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_requirement_id_fkey";
+            columns: ["requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "project_capabilities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_requirement_id_fkey";
+            columns: ["requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "project_requirements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      reconciliations: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          note: string | null;
+          org_id: string;
+          project_id: string;
+          reconciled_at: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          note?: string | null;
+          org_id: string;
+          project_id: string;
+          reconciled_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          note?: string | null;
+          org_id?: string;
+          project_id?: string;
+          reconciled_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reconciliations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliations_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliations_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "reconciliations_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "reconciliations_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "reconciliations_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliations_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_approval: {
+        Row: {
+          approver_person_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decision: Database["app"]["Enums"]["approval_decision"] | null;
+          deleted_at: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          requester_person_id: string;
+          subject_record_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          approver_person_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decision?: Database["app"]["Enums"]["approval_decision"] | null;
+          deleted_at?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          requester_person_id: string;
+          subject_record_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          approver_person_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decision?: Database["app"]["Enums"]["approval_decision"] | null;
+          deleted_at?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          requester_person_id?: string;
+          subject_record_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_approval_approver_person_id_fkey";
+            columns: ["approver_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_approval_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_approval_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_approval_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_approval_requester_person_id_fkey";
+            columns: ["requester_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_approval_subject_record_id_fkey";
+            columns: ["subject_record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_approval_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_assignments: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          record_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          record_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          record_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_assignments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_assignments_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_assignments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_assignments_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_assignments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_booking: {
+        Row: {
+          confirmation_identifier: string | null;
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          org_id: string;
+          quantity: number | null;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          confirmation_identifier?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id: string;
+          quantity?: number | null;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          confirmation_identifier?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id?: string;
+          quantity?: number | null;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_booking_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_booking_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_booking_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_booking_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_booking_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_build: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          engineering_stamp_required: boolean;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          stamped_at: string | null;
+          stamping_engineer: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engineering_stamp_required?: boolean;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          stamped_at?: string | null;
+          stamping_engineer?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engineering_stamp_required?: boolean;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          stamped_at?: string | null;
+          stamping_engineer?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_build_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_build_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_build_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_build_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_checklist_items: {
+        Row: {
+          checked_at: string | null;
+          checked_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          label: string;
+          org_id: string;
+          position: number;
+          record_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          checked_at?: string | null;
+          checked_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          label: string;
+          org_id: string;
+          position: number;
+          record_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          checked_at?: string | null;
+          checked_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          label?: string;
+          org_id?: string;
+          position?: number;
+          record_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_checklist_items_checked_by_fkey";
+            columns: ["checked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_checklist_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_checklist_items_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_checklist_items_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_checklist_items_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_compliance: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          on_file_at: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string | null;
+          valid_to: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          on_file_at?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string | null;
+          valid_to?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          on_file_at?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string | null;
+          valid_to?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_compliance_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_compliance_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_compliance_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_compliance_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_contract: {
+        Row: {
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          deleted_at: string | null;
+          effective_from: string | null;
+          effective_to: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          signed_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          value_minor: number | null;
+        };
+        Insert: {
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          effective_from?: string | null;
+          effective_to?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          signed_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          value_minor?: number | null;
+        };
+        Update: {
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          effective_from?: string | null;
+          effective_to?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          signed_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          value_minor?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_contract_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_contract_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_contract_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "record_contract_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_contract_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_contract_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_deadline: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          org_id: string;
+          owed_to: string | null;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id: string;
+          owed_to?: string | null;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id?: string;
+          owed_to?: string | null;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_deadline_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_deadline_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_deadline_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_deadline_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_decision: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          decision_text: string | null;
+          deleted_at: string | null;
+          options_considered: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_text?: string | null;
+          deleted_at?: string | null;
+          options_considered?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_text?: string | null;
+          deleted_at?: string | null;
+          options_considered?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_decision_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_decision_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_decision_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_decision_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_decision_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_dependencies: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          dependency_type: Database["app"]["Enums"]["dependency_type"];
+          id: string;
+          lag: string;
+          org_id: string;
+          predecessor_record_id: string;
+          successor_record_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          dependency_type?: Database["app"]["Enums"]["dependency_type"];
+          id?: string;
+          lag?: string;
+          org_id: string;
+          predecessor_record_id: string;
+          successor_record_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          dependency_type?: Database["app"]["Enums"]["dependency_type"];
+          id?: string;
+          lag?: string;
+          org_id?: string;
+          predecessor_record_id?: string;
+          successor_record_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_dependencies_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_dependencies_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_dependencies_predecessor_record_id_fkey";
+            columns: ["predecessor_record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_dependencies_successor_record_id_fkey";
+            columns: ["successor_record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_dependencies_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_distribution: {
+        Row: {
+          audience: string | null;
+          channel: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          org_id: string;
+          published_at: string | null;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          audience?: string | null;
+          channel?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id: string;
+          published_at?: string | null;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          audience?: string | null;
+          channel?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id?: string;
+          published_at?: string | null;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_distribution_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_distribution_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_distribution_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_distribution_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_document: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          storage_uri: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          version_label: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          storage_uri?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_label?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          storage_uri?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_label?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_document_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_document_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_document_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_document_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_event: {
+        Row: {
+          capacity: number | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          doors_at: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+          venue_id: string | null;
+        };
+        Insert: {
+          capacity?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          doors_at?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+        };
+        Update: {
+          capacity?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          doors_at?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_event_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_event_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_event_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_event_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_event_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_external_visibility: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          external_role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          id: string;
+          org_id: string;
+          organization_id: string | null;
+          person_id: string | null;
+          record_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          external_role_type?: Database["app"]["Enums"]["external_role_type"] | null;
+          id?: string;
+          org_id: string;
+          organization_id?: string | null;
+          person_id?: string | null;
+          record_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          external_role_type?: Database["app"]["Enums"]["external_role_type"] | null;
+          id?: string;
+          org_id?: string;
+          organization_id?: string | null;
+          person_id?: string | null;
+          record_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_external_visibility_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_external_visibility_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_external_visibility_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_external_visibility_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_external_visibility_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_external_visibility_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_goal: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          measured_value: number | null;
+          metric: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          target_value: number | null;
+          unit_basis: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          measured_value?: number | null;
+          metric?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          target_value?: number | null;
+          unit_basis?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          measured_value?: number | null;
+          metric?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          target_value?: number | null;
+          unit_basis?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_goal_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_goal_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_goal_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_goal_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       record_grants: {
         Row: {
@@ -623,6 +11180,2122 @@ export type Database = {
           },
           {
             foreignKeyName: "record_grants_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_inspection: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          inspected_at: string | null;
+          inspector_person_id: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          result_enum_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          inspected_at?: string | null;
+          inspector_person_id?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          result_enum_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          inspected_at?: string | null;
+          inspector_person_id?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          result_enum_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_inspection_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_inspection_inspector_person_id_fkey";
+            columns: ["inspector_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_inspection_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_inspection_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_inspection_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_meeting: {
+        Row: {
+          conferencing_uri: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          location_text: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          conferencing_uri?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          location_text?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          conferencing_uri?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          location_text?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_meeting_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_meeting_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_meeting_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_meeting_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_milestone: {
+        Row: {
+          achieved_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          achieved_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          achieved_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_milestone_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_milestone_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_milestone_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_milestone_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_payment: {
+        Row: {
+          amount_minor: number | null;
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          deleted_at: string | null;
+          direction: Database["app"]["Enums"]["money_direction"];
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          amount_minor?: number | null;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          direction: Database["app"]["Enums"]["money_direction"];
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_minor?: number | null;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          direction?: Database["app"]["Enums"]["money_direction"];
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_payment_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_payment_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_payment_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "record_payment_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_payment_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_payment_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_permit: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_at: string | null;
+          issued_at: string | null;
+          org_id: string;
+          permit_identifier: string | null;
+          permit_rule: string | null;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          issued_at?: string | null;
+          org_id: string;
+          permit_identifier?: string | null;
+          permit_rule?: string | null;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          issued_at?: string | null;
+          org_id?: string;
+          permit_identifier?: string | null;
+          permit_rule?: string | null;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_permit_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_permit_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_permit_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_permit_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_recruitment: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          headcount: number;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          role_code: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          worker_classification: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          headcount?: number;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          role_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          worker_classification?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          headcount?: number;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          role_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          worker_classification?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_recruitment_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_recruitment_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_recruitment_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_recruitment_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_recurrences: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          record_id: string;
+          rrule: string;
+          time_zone: string;
+          until_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          record_id: string;
+          rrule: string;
+          time_zone: string;
+          until_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          record_id?: string;
+          rrule?: string;
+          time_zone?: string;
+          until_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_recurrences_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_recurrences_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_recurrences_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_recurrences_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_rehearsal: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          run_number: number | null;
+          stream_target: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          run_number?: number | null;
+          stream_target?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          run_number?: number | null;
+          stream_target?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_rehearsal_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_rehearsal_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_rehearsal_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_rehearsal_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_replans: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: string;
+          id: string;
+          new_due_at: string | null;
+          new_ends_at: string | null;
+          new_starts_at: string | null;
+          old_due_at: string | null;
+          old_ends_at: string | null;
+          old_starts_at: string | null;
+          org_id: string;
+          reason: string | null;
+          record_id: string;
+          to_state: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state: string;
+          id?: string;
+          new_due_at?: string | null;
+          new_ends_at?: string | null;
+          new_starts_at?: string | null;
+          old_due_at?: string | null;
+          old_ends_at?: string | null;
+          old_starts_at?: string | null;
+          org_id: string;
+          reason?: string | null;
+          record_id: string;
+          to_state: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: string;
+          id?: string;
+          new_due_at?: string | null;
+          new_ends_at?: string | null;
+          new_starts_at?: string | null;
+          old_due_at?: string | null;
+          old_ends_at?: string | null;
+          old_starts_at?: string | null;
+          org_id?: string;
+          reason?: string | null;
+          record_id?: string;
+          to_state?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_replans_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_replans_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_replans_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_replans_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_report: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          org_id: string;
+          period_end: string | null;
+          period_start: string | null;
+          published_at: string | null;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id: string;
+          period_end?: string | null;
+          period_start?: string | null;
+          published_at?: string | null;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id?: string;
+          period_end?: string | null;
+          period_start?: string | null;
+          published_at?: string | null;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_report_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_report_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_report_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_report_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_risk: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          impact: number | null;
+          likelihood: number | null;
+          mitigation: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          score: number | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          impact?: number | null;
+          likelihood?: number | null;
+          mitigation?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          score?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          impact?: number | null;
+          likelihood?: number | null;
+          mitigation?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          score?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_risk_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_risk_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_risk_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_risk_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_shift: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          headcount: number;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          role_code: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          headcount?: number;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          role_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          headcount?: number;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          role_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_shift_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_shift_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_shift_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_shift_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: string | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          record_id: string;
+          to_state: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: string | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          record_id: string;
+          to_state: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: string | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          record_id?: string;
+          to_state?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_state_transitions_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_strike: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          restoration_required: boolean;
+          signed_off_at: string | null;
+          signed_off_by: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          restoration_required?: boolean;
+          signed_off_at?: string | null;
+          signed_off_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          restoration_required?: boolean;
+          signed_off_at?: string | null;
+          signed_off_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_strike_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_strike_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_strike_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_strike_signed_off_by_fkey";
+            columns: ["signed_off_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_strike_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_supply: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          element_id: string | null;
+          org_id: string;
+          quantity: number | null;
+          received_at: string | null;
+          record_id: string;
+          record_kind: string;
+          unit_basis: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          element_id?: string | null;
+          org_id: string;
+          quantity?: number | null;
+          received_at?: string | null;
+          record_id: string;
+          record_kind?: string;
+          unit_basis?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          element_id?: string | null;
+          org_id?: string;
+          quantity?: number | null;
+          received_at?: string | null;
+          record_id?: string;
+          record_kind?: string;
+          unit_basis?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_supply_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_supply_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_supply_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_supply_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_task: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          effort_hours: number | null;
+          org_id: string;
+          progress_pct: number | null;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          effort_hours?: number | null;
+          org_id: string;
+          progress_pct?: number | null;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          effort_hours?: number | null;
+          org_id?: string;
+          progress_pct?: number | null;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_task_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_task_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_task_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_task_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_timeline: {
+        Row: {
+          baseline_locked_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          baseline_locked_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          baseline_locked_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_timeline_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_timeline_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_timeline_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_timeline_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_training: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          delivered_by: string | null;
+          duration_minutes: number | null;
+          org_id: string;
+          record_id: string;
+          record_kind: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivered_by?: string | null;
+          duration_minutes?: number | null;
+          org_id: string;
+          record_id: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivered_by?: string | null;
+          duration_minutes?: number | null;
+          org_id?: string;
+          record_id?: string;
+          record_kind?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_training_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_training_delivered_by_fkey";
+            columns: ["delivered_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_training_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_training_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_training_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      record_watchers: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          person_id: string;
+          record_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          person_id: string;
+          record_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          person_id?: string;
+          record_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "record_watchers_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_watchers_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_watchers_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_watchers_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_watchers_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      records: {
+        Row: {
+          accountable_party_id: string | null;
+          blocker_text: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          due_at: string | null;
+          ends_at: string | null;
+          id: string;
+          org_id: string;
+          owner_party_id: string | null;
+          phase_code: string | null;
+          project_id: string;
+          record_kind: string;
+          record_number: number;
+          record_state: string;
+          record_subtype: string | null;
+          replan_reason: string | null;
+          scope_node_id: string | null;
+          starts_at: string | null;
+          time_zone: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          urid: string | null;
+          xyz: string;
+          xyz_basis: Database["app"]["Enums"]["xyz_basis"];
+        };
+        Insert: {
+          accountable_party_id?: string | null;
+          blocker_text?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_at?: string | null;
+          ends_at?: string | null;
+          id?: string;
+          org_id: string;
+          owner_party_id?: string | null;
+          phase_code?: string | null;
+          project_id: string;
+          record_kind: string;
+          record_number?: number;
+          record_state?: string;
+          record_subtype?: string | null;
+          replan_reason?: string | null;
+          scope_node_id?: string | null;
+          starts_at?: string | null;
+          time_zone?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid?: string | null;
+          xyz: string;
+          xyz_basis: Database["app"]["Enums"]["xyz_basis"];
+        };
+        Update: {
+          accountable_party_id?: string | null;
+          blocker_text?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_at?: string | null;
+          ends_at?: string | null;
+          id?: string;
+          org_id?: string;
+          owner_party_id?: string | null;
+          phase_code?: string | null;
+          project_id?: string;
+          record_kind?: string;
+          record_number?: number;
+          record_state?: string;
+          record_subtype?: string | null;
+          replan_reason?: string | null;
+          scope_node_id?: string | null;
+          starts_at?: string | null;
+          time_zone?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid?: string | null;
+          xyz?: string;
+          xyz_basis?: Database["app"]["Enums"]["xyz_basis"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "records_accountable_party_id_fkey";
+            columns: ["accountable_party_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_owner_party_id_fkey";
+            columns: ["owner_party_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_scope_node_id_fkey";
+            columns: ["scope_node_id"];
+            isOneToOne: false;
+            referencedRelation: "scope_nodes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rfq_invitations: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          rfq_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          rfq_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          rfq_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rfq_invitations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_invitations_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_invitations_rfq_id_fkey";
+            columns: ["rfq_id"];
+            isOneToOne: false;
+            referencedRelation: "rfqs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_invitations_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_invitations_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rfq_response_lines: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          description: string;
+          element_id: string | null;
+          id: string;
+          org_id: string;
+          quantity: number;
+          rfq_response_id: string;
+          unit_price_minor: number | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          description: string;
+          element_id?: string | null;
+          id?: string;
+          org_id: string;
+          quantity?: number;
+          rfq_response_id: string;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          description?: string;
+          element_id?: string | null;
+          id?: string;
+          org_id?: string;
+          quantity?: number;
+          rfq_response_id?: string;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rfq_response_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_response_lines_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "rfq_response_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_response_lines_rfq_response_id_fkey";
+            columns: ["rfq_response_id"];
+            isOneToOne: false;
+            referencedRelation: "rfq_responses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_response_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rfq_responses: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          rfq_id: string;
+          submitted_at: string;
+          updated_at: string;
+          updated_by: string | null;
+          valid_until: string | null;
+          vendor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          rfq_id: string;
+          submitted_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_until?: string | null;
+          vendor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          rfq_id?: string;
+          submitted_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_until?: string | null;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rfq_responses_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_responses_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_responses_rfq_id_fkey";
+            columns: ["rfq_id"];
+            isOneToOne: false;
+            referencedRelation: "rfqs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_responses_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_responses_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rfq_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["rfq_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          rfq_id: string;
+          to_state: Database["app"]["Enums"]["rfq_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["rfq_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          rfq_id: string;
+          to_state: Database["app"]["Enums"]["rfq_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["rfq_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          rfq_id?: string;
+          to_state?: Database["app"]["Enums"]["rfq_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rfq_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_state_transitions_rfq_id_fkey";
+            columns: ["rfq_id"];
+            isOneToOne: false;
+            referencedRelation: "rfqs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rfqs: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          responses_due_at: string | null;
+          rfq_number: number;
+          rfq_state: Database["app"]["Enums"]["rfq_state"];
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          responses_due_at?: string | null;
+          rfq_number?: number;
+          rfq_state?: Database["app"]["Enums"]["rfq_state"];
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          responses_due_at?: string | null;
+          rfq_number?: number;
+          rfq_state?: Database["app"]["Enums"]["rfq_state"];
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rfqs_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfqs_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfqs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "rfqs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "rfqs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "rfqs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfqs_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rider_lines: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          element_id: string | null;
+          fulfilled_at: string | null;
+          id: string;
+          org_id: string;
+          quantity: number | null;
+          rider_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          element_id?: string | null;
+          fulfilled_at?: string | null;
+          id?: string;
+          org_id: string;
+          quantity?: number | null;
+          rider_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          element_id?: string | null;
+          fulfilled_at?: string | null;
+          id?: string;
+          org_id?: string;
+          quantity?: number | null;
+          rider_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rider_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rider_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rider_lines_rider_id_fkey";
+            columns: ["rider_id"];
+            isOneToOne: false;
+            referencedRelation: "riders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rider_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      riders: {
+        Row: {
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "riders_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "riders_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "riders_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "riders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "riders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "riders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "riders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "riders_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -762,6 +13435,1559 @@ export type Database = {
           },
           {
             foreignKeyName: "roles_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      run_of_show: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          project_id: string;
+          scope_node_id: string | null;
+          show_date: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          project_id: string;
+          scope_node_id?: string | null;
+          show_date: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          project_id?: string;
+          scope_node_id?: string | null;
+          show_date?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "run_of_show_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "run_of_show_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "run_of_show_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "run_of_show_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "run_of_show_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "run_of_show_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "run_of_show_scope_node_id_fkey";
+            columns: ["scope_node_id"];
+            isOneToOne: false;
+            referencedRelation: "scope_nodes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "run_of_show_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      schedule_actuals: {
+        Row: {
+          actual_ends_at: string | null;
+          actual_starts_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          record_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          actual_ends_at?: string | null;
+          actual_starts_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          record_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          actual_ends_at?: string | null;
+          actual_starts_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          record_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "schedule_actuals_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_actuals_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_actuals_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_actuals_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      schedule_baseline_items: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          planned_ends_at: string | null;
+          planned_starts_at: string | null;
+          record_id: string;
+          schedule_baseline_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          planned_ends_at?: string | null;
+          planned_starts_at?: string | null;
+          record_id: string;
+          schedule_baseline_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          planned_ends_at?: string | null;
+          planned_starts_at?: string | null;
+          record_id?: string;
+          schedule_baseline_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "schedule_baseline_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_baseline_items_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_baseline_items_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_baseline_items_schedule_baseline_id_fkey";
+            columns: ["schedule_baseline_id"];
+            isOneToOne: false;
+            referencedRelation: "schedule_baselines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_baseline_items_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      schedule_baselines: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          locked_at: string | null;
+          name: string;
+          org_id: string;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          locked_at?: string | null;
+          name: string;
+          org_id: string;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          locked_at?: string | null;
+          name?: string;
+          org_id?: string;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "schedule_baselines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_baselines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_baselines_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "schedule_baselines_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "schedule_baselines_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "schedule_baselines_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_baselines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      scope_nodes: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          parent_id: string | null;
+          path: unknown;
+          project_id: string;
+          scope_code: string;
+          scope_kind: Database["app"]["Enums"]["scope_kind"];
+          updated_at: string;
+          updated_by: string | null;
+          venue_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          parent_id?: string | null;
+          path: unknown;
+          project_id: string;
+          scope_code: string;
+          scope_kind: Database["app"]["Enums"]["scope_kind"];
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          parent_id?: string | null;
+          path?: unknown;
+          project_id?: string;
+          scope_code?: string;
+          scope_kind?: Database["app"]["Enums"]["scope_kind"];
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "scope_nodes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scope_nodes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scope_nodes_parent_id_fkey";
+            columns: ["parent_id"];
+            isOneToOne: false;
+            referencedRelation: "scope_nodes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scope_nodes_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "scope_nodes_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "scope_nodes_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "scope_nodes_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scope_nodes_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scope_nodes_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      shift_swaps: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          proposed_membership_id: string;
+          requested_by_membership_id: string;
+          shift_id: string;
+          swap_state: Database["app"]["Enums"]["swap_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          proposed_membership_id: string;
+          requested_by_membership_id: string;
+          shift_id: string;
+          swap_state?: Database["app"]["Enums"]["swap_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          proposed_membership_id?: string;
+          requested_by_membership_id?: string;
+          shift_id?: string;
+          swap_state?: Database["app"]["Enums"]["swap_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shift_swaps_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_swaps_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_swaps_proposed_membership_id_fkey";
+            columns: ["proposed_membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_swaps_requested_by_membership_id_fkey";
+            columns: ["requested_by_membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_swaps_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_swaps_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      shifts: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ends_at: string;
+          id: string;
+          membership_id: string | null;
+          org_id: string;
+          project_id: string;
+          record_id: string | null;
+          role_code: string | null;
+          scope_node_id: string | null;
+          starts_at: string;
+          time_zone: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at: string;
+          id?: string;
+          membership_id?: string | null;
+          org_id: string;
+          project_id: string;
+          record_id?: string | null;
+          role_code?: string | null;
+          scope_node_id?: string | null;
+          starts_at: string;
+          time_zone: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_at?: string;
+          id?: string;
+          membership_id?: string | null;
+          org_id?: string;
+          project_id?: string;
+          record_id?: string | null;
+          role_code?: string | null;
+          scope_node_id?: string | null;
+          starts_at?: string;
+          time_zone?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shifts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shifts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shifts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shifts_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_scope_node_id_fkey";
+            columns: ["scope_node_id"];
+            isOneToOne: false;
+            referencedRelation: "scope_nodes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      shipment_lines: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          element_id: string | null;
+          id: string;
+          org_id: string;
+          quantity: number;
+          shipment_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          element_id?: string | null;
+          id?: string;
+          org_id: string;
+          quantity?: number;
+          shipment_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          element_id?: string | null;
+          id?: string;
+          org_id?: string;
+          quantity?: number;
+          shipment_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shipment_lines_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shipment_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shipment_lines_shipment_id_fkey";
+            columns: ["shipment_id"];
+            isOneToOne: false;
+            referencedRelation: "shipments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shipment_lines_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      shipments: {
+        Row: {
+          arrives_at: string | null;
+          carrier_counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          direction: Database["app"]["Enums"]["shipment_direction"];
+          freight_type_enum_id: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          ships_at: string | null;
+          tracking_identifier: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          arrives_at?: string | null;
+          carrier_counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          direction: Database["app"]["Enums"]["shipment_direction"];
+          freight_type_enum_id?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          ships_at?: string | null;
+          tracking_identifier?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          arrives_at?: string | null;
+          carrier_counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          direction?: Database["app"]["Enums"]["shipment_direction"];
+          freight_type_enum_id?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          ships_at?: string | null;
+          tracking_identifier?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shipments_carrier_counterparty_id_fkey";
+            columns: ["carrier_counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shipments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shipments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shipments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shipments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shipments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shipments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shipments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      site_plan_pins: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          label: string;
+          org_id: string;
+          record_id: string | null;
+          site_plan_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          x_ratio: number;
+          y_ratio: number;
+          zone_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          label: string;
+          org_id: string;
+          record_id?: string | null;
+          site_plan_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          x_ratio: number;
+          y_ratio: number;
+          zone_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          label?: string;
+          org_id?: string;
+          record_id?: string | null;
+          site_plan_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          x_ratio?: number;
+          y_ratio?: number;
+          zone_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "site_plan_pins_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_plan_pins_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_plan_pins_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_plan_pins_site_plan_id_fkey";
+            columns: ["site_plan_id"];
+            isOneToOne: false;
+            referencedRelation: "site_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_plan_pins_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_plan_pins_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "zones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      site_plans: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          image_uri: string;
+          org_id: string;
+          project_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          venue_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          image_uri: string;
+          org_id: string;
+          project_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          image_uri?: string;
+          org_id?: string;
+          project_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "site_plans_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_plans_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_plans_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "site_plans_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "site_plans_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "site_plans_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_plans_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_plans_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sop_acknowledgments: {
+        Row: {
+          acknowledged_at: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          person_id: string;
+          sop_id: string;
+          sop_version: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          acknowledged_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          person_id: string;
+          sop_id: string;
+          sop_version: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          acknowledged_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          person_id?: string;
+          sop_id?: string;
+          sop_version?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sop_acknowledgments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sop_acknowledgments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sop_acknowledgments_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sop_acknowledgments_sop_id_fkey";
+            columns: ["sop_id"];
+            isOneToOne: false;
+            referencedRelation: "sops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sop_acknowledgments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sops: {
+        Row: {
+          body: string;
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          published_at: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          version: number;
+        };
+        Insert: {
+          body: string;
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          published_at?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: number;
+        };
+        Update: {
+          body?: string;
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          published_at?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sops_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sops_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sops_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      spaces: {
+        Row: {
+          area_sq_ft: number | null;
+          capacity: number | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          urid: string | null;
+          venue_id: string;
+        };
+        Insert: {
+          area_sq_ft?: number | null;
+          capacity?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid?: string | null;
+          venue_id: string;
+        };
+        Update: {
+          area_sq_ft?: number | null;
+          capacity?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          urid?: string | null;
+          venue_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "spaces_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spaces_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spaces_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spaces_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      spend_approvals: {
+        Row: {
+          amount_minor: number;
+          approver_person_id: string;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          document_id: string;
+          document_type: Database["app"]["Enums"]["spend_document_type"];
+          id: string;
+          org_id: string;
+          spend_authority_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          amount_minor: number;
+          approver_person_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          document_id: string;
+          document_type: Database["app"]["Enums"]["spend_document_type"];
+          id?: string;
+          org_id: string;
+          spend_authority_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_minor?: number;
+          approver_person_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          document_id?: string;
+          document_type?: Database["app"]["Enums"]["spend_document_type"];
+          id?: string;
+          org_id?: string;
+          spend_authority_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "spend_approvals_approver_person_id_fkey";
+            columns: ["approver_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spend_approvals_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spend_approvals_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "spend_approvals_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spend_approvals_spend_authority_id_fkey";
+            columns: ["spend_authority_id"];
+            isOneToOne: false;
+            referencedRelation: "spend_authorities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spend_approvals_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      spend_authorities: {
+        Row: {
+          account_code: string | null;
+          cost_center_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          document_type: Database["app"]["Enums"]["spend_document_type"];
+          dual_approval_above_minor: number | null;
+          id: string;
+          limit_minor: number;
+          membership_id: string | null;
+          org_id: string;
+          role_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        Insert: {
+          account_code?: string | null;
+          cost_center_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          document_type: Database["app"]["Enums"]["spend_document_type"];
+          dual_approval_above_minor?: number | null;
+          id?: string;
+          limit_minor: number;
+          membership_id?: string | null;
+          org_id: string;
+          role_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          account_code?: string | null;
+          cost_center_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          document_type?: Database["app"]["Enums"]["spend_document_type"];
+          dual_approval_above_minor?: number | null;
+          id?: string;
+          limit_minor?: number;
+          membership_id?: string | null;
+          org_id?: string;
+          role_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "spend_authorities_cost_center_id_fkey";
+            columns: ["cost_center_id"];
+            isOneToOne: false;
+            referencedRelation: "cost_centers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spend_authorities_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spend_authorities_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "spend_authorities_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spend_authorities_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spend_authorities_role_id_fkey";
+            columns: ["role_id"];
+            isOneToOne: false;
+            referencedRelation: "roles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "spend_authorities_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sponsor_entitlements: {
+        Row: {
+          counterparty_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string;
+          due_on: string | null;
+          fulfilled_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          quantity: number | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          counterparty_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description: string;
+          due_on?: string | null;
+          fulfilled_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          quantity?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          counterparty_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string;
+          due_on?: string | null;
+          fulfilled_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          quantity?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_entitlements_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -920,6 +15146,209 @@ export type Database = {
           },
         ];
       };
+      swap_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["swap_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          shift_swap_id: string;
+          to_state: Database["app"]["Enums"]["swap_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["swap_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          shift_swap_id: string;
+          to_state: Database["app"]["Enums"]["swap_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["swap_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          shift_swap_id?: string;
+          to_state?: Database["app"]["Enums"]["swap_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "swap_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "swap_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "swap_state_transitions_shift_swap_id_fkey";
+            columns: ["shift_swap_id"];
+            isOneToOne: false;
+            referencedRelation: "shift_swaps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "swap_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tax_jurisdictions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          jurisdiction_id: string;
+          name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          jurisdiction_id: string;
+          name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          jurisdiction_id?: string;
+          name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tax_jurisdictions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tax_jurisdictions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tax_jurisdictions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tax_rates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          effective_from: string;
+          effective_to: string | null;
+          id: string;
+          org_id: string;
+          rate_percent: number;
+          tax_jurisdiction_id: string;
+          tax_type: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          effective_from: string;
+          effective_to?: string | null;
+          id?: string;
+          org_id: string;
+          rate_percent: number;
+          tax_jurisdiction_id: string;
+          tax_type: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          effective_from?: string;
+          effective_to?: string | null;
+          id?: string;
+          org_id?: string;
+          rate_percent?: number;
+          tax_jurisdiction_id?: string;
+          tax_type?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tax_rates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tax_rates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tax_rates_tax_jurisdiction_id_fkey";
+            columns: ["tax_jurisdiction_id"];
+            isOneToOne: false;
+            referencedRelation: "tax_jurisdictions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tax_rates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       team_members: {
         Row: {
           created_at: string;
@@ -1050,6 +15479,854 @@ export type Database = {
           },
         ];
       };
+      time_entries: {
+        Row: {
+          break_minutes: number;
+          clock_in: string;
+          clock_out: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          kiosk_device_id: string | null;
+          membership_id: string;
+          org_id: string;
+          project_id: string;
+          shift_id: string | null;
+          source: Database["app"]["Enums"]["time_entry_source"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          break_minutes?: number;
+          clock_in: string;
+          clock_out?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          kiosk_device_id?: string | null;
+          membership_id: string;
+          org_id: string;
+          project_id: string;
+          shift_id?: string | null;
+          source?: Database["app"]["Enums"]["time_entry_source"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          break_minutes?: number;
+          clock_in?: string;
+          clock_out?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          kiosk_device_id?: string | null;
+          membership_id?: string;
+          org_id?: string;
+          project_id?: string;
+          shift_id?: string | null;
+          source?: Database["app"]["Enums"]["time_entry_source"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_kiosk_device_id_fkey";
+            columns: ["kiosk_device_id"];
+            isOneToOne: false;
+            referencedRelation: "kiosk_devices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "time_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "time_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "time_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      time_entry_audit: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          new_values: Json;
+          old_values: Json | null;
+          org_id: string;
+          time_entry_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          new_values: Json;
+          old_values?: Json | null;
+          org_id: string;
+          time_entry_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          new_values?: Json;
+          old_values?: Json | null;
+          org_id?: string;
+          time_entry_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_audit_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entry_audit_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entry_audit_time_entry_id_fkey";
+            columns: ["time_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "time_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entry_audit_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      time_entry_corrections: {
+        Row: {
+          correction_state: Database["app"]["Enums"]["correction_state"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          proposed_break_minutes: number;
+          proposed_clock_in: string;
+          proposed_clock_out: string | null;
+          reason: string;
+          requested_by: string | null;
+          time_entry_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          correction_state?: Database["app"]["Enums"]["correction_state"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          proposed_break_minutes?: number;
+          proposed_clock_in: string;
+          proposed_clock_out?: string | null;
+          reason: string;
+          requested_by?: string | null;
+          time_entry_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          correction_state?: Database["app"]["Enums"]["correction_state"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          proposed_break_minutes?: number;
+          proposed_clock_in?: string;
+          proposed_clock_out?: string | null;
+          reason?: string;
+          requested_by?: string | null;
+          time_entry_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_corrections_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entry_corrections_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entry_corrections_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entry_corrections_time_entry_id_fkey";
+            columns: ["time_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "time_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entry_corrections_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      time_off_policies: {
+        Row: {
+          accrual_hours_per_period: number | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          accrual_hours_per_period?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          accrual_hours_per_period?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "time_off_policies_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_off_policies_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_off_policies_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      time_off_requests: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ends_on: string;
+          hours: number;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          starts_on: string;
+          time_off_policy_id: string;
+          time_off_state: Database["app"]["Enums"]["time_off_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_on: string;
+          hours: number;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          starts_on: string;
+          time_off_policy_id: string;
+          time_off_state?: Database["app"]["Enums"]["time_off_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ends_on?: string;
+          hours?: number;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          starts_on?: string;
+          time_off_policy_id?: string;
+          time_off_state?: Database["app"]["Enums"]["time_off_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "time_off_requests_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_off_requests_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_off_requests_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_off_requests_time_off_policy_id_fkey";
+            columns: ["time_off_policy_id"];
+            isOneToOne: false;
+            referencedRelation: "time_off_policies";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_off_requests_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      time_off_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["time_off_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          time_off_request_id: string;
+          to_state: Database["app"]["Enums"]["time_off_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["time_off_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          time_off_request_id: string;
+          to_state: Database["app"]["Enums"]["time_off_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["time_off_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          time_off_request_id?: string;
+          to_state?: Database["app"]["Enums"]["time_off_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "time_off_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_off_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_off_state_transitions_time_off_request_id_fkey";
+            columns: ["time_off_request_id"];
+            isOneToOne: false;
+            referencedRelation: "time_off_requests";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_off_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      timesheet_approvals: {
+        Row: {
+          approved_by: string;
+          approved_minutes: number;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          timesheet_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          voided_at: string | null;
+        };
+        Insert: {
+          approved_by: string;
+          approved_minutes: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          timesheet_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          voided_at?: string | null;
+        };
+        Update: {
+          approved_by?: string;
+          approved_minutes?: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          timesheet_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          voided_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "timesheet_approvals_approved_by_fkey";
+            columns: ["approved_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheet_approvals_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheet_approvals_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheet_approvals_timesheet_id_fkey";
+            columns: ["timesheet_id"];
+            isOneToOne: false;
+            referencedRelation: "timesheet_hours";
+            referencedColumns: ["timesheet_id"];
+          },
+          {
+            foreignKeyName: "timesheet_approvals_timesheet_id_fkey";
+            columns: ["timesheet_id"];
+            isOneToOne: false;
+            referencedRelation: "timesheets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheet_approvals_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      timesheet_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["timesheet_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          timesheet_id: string;
+          to_state: Database["app"]["Enums"]["timesheet_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["timesheet_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          timesheet_id: string;
+          to_state: Database["app"]["Enums"]["timesheet_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["timesheet_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          timesheet_id?: string;
+          to_state?: Database["app"]["Enums"]["timesheet_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "timesheet_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheet_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheet_state_transitions_timesheet_id_fkey";
+            columns: ["timesheet_id"];
+            isOneToOne: false;
+            referencedRelation: "timesheet_hours";
+            referencedColumns: ["timesheet_id"];
+          },
+          {
+            foreignKeyName: "timesheet_state_transitions_timesheet_id_fkey";
+            columns: ["timesheet_id"];
+            isOneToOne: false;
+            referencedRelation: "timesheets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheet_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      timesheets: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          period_end: string;
+          period_start: string;
+          project_id: string;
+          submitted_by: string | null;
+          timesheet_state: Database["app"]["Enums"]["timesheet_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          period_end: string;
+          period_start: string;
+          project_id: string;
+          submitted_by?: string | null;
+          timesheet_state?: Database["app"]["Enums"]["timesheet_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          period_end?: string;
+          period_start?: string;
+          project_id?: string;
+          submitted_by?: string | null;
+          timesheet_state?: Database["app"]["Enums"]["timesheet_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "timesheets_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "timesheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "timesheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "timesheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_submitted_by_fkey";
+            columns: ["submitted_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      union_local_rates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          effective_from: string;
+          effective_to: string | null;
+          fringe_minor: number | null;
+          id: string;
+          org_id: string;
+          rate_minor: number;
+          role_code: string;
+          union_local: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          effective_from: string;
+          effective_to?: string | null;
+          fringe_minor?: number | null;
+          id?: string;
+          org_id: string;
+          rate_minor: number;
+          role_code: string;
+          union_local: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          effective_from?: string;
+          effective_to?: string | null;
+          fringe_minor?: number | null;
+          id?: string;
+          org_id?: string;
+          rate_minor?: number;
+          role_code?: string;
+          union_local?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "union_local_rates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "union_local_rates_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "union_local_rates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "union_local_rates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       user_capability_grants: {
         Row: {
           capability_code: string;
@@ -1140,6 +16417,867 @@ export type Database = {
           },
           {
             foreignKeyName: "user_capability_grants_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_bank_accounts: {
+        Row: {
+          account_holder: string;
+          account_last4: string;
+          account_number: string;
+          bank_name: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          routing_number: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_id: string;
+        };
+        Insert: {
+          account_holder: string;
+          account_last4: string;
+          account_number: string;
+          bank_name: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          routing_number?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id: string;
+        };
+        Update: {
+          account_holder?: string;
+          account_last4?: string;
+          account_number?: string;
+          bank_name?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          routing_number?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_bank_accounts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_accounts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_accounts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_accounts_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_bank_detail_changes: {
+        Row: {
+          changed_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_bank_account_id: string;
+          vendor_id: string;
+        };
+        Insert: {
+          changed_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_bank_account_id: string;
+          vendor_id: string;
+        };
+        Update: {
+          changed_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_bank_account_id?: string;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_bank_detail_changes_changed_by_fkey";
+            columns: ["changed_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_detail_changes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_detail_changes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_detail_changes_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_detail_changes_vendor_bank_account_id_fkey";
+            columns: ["vendor_bank_account_id"];
+            isOneToOne: false;
+            referencedRelation: "vendor_bank_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_detail_changes_vendor_bank_account_id_fkey";
+            columns: ["vendor_bank_account_id"];
+            isOneToOne: false;
+            referencedRelation: "vendor_bank_accounts_masked";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_detail_changes_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_class_assignments: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_class_id: string;
+          vendor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_class_id: string;
+          vendor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_class_id?: string;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_class_assignments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_class_assignments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_class_assignments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_class_assignments_vendor_class_id_fkey";
+            columns: ["vendor_class_id"];
+            isOneToOne: false;
+            referencedRelation: "vendor_classes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_class_assignments_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_classes: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          std_vendor_class_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          std_vendor_class_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          std_vendor_class_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_classes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_classes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_classes_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_products: {
+        Row: {
+          catalog_binding_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          deleted_at: string | null;
+          element_id: string | null;
+          id: string;
+          lead_time_days: number | null;
+          org_id: string;
+          unit_price_minor: number | null;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_id: string;
+          vendor_sku: string;
+        };
+        Insert: {
+          catalog_binding_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          element_id?: string | null;
+          id?: string;
+          lead_time_days?: number | null;
+          org_id: string;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id: string;
+          vendor_sku: string;
+        };
+        Update: {
+          catalog_binding_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          element_id?: string | null;
+          id?: string;
+          lead_time_days?: number | null;
+          org_id?: string;
+          unit_price_minor?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id?: string;
+          vendor_sku?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_products_catalog_binding_id_fkey";
+            columns: ["catalog_binding_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_bindings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_products_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_products_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "vendor_products_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_products_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_products_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_scorecards: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          delivery_score: number | null;
+          id: string;
+          note: string | null;
+          org_id: string;
+          period_end: string;
+          project_id: string | null;
+          quality_score: number | null;
+          safety_score: number | null;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivery_score?: number | null;
+          id?: string;
+          note?: string | null;
+          org_id: string;
+          period_end: string;
+          project_id?: string | null;
+          quality_score?: number | null;
+          safety_score?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivery_score?: number | null;
+          id?: string;
+          note?: string | null;
+          org_id?: string;
+          period_end?: string;
+          project_id?: string | null;
+          quality_score?: number | null;
+          safety_score?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_scorecards_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_scorecards_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_scorecards_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "vendor_scorecards_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "vendor_scorecards_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "vendor_scorecards_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_scorecards_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_scorecards_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["vendor_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["vendor_state"];
+          updated_at: string;
+          updated_by: string | null;
+          vendor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["vendor_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["vendor_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["vendor_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["vendor_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_state_transitions_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendors: {
+        Row: {
+          counterparty_id: string;
+          created_at: string;
+          created_by: string | null;
+          default_currency_code: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          payment_terms_days: number | null;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_state: Database["app"]["Enums"]["vendor_state"];
+        };
+        Insert: {
+          counterparty_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          default_currency_code?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          payment_terms_days?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_state?: Database["app"]["Enums"]["vendor_state"];
+        };
+        Update: {
+          counterparty_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          default_currency_code?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          payment_terms_days?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_state?: Database["app"]["Enums"]["vendor_state"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendors_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendors_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendors_default_currency_code_fkey";
+            columns: ["default_currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "vendors_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendors_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      venues: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          jurisdiction_id: string;
+          locality: string | null;
+          name: string;
+          org_id: string;
+          postal_code: string | null;
+          street_address: string | null;
+          time_zone: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          jurisdiction_id: string;
+          locality?: string | null;
+          name: string;
+          org_id: string;
+          postal_code?: string | null;
+          street_address?: string | null;
+          time_zone: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          jurisdiction_id?: string;
+          locality?: string | null;
+          name?: string;
+          org_id?: string;
+          postal_code?: string | null;
+          street_address?: string | null;
+          time_zone?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "venues_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "venues_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "venues_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      verbiage_terms: {
+        Row: {
+          casing_rule: string;
+          created_at: string;
+          created_by: string | null;
+          definition: string;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          term: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          casing_rule: string;
+          created_at?: string;
+          created_by?: string | null;
+          definition: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          term: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          casing_rule?: string;
+          created_at?: string;
+          created_by?: string | null;
+          definition?: string;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          term?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "verbiage_terms_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "verbiage_terms_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "verbiage_terms_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wage_determinations: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          effective_from: string;
+          effective_to: string | null;
+          id: string;
+          jurisdiction_id: string;
+          minimum_rate_minor: number;
+          org_id: string;
+          role_code: string;
+          source: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          effective_from: string;
+          effective_to?: string | null;
+          id?: string;
+          jurisdiction_id: string;
+          minimum_rate_minor: number;
+          org_id: string;
+          role_code: string;
+          source: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          effective_from?: string;
+          effective_to?: string | null;
+          id?: string;
+          jurisdiction_id?: string;
+          minimum_rate_minor?: number;
+          org_id?: string;
+          role_code?: string;
+          source?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wage_determinations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wage_determinations_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "wage_determinations_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wage_determinations_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -1277,9 +17415,1253 @@ export type Database = {
           },
         ];
       };
+      zones: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          space_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          venue_id: string;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          space_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id: string;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          space_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "zones_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "zones_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "zones_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "zones_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "zones_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
-      [_ in never]: never;
+      budget_line_amounts: {
+        Row: {
+          account_code: string | null;
+          actual_minor: number | null;
+          budget_id: string | null;
+          budget_line_id: string | null;
+          drawn_in_minor: number | null;
+          drawn_out_minor: number | null;
+          extended_minor: number | null;
+          is_unpriced: boolean | null;
+          line_type: Database["app"]["Enums"]["budget_line_type"] | null;
+          urid: string | null;
+        };
+        Insert: {
+          account_code?: never;
+          actual_minor?: never;
+          budget_id?: string | null;
+          budget_line_id?: string | null;
+          drawn_in_minor?: never;
+          drawn_out_minor?: never;
+          extended_minor?: never;
+          is_unpriced?: never;
+          line_type?: Database["app"]["Enums"]["budget_line_type"] | null;
+          urid?: string | null;
+        };
+        Update: {
+          account_code?: never;
+          actual_minor?: never;
+          budget_id?: string | null;
+          budget_line_id?: string | null;
+          drawn_in_minor?: never;
+          drawn_out_minor?: never;
+          extended_minor?: never;
+          is_unpriced?: never;
+          line_type?: Database["app"]["Enums"]["budget_line_type"] | null;
+          urid?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budget_totals";
+            referencedColumns: ["budget_id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "budgets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      budget_totals: {
+        Row: {
+          actual_minor: number | null;
+          budget_id: string | null;
+          currency_code: string | null;
+          line_count: number | null;
+          priced_total_minor: number | null;
+          project_id: string | null;
+          total_minor: number | null;
+          unpriced_count: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "budgets_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      change_order_totals: {
+        Row: {
+          change_order_id: string | null;
+          line_count: number | null;
+          project_id: string | null;
+          total_minor: number | null;
+          unpriced_count: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "change_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "change_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "change_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "change_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      column_classifications: {
+        Row: {
+          classification: Database["app"]["Enums"]["data_classification"] | null;
+          column_name: string | null;
+          read_capability: string | null;
+          table_name: string | null;
+        };
+        Insert: {
+          classification?: Database["app"]["Enums"]["data_classification"] | null;
+          column_name?: string | null;
+          read_capability?: string | null;
+          table_name?: string | null;
+        };
+        Update: {
+          classification?: Database["app"]["Enums"]["data_classification"] | null;
+          column_name?: string | null;
+          read_capability?: string | null;
+          table_name?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "column_classifications_read_capability_fkey";
+            columns: ["read_capability"];
+            isOneToOne: false;
+            referencedRelation: "capabilities";
+            referencedColumns: ["code"];
+          },
+        ];
+      };
+      currencies: {
+        Row: {
+          currency_code: string | null;
+          minor_unit_exponent: number | null;
+        };
+        Insert: {
+          currency_code?: string | null;
+          minor_unit_exponent?: number | null;
+        };
+        Update: {
+          currency_code?: string | null;
+          minor_unit_exponent?: number | null;
+        };
+        Relationships: [];
+      };
+      domain_event_catalog: {
+        Row: {
+          code: string | null;
+          description: string | null;
+          subject: string | null;
+        };
+        Insert: {
+          code?: string | null;
+          description?: string | null;
+          subject?: string | null;
+        };
+        Update: {
+          code?: string | null;
+          description?: string | null;
+          subject?: string | null;
+        };
+        Relationships: [];
+      };
+      gate_criteria_status: {
+        Row: {
+          best_assertion_rank: number | null;
+          criterion_id: string | null;
+          evidence_count: number | null;
+          gate: number | null;
+          gate_passed: boolean | null;
+          is_blocking: boolean | null;
+          project_id: string | null;
+        };
+        Relationships: [];
+      };
+      invoice_match_results: {
+        Row: {
+          goods_receipt_id: string | null;
+          invoice_id: string | null;
+          invoice_match_id: string | null;
+          is_matched: boolean | null;
+          is_resolved: boolean | null;
+          purchase_order_id: string | null;
+          variance_minor: number | null;
+        };
+        Insert: {
+          goods_receipt_id?: string | null;
+          invoice_id?: string | null;
+          invoice_match_id?: string | null;
+          is_matched?: never;
+          is_resolved?: never;
+          purchase_order_id?: string | null;
+          variance_minor?: never;
+        };
+        Update: {
+          goods_receipt_id?: string | null;
+          invoice_id?: string | null;
+          invoice_match_id?: string | null;
+          is_matched?: never;
+          is_resolved?: never;
+          purchase_order_id?: string | null;
+          variance_minor?: never;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_matches_goods_receipt_id_fkey";
+            columns: ["goods_receipt_id"];
+            isOneToOne: false;
+            referencedRelation: "goods_receipts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoice_totals";
+            referencedColumns: ["invoice_id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_order_totals";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      invoice_totals: {
+        Row: {
+          applied_minor: number | null;
+          currency_code: string | null;
+          direction: Database["app"]["Enums"]["money_direction"] | null;
+          invoice_id: string | null;
+          project_id: string | null;
+          subtotal_minor: number | null;
+          tax_minor: number | null;
+          unpriced_count: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoices_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      lifecycle_transition_rules: {
+        Row: {
+          from_state: string | null;
+          lifecycle: string | null;
+          to_state: string | null;
+        };
+        Insert: {
+          from_state?: string | null;
+          lifecycle?: string | null;
+          to_state?: string | null;
+        };
+        Update: {
+          from_state?: string | null;
+          lifecycle?: string | null;
+          to_state?: string | null;
+        };
+        Relationships: [];
+      };
+      medical_encounters_masked: {
+        Row: {
+          disposition: string | null;
+          id: string | null;
+          incident_id: string | null;
+          is_masked: boolean | null;
+          org_id: string | null;
+          patient_description: string | null;
+          treatment_notes: string | null;
+        };
+        Insert: {
+          disposition?: string | null;
+          id?: string | null;
+          incident_id?: string | null;
+          is_masked?: never;
+          org_id?: string | null;
+          patient_description?: string | null;
+          treatment_notes?: never;
+        };
+        Update: {
+          disposition?: string | null;
+          id?: string | null;
+          incident_id?: string | null;
+          is_masked?: never;
+          org_id?: string | null;
+          patient_description?: string | null;
+          treatment_notes?: never;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "medical_encounters_incident_id_fkey";
+            columns: ["incident_id"];
+            isOneToOne: false;
+            referencedRelation: "incidents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "medical_encounters_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pay_rates_masked: {
+        Row: {
+          currency_code: string | null;
+          effective_from: string | null;
+          id: string | null;
+          is_masked: boolean | null;
+          membership_id: string | null;
+          org_id: string | null;
+          rate_minor: number | null;
+          role_code: string | null;
+        };
+        Insert: {
+          currency_code?: string | null;
+          effective_from?: string | null;
+          id?: string | null;
+          is_masked?: never;
+          membership_id?: string | null;
+          org_id?: string | null;
+          rate_minor?: never;
+          role_code?: string | null;
+        };
+        Update: {
+          currency_code?: string | null;
+          effective_from?: string | null;
+          id?: string | null;
+          is_masked?: never;
+          membership_id?: string | null;
+          org_id?: string | null;
+          rate_minor?: never;
+          role_code?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pay_rates_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "pay_rates_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_rates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payroll_line_amounts: {
+        Row: {
+          amount_minor: number | null;
+          earning_code_id: string | null;
+          hours: number | null;
+          id: string | null;
+          is_masked: boolean | null;
+          membership_id: string | null;
+          org_id: string | null;
+          payroll_run_id: string | null;
+          rate_minor: number | null;
+        };
+        Insert: {
+          amount_minor?: never;
+          earning_code_id?: string | null;
+          hours?: number | null;
+          id?: string | null;
+          is_masked?: never;
+          membership_id?: string | null;
+          org_id?: string | null;
+          payroll_run_id?: string | null;
+          rate_minor?: never;
+        };
+        Update: {
+          amount_minor?: never;
+          earning_code_id?: string | null;
+          hours?: number | null;
+          id?: string | null;
+          is_masked?: never;
+          membership_id?: string | null;
+          org_id?: string | null;
+          payroll_run_id?: string | null;
+          rate_minor?: never;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_lines_earning_code_id_fkey";
+            columns: ["earning_code_id"];
+            isOneToOne: false;
+            referencedRelation: "earning_codes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_lines_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_lines_payroll_run_id_fkey";
+            columns: ["payroll_run_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_runs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      posting_lines: {
+        Row: {
+          account_code: string | null;
+          amount_minor: number | null;
+          cost_center_id: string | null;
+          currency: string | null;
+          date: string | null;
+          description: string | null;
+          external_ref: string | null;
+          item_id: string | null;
+          line_state: string | null;
+          org_id: string | null;
+          posting_line_id: string | null;
+          project_id: string | null;
+          quantity: number | null;
+          tax_type: string | null;
+          unit_basis: string | null;
+          urid: string | null;
+          vendor_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "journal_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "journal_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "journal_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_lines_counterparty_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_lines_currency_code_fkey";
+            columns: ["currency"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+        ];
+      };
+      project_authority: {
+        Row: {
+          agency: string | null;
+          contact: string | null;
+          project_id: string | null;
+          service: string | null;
+        };
+        Relationships: [];
+      };
+      project_billing: {
+        Row: {
+          billed_to_date_minor: number | null;
+          currency_code: string | null;
+          paid_to_date_minor: number | null;
+          project_id: string | null;
+          unpriced_invoice_count: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoices_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+        ];
+      };
+      project_capabilities: {
+        Row: {
+          assertion_domain: string | null;
+          assertion_word: string | null;
+          counterparty_id: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          direction: Database["app"]["Enums"]["capability_direction"] | null;
+          id: string | null;
+          is_critical: boolean | null;
+          org_id: string | null;
+          project_id: string | null;
+          quantity: number | null;
+          unit_basis: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+          urid: string | null;
+          venue_id: string | null;
+        };
+        Insert: {
+          assertion_domain?: string | null;
+          assertion_word?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string | null;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          direction?: Database["app"]["Enums"]["capability_direction"] | null;
+          id?: string | null;
+          is_critical?: boolean | null;
+          org_id?: string | null;
+          project_id?: string | null;
+          quantity?: number | null;
+          unit_basis?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+          urid?: string | null;
+          venue_id?: string | null;
+        };
+        Update: {
+          assertion_domain?: string | null;
+          assertion_word?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string | null;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          direction?: Database["app"]["Enums"]["capability_direction"] | null;
+          id?: string | null;
+          is_critical?: boolean | null;
+          org_id?: string | null;
+          project_id?: string | null;
+          quantity?: number | null;
+          unit_basis?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+          urid?: string | null;
+          venue_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "capability_statements_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      project_requirements: {
+        Row: {
+          assertion_domain: string | null;
+          assertion_word: string | null;
+          counterparty_id: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          direction: Database["app"]["Enums"]["capability_direction"] | null;
+          id: string | null;
+          is_critical: boolean | null;
+          org_id: string | null;
+          project_id: string | null;
+          quantity: number | null;
+          unit_basis: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+          urid: string | null;
+          venue_id: string | null;
+        };
+        Insert: {
+          assertion_domain?: string | null;
+          assertion_word?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string | null;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          direction?: Database["app"]["Enums"]["capability_direction"] | null;
+          id?: string | null;
+          is_critical?: boolean | null;
+          org_id?: string | null;
+          project_id?: string | null;
+          quantity?: number | null;
+          unit_basis?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+          urid?: string | null;
+          venue_id?: string | null;
+        };
+        Update: {
+          assertion_domain?: string | null;
+          assertion_word?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string | null;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          direction?: Database["app"]["Enums"]["capability_direction"] | null;
+          id?: string | null;
+          is_critical?: boolean | null;
+          org_id?: string | null;
+          project_id?: string | null;
+          quantity?: number | null;
+          unit_basis?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+          urid?: string | null;
+          venue_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "capability_statements_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "capability_statements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "capability_statements_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      purchase_order_totals: {
+        Row: {
+          approved_changes_minor: number | null;
+          currency_code: string | null;
+          lines_total_minor: number | null;
+          project_id: string | null;
+          purchase_order_id: string | null;
+          unpriced_count: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rate_card_lines_masked: {
+        Row: {
+          arrangement: string | null;
+          canon_rate_card_id: string | null;
+          id: string | null;
+          is_masked: boolean | null;
+          org_id: string | null;
+          overtime_rule_id: string | null;
+          pay_basis: string | null;
+          rate_card_id: string | null;
+          rate_minor: number | null;
+          role_code: string | null;
+          worker_classification: string | null;
+        };
+        Insert: {
+          arrangement?: string | null;
+          canon_rate_card_id?: string | null;
+          id?: string | null;
+          is_masked?: never;
+          org_id?: string | null;
+          overtime_rule_id?: string | null;
+          pay_basis?: string | null;
+          rate_card_id?: string | null;
+          rate_minor?: never;
+          role_code?: string | null;
+          worker_classification?: string | null;
+        };
+        Update: {
+          arrangement?: string | null;
+          canon_rate_card_id?: string | null;
+          id?: string | null;
+          is_masked?: never;
+          org_id?: string | null;
+          overtime_rule_id?: string | null;
+          pay_basis?: string | null;
+          rate_card_id?: string | null;
+          rate_minor?: never;
+          role_code?: string | null;
+          worker_classification?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rate_card_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rate_card_lines_rate_card_id_fkey";
+            columns: ["rate_card_id"];
+            isOneToOne: false;
+            referencedRelation: "rate_cards";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      reconciliation_gaps: {
+        Row: {
+          is_critical: boolean | null;
+          project_id: string | null;
+          reconciliation_id: string | null;
+          requirement_id: string | null;
+          result: Database["app"]["Enums"]["reconciliation_result"] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_lines_reconciliation_id_fkey";
+            columns: ["reconciliation_id"];
+            isOneToOne: false;
+            referencedRelation: "reconciliations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_requirement_id_fkey";
+            columns: ["requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "capability_statements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_requirement_id_fkey";
+            columns: ["requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "project_capabilities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliation_lines_requirement_id_fkey";
+            columns: ["requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "project_requirements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reconciliations_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "reconciliations_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "reconciliations_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "reconciliations_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      separation_of_duties_rules: {
+        Row: {
+          code: string | null;
+          description: string | null;
+          enforced_on: string | null;
+        };
+        Insert: {
+          code?: string | null;
+          description?: string | null;
+          enforced_on?: string | null;
+        };
+        Update: {
+          code?: string | null;
+          description?: string | null;
+          enforced_on?: string | null;
+        };
+        Relationships: [];
+      };
+      timesheet_hours: {
+        Row: {
+          has_open_entry: boolean | null;
+          membership_id: string | null;
+          project_id: string | null;
+          timesheet_id: string | null;
+          worked_minutes: number | null;
+        };
+        Insert: {
+          has_open_entry?: never;
+          membership_id?: string | null;
+          project_id?: string | null;
+          timesheet_id?: string | null;
+          worked_minutes?: never;
+        };
+        Update: {
+          has_open_entry?: never;
+          membership_id?: string | null;
+          project_id?: string | null;
+          timesheet_id?: string | null;
+          worked_minutes?: never;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "timesheets_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "timesheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "timesheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "timesheets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_bank_accounts_masked: {
+        Row: {
+          account_holder: string | null;
+          account_last4: string | null;
+          account_number: string | null;
+          bank_name: string | null;
+          id: string | null;
+          is_masked: boolean | null;
+          org_id: string | null;
+          routing_number: string | null;
+          vendor_id: string | null;
+        };
+        Insert: {
+          account_holder?: string | null;
+          account_last4?: string | null;
+          account_number?: never;
+          bank_name?: string | null;
+          id?: string | null;
+          is_masked?: never;
+          org_id?: string | null;
+          routing_number?: never;
+          vendor_id?: string | null;
+        };
+        Update: {
+          account_holder?: string | null;
+          account_last4?: string | null;
+          account_number?: never;
+          bank_name?: string | null;
+          id?: string | null;
+          is_masked?: never;
+          org_id?: string | null;
+          routing_number?: never;
+          vendor_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vendor_bank_accounts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_accounts_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Functions: {
       accept_invite: {
@@ -1289,6 +18671,60 @@ export type Database = {
           reason: string;
           refusal: string;
         }[];
+      };
+      approve_change_order: {
+        Args: { p_change_order_id: string; p_reason: string };
+        Returns: boolean;
+      };
+      approve_expense: {
+        Args: { p_expense_id: string; p_reason: string };
+        Returns: boolean;
+      };
+      approve_invoice: {
+        Args: { p_invoice_id: string; p_reason: string };
+        Returns: boolean;
+      };
+      approve_payment: {
+        Args: { p_payment_id: string; p_reason: string };
+        Returns: string;
+      };
+      approve_payroll_run: {
+        Args: { p_payroll_run_id: string; p_reason: string };
+        Returns: boolean;
+      };
+      approve_purchase_order: {
+        Args: { p_purchase_order_id: string; p_reason: string };
+        Returns: boolean;
+      };
+      cancel_journal_entry: {
+        Args: { p_journal_entry_id: string; p_reason: string };
+        Returns: string;
+      };
+      cancel_payment: {
+        Args: { p_payment_id: string; p_reason: string };
+        Returns: string;
+      };
+      cancel_shift_swap: {
+        Args: { p_reason: string; p_shift_swap_id: string };
+        Returns: string;
+      };
+      cancel_time_off: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["time_off_state"];
+          p_reason: string;
+          p_time_off_request_id: string;
+        };
+        Returns: string;
+      };
+      close_incident: {
+        Args: { p_incident_id: string; p_signoff_note: string };
+        Returns: string;
+      };
+      counterparty_name: {
+        Args: {
+          p_counterparty: Database["app"]["Tables"]["counterparties"]["Row"];
+        };
+        Returns: string;
       };
       create_client_organization: {
         Args: {
@@ -1304,11 +18740,72 @@ export type Database = {
           org_id: string;
         }[];
       };
+      create_counterparty: {
+        Args: {
+          p_counterparty_type: string;
+          p_name: string;
+          p_org_id: string;
+          p_organization_id?: string;
+        };
+        Returns: string;
+      };
       create_organization: {
         Args: { p_name: string; p_slug: string };
         Returns: string;
       };
+      decide_po_change_order: {
+        Args: {
+          p_decision: Database["app"]["Enums"]["approval_decision"];
+          p_po_change_order_id: string;
+          p_reason: string;
+        };
+        Returns: boolean;
+      };
+      decide_prequalification: {
+        Args: {
+          p_decision: Database["app"]["Enums"]["approval_decision"];
+          p_prequalification_id: string;
+          p_valid_to?: string;
+        };
+        Returns: undefined;
+      };
+      decide_shift_swap: {
+        Args: {
+          p_decision: Database["app"]["Enums"]["approval_decision"];
+          p_reason: string;
+          p_shift_swap_id: string;
+        };
+        Returns: string;
+      };
+      decide_time_entry_correction: {
+        Args: {
+          p_correction_id: string;
+          p_decision: Database["app"]["Enums"]["approval_decision"];
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      decide_time_off: {
+        Args: {
+          p_decision: Database["app"]["Enums"]["approval_decision"];
+          p_reason: string;
+          p_time_off_request_id: string;
+        };
+        Returns: string;
+      };
+      decide_timesheet: {
+        Args: {
+          p_decision: Database["app"]["Enums"]["approval_decision"];
+          p_reason: string;
+          p_timesheet_id: string;
+        };
+        Returns: string;
+      };
       end_membership: { Args: { p_membership_id: string }; Returns: undefined };
+      generate_permit_requirements: {
+        Args: { p_project_id: string };
+        Returns: number;
+      };
       invite_member: {
         Args: {
           p_email: string;
@@ -1321,7 +18818,27 @@ export type Database = {
           invite_token: string;
         }[];
       };
+      issue_invoice: {
+        Args: { p_invoice_id: string; p_reason: string };
+        Returns: string;
+      };
       leave_organization: { Args: { p_org_id: string }; Returns: undefined };
+      pass_gate: {
+        Args: {
+          p_expected_phase: string;
+          p_project_id: string;
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      point_in_geofence: {
+        Args: { p_geofence_id: string; p_latitude: number; p_longitude: number };
+        Returns: boolean;
+      };
+      post_journal_entry: {
+        Args: { p_journal_entry_id: string; p_reason: string };
+        Returns: string;
+      };
       preview_invite: {
         Args: { p_token: string };
         Returns: {
@@ -1333,11 +18850,205 @@ export type Database = {
           role_name: string;
         }[];
       };
+      price_change_order: {
+        Args: { p_change_order_id: string; p_reason: string };
+        Returns: string;
+      };
+      record_class: {
+        Args: { p_record: Database["app"]["Tables"]["records"]["Row"] };
+        Returns: string;
+      };
+      record_display_key: {
+        Args: { p_record: Database["app"]["Tables"]["records"]["Row"] };
+        Returns: string;
+      };
+      register_kiosk_device: {
+        Args: { p_name: string; p_org_id: string; p_project_id?: string };
+        Returns: {
+          device_key: string;
+          kiosk_device_id: string;
+        }[];
+      };
+      reject_expense: {
+        Args: { p_expense_id: string; p_reason: string };
+        Returns: string;
+      };
+      set_kiosk_pin: {
+        Args: { p_membership_id: string; p_pin: string };
+        Returns: undefined;
+      };
+      submit_timesheet: {
+        Args: { p_reason?: string; p_timesheet_id: string };
+        Returns: string;
+      };
+      transition_accounting_period: {
+        Args: {
+          p_accounting_period_id: string;
+          p_expected: Database["app"]["Enums"]["accounting_period_state"];
+          p_next: Database["app"]["Enums"]["accounting_period_state"];
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_asset: {
+        Args: {
+          p_asset_unit_id: string;
+          p_expected: Database["app"]["Enums"]["asset_state"];
+          p_next: Database["app"]["Enums"]["asset_state"];
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_change_order: {
+        Args: {
+          p_change_order_id: string;
+          p_expected: Database["app"]["Enums"]["change_order_state"];
+          p_next: Database["app"]["Enums"]["change_order_state"];
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_expense: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["expense_state"];
+          p_expense_id: string;
+          p_next: Database["app"]["Enums"]["expense_state"];
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_incident: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["incident_state"];
+          p_incident_id: string;
+          p_next: Database["app"]["Enums"]["incident_state"];
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_invoice: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["invoice_state"];
+          p_invoice_id: string;
+          p_next: Database["app"]["Enums"]["invoice_state"];
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_pay_period: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["pay_period_state"];
+          p_next: Database["app"]["Enums"]["pay_period_state"];
+          p_pay_period_id: string;
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_payroll_run: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["payroll_run_state"];
+          p_next: Database["app"]["Enums"]["payroll_run_state"];
+          p_payroll_run_id: string;
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_production: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["production_state"];
+          p_next: Database["app"]["Enums"]["production_state"];
+          p_project_id: string;
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_project: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["project_state"];
+          p_next: Database["app"]["Enums"]["project_state"];
+          p_project_id: string;
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_purchase_order: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["po_state"];
+          p_next: Database["app"]["Enums"]["po_state"];
+          p_purchase_order_id: string;
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      transition_record: {
+        Args: {
+          p_blocker_text?: string;
+          p_expected: string;
+          p_next: string;
+          p_reason: string;
+          p_record_id: string;
+          p_replan_reason?: string;
+        };
+        Returns: string;
+      };
+      transition_rfq: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["rfq_state"];
+          p_next: Database["app"]["Enums"]["rfq_state"];
+          p_reason: string;
+          p_rfq_id: string;
+        };
+        Returns: string;
+      };
+      transition_vendor: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["vendor_state"];
+          p_next: Database["app"]["Enums"]["vendor_state"];
+          p_reason: string;
+          p_vendor_id: string;
+        };
+        Returns: string;
+      };
     };
     Enums: {
+      accounting_period_state: "Open" | "In Period" | "Closing" | "Closed" | "Audited" | "Archived";
+      approval_decision: "Approved" | "Rejected";
+      asset_state:
+        | "Proposed"
+        | "Received"
+        | "Available"
+        | "Reserved"
+        | "Deployed"
+        | "In Maintenance"
+        | "Damaged"
+        | "Lost"
+        | "Retired";
+      budget_line_type: "Cost" | "Labor" | "Fee" | "Contingency";
       capability_class: "read" | "write" | "approve" | "manage" | "export";
+      capability_direction: "Require" | "Provide";
       capability_reach: "own" | "assigned" | "organization";
+      change_order_state: "Proposed" | "Priced" | "Approved" | "Rejected" | "Canceled";
+      correction_state: "Proposed" | "Approved" | "Rejected";
+      cost_center_kind: "Standing" | "Overhead" | "Event";
+      data_classification: "Public" | "Internal" | "Confidential" | "Restricted";
+      dependency_type:
+        "Finish to Start" | "Start to Start" | "Finish to Finish" | "Start to Finish";
+      expense_state: "Proposed" | "Approved" | "Rejected" | "Paid" | "Canceled";
+      external_role_type:
+        | "Client"
+        | "Vendor"
+        | "Contractor"
+        | "Crew"
+        | "Staff"
+        | "Artist"
+        | "Artist Representative"
+        | "Sponsor";
+      fulfillment_kind: "Lodging" | "Catering" | "Travel" | "Amenity";
       grant_target_kind: "organization" | "workspace" | "team" | "project" | "record";
+      incident_state: "Reported" | "Dispatched" | "Contained" | "Closed";
+      invoice_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
+      journal_state: "Proposed" | "Posted" | "Canceled";
+      money_direction: "Payable" | "Receivable";
       nav_group:
         | "workspace"
         | "production"
@@ -1348,6 +19059,9 @@ export type Database = {
         | "footer"
         | "settings"
         | "personal";
+      pay_period_state: "Open" | "Closed" | "Posted";
+      payment_state: "Proposed" | "Approved" | "Canceled";
+      payroll_run_state: "Draft" | "Calculated" | "Approved" | "Exported" | "Accepted" | "Canceled";
       plan_feature_code:
         | "approvals"
         | "advancing"
@@ -1372,7 +19086,30 @@ export type Database = {
         | "support_session_controls";
       plan_limit_code:
         "seats" | "active_projects" | "field_members" | "active_external_engagements_per_month";
+      po_change_order_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
+      po_state: "Proposed" | "Approved" | "Sent" | "Closed" | "Canceled";
+      production_state: "Proposed" | "Active" | "Blocked" | "Complete" | "Closed" | "Canceled";
+      project_role: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
+      project_state: "Proposed" | "Active" | "Blocked" | "Complete" | "Canceled";
+      reconciliation_result: "Met" | "Gap" | "Unknown";
+      rfq_state: "Proposed" | "Issued" | "Closed" | "Awarded" | "Canceled";
+      scan_result: "Granted" | "Denied";
+      scope_kind: "Engagement Root" | "Standing Venue" | "Show";
+      shipment_direction: "Inbound" | "Outbound";
+      spend_document_type:
+        | "Purchase Order"
+        | "Change Order"
+        | "Expense"
+        | "Invoice Approval"
+        | "Contract"
+        | "Payroll Run";
       subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
+      swap_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
+      time_entry_source: "Web" | "Mobile" | "Kiosk";
+      time_off_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
+      timesheet_state: "Proposed" | "Submitted" | "Approved" | "Rejected";
+      vendor_state: "Prospect" | "Onboarded" | "Active" | "Blocked" | "Canceled";
+      xyz_basis: "Category" | "Declared";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -7059,9 +24796,45 @@ export type CompositeTypes<
 export const Constants = {
   app: {
     Enums: {
+      accounting_period_state: ["Open", "In Period", "Closing", "Closed", "Audited", "Archived"],
+      approval_decision: ["Approved", "Rejected"],
+      asset_state: [
+        "Proposed",
+        "Received",
+        "Available",
+        "Reserved",
+        "Deployed",
+        "In Maintenance",
+        "Damaged",
+        "Lost",
+        "Retired",
+      ],
+      budget_line_type: ["Cost", "Labor", "Fee", "Contingency"],
       capability_class: ["read", "write", "approve", "manage", "export"],
+      capability_direction: ["Require", "Provide"],
       capability_reach: ["own", "assigned", "organization"],
+      change_order_state: ["Proposed", "Priced", "Approved", "Rejected", "Canceled"],
+      correction_state: ["Proposed", "Approved", "Rejected"],
+      cost_center_kind: ["Standing", "Overhead", "Event"],
+      data_classification: ["Public", "Internal", "Confidential", "Restricted"],
+      dependency_type: ["Finish to Start", "Start to Start", "Finish to Finish", "Start to Finish"],
+      expense_state: ["Proposed", "Approved", "Rejected", "Paid", "Canceled"],
+      external_role_type: [
+        "Client",
+        "Vendor",
+        "Contractor",
+        "Crew",
+        "Staff",
+        "Artist",
+        "Artist Representative",
+        "Sponsor",
+      ],
+      fulfillment_kind: ["Lodging", "Catering", "Travel", "Amenity"],
       grant_target_kind: ["organization", "workspace", "team", "project", "record"],
+      incident_state: ["Reported", "Dispatched", "Contained", "Closed"],
+      invoice_state: ["Proposed", "Issued", "Approved", "Disputed", "Canceled"],
+      journal_state: ["Proposed", "Posted", "Canceled"],
+      money_direction: ["Payable", "Receivable"],
       nav_group: [
         "workspace",
         "production",
@@ -7073,6 +24846,9 @@ export const Constants = {
         "settings",
         "personal",
       ],
+      pay_period_state: ["Open", "Closed", "Posted"],
+      payment_state: ["Proposed", "Approved", "Canceled"],
+      payroll_run_state: ["Draft", "Calculated", "Approved", "Exported", "Accepted", "Canceled"],
       plan_feature_code: [
         "approvals",
         "advancing",
@@ -7102,7 +24878,31 @@ export const Constants = {
         "field_members",
         "active_external_engagements_per_month",
       ],
+      po_change_order_state: ["Proposed", "Approved", "Rejected", "Canceled"],
+      po_state: ["Proposed", "Approved", "Sent", "Closed", "Canceled"],
+      production_state: ["Proposed", "Active", "Blocked", "Complete", "Closed", "Canceled"],
+      project_role: ["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"],
+      project_state: ["Proposed", "Active", "Blocked", "Complete", "Canceled"],
+      reconciliation_result: ["Met", "Gap", "Unknown"],
+      rfq_state: ["Proposed", "Issued", "Closed", "Awarded", "Canceled"],
+      scan_result: ["Granted", "Denied"],
+      scope_kind: ["Engagement Root", "Standing Venue", "Show"],
+      shipment_direction: ["Inbound", "Outbound"],
+      spend_document_type: [
+        "Purchase Order",
+        "Change Order",
+        "Expense",
+        "Invoice Approval",
+        "Contract",
+        "Payroll Run",
+      ],
       subscription_state: ["trialing", "active", "past_due", "read_only", "canceled"],
+      swap_state: ["Proposed", "Approved", "Rejected", "Canceled"],
+      time_entry_source: ["Web", "Mobile", "Kiosk"],
+      time_off_state: ["Proposed", "Approved", "Rejected", "Canceled"],
+      timesheet_state: ["Proposed", "Submitted", "Approved", "Rejected"],
+      vendor_state: ["Prospect", "Onboarded", "Active", "Blocked", "Canceled"],
+      xyz_basis: ["Category", "Declared"],
     },
   },
   xpms: {
