@@ -7,26 +7,21 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts",
-    "./webhooks": "./src/runtime/webhooks.ts",
-    "./codegen": "./codegen/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./webhooks": {
+      "types": "./dist/runtime/webhooks.d.ts",
+      "default": "./dist/runtime/webhooks.js"
+    },
+    "./codegen": "./codegen/index.ts",
+    "./test-server": "./test/contract/server.ts"
   },
   "files": [
     "dist",
     "LICENSE"
   ],
-  "publishConfig": {
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "./webhooks": {
-        "types": "./dist/runtime/webhooks.d.ts",
-        "default": "./dist/runtime/webhooks.js"
-      }
-    }
-  },
   "engines": {
     "node": ">=22.12.0"
   },

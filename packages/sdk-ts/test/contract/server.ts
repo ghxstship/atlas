@@ -687,8 +687,12 @@ export async function startContractServer(
     operations: ir.operations,
     failNext: (response) => injected.push(response),
     seed: (collection, row) => {
-      const key = String(row["id"] ?? Object.values(row)[0]);
-      collectionOf(collection).set(key, { value: row, version: 1 });
+      // Members the caller leaves out are filled from the document's examples, so the row validates.
+      const route = routes.find((r) => r.collection === collection && r.key !== null);
+      const base = route ? synthesizeRow(route, null).value : {};
+      const value = { ...base, ...row };
+      const key = String(route ? value[keyField(route)] : (value["id"] ?? Object.values(row)[0]));
+      collectionOf(collection).set(key, { value, version: 1 });
     },
     rows: (collection) => [...collectionOf(collection).values()].map((r) => r.value),
     close: () =>
