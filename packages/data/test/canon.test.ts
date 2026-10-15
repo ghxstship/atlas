@@ -15,7 +15,7 @@ import {
   proposeCanonExtension,
   searchElements,
   updateCanonExtension,
-} from "../src/canon";
+} from "../src/canon.ts";
 import {
   blankToNull,
   deletedNow,
@@ -24,8 +24,8 @@ import {
   readRows,
   rpcValue,
   touched,
-} from "../src/commercial-common";
-import { commercialClient, errorResponse, okResponse } from "./commercial-fake";
+} from "../src/commercial-common.ts";
+import { commercialClient, errorResponse, okResponse } from "./commercial-fake.ts";
 
 const down = errorResponse("08006", "down");
 

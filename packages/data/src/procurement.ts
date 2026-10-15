@@ -1,4 +1,4 @@
-import type { Database, XosClient } from "./client";
+import type { Database, XosClient } from "./client.ts";
 import {
   blankToNull,
   deletedNow,
@@ -8,8 +8,8 @@ import {
   rpcValue,
   touched,
   type Transition,
-} from "./commercial-common";
-import { fail, ok, toDataError, type Result } from "./result";
+} from "./commercial-common.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Procurement repository (Section 4.2 Procurement, Section 7.4, invariants 10 and 17): RFQs with
@@ -1166,4 +1166,153 @@ export async function createVendorProduct(
 
 export async function deleteVendorProduct(db: XosClient, id: string): Promise<Result<null>> {
   return touched(db.from("vendor_products").update(deletedNow()).eq("id", id).select("id"));
+}
+
+// Purchase order acknowledgment (A28b 0766) ------------------------------------------------------------------
+
+/** When the vendor acknowledged a sent order in Gateway, and who; null when not yet. */
+export async function getPoAcknowledgment(
+  db: XosClient,
+  purchaseOrderId: string,
+): Promise<Result<{ acknowledgedAt: string; acknowledgedBy: string | null } | null>> {
+  const { data, error } = await db
+    .from("po_acknowledgments")
+    .select("acknowledged_at, acknowledged_by")
+    .eq("purchase_order_id", purchaseOrderId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  return ok(
+    data ? { acknowledgedAt: data.acknowledged_at, acknowledgedBy: data.acknowledged_by } : null,
+  );
+}
+
+// Submittals (migration 0492) ------------------------------------------------------------------------------------
+
+export type SubmittalKind = Database["app"]["Enums"]["submittal_kind"];
+export type ReviewState = Database["app"]["Enums"]["review_state"];
+
+export const SUBMITTAL_KINDS: readonly SubmittalKind[] = [
+  "Shop Drawing",
+  "Product Data",
+  "Sample",
+  "Method Statement",
+  "Certificate",
+  "Other",
+];
+export const REVIEW_STATES: readonly ReviewState[] = [
+  "Proposed",
+  "Submitted",
+  "Approved",
+  "Returned",
+  "Canceled",
+];
+
+export interface Submittal {
+  readonly id: string;
+  readonly projectId: string;
+  readonly projectKey: string | null;
+  readonly number: number;
+  readonly key: string;
+  readonly vendorId: string;
+  readonly vendorName: string | null;
+  readonly purchaseOrderId: string | null;
+  readonly kind: SubmittalKind;
+  readonly title: string;
+  readonly specReference: string | null;
+  readonly dueOn: string | null;
+  readonly revision: number;
+  readonly state: ReviewState;
+  readonly decidedBy: string | null;
+  readonly decidedAt: string | null;
+  readonly createdBy: string | null;
+}
+
+const SUBMITTAL_COLUMNS =
+  "id, project_id, submittal_number, vendor_id, purchase_order_id, submittal_kind, title, spec_reference, due_on, revision, submittal_state, decided_by, decided_at, created_by, project:projects(project_key, name), vendor:vendors(counterparty:counterparties(counterparty_name))" as const;
+
+export async function listSubmittals(
+  db: XosClient,
+  orgId: string,
+  filter: { readonly purchaseOrderId?: string } = {},
+): Promise<Result<Submittal[]>> {
+  let query = db
+    .from("submittals")
+    .select(SUBMITTAL_COLUMNS)
+    .eq("org_id", orgId)
+    .is("deleted_at", null);
+  if (filter.purchaseOrderId) query = query.eq("purchase_order_id", filter.purchaseOrderId);
+  return readRows(query.order("created_at", { ascending: false }), (row) => ({
+    id: row.id,
+    projectId: row.project_id,
+    projectKey: projectKeyOf(row),
+    number: row.submittal_number,
+    key: displayKey(projectKeyOf(row), "SUB", row.submittal_number),
+    vendorId: row.vendor_id,
+    vendorName: vendorNameOf(row),
+    purchaseOrderId: row.purchase_order_id,
+    kind: row.submittal_kind,
+    title: row.title,
+    specReference: row.spec_reference,
+    dueOn: row.due_on,
+    revision: row.revision,
+    state: row.submittal_state,
+    decidedBy: row.decided_by,
+    decidedAt: row.decided_at,
+    createdBy: row.created_by,
+  }));
+}
+
+export interface SubmittalInput {
+  readonly kind: SubmittalKind;
+  readonly title: string;
+  readonly specReference: string | null;
+  readonly dueOn: string | null;
+  readonly purchaseOrderId: string | null;
+}
+
+function submittalRow(input: SubmittalInput) {
+  return {
+    submittal_kind: input.kind,
+    title: input.title.trim(),
+    spec_reference: blankToNull(input.specReference),
+    due_on: blankToNull(input.dueOn),
+    purchase_order_id: blankToNull(input.purchaseOrderId),
+  };
+}
+
+export async function createSubmittal(
+  db: XosClient,
+  input: SubmittalInput & { readonly projectId: string; readonly vendorId: string },
+): Promise<Result<{ id: string }>> {
+  const row = {
+    ...submittalRow(input),
+    project_id: input.projectId,
+    vendor_id: input.vendorId,
+  } as Tables["submittals"]["Insert"];
+  return insertedId(db.from("submittals").insert(row).select("id").single());
+}
+
+export async function updateSubmittal(
+  db: XosClient,
+  id: string,
+  input: SubmittalInput,
+): Promise<Result<null>> {
+  return touched(db.from("submittals").update(submittalRow(input)).eq("id", id).select("id"));
+}
+
+/** Submits, approves, returns or cancels a submittal (app.transition_submittal). */
+export async function transitionSubmittal(
+  db: XosClient,
+  move: Transition<ReviewState>,
+): Promise<Result<null>> {
+  const result = await rpcValue(
+    db.rpc("transition_submittal", {
+      p_submittal_id: move.id,
+      p_expected: move.expected,
+      p_next: move.next,
+      p_reason: move.reason,
+    }),
+  );
+  return result.ok ? ok(null) : result;
 }

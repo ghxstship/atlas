@@ -1,5 +1,5 @@
-import type { XosClient } from "../src/client";
-import { fakeClient, type Response } from "./fake-client";
+import type { XosClient } from "../src/client.ts";
+import { fakeClient, type Response } from "./fake-client.ts";
 
 /**
  * The recording client of fake-client.ts with `schema(name)` for canon reads: `schema("xpms")`
@@ -20,4 +20,4 @@ export function commercialClient(queues: Record<string, Response[]>) {
   return { db: client as unknown as XosClient, calls };
 }
 
-export { errorResponse, okResponse } from "./fake-client";
+export { errorResponse, okResponse } from "./fake-client.ts";

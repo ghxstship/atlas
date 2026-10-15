@@ -1,4 +1,4 @@
-import type { Database, XosClient } from "./client";
+import type { Database, XosClient } from "./client.ts";
 import {
   blankToNull,
   deletedNow,
@@ -6,8 +6,8 @@ import {
   readOne,
   readRows,
   touched,
-} from "./commercial-common";
-import { fail, ok, toDataError, type Result } from "./result";
+} from "./commercial-common.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Knowledge repository (Section 4.2 Knowledge, Section 7.4, invariant 24): SOPs with versioned

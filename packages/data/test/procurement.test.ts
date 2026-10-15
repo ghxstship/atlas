@@ -46,8 +46,8 @@ import {
   updatePoLine,
   updateRfq,
   type RfqResponse,
-} from "../src/procurement";
-import { commercialClient, errorResponse, okResponse } from "./commercial-fake";
+} from "../src/procurement.ts";
+import { commercialClient, errorResponse, okResponse } from "./commercial-fake.ts";
 
 const project = { project_key: "NWL", name: "Summer" };
 const vendor = { counterparty: { counterparty_name: "Harbor Audio" } };

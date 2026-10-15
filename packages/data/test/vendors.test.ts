@@ -34,9 +34,9 @@ import {
   updateSponsorEntitlement,
   updateVendor,
   updateVendorClass,
-} from "../src/vendors";
-import { nextStates } from "../src/commercial-common";
-import { commercialClient, errorResponse, okResponse } from "./commercial-fake";
+} from "../src/vendors.ts";
+import { nextStates } from "../src/commercial-common.ts";
+import { commercialClient, errorResponse, okResponse } from "./commercial-fake.ts";
 
 const vendorRow = (id: string, name: string | null, classes: string[] = []) => ({
   id,

@@ -1,4 +1,4 @@
-import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result";
+import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
 /**
  * Shared plumbing for the procurement, vendor, knowledge and canon repositories (A16). Every query

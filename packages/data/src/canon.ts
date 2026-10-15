@@ -1,6 +1,6 @@
-import type { XosClient } from "./client";
-import { insertedId, readRows, rpcValue, touched } from "./commercial-common";
-import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { insertedId, readRows, rpcValue, touched } from "./commercial-common.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Canon browser repository (Section 4.2 Canon, Section 7.2): read-only reads of the xpms canon
@@ -362,8 +362,8 @@ export async function listMetrics(db: XosClient): Promise<Result<Metric[]>> {
 
 // Org extensions (migration 0490) -------------------------------------------------------------------------
 
-export type CanonExtensionLevel = "Discipline" | "Category";
-export type CanonExtensionState = "Proposed" | "Approved" | "Rejected" | "Withdrawn";
+export type CanonExtensionLevel = Database["app"]["Enums"]["canon_extension_level"];
+export type CanonExtensionState = Database["app"]["Enums"]["canon_extension_state"];
 
 export interface CanonExtensionProposal {
   readonly id: string;
@@ -379,55 +379,16 @@ export interface CanonExtensionProposal {
   readonly createdAt: string;
 }
 
-interface ProposalRow {
-  id: string;
-  extension_level: CanonExtensionLevel;
-  parent_code: string;
-  proposed_code: string;
-  label: string;
-  rationale: string;
-  proposal_state: CanonExtensionState;
-  decided_by: string | null;
-  decided_at: string | null;
-  created_by: string | null;
-  created_at: string;
-}
-
-interface Response<T> {
-  data: T;
-  error: DatabaseErrorLike | null;
-}
-
-/**
- * The narrow query surface the proposals table needs. app.canon_extension_proposals arrives with
- * migration 0490, after the last generation of database.types.ts; once the orchestrator regenerates
- * the types this view of the client becomes the typed `db.from` call.
- */
-interface ProposalQuery extends PromiseLike<Response<ProposalRow[]>> {
-  select(columns: string): ProposalQuery;
-  eq(column: string, value: string): ProposalQuery;
-  is(column: string, value: null): ProposalQuery;
-  order(column: string, options?: { ascending: boolean }): ProposalQuery;
-  insert(row: Record<string, unknown>): ProposalQuery;
-  update(row: Record<string, unknown>): ProposalQuery;
-  single(): PromiseLike<Response<{ id: string }>>;
-}
-
-function proposals(db: XosClient): ProposalQuery {
-  return (db as unknown as { from(table: string): ProposalQuery }).from(
-    "canon_extension_proposals",
-  );
-}
-
 const PROPOSAL_COLUMNS =
-  "id, extension_level, parent_code, proposed_code, label, rationale, proposal_state, decided_by, decided_at, created_by, created_at";
+  "id, extension_level, parent_code, proposed_code, label, rationale, proposal_state, decided_by, decided_at, created_by, created_at" as const;
 
 export async function listCanonExtensionProposals(
   db: XosClient,
   orgId: string,
 ): Promise<Result<CanonExtensionProposal[]>> {
   return readRows(
-    proposals(db)
+    db
+      .from("canon_extension_proposals")
       .select(PROPOSAL_COLUMNS)
       .eq("org_id", orgId)
       .is("deleted_at", null)
@@ -481,7 +442,8 @@ export async function proposeCanonExtension(
   input: CanonExtensionInput,
 ): Promise<Result<{ id: string }>> {
   return insertedId(
-    proposals(db)
+    db
+      .from("canon_extension_proposals")
       .insert({
         org_id: orgId,
         extension_level: input.level,
@@ -502,7 +464,8 @@ export async function updateCanonExtension(
   input: { readonly label: string; readonly rationale: string },
 ): Promise<Result<null>> {
   return touched(
-    proposals(db)
+    db
+      .from("canon_extension_proposals")
       .update({ label: input.label.trim(), rationale: input.rationale.trim() })
       .eq("id", id)
       .select("id"),
@@ -519,11 +482,7 @@ export async function decideCanonExtension(
     readonly reason: string;
   },
 ): Promise<Result<null>> {
-  const rpc = (
-    db as unknown as {
-      rpc(name: string, args: Record<string, unknown>): PromiseLike<Response<unknown>>;
-    }
-  ).rpc("decide_canon_extension", {
+  const rpc = db.rpc("decide_canon_extension", {
     p_proposal_id: move.id,
     p_expected: move.expected,
     p_next: move.next,

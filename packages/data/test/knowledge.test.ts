@@ -26,8 +26,8 @@ import {
   updateSop,
   updateVerbiageTerm,
   verbiageProblems,
-} from "../src/knowledge";
-import { commercialClient, errorResponse, okResponse } from "./commercial-fake";
+} from "../src/knowledge.ts";
+import { commercialClient, errorResponse, okResponse } from "./commercial-fake.ts";
 
 const SHA = "a".repeat(64);
 

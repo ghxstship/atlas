@@ -1,12 +1,11 @@
--- 0490_canon_extensions_and_audit.sql
+-- 0490_canon_extensions.sql
 -- A16 Procurement, Vendors, Knowledge and Canon (ADR 0022 range 0490 to 0499).
 --   * Canon extension proposals (Section 7.2, Section 4.5.9 "read and extend"): an org proposes its
 --     own discipline or category in the adopter range .50 to .99. An approved proposal is the org's
 --     extension; canon (xpms) is never written. Someone other than the proposer decides
 --     (sod_approval_requester).
---   * The audit trail (A18, app.audit_events) attached to every procurement, vendor and knowledge
---     table, so each insert, update and soft delete is a compliance event with a diff that leaves out
---     Restricted columns.
+-- The audit trail, retention and comment subjects for these tables need A18's 05xx machinery and
+-- live in the late slot (0995).
 
 -- Enums and rules ----------------------------------------------------------------------------------
 
@@ -176,38 +175,6 @@ call private.install_policies('app.canon_extension_proposals',
   $$org_id in (select private.orgs_with_capability('canon.taxonomy.read'))$$,
   $$org_id in (select private.orgs_with_capability('canon.extension.write'))$$);
 
-call private.install_default_retention('app.canon_extension_proposals');
-call private.install_default_retention('app.canon_extension_state_transitions');
-
 revoke all on function private.guard_canon_extension_proposal() from public, anon, authenticated;
 revoke all on function app.decide_canon_extension(uuid, app.canon_extension_state, app.canon_extension_state, text) from public, anon;
 grant execute on function app.decide_canon_extension(uuid, app.canon_extension_state, app.canon_extension_state, text) to authenticated, service_role;
-
--- Audit trail (A18 app.audit_events) -------------------------------------------------------------------
-
-call private.install_audit_trail('app.canon_extension_proposals');
-call private.install_audit_trail('app.vendors');
-call private.install_audit_trail('app.vendor_classes');
-call private.install_audit_trail('app.vendor_class_assignments');
-call private.install_audit_trail('app.vendor_bank_accounts');
-call private.install_audit_trail('app.prequalifications');
-call private.install_audit_trail('app.insurance_certificates');
-call private.install_audit_trail('app.vendor_scorecards');
-call private.install_audit_trail('app.sponsor_entitlements');
-call private.install_audit_trail('app.rfqs');
-call private.install_audit_trail('app.rfq_invitations');
-call private.install_audit_trail('app.rfq_responses');
-call private.install_audit_trail('app.rfq_response_lines');
-call private.install_audit_trail('app.purchase_orders');
-call private.install_audit_trail('app.po_lines');
-call private.install_audit_trail('app.po_change_orders');
-call private.install_audit_trail('app.goods_receipts');
-call private.install_audit_trail('app.receipt_lines');
-call private.install_audit_trail('app.invoice_matches');
-call private.install_audit_trail('app.catalog_bindings');
-call private.install_audit_trail('app.vendor_products');
-call private.install_audit_trail('app.sops');
-call private.install_audit_trail('app.sop_acknowledgments');
-call private.install_audit_trail('app.documents');
-call private.install_audit_trail('app.document_versions');
-call private.install_audit_trail('app.verbiage_terms');

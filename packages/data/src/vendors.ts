@@ -1,4 +1,4 @@
-import type { Database, XosClient } from "./client";
+import type { Database, XosClient } from "./client.ts";
 import {
   blankToNull,
   deletedNow,
@@ -8,8 +8,8 @@ import {
   rpcValue,
   touched,
   type Transition,
-} from "./commercial-common";
-import { fail, ok, type Result } from "./result";
+} from "./commercial-common.ts";
+import { fail, ok, type Result } from "./result.ts";
 
 /**
  * Vendors repository (Section 4.2 Vendors, Section 7.4): the vendor facet of a counterparty with
@@ -825,4 +825,174 @@ export async function addVendorBankAccount(
     routing_number: blankToNull(input.routingNumber),
   } as Tables["vendor_bank_accounts"]["Insert"];
   return insertedId(db.from("vendor_bank_accounts").insert(row).select("id").single());
+}
+
+// Sponsor assets, deliveries and proof of performance (migration 0492) ------------------------------------------
+
+export type SponsorAssetKind = Database["app"]["Enums"]["sponsor_asset_kind"];
+export type ReviewState = Database["app"]["Enums"]["review_state"];
+
+export const SPONSOR_ASSET_KINDS: readonly SponsorAssetKind[] = [
+  "Logo",
+  "Artwork",
+  "Copy",
+  "Video",
+  "Other",
+];
+
+export interface SponsorAsset {
+  readonly id: string;
+  readonly entitlementId: string;
+  readonly kind: SponsorAssetKind;
+  readonly title: string;
+  readonly usageNote: string | null;
+  readonly dueOn: string | null;
+  readonly revision: number;
+  readonly state: ReviewState;
+  readonly decidedBy: string | null;
+  readonly decidedAt: string | null;
+  readonly createdBy: string | null;
+}
+
+export async function listSponsorAssets(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<SponsorAsset[]>> {
+  return readRows(
+    db
+      .from("sponsor_assets")
+      .select(
+        "id, sponsor_entitlement_id, asset_kind, title, usage_note, due_on, revision, asset_state, decided_by, decided_at, created_by",
+      )
+      .eq("org_id", orgId)
+      .is("deleted_at", null)
+      .order("created_at"),
+    (row) => ({
+      id: row.id,
+      entitlementId: row.sponsor_entitlement_id,
+      kind: row.asset_kind,
+      title: row.title,
+      usageNote: row.usage_note,
+      dueOn: row.due_on,
+      revision: row.revision,
+      state: row.asset_state,
+      decidedBy: row.decided_by,
+      decidedAt: row.decided_at,
+      createdBy: row.created_by,
+    }),
+  );
+}
+
+export async function createSponsorAsset(
+  db: XosClient,
+  input: {
+    readonly entitlementId: string;
+    readonly kind: SponsorAssetKind;
+    readonly title: string;
+    readonly usageNote: string | null;
+    readonly dueOn: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  const row = {
+    sponsor_entitlement_id: input.entitlementId,
+    asset_kind: input.kind,
+    title: input.title.trim(),
+    usage_note: blankToNull(input.usageNote),
+    due_on: blankToNull(input.dueOn),
+  } as Tables["sponsor_assets"]["Insert"];
+  return insertedId(db.from("sponsor_assets").insert(row).select("id").single());
+}
+
+/** Submits, approves, returns or cancels a sponsor asset (app.transition_sponsor_asset). */
+export async function transitionSponsorAsset(
+  db: XosClient,
+  move: Transition<ReviewState>,
+): Promise<Result<null>> {
+  const result = await rpcValue(
+    db.rpc("transition_sponsor_asset", {
+      p_sponsor_asset_id: move.id,
+      p_expected: move.expected,
+      p_next: move.next,
+      p_reason: move.reason,
+    }),
+  );
+  return result.ok ? ok(null) : result;
+}
+
+export interface EntitlementDelivery {
+  readonly id: string;
+  readonly entitlementId: string;
+  readonly deliveredOn: string;
+  /** Null when the delivery was not counted. */
+  readonly quantityDelivered: number | null;
+  readonly note: string | null;
+  readonly recordedBy: string | null;
+}
+
+export async function listEntitlementDeliveries(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<EntitlementDelivery[]>> {
+  return readRows(
+    db
+      .from("entitlement_deliveries")
+      .select("id, sponsor_entitlement_id, delivered_on, quantity_delivered, note, recorded_by")
+      .eq("org_id", orgId)
+      .is("deleted_at", null)
+      .order("delivered_on", { ascending: false }),
+    (row) => ({
+      id: row.id,
+      entitlementId: row.sponsor_entitlement_id,
+      deliveredOn: row.delivered_on,
+      quantityDelivered: row.quantity_delivered,
+      note: row.note,
+      recordedBy: row.recorded_by,
+    }),
+  );
+}
+
+export async function recordEntitlementDelivery(
+  db: XosClient,
+  input: {
+    readonly entitlementId: string;
+    readonly deliveredOn: string;
+    readonly quantityDelivered: number | null;
+    readonly note: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  const row = {
+    sponsor_entitlement_id: input.entitlementId,
+    delivered_on: input.deliveredOn,
+    quantity_delivered: input.quantityDelivered,
+    note: blankToNull(input.note),
+  } as Tables["entitlement_deliveries"]["Insert"];
+  return insertedId(db.from("entitlement_deliveries").insert(row).select("id").single());
+}
+
+export interface ProofOfPerformance {
+  readonly entitlementId: string;
+  readonly quantityOwed: number | null;
+  readonly quantityDelivered: number | null;
+  readonly deliveryCount: number;
+  readonly lastDeliveredOn: string | null;
+  readonly isMet: boolean;
+}
+
+/** Proof of performance per entitlement (app.sponsor_proof_of_performance, gate 8). */
+export async function listProofOfPerformance(db: XosClient): Promise<Result<ProofOfPerformance[]>> {
+  return readRows(
+    db
+      .from("sponsor_proof_of_performance")
+      .select(
+        "sponsor_entitlement_id, quantity_owed, quantity_delivered, delivery_count, last_delivered_on, is_met",
+      ),
+    (row) => ({
+      entitlementId: row.sponsor_entitlement_id ?? "",
+      quantityOwed: row.quantity_owed,
+      quantityDelivered: row.quantity_delivered,
+      deliveryCount: row.delivery_count ?? 0,
+      lastDeliveredOn: row.last_delivered_on,
+      isMet: row.is_met ?? false,
+    }),
+  );
 }
