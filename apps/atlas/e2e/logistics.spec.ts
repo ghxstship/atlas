@@ -43,6 +43,9 @@ test("journey 20: log a shipment, check it in at a dock, log it in the yard and 
 }) => {
   await signIn(page, "producer@example.com");
   const vehicle = `FL TRK-${Date.now().toString().slice(-5)}`;
+  // A day of its own for each run, so earlier runs never hold the dock (slots never overlap).
+  const offset = Math.floor(Date.now() / 1000) % 3000;
+  const day = new Date(Date.UTC(2028, 0, 1) + offset * 86_400_000).toISOString().slice(0, 10);
 
   // Log the shipment.
   await page.goto(`/${ORG}/logistics/shipments`);
@@ -50,7 +53,7 @@ test("journey 20: log a shipment, check it in at a dock, log it in the yard and 
   const drawer = page.getByRole("dialog", { name: "Log shipment" });
   await drawer.getByLabel("Project").selectOption({ label: "NWS Northwind Summer Series" });
   await drawer.getByLabel("Carrier").selectOption({ label: "Coastline Freight Lines" });
-  await drawer.getByLabel("Arrives").fill("2027-03-12T09:00");
+  await drawer.getByLabel("Arrives").fill(`${day}T09:00`);
   await expectAccessible(page);
   await drawer.getByRole("button", { name: "Log shipment" }).click();
   await page.waitForURL(/peek=NWS-\d+/);
@@ -69,16 +72,16 @@ test("journey 20: log a shipment, check it in at a dock, log it in the yard and 
   await peek.getByRole("link", { name: "Book dock slot" }).click();
   const book = page.getByRole("dialog", { name: "Book dock slot" });
   await book.getByLabel("Dock").selectOption({ label: "DOCK-B Loading Dock B" });
-  await book.getByLabel("Starts").fill("2027-03-12T09:00");
-  await book.getByLabel("Ends").fill("2027-03-12T10:00");
+  await book.getByLabel("Starts").fill(`${day}T09:00`);
+  await book.getByLabel("Ends").fill(`${day}T10:00`);
   await expectAccessible(page);
   await book.getByRole("button", { name: "Book dock slot" }).click();
   await expect(book).toBeHidden();
   await page.goto(`/${ORG}/logistics/dock-schedule?create=1&week=2027-03-08`);
   const again = page.getByRole("dialog", { name: "Book dock slot" });
   await again.getByLabel("Dock").selectOption({ label: "DOCK-B Loading Dock B" });
-  await again.getByLabel("Starts").fill("2027-03-12T09:30");
-  await again.getByLabel("Ends").fill("2027-03-12T10:30");
+  await again.getByLabel("Starts").fill(`${day}T09:30`);
+  await again.getByLabel("Ends").fill(`${day}T10:30`);
   await again.getByRole("button", { name: "Book dock slot" }).click();
   await expect(
     again.getByText(
