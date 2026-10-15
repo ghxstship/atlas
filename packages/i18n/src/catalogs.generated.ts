@@ -8,6 +8,7 @@ import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
 import enUS_email from "../messages/en-US/email.json" with { type: "json" };
+import enUS_finance from "../messages/en-US/finance.json" with { type: "json" };
 import enUS_gateway from "../messages/en-US/gateway.json" with { type: "json" };
 import enUS_home from "../messages/en-US/home.json" with { type: "json" };
 import enUS_hospitality from "../messages/en-US/hospitality.json" with { type: "json" };
@@ -20,6 +21,7 @@ import enUS_permits from "../messages/en-US/permits.json" with { type: "json" };
 import enUS_places from "../messages/en-US/places.json" with { type: "json" };
 import enUS_profiles from "../messages/en-US/profiles.json" with { type: "json" };
 import enUS_projects from "../messages/en-US/projects.json" with { type: "json" };
+import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
@@ -33,6 +35,7 @@ import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
 import esUS_email from "../messages/es-US/email.json" with { type: "json" };
+import esUS_finance from "../messages/es-US/finance.json" with { type: "json" };
 import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
 import esUS_home from "../messages/es-US/home.json" with { type: "json" };
 import esUS_hospitality from "../messages/es-US/hospitality.json" with { type: "json" };
@@ -45,6 +48,7 @@ import esUS_permits from "../messages/es-US/permits.json" with { type: "json" };
 import esUS_places from "../messages/es-US/places.json" with { type: "json" };
 import esUS_profiles from "../messages/es-US/profiles.json" with { type: "json" };
 import esUS_projects from "../messages/es-US/projects.json" with { type: "json" };
+import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
@@ -60,6 +64,7 @@ export const enUS = {
   credentials: enUS_credentials,
   crew: enUS_crew,
   email: enUS_email,
+  finance: enUS_finance,
   gateway: enUS_gateway,
   home: enUS_home,
   hospitality: enUS_hospitality,
@@ -72,6 +77,7 @@ export const enUS = {
   places: enUS_places,
   profiles: enUS_profiles,
   projects: enUS_projects,
+  reports: enUS_reports,
   schedule: enUS_schedule,
   settings: enUS_settings,
   shell: enUS_shell,
@@ -88,6 +94,7 @@ export const esUS = {
   credentials: esUS_credentials,
   crew: esUS_crew,
   email: esUS_email,
+  finance: esUS_finance,
   gateway: esUS_gateway,
   home: esUS_home,
   hospitality: esUS_hospitality,
@@ -100,6 +107,7 @@ export const esUS = {
   places: esUS_places,
   profiles: esUS_profiles,
   projects: esUS_projects,
+  reports: esUS_reports,
   schedule: esUS_schedule,
   settings: esUS_settings,
   shell: esUS_shell,

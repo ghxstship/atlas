@@ -1,0 +1,13 @@
+# Settings registry: A15 (Finance and Reports). Section 4.5.6, ADR 0021 item 7.
+# Field reference: see a30.yaml. Labels live in the finance message namespace.
+contributor: a15
+settings:
+  - key: finance.self_billing_enabled
+    type: boolean
+    default: false
+    scopes: [organization, project]
+    lockable: true
+    capability: finance.invoice.approve
+    label: finance.settings.selfBilling.label
+    help: finance.settings.selfBilling.help
+    pages: { org: settings.legal-entities-and-fiscal }

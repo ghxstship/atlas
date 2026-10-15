@@ -127,7 +127,7 @@ export interface Components {
     updated_by: string | null;
     starts_on: string;
     ends_on: string;
-    accounting_period_state: Components["AccountingPeriodState"];
+    period_state: Components["AccountingPeriodState"];
   };
   AccountingPeriodCreate: { starts_on: string; ends_on: string };
   AccountingPeriodPage: { data: Array<Components["AccountingPeriod"]>; next_cursor: string | null };
@@ -847,24 +847,25 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     project_id: string;
-    title: string;
-    amount_minor: number | null;
-    currency: string;
-    due_on: string;
+    draw_number: number;
+    period_end: string;
+    amount_requested_minor: number | null;
+    currency_code: string;
+    invoice_id: string | null;
   };
   BillingDrawCreate: {
     project_id: string;
-    title: string;
-    amount_minor?: number | null;
-    currency: string;
-    due_on: string;
+    draw_number: number;
+    period_end: string;
+    amount_requested_minor: number;
+    currency_code: string;
   };
   BillingDrawPage: { data: Array<Components["BillingDraw"]>; next_cursor: string | null };
   BillingDrawUpdate: {
-    title?: string;
-    amount_minor?: number | null;
-    currency?: string;
-    due_on?: string;
+    draw_number?: number;
+    period_end?: string;
+    amount_requested_minor?: number;
+    currency_code?: string;
   };
   Block: { id: string; created_at: string; updated_at: string; blocked_urn: string };
   BlockCreate: { blocked_urn: string };
@@ -895,16 +896,10 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     name: string;
-    currency: string;
-    budget_state: string;
-    contingency_percent: number | null;
+    currency_code: string;
+    is_baseline: boolean;
   };
-  BudgetCreate: {
-    project_id: string;
-    name: string;
-    currency: string;
-    contingency_percent?: number | null;
-  };
+  BudgetCreate: { project_id: string; name: string; currency_code: string; is_baseline?: boolean };
   BudgetLine: {
     id: string;
     org_id: string;
@@ -913,53 +908,49 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     budget_id: string;
-    account_code: Components["GlAccountCode"];
-    cost_center_id: string;
+    cost_center_id: string | null;
     urid: Components["UridAtAnyGrain"];
     xyz: Components["Xyz"];
     xyz_basis: string;
     line_type: Components["LineType"];
-    grade: Components["Grade"];
+    grade_code: string | null;
     element_id: Components["ItemId"];
     description: string;
-    quantity: number | null;
-    unit: Components["UnitCode"];
+    quantity: number;
+    unit_basis: Components["UnitCode"];
     unit_price_minor: number | null;
     line_total_minor: number | null;
-    currency: string;
-    line_state: Components["SharedState"];
+    line_number: number;
   };
   BudgetLineCreate: {
     budget_id: string;
-    cost_center_id: string;
+    cost_center_id?: string | null;
     urid: Components["UridAtAnyGrain"];
     xyz: Components["Xyz"];
     xyz_basis: string;
-    line_type: Components["LineType"];
-    grade?: Components["Grade"];
+    line_type?: Components["LineType"];
+    grade_code?: string | null;
     element_id?: Components["ItemId"];
     description: string;
-    quantity?: number | null;
-    unit?: Components["UnitCode"];
+    quantity?: number;
+    unit_basis?: Components["UnitCode"];
     unit_price_minor?: number | null;
-    currency: string;
-    line_state: Components["SharedState"];
+    line_number: number;
   };
   BudgetLinePage: { data: Array<Components["BudgetLine"]>; next_cursor: string | null };
   BudgetLineUpdate: {
-    cost_center_id?: string;
+    cost_center_id?: string | null;
     urid?: Components["UridAtAnyGrain"];
     xyz?: Components["Xyz"];
     xyz_basis?: string;
     line_type?: Components["LineType"];
-    grade?: Components["Grade"];
+    grade_code?: string | null;
     element_id?: Components["ItemId"];
     description?: string;
-    quantity?: number | null;
-    unit?: Components["UnitCode"];
+    quantity?: number;
+    unit_basis?: Components["UnitCode"];
     unit_price_minor?: number | null;
-    currency?: string;
-    line_state?: Components["SharedState"];
+    line_number?: number;
   };
   BudgetPage: { data: Array<Components["Budget"]>; next_cursor: string | null };
   BudgetSummary: {
@@ -969,7 +960,7 @@ export interface Components {
     actual: Components["MoneyTotal"];
     variance: Components["MoneyTotal"];
   };
-  BudgetUpdate: { name?: string; currency?: string; contingency_percent?: number | null };
+  BudgetUpdate: { name?: string; currency_code?: string; is_baseline?: boolean };
   Calendar: {
     id: string;
     org_id: string;
@@ -1482,12 +1473,22 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     title: string;
-    description: string;
-    requested_by: string;
-    change_order_state: Components["SharedState"];
+    reason: string | null;
+    requested_by: string | null;
+    change_order_state: "Proposed" | "Priced" | "Approved" | "Rejected" | "Canceled";
     total: Components["MoneyTotal"];
+    budget_id: string;
+    change_order_number: number;
+    order_type_enum_id: string | null;
+    priced_by: string | null;
   };
-  ChangeOrderCreate: { project_id: string; title: string; description: string };
+  ChangeOrderCreate: {
+    project_id: string;
+    title: string;
+    reason?: string | null;
+    budget_id: string;
+    order_type_enum_id?: string | null;
+  };
   ChangeOrderLine: {
     id: string;
     org_id: string;
@@ -1499,28 +1500,35 @@ export interface Components {
     budget_line_id: string | null;
     urid: Components["UridAtAnyGrain"];
     description: string;
-    amount_minor: number | null;
-    currency: string;
+    quantity: number;
+    unit_price_minor: number | null;
+    is_no_cost: boolean;
   };
   ChangeOrderLineCreate: {
     change_order_id: string;
     budget_line_id?: string | null;
     urid: Components["UridAtAnyGrain"];
     description: string;
-    amount_minor?: number | null;
-    currency: string;
+    quantity?: number;
+    unit_price_minor?: number | null;
+    is_no_cost?: boolean;
   };
   ChangeOrderLinePage: { data: Array<Components["ChangeOrderLine"]>; next_cursor: string | null };
   ChangeOrderLineUpdate: {
     budget_line_id?: string | null;
     urid?: Components["UridAtAnyGrain"];
     description?: string;
-    amount_minor?: number | null;
-    currency?: string;
+    quantity?: number;
+    unit_price_minor?: number | null;
+    is_no_cost?: boolean;
   };
   ChangeOrderPage: { data: Array<Components["ChangeOrder"]>; next_cursor: string | null };
-  ChangeOrderTransitionRequest: { expected_state: string; to_state: string; reason?: string };
-  ChangeOrderUpdate: { title?: string; description?: string };
+  ChangeOrderTransitionRequest: {
+    expected_state: "Proposed" | "Priced" | "Approved" | "Rejected" | "Canceled";
+    to_state: "Proposed" | "Priced" | "Approved" | "Rejected" | "Canceled";
+    reason?: string;
+  };
+  ChangeOrderUpdate: { title?: string; reason?: string | null; order_type_enum_id?: string | null };
   Classification: "Public" | "Internal" | "Confidential" | "Restricted";
   ColumnClassification: {
     table_name: string;
@@ -1593,14 +1601,12 @@ export interface Components {
     from_budget_line_id: string;
     to_budget_line_id: string;
     amount_minor: number | null;
-    currency: string;
     reason: string;
   };
   ContingencyDrawCreate: {
     from_budget_line_id: string;
     to_budget_line_id: string;
-    amount_minor?: number | null;
-    currency: string;
+    amount_minor: number;
     reason: string;
   };
   ContingencyDrawPage: { data: Array<Components["ContingencyDraw"]>; next_cursor: string | null };
@@ -1620,23 +1626,24 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    cost_center_id: Components["CostCenterCode"];
+    code: Components["CostCenterCode"];
     name: string;
-    kind: string;
+    kind: "Standing" | "Overhead" | "Event";
     scope_node_id: string | null;
+    template_id: string | null;
   };
   CostCenterCode: string;
   CostCenterCreate: {
-    cost_center_id: Components["CostCenterCode"];
+    code: Components["CostCenterCode"];
     name: string;
-    kind: string;
+    kind: "Standing" | "Overhead" | "Event";
     scope_node_id?: string | null;
   };
   CostCenterPage: { data: Array<Components["CostCenter"]>; next_cursor: string | null };
   CostCenterUpdate: {
-    cost_center_id?: Components["CostCenterCode"];
+    code?: Components["CostCenterCode"];
     name?: string;
-    kind?: string;
+    kind?: "Standing" | "Overhead" | "Event";
     scope_node_id?: string | null;
   };
   CounterpartyType: string;
@@ -2314,29 +2321,29 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     budget_line_id: string;
-    submitted_by: string;
+    submitter_person_id: string | null;
     description: string;
     amount_minor: number | null;
-    currency: string;
+    currency_code: string;
     incurred_on: string;
-    receipt_document_id: string | null;
-    expense_state: Components["SharedState"];
+    expense_state: "Proposed" | "Approved" | "Rejected" | "Paid" | "Canceled";
+    counterparty_id: string | null;
   };
   ExpenseCreate: {
     budget_line_id: string;
     description: string;
-    amount_minor?: number | null;
-    currency: string;
+    amount_minor: number;
+    currency_code: string;
     incurred_on: string;
-    receipt_document_id?: string | null;
+    counterparty_id?: string | null;
   };
   ExpensePage: { data: Array<Components["Expense"]>; next_cursor: string | null };
   ExpenseUpdate: {
     description?: string;
-    amount_minor?: number | null;
-    currency?: string;
+    amount_minor?: number;
+    currency_code?: string;
     incurred_on?: string;
-    receipt_document_id?: string | null;
+    counterparty_id?: string | null;
   };
   ExportFormat: "CSV" | "XLSX" | "PDF";
   ExportJob: {
@@ -2452,7 +2459,7 @@ export interface Components {
     base_currency: string;
     quote_currency: string;
     rate: number;
-    rate_date: string;
+    effective_on: string;
     source: string;
   };
   FxRatePage: { data: Array<Components["FxRate"]>; next_cursor: string | null };
@@ -2562,7 +2569,6 @@ export interface Components {
     dock_slot_id?: string | null;
   };
   GoodsReceiptPage: { data: Array<Components["GoodsReceipt"]>; next_cursor: string | null };
-  Grade: string | null;
   GrainCode: string;
   GuestDecisionRequest: { outcome: "Approved" | "Declined" };
   GuestListEntry: {
@@ -2980,27 +2986,23 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     project_id: string;
-    counterparty_organization_id: string | null;
-    engagement_id: string | null;
-    purchase_order_id: string | null;
-    direction: string;
-    invoice_number: string;
-    issued_on: string;
+    direction: "Payable" | "Receivable";
+    invoice_number: string | null;
+    issued_on: string | null;
     due_on: string | null;
-    currency: string;
-    invoice_state: Components["SharedState"];
+    currency_code: string;
+    invoice_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
     total: Components["MoneyTotal"];
+    counterparty_id: string;
   };
   InvoiceCreate: {
     project_id: string;
-    counterparty_organization_id?: string | null;
-    engagement_id?: string | null;
-    purchase_order_id?: string | null;
-    direction: string;
-    invoice_number: string;
-    issued_on: string;
+    direction: "Payable" | "Receivable";
+    invoice_number?: string | null;
+    issued_on?: string | null;
     due_on?: string | null;
-    currency: string;
+    currency_code: string;
+    counterparty_id: string;
   };
   InvoiceLine: {
     id: string;
@@ -3010,27 +3012,33 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     invoice_id: string;
-    po_line_id: string | null;
     description: string;
     quantity: number | null;
     unit_price_minor: number | null;
-    currency: string;
+    line_number: number;
+    budget_line_id: string | null;
+    tax_rate_id: string | null;
+    urid: Components["UridAtAnyGrain"] | null;
   };
   InvoiceLineCreate: {
     invoice_id: string;
-    po_line_id?: string | null;
     description: string;
     quantity?: number | null;
     unit_price_minor?: number | null;
-    currency: string;
+    line_number: number;
+    budget_line_id?: string | null;
+    tax_rate_id?: string | null;
+    urid?: Components["UridAtAnyGrain"] | null;
   };
   InvoiceLinePage: { data: Array<Components["InvoiceLine"]>; next_cursor: string | null };
   InvoiceLineUpdate: {
-    po_line_id?: string | null;
     description?: string;
     quantity?: number | null;
     unit_price_minor?: number | null;
-    currency?: string;
+    line_number?: number;
+    budget_line_id?: string | null;
+    tax_rate_id?: string | null;
+    urid?: Components["UridAtAnyGrain"] | null;
   };
   InvoiceMatch: {
     id: string;
@@ -3048,17 +3056,18 @@ export interface Components {
   InvoiceMatchCreate: { invoice_id: string; purchase_order_id: string; goods_receipt_id: string };
   InvoiceMatchPage: { data: Array<Components["InvoiceMatch"]>; next_cursor: string | null };
   InvoicePage: { data: Array<Components["Invoice"]>; next_cursor: string | null };
-  InvoiceTransitionRequest: { expected_state: string; to_state: string; reason?: string };
+  InvoiceTransitionRequest: {
+    expected_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
+    to_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
+    reason?: string;
+  };
   InvoiceUpdate: {
     project_id?: string;
-    counterparty_organization_id?: string | null;
-    engagement_id?: string | null;
-    purchase_order_id?: string | null;
-    direction?: string;
-    invoice_number?: string;
-    issued_on?: string;
+    invoice_number?: string | null;
+    issued_on?: string | null;
     due_on?: string | null;
-    currency?: string;
+    currency_code?: string;
+    counterparty_id?: string;
   };
   ItemId: string | null;
   JoinRequest: {
@@ -3085,13 +3094,27 @@ export interface Components {
     accounting_period_id: string;
     entry_date: string;
     memo: string;
-    journal_state: Components["SharedState"];
+    journal_state: "Proposed" | "Posted" | "Canceled";
     posted_at: string | null;
     posted_by: string | null;
+    project_id: string | null;
+    prepared_by: string | null;
+    source_table: string | null;
+    source_id: string | null;
   };
-  JournalEntryCreate: { accounting_period_id: string; entry_date: string; memo: string };
+  JournalEntryCreate: {
+    accounting_period_id: string;
+    entry_date: string;
+    memo: string;
+    project_id?: string | null;
+  };
   JournalEntryPage: { data: Array<Components["JournalEntry"]>; next_cursor: string | null };
-  JournalEntryUpdate: { accounting_period_id?: string; entry_date?: string; memo?: string };
+  JournalEntryUpdate: {
+    accounting_period_id?: string;
+    entry_date?: string;
+    memo?: string;
+    project_id?: string | null;
+  };
   JournalLine: {
     id: string;
     org_id: string;
@@ -3101,26 +3124,47 @@ export interface Components {
     updated_by: string | null;
     journal_entry_id: string;
     account_code: Components["GlAccountCode"];
-    cost_center_id: string;
+    cost_center_id: string | null;
     urid: Components["UridAtAnyGrain"];
-    amount_minor: number | null;
-    currency: string;
+    line_number: number;
+    description: string;
+    debit_minor: number | null;
+    credit_minor: number | null;
+    currency_code: string;
+    counterparty_id: string | null;
+    element_id: Components["ItemId"] | null;
+    quantity: number | null;
+    unit_basis: Components["UnitCode"] | null;
   };
   JournalLineCreate: {
     journal_entry_id: string;
     account_code: Components["GlAccountCode"];
-    cost_center_id: string;
+    cost_center_id?: string | null;
     urid?: Components["UridAtAnyGrain"];
-    amount_minor?: number | null;
-    currency: string;
+    line_number: number;
+    description: string;
+    debit_minor?: number;
+    credit_minor?: number;
+    currency_code: string;
+    counterparty_id?: string | null;
+    element_id?: Components["ItemId"] | null;
+    quantity?: number | null;
+    unit_basis?: Components["UnitCode"] | null;
   };
   JournalLinePage: { data: Array<Components["JournalLine"]>; next_cursor: string | null };
   JournalLineUpdate: {
     account_code?: Components["GlAccountCode"];
-    cost_center_id?: string;
+    cost_center_id?: string | null;
     urid?: Components["UridAtAnyGrain"];
-    amount_minor?: number | null;
-    currency?: string;
+    line_number?: number;
+    description?: string;
+    debit_minor?: number;
+    credit_minor?: number;
+    currency_code?: string;
+    counterparty_id?: string | null;
+    element_id?: Components["ItemId"] | null;
+    quantity?: number | null;
+    unit_basis?: Components["UnitCode"] | null;
   };
   JurisdictionId: string | null;
   KioskDevice: {
@@ -3987,16 +4031,11 @@ export interface Components {
     invoice_id: string;
     paid_on: string;
     amount_minor: number | null;
-    currency: string;
+    currency_code: string;
     external_ref: string | null;
+    payment_id: string;
   };
-  PaymentApplicationCreate: {
-    invoice_id: string;
-    paid_on: string;
-    amount_minor?: number | null;
-    currency: string;
-    external_ref?: string | null;
-  };
+  PaymentApplicationCreate: { invoice_id: string; amount_minor: number; payment_id: string };
   PaymentApplicationPage: {
     data: Array<Components["PaymentApplication"]>;
     next_cursor: string | null;
@@ -4257,32 +4296,37 @@ export interface Components {
     review_on?: string | null;
     rehire_eligible?: boolean;
   };
-  PostingExportAccepted: { export_job_id: string };
+  PostingExport: {
+    target: "xero" | "quickbooks" | "netsuite" | "ramp";
+    accounting_period_id: string;
+    filename: string;
+    content_type: "text/csv";
+    header: Array<string>;
+    row_count: number;
+    csv: string;
+  };
   PostingExportRequest: {
     target: "xero" | "quickbooks" | "netsuite" | "ramp";
     accounting_period_id: string;
   };
   PostingLine: {
-    id: string;
     org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
     date: string;
     account_code: Components["GlAccountCode"];
-    cost_center_id: Components["CostCenterCode"];
-    urid: Components["UridAtAnyGrain"];
+    cost_center_id: Components["CostCenterCode"] | null;
+    urid: Components["UridAtAnyGrain"] | null;
     vendor_id: string | null;
     item_id: Components["ItemId"];
     description: string;
     quantity: number | null;
     unit_basis: Components["UnitCode"];
-    amount: number | null;
+    amount_minor: number | null;
     tax_type: Components["TaxType"];
     currency: string;
     external_ref: string | null;
     line_state: Components["SharedState"];
+    posting_line_id: string;
+    project_id: string | null;
   };
   PostingLinePage: { data: Array<Components["PostingLine"]>; next_cursor: string | null };
   Prequalification: {
@@ -4997,12 +5041,30 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    source: string;
-    definition: Record<string, unknown>;
+    source_code: string;
+    chart: "Table" | "Bar" | "Line" | "Area" | "Pie" | "Number";
+    group_by_field: string | null;
+    shared: boolean;
+    custom_object_type_id: string | null;
+    membership_id: string;
   };
-  ReportDefinitionCreate: { name: string; source: string; definition: Record<string, unknown> };
+  ReportDefinitionCreate: {
+    name: string;
+    source_code: string;
+    chart?: "Table" | "Bar" | "Line" | "Area" | "Pie" | "Number";
+    group_by_field?: string | null;
+    shared?: boolean;
+    custom_object_type_id?: string | null;
+  };
   ReportDefinitionPage: { data: Array<Components["ReportDefinition"]>; next_cursor: string | null };
-  ReportDefinitionUpdate: { name?: string; source?: string; definition?: Record<string, unknown> };
+  ReportDefinitionUpdate: {
+    name?: string;
+    source_code?: string;
+    chart?: "Table" | "Bar" | "Line" | "Area" | "Pie" | "Number";
+    group_by_field?: string | null;
+    shared?: boolean;
+    custom_object_type_id?: string | null;
+  };
   ReportRow: {
     dimension: string;
     budget: Components["MoneyTotal"];
@@ -5017,12 +5079,16 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     report_definition_id: string;
-    format: Components["ExportFormat"];
-    run_state: string;
-    document_id: string | null;
-    ran_at: string | null;
+    export_format: Components["ExportFormat"];
+    run_status: "Queued" | "Running" | "Succeeded" | "Failed";
+    finished_at: string | null;
+    run_for_membership_id: string;
+    started_at: string | null;
+    row_count: number | null;
+    unpriced_count: number | null;
+    last_error: string | null;
   };
-  ReportRunCreate: { report_definition_id: string; format: Components["ExportFormat"] };
+  ReportRunCreate: { report_definition_id: string; export_format: Components["ExportFormat"] };
   ReportRunPage: { data: Array<Components["ReportRun"]>; next_cursor: string | null };
   ReportSchedule: {
     id: string;
@@ -6055,15 +6121,22 @@ export interface Components {
     rate_percent: number;
     effective_from: string;
     effective_to: string | null;
+    tax_type: Components["TaxType"];
   };
   TaxRateCreate: {
     tax_jurisdiction_id: string;
     rate_percent: number;
     effective_from: string;
     effective_to?: string | null;
+    tax_type: Components["TaxType"];
   };
   TaxRatePage: { data: Array<Components["TaxRate"]>; next_cursor: string | null };
-  TaxRateUpdate: { rate_percent?: number; effective_from?: string; effective_to?: string | null };
+  TaxRateUpdate: {
+    rate_percent?: number;
+    effective_from?: string;
+    effective_to?: string | null;
+    tax_type?: Components["TaxType"];
+  };
   TaxType: string;
   Team: {
     id: string;
@@ -11587,8 +11660,8 @@ export interface Operations {
   "postingLines.get": {
     module: "Finance";
     method: "get";
-    path: "/posting-lines/{id}";
-    params: { id: string };
+    path: "/posting-lines/{posting_line_id}";
+    params: { posting_line_id: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["PostingLine"] };
@@ -11600,7 +11673,7 @@ export interface Operations {
     params: Record<string, never>;
     query: Record<string, never>;
     body: Components["PostingExportRequest"];
-    responses: { 202: Components["PostingExportAccepted"] };
+    responses: { 200: Components["PostingExport"] };
   };
   "invoices.list": {
     module: "Finance";
@@ -19242,7 +19315,10 @@ export interface Operations {
     method: "get";
     path: "/reports/budget-vs-actual";
     params: Record<string, never>;
-    query: Record<string, never>;
+    query: {
+      project_id?: string;
+      dimension?: "account" | "costCenter" | "department" | "urid" | "project";
+    };
     body: undefined;
     responses: { 200: Components["ReportRowPage"] };
   };
@@ -19260,7 +19336,7 @@ export interface Operations {
     method: "get";
     path: "/reports/po-exposure";
     params: Record<string, never>;
-    query: Record<string, never>;
+    query: { project_id?: string };
     body: undefined;
     responses: { 200: Components["ReportRowPage"] };
   };
@@ -19278,7 +19354,7 @@ export interface Operations {
     method: "get";
     path: "/reports/final-cost-report";
     params: Record<string, never>;
-    query: Record<string, never>;
+    query: { project_id: string };
     body: undefined;
     responses: { 200: Components["ReportRowPage"] };
   };
