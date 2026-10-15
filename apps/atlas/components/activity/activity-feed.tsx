@@ -27,8 +27,8 @@ export function useDescribe() {
     const [subject = "", verb = ""] = entry.type.split(".");
     const action = a.has(`verbs.${verb}`) ? a(`verbs.${verb}`) : a("verbs.fallback");
     const noun = a.has(`subjects.${subject}`) ? a(`subjects.${subject}`) : a("subjects.fallback");
-    const criterion =
-      typeof entry.data["criterion_id"] === "string" ? entry.data["criterion_id"] : null;
+    const named = entry.data["criterion_id"] ?? entry.data["scope_code"];
+    const criterion = typeof named === "string" ? named : null;
     const target = entry.recordKey
       ? `${entry.recordKey} ${entry.recordTitle ?? ""}`.trim()
       : subject === "project" && entry.project

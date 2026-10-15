@@ -901,3 +901,42 @@ export async function listVenues(db: XosClient, orgId: string): Promise<Result<V
     })),
   );
 }
+
+// Coordinate matrix -------------------------------------------------------------------------------
+
+/** The ten department classes in numeric order (Section 3.2), from canon. */
+export async function listDepartments(db: XosClient): Promise<Result<CodeLabel[]>> {
+  const { data, error } = await db
+    .schema("xpms")
+    .from("dim_department")
+    .select("dept_code, department")
+    .order("dept_code");
+  if (error) return fail(toDataError(error));
+  return ok(data.map((r) => ({ code: r.dept_code, label: r.department })));
+}
+
+/**
+ * Live records of a project counted by coordinate: department class (the URID's first segment) by
+ * phase, keyed `{dept}|{phase}`. Records without a URID or phase sit at no coordinate and are left
+ * out (the silence rule: an absent coordinate is not a zero).
+ */
+export async function countRecordsByCoordinate(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<Record<string, number>>> {
+  const { data, error } = await db
+    .from("records")
+    .select("urid, phase_code")
+    .eq("project_id", projectId)
+    .is("deleted_at", null)
+    .not("urid", "is", null)
+    .not("phase_code", "is", null);
+  if (error) return fail(toDataError(error));
+  const cells: Record<string, number> = {};
+  for (const r of data) {
+    if (!r.urid || !r.phase_code) continue;
+    const key = `${r.urid.slice(0, 4)}|${r.phase_code}`;
+    cells[key] = (cells[key] ?? 0) + 1;
+  }
+  return ok(cells);
+}

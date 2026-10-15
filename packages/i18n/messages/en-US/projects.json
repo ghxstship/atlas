@@ -50,7 +50,8 @@
     "timeline": "Timeline",
     "calendar": "Calendar",
     "tree": "Tree",
-    "feed": "Feed"
+    "feed": "Feed",
+    "matrix": "Matrix"
   },
   "fields": {
     "key": "Key",
@@ -234,7 +235,13 @@
     "selected": "Selected node",
     "selectHint": "Select a node in the tree to rename it, add beneath it or remove it.",
     "emptyChildren": "Nothing beneath this node yet. Add a standing venue or a show.",
-    "readOnly": "You can read the scope tree. Ask a project manager to change it."
+    "readOnly": "You can read the scope tree. Ask a project manager to change it.",
+    "matrixLabel": "Records of {key} by department and phase",
+    "matrixCorner": "Department",
+    "matrixNote": "Counts records with a category and a phase. Records without either sit at no coordinate.",
+    "addSubmit": "Add node",
+    "renameSubmit": "Save name",
+    "kindHelp": "Standing venues hold shows; a show can sit under the root or a standing venue."
   },
   "gates": {
     "title": "Gates",

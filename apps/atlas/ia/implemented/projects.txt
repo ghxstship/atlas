@@ -7,3 +7,8 @@ projects.portfolio-timeline
 project
 project.overview
 project.gates
+project.scope
+project.activity
+activity.feed
+activity.audit-log
+project.settings

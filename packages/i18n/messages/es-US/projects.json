@@ -50,7 +50,8 @@
     "timeline": "Cronograma",
     "calendar": "Calendario",
     "tree": "Árbol",
-    "feed": "Actividad"
+    "feed": "Actividad",
+    "matrix": "Matriz"
   },
   "fields": {
     "key": "Clave",
@@ -234,7 +235,13 @@
     "selected": "Nodo seleccionado",
     "selectHint": "Selecciona un nodo del árbol para cambiarle el nombre, agregar debajo o eliminarlo.",
     "emptyChildren": "Aún no hay nada debajo de este nodo. Agrega un recinto permanente o una función.",
-    "readOnly": "Puedes leer el árbol de alcance. Pide a un gerente del proyecto que lo cambie."
+    "readOnly": "Puedes leer el árbol de alcance. Pide a un gerente del proyecto que lo cambie.",
+    "matrixLabel": "Registros de {key} por departamento y fase",
+    "matrixCorner": "Departamento",
+    "matrixNote": "Cuenta los registros con una categoría y una fase. Los registros sin alguna de ellas no tienen coordenada.",
+    "addSubmit": "Agregar nodo",
+    "renameSubmit": "Guardar nombre",
+    "kindHelp": "Los recintos permanentes contienen funciones; una función puede estar bajo la raíz o bajo un recinto permanente."
   },
   "gates": {
     "title": "Puertas",
