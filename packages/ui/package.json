@@ -17,7 +17,11 @@
   "scripts": {
     "lint": "eslint . --max-warnings 0 && stylelint \"**/*.css\" --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --coverage"
+    "test": "node scripts/generate-stories.mjs --check && vitest run --coverage",
+    "generate:stories": "node scripts/generate-stories.mjs",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build -o storybook-static --quiet",
+    "test:visual": "playwright test -c test/visual/playwright.config.ts"
   },
   "dependencies": {
     "@floating-ui/dom": "1.8.0",
@@ -55,7 +59,13 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.64.0",
+    "@storybook/addon-a11y": "10.6.1",
+    "@storybook/addon-themes": "10.6.1",
+    "@storybook/react-vite": "10.6.1",
     "@tailwindcss/node": "4.3.3",
+    "@tailwindcss/postcss": "4.3.3",
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "14.6.7",
@@ -69,6 +79,7 @@
     "jsdom": "29.1.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "storybook": "10.6.1",
     "stylelint": "16.26.1",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",

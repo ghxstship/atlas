@@ -1,0 +1,17 @@
+{
+  "version": 8,
+  "sources": {
+    "site": {
+      "type": "raster",
+      "tiles": ["./tile.png?{z}/{x}/{y}"],
+      "tileSize": 256
+    }
+  },
+  "layers": [
+    {
+      "id": "site",
+      "type": "raster",
+      "source": "site"
+    }
+  ]
+}

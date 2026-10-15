@@ -431,6 +431,7 @@ export function MapView({
           <div
             ref={container}
             aria-hidden="true"
+            inert
             className={cx("absolute inset-0 rounded-card overflow-hidden", !tiles && "hidden")}
           />
         ) : null}
@@ -440,7 +441,7 @@ export function MapView({
           aria-label={label}
           className={cx(
             "w-full h-auto rounded-card border border-border-subtle bg-bg-surface",
-            tiles && "invisible",
+            tiles && "opacity-0",
           )}
         >
           {zones.map((z) => (
