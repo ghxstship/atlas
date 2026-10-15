@@ -1,0 +1,7 @@
+# Hand-written People and Crew pages (A13, RRR-25). One sitemap node id per line.
+crew.schedule
+crew.shifts
+crew.swaps
+crew.time-entries
+crew.timesheets
+project.crew
