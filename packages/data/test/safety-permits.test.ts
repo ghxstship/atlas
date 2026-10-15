@@ -23,9 +23,9 @@ import {
   transitionRecord,
   updateInspectionItem,
   updatePermitDetails,
-} from "../src/safety-permits";
-import { canonClient } from "./canon-client";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/safety-permits.ts";
+import { canonClient } from "./canon-client.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const noAnswer = errorResponse(
   "XR001",
@@ -430,37 +430,55 @@ describe("inspections", () => {
     expect((await listInspections(db, { orgId: "o1" })).ok).toBe(false);
   });
 
-  it("creates, records results (insert then update) and signs off", async () => {
+  it("starts, records results and signs off through the RPCs", async () => {
     const { db, calls } = fakeClient({
-      "from:inspections": [okResponse([{ id: "n1" }]), okResponse([{ id: "n1" }])],
-      "from:inspection_results": [
-        okResponse(null),
-        okResponse([{ id: "x1" }]),
-        okResponse({ id: "x1" }),
-        okResponse([{ id: "x1" }]),
-        errorResponse("PGRST000", "x"),
+      "rpc:start_inspection": [okResponse("n1"), errorResponse("42501", "no")],
+      "rpc:record_inspection_result": [
+        okResponse("x1"),
+        okResponse("x1"),
+        errorResponse("XR001", "inspection_signed_off: frozen."),
+      ],
+      "rpc:sign_off_inspection": [
+        okResponse("n1"),
+        errorResponse("XR001", "sod_approval_requester: never the requester."),
       ],
     });
-    await createInspection(db, { projectId: "p1", templateId: "t1", inspectedAt: "2027-06-01" });
+    const start = { projectId: "p1", templateId: "t1", inspectedAt: "2027-06-01T10:00:00Z" };
+    expect(await createInspection(db, start)).toEqual({ ok: true, data: { id: "n1" } });
     expect(calls[0]?.steps[0]).toEqual([
-      "insert",
-      [{ project_id: "p1", inspection_template_id: "t1", inspected_at: "2027-06-01" }],
+      "args",
+      [{ p_project_id: "p1", p_template_id: "t1", p_inspected_at: "2027-06-01T10:00:00Z" }],
     ]);
+    expect((await createInspection(db, start)).ok).toBe(false);
     const input = { inspectionId: "n1", itemId: "i1", resultEnumId: "ENM-084", note: " Loose " };
-    expect(await recordInspectionResult(db, input)).toEqual({ ok: true, data: { id: "x1" } });
-    expect(calls[2]?.steps[0]).toEqual([
-      "insert",
-      [{ inspection_id: "n1", inspection_item_id: "i1", result_enum_id: "ENM-084", note: "Loose" }],
-    ]);
-    expect(await recordInspectionResult(db, { ...input, note: " " })).toEqual({
+    expect(
+      await recordInspectionResult(db, { ...input, photoUri: "o/inspections/n1/a.jpg" }),
+    ).toEqual({
       ok: true,
       data: { id: "x1" },
     });
-    expect(calls[4]?.steps[0]).toEqual(["update", [{ result_enum_id: "ENM-084", note: null }]]);
-    expect((await recordInspectionResult(db, input)).ok).toBe(false);
-    const at = new Date("2027-06-01T12:00:00Z");
-    await signOffInspection(db, "n1", at);
-    expect(calls[6]?.steps[0]).toEqual(["update", [{ signed_off_at: at.toISOString() }]]);
+    expect(calls[2]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_inspection_id: "n1",
+          p_item_id: "i1",
+          p_result_enum_id: "ENM-084",
+          p_note: "Loose",
+          p_photo_uri: "o/inspections/n1/a.jpg",
+        },
+      ],
+    ]);
+    await recordInspectionResult(db, { ...input, note: " " });
+    expect(calls[3]?.steps[0]).toEqual([
+      "args",
+      [{ p_inspection_id: "n1", p_item_id: "i1", p_result_enum_id: "ENM-084" }],
+    ]);
+    const frozen = await recordInspectionResult(db, input);
+    expect(frozen.ok === false && frozen.error).toMatchObject({ rule: "inspection_signed_off" });
+    expect(await signOffInspection(db, "n1")).toEqual({ ok: true, data: { id: "n1" } });
+    const refused = await signOffInspection(db, "n1");
+    expect(refused.ok === false && refused.error).toMatchObject({ rule: "sod_approval_requester" });
   });
 
   it("reads people names and skips unnamed people", async () => {

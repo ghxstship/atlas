@@ -14609,6 +14609,7 @@ export type Database = {
           note: string | null;
           org_id: string;
           photo_uri: string | null;
+          project_id: string;
           result_enum_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -14624,6 +14625,7 @@ export type Database = {
           note?: string | null;
           org_id: string;
           photo_uri?: string | null;
+          project_id: string;
           result_enum_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -14638,6 +14640,7 @@ export type Database = {
           note?: string | null;
           org_id?: string;
           photo_uri?: string | null;
+          project_id?: string;
           result_enum_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -14669,6 +14672,34 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspection_results_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "inspection_results_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "inspection_results_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "inspection_results_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
             referencedColumns: ["id"];
           },
           {
@@ -34467,6 +34498,7 @@ export type Database = {
           id: string;
           jurisdiction_id: string;
           locality: string | null;
+          location: unknown;
           name: string;
           org_id: string;
           postal_code: string | null;
@@ -34474,8 +34506,10 @@ export type Database = {
           time_zone: string;
           updated_at: string;
           updated_by: string | null;
+          venue_latitude: number | null;
+          venue_longitude: number | null;
         };
-        ComputedFields: never;
+        ComputedFields: "venue_latitude" | "venue_longitude";
         Insert: {
           created_at?: string;
           created_by?: string | null;
@@ -34483,6 +34517,7 @@ export type Database = {
           id?: string;
           jurisdiction_id: string;
           locality?: string | null;
+          location?: unknown;
           name: string;
           org_id: string;
           postal_code?: string | null;
@@ -34498,6 +34533,7 @@ export type Database = {
           id?: string;
           jurisdiction_id?: string;
           locality?: string | null;
+          location?: unknown;
           name?: string;
           org_id?: string;
           postal_code?: string | null;
@@ -38468,6 +38504,7 @@ export type Database = {
         };
         Returns: string;
       };
+      reconcile_project: { Args: { p_note?: string; p_project_id: string }; Returns: string };
       record_attachment_scan: {
         Args: { p_attachment_version_id: string; p_clean: boolean; p_detail?: string };
         Returns: Database["app"]["Enums"]["scan_status"];
@@ -38511,6 +38548,16 @@ export type Database = {
           p_row_number: number;
           p_row_state: Database["app"]["Enums"]["import_row_state"];
           p_sheet_name: string;
+        };
+        Returns: string;
+      };
+      record_inspection_result: {
+        Args: {
+          p_inspection_id: string;
+          p_item_id: string;
+          p_note?: string;
+          p_photo_uri?: string;
+          p_result_enum_id: string;
         };
         Returns: string;
       };
@@ -38798,6 +38845,10 @@ export type Database = {
         Args: { p_comment_thread_id: string; p_subscribed: boolean };
         Returns: undefined;
       };
+      set_venue_location: {
+        Args: { p_latitude: number; p_longitude: number; p_venue_id: string };
+        Returns: string;
+      };
       share_certification: {
         Args: { p_notice_version?: string; p_org_id: string; p_person_certification_id: string };
         Returns: string;
@@ -38829,7 +38880,12 @@ export type Database = {
         Args: { p_document_id: string; p_reason?: string };
         Returns: string;
       };
+      sign_off_inspection: { Args: { p_inspection_id: string }; Returns: string };
       start_import_batch: { Args: { p_import_job_id: string }; Returns: string };
+      start_inspection: {
+        Args: { p_inspected_at?: string; p_project_id: string; p_template_id: string };
+        Returns: string;
+      };
       start_party_thread: {
         Args: {
           p_body: string;
@@ -38894,6 +38950,10 @@ export type Database = {
           p_stripe_subscription_id: string;
         };
         Returns: Database["app"]["Enums"]["subscription_state"];
+      };
+      track_permit_requirement: {
+        Args: { p_requirement_id: string; p_title?: string };
+        Returns: string;
       };
       transition_accounting_period: {
         Args: {
@@ -39142,6 +39202,24 @@ export type Database = {
           p_treatment_notes?: string;
         };
         Returns: undefined;
+      };
+      venue_latitude: {
+        Args: {
+          p_venue: Omit<
+            Database["app"]["Tables"]["venues"]["Row"],
+            Database["app"]["Tables"]["venues"]["ComputedFields"]
+          >;
+        };
+        Returns: number;
+      };
+      venue_longitude: {
+        Args: {
+          p_venue: Omit<
+            Database["app"]["Tables"]["venues"]["Row"],
+            Database["app"]["Tables"]["venues"]["ComputedFields"]
+          >;
+        };
+        Returns: number;
       };
       verify_onboarding_item_automatically: {
         Args: {

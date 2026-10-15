@@ -26,9 +26,9 @@ import {
   updateSpace,
   updateVenue,
   updateZone,
-} from "../src/places";
-import { canonClient } from "./canon-client";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/places.ts";
+import { canonClient } from "./canon-client.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const venueRow = {
   id: "v1",

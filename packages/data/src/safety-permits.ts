@@ -1,6 +1,6 @@
-import type { XosClient } from "./client";
-import { callRpc, derivedOrg, writeResult } from "./places";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { XosClient } from "./client.ts";
+import { callRpc, derivedOrg, writeResult } from "./places.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Safety repository for the permit engine and inspections (Section 4.2 Safety, Section 7.4 Safety,
@@ -575,25 +575,23 @@ export async function listInspections(
   return ok((data as unknown as InspectionRow[]).map(toInspection));
 }
 
+/** Starts an inspection from a template (app.start_inspection); the inspector is the session person. */
 export async function createInspection(
   db: XosClient,
   input: { readonly projectId: string; readonly templateId: string; readonly inspectedAt: string },
 ): Promise<Result<{ id: string }>> {
-  const { data, error } = await db
-    .from("inspections")
-    .insert(
-      derivedOrg<"inspections">({
-        project_id: input.projectId,
-        inspection_template_id: input.templateId,
-        inspected_at: input.inspectedAt,
-      }),
-    )
-    .select("id");
-  return writeResult(data, error);
+  const { data, error } = await db.rpc("start_inspection", {
+    p_project_id: input.projectId,
+    p_template_id: input.templateId,
+    p_inspected_at: input.inspectedAt,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data });
 }
 
 /**
- * Records one item's result. The database refuses a result on a signed-off inspection
+ * Records one item's result through app.record_inspection_result. A Failed result opens its punch
+ * item in the same transaction (journey 17). The database refuses a result on a signed-off inspection
  * (inspection_signed_off), an item of another template and a value outside the canon enumeration.
  */
 export async function recordInspectionResult(
@@ -603,51 +601,28 @@ export async function recordInspectionResult(
     readonly itemId: string;
     readonly resultEnumId: string;
     readonly note: string | null;
+    readonly photoUri?: string | null;
   },
 ): Promise<Result<{ id: string }>> {
-  const existing = await db
-    .from("inspection_results")
-    .select("id")
-    .eq("inspection_id", input.inspectionId)
-    .eq("inspection_item_id", input.itemId)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (existing.error) return fail(toDataError(existing.error));
-  const note = input.note?.trim() || null;
-  if (existing.data) {
-    const { data, error } = await db
-      .from("inspection_results")
-      .update({ result_enum_id: input.resultEnumId, note })
-      .eq("id", existing.data.id)
-      .select("id");
-    return writeResult(data, error);
-  }
-  const { data, error } = await db
-    .from("inspection_results")
-    .insert(
-      derivedOrg<"inspection_results">({
-        inspection_id: input.inspectionId,
-        inspection_item_id: input.itemId,
-        result_enum_id: input.resultEnumId,
-        note,
-      }),
-    )
-    .select("id");
-  return writeResult(data, error);
+  const { data, error } = await db.rpc("record_inspection_result", {
+    p_inspection_id: input.inspectionId,
+    p_item_id: input.itemId,
+    p_result_enum_id: input.resultEnumId,
+    ...(input.note?.trim() ? { p_note: input.note.trim() } : {}),
+    ...(input.photoUri ? { p_photo_uri: input.photoUri } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data });
 }
 
-/** Signs off an inspection; the database stamps who and when and refuses the inspector. */
+/** Signs off an inspection (app.sign_off_inspection); the database refuses the inspector. */
 export async function signOffInspection(
   db: XosClient,
   id: string,
-  now: Date = new Date(),
 ): Promise<Result<{ id: string }>> {
-  const { data, error } = await db
-    .from("inspections")
-    .update({ signed_off_at: now.toISOString() })
-    .eq("id", id)
-    .select("id");
-  return writeResult(data, error);
+  const { data, error } = await db.rpc("sign_off_inspection", { p_inspection_id: id });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data });
 }
 
 // People names ---------------------------------------------------------------------------------------------

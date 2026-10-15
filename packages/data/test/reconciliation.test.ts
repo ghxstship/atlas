@@ -8,9 +8,9 @@ import {
   reconcileProject,
   summarizeReconciliation,
   updateCapabilityStatement,
-} from "../src/reconciliation";
-import { canonClient } from "./canon-client";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/reconciliation.ts";
+import { canonClient } from "./canon-client.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const statementRow = {
   id: "q1",

@@ -1,4 +1,4 @@
-import { fakeClient, type Response } from "./fake-client";
+import { fakeClient, type Response } from "./fake-client.ts";
 
 /** The shared fake with `schema()` for canon reads, which resolve under the same queue keys. */
 export function canonClient(queues: Record<string, Response[]>) {

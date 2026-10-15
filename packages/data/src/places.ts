@@ -1,5 +1,5 @@
-import type { Database, XosClient } from "./client";
-import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
 /**
  * Places repository (Section 4.2 Places, Section 7.4 Places): venues, spaces, zones, capability

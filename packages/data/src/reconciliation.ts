@@ -1,6 +1,6 @@
-import type { XosClient } from "./client";
-import { callRpc, derivedOrg, writeResult } from "./places";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { XosClient } from "./client.ts";
+import { callRpc, derivedOrg, writeResult } from "./places.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Requirements and capability reconciliation (Section 7.4): requirements and capabilities share one
