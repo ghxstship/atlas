@@ -582,32 +582,47 @@ export interface Components {
     availability_calendar_id: string;
     starts_at: string;
     ends_at: string;
-    available: boolean;
+    availability_kind: "Available" | "Unavailable" | "Tentative";
+    note: string | null;
   };
   AvailabilityBlockCreate: {
     availability_calendar_id: string;
     starts_at: string;
     ends_at: string;
-    available: boolean;
+    availability_kind: "Available" | "Unavailable" | "Tentative";
+    note?: string | null;
   };
   AvailabilityBlockPage: {
     data: Array<Components["AvailabilityBlock"]>;
     next_cursor: string | null;
   };
-  AvailabilityBlockUpdate: { starts_at?: string; ends_at?: string; available?: boolean };
+  AvailabilityBlockUpdate: {
+    starts_at?: string;
+    ends_at?: string;
+    availability_kind?: "Available" | "Unavailable" | "Tentative";
+    note?: string | null;
+  };
   AvailabilityCalendar: {
     id: string;
     created_at: string;
     updated_at: string;
     person_id: string;
     time_zone: string;
+    visibility: "Private" | "Shared on Application" | "Public";
   };
-  AvailabilityCalendarCreate: { person_id: string; time_zone: string };
+  AvailabilityCalendarCreate: {
+    person_id: string;
+    time_zone: string;
+    visibility?: "Private" | "Shared on Application" | "Public";
+  };
   AvailabilityCalendarPage: {
     data: Array<Components["AvailabilityCalendar"]>;
     next_cursor: string | null;
   };
-  AvailabilityCalendarUpdate: { time_zone?: string };
+  AvailabilityCalendarUpdate: {
+    time_zone?: string;
+    visibility?: "Private" | "Shared on Application" | "Public";
+  };
   BackgroundCheck: {
     id: string;
     org_id: string;
@@ -618,10 +633,10 @@ export interface Components {
     engagement_id: string;
     provider: string;
     provider_reference: string;
-    provider_result: string | null;
     completed_at: string | null;
+    result: "Pending" | "Clear" | "Consider" | "Suspended" | "Canceled";
   };
-  BackgroundCheckCreate: { engagement_id: string; provider: string; provider_reference: string };
+  BackgroundCheckCreate: { engagement_id: string; provider?: string; provider_reference: string };
   BackgroundCheckPage: { data: Array<Components["BackgroundCheck"]>; next_cursor: string | null };
   Beo: {
     id: string;
@@ -2059,7 +2074,7 @@ export interface Components {
     updated_by: string | null;
     engagement_thread_id: string;
     body: string;
-    sent_by: string;
+    author_person_id: string | null;
     sent_at: string;
   };
   EngagementMessageCreate: { engagement_thread_id: string; body: string };
@@ -2863,26 +2878,57 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    subject_urn: string;
-    reason: string;
-    report_state: string;
+    reason:
+      | "Illegal Content"
+      | "Discrimination"
+      | "Fraud"
+      | "Misleading Information"
+      | "Missing Pay Range"
+      | "Safety";
+    opportunity_id: string;
+    reporter_person_id: string;
+    details: string | null;
+    reported_at: string;
   };
-  ListingReportCreate: { subject_urn: string; reason: string };
+  ListingReportCreate: {
+    reason:
+      | "Illegal Content"
+      | "Discrimination"
+      | "Fraud"
+      | "Misleading Information"
+      | "Missing Pay Range"
+      | "Safety";
+    opportunity_id: string;
+    details?: string | null;
+  };
   ListingReportPage: { data: Array<Components["ListingReport"]>; next_cursor: string | null };
   MarkAllReadResult: { updated_count: number };
   MarketplaceListing: {
-    opportunity_id: string;
-    organization_id: string;
+    id: string;
+    org_id: string;
     title: string;
     role_type: Components["ExternalRoleType"];
     role_code: Components["RoleCode"] & (string | null);
-    locality: string | null;
-    starts_at: string | null;
-    rate_type: Components["RateType"] & (string | null);
-    rate_min_minor: number | null;
-    rate_max_minor: number | null;
-    currency: string;
+    venue_locality: string | null;
+    rate_type: Components["RateType"] | null;
+    pay_min_minor: number | null;
+    pay_max_minor: number | null;
     distance_km: number | null;
+    org_name: string;
+    org_verified: boolean;
+    description: string | null;
+    cat_urid: Components["UridAtAnyGrain"] | null;
+    venue_name: string | null;
+    jurisdiction_id: Components["JurisdictionId"] | null;
+    starts_on: string | null;
+    ends_on: string | null;
+    visibility: Components["OpportunityVisibility"];
+    currency_code: string | null;
+    rate_on_request: boolean;
+    deadline_at: string | null;
+    minimum_age: number | null;
+    opportunity_state: Components["OpportunityState"];
+    position_count: number;
   };
   MarketplaceListingPage: {
     data: Array<Components["MarketplaceListing"]>;
@@ -2989,14 +3035,17 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    listing_report_id: string;
-    action: string;
+    listing_report_id: string | null;
+    action: "Removed" | "Restricted" | "Restored" | "No Action";
     statement_of_reasons: string;
+    opportunity_id: string;
+    decided_at: string;
   };
   ModerationActionCreate: {
-    listing_report_id: string;
-    action: string;
+    listing_report_id?: string | null;
+    action: "Removed" | "Restricted" | "Restored" | "No Action";
     statement_of_reasons: string;
+    opportunity_id: string;
   };
   ModerationActionPage: { data: Array<Components["ModerationAction"]>; next_cursor: string | null };
   MoneyTotal: { total_minor: number | null; currency: string; unpriced_count: number };
@@ -3270,7 +3319,8 @@ export interface Components {
     updated_at: string;
     saved_search_id: string;
     opportunity_id: string;
-    sent_at: string;
+    delivered_at: string | null;
+    matched_at: string;
   };
   OpportunityAlertPage: { data: Array<Components["OpportunityAlert"]>; next_cursor: string | null };
   OpportunityCreate: {
@@ -3681,15 +3731,15 @@ export interface Components {
     updated_by: string | null;
     person_id: string | null;
     organization_id: string | null;
-    provider: string;
-    provider_account_ref: string;
-    account_last4: string;
+    provider: "Stripe Connect" | "Accounting System";
+    provider_account_reference: string;
+    account_last4: string | null;
   };
   PayoutAccountCreate: {
     person_id?: string | null;
     organization_id?: string | null;
-    provider: string;
-    provider_account_ref: string;
+    provider: "Stripe Connect" | "Accounting System";
+    provider_account_reference: string;
   };
   PayoutAccountPage: { data: Array<Components["PayoutAccount"]>; next_cursor: string | null };
   PayrollExport: {
@@ -4031,17 +4081,16 @@ export interface Components {
     created_at: string;
     updated_at: string;
     person_id: string | null;
-    organization_id: string;
-    shared_fields: Array<string>;
-    live_updates: boolean;
-    snapshot_at: string;
+    organization_id: string | null;
+    shared_fields: Array<{ field_key: string; field_value: string | null }>;
+    shared_at: string;
     revoked_at: string | null;
+    engagement_id: string | null;
   };
   ProfileShareCreate: {
-    person_id?: string | null;
-    organization_id: string;
-    shared_fields: Array<string>;
-    live_updates: boolean;
+    organization_id?: string | null;
+    shared_fields: Array<{ field_key: string; field_value: string | null }>;
+    engagement_id?: string | null;
   };
   ProfileSharePage: { data: Array<Components["ProfileShare"]>; next_cursor: string | null };
   ProfileVisibility: "Public" | "Network" | "Private";
@@ -4980,12 +5029,42 @@ export interface Components {
     updated_at: string;
     person_id: string;
     name: string;
-    query: string;
     alerts_enabled: boolean;
+    role_type: Components["ExternalRoleType"] | null;
+    role_code: Components["RoleCode"] | null;
+    cat_urid: Components["UridAtAnyGrain"] | null;
+    jurisdiction_id: Components["JurisdictionId"] | null;
+    starts_after: string | null;
+    ends_before: string | null;
+    min_rate_minor: number | null;
+    currency_code: string | null;
   };
-  SavedSearchCreate: { person_id: string; name: string; query: string; alerts_enabled: boolean };
+  SavedSearchCreate: {
+    person_id: string;
+    name: string;
+    alerts_enabled?: boolean;
+    role_type?: Components["ExternalRoleType"] | null;
+    role_code?: Components["RoleCode"] | null;
+    cat_urid?: Components["UridAtAnyGrain"] | null;
+    jurisdiction_id?: Components["JurisdictionId"] | null;
+    starts_after?: string | null;
+    ends_before?: string | null;
+    min_rate_minor?: number | null;
+    currency_code?: string | null;
+  };
   SavedSearchPage: { data: Array<Components["SavedSearch"]>; next_cursor: string | null };
-  SavedSearchUpdate: { name?: string; query?: string; alerts_enabled?: boolean };
+  SavedSearchUpdate: {
+    name?: string;
+    alerts_enabled?: boolean;
+    role_type?: Components["ExternalRoleType"] | null;
+    role_code?: Components["RoleCode"] | null;
+    cat_urid?: Components["UridAtAnyGrain"] | null;
+    jurisdiction_id?: Components["JurisdictionId"] | null;
+    starts_after?: string | null;
+    ends_before?: string | null;
+    min_rate_minor?: number | null;
+    currency_code?: string | null;
+  };
   SavedView: {
     id: string;
     org_id: string;
@@ -5494,17 +5573,18 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    engagement_id: string;
-    form_type: string;
-    tax_identifier: string | Components["Masked"];
-    tax_identifier_last4: string;
+    tin_last4: string;
     foreign_performer_withholding: boolean;
+    person_id: string | null;
+    organization_id: string | null;
+    form_kind: "W-9" | "W-8BEN" | "W-8BEN-E";
+    signed_at: string;
   };
   TaxFormCreate: {
-    engagement_id: string;
-    form_type: string;
+    foreign_performer_withholding?: boolean;
+    organization_id?: string | null;
+    form_kind: "W-9" | "W-8BEN" | "W-8BEN-E";
     tax_identifier: string;
-    foreign_performer_withholding: boolean;
   };
   TaxFormPage: { data: Array<Components["TaxForm"]>; next_cursor: string | null };
   TaxJurisdiction: {

@@ -20,6 +20,8 @@ export interface FieldPlacement {
   readonly create?: "required" | "optional";
   /** Accepted on update. Defaults to true when the field is accepted on create. */
   readonly update?: boolean;
+  /** False for a field the request carries but the read shape never returns (a write-only input). */
+  readonly read?: false;
 }
 
 export interface AddedField extends FieldPlacement {
@@ -116,7 +118,6 @@ export function editDefinition(def: ResourceDefinition, edit: ShapeEdit): Resour
   const nullable = edit.nullable ?? [];
   const remove = edit.remove ?? [];
   const rename = edit.rename ?? {};
-  assertFields(def.name, def.read.shape as Shape, nullable, "nullable");
   assertFields(def.name, def.read.shape as Shape, remove, "remove");
   assertFields(def.name, def.read.shape as Shape, Object.keys(rename), "rename");
 
@@ -133,13 +134,15 @@ export function editDefinition(def: ResourceDefinition, edit: ShapeEdit): Resour
   let c = start(def.create);
   let u = start(def.update);
 
+  // Nullable names fields after renames: a renamed field takes its column name.
+  assertFields(def.name, r, nullable, "nullable");
   for (const f of nullable) {
     r = { ...r, [f]: orNull(r[f] as z.ZodType) };
     if (c !== undefined && f in c) c = { ...c, [f]: orNull(c[f] as z.ZodType).optional() };
     if (u !== undefined && f in u) u = { ...u, [f]: orNull(u[f] as z.ZodType).optional() };
   }
   for (const [f, added] of Object.entries(edit.add ?? {})) {
-    r = { ...r, [f]: added.schema };
+    if (added.read !== false) r = { ...r, [f]: added.schema };
     const write = added.writeSchema ?? added.schema;
     if (added.create !== undefined) {
       if (c === undefined) {
@@ -232,6 +235,11 @@ export function putActions(
       capabilityRule: { ...current, actions: { ...current.actions, ...capabilities } },
     };
   };
+}
+
+/** Points the resource at the table or view that actually serves it (`x-xos-table`). */
+export function setTable(table: string) {
+  return (spec: ResourceSpec): ResourceSpec => ({ ...spec, def: { ...spec.def, table } });
 }
 
 /** Changes the capability rule: the fields given replace the rule's, and `actions` merge. */

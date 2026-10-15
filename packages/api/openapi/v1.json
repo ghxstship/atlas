@@ -26173,13 +26173,13 @@
       "MarketplaceListing": {
         "type": "object",
         "properties": {
-          "opportunity_id": {
+          "id": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier of the opportunity.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "organization_id": {
+          "org_id": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier of the posting organization.",
@@ -26196,59 +26196,135 @@
           "role_code": {
             "allOf": [{ "$ref": "#/components/schemas/RoleCode" }, { "type": ["string", "null"] }]
           },
-          "locality": {
+          "venue_locality": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "City.",
             "example": "Miami"
           },
-          "starts_at": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "First call.",
-            "example": "2026-10-08T14:30:00Z"
-          },
           "rate_type": {
-            "allOf": [{ "$ref": "#/components/schemas/RateType" }, { "type": ["string", "null"] }]
+            "anyOf": [{ "$ref": "#/components/schemas/RateType" }, { "type": "null" }]
           },
-          "rate_min_minor": {
+          "pay_min_minor": {
             "type": ["integer", "null"],
             "description": "Lowest posted rate. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 32000,
             "format": "int64"
           },
-          "rate_max_minor": {
+          "pay_max_minor": {
             "type": ["integer", "null"],
             "description": "Highest posted rate. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 38000,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
-          },
           "distance_km": {
             "type": ["number", "null"],
             "description": "Distance from the search location.",
             "example": 12.4
+          },
+          "org_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Posting organization name.",
+            "example": "Northwind Live"
+          },
+          "org_verified": {
+            "type": "boolean",
+            "description": "True when the posting organization is verified.",
+            "example": true
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Description of the work.",
+            "example": "Load-in and show calls for six weekends."
+          },
+          "cat_urid": {
+            "anyOf": [{ "$ref": "#/components/schemas/UridAtAnyGrain" }, { "type": "null" }]
+          },
+          "venue_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Venue name.",
+            "example": "Harbor Lawn"
+          },
+          "jurisdiction_id": {
+            "anyOf": [{ "$ref": "#/components/schemas/JurisdictionId" }, { "type": "null" }]
+          },
+          "starts_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "First day of the work.",
+            "example": "2026-10-08"
+          },
+          "ends_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Last day of the work.",
+            "example": "2026-10-08"
+          },
+          "visibility": { "$ref": "#/components/schemas/OpportunityVisibility" },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of the posted pay; null when unposted.",
+            "example": "USD"
+          },
+          "rate_on_request": {
+            "type": "boolean",
+            "description": "True when no pay is posted: the listing shows Rate on Request.",
+            "example": false
+          },
+          "deadline_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Deadline for applications and bids.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "minimum_age": {
+            "type": ["integer", "null"],
+            "minimum": 16,
+            "description": "Minimum age for the work.",
+            "example": 18
+          },
+          "opportunity_state": { "$ref": "#/components/schemas/OpportunityState" },
+          "position_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of open positions.",
+            "example": 4
           }
         },
         "required": [
-          "opportunity_id",
-          "organization_id",
+          "id",
+          "org_id",
           "title",
           "role_type",
           "role_code",
-          "locality",
-          "starts_at",
+          "venue_locality",
           "rate_type",
-          "rate_min_minor",
-          "rate_max_minor",
-          "currency",
-          "distance_km"
+          "pay_min_minor",
+          "pay_max_minor",
+          "distance_km",
+          "org_name",
+          "org_verified",
+          "description",
+          "cat_urid",
+          "venue_name",
+          "jurisdiction_id",
+          "starts_on",
+          "ends_on",
+          "visibility",
+          "currency_code",
+          "rate_on_request",
+          "deadline_at",
+          "minimum_age",
+          "opportunity_state",
+          "position_count"
         ],
         "description": "A marketplace view of an opportunity the caller may see. Internal columns never appear. Unposted compensation reads Rate on Request."
       },
@@ -26303,17 +26379,46 @@
             "description": "Search name.",
             "example": "Miami Rigging Calls"
           },
-          "query": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Search query in the filter grammar.",
-            "example": "filter[role_type][eq]=Crew"
-          },
           "alerts_enabled": {
             "type": "boolean",
             "description": "Whether alerts are sent by email and push.",
             "example": true
+          },
+          "role_type": {
+            "anyOf": [{ "$ref": "#/components/schemas/ExternalRoleType" }, { "type": "null" }]
+          },
+          "role_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/RoleCode" }, { "type": "null" }]
+          },
+          "cat_urid": {
+            "anyOf": [{ "$ref": "#/components/schemas/UridAtAnyGrain" }, { "type": "null" }]
+          },
+          "jurisdiction_id": {
+            "anyOf": [{ "$ref": "#/components/schemas/JurisdictionId" }, { "type": "null" }]
+          },
+          "starts_after": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Earliest start date.",
+            "example": "2026-10-08"
+          },
+          "ends_before": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Latest end date.",
+            "example": "2026-10-08"
+          },
+          "min_rate_minor": {
+            "type": ["integer", "null"],
+            "description": "Minimum posted pay. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 3500,
+            "format": "int64"
+          },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of the minimum pay.",
+            "example": "USD"
           }
         },
         "required": [
@@ -26322,8 +26427,15 @@
           "updated_at",
           "person_id",
           "name",
-          "query",
-          "alerts_enabled"
+          "alerts_enabled",
+          "role_type",
+          "role_code",
+          "cat_urid",
+          "jurisdiction_id",
+          "starts_after",
+          "ends_before",
+          "min_rate_minor",
+          "currency_code"
         ],
         "description": "A saved marketplace search that sends alerts."
       },
@@ -26343,20 +26455,49 @@
             "description": "Search name.",
             "example": "Miami Rigging Calls"
           },
-          "query": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Search query in the filter grammar.",
-            "example": "filter[role_type][eq]=Crew"
-          },
           "alerts_enabled": {
             "type": "boolean",
             "description": "Whether alerts are sent by email and push.",
             "example": true
+          },
+          "role_type": {
+            "anyOf": [{ "$ref": "#/components/schemas/ExternalRoleType" }, { "type": "null" }]
+          },
+          "role_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/RoleCode" }, { "type": "null" }]
+          },
+          "cat_urid": {
+            "anyOf": [{ "$ref": "#/components/schemas/UridAtAnyGrain" }, { "type": "null" }]
+          },
+          "jurisdiction_id": {
+            "anyOf": [{ "$ref": "#/components/schemas/JurisdictionId" }, { "type": "null" }]
+          },
+          "starts_after": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Earliest start date.",
+            "example": "2026-10-08"
+          },
+          "ends_before": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Latest end date.",
+            "example": "2026-10-08"
+          },
+          "min_rate_minor": {
+            "type": ["integer", "null"],
+            "description": "Minimum posted pay. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 3500,
+            "format": "int64"
+          },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of the minimum pay.",
+            "example": "USD"
           }
         },
-        "required": ["person_id", "name", "query", "alerts_enabled"],
+        "required": ["person_id", "name"],
         "description": "Fields accepted when creating a SavedSearch."
       },
       "SavedSearchUpdate": {
@@ -26369,17 +26510,46 @@
             "description": "Search name.",
             "example": "Miami Rigging Calls"
           },
-          "query": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Search query in the filter grammar.",
-            "example": "filter[role_type][eq]=Crew"
-          },
           "alerts_enabled": {
             "type": "boolean",
             "description": "Whether alerts are sent by email and push.",
             "example": true
+          },
+          "role_type": {
+            "anyOf": [{ "$ref": "#/components/schemas/ExternalRoleType" }, { "type": "null" }]
+          },
+          "role_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/RoleCode" }, { "type": "null" }]
+          },
+          "cat_urid": {
+            "anyOf": [{ "$ref": "#/components/schemas/UridAtAnyGrain" }, { "type": "null" }]
+          },
+          "jurisdiction_id": {
+            "anyOf": [{ "$ref": "#/components/schemas/JurisdictionId" }, { "type": "null" }]
+          },
+          "starts_after": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Earliest start date.",
+            "example": "2026-10-08"
+          },
+          "ends_before": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Latest end date.",
+            "example": "2026-10-08"
+          },
+          "min_rate_minor": {
+            "type": ["integer", "null"],
+            "description": "Minimum posted pay. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 3500,
+            "format": "int64"
+          },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of the minimum pay.",
+            "example": "USD"
           }
         },
         "description": "Fields accepted when updating a SavedSearch. Omitted fields are unchanged."
@@ -26434,10 +26604,16 @@
             "description": "Identifier of the opportunity.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "sent_at": {
-            "type": "string",
+          "delivered_at": {
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "When the alert was sent.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "matched_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the match was found.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
@@ -26447,7 +26623,8 @@
           "updated_at",
           "saved_search_id",
           "opportunity_id",
-          "sent_at"
+          "delivered_at",
+          "matched_at"
         ],
         "description": "An alert raised for a saved search."
       },
@@ -26489,49 +26666,88 @@
             "description": "When the row was last updated.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "subject_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the reported listing or profile.",
-            "example": "urn:xpms:opportunity:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "reason": {
             "type": "string",
+            "enum": [
+              "Illegal Content",
+              "Discrimination",
+              "Fraud",
+              "Misleading Information",
+              "Missing Pay Range",
+              "Safety"
+            ],
+            "description": "Ground for the report.",
+            "example": "Illegal Content"
+          },
+          "opportunity_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the reported opportunity.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reporter_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who reported, set from the session.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "details": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
-            "description": "Why it is reported.",
+            "description": "What the reporter saw.",
             "example": "The listing asks for an upfront fee."
           },
-          "report_state": {
+          "reported_at": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Report state. A Title Case value from the lifecycle's database enum.",
-            "example": "In Review"
+            "format": "date-time",
+            "description": "When the report was made, set by the database.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["id", "created_at", "updated_at", "subject_urn", "reason", "report_state"],
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "reason",
+          "opportunity_id",
+          "reporter_person_id",
+          "details",
+          "reported_at"
+        ],
         "description": "A report against a listing or profile, handled through notice and action."
       },
       "ListingReportCreate": {
         "type": "object",
         "properties": {
-          "subject_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the reported listing or profile.",
-            "example": "urn:xpms:opportunity:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "reason": {
             "type": "string",
+            "enum": [
+              "Illegal Content",
+              "Discrimination",
+              "Fraud",
+              "Misleading Information",
+              "Missing Pay Range",
+              "Safety"
+            ],
+            "description": "Ground for the report.",
+            "example": "Illegal Content"
+          },
+          "opportunity_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the reported opportunity.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "details": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
-            "description": "Why it is reported.",
+            "description": "What the reporter saw.",
             "example": "The listing asks for an upfront fee."
           }
         },
-        "required": ["subject_urn", "reason"],
+        "required": ["reason", "opportunity_id"],
         "description": "Fields accepted when creating a ListingReport."
       },
       "ModerationActionPage": {
@@ -26573,15 +26789,15 @@
             "example": "2026-10-08T14:30:00Z"
           },
           "listing_report_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the listing report.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "action": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Action taken. A Title Case value from the lifecycle's database enum.",
+            "enum": ["Removed", "Restricted", "Restored", "No Action"],
+            "description": "Decision taken.",
             "example": "Removed"
           },
           "statement_of_reasons": {
@@ -26590,6 +26806,18 @@
             "maxLength": 20000,
             "description": "Statement of reasons.",
             "example": "The listing requested a fee from applicants."
+          },
+          "opportunity_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the opportunity decided on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "decided_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the decision was made.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -26598,7 +26826,9 @@
           "updated_at",
           "listing_report_id",
           "action",
-          "statement_of_reasons"
+          "statement_of_reasons",
+          "opportunity_id",
+          "decided_at"
         ],
         "description": "A moderation decision with a statement of reasons sent to the affected party."
       },
@@ -26606,15 +26836,15 @@
         "type": "object",
         "properties": {
           "listing_report_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the listing report.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "action": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Action taken. A Title Case value from the lifecycle's database enum.",
+            "enum": ["Removed", "Restricted", "Restored", "No Action"],
+            "description": "Decision taken.",
             "example": "Removed"
           },
           "statement_of_reasons": {
@@ -26623,9 +26853,15 @@
             "maxLength": 20000,
             "description": "Statement of reasons.",
             "example": "The listing requested a fee from applicants."
+          },
+          "opportunity_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the opportunity decided on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["listing_report_id", "action", "statement_of_reasons"],
+        "required": ["action", "statement_of_reasons", "opportunity_id"],
         "description": "Fields accepted when creating a ModerationAction."
       },
       "ProfileSharePage": {
@@ -26673,23 +26909,36 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "organization_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the receiving organization.",
+            "description": "Identifier of the external account sharing its company profile; null when a person shares their own.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "shared_fields": {
             "type": "array",
-            "items": { "type": "string", "minLength": 1 },
-            "description": "Profile field keys shared with the org.",
-            "example": ["headline", "skills", "certifications"]
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_key": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+                  "description": "Profile field key.",
+                  "example": "headline"
+                },
+                "field_value": {
+                  "type": ["string", "null"],
+                  "minLength": 1,
+                  "maxLength": 4000,
+                  "description": "Value shared; null when shared empty.",
+                  "example": "Head Rigger"
+                }
+              },
+              "required": ["field_key", "field_value"]
+            },
+            "minItems": 1,
+            "description": "Each shared field with the value at the time of sharing."
           },
-          "live_updates": {
-            "type": "boolean",
-            "description": "Whether live updates flow while the engagement is active.",
-            "example": true
-          },
-          "snapshot_at": {
+          "shared_at": {
             "type": "string",
             "format": "date-time",
             "description": "When the snapshot was taken.",
@@ -26700,6 +26949,12 @@
             "format": "date-time",
             "description": "When consent was revoked.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement the share serves; live updates flow only while it is open.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -26709,40 +26964,53 @@
           "person_id",
           "organization_id",
           "shared_fields",
-          "live_updates",
-          "snapshot_at",
-          "revoked_at"
+          "shared_at",
+          "revoked_at",
+          "engagement_id"
         ],
         "description": "A consent snapshot of profile fields shared with one org. Live updates stop on revoke after close."
       },
       "ProfileShareCreate": {
         "type": "object",
         "properties": {
-          "person_id": {
+          "organization_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the sharing person.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "organization_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the receiving organization.",
+            "description": "Identifier of the external account sharing its company profile; null when a person shares their own.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "shared_fields": {
             "type": "array",
-            "items": { "type": "string", "minLength": 1 },
-            "description": "Profile field keys shared with the org.",
-            "example": ["headline", "skills", "certifications"]
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_key": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+                  "description": "Profile field key.",
+                  "example": "headline"
+                },
+                "field_value": {
+                  "type": ["string", "null"],
+                  "minLength": 1,
+                  "maxLength": 4000,
+                  "description": "Value shared; null when shared empty.",
+                  "example": "Head Rigger"
+                }
+              },
+              "required": ["field_key", "field_value"]
+            },
+            "minItems": 1,
+            "description": "Each shared field with the value at the time of sharing."
           },
-          "live_updates": {
-            "type": "boolean",
-            "description": "Whether live updates flow while the engagement is active.",
-            "example": true
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement the share serves; live updates flow only while it is open.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["organization_id", "shared_fields", "live_updates"],
+        "required": ["shared_fields"],
         "description": "Fields accepted when creating a ProfileShare."
       },
       "AvailabilityCalendarPage": {
@@ -26794,9 +27062,15 @@
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
             "description": "IANA time zone the local time was entered in.",
             "example": "America/New_York"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": ["Private", "Shared on Application", "Public"],
+            "description": "Who reads the calendar.",
+            "example": "Private"
           }
         },
-        "required": ["id", "created_at", "updated_at", "person_id", "time_zone"],
+        "required": ["id", "created_at", "updated_at", "person_id", "time_zone", "visibility"],
         "description": "A person's availability calendar."
       },
       "AvailabilityCalendarCreate": {
@@ -26813,6 +27087,12 @@
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
             "description": "IANA time zone the local time was entered in.",
             "example": "America/New_York"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": ["Private", "Shared on Application", "Public"],
+            "description": "Who reads the calendar.",
+            "example": "Private"
           }
         },
         "required": ["person_id", "time_zone"],
@@ -26826,6 +27106,12 @@
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
             "description": "IANA time zone the local time was entered in.",
             "example": "America/New_York"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": ["Private", "Shared on Application", "Public"],
+            "description": "Who reads the calendar.",
+            "example": "Private"
           }
         },
         "description": "Fields accepted when updating a AvailabilityCalendar. Omitted fields are unchanged."
@@ -26886,10 +27172,18 @@
             "description": "Block end.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "available": {
-            "type": "boolean",
-            "description": "Whether the person is available.",
-            "example": false
+          "availability_kind": {
+            "type": "string",
+            "enum": ["Available", "Unavailable", "Tentative"],
+            "description": "Kind of block.",
+            "example": "Available"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Private note of the owner.",
+            "example": "Holding for a tour."
           }
         },
         "required": [
@@ -26899,7 +27193,8 @@
           "availability_calendar_id",
           "starts_at",
           "ends_at",
-          "available"
+          "availability_kind",
+          "note"
         ],
         "description": "A block of availability or unavailability."
       },
@@ -26924,13 +27219,21 @@
             "description": "Block end.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "available": {
-            "type": "boolean",
-            "description": "Whether the person is available.",
-            "example": false
+          "availability_kind": {
+            "type": "string",
+            "enum": ["Available", "Unavailable", "Tentative"],
+            "description": "Kind of block.",
+            "example": "Available"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Private note of the owner.",
+            "example": "Holding for a tour."
           }
         },
-        "required": ["availability_calendar_id", "starts_at", "ends_at", "available"],
+        "required": ["availability_calendar_id", "starts_at", "ends_at", "availability_kind"],
         "description": "Fields accepted when creating a AvailabilityBlock."
       },
       "AvailabilityBlockUpdate": {
@@ -26948,10 +27251,18 @@
             "description": "Block end.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "available": {
-            "type": "boolean",
-            "description": "Whether the person is available.",
-            "example": false
+          "availability_kind": {
+            "type": "string",
+            "enum": ["Available", "Unavailable", "Tentative"],
+            "description": "Kind of block.",
+            "example": "Available"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Private note of the owner.",
+            "example": "Holding for a tour."
           }
         },
         "description": "Fields accepted when updating a AvailabilityBlock. Omitted fields are unchanged."
@@ -27140,8 +27451,8 @@
             "description": "Message body.",
             "example": "Use the north lot; passes are at the gate."
           },
-          "sent_by": {
-            "type": "string",
+          "author_person_id": {
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the sender.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -27162,7 +27473,7 @@
           "updated_by",
           "engagement_thread_id",
           "body",
-          "sent_by",
+          "author_person_id",
           "sent_at"
         ],
         "description": "A message in an engagement thread."
@@ -27243,30 +27554,7 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "engagement_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the engagement.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "form_type": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Form type.",
-            "example": "W-9"
-          },
-          "tax_identifier": {
-            "anyOf": [
-              {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-                "description": "Tax identifier, write-only after entry.",
-                "example": "123456789"
-              },
-              { "$ref": "#/components/schemas/Masked" }
-            ]
-          },
-          "tax_identifier_last4": {
+          "tin_last4": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Last four digits of the tax identifier.",
@@ -27276,6 +27564,30 @@
             "type": "boolean",
             "description": "Foreign performer withholding flag.",
             "example": false
+          },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the payee person, set from the session.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "organization_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the payee external account.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "form_kind": {
+            "type": "string",
+            "enum": ["W-9", "W-8BEN", "W-8BEN-E"],
+            "description": "Tax form.",
+            "example": "W-9"
+          },
+          "signed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the payee signed the form, set by the database.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -27285,47 +27597,44 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "engagement_id",
-          "form_type",
-          "tax_identifier",
-          "tax_identifier_last4",
-          "foreign_performer_withholding"
+          "tin_last4",
+          "foreign_performer_withholding",
+          "person_id",
+          "organization_id",
+          "form_kind",
+          "signed_at"
         ],
         "description": "A tax form. Restricted and encrypted; only the last four digits of the identifier are ever displayed."
       },
       "TaxFormCreate": {
         "type": "object",
         "properties": {
-          "engagement_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the engagement.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "form_type": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Form type.",
-            "example": "W-9"
-          },
-          "tax_identifier": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Tax identifier, write-only after entry.",
-            "example": "123456789"
-          },
           "foreign_performer_withholding": {
             "type": "boolean",
             "description": "Foreign performer withholding flag.",
             "example": false
+          },
+          "organization_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the payee external account.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "form_kind": {
+            "type": "string",
+            "enum": ["W-9", "W-8BEN", "W-8BEN-E"],
+            "description": "Tax form.",
+            "example": "W-9"
+          },
+          "tax_identifier": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 64,
+            "description": "Tax identifier. Write-only: it is encrypted and never returned.",
+            "example": "123456789"
           }
         },
-        "required": [
-          "engagement_id",
-          "form_type",
-          "tax_identifier",
-          "foreign_performer_withholding"
-        ],
+        "required": ["form_kind", "tax_identifier"],
         "description": "Fields accepted when creating a TaxForm."
       },
       "PayoutAccountPage": {
@@ -27398,18 +27707,18 @@
           },
           "provider": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "enum": ["Stripe Connect", "Accounting System"],
             "description": "Payment provider.",
-            "example": "stripe_connect"
+            "example": "Stripe Connect"
           },
-          "provider_account_ref": {
+          "provider_account_reference": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Provider account reference.",
             "example": "acct_1PqRsT"
           },
           "account_last4": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Last four digits of the account.",
             "example": "4421"
@@ -27425,7 +27734,7 @@
           "person_id",
           "organization_id",
           "provider",
-          "provider_account_ref",
+          "provider_account_reference",
           "account_last4"
         ],
         "description": "Payout details held by the payment provider. XOS stores provider references only."
@@ -27447,18 +27756,18 @@
           },
           "provider": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "enum": ["Stripe Connect", "Accounting System"],
             "description": "Payment provider.",
-            "example": "stripe_connect"
+            "example": "Stripe Connect"
           },
-          "provider_account_ref": {
+          "provider_account_reference": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Provider account reference.",
             "example": "acct_1PqRsT"
           }
         },
-        "required": ["provider", "provider_account_ref"],
+        "required": ["provider", "provider_account_reference"],
         "description": "Fields accepted when creating a PayoutAccount."
       },
       "BackgroundCheckPage": {
@@ -27535,17 +27844,17 @@
             "description": "Provider reference.",
             "example": "chk_7c1a2b"
           },
-          "provider_result": {
-            "type": ["string", "null"],
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Provider result. A Title Case value from the lifecycle's database enum.",
-            "example": "Clear"
-          },
           "completed_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When the provider completed it.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "result": {
+            "type": "string",
+            "enum": ["Pending", "Clear", "Consider", "Suspended", "Canceled"],
+            "description": "Result as the provider reports it.",
+            "example": "Pending"
           }
         },
         "required": [
@@ -27558,8 +27867,8 @@
           "engagement_id",
           "provider",
           "provider_reference",
-          "provider_result",
-          "completed_at"
+          "completed_at",
+          "result"
         ],
         "description": "A background check result from the provider. The report itself is never stored."
       },
@@ -27585,7 +27894,7 @@
             "example": "chk_7c1a2b"
           }
         },
-        "required": ["engagement_id", "provider", "provider_reference"],
+        "required": ["engagement_id", "provider_reference"],
         "description": "Fields accepted when creating a BackgroundCheck."
       },
       "CanonDepartmentPage": {
@@ -85120,7 +85429,7 @@
       "get": {
         "operationId": "marketplace.search",
         "tags": ["Gateway"],
-        "x-xos-table": "api_external.v_marketplace_opportunities",
+        "x-xos-table": "api_external.opportunities",
         "x-xos-capability": "opportunities.posting.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
         "summary": "Search the marketplace",
@@ -85165,18 +85474,31 @@
                 "example": {
                   "data": [
                     {
-                      "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "title": "Stagehands for Harborfront Load-In",
                       "role_type": "Crew",
                       "role_code": "5000.50.01",
-                      "locality": "Miami",
-                      "starts_at": "2026-10-08T14:30:00Z",
+                      "venue_locality": "Miami",
                       "rate_type": "Day",
-                      "rate_min_minor": 32000,
-                      "rate_max_minor": 38000,
-                      "currency": "USD",
-                      "distance_km": 12.4
+                      "pay_min_minor": 32000,
+                      "pay_max_minor": 38000,
+                      "distance_km": 12.4,
+                      "org_name": "Northwind Live",
+                      "org_verified": true,
+                      "description": "Load-in and show calls for six weekends.",
+                      "cat_urid": "4000.01",
+                      "venue_name": "Harbor Lawn",
+                      "jurisdiction_id": "US-FL",
+                      "starts_on": "2026-10-08",
+                      "ends_on": "2026-10-08",
+                      "visibility": "Pool",
+                      "currency_code": "USD",
+                      "rate_on_request": false,
+                      "deadline_at": "2026-10-08T14:30:00Z",
+                      "minimum_age": 18,
+                      "opportunity_state": "Published",
+                      "position_count": 4
                     }
                   ],
                   "next_cursor": null
@@ -85227,8 +85549,15 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Miami Rigging Calls",
-                      "query": "filter[role_type][eq]=Crew",
-                      "alerts_enabled": true
+                      "alerts_enabled": true,
+                      "role_type": "Crew",
+                      "role_code": "5000.50.01",
+                      "cat_urid": "4000.01",
+                      "jurisdiction_id": "US-FL",
+                      "starts_after": "2026-10-08",
+                      "ends_before": "2026-10-08",
+                      "min_rate_minor": 3500,
+                      "currency_code": "USD"
                     }
                   ],
                   "next_cursor": null
@@ -85258,8 +85587,15 @@
               "example": {
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "name": "Miami Rigging Calls",
-                "query": "filter[role_type][eq]=Crew",
-                "alerts_enabled": true
+                "alerts_enabled": true,
+                "role_type": "Crew",
+                "role_code": "5000.50.01",
+                "cat_urid": "4000.01",
+                "jurisdiction_id": "US-FL",
+                "starts_after": "2026-10-08",
+                "ends_before": "2026-10-08",
+                "min_rate_minor": 3500,
+                "currency_code": "USD"
               },
               "schema": { "$ref": "#/components/schemas/SavedSearchCreate" }
             }
@@ -85282,8 +85618,15 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Miami Rigging Calls",
-                  "query": "filter[role_type][eq]=Crew",
-                  "alerts_enabled": true
+                  "alerts_enabled": true,
+                  "role_type": "Crew",
+                  "role_code": "5000.50.01",
+                  "cat_urid": "4000.01",
+                  "jurisdiction_id": "US-FL",
+                  "starts_after": "2026-10-08",
+                  "ends_before": "2026-10-08",
+                  "min_rate_minor": 3500,
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/SavedSearch" }
               }
@@ -85338,8 +85681,15 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Miami Rigging Calls",
-                  "query": "filter[role_type][eq]=Crew",
-                  "alerts_enabled": true
+                  "alerts_enabled": true,
+                  "role_type": "Crew",
+                  "role_code": "5000.50.01",
+                  "cat_urid": "4000.01",
+                  "jurisdiction_id": "US-FL",
+                  "starts_after": "2026-10-08",
+                  "ends_before": "2026-10-08",
+                  "min_rate_minor": 3500,
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/SavedSearch" }
               }
@@ -85380,8 +85730,15 @@
             "application/json": {
               "example": {
                 "name": "Miami Rigging Calls",
-                "query": "filter[role_type][eq]=Crew",
-                "alerts_enabled": true
+                "alerts_enabled": true,
+                "role_type": "Crew",
+                "role_code": "5000.50.01",
+                "cat_urid": "4000.01",
+                "jurisdiction_id": "US-FL",
+                "starts_after": "2026-10-08",
+                "ends_before": "2026-10-08",
+                "min_rate_minor": 3500,
+                "currency_code": "USD"
               },
               "schema": { "$ref": "#/components/schemas/SavedSearchUpdate" }
             }
@@ -85404,8 +85761,15 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Miami Rigging Calls",
-                  "query": "filter[role_type][eq]=Crew",
-                  "alerts_enabled": true
+                  "alerts_enabled": true,
+                  "role_type": "Crew",
+                  "role_code": "5000.50.01",
+                  "cat_urid": "4000.01",
+                  "jurisdiction_id": "US-FL",
+                  "starts_after": "2026-10-08",
+                  "ends_before": "2026-10-08",
+                  "min_rate_minor": 3500,
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/SavedSearch" }
               }
@@ -85486,7 +85850,8 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "saved_search_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "sent_at": "2026-10-08T14:30:00Z"
+                      "delivered_at": "2026-10-08T14:30:00Z",
+                      "matched_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -85542,7 +85907,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "saved_search_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "sent_at": "2026-10-08T14:30:00Z"
+                  "delivered_at": "2026-10-08T14:30:00Z",
+                  "matched_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/OpportunityAlert" }
               }
@@ -85588,9 +85954,11 @@
                       "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
-                      "subject_urn": "urn:xpms:opportunity:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "reason": "The listing asks for an upfront fee.",
-                      "report_state": "In Review"
+                      "reason": "Illegal Content",
+                      "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "reporter_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "details": "The listing asks for an upfront fee.",
+                      "reported_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -85618,8 +85986,9 @@
           "content": {
             "application/json": {
               "example": {
-                "subject_urn": "urn:xpms:opportunity:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "reason": "The listing asks for an upfront fee."
+                "reason": "Illegal Content",
+                "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "details": "The listing asks for an upfront fee."
               },
               "schema": { "$ref": "#/components/schemas/ListingReportCreate" }
             }
@@ -85640,9 +86009,11 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "subject_urn": "urn:xpms:opportunity:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "reason": "The listing asks for an upfront fee.",
-                  "report_state": "In Review"
+                  "reason": "Illegal Content",
+                  "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reporter_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "details": "The listing asks for an upfront fee.",
+                  "reported_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ListingReport" }
               }
@@ -85695,9 +86066,11 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "subject_urn": "urn:xpms:opportunity:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "reason": "The listing asks for an upfront fee.",
-                  "report_state": "In Review"
+                  "reason": "Illegal Content",
+                  "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reporter_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "details": "The listing asks for an upfront fee.",
+                  "reported_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ListingReport" }
               }
@@ -85745,7 +86118,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "listing_report_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "action": "Removed",
-                      "statement_of_reasons": "The listing requested a fee from applicants."
+                      "statement_of_reasons": "The listing requested a fee from applicants.",
+                      "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "decided_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -85775,7 +86150,8 @@
               "example": {
                 "listing_report_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "action": "Removed",
-                "statement_of_reasons": "The listing requested a fee from applicants."
+                "statement_of_reasons": "The listing requested a fee from applicants.",
+                "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/ModerationActionCreate" }
             }
@@ -85798,7 +86174,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "listing_report_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "action": "Removed",
-                  "statement_of_reasons": "The listing requested a fee from applicants."
+                  "statement_of_reasons": "The listing requested a fee from applicants.",
+                  "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ModerationAction" }
               }
@@ -85853,7 +86231,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "listing_report_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "action": "Removed",
-                  "statement_of_reasons": "The listing requested a fee from applicants."
+                  "statement_of_reasons": "The listing requested a fee from applicants.",
+                  "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ModerationAction" }
               }
@@ -85901,10 +86281,10 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "shared_fields": ["headline", "skills", "certifications"],
-                      "live_updates": true,
-                      "snapshot_at": "2026-10-08T14:30:00Z",
-                      "revoked_at": "2026-10-08T14:30:00Z"
+                      "shared_fields": [{ "field_key": "headline", "field_value": "Head Rigger" }],
+                      "shared_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -85932,10 +86312,9 @@
           "content": {
             "application/json": {
               "example": {
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "shared_fields": ["headline", "skills", "certifications"],
-                "live_updates": true
+                "shared_fields": [{ "field_key": "headline", "field_value": "Head Rigger" }],
+                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/ProfileShareCreate" }
             }
@@ -85958,10 +86337,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "shared_fields": ["headline", "skills", "certifications"],
-                  "live_updates": true,
-                  "snapshot_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "shared_fields": [{ "field_key": "headline", "field_value": "Head Rigger" }],
+                  "shared_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ProfileShare" }
               }
@@ -86016,10 +86395,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "shared_fields": ["headline", "skills", "certifications"],
-                  "live_updates": true,
-                  "snapshot_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "shared_fields": [{ "field_key": "headline", "field_value": "Head Rigger" }],
+                  "shared_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ProfileShare" }
               }
@@ -86073,10 +86452,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "shared_fields": ["headline", "skills", "certifications"],
-                  "live_updates": true,
-                  "snapshot_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "shared_fields": [{ "field_key": "headline", "field_value": "Head Rigger" }],
+                  "shared_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ProfileShare" }
               }
@@ -86125,7 +86504,8 @@
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "time_zone": "America/New_York"
+                      "time_zone": "America/New_York",
+                      "visibility": "Private"
                     }
                   ],
                   "next_cursor": null
@@ -86154,7 +86534,8 @@
             "application/json": {
               "example": {
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "time_zone": "America/New_York"
+                "time_zone": "America/New_York",
+                "visibility": "Private"
               },
               "schema": { "$ref": "#/components/schemas/AvailabilityCalendarCreate" }
             }
@@ -86176,7 +86557,8 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "visibility": "Private"
                 },
                 "schema": { "$ref": "#/components/schemas/AvailabilityCalendar" }
               }
@@ -86230,7 +86612,8 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "visibility": "Private"
                 },
                 "schema": { "$ref": "#/components/schemas/AvailabilityCalendar" }
               }
@@ -86269,7 +86652,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "time_zone": "America/New_York" },
+              "example": { "time_zone": "America/New_York", "visibility": "Private" },
               "schema": { "$ref": "#/components/schemas/AvailabilityCalendarUpdate" }
             }
           }
@@ -86290,7 +86673,8 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "visibility": "Private"
                 },
                 "schema": { "$ref": "#/components/schemas/AvailabilityCalendar" }
               }
@@ -86372,7 +86756,8 @@
                       "availability_calendar_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "starts_at": "2026-10-08T14:30:00Z",
                       "ends_at": "2026-10-08T14:30:00Z",
-                      "available": false
+                      "availability_kind": "Available",
+                      "note": "Holding for a tour."
                     }
                   ],
                   "next_cursor": null
@@ -86403,7 +86788,8 @@
                 "availability_calendar_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "starts_at": "2026-10-08T14:30:00Z",
                 "ends_at": "2026-10-08T14:30:00Z",
-                "available": false
+                "availability_kind": "Available",
+                "note": "Holding for a tour."
               },
               "schema": { "$ref": "#/components/schemas/AvailabilityBlockCreate" }
             }
@@ -86427,7 +86813,8 @@
                   "availability_calendar_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
-                  "available": false
+                  "availability_kind": "Available",
+                  "note": "Holding for a tour."
                 },
                 "schema": { "$ref": "#/components/schemas/AvailabilityBlock" }
               }
@@ -86483,7 +86870,8 @@
                   "availability_calendar_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
-                  "available": false
+                  "availability_kind": "Available",
+                  "note": "Holding for a tour."
                 },
                 "schema": { "$ref": "#/components/schemas/AvailabilityBlock" }
               }
@@ -86525,7 +86913,8 @@
               "example": {
                 "starts_at": "2026-10-08T14:30:00Z",
                 "ends_at": "2026-10-08T14:30:00Z",
-                "available": false
+                "availability_kind": "Available",
+                "note": "Holding for a tour."
               },
               "schema": { "$ref": "#/components/schemas/AvailabilityBlockUpdate" }
             }
@@ -86549,7 +86938,8 @@
                   "availability_calendar_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
-                  "available": false
+                  "availability_kind": "Available",
+                  "note": "Holding for a tour."
                 },
                 "schema": { "$ref": "#/components/schemas/AvailabilityBlock" }
               }
@@ -86860,7 +87250,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "engagement_thread_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "body": "Use the north lot; passes are at the gate.",
-                      "sent_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "author_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "sent_at": "2026-10-08T14:30:00Z"
                     }
                   ],
@@ -86916,7 +87306,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_thread_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "body": "Use the north lot; passes are at the gate.",
-                  "sent_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "author_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "sent_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/EngagementMessage" }
@@ -86975,7 +87365,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_thread_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "body": "Use the north lot; passes are at the gate.",
-                  "sent_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "author_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "sent_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/EngagementMessage" }
@@ -87025,11 +87415,12 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "form_type": "W-9",
-                      "tax_identifier": "123456789",
-                      "tax_identifier_last4": "6789",
-                      "foreign_performer_withholding": false
+                      "tin_last4": "6789",
+                      "foreign_performer_withholding": false,
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "form_kind": "W-9",
+                      "signed_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -87057,10 +87448,10 @@
           "content": {
             "application/json": {
               "example": {
-                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "form_type": "W-9",
-                "tax_identifier": "123456789",
-                "foreign_performer_withholding": false
+                "foreign_performer_withholding": false,
+                "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "form_kind": "W-9",
+                "tax_identifier": "123456789"
               },
               "schema": { "$ref": "#/components/schemas/TaxFormCreate" }
             }
@@ -87084,11 +87475,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "form_type": "W-9",
-                  "tax_identifier": "123456789",
-                  "tax_identifier_last4": "6789",
-                  "foreign_performer_withholding": false
+                  "tin_last4": "6789",
+                  "foreign_performer_withholding": false,
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "form_kind": "W-9",
+                  "signed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/TaxForm" }
               }
@@ -87144,11 +87536,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "form_type": "W-9",
-                  "tax_identifier": "123456789",
-                  "tax_identifier_last4": "6789",
-                  "foreign_performer_withholding": false
+                  "tin_last4": "6789",
+                  "foreign_performer_withholding": false,
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "form_kind": "W-9",
+                  "signed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/TaxForm" }
               }
@@ -87199,8 +87592,8 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "provider": "stripe_connect",
-                      "provider_account_ref": "acct_1PqRsT",
+                      "provider": "Stripe Connect",
+                      "provider_account_reference": "acct_1PqRsT",
                       "account_last4": "4421"
                     }
                   ],
@@ -87231,8 +87624,8 @@
               "example": {
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "provider": "stripe_connect",
-                "provider_account_ref": "acct_1PqRsT"
+                "provider": "Stripe Connect",
+                "provider_account_reference": "acct_1PqRsT"
               },
               "schema": { "$ref": "#/components/schemas/PayoutAccountCreate" }
             }
@@ -87258,8 +87651,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "provider": "stripe_connect",
-                  "provider_account_ref": "acct_1PqRsT",
+                  "provider": "Stripe Connect",
+                  "provider_account_reference": "acct_1PqRsT",
                   "account_last4": "4421"
                 },
                 "schema": { "$ref": "#/components/schemas/PayoutAccount" }
@@ -87318,8 +87711,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "provider": "stripe_connect",
-                  "provider_account_ref": "acct_1PqRsT",
+                  "provider": "Stripe Connect",
+                  "provider_account_reference": "acct_1PqRsT",
                   "account_last4": "4421"
                 },
                 "schema": { "$ref": "#/components/schemas/PayoutAccount" }
@@ -87402,8 +87795,8 @@
                       "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "provider": "checkr",
                       "provider_reference": "chk_7c1a2b",
-                      "provider_result": "Clear",
-                      "completed_at": "2026-10-08T14:30:00Z"
+                      "completed_at": "2026-10-08T14:30:00Z",
+                      "result": "Pending"
                     }
                   ],
                   "next_cursor": null
@@ -87460,8 +87853,8 @@
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "provider": "checkr",
                   "provider_reference": "chk_7c1a2b",
-                  "provider_result": "Clear",
-                  "completed_at": "2026-10-08T14:30:00Z"
+                  "completed_at": "2026-10-08T14:30:00Z",
+                  "result": "Pending"
                 },
                 "schema": { "$ref": "#/components/schemas/BackgroundCheck" }
               }
@@ -87520,8 +87913,8 @@
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "provider": "checkr",
                   "provider_reference": "chk_7c1a2b",
-                  "provider_result": "Clear",
-                  "completed_at": "2026-10-08T14:30:00Z"
+                  "completed_at": "2026-10-08T14:30:00Z",
+                  "result": "Pending"
                 },
                 "schema": { "$ref": "#/components/schemas/BackgroundCheck" }
               }
