@@ -130,6 +130,7 @@ export const additions = defineAdditions("Credentials", {
       id: "certification-issuing-body",
       since: SINCE,
       resources: ["certifications"],
+      components: ["schemas/TagId"],
       change:
         "Replaces `issuer` with a required `issuing_body`; removes `tag_id` and `validity_months`.",
       reason:

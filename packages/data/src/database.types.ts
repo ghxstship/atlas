@@ -39232,6 +39232,16 @@ export type Database = {
         };
         Returns: string;
       };
+      save_geofence: {
+        Args: {
+          p_boundary_geojson: Json;
+          p_id: string;
+          p_name: string;
+          p_venue_id: string;
+          p_zone_id: string;
+        };
+        Returns: string;
+      };
       send_advance_packet: { Args: { p_packet_id: string }; Returns: string };
       send_agreement: {
         Args: { p_agreement_id: string; p_reason: string; p_valid_for?: string };

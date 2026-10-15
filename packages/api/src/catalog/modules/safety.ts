@@ -1,12 +1,15 @@
 /**
- * Safety operations beyond the frozen v1 catalog (additive only, Section 10.1). Declare new
- * resources and new actions on Safety resources here. See "Adding operations" in
- * packages/api/README.md. The module is shared: A14 owns the incident corrections
- * (parts/safety-incidents.ts) and A09 the permit and inspection ones.
+ * Safety operations beyond the frozen v1 catalog (additive only, Section 10.1) and corrections to
+ * frozen Safety resources (ADR 0023). Two agents share the module: the permit engine and inspections
+ * (A09, ./parts/safety-permits.ts) and incidents, dispatch, emergency codes and radio (A14,
+ * ./parts/safety-incidents.ts). This file only spreads their parts.
  */
 import { defineAdditions } from "../additions.ts";
 import { incidentCorrections } from "./parts/safety-incidents.ts";
+import { permitActions, permitCapabilities, permitCorrections } from "./parts/safety-permits.ts";
 
 export const additions = defineAdditions("Safety", {
-  corrections: [...incidentCorrections],
+  corrections: [...permitCorrections, ...incidentCorrections],
+  actions: { ...permitActions },
+  capabilities: { ...permitCapabilities },
 });

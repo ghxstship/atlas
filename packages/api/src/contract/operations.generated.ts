@@ -1328,22 +1328,29 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     venue_id: string;
-    document_id: string;
     valid_from: string;
     valid_to: string | null;
     frozen: boolean;
+    title: string;
+    document_uri: string;
   };
   CapabilityDocumentCreate: {
     venue_id: string;
-    document_id: string;
     valid_from: string;
     valid_to?: string | null;
+    title: string;
+    document_uri: string;
   };
   CapabilityDocumentPage: {
     data: Array<Components["CapabilityDocument"]>;
     next_cursor: string | null;
   };
-  CapabilityDocumentUpdate: { document_id?: string; valid_from?: string; valid_to?: string | null };
+  CapabilityDocumentUpdate: {
+    valid_from?: string;
+    valid_to?: string | null;
+    title?: string;
+    document_uri?: string;
+  };
   CapabilityPage: { data: Array<Components["Capability"]>; next_cursor: string | null };
   CatalogBinding: {
     id: string;
@@ -1954,7 +1961,6 @@ export interface Components {
     reason?: string;
   };
   DeptCode: string;
-  Direction: "require" | "provide";
   DiscCode: string;
   DispatchAssignment: {
     id: string;
@@ -2454,6 +2460,7 @@ export interface Components {
   };
   GateReadinessPage: { data: Array<Components["GateReadiness"]>; next_cursor: string | null };
   GateTransitionRequest: { expected_phase_code: string; to_phase_code: Components["PhaseCode"] };
+  GeoJsonPolygon: { type: "Polygon"; coordinates: Array<Array<[number, number]>> };
   Geofence: {
     id: string;
     org_id: string;
@@ -2462,25 +2469,21 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    venue_id: string | null;
-    latitude: number;
-    longitude: number;
-    radius_m: number;
+    venue_id: string;
+    zone_id: string | null;
+    boundary: Components["GeoJsonPolygon"];
   };
   GeofenceCreate: {
     name: string;
-    venue_id?: string | null;
-    latitude: number;
-    longitude: number;
-    radius_m: number;
+    venue_id: string;
+    zone_id?: string | null;
+    boundary: Components["GeoJsonPolygon"];
   };
   GeofencePage: { data: Array<Components["Geofence"]>; next_cursor: string | null };
   GeofenceUpdate: {
     name?: string;
-    venue_id?: string | null;
-    latitude?: number;
-    longitude?: number;
-    radius_m?: number;
+    zone_id?: string | null;
+    boundary?: Components["GeoJsonPolygon"];
   };
   GlAccountCode: string;
   GoodsReceipt: {
@@ -2682,17 +2685,17 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     inspection_template_id: string;
-    zone_id: string | null;
-    inspector_id: string;
-    inspection_state: string;
+    inspector_person_id: string | null;
     signed_off_by: string | null;
     signed_off_at: string | null;
+    record_id: string | null;
+    inspected_at: string;
   };
   InspectionCreate: {
     project_id: string;
     inspection_template_id: string;
-    zone_id?: string | null;
-    inspector_id: string;
+    record_id?: string | null;
+    inspected_at?: string;
   };
   InspectionItem: {
     id: string;
@@ -2704,16 +2707,16 @@ export interface Components {
     inspection_template_id: string;
     position: number;
     prompt: string;
-    requires_photo: boolean;
+    is_critical: boolean;
   };
   InspectionItemCreate: {
     inspection_template_id: string;
     position: number;
     prompt: string;
-    requires_photo: boolean;
+    is_critical?: boolean;
   };
   InspectionItemPage: { data: Array<Components["InspectionItem"]>; next_cursor: string | null };
-  InspectionItemUpdate: { position?: number; prompt?: string; requires_photo?: boolean };
+  InspectionItemUpdate: { position?: number; prompt?: string; is_critical?: boolean };
   InspectionPage: { data: Array<Components["Inspection"]>; next_cursor: string | null };
   InspectionResult: {
     id: string;
@@ -2724,22 +2727,23 @@ export interface Components {
     updated_by: string | null;
     inspection_id: string;
     inspection_item_id: string;
-    passed: boolean;
-    notes: string | null;
-    photo_document_id: string | null;
+    note: string | null;
+    result_enum_id: string;
+    photo_uri: string | null;
+    project_id: string;
   };
   InspectionResultCreate: {
     inspection_id: string;
     inspection_item_id: string;
-    passed: boolean;
-    notes?: string | null;
-    photo_document_id?: string | null;
+    note?: string | null;
+    result_enum_id: string;
+    photo_uri?: string | null;
   };
   InspectionResultPage: { data: Array<Components["InspectionResult"]>; next_cursor: string | null };
   InspectionResultUpdate: {
-    passed?: boolean;
-    notes?: string | null;
-    photo_document_id?: string | null;
+    note?: string | null;
+    result_enum_id?: string;
+    photo_uri?: string | null;
   };
   InspectionTemplate: {
     id: string;
@@ -2749,15 +2753,14 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    tag_id: Components["TagId"];
   };
-  InspectionTemplateCreate: { name: string; tag_id?: Components["TagId"] };
+  InspectionTemplateCreate: { name: string };
   InspectionTemplatePage: {
     data: Array<Components["InspectionTemplate"]>;
     next_cursor: string | null;
   };
-  InspectionTemplateUpdate: { name?: string; tag_id?: Components["TagId"] };
-  InspectionUpdate: { zone_id?: string | null; inspector_id?: string };
+  InspectionTemplateUpdate: { name?: string };
+  InspectionUpdate: { record_id?: string | null };
   InsuranceCertificate: {
     id: string;
     org_id: string;
@@ -4010,13 +4013,16 @@ export interface Components {
     jurisdiction_id: Components["JurisdictionId"];
     permit: string;
     ahj: string;
-    due_on: string | null;
-    permit_state: string;
+    permit_state: string | null;
+    lead_time: string;
+    trigger_type: string;
+    record_id: string | null;
   };
   PermitRequirementPage: {
     data: Array<Components["PermitRequirement"]>;
     next_cursor: string | null;
   };
+  PermitTrackRequest: { title?: string };
   PermitTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   Person: { id: string; created_at: string; updated_at: string; full_name: string | null };
   PersonPage: { data: Array<Components["Person"]>; next_cursor: string | null };
@@ -4609,13 +4615,13 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     project_id: string;
-    venue_id: string | null;
     run_at: string;
     met_count: number;
     gap_count: number;
     unknown_count: number;
+    note: string | null;
   };
-  ReconciliationCreate: { project_id: string; venue_id?: string | null };
+  ReconciliationCreate: { project_id: string; note?: string | null };
   ReconciliationLine: {
     id: string;
     org_id: string;
@@ -4972,38 +4978,39 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    direction: Components["Direction"];
-    project_id: string | null;
+    direction: "Require" | "Provide";
+    project_id: string;
     venue_id: string | null;
     urid: Components["UridAtAnyGrain"];
-    statement: string;
+    description: string;
     quantity: number | null;
-    unit: Components["UnitCode"];
-    critical: boolean;
-    assertion_rank: number;
+    unit_basis: Components["UnitCode"];
+    is_critical: boolean;
+    counterparty_id: string | null;
+    assertion_word: "CERTIFIED" | "DOCUMENTED" | "CLAIMED" | "INFERRED" | "UNKNOWN";
   };
   RequirementCreate: {
-    direction: Components["Direction"];
-    project_id?: string | null;
+    direction: "Require" | "Provide";
+    project_id: string;
     venue_id?: string | null;
     urid: Components["UridAtAnyGrain"];
-    statement: string;
+    description: string;
     quantity?: number | null;
-    unit?: Components["UnitCode"];
-    critical: boolean;
-    assertion_rank: number;
+    unit_basis?: Components["UnitCode"];
+    is_critical?: boolean;
+    counterparty_id?: string | null;
+    assertion_word?: "CERTIFIED" | "DOCUMENTED" | "CLAIMED" | "INFERRED" | "UNKNOWN";
   };
   RequirementPage: { data: Array<Components["Requirement"]>; next_cursor: string | null };
   RequirementUpdate: {
-    direction?: Components["Direction"];
-    project_id?: string | null;
     venue_id?: string | null;
     urid?: Components["UridAtAnyGrain"];
-    statement?: string;
+    description?: string;
     quantity?: number | null;
-    unit?: Components["UnitCode"];
-    critical?: boolean;
-    assertion_rank?: number;
+    unit_basis?: Components["UnitCode"];
+    is_critical?: boolean;
+    counterparty_id?: string | null;
+    assertion_word?: "CERTIFIED" | "DOCUMENTED" | "CLAIMED" | "INFERRED" | "UNKNOWN";
   };
   Requisition: {
     id: string;
@@ -5647,11 +5654,17 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    venue_id: string;
+    venue_id: string | null;
     title: string;
-    document_id: string;
+    project_id: string;
+    image_uri: string;
   };
-  SitePlanCreate: { venue_id: string; title: string; document_id: string };
+  SitePlanCreate: {
+    venue_id?: string | null;
+    title: string;
+    project_id: string;
+    image_uri: string;
+  };
   SitePlanPage: { data: Array<Components["SitePlan"]>; next_cursor: string | null };
   SitePlanPin: {
     id: string;
@@ -5664,11 +5677,26 @@ export interface Components {
     label: string;
     x: number;
     y: number;
+    zone_id: string | null;
+    record_id: string | null;
   };
-  SitePlanPinCreate: { site_plan_id: string; label: string; x: number; y: number };
+  SitePlanPinCreate: {
+    site_plan_id: string;
+    label: string;
+    x: number;
+    y: number;
+    zone_id?: string | null;
+    record_id?: string | null;
+  };
   SitePlanPinPage: { data: Array<Components["SitePlanPin"]>; next_cursor: string | null };
-  SitePlanPinUpdate: { label?: string; x?: number; y?: number };
-  SitePlanUpdate: { title?: string; document_id?: string };
+  SitePlanPinUpdate: {
+    label?: string;
+    x?: number;
+    y?: number;
+    zone_id?: string | null;
+    record_id?: string | null;
+  };
+  SitePlanUpdate: { title?: string; venue_id?: string | null; image_uri?: string };
   Sop: {
     id: string;
     org_id: string;
@@ -5723,15 +5751,22 @@ export interface Components {
     name: string;
     capacity: number | null;
     area_sq_ft: number | null;
+    urid: Components["Urid"] | null;
   };
   SpaceCreate: {
     venue_id: string;
     name: string;
     capacity?: number | null;
     area_sq_ft?: number | null;
+    urid?: Components["Urid"] | null;
   };
   SpacePage: { data: Array<Components["Space"]>; next_cursor: string | null };
-  SpaceUpdate: { name?: string; capacity?: number | null; area_sq_ft?: number | null };
+  SpaceUpdate: {
+    name?: string;
+    capacity?: number | null;
+    area_sq_ft?: number | null;
+    urid?: Components["Urid"] | null;
+  };
   SpendAuthority: {
     id: string;
     org_id: string;
@@ -5868,7 +5903,7 @@ export interface Components {
   };
   SubscriptionPage: { data: Array<Components["Subscription"]>; next_cursor: string | null };
   SubscriptionUpdate: { plan_code?: string };
-  TagId: string | null;
+  TagId: string;
   TalentPool: {
     id: string;
     org_id: string;
@@ -6330,11 +6365,9 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    address_line1: string;
-    locality: string;
-    region: string;
-    postal_code: string;
-    country: string;
+    street_address: string | null;
+    locality: string | null;
+    postal_code: string | null;
     jurisdiction_id: Components["JurisdictionId"];
     time_zone: string;
     latitude: number | null;
@@ -6342,12 +6375,10 @@ export interface Components {
   };
   VenueCreate: {
     name: string;
-    address_line1: string;
-    locality: string;
-    region: string;
-    postal_code: string;
-    country: string;
-    jurisdiction_id?: Components["JurisdictionId"];
+    street_address?: string | null;
+    locality?: string | null;
+    postal_code?: string | null;
+    jurisdiction_id: Components["JurisdictionId"];
     time_zone: string;
     latitude?: number | null;
     longitude?: number | null;
@@ -6355,11 +6386,9 @@ export interface Components {
   VenuePage: { data: Array<Components["Venue"]>; next_cursor: string | null };
   VenueUpdate: {
     name?: string;
-    address_line1?: string;
-    locality?: string;
-    region?: string;
-    postal_code?: string;
-    country?: string;
+    street_address?: string | null;
+    locality?: string | null;
+    postal_code?: string | null;
     jurisdiction_id?: Components["JurisdictionId"];
     time_zone?: string;
     latitude?: number | null;
@@ -6587,13 +6616,14 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    space_id: string;
+    space_id: string | null;
     name: string;
-    zone_code: string;
+    code: string;
+    venue_id: string;
   };
-  ZoneCreate: { space_id: string; name: string; zone_code: string };
+  ZoneCreate: { space_id?: string | null; name: string; code: string; venue_id: string };
   ZonePage: { data: Array<Components["Zone"]>; next_cursor: string | null };
-  ZoneUpdate: { name?: string; zone_code?: string };
+  ZoneUpdate: { name?: string; code?: string; space_id?: string | null };
 }
 
 /** Every operation, keyed by operationId. */
@@ -13061,6 +13091,15 @@ export interface Operations {
     params: { id: string };
     query: Record<string, never>;
     body: Components["PermitTransitionRequest"];
+    responses: { 200: Components["PermitRequirement"] };
+  };
+  "permitRequirements.track": {
+    module: "Safety";
+    method: "post";
+    path: "/permit-requirements/{id}/track";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PermitTrackRequest"];
     responses: { 200: Components["PermitRequirement"] };
   };
   "incidents.list": {
@@ -20956,6 +20995,7 @@ export interface ModuleOperations {
     | "permitRequirements.get"
     | "permitRequirements.generate"
     | "permitRequirements.transition"
+    | "permitRequirements.track"
     | "incidents.list"
     | "incidents.create"
     | "incidents.get"

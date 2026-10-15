@@ -83,26 +83,48 @@ export interface Zone {
   readonly code: string;
   readonly name: string;
   readonly venueId: string;
+  readonly venueName: string;
 }
 
 /**
- * Zones a project works in: the zones of its venue, or every zone of the org the viewer may read
- * when the project has no venue yet. Listed in code order (Section 3.6, numeric order).
+ * Zones a project can use. A project works across several venues (its standing venues and shows),
+ * so every zone of the org the viewer may read is offered: the project's primary venue first, then
+ * the others by venue name, each in code order (Section 3.6).
  */
 export async function listProjectZones(
   db: XosClient,
   orgId: string,
   venueId: string | null,
 ): Promise<Result<Zone[]>> {
-  let query = db
+  const { data, error } = await db
     .from("zones")
-    .select("id, code, name, venue_id")
+    .select("id, code, name, venue_id, venue:venues(name)")
     .eq("org_id", orgId)
-    .is("deleted_at", null);
-  if (venueId !== null) query = query.eq("venue_id", venueId);
-  const { data, error } = await query.order("code");
+    .is("deleted_at", null)
+    .order("code");
   if (error) return fail(toDataError(error));
-  return ok(data.map((z) => ({ id: z.id, code: z.code, name: z.name, venueId: z.venue_id })));
+  const zones = (
+    data as unknown as {
+      id: string;
+      code: string;
+      name: string;
+      venue_id: string;
+      venue: { name: string } | null;
+    }[]
+  ).map((z) => ({
+    id: z.id,
+    code: z.code,
+    name: z.name,
+    venueId: z.venue_id,
+    venueName: z.venue?.name ?? "",
+  }));
+  const rank = (z: Zone) => (z.venueId === venueId ? 0 : 1);
+  return ok(
+    zones.sort(
+      (x, y) =>
+        rank(x) - rank(y) || x.venueName.localeCompare(y.venueName) || x.code.localeCompare(y.code),
+    ),
+  );
 }
 
 /** True when a unique key rejected a client-chosen primary key that is already stored. */
