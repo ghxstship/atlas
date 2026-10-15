@@ -573,3 +573,56 @@ export async function reportListing(
   );
   return error ? fail(toDataError(error)) : ok(null);
 }
+
+export interface SavedSearch {
+  readonly id: string;
+  readonly name: string;
+  readonly roleType: ExternalRoleType | null;
+  readonly startsAfter: string | null;
+  readonly endsBefore: string | null;
+  readonly alertsEnabled: boolean;
+}
+
+/**
+ * The caller's saved searches. `app.saved_searches` holds only the person's own columns and its
+ * policy is owner-only (0720), so it is read directly until A28b publishes the api_external view.
+ */
+export async function listMySavedSearches(db: XosClient): Promise<Result<SavedSearch[]>> {
+  const { data, error } = await db
+    .from("saved_searches")
+    .select("id, name, role_type, starts_after, ends_before, alerts_enabled")
+    .is("deleted_at", null)
+    .order("name", { ascending: true });
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((row) => ({
+      id: row.id,
+      name: row.name,
+      roleType: row.role_type,
+      startsAfter: row.starts_after,
+      endsBefore: row.ends_before,
+      alertsEnabled: row.alerts_enabled,
+    })),
+  );
+}
+
+/** Turns a saved search's alerts on or off. */
+export async function setSavedSearchAlerts(
+  db: XosClient,
+  input: { readonly id: string; readonly enabled: boolean },
+): Promise<Result<null>> {
+  const { error } = await db
+    .from("saved_searches")
+    .update({ alerts_enabled: input.enabled })
+    .eq("id", input.id);
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/** Removes a saved search (soft delete). */
+export async function removeSavedSearch(db: XosClient, id: string): Promise<Result<null>> {
+  const { error } = await db
+    .from("saved_searches")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  return error ? fail(toDataError(error)) : ok(null);
+}

@@ -2,16 +2,19 @@
 // Never edit by hand. On a merge conflict, rerun the generator.
 
 import enUS_email from "../messages/en-US/email.json" with { type: "json" };
+import enUS_gateway from "../messages/en-US/gateway.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
 import esUS_email from "../messages/es-US/email.json" with { type: "json" };
+import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
 import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
 
 export const enUS = {
   email: enUS_email,
+  gateway: enUS_gateway,
   nav: enUS_nav,
   shell: enUS_shell,
   ui: enUS_ui,
@@ -19,6 +22,7 @@ export const enUS = {
 
 export const esUS = {
   email: esUS_email,
+  gateway: esUS_gateway,
   nav: esUS_nav,
   shell: esUS_shell,
   ui: esUS_ui,

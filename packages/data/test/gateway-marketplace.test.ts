@@ -7,7 +7,10 @@ import {
   decideApplication,
   getOpportunity,
   listMyApplications,
+  listMySavedSearches,
+  removeSavedSearch,
   reportListing,
+  setSavedSearchAlerts,
   saveSearch,
   searchOpportunities,
   submitBid,
@@ -367,5 +370,29 @@ describe("saved searches and reports", () => {
     expect(
       (await reportListing(db, { opportunityId: OPP, reason: "Fraud", details: null })).ok,
     ).toBe(false);
+  });
+});
+
+describe("saved search management", () => {
+  it("lists, toggles and removes saved searches", async () => {
+    const { db } = gatewayClient({
+      "from:saved_searches": [
+        okResponse([
+          { id: "s1", name: "Audio", role_type: "Crew", starts_after: null, ends_before: null, alerts_enabled: true },
+        ]),
+        errorResponse("08000", "down"),
+        okResponse(null),
+        errorResponse("42501", "no"),
+        okResponse(null),
+        errorResponse("42501", "no"),
+      ],
+    });
+    const listed = await listMySavedSearches(db);
+    expect(listed.ok && listed.data[0]?.alertsEnabled).toBe(true);
+    expect((await listMySavedSearches(db)).ok).toBe(false);
+    expect((await setSavedSearchAlerts(db, { id: "s1", enabled: false })).ok).toBe(true);
+    expect((await setSavedSearchAlerts(db, { id: "s1", enabled: true })).ok).toBe(false);
+    expect((await removeSavedSearch(db, "s1")).ok).toBe(true);
+    expect((await removeSavedSearch(db, "s1")).ok).toBe(false);
   });
 });

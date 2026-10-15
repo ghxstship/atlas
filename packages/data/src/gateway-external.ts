@@ -1,4 +1,8 @@
 import type { Database, XosClient } from "./client";
+import { Constants } from "./database.types";
+
+/** Every closed list of the `app` schema, generated from the enums (Section 3.15, item 3). */
+export const APP_ENUMS = Constants.app.Enums;
 
 /**
  * The `api_external` projections (migration 0750, ADR 0019 item 5): the only path by which Gateway

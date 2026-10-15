@@ -1,0 +1,416 @@
+{
+  "outcomes": {
+    "refused": "The organization's rules did not allow that. Check the details and try again, or message the organization.",
+    "notFound": "That item is no longer open to you. Reload the page to see what is current.",
+    "conflict": "That already exists. Reload the page to see it.",
+    "invalid": "Some details are not in the expected format. Check each field and try again.",
+    "unexpected": "Something went wrong on our side. Try again in a moment.",
+    "refusals": {
+      "application_deadline_passed": "The deadline for this opportunity has passed, so it no longer takes applications. Explore for open ones.",
+      "opportunity_not_available": "This opportunity is not open to you. Explore for opportunities that are.",
+      "application_not_editable": "This application is already under review, so it can no longer change. Message the organization if something is wrong.",
+      "application_profile_share": "The profile share on this application was revoked. Apply again to share your profile.",
+      "lifecycle_transition": "That step is not possible from where this item is now. Reload to see its current state.",
+      "lifecycle_conflict": "Someone changed this item a moment ago. Reload to see the latest, then try again.",
+      "representation_not_acceptable": "Only the artist can accept a pending representation, and this one is no longer pending.",
+      "representation_expiry": "Choose an expiry date in the future.",
+      "representation_scope_required": "Choose at least one scope: Offers, Advance, Settlement or Documents.",
+      "representative_not_in_account": "The named agent must be a member of your account. Add them to the team first.",
+      "profile_share_fields": "Choose at least one profile field to share.",
+      "profile_share_engagement": "You can share a profile only for an engagement you hold with that organization.",
+      "rating_engagement_not_complete": "Ratings open when the engagement is Complete.",
+      "rating_immutable": "Ratings cannot be changed once given. You can reply to a rating about you.",
+      "tin_format": "Check the tax identifier: a W-9 needs nine digits; other forms need 4 to 30 letters and digits.",
+      "tax_form_payee": "Companies file a W-8BEN-E and individuals a W-8BEN; either files a W-9 as a US person.",
+      "sod_self_grant": "You cannot grant yourself a role. Ask another Account Owner or Admin.",
+      "account_role_band": "Only an Account Owner can grant or remove Account Owner.",
+      "slug_taken": "That web address is already in use. Choose another.",
+      "slug_reserved": "That web address is reserved. Choose another.",
+      "cross_org_reference": "That document belongs to another organization. Upload it again for this one."
+    }
+  },
+  "common": {
+    "loadError": {
+      "title": "This section did not load",
+      "body": "Something went wrong while loading it. Try again; if it keeps failing, reload the page.",
+      "action": "Try again"
+    },
+    "rateOnRequest": "Rate on Request",
+    "unpriced": "Unpriced",
+    "noDate": "Dates to be confirmed",
+    "open": "Open",
+    "view": "View",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "required": "Required",
+    "optional": "Optional",
+    "sign": "Sign",
+    "signed": "Signed. The organization countersigns next.",
+    "count": "{n, plural, one {# item} other {# items}}",
+    "viewAs": "View as {view}",
+    "views": {
+      "list": "List",
+      "table": "Table",
+      "board": "Board",
+      "calendar": "Calendar",
+      "gallery": "Cards",
+      "map": "Map",
+      "timeline": "Timeline",
+      "feed": "Feed",
+      "inbox": "Inbox",
+      "split": "Split",
+      "chart": "Chart"
+    },
+    "mapAlternative": "Map locations are not available yet, so places are listed below in date order.",
+    "orgFilter": "Showing {org} only",
+    "clearFilter": "Show every organization"
+  },
+  "enums": {
+    "externalRoleType": {
+      "client": "Client",
+      "vendor": "Vendor",
+      "contractor": "Contractor",
+      "crew": "Crew",
+      "staff": "Staff",
+      "artist": "Artist",
+      "artistRepresentative": "Artist Representative",
+      "sponsor": "Sponsor"
+    },
+    "engagementState": {
+      "onboarding": "Onboarding",
+      "blocked": "Blocked",
+      "active": "Active",
+      "closing": "Closing",
+      "complete": "Complete",
+      "canceled": "Canceled"
+    },
+    "engagementDocumentKind": {
+      "offer": "Offer",
+      "agreement": "Agreement",
+      "statementOfWork": "Statement of Work",
+      "nonDisclosureAgreement": "Non-Disclosure Agreement",
+      "rider": "Rider",
+      "advancePacket": "Advance Packet",
+      "insuranceCertificate": "Insurance Certificate",
+      "lienWaiver": "Lien Waiver",
+      "settlement": "Settlement",
+      "proofOfPerformance": "Proof of Performance",
+      "contentConsent": "Content Consent"
+    },
+    "engagementDocumentState": {
+      "proposed": "Proposed",
+      "sent": "Sent",
+      "signed": "Signed",
+      "executed": "Executed",
+      "expired": "Expired",
+      "superseded": "Superseded",
+      "canceled": "Canceled"
+    },
+    "applicationState": {
+      "submitted": "Submitted",
+      "inReview": "In Review",
+      "shortlisted": "Shortlisted",
+      "offered": "Offered",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "withdrawn": "Withdrawn",
+      "notSelected": "Not Selected"
+    },
+    "opportunityState": {
+      "draft": "Draft",
+      "pendingApproval": "Pending Approval",
+      "published": "Published",
+      "paused": "Paused",
+      "filled": "Filled",
+      "closed": "Closed",
+      "canceled": "Canceled"
+    },
+    "opportunityVisibility": {
+      "invited": "Invited",
+      "pool": "Pool",
+      "network": "Network",
+      "public": "Public"
+    },
+    "rateType": {
+      "hourly": "Hourly",
+      "day": "Day",
+      "flat": "Flat",
+      "milestone": "Milestone",
+      "bid": "Bid"
+    },
+    "opportunityRequirementKind": {
+      "certification": "Certification",
+      "insurance": "Insurance",
+      "equipment": "Equipment"
+    },
+    "accountRole": {
+      "accountOwner": "Account Owner",
+      "accountAdmin": "Account Admin",
+      "accountFinance": "Account Finance",
+      "accountMember": "Account Member"
+    },
+    "representationScope": {
+      "offers": "Offers",
+      "advance": "Advance",
+      "settlement": "Settlement",
+      "documents": "Documents"
+    },
+    "onboardingItemKind": {
+      "documentUpload": "Document Upload",
+      "electronicSignature": "Electronic Signature",
+      "form": "Form",
+      "certification": "Certification",
+      "training": "Training",
+      "acknowledgment": "Acknowledgment",
+      "backgroundCheck": "Background Check",
+      "taxForm": "Tax Form",
+      "payoutDetails": "Payout Details"
+    },
+    "verificationMethod": {
+      "automatic": "Automatic",
+      "reviewer": "Reviewer"
+    },
+    "taxFormKind": {
+      "w9": "W-9",
+      "w8ben": "W-8BEN",
+      "w8benE": "W-8BEN-E"
+    },
+    "payoutProvider": {
+      "stripeConnect": "Stripe Connect",
+      "accountingSystem": "Accounting System"
+    },
+    "paymentState": {
+      "proposed": "Proposed",
+      "approved": "Approved",
+      "canceled": "Canceled"
+    },
+    "availabilityKind": {
+      "available": "Available",
+      "unavailable": "Unavailable",
+      "tentative": "Tentative"
+    },
+    "availabilityVisibility": {
+      "private": "Private",
+      "sharedOnApplication": "Shared on Application",
+      "public": "Public"
+    },
+    "listingReportReason": {
+      "illegalContent": "Illegal Content",
+      "discrimination": "Discrimination",
+      "fraud": "Fraud",
+      "misleadingInformation": "Misleading Information",
+      "missingPayRange": "Missing Pay Range",
+      "safety": "Safety"
+    },
+    "interviewKind": {
+      "interview": "Interview",
+      "audition": "Audition"
+    },
+    "recordKind": {
+      "build": "Build",
+      "rehearsal": "Rehearsal",
+      "shift": "Shift",
+      "strike": "Strike",
+      "task": "Task",
+      "training": "Training",
+      "document": "Document",
+      "supply": "Supply",
+      "booking": "Booking",
+      "contract": "Contract",
+      "payment": "Payment",
+      "recruitment": "Recruitment",
+      "approval": "Approval",
+      "compliance": "Compliance",
+      "deadline": "Deadline",
+      "decision": "Decision",
+      "inspection": "Inspection",
+      "permit": "Permit",
+      "distribution": "Distribution",
+      "event": "Event",
+      "goal": "Goal",
+      "meeting": "Meeting",
+      "milestone": "Milestone",
+      "report": "Report",
+      "risk": "Risk",
+      "timeline": "Timeline"
+    },
+    "recordState": {
+      "proposed": "Proposed",
+      "ready": "Ready",
+      "scheduled": "Scheduled",
+      "active": "Active",
+      "blocked": "Blocked",
+      "inReview": "In Review",
+      "complete": "Complete",
+      "deferred": "Deferred",
+      "canceled": "Canceled"
+    },
+    "ratingSide": {
+      "organization": "Organization",
+      "party": "Party"
+    }
+  },
+  "home": {
+    "greeting": "Hi, {name}",
+    "searchLabel": "Search opportunities",
+    "searchPlaceholder": "Search roles, skills or organizations",
+    "upNext": {
+      "title": "Up next",
+      "empty": "Nothing is scheduled for you yet. Find an opportunity to fill your calendar.",
+      "emptyAction": "Explore opportunities",
+      "open": "Open engagement",
+      "calendar": "Add to calendar",
+      "org": "Organization",
+      "project": "Project",
+      "when": "When",
+      "kind": "What",
+      "state": "State"
+    },
+    "needsYou": {
+      "title": "Needs you",
+      "empty": "You are all caught up. Offers, documents to sign and onboarding steps show up here.",
+      "emptyAction": "See upcoming work",
+      "sign": "Sign {title}",
+      "offer": "Answer the offer for {title}",
+      "offerAction": "Review offer",
+      "onboarding": "{n, plural, one {# onboarding step} other {# onboarding steps}} for {org}",
+      "onboardingBlocking": "{n, plural, one {# step blocks the start} other {# steps block the start}}",
+      "onboardingAction": "Continue",
+      "representation": "{account} asks to represent you",
+      "representationAction": "Accept",
+      "interview": "Interview for {title}",
+      "rate": "Rate your work with {org}",
+      "rateAction": "Rate"
+    },
+    "recommended": {
+      "title": "Recommended for you",
+      "all": "See all",
+      "empty": "No open opportunities match you right now. Set an alert and we will tell you when one does.",
+      "emptyAction": "Set an alert"
+    }
+  },
+  "shell": {
+    "skip": "Skip to content",
+    "search": "Search",
+    "searchPlaceholder": "Search pages, engagements and opportunities",
+    "commandGroup": "Go to",
+    "openAccount": "Open the account menu for {name}",
+    "account": "Account",
+    "actingAs": "Acting as",
+    "actSelf": "Myself",
+    "actSelfHint": "Your own engagements and applications",
+    "theme": "Theme",
+    "themeSystem": "System",
+    "themeDark": "Dark",
+    "themeLight": "Light",
+    "language": "Language",
+    "poweredBy": "Powered by XOS",
+    "primaryNav": "Primary navigation",
+    "pageTabs": "Sections",
+    "brandHome": "{name} home",
+    "locales": {
+      "en-US": "English (US)",
+      "es-US": "Español (EE. UU.)",
+      "en-XA": "Pseudo-locale (accented)",
+      "ar-XB": "Pseudo-locale (right to left)"
+    },
+    "help": {
+      "title": "Help",
+      "body": "Questions about an engagement go to the organization that engaged you. Open Messages to reach them; they answer there.",
+      "messages": "Open Messages",
+      "ranking": "How ranking works",
+      "account": "Platform support helps only with your own account: sign-in, email and account deletion.",
+      "close": "Close"
+    },
+    "switchOrg": {
+      "title": "Switch org",
+      "body": "Pick the organization to focus on. Every organization you work with stays in Work and Messages.",
+      "all": "All organizations",
+      "empty": "You do not work with any organization yet. Explore opportunities to start."
+    }
+  },
+  "system": {
+    "notFound": {
+      "title": "Page not found",
+      "body": "This page does not exist, or you do not have access to it.",
+      "action": "Go to Home"
+    },
+    "error": {
+      "title": "This section did not load",
+      "body": "Something went wrong while loading it. Try again; if it keeps failing, reload the page.",
+      "action": "Try again"
+    },
+    "fatal": {
+      "title": "Gateway did not load",
+      "body": "Something went wrong before the page could load. Reload to try again.",
+      "action": "Reload"
+    },
+    "loading": "Loading"
+  },
+  "auth": {
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "passwordHelp": "At least 8 characters."
+    },
+    "or": "or",
+    "signIn": {
+      "title": "Sign in to Gateway",
+      "lead": "Find work, get onboarded and get paid with one account for every organization.",
+      "magicLink": "Email me a sign-in link",
+      "password": "Sign in with password",
+      "noAccount": "New to Gateway?",
+      "toSignUp": "Create an account"
+    },
+    "signUp": {
+      "title": "Create your Gateway account",
+      "lead": "One account works in Gateway, Atlas and Compass. Your profile stays yours.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "toSignIn": "Sign in"
+    },
+    "providers": {
+      "continueWith": "Continue with {provider}",
+      "google": "Google",
+      "apple": "Apple",
+      "azure": "Microsoft"
+    },
+    "checkEmail": {
+      "title": "Check your email",
+      "body": "We sent a link to {email}. Open it on this device to continue.",
+      "bodyNoEmail": "We sent you a link. Open it on this device to continue.",
+      "back": "Back to sign in"
+    },
+    "signOut": "Sign out",
+    "session": {
+      "expiredTitle": "Your session expired",
+      "expiredBody": "Sign in again to keep working. Nothing on this page is lost.",
+      "submit": "Sign in"
+    },
+    "claim": {
+      "title": "Claim your submissions",
+      "body": "Forms and signatures you completed with a link sent to {email} can join this account, so you find them under Work and Documents.",
+      "submit": "Claim submissions",
+      "done": "Your submissions are now in your account.",
+      "nothing": "No submissions were waiting for {email}. Anything you complete from now on is saved to this account.",
+      "unavailable": "Claiming is not open yet: the organization's token service has not connected to Gateway. Your completed forms are safe with the organization; ask them to resend the link if you need it.",
+      "home": "Go to Home"
+    },
+    "errors": {
+      "invalid_credentials": "That email and password do not match. Check both, or use a sign-in link instead.",
+      "email_not_confirmed": "Confirm your email first: open the link we sent you, then sign in.",
+      "user_already_exists": "An account with this email already exists. Sign in instead.",
+      "weak_password": "Choose a stronger password: at least 8 characters that are hard to guess.",
+      "over_email_send_rate_limit": "We sent too many emails to this address. Wait a few minutes, then try again.",
+      "over_request_rate_limit": "Too many attempts. Wait a minute, then try again.",
+      "provider_disabled": "That sign-in method is not turned on for Gateway yet. Use email instead.",
+      "link_invalid": "This link expired or was already used. Request a new one.",
+      "unexpected": "Something went wrong on our side. Try again in a moment.",
+      "fullName": "Enter your full name.",
+      "email": "Enter an email address like name@company.com.",
+      "password": "Enter a password of at least 8 characters."
+    }
+  }
+}

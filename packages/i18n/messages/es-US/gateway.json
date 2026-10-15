@@ -1,0 +1,416 @@
+{
+  "outcomes": {
+    "refused": "Las reglas de la organización no lo permitieron. Revisa los datos e inténtalo de nuevo, o escribe a la organización.",
+    "notFound": "Ese elemento ya no está disponible para ti. Recarga la página para ver lo vigente.",
+    "conflict": "Eso ya existe. Recarga la página para verlo.",
+    "invalid": "Algunos datos no tienen el formato esperado. Revisa cada campo e inténtalo de nuevo.",
+    "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
+    "refusals": {
+      "application_deadline_passed": "La fecha límite de esta oportunidad ya pasó y no recibe postulaciones. Explora otras abiertas.",
+      "opportunity_not_available": "Esta oportunidad no está abierta para ti. Explora las que sí lo están.",
+      "application_not_editable": "Esta postulación ya está en revisión y no puede cambiar. Escribe a la organización si algo está mal.",
+      "application_profile_share": "Se revocó el perfil compartido de esta postulación. Vuelve a postular para compartir tu perfil.",
+      "lifecycle_transition": "Ese paso no es posible desde el estado actual. Recarga para ver su estado actual.",
+      "lifecycle_conflict": "Alguien cambió este elemento hace un momento. Recarga para ver lo más reciente e inténtalo de nuevo.",
+      "representation_not_acceptable": "Solo el artista puede aceptar una representación pendiente, y esta ya no está pendiente.",
+      "representation_expiry": "Elige una fecha de vencimiento futura.",
+      "representation_scope_required": "Elige al menos un alcance: Ofertas, Avance, Liquidación o Documentos.",
+      "representative_not_in_account": "El agente nombrado debe ser miembro de tu cuenta. Agrégalo primero al equipo.",
+      "profile_share_fields": "Elige al menos un campo del perfil para compartir.",
+      "profile_share_engagement": "Solo puedes compartir un perfil para una contratación que tengas con esa organización.",
+      "rating_engagement_not_complete": "Las calificaciones se abren cuando la contratación está completa.",
+      "rating_immutable": "Las calificaciones no pueden cambiarse una vez dadas. Puedes responder a una calificación sobre ti.",
+      "tin_format": "Revisa el identificador fiscal: un W-9 necesita nueve dígitos; otros formularios, de 4 a 30 letras y dígitos.",
+      "tax_form_payee": "Las empresas presentan un W-8BEN-E y las personas un W-8BEN; cualquiera presenta un W-9 si es persona de EE. UU.",
+      "sod_self_grant": "No puedes darte un rol a ti mismo. Pídelo a otro propietario o administrador de la cuenta.",
+      "account_role_band": "Solo un propietario de la cuenta puede dar o quitar el rol de propietario.",
+      "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
+      "slug_reserved": "Esa dirección web está reservada. Elige otra.",
+      "cross_org_reference": "Ese documento pertenece a otra organización. Vuelve a subirlo para esta."
+    }
+  },
+  "common": {
+    "loadError": {
+      "title": "Esta sección no se cargó",
+      "body": "Algo salió mal al cargarla. Inténtalo de nuevo; si sigue fallando, recarga la página.",
+      "action": "Reintentar"
+    },
+    "rateOnRequest": "Tarifa a consultar",
+    "unpriced": "Sin precio",
+    "noDate": "Fechas por confirmar",
+    "open": "Abrir",
+    "view": "Ver",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "back": "Atrás",
+    "required": "Obligatorio",
+    "optional": "Opcional",
+    "sign": "Firmar",
+    "signed": "Firmado. La organización firma después.",
+    "count": "{n, plural, one {# elemento} other {# elementos}}",
+    "viewAs": "Ver como {view}",
+    "views": {
+      "list": "Lista",
+      "table": "Tabla",
+      "board": "Tablero",
+      "calendar": "Calendario",
+      "gallery": "Tarjetas",
+      "map": "Mapa",
+      "timeline": "Cronología",
+      "feed": "Novedades",
+      "inbox": "Bandeja",
+      "split": "Dividida",
+      "chart": "Gráfica"
+    },
+    "mapAlternative": "Las ubicaciones en el mapa aún no están disponibles, así que los lugares se listan abajo por fecha.",
+    "orgFilter": "Mostrando solo {org}",
+    "clearFilter": "Mostrar todas las organizaciones"
+  },
+  "enums": {
+    "externalRoleType": {
+      "client": "Cliente",
+      "vendor": "Proveedor",
+      "contractor": "Contratista",
+      "crew": "Equipo técnico",
+      "staff": "Personal",
+      "artist": "Artista",
+      "artistRepresentative": "Representante de artista",
+      "sponsor": "Patrocinador"
+    },
+    "engagementState": {
+      "onboarding": "En incorporación",
+      "blocked": "Bloqueada",
+      "active": "Activa",
+      "closing": "En cierre",
+      "complete": "Completa",
+      "canceled": "Cancelada"
+    },
+    "engagementDocumentKind": {
+      "offer": "Oferta",
+      "agreement": "Acuerdo",
+      "statementOfWork": "Declaración de trabajo",
+      "nonDisclosureAgreement": "Acuerdo de confidencialidad",
+      "rider": "Rider",
+      "advancePacket": "Paquete de avance",
+      "insuranceCertificate": "Certificado de seguro",
+      "lienWaiver": "Renuncia de gravamen",
+      "settlement": "Liquidación",
+      "proofOfPerformance": "Prueba de cumplimiento",
+      "contentConsent": "Consentimiento de contenido"
+    },
+    "engagementDocumentState": {
+      "proposed": "Borrador",
+      "sent": "Por firmar",
+      "signed": "Firmado",
+      "executed": "Ejecutado",
+      "expired": "Vencido",
+      "superseded": "Reemplazado",
+      "canceled": "Cancelado"
+    },
+    "applicationState": {
+      "submitted": "Enviada",
+      "inReview": "En revisión",
+      "shortlisted": "Preseleccionada",
+      "offered": "Con oferta",
+      "accepted": "Aceptada",
+      "declined": "Rechazada",
+      "withdrawn": "Retirada",
+      "notSelected": "No seleccionada"
+    },
+    "opportunityState": {
+      "draft": "Borrador",
+      "pendingApproval": "Pendiente de aprobación",
+      "published": "Publicada",
+      "paused": "En pausa",
+      "filled": "Cubierta",
+      "closed": "Cerrada",
+      "canceled": "Cancelada"
+    },
+    "opportunityVisibility": {
+      "invited": "Por invitación",
+      "pool": "Grupo",
+      "network": "Red",
+      "public": "Pública"
+    },
+    "rateType": {
+      "hourly": "Por hora",
+      "day": "Por día",
+      "flat": "Tarifa fija",
+      "milestone": "Por hito",
+      "bid": "Por oferta"
+    },
+    "opportunityRequirementKind": {
+      "certification": "Certificación",
+      "insurance": "Seguro",
+      "equipment": "Equipo"
+    },
+    "accountRole": {
+      "accountOwner": "Propietario de la cuenta",
+      "accountAdmin": "Administrador de la cuenta",
+      "accountFinance": "Finanzas de la cuenta",
+      "accountMember": "Miembro de la cuenta"
+    },
+    "representationScope": {
+      "offers": "Ofertas",
+      "advance": "Avance",
+      "settlement": "Liquidación",
+      "documents": "Documentos"
+    },
+    "onboardingItemKind": {
+      "documentUpload": "Carga de documento",
+      "electronicSignature": "Firma electrónica",
+      "form": "Formulario",
+      "certification": "Certificación",
+      "training": "Capacitación",
+      "acknowledgment": "Confirmación de lectura",
+      "backgroundCheck": "Verificación de antecedentes",
+      "taxForm": "Formulario fiscal",
+      "payoutDetails": "Datos de pago"
+    },
+    "verificationMethod": {
+      "automatic": "Automática",
+      "reviewer": "Por revisor"
+    },
+    "taxFormKind": {
+      "w9": "W-9",
+      "w8ben": "W-8BEN",
+      "w8benE": "W-8BEN-E"
+    },
+    "payoutProvider": {
+      "stripeConnect": "Stripe Connect",
+      "accountingSystem": "Sistema contable"
+    },
+    "paymentState": {
+      "proposed": "Propuesto",
+      "approved": "Aprobado",
+      "canceled": "Cancelado"
+    },
+    "availabilityKind": {
+      "available": "Disponible",
+      "unavailable": "No disponible",
+      "tentative": "Tentativo"
+    },
+    "availabilityVisibility": {
+      "private": "Privada",
+      "sharedOnApplication": "Compartida al postular",
+      "public": "Pública"
+    },
+    "listingReportReason": {
+      "illegalContent": "Contenido ilegal",
+      "discrimination": "Discriminación",
+      "fraud": "Fraude",
+      "misleadingInformation": "Información engañosa",
+      "missingPayRange": "Falta el rango de pago",
+      "safety": "Seguridad"
+    },
+    "interviewKind": {
+      "interview": "Entrevista",
+      "audition": "Audición"
+    },
+    "recordKind": {
+      "build": "Montaje",
+      "rehearsal": "Ensayo",
+      "shift": "Turno",
+      "strike": "Desmontaje",
+      "task": "Tarea",
+      "training": "Capacitación",
+      "document": "Documento",
+      "supply": "Suministro",
+      "booking": "Reserva",
+      "contract": "Contrato",
+      "payment": "Pago",
+      "recruitment": "Reclutamiento",
+      "approval": "Aprobación",
+      "compliance": "Cumplimiento",
+      "deadline": "Fecha límite",
+      "decision": "Decisión",
+      "inspection": "Inspección",
+      "permit": "Permiso",
+      "distribution": "Distribución",
+      "event": "Evento",
+      "goal": "Meta",
+      "meeting": "Reunión",
+      "milestone": "Hito",
+      "report": "Informe",
+      "risk": "Riesgo",
+      "timeline": "Cronograma"
+    },
+    "recordState": {
+      "proposed": "Propuesto",
+      "ready": "Listo",
+      "scheduled": "Programado",
+      "active": "Activo",
+      "blocked": "Bloqueado",
+      "inReview": "En revisión",
+      "complete": "Completo",
+      "deferred": "Diferido",
+      "canceled": "Cancelado"
+    },
+    "ratingSide": {
+      "organization": "Organización",
+      "party": "Contraparte"
+    }
+  },
+  "home": {
+    "greeting": "Hola, {name}",
+    "searchLabel": "Buscar oportunidades",
+    "searchPlaceholder": "Busca roles, habilidades u organizaciones",
+    "upNext": {
+      "title": "A continuación",
+      "empty": "Aún no tienes nada programado. Encuentra una oportunidad para llenar tu calendario.",
+      "emptyAction": "Explorar oportunidades",
+      "open": "Abrir contratación",
+      "calendar": "Agregar al calendario",
+      "org": "Organización",
+      "project": "Proyecto",
+      "when": "Cuándo",
+      "kind": "Qué",
+      "state": "Estado"
+    },
+    "needsYou": {
+      "title": "Te necesita",
+      "empty": "Estás al día. Las ofertas, documentos por firmar y pasos de incorporación aparecen aquí.",
+      "emptyAction": "Ver trabajo próximo",
+      "sign": "Firmar {title}",
+      "offer": "Responde la oferta de {title}",
+      "offerAction": "Revisar oferta",
+      "onboarding": "{n, plural, one {# paso de incorporación} other {# pasos de incorporación}} para {org}",
+      "onboardingBlocking": "{n, plural, one {# paso bloquea el inicio} other {# pasos bloquean el inicio}}",
+      "onboardingAction": "Continuar",
+      "representation": "{account} pide representarte",
+      "representationAction": "Aceptar",
+      "interview": "Entrevista para {title}",
+      "rate": "Califica tu trabajo con {org}",
+      "rateAction": "Calificar"
+    },
+    "recommended": {
+      "title": "Recomendadas para ti",
+      "all": "Ver todas",
+      "empty": "Ahora no hay oportunidades abiertas para ti. Crea una alerta y te avisaremos cuando haya una.",
+      "emptyAction": "Crear alerta"
+    }
+  },
+  "shell": {
+    "skip": "Saltar al contenido",
+    "search": "Buscar",
+    "searchPlaceholder": "Busca páginas, contrataciones y oportunidades",
+    "commandGroup": "Ir a",
+    "openAccount": "Abrir el menú de la cuenta de {name}",
+    "account": "Cuenta",
+    "actingAs": "Actuando como",
+    "actSelf": "Yo",
+    "actSelfHint": "Tus propias contrataciones y postulaciones",
+    "theme": "Tema",
+    "themeSystem": "Sistema",
+    "themeDark": "Oscuro",
+    "themeLight": "Claro",
+    "language": "Idioma",
+    "poweredBy": "Con tecnología de XOS",
+    "primaryNav": "Navegación principal",
+    "pageTabs": "Secciones",
+    "brandHome": "Inicio de {name}",
+    "locales": {
+      "en-US": "English (US)",
+      "es-US": "Español (EE. UU.)",
+      "en-XA": "Pseudolocal (acentos)",
+      "ar-XB": "Pseudolocal (derecha a izquierda)"
+    },
+    "help": {
+      "title": "Ayuda",
+      "body": "Las preguntas sobre una contratación van a la organización que te contrató. Abre Mensajes para escribirles; responden ahí.",
+      "messages": "Abrir mensajes",
+      "ranking": "Cómo funciona el orden",
+      "account": "El soporte de la plataforma solo ayuda con tu propia cuenta: acceso, correo y eliminación de la cuenta.",
+      "close": "Cerrar"
+    },
+    "switchOrg": {
+      "title": "Cambiar de organización",
+      "body": "Elige la organización en la que quieres enfocarte. Todas las organizaciones con las que trabajas siguen en Trabajo y Mensajes.",
+      "all": "Todas las organizaciones",
+      "empty": "Aún no trabajas con ninguna organización. Explora oportunidades para empezar."
+    }
+  },
+  "system": {
+    "notFound": {
+      "title": "Página no encontrada",
+      "body": "Esta página no existe o no tienes acceso a ella.",
+      "action": "Ir al inicio"
+    },
+    "error": {
+      "title": "Esta sección no se cargó",
+      "body": "Algo salió mal al cargarla. Inténtalo de nuevo; si sigue fallando, recarga la página.",
+      "action": "Reintentar"
+    },
+    "fatal": {
+      "title": "Gateway no se cargó",
+      "body": "Algo salió mal antes de que la página se cargara. Recarga para intentarlo de nuevo.",
+      "action": "Recargar"
+    },
+    "loading": "Cargando"
+  },
+  "auth": {
+    "fields": {
+      "fullName": "Nombre completo",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "passwordHelp": "Al menos 8 caracteres."
+    },
+    "or": "o",
+    "signIn": {
+      "title": "Inicia sesión en Gateway",
+      "lead": "Encuentra trabajo, completa tu incorporación y cobra con una sola cuenta para todas las organizaciones.",
+      "magicLink": "Envíame un enlace de acceso",
+      "password": "Iniciar sesión con contraseña",
+      "noAccount": "¿Eres nuevo en Gateway?",
+      "toSignUp": "Crear una cuenta"
+    },
+    "signUp": {
+      "title": "Crea tu cuenta de Gateway",
+      "lead": "Una cuenta sirve en Gateway, Atlas y Compass. Tu perfil sigue siendo tuyo.",
+      "submit": "Crear cuenta",
+      "haveAccount": "¿Ya tienes una cuenta?",
+      "toSignIn": "Iniciar sesión"
+    },
+    "providers": {
+      "continueWith": "Continuar con {provider}",
+      "google": "Google",
+      "apple": "Apple",
+      "azure": "Microsoft"
+    },
+    "checkEmail": {
+      "title": "Revisa tu correo",
+      "body": "Enviamos un enlace a {email}. Ábrelo en este dispositivo para continuar.",
+      "bodyNoEmail": "Te enviamos un enlace. Ábrelo en este dispositivo para continuar.",
+      "back": "Volver a iniciar sesión"
+    },
+    "signOut": "Cerrar sesión",
+    "session": {
+      "expiredTitle": "Tu sesión expiró",
+      "expiredBody": "Vuelve a iniciar sesión para seguir trabajando. No se pierde nada de esta página.",
+      "submit": "Iniciar sesión"
+    },
+    "claim": {
+      "title": "Reclama tus envíos",
+      "body": "Los formularios y firmas que completaste con un enlace enviado a {email} pueden unirse a esta cuenta para que los encuentres en Trabajo y Documentos.",
+      "submit": "Reclamar envíos",
+      "done": "Tus envíos ya están en tu cuenta.",
+      "nothing": "No había envíos pendientes para {email}. Todo lo que completes desde ahora se guarda en esta cuenta.",
+      "unavailable": "Aún no se pueden reclamar envíos: el servicio de enlaces de la organización todavía no está conectado con Gateway. Tus formularios completados están a salvo con la organización; pídeles que reenvíen el enlace si lo necesitas.",
+      "home": "Ir al inicio"
+    },
+    "errors": {
+      "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace de acceso.",
+      "email_not_confirmed": "Primero confirma tu correo: abre el enlace que te enviamos y luego inicia sesión.",
+      "user_already_exists": "Ya existe una cuenta con este correo. Inicia sesión.",
+      "weak_password": "Elige una contraseña más segura: al menos 8 caracteres difíciles de adivinar.",
+      "over_email_send_rate_limit": "Enviamos demasiados correos a esta dirección. Espera unos minutos y vuelve a intentarlo.",
+      "over_request_rate_limit": "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
+      "provider_disabled": "Ese método de acceso aún no está activado en Gateway. Usa tu correo.",
+      "link_invalid": "Este enlace venció o ya se usó. Solicita uno nuevo.",
+      "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
+      "fullName": "Escribe tu nombre completo.",
+      "email": "Escribe un correo como nombre@empresa.com.",
+      "password": "Escribe una contraseña de al menos 8 caracteres."
+    }
+  }
+}
