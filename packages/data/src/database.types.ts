@@ -35061,8 +35061,10 @@ export type Database = {
         Row: {
           awarded_bid_id: string | null;
           bid_due_at: string | null;
+          budget_minor: number | null;
           created_at: string;
           created_by: string | null;
+          currency_code: string;
           deleted_at: string | null;
           estimated_hours: number | null;
           id: string;
@@ -35087,8 +35089,10 @@ export type Database = {
         Insert: {
           awarded_bid_id?: string | null;
           bid_due_at?: string | null;
+          budget_minor?: number | null;
           created_at?: string;
           created_by?: string | null;
+          currency_code: string;
           deleted_at?: string | null;
           estimated_hours?: number | null;
           id?: string;
@@ -35111,8 +35115,10 @@ export type Database = {
         Update: {
           awarded_bid_id?: string | null;
           bid_due_at?: string | null;
+          budget_minor?: number | null;
           created_at?: string;
           created_by?: string | null;
+          currency_code?: string;
           deleted_at?: string | null;
           estimated_hours?: number | null;
           id?: string;
@@ -35146,6 +35152,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_orders_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
           },
           {
             foreignKeyName: "work_orders_org_id_fkey";
