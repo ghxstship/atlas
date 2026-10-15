@@ -1,12 +1,12 @@
-import type { Database, XosClient } from "../client";
-import { fail, ok, toDataError, type Result } from "../result";
+import type { Database, XosClient } from "../client.ts";
+import { fail, ok, toDataError, type Result } from "../result.ts";
 import {
   MEMBERSHIP_EMBED,
   toMemberRef,
   toTransitions,
   type MemberRef,
   type TransitionEntry,
-} from "./shared";
+} from "./shared.ts";
 
 /**
  * Shift swaps (app.shift_swaps): the person on a shift asks to hand it to another member; someone with

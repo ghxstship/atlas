@@ -1,5 +1,5 @@
-import type { XosClient } from "../client";
-import { fail, ok, toDataError, type Result } from "../result";
+import type { XosClient } from "../client.ts";
+import { fail, ok, toDataError, type Result } from "../result.ts";
 
 /**
  * Shared shapes of the Crew repository (Section 4.2 Crew, migrations 0340 and 0341). Every function
@@ -98,6 +98,38 @@ export function toMemberRef(row: MembershipRow | null, membershipId: string): Me
     membershipId,
     personId: row?.person_id ?? null,
     name: row?.person?.full_name ?? null,
+  };
+}
+
+/**
+ * A worker: an org member (membership) or external crew working through an engagement (migration
+ * 0940). Externals never hold memberships (Section 4.4), so `membershipId` is empty for them.
+ */
+export interface WorkerRef extends MemberRef {
+  readonly engagementId: string | null;
+}
+
+export interface EngagementRow {
+  readonly id: string;
+  readonly person_id: string | null;
+  readonly person: { readonly full_name: string | null } | null;
+}
+
+/** The PostgREST embed that reads an engagement and its person's name. */
+export const ENGAGEMENT_EMBED = "id, person_id, person:people!engagements_person_id_fkey(full_name)";
+
+export function toWorker(
+  membership: MembershipRow | null,
+  membershipId: string | null,
+  engagement: EngagementRow | null,
+  engagementId: string | null,
+): WorkerRef {
+  if (membershipId !== null) return { ...toMemberRef(membership, membershipId), engagementId: null };
+  return {
+    membershipId: "",
+    personId: engagement?.person_id ?? null,
+    name: engagement?.person?.full_name ?? null,
+    engagementId,
   };
 }
 

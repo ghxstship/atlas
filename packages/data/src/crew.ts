@@ -3,10 +3,10 @@
  * timesheets, rate cards, the pay rate ledger, pay periods, payroll runs and exports, and time off.
  * Atlas (A13) and Compass (A17) share these functions; row level security decides every row.
  */
-export * from "./crew/shared";
-export * from "./crew/shifts";
-export * from "./crew/swaps";
-export * from "./crew/time";
-export * from "./crew/rates";
-export * from "./crew/payroll";
-export * from "./crew/time-off";
+export * from "./crew/shared.ts";
+export * from "./crew/shifts.ts";
+export * from "./crew/swaps.ts";
+export * from "./crew/time.ts";
+export * from "./crew/rates.ts";
+export * from "./crew/payroll.ts";
+export * from "./crew/time-off.ts";

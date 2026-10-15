@@ -1,13 +1,15 @@
-import type { Database, XosClient } from "../client";
-import { fail, ok, toDataError, type Result } from "../result";
+import type { Database, XosClient } from "../client.ts";
+import { fail, ok, toDataError, type Result } from "../result.ts";
 import {
   landed,
+  ENGAGEMENT_EMBED,
   MEMBERSHIP_EMBED,
-  toMemberRef,
+  toWorker,
+  type EngagementRow,
   toTransitions,
-  type MemberRef,
+  type WorkerRef,
   type TransitionEntry,
-} from "./shared";
+} from "./shared.ts";
 
 /**
  * Time entries (app.time_entries): clock-in and clock-out punches. One person's entries never overlap
@@ -23,7 +25,7 @@ export interface TimeEntry {
   readonly id: string;
   readonly projectId: string;
   readonly projectKey: string;
-  readonly member: MemberRef;
+  readonly member: WorkerRef;
   readonly shiftId: string | null;
   readonly clockIn: string;
   readonly clockOut: string | null;
@@ -32,12 +34,14 @@ export interface TimeEntry {
   readonly createdAt: string;
 }
 
-const ENTRY_SELECT = `id, project_id, membership_id, shift_id, clock_in, clock_out, break_minutes, source, created_at, project:projects!time_entries_project_id_fkey(project_key), membership:memberships!time_entries_membership_id_fkey(${MEMBERSHIP_EMBED})`;
+const ENTRY_SELECT = `id, project_id, membership_id, shift_id, clock_in, clock_out, break_minutes, source, created_at, project:projects!time_entries_project_id_fkey(project_key), membership:memberships!time_entries_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!time_entries_engagement_id_fkey(${ENGAGEMENT_EMBED})`;
 
 interface EntryRow {
   id: string;
   project_id: string;
-  membership_id: string;
+  membership_id: string | null;
+  engagement_id: string | null;
+  engagement: EngagementRow | null;
   shift_id: string | null;
   clock_in: string;
   clock_out: string | null;
@@ -53,7 +57,7 @@ function toEntry(row: EntryRow): TimeEntry {
     id: row.id,
     projectId: row.project_id,
     projectKey: row.project?.project_key ?? "",
-    member: toMemberRef(row.membership, row.membership_id),
+    member: toWorker(row.membership, row.membership_id, row.engagement, row.engagement_id),
     shiftId: row.shift_id,
     clockIn: row.clock_in,
     clockOut: row.clock_out,
@@ -74,6 +78,7 @@ export interface TimeEntryFilter {
   readonly orgId: string;
   readonly projectId?: string;
   readonly membershipId?: string;
+  readonly engagementId?: string;
   readonly shiftId?: string;
   /** Entries clocked in at or after this instant. */
   readonly from?: string;
@@ -96,6 +101,7 @@ export async function listTimeEntries(
     .limit(1000);
   if (filter.projectId) query = query.eq("project_id", filter.projectId);
   if (filter.membershipId) query = query.eq("membership_id", filter.membershipId);
+  if (filter.engagementId) query = query.eq("engagement_id", filter.engagementId);
   if (filter.shiftId) query = query.eq("shift_id", filter.shiftId);
   if (filter.from) query = query.gte("clock_in", filter.from);
   if (filter.to) query = query.lt("clock_in", filter.to);
@@ -398,7 +404,7 @@ export interface Timesheet {
   readonly id: string;
   readonly projectId: string;
   readonly projectKey: string;
-  readonly member: MemberRef;
+  readonly member: WorkerRef;
   readonly periodStart: string;
   readonly periodEnd: string;
   readonly state: TimesheetState;
@@ -408,13 +414,15 @@ export interface Timesheet {
   readonly hasOpenEntry: boolean;
 }
 
-const SHEET_SELECT = `id, org_id, project_id, membership_id, period_start, period_end, timesheet_state, submitted_by, project:projects!timesheets_project_id_fkey(project_key), membership:memberships!timesheets_membership_id_fkey(${MEMBERSHIP_EMBED})`;
+const SHEET_SELECT = `id, org_id, project_id, membership_id, period_start, period_end, timesheet_state, submitted_by, project:projects!timesheets_project_id_fkey(project_key), membership:memberships!timesheets_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!timesheets_engagement_id_fkey(${ENGAGEMENT_EMBED})`;
 
 interface SheetRow {
   id: string;
   org_id: string;
   project_id: string;
-  membership_id: string;
+  membership_id: string | null;
+  engagement_id: string | null;
+  engagement: EngagementRow | null;
   period_start: string;
   period_end: string;
   timesheet_state: TimesheetState;
@@ -439,7 +447,7 @@ async function withHours(db: XosClient, rows: readonly SheetRow[]): Promise<Resu
       id: r.id,
       projectId: r.project_id,
       projectKey: r.project?.project_key ?? "",
-      member: toMemberRef(r.membership, r.membership_id),
+      member: toWorker(r.membership, r.membership_id, r.engagement, r.engagement_id),
       periodStart: r.period_start,
       periodEnd: r.period_end,
       state: r.timesheet_state,
@@ -524,7 +532,8 @@ export async function getTimesheet(db: XosClient, id: string): Promise<Result<Ti
   const entries = await listTimeEntries(db, {
     orgId: row.org_id,
     projectId: row.project_id,
-    membershipId: row.membership_id,
+    ...(row.membership_id ? { membershipId: row.membership_id } : {}),
+    ...(row.engagement_id ? { engagementId: row.engagement_id } : {}),
     from: `${row.period_start}T00:00:00Z`,
     to: end.toISOString(),
   });

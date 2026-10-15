@@ -1,13 +1,15 @@
-import type { Database, XosClient } from "../client";
-import { fail, ok, toDataError, type Result } from "../result";
+import type { Database, XosClient } from "../client.ts";
+import { fail, ok, toDataError, type Result } from "../result.ts";
 import {
+  ENGAGEMENT_EMBED,
   landed,
   MEMBERSHIP_EMBED,
-  toMemberRef,
   toTransitions,
-  type MemberRef,
+  toWorker,
+  type EngagementRow,
   type TransitionEntry,
-} from "./shared";
+  type WorkerRef,
+} from "./shared.ts";
 
 /**
  * Shifts (app.shifts, migrations 0340 and 0460): one person or an open slot, in one canon role, for
@@ -24,7 +26,8 @@ export interface Shift {
   readonly projectId: string;
   readonly projectKey: string;
   readonly projectName: string;
-  readonly member: MemberRef | null;
+  /** The member or external crew on the shift; null for an open shift. */
+  readonly member: WorkerRef | null;
   readonly roleCode: string | null;
   readonly startsAt: string;
   readonly endsAt: string;
@@ -49,7 +52,7 @@ export interface ShiftFilter {
   readonly limit?: number;
 }
 
-const SHIFT_SELECT = `id, project_id, membership_id, role_code, starts_at, ends_at, time_zone, shift_state, record_id, scope_node_id, created_at, project:projects!shifts_project_id_fkey(project_key, name), membership:memberships!shifts_membership_id_fkey(${MEMBERSHIP_EMBED})`;
+const SHIFT_SELECT = `id, project_id, membership_id, role_code, starts_at, ends_at, time_zone, shift_state, record_id, scope_node_id, created_at, project:projects!shifts_project_id_fkey(project_key, name), membership:memberships!shifts_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!shifts_engagement_id_fkey(${ENGAGEMENT_EMBED})`;
 
 interface ShiftRow {
   id: string;
@@ -69,6 +72,8 @@ interface ShiftRow {
     person_id: string;
     person: { full_name: string | null } | null;
   } | null;
+  engagement_id: string | null;
+  engagement: EngagementRow | null;
 }
 
 function toShift(row: ShiftRow): Shift {
@@ -77,7 +82,10 @@ function toShift(row: ShiftRow): Shift {
     projectId: row.project_id,
     projectKey: row.project?.project_key ?? "",
     projectName: row.project?.name ?? "",
-    member: row.membership_id ? toMemberRef(row.membership, row.membership_id) : null,
+    member:
+      row.membership_id || row.engagement_id
+        ? toWorker(row.membership, row.membership_id, row.engagement, row.engagement_id)
+        : null,
     roleCode: row.role_code,
     startsAt: row.starts_at,
     endsAt: row.ends_at,

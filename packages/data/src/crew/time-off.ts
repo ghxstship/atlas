@@ -1,12 +1,12 @@
-import type { Database, XosClient } from "../client";
-import { fail, ok, toDataError, type Result } from "../result";
+import type { Database, XosClient } from "../client.ts";
+import { fail, ok, toDataError, type Result } from "../result.ts";
 import {
   MEMBERSHIP_EMBED,
   toMemberRef,
   toTransitions,
   type MemberRef,
   type TransitionEntry,
-} from "./shared";
+} from "./shared.ts";
 
 /**
  * Time off policies and requests (migration 0341). The requester never approves their own request

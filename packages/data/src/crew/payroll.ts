@@ -1,5 +1,5 @@
-import type { Database, XosClient } from "../client";
-import { fail, ok, toDataError, type Result } from "../result";
+import type { Database, XosClient } from "../client.ts";
+import { fail, ok, toDataError, type Result } from "../result.ts";
 import {
   landed,
   MEMBERSHIP_EMBED,
@@ -7,7 +7,7 @@ import {
   toTransitions,
   type MemberRef,
   type TransitionEntry,
-} from "./shared";
+} from "./shared.ts";
 
 /**
  * Pay periods, payroll runs, their lines and the payroll export (migrations 0341 and 0461). A posted

@@ -1,6 +1,6 @@
-import type { XosClient } from "../client";
-import { fail, ok, toDataError, type Result } from "../result";
-import { byCode, landed, MEMBERSHIP_EMBED, toMemberRef, type MemberRef } from "./shared";
+import type { XosClient } from "../client.ts";
+import { fail, ok, toDataError, type Result } from "../result.ts";
+import { byCode, landed, MEMBERSHIP_EMBED, toMemberRef, type MemberRef } from "./shared.ts";
 
 /**
  * Labor rate cards, their lines and the pay rate ledger (migration 0341). A line names a canon role,
