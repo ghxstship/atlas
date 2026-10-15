@@ -7398,14 +7398,8 @@
             "description": "Packet title.",
             "example": "Headliner Advance"
           },
-          "advance_state": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Advance state. A Title Case value from the lifecycle's database enum.",
-            "example": "Active"
-          },
           "due_at": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "When submissions are due.",
             "example": "2026-10-08T14:30:00Z"
@@ -7426,7 +7420,6 @@
           "updated_by",
           "project_id",
           "title",
-          "advance_state",
           "due_at",
           "sent_at"
         ],
@@ -7449,13 +7442,13 @@
             "example": "Headliner Advance"
           },
           "due_at": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "When submissions are due.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["project_id", "title", "due_at"],
+        "required": ["project_id", "title"],
         "description": "Fields accepted when creating a AdvancePacket."
       },
       "AdvancePacketUpdate": {
@@ -7469,38 +7462,13 @@
             "example": "Headliner Advance"
           },
           "due_at": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "When submissions are due.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
         "description": "Fields accepted when updating a AdvancePacket. Omitted fields are unchanged."
-      },
-      "AdvanceTransitionRequest": {
-        "type": "object",
-        "properties": {
-          "expected_state": {
-            "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
-            "description": "The state the caller believes the row is in (compare-and-set).",
-            "example": "Active"
-          },
-          "to_state": {
-            "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
-            "description": "Target state.",
-            "example": "Complete"
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Reason, required by some transitions.",
-            "example": "Client approved the revised scope."
-          }
-        },
-        "required": ["expected_state", "to_state"],
-        "description": "Request to move a lifecycle to another state."
       },
       "AdvanceSectionPage": {
         "type": "object",
@@ -7577,11 +7545,12 @@
             "description": "Section title.",
             "example": "Hospitality"
           },
-          "form_definition_id": {
+          "prompt": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the form the section collects.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the recipient is asked.",
+            "example": "When does the party arrive?"
           }
         },
         "required": [
@@ -7594,7 +7563,7 @@
           "advance_packet_id",
           "position",
           "title",
-          "form_definition_id"
+          "prompt"
         ],
         "description": "A section of an advance packet."
       },
@@ -7620,11 +7589,12 @@
             "description": "Section title.",
             "example": "Hospitality"
           },
-          "form_definition_id": {
+          "prompt": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the form the section collects.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the recipient is asked.",
+            "example": "When does the party arrive?"
           }
         },
         "required": ["advance_packet_id", "position", "title"],
@@ -7646,11 +7616,12 @@
             "description": "Section title.",
             "example": "Hospitality"
           },
-          "form_definition_id": {
+          "prompt": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the form the section collects.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the recipient is asked.",
+            "example": "When does the party arrive?"
           }
         },
         "description": "Fields accepted when updating a AdvanceSection. Omitted fields are unchanged."
@@ -7723,16 +7694,10 @@
             "description": "Identifier of the recipient person.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "organization_id": {
+          "counterparty_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the recipient organization.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "engagement_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the engagement.",
+            "description": "Identifier of the recipient counterparty.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -7745,8 +7710,7 @@
           "updated_by",
           "advance_packet_id",
           "person_id",
-          "organization_id",
-          "engagement_id"
+          "counterparty_id"
         ],
         "description": "A party bound to an advance packet. Recipients without an account use a token and access code."
       },
@@ -7765,16 +7729,10 @@
             "description": "Identifier of the recipient person.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "organization_id": {
+          "counterparty_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the recipient organization.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "engagement_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the engagement.",
+            "description": "Identifier of the recipient counterparty.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -7849,17 +7807,48 @@
             "description": "Identifier of the advance recipient.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "form_submission_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the form submission.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "submitted_at": {
             "type": "string",
             "format": "date-time",
             "description": "When it was submitted.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "The answer as rich text.",
+            "example": "Party of 8 lands at 14:20."
+          },
+          "reviewed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the answer was reviewed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "reviewed_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who reviewed the answer.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "review_outcome": {
+            "type": ["string", "null"],
+            "enum": ["Accepted", "Returned", null],
+            "description": "Accepted or Returned.",
+            "example": "Accepted"
+          },
+          "return_reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Why the answer was returned.",
+            "example": "Please add the flight number."
+          },
+          "via_link": {
+            "type": "boolean",
+            "description": "True when the recipient answered through a Gateway link.",
+            "example": false
           }
         },
         "required": [
@@ -7871,8 +7860,13 @@
           "updated_by",
           "advance_section_id",
           "advance_recipient_id",
-          "form_submission_id",
-          "submitted_at"
+          "submitted_at",
+          "body",
+          "reviewed_at",
+          "reviewed_by",
+          "review_outcome",
+          "return_reason",
+          "via_link"
         ],
         "description": "A recipient's submission for one section."
       },
@@ -7891,15 +7885,36 @@
             "description": "Identifier of the advance recipient.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "form_submission_id": {
+          "body": {
             "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the form submission.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "The answer as rich text.",
+            "example": "Party of 8 lands at 14:20."
           }
         },
-        "required": ["advance_section_id", "advance_recipient_id", "form_submission_id"],
+        "required": ["advance_section_id", "advance_recipient_id", "body"],
         "description": "Fields accepted when creating a AdvanceSubmission."
+      },
+      "AdvanceSubmissionReviewRequest": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": ["Accepted", "Returned"],
+            "description": "Accepted, or Returned to the recipient to answer again.",
+            "example": "Returned"
+          },
+          "return_reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Why the answer is returned; required when Returned, shown to the recipient.",
+            "example": "Please add the flight number."
+          }
+        },
+        "required": ["outcome"],
+        "description": "Review of one advance answer."
       },
       "AdvancePromotionPage": {
         "type": "object",
@@ -7963,12 +7978,11 @@
             "description": "Identifier of the advance submission.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "target_urn": {
+          "record_id": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the record created from the submission.",
-            "example": "urn:xpms:requirement:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "format": "uuid",
+            "description": "Identifier of the record created from the answer.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -7979,7 +7993,7 @@
           "updated_at",
           "updated_by",
           "advance_submission_id",
-          "target_urn"
+          "record_id"
         ],
         "description": "A submission promoted into project records, such as a requirement or a fulfillment."
       },
@@ -7992,15 +8006,14 @@
             "description": "Identifier of the advance submission.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "target_urn": {
+          "record_id": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the record created from the submission.",
-            "example": "urn:xpms:requirement:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "format": "uuid",
+            "description": "Identifier of the record created from the answer.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["advance_submission_id", "target_urn"],
+        "required": ["advance_submission_id", "record_id"],
         "description": "Fields accepted when creating a AdvancePromotion."
       },
       "RiderPage": {
@@ -8059,12 +8072,6 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "engagement_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the engagement.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "title": {
             "type": "string",
             "minLength": 1,
@@ -8072,10 +8079,16 @@
             "description": "Rider title.",
             "example": "Technical Rider 2026"
           },
-          "document_id": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "counterparty_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the source document.",
+            "description": "Identifier of the counterparty whose rider it is.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -8086,21 +8099,15 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "engagement_id",
           "title",
-          "document_id"
+          "project_id",
+          "counterparty_id"
         ],
         "description": "A technical or hospitality rider for an engagement."
       },
       "RiderCreate": {
         "type": "object",
         "properties": {
-          "engagement_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the engagement.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "title": {
             "type": "string",
             "minLength": 1,
@@ -8108,25 +8115,25 @@
             "description": "Rider title.",
             "example": "Technical Rider 2026"
           },
-          "document_id": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "counterparty_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the source document.",
+            "description": "Identifier of the counterparty whose rider it is.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["engagement_id", "title"],
+        "required": ["title", "project_id"],
         "description": "Fields accepted when creating a Rider."
       },
       "RiderUpdate": {
         "type": "object",
         "properties": {
-          "engagement_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the engagement.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "title": {
             "type": "string",
             "minLength": 1,
@@ -8134,10 +8141,10 @@
             "description": "Rider title.",
             "example": "Technical Rider 2026"
           },
-          "document_id": {
+          "counterparty_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the source document.",
+            "description": "Identifier of the counterparty whose rider it is.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -8205,20 +8212,26 @@
             "description": "Identifier of the rider.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "statement": {
+          "quantity": { "type": ["number", "null"], "description": "Quantity.", "example": 2 },
+          "description": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 20000,
-            "description": "What the rider asks for.",
+            "maxLength": 500,
+            "description": "What is asked.",
             "example": "Two wedge monitors per vocalist."
           },
-          "quantity": { "type": ["number", "null"], "description": "Quantity.", "example": 2 },
-          "requirement_id": {
+          "element_id": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the requirement created from the line.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Catalog element that fulfills the ask.",
+            "example": "5000.02.01-NWL-001"
+          },
+          "fulfilled_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the ask was fulfilled; NULL while open.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -8229,10 +8242,10 @@
           "updated_at",
           "updated_by",
           "rider_id",
-          "urid",
-          "statement",
           "quantity",
-          "requirement_id"
+          "description",
+          "element_id",
+          "fulfilled_at"
         ],
         "description": "A rider line, reconciled against capabilities."
       },
@@ -8245,42 +8258,54 @@
             "description": "Identifier of the rider.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "statement": {
+          "quantity": { "type": ["number", "null"], "description": "Quantity.", "example": 2 },
+          "description": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 20000,
-            "description": "What the rider asks for.",
+            "maxLength": 500,
+            "description": "What is asked.",
             "example": "Two wedge monitors per vocalist."
           },
-          "quantity": { "type": ["number", "null"], "description": "Quantity.", "example": 2 },
-          "requirement_id": {
+          "element_id": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the requirement created from the line.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Catalog element that fulfills the ask.",
+            "example": "5000.02.01-NWL-001"
+          },
+          "fulfilled_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the ask was fulfilled; NULL while open.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["rider_id", "statement"],
+        "required": ["rider_id", "description"],
         "description": "Fields accepted when creating a RiderLine."
       },
       "RiderLineUpdate": {
         "type": "object",
         "properties": {
-          "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "statement": {
+          "quantity": { "type": ["number", "null"], "description": "Quantity.", "example": 2 },
+          "description": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 20000,
-            "description": "What the rider asks for.",
+            "maxLength": 500,
+            "description": "What is asked.",
             "example": "Two wedge monitors per vocalist."
           },
-          "quantity": { "type": ["number", "null"], "description": "Quantity.", "example": 2 },
-          "requirement_id": {
+          "element_id": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the requirement created from the line.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Catalog element that fulfills the ask.",
+            "example": "5000.02.01-NWL-001"
+          },
+          "fulfilled_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the ask was fulfilled; NULL while open.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "description": "Fields accepted when updating a RiderLine. Omitted fields are unchanged."
@@ -43856,6 +43881,250 @@
         },
         "required": ["template_id"],
         "description": "Fields accepted when creating a TemplateApplication."
+      },
+      "GuestListEntryPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/GuestListEntry" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "GuestListEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the guest list entry.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "scope_node_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the show or other scope node of the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person whose list the guest is on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the organization whose list the guest is on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement the guest was requested under in Gateway.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "guest_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name the guest gives at the door.",
+            "example": "Jordan Pike"
+          },
+          "plus_ones": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Additional guests admitted with this guest, 0 to 20.",
+            "example": 1
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Notes for the door.",
+            "example": "Side stage."
+          },
+          "entry_state": {
+            "type": "string",
+            "enum": ["Requested", "Approved", "Declined", "Checked In"],
+            "description": "Requested, Approved, Declined or Checked In; moved by the decide and check-in actions.",
+            "example": "Requested"
+          },
+          "decided_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the request was approved or declined. Set by the database.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "decided_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who decided, set by the database.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "checked_in_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the guest was checked in. Set by the database.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "checked_in_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who checked the guest in, set by the database.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "scope_node_id",
+          "person_id",
+          "counterparty_id",
+          "engagement_id",
+          "guest_name",
+          "plus_ones",
+          "note",
+          "entry_state",
+          "decided_at",
+          "decided_by",
+          "checked_in_at",
+          "checked_in_by"
+        ],
+        "description": "A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door."
+      },
+      "GuestListEntryCreate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "scope_node_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the show or other scope node of the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "guest_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name the guest gives at the door.",
+            "example": "Jordan Pike"
+          },
+          "plus_ones": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Additional guests admitted with this guest, 0 to 20.",
+            "example": 1
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Notes for the door.",
+            "example": "Side stage."
+          }
+        },
+        "required": ["project_id", "guest_name", "plus_ones"],
+        "description": "Fields accepted when creating a GuestListEntry."
+      },
+      "GuestListEntryUpdate": {
+        "type": "object",
+        "properties": {
+          "scope_node_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the show or other scope node of the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "guest_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name the guest gives at the door.",
+            "example": "Jordan Pike"
+          },
+          "plus_ones": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Additional guests admitted with this guest, 0 to 20.",
+            "example": 1
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Notes for the door.",
+            "example": "Side stage."
+          }
+        },
+        "description": "Fields accepted when updating a GuestListEntry. Omitted fields are unchanged."
+      },
+      "GuestDecisionRequest": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": ["Approved", "Declined"],
+            "description": "Approved or Declined.",
+            "example": "Approved"
+          }
+        },
+        "required": ["outcome"],
+        "description": "Decision on a requested guest."
       }
     },
     "parameters": {
@@ -54958,7 +55227,6 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "title": "Headliner Advance",
-                      "advance_state": "Active",
                       "due_at": "2026-10-08T14:30:00Z",
                       "sent_at": "2026-10-08T14:30:00Z"
                     }
@@ -55016,7 +55284,6 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Headliner Advance",
-                  "advance_state": "Active",
                   "due_at": "2026-10-08T14:30:00Z",
                   "sent_at": "2026-10-08T14:30:00Z"
                 },
@@ -55076,7 +55343,6 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Headliner Advance",
-                  "advance_state": "Active",
                   "due_at": "2026-10-08T14:30:00Z",
                   "sent_at": "2026-10-08T14:30:00Z"
                 },
@@ -55142,7 +55408,6 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Headliner Advance",
-                  "advance_state": "Active",
                   "due_at": "2026-10-08T14:30:00Z",
                   "sent_at": "2026-10-08T14:30:00Z"
                 },
@@ -55234,81 +55499,6 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Headliner Advance",
-                  "advance_state": "Active",
-                  "due_at": "2026-10-08T14:30:00Z",
-                  "sent_at": "2026-10-08T14:30:00Z"
-                },
-                "schema": { "$ref": "#/components/schemas/AdvancePacket" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/advance-packets/{id}/transitions": {
-      "post": {
-        "operationId": "advancePackets.transition",
-        "tags": ["Advancing"],
-        "x-xos-table": "app.advance_packets",
-        "x-xos-capability": "advancing.packet.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
-        "summary": "Transition the advance state",
-        "description": "Moves the advance lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the advance packet.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the advance packet.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "expected_state": "Active",
-                "to_state": "Complete",
-                "reason": "Client approved the revised scope."
-              },
-              "schema": { "$ref": "#/components/schemas/AdvanceTransitionRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "title": "Headliner Advance",
-                  "advance_state": "Active",
                   "due_at": "2026-10-08T14:30:00Z",
                   "sent_at": "2026-10-08T14:30:00Z"
                 },
@@ -55364,7 +55554,7 @@
                       "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "position": 1,
                       "title": "Hospitality",
-                      "form_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "prompt": "When does the party arrive?"
                     }
                   ],
                   "next_cursor": null
@@ -55395,7 +55585,7 @@
                 "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "position": 1,
                 "title": "Hospitality",
-                "form_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "prompt": "When does the party arrive?"
               },
               "schema": { "$ref": "#/components/schemas/AdvanceSectionCreate" }
             }
@@ -55422,7 +55612,7 @@
                   "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 1,
                   "title": "Hospitality",
-                  "form_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "prompt": "When does the party arrive?"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSection" }
               }
@@ -55481,7 +55671,7 @@
                   "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 1,
                   "title": "Hospitality",
-                  "form_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "prompt": "When does the party arrive?"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSection" }
               }
@@ -55523,7 +55713,7 @@
               "example": {
                 "position": 1,
                 "title": "Hospitality",
-                "form_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "prompt": "When does the party arrive?"
               },
               "schema": { "$ref": "#/components/schemas/AdvanceSectionUpdate" }
             }
@@ -55550,7 +55740,7 @@
                   "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 1,
                   "title": "Hospitality",
-                  "form_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "prompt": "When does the party arrive?"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSection" }
               }
@@ -55634,8 +55824,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -55665,8 +55854,7 @@
               "example": {
                 "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/AdvanceRecipientCreate" }
             }
@@ -55692,8 +55880,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceRecipient" }
               }
@@ -55751,8 +55938,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "advance_packet_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceRecipient" }
               }
@@ -55833,8 +56019,13 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "advance_section_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "form_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "submitted_at": "2026-10-08T14:30:00Z"
+                      "submitted_at": "2026-10-08T14:30:00Z",
+                      "body": "Party of 8 lands at 14:20.",
+                      "reviewed_at": "2026-10-08T14:30:00Z",
+                      "reviewed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "review_outcome": "Accepted",
+                      "return_reason": "Please add the flight number.",
+                      "via_link": false
                     }
                   ],
                   "next_cursor": null
@@ -55852,7 +56043,7 @@
         "operationId": "advanceSubmissions.create",
         "tags": ["Advancing"],
         "x-xos-table": "app.advance_submissions",
-        "x-xos-capability": "advancing.packet.write",
+        "x-xos-capability": "advancing.submission.review",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
         "summary": "Create an advance submission",
         "description": "A recipient's submission for one section. Creates an advance submission. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
@@ -55864,7 +56055,7 @@
               "example": {
                 "advance_section_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "form_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "body": "Party of 8 lands at 14:20."
               },
               "schema": { "$ref": "#/components/schemas/AdvanceSubmissionCreate" }
             }
@@ -55890,8 +56081,13 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "advance_section_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "form_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "submitted_at": "2026-10-08T14:30:00Z"
+                  "submitted_at": "2026-10-08T14:30:00Z",
+                  "body": "Party of 8 lands at 14:20.",
+                  "reviewed_at": "2026-10-08T14:30:00Z",
+                  "reviewed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "review_outcome": "Accepted",
+                  "return_reason": "Please add the flight number.",
+                  "via_link": false
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSubmission" }
               }
@@ -55949,8 +56145,13 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "advance_section_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "form_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "submitted_at": "2026-10-08T14:30:00Z"
+                  "submitted_at": "2026-10-08T14:30:00Z",
+                  "body": "Party of 8 lands at 14:20.",
+                  "reviewed_at": "2026-10-08T14:30:00Z",
+                  "reviewed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "review_outcome": "Accepted",
+                  "return_reason": "Please add the flight number.",
+                  "via_link": false
                 },
                 "schema": { "$ref": "#/components/schemas/AdvanceSubmission" }
               }
@@ -55959,6 +56160,83 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-submissions/{id}/review": {
+      "post": {
+        "operationId": "advanceSubmissions.review",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_submissions",
+        "x-xos-capability": "advancing.submission.review",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Review an advance answer",
+        "description": "Records the one review of an answer: Accepted, or Returned with a reason the recipient reads. The database stamps the reviewer and time and refuses the person who submitted it (sod_advance_submitter) or a second review (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the advance submission.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the advance submission.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "outcome": "Returned",
+                "return_reason": "Please add the flight number."
+              },
+              "schema": { "$ref": "#/components/schemas/AdvanceSubmissionReviewRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_section_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_recipient_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "submitted_at": "2026-10-08T14:30:00Z",
+                  "body": "Party of 8 lands at 14:20.",
+                  "reviewed_at": "2026-10-08T14:30:00Z",
+                  "reviewed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "review_outcome": "Accepted",
+                  "return_reason": "Please add the flight number.",
+                  "via_link": false
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceSubmission" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -56000,7 +56278,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "advance_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "target_urn": "urn:xpms:requirement:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -56029,7 +56307,7 @@
             "application/json": {
               "example": {
                 "advance_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "target_urn": "urn:xpms:requirement:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/AdvancePromotionCreate" }
             }
@@ -56054,7 +56332,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "advance_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target_urn": "urn:xpms:requirement:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvancePromotion" }
               }
@@ -56111,7 +56389,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "advance_submission_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target_urn": "urn:xpms:requirement:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AdvancePromotion" }
               }
@@ -56160,9 +56438,9 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "title": "Technical Rider 2026",
-                      "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -56190,9 +56468,9 @@
           "content": {
             "application/json": {
               "example": {
-                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "title": "Technical Rider 2026",
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/RiderCreate" }
             }
@@ -56216,9 +56494,9 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Technical Rider 2026",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Rider" }
               }
@@ -56274,9 +56552,9 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Technical Rider 2026",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Rider" }
               }
@@ -56316,9 +56594,8 @@
           "content": {
             "application/json": {
               "example": {
-                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "title": "Technical Rider 2026",
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/RiderUpdate" }
             }
@@ -56342,9 +56619,9 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Technical Rider 2026",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Rider" }
               }
@@ -56427,10 +56704,10 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "rider_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "urid": "4000.01",
-                      "statement": "Two wedge monitors per vocalist.",
                       "quantity": 2,
-                      "requirement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "description": "Two wedge monitors per vocalist.",
+                      "element_id": "5000.02.01-NWL-001",
+                      "fulfilled_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -56459,10 +56736,10 @@
             "application/json": {
               "example": {
                 "rider_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "urid": "4000.01",
-                "statement": "Two wedge monitors per vocalist.",
                 "quantity": 2,
-                "requirement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "description": "Two wedge monitors per vocalist.",
+                "element_id": "5000.02.01-NWL-001",
+                "fulfilled_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/RiderLineCreate" }
             }
@@ -56487,10 +56764,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "rider_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "urid": "4000.01",
-                  "statement": "Two wedge monitors per vocalist.",
                   "quantity": 2,
-                  "requirement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "description": "Two wedge monitors per vocalist.",
+                  "element_id": "5000.02.01-NWL-001",
+                  "fulfilled_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/RiderLine" }
               }
@@ -56547,10 +56824,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "rider_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "urid": "4000.01",
-                  "statement": "Two wedge monitors per vocalist.",
                   "quantity": 2,
-                  "requirement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "description": "Two wedge monitors per vocalist.",
+                  "element_id": "5000.02.01-NWL-001",
+                  "fulfilled_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/RiderLine" }
               }
@@ -56590,10 +56867,10 @@
           "content": {
             "application/json": {
               "example": {
-                "urid": "4000.01",
-                "statement": "Two wedge monitors per vocalist.",
                 "quantity": 2,
-                "requirement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "description": "Two wedge monitors per vocalist.",
+                "element_id": "5000.02.01-NWL-001",
+                "fulfilled_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/RiderLineUpdate" }
             }
@@ -56618,10 +56895,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "rider_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "urid": "4000.01",
-                  "statement": "Two wedge monitors per vocalist.",
                   "quantity": 2,
-                  "requirement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "description": "Two wedge monitors per vocalist.",
+                  "element_id": "5000.02.01-NWL-001",
+                  "fulfilled_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/RiderLine" }
               }
@@ -116616,6 +116893,462 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/guest-list-entries": {
+      "get": {
+        "operationId": "guestListEntries.list",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List guest list entry rows",
+        "description": "A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Returns a cursor page of guest list entry rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of guest list entry rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "guest_name": "Jordan Pike",
+                      "plus_ones": 1,
+                      "note": "Side stage.",
+                      "entry_state": "Requested",
+                      "decided_at": "2026-10-08T14:30:00Z",
+                      "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "checked_in_at": "2026-10-08T14:30:00Z",
+                      "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/GuestListEntryPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "guestListEntries.create",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "advancing.rider.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Create a guest list entry",
+        "description": "A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Creates a guest list entry. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "guest_name": "Jordan Pike",
+                "plus_ones": 1,
+                "note": "Side stage."
+              },
+              "schema": { "$ref": "#/components/schemas/GuestListEntryCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created guest list entry.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_name": "Jordan Pike",
+                  "plus_ones": 1,
+                  "note": "Side stage.",
+                  "entry_state": "Requested",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/GuestListEntry" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/guest-list-entries/{id}": {
+      "get": {
+        "operationId": "guestListEntries.get",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Get a guest list entry",
+        "description": "A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Returns one guest list entry with its `ETag`. A guest list entry the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the guest list entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the guest list entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The guest list entry.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_name": "Jordan Pike",
+                  "plus_ones": 1,
+                  "note": "Side stage.",
+                  "entry_state": "Requested",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/GuestListEntry" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "guestListEntries.update",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "advancing.rider.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Update a guest list entry",
+        "description": "A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the guest list entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the guest list entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "guest_name": "Jordan Pike",
+                "plus_ones": 1,
+                "note": "Side stage."
+              },
+              "schema": { "$ref": "#/components/schemas/GuestListEntryUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated guest list entry.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_name": "Jordan Pike",
+                  "plus_ones": 1,
+                  "note": "Side stage.",
+                  "entry_state": "Requested",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/GuestListEntry" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "guestListEntries.delete",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "advancing.rider.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Delete a guest list entry",
+        "description": "A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Soft-deletes the guest list entry: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the guest list entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the guest list entry.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The guest list entry moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/guest-list-entries/{id}/decide": {
+      "post": {
+        "operationId": "guestListEntries.decide",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "advancing.submission.review",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Approve or decline a guest",
+        "description": "Moves a Requested guest to Approved or Declined. Needs review authority on the project and refuses the person who requested the guest (sod_guest_requester, 422); the database stamps who decided and when. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the guest list entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the guest list entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "outcome": "Approved" },
+              "schema": { "$ref": "#/components/schemas/GuestDecisionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_name": "Jordan Pike",
+                  "plus_ones": 1,
+                  "note": "Side stage.",
+                  "entry_state": "Requested",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/GuestListEntry" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/guest-list-entries/{id}/check-in": {
+      "post": {
+        "operationId": "guestListEntries.checkIn",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.guest_list_entries",
+        "x-xos-capability": "advancing.rider.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Check a guest in",
+        "description": "Moves an Approved guest to Checked In at the door; the database stamps who checked them in and when. Any other state is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the guest list entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the guest list entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "guest_name": "Jordan Pike",
+                  "plus_ones": 1,
+                  "note": "Side stage.",
+                  "entry_state": "Requested",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/GuestListEntry" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

@@ -13364,6 +13364,182 @@ export type Database = {
           },
         ];
       };
+      guest_list_entries: {
+        Row: {
+          checked_in_at: string | null;
+          checked_in_by: string | null;
+          counterparty_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          deleted_at: string | null;
+          engagement_id: string | null;
+          entry_state: Database["app"]["Enums"]["guest_entry_state"];
+          guest_name: string;
+          id: string;
+          note: string | null;
+          org_id: string;
+          person_id: string | null;
+          plus_ones: number;
+          project_id: string;
+          scope_node_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          checked_in_at?: string | null;
+          checked_in_by?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string | null;
+          entry_state?: Database["app"]["Enums"]["guest_entry_state"];
+          guest_name: string;
+          id?: string;
+          note?: string | null;
+          org_id: string;
+          person_id?: string | null;
+          plus_ones?: number;
+          project_id: string;
+          scope_node_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          checked_in_at?: string | null;
+          checked_in_by?: string | null;
+          counterparty_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string | null;
+          entry_state?: Database["app"]["Enums"]["guest_entry_state"];
+          guest_name?: string;
+          id?: string;
+          note?: string | null;
+          org_id?: string;
+          person_id?: string | null;
+          plus_ones?: number;
+          project_id?: string;
+          scope_node_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guest_list_entries_checked_in_by_fkey";
+            columns: ["checked_in_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_scope_node_id_fkey";
+            columns: ["scope_node_id"];
+            isOneToOne: false;
+            referencedRelation: "scope_nodes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       idempotency_keys: {
         Row: {
           completed_at: string | null;
@@ -38698,6 +38874,19 @@ export type Database = {
       };
       end_account_membership: { Args: { p_account_membership_id: string }; Returns: undefined };
       end_membership: { Args: { p_membership_id: string }; Returns: undefined };
+      engaged_guest_list: {
+        Args: { p_engagement_id: string };
+        Returns: {
+          checked_in_at: string;
+          created_at: string;
+          entry_state: Database["app"]["Enums"]["guest_entry_state"];
+          guest_name: string;
+          id: string;
+          note: string;
+          plus_ones: number;
+          scope_node_id: string;
+        }[];
+      };
       engaged_person_name: { Args: { p_engagement_id: string }; Returns: string };
       ensure_my_profile: { Args: Record<PropertyKey, never>; Returns: string };
       ensure_organization_profile: { Args: { p_org_id: string }; Returns: string };
@@ -39136,6 +39325,16 @@ export type Database = {
           p_engagement_id: string;
           p_message: string;
           p_record_id: string;
+        };
+        Returns: string;
+      };
+      request_engaged_guest: {
+        Args: {
+          p_engagement_id: string;
+          p_guest_name: string;
+          p_note?: string;
+          p_plus_ones?: number;
+          p_scope_node_id?: string;
         };
         Returns: string;
       };
@@ -39807,6 +40006,7 @@ export type Database = {
       fulfillment_kind: "Lodging" | "Catering" | "Travel" | "Amenity";
       fulfillment_state: "Proposed" | "Active" | "Blocked" | "Complete" | "Canceled";
       grant_target_kind: "organization" | "workspace" | "team" | "project" | "record";
+      guest_entry_state: "Requested" | "Approved" | "Declined" | "Checked In";
       handle_kind: "Person" | "Organization";
       import_row_state: "Valid" | "Invalid" | "Written" | "Refused" | "Skipped";
       import_source: "CSV" | "XLSX" | "XLS" | "Google Sheets";
@@ -45983,6 +46183,7 @@ export const Constants = {
       fulfillment_kind: ["Lodging", "Catering", "Travel", "Amenity"],
       fulfillment_state: ["Proposed", "Active", "Blocked", "Complete", "Canceled"],
       grant_target_kind: ["organization", "workspace", "team", "project", "record"],
+      guest_entry_state: ["Requested", "Approved", "Declined", "Checked In"],
       handle_kind: ["Person", "Organization"],
       import_row_state: ["Valid", "Invalid", "Written", "Refused", "Skipped"],
       import_source: ["CSV", "XLSX", "XLS", "Google Sheets"],

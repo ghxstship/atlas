@@ -154,13 +154,12 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     title: string;
-    advance_state: string;
-    due_at: string;
+    due_at: string | null;
     sent_at: string | null;
   };
-  AdvancePacketCreate: { project_id: string; title: string; due_at: string };
+  AdvancePacketCreate: { project_id: string; title: string; due_at?: string | null };
   AdvancePacketPage: { data: Array<Components["AdvancePacket"]>; next_cursor: string | null };
-  AdvancePacketUpdate: { title?: string; due_at?: string };
+  AdvancePacketUpdate: { title?: string; due_at?: string | null };
   AdvancePromotion: {
     id: string;
     org_id: string;
@@ -169,9 +168,9 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     advance_submission_id: string;
-    target_urn: string;
+    record_id: string;
   };
-  AdvancePromotionCreate: { advance_submission_id: string; target_urn: string };
+  AdvancePromotionCreate: { advance_submission_id: string; record_id: string };
   AdvancePromotionPage: { data: Array<Components["AdvancePromotion"]>; next_cursor: string | null };
   AdvanceRecipient: {
     id: string;
@@ -182,14 +181,12 @@ export interface Components {
     updated_by: string | null;
     advance_packet_id: string;
     person_id: string | null;
-    organization_id: string | null;
-    engagement_id: string | null;
+    counterparty_id: string | null;
   };
   AdvanceRecipientCreate: {
     advance_packet_id: string;
     person_id?: string | null;
-    organization_id?: string | null;
-    engagement_id?: string | null;
+    counterparty_id?: string | null;
   };
   AdvanceRecipientPage: { data: Array<Components["AdvanceRecipient"]>; next_cursor: string | null };
   AdvanceSection: {
@@ -202,16 +199,16 @@ export interface Components {
     advance_packet_id: string;
     position: number;
     title: string;
-    form_definition_id: string | null;
+    prompt: string | null;
   };
   AdvanceSectionCreate: {
     advance_packet_id: string;
     position: number;
     title: string;
-    form_definition_id?: string | null;
+    prompt?: string | null;
   };
   AdvanceSectionPage: { data: Array<Components["AdvanceSection"]>; next_cursor: string | null };
-  AdvanceSectionUpdate: { position?: number; title?: string; form_definition_id?: string | null };
+  AdvanceSectionUpdate: { position?: number; title?: string; prompt?: string | null };
   AdvanceSubmission: {
     id: string;
     org_id: string;
@@ -221,19 +218,24 @@ export interface Components {
     updated_by: string | null;
     advance_section_id: string;
     advance_recipient_id: string;
-    form_submission_id: string;
     submitted_at: string;
+    body: string;
+    reviewed_at: string | null;
+    reviewed_by: string | null;
+    review_outcome: "Accepted" | "Returned" | null;
+    return_reason: string | null;
+    via_link: boolean;
   };
   AdvanceSubmissionCreate: {
     advance_section_id: string;
     advance_recipient_id: string;
-    form_submission_id: string;
+    body: string;
   };
   AdvanceSubmissionPage: {
     data: Array<Components["AdvanceSubmission"]>;
     next_cursor: string | null;
   };
-  AdvanceTransitionRequest: { expected_state: string; to_state: string; reason?: string };
+  AdvanceSubmissionReviewRequest: { outcome: "Accepted" | "Returned"; return_reason?: string };
   AgencySlate: {
     id: string;
     org_id: string;
@@ -2528,6 +2530,42 @@ export interface Components {
   GoodsReceiptPage: { data: Array<Components["GoodsReceipt"]>; next_cursor: string | null };
   Grade: string | null;
   GrainCode: string;
+  GuestDecisionRequest: { outcome: "Approved" | "Declined" };
+  GuestListEntry: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    scope_node_id: string | null;
+    person_id: string | null;
+    counterparty_id: string | null;
+    engagement_id: string | null;
+    guest_name: string;
+    plus_ones: number;
+    note: string | null;
+    entry_state: "Requested" | "Approved" | "Declined" | "Checked In";
+    decided_at: string | null;
+    decided_by: string | null;
+    checked_in_at: string | null;
+    checked_in_by: string | null;
+  };
+  GuestListEntryCreate: {
+    project_id: string;
+    scope_node_id?: string | null;
+    guest_name: string;
+    plus_ones: number;
+    note?: string | null;
+  };
+  GuestListEntryPage: { data: Array<Components["GuestListEntry"]>; next_cursor: string | null };
+  GuestListEntryUpdate: {
+    scope_node_id?: string | null;
+    guest_name?: string;
+    plus_ones?: number;
+    note?: string | null;
+  };
   HomeSummary: {
     open_work_count: number;
     blocked_work_count: number;
@@ -5211,11 +5249,11 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    engagement_id: string;
     title: string;
-    document_id: string | null;
+    project_id: string;
+    counterparty_id: string | null;
   };
-  RiderCreate: { engagement_id: string; title: string; document_id?: string | null };
+  RiderCreate: { title: string; project_id: string; counterparty_id?: string | null };
   RiderLine: {
     id: string;
     org_id: string;
@@ -5224,27 +5262,27 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     rider_id: string;
-    urid: Components["UridAtAnyGrain"];
-    statement: string;
     quantity: number | null;
-    requirement_id: string | null;
+    description: string;
+    element_id: string | null;
+    fulfilled_at: string | null;
   };
   RiderLineCreate: {
     rider_id: string;
-    urid?: Components["UridAtAnyGrain"];
-    statement: string;
     quantity?: number | null;
-    requirement_id?: string | null;
+    description: string;
+    element_id?: string | null;
+    fulfilled_at?: string | null;
   };
   RiderLinePage: { data: Array<Components["RiderLine"]>; next_cursor: string | null };
   RiderLineUpdate: {
-    urid?: Components["UridAtAnyGrain"];
-    statement?: string;
     quantity?: number | null;
-    requirement_id?: string | null;
+    description?: string;
+    element_id?: string | null;
+    fulfilled_at?: string | null;
   };
   RiderPage: { data: Array<Components["Rider"]>; next_cursor: string | null };
-  RiderUpdate: { engagement_id?: string; title?: string; document_id?: string | null };
+  RiderUpdate: { title?: string; counterparty_id?: string | null };
   Role: {
     id: string;
     org_id: string | null;
@@ -8664,15 +8702,6 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["AdvancePacket"] };
   };
-  "advancePackets.transition": {
-    module: "Advancing";
-    method: "post";
-    path: "/advance-packets/{id}/transitions";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["AdvanceTransitionRequest"];
-    responses: { 200: Components["AdvancePacket"] };
-  };
   "advanceSections.list": {
     module: "Advancing";
     method: "get";
@@ -8797,6 +8826,15 @@ export interface Operations {
     params: { id: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
+    responses: { 200: Components["AdvanceSubmission"] };
+  };
+  "advanceSubmissions.review": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-submissions/{id}/review";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceSubmissionReviewRequest"];
     responses: { 200: Components["AdvanceSubmission"] };
   };
   "advancePromotions.list": {
@@ -20313,6 +20351,75 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["TemplateApplication"] };
   };
+  "guestListEntries.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/guest-list-entries";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["GuestListEntryPage"] };
+  };
+  "guestListEntries.create": {
+    module: "Advancing";
+    method: "post";
+    path: "/guest-list-entries";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["GuestListEntryCreate"];
+    responses: { 201: Components["GuestListEntry"] };
+  };
+  "guestListEntries.get": {
+    module: "Advancing";
+    method: "get";
+    path: "/guest-list-entries/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["GuestListEntry"] };
+  };
+  "guestListEntries.update": {
+    module: "Advancing";
+    method: "patch";
+    path: "/guest-list-entries/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["GuestListEntryUpdate"];
+    responses: { 200: Components["GuestListEntry"] };
+  };
+  "guestListEntries.delete": {
+    module: "Advancing";
+    method: "delete";
+    path: "/guest-list-entries/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "guestListEntries.decide": {
+    module: "Advancing";
+    method: "post";
+    path: "/guest-list-entries/{id}/decide";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["GuestDecisionRequest"];
+    responses: { 200: Components["GuestListEntry"] };
+  };
+  "guestListEntries.checkIn": {
+    module: "Advancing";
+    method: "post";
+    path: "/guest-list-entries/{id}/check-in";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["GuestListEntry"] };
+  };
 }
 
 /** The operationIds of each module. */
@@ -20520,7 +20627,6 @@ export interface ModuleOperations {
     | "advancePackets.update"
     | "advancePackets.delete"
     | "advancePackets.send"
-    | "advancePackets.transition"
     | "advanceSections.list"
     | "advanceSections.create"
     | "advanceSections.get"
@@ -20533,6 +20639,7 @@ export interface ModuleOperations {
     | "advanceSubmissions.list"
     | "advanceSubmissions.create"
     | "advanceSubmissions.get"
+    | "advanceSubmissions.review"
     | "advancePromotions.list"
     | "advancePromotions.create"
     | "advancePromotions.get"
@@ -20545,7 +20652,14 @@ export interface ModuleOperations {
     | "riderLines.create"
     | "riderLines.get"
     | "riderLines.update"
-    | "riderLines.delete";
+    | "riderLines.delete"
+    | "guestListEntries.list"
+    | "guestListEntries.create"
+    | "guestListEntries.get"
+    | "guestListEntries.update"
+    | "guestListEntries.delete"
+    | "guestListEntries.decide"
+    | "guestListEntries.checkIn";
   Hospitality:
     | "fulfillments.list"
     | "fulfillments.create"
