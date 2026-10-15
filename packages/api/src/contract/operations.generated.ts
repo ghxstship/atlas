@@ -929,8 +929,9 @@ export interface Components {
     membership_id: string;
     last_accessed_at: string | null;
   };
-  CalendarFeedCreate: { project_id?: string | null; membership_id: string };
+  CalendarFeedCreate: { project_id?: string | null };
   CalendarFeedPage: { data: Array<Components["CalendarFeed"]>; next_cursor: string | null };
+  CalendarFeedToken: { calendar_feed_id: string; feed_token: string };
   CalendarPage: { data: Array<Components["Calendar"]>; next_cursor: string | null };
   CalendarUpdate: { name?: string; time_zone?: string; project_id?: string | null };
   CallSheet: {
@@ -2316,7 +2317,11 @@ export interface Components {
     row_count: number | null;
     expires_at: string | null;
   };
-  ExportJobCreate: { source_label: string; export_format: Components["ExportFormat"] };
+  ExportJobCreate: {
+    source_label: string;
+    export_format: Components["ExportFormat"];
+    columns: Array<string>;
+  };
   ExportJobPage: { data: Array<Components["ExportJob"]>; next_cursor: string | null };
   ExternalRoleType:
     | "Client"
@@ -20145,7 +20150,7 @@ export interface Operations {
     params: Record<string, never>;
     query: Record<string, never>;
     body: Components["CalendarFeedCreate"];
-    responses: { 201: Components["CalendarFeed"] };
+    responses: { 201: Components["CalendarFeedToken"] };
   };
   "calendarFeeds.get": {
     module: "Platform";

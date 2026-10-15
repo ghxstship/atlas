@@ -42240,9 +42240,20 @@
             "description": "What is exported, as a saved view or report URN.",
             "example": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "export_format": { "$ref": "#/components/schemas/ExportFormat" }
+          "export_format": { "$ref": "#/components/schemas/ExportFormat" },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^app\\.[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
+              "description": "A column as app.table.column.",
+              "example": "app.vendors.name"
+            },
+            "minItems": 1,
+            "description": "Columns the export contains, as app.table.column."
+          }
         },
-        "required": ["source_label", "export_format"],
+        "required": ["source_label", "export_format", "columns"],
         "description": "Fields accepted when creating a ExportJob."
       },
       "SavedViewPage": {
@@ -43449,6 +43460,25 @@
         ],
         "description": "An iCalendar feed. The token is shown once, stored hashed and revocable."
       },
+      "CalendarFeedToken": {
+        "type": "object",
+        "properties": {
+          "calendar_feed_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the calendar feed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "feed_token": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The token of the feed's subscription URL. Shown once; only its hash is stored, and revoking the feed ends it.",
+            "example": "cal_9fQ2mX4vT7kL1pR8"
+          }
+        },
+        "required": ["calendar_feed_id", "feed_token"],
+        "description": "A newly created calendar feed and its subscription token, shown once."
+      },
       "CalendarFeedCreate": {
         "type": "object",
         "properties": {
@@ -43457,15 +43487,8 @@
             "format": "uuid",
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "membership_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the member who owns the feed; it shows what they may see.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["membership_id"],
         "description": "Fields accepted when creating a CalendarFeed."
       },
       "TrashItemPage": {
@@ -113673,7 +113696,8 @@
             "application/json": {
               "example": {
                 "source_label": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "export_format": "CSV"
+                "export_format": "CSV",
+                "columns": ["app.vendors.name"]
               },
               "schema": { "$ref": "#/components/schemas/ExportJobCreate" }
             }
@@ -115679,26 +115703,23 @@
         "x-xos-table": "app.calendar_feeds",
         "x-xos-capability": "me.calendar_feeds.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.create_calendar_feed",
         "summary": "Create a calendar feed",
-        "description": "An iCalendar feed. The token is shown once, stored hashed and revocable. Creates a calendar feed. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "Creates an iCalendar feed of the caller's schedule, optionally for one project, through `app.create_calendar_feed`. The token of the subscription URL is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-              },
+              "example": { "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
               "schema": { "$ref": "#/components/schemas/CalendarFeedCreate" }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "The created calendar feed.",
+            "description": "The result.",
             "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
               "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
@@ -115706,18 +115727,10 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "revoked_at": "2026-10-08T14:30:00Z",
-                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "last_accessed_at": "2026-10-08T14:30:00Z"
+                  "calendar_feed_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "feed_token": "cal_9fQ2mX4vT7kL1pR8"
                 },
-                "schema": { "$ref": "#/components/schemas/CalendarFeed" }
+                "schema": { "$ref": "#/components/schemas/CalendarFeedToken" }
               }
             }
           },
