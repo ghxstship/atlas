@@ -23,7 +23,14 @@ function partsIn(instant: Date, timeZone: string): Record<string, number> {
 /** Offset of a zone from UTC at an instant, in minutes (New York in June: -240). */
 export function zoneOffsetMinutes(instant: Date, timeZone: string): number {
   const p = partsIn(instant, timeZone);
-  const asUtc = Date.UTC(p["year"] ?? 0, (p["month"] ?? 1) - 1, p["day"] ?? 1, p["hour"] ?? 0, p["minute"] ?? 0, p["second"] ?? 0);
+  const asUtc = Date.UTC(
+    p["year"] ?? 0,
+    (p["month"] ?? 1) - 1,
+    p["day"] ?? 1,
+    p["hour"] ?? 0,
+    p["minute"] ?? 0,
+    p["second"] ?? 0,
+  );
   return Math.round((asUtc - instant.getTime()) / 60_000);
 }
 
@@ -71,7 +78,9 @@ export function addDays(isoDate: string, days: number): string {
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function isIsoDate(value: string | undefined): value is string {
-  return value !== undefined && ISO_DATE.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+  return (
+    value !== undefined && ISO_DATE.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`))
+  );
 }
 
 /** Hours with up to two decimals from minutes (worked minutes are integers). */

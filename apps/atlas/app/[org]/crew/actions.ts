@@ -168,7 +168,9 @@ export async function transitionShiftAction(_: State, form: FormData): Promise<S
 
 export async function publishShiftsAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
-  const ids = text(form, "ids").split(",").filter((s) => uuid.safeParse(s).success);
+  const ids = text(form, "ids")
+    .split(",")
+    .filter((s) => uuid.safeParse(s).success);
   const r = reason.safeParse(form.get("reason"));
   if (!r.success) return invalid(t, { reason: "crew.errors.reason" });
   if (ids.length === 0) return { error: t("crew.errors.nothingToPublish") };
@@ -197,7 +199,9 @@ export async function trashShiftAction(_: State, form: FormData): Promise<State>
   if (!id.success) return failed(t, { kind: "not-found" });
   const result = await trashShift(db, id.data);
   const state = done(ctx.org.slug, result, t);
-  return state.ok ? { ...state, redirect: text(form, "back") || `/${ctx.org.slug}/crew/shifts` } : state;
+  return state.ok
+    ? { ...state, redirect: text(form, "back") || `/${ctx.org.slug}/crew/shifts` }
+    : state;
 }
 
 // Swaps ---------------------------------------------------------------------------------------------
@@ -225,9 +229,15 @@ const DECISION = z.enum(["Approved", "Rejected"]);
 
 export async function decideSwapAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
-  const parsed = z.object({ id: uuid, decision: DECISION, reason }).safeParse(Object.fromEntries(form));
+  const parsed = z
+    .object({ id: uuid, decision: DECISION, reason })
+    .safeParse(Object.fromEntries(form));
   if (!parsed.success) return invalid(t, { reason: "crew.errors.reason" });
-  return done(ctx.org.slug, await decideSwap(db, parsed.data.id, parsed.data.decision, parsed.data.reason), t);
+  return done(
+    ctx.org.slug,
+    await decideSwap(db, parsed.data.id, parsed.data.decision, parsed.data.reason),
+    t,
+  );
 }
 
 export async function cancelSwapAction(_: State, form: FormData): Promise<State> {
@@ -248,7 +258,8 @@ function entryTimes(form: FormData, t: Translate) {
   const errors: Record<string, string> = {};
   if (!clockInAt) errors["clockIn"] = "crew.errors.dateTime";
   if (outRaw !== "" && !clockOutAt) errors["clockOut"] = "crew.errors.dateTime";
-  if (clockInAt && clockOutAt && clockOutAt <= clockInAt) errors["clockOut"] = "crew.errors.endAfterStart";
+  if (clockInAt && clockOutAt && clockOutAt <= clockInAt)
+    errors["clockOut"] = "crew.errors.endAfterStart";
   if (!Number.isInteger(breakMinutes) || breakMinutes < 0 || breakMinutes > 1440) {
     errors["breakMinutes"] = "crew.errors.breakMinutes";
   }
@@ -262,7 +273,8 @@ export async function createTimeEntryAction(_: State, form: FormData): Promise<S
   const ids = z
     .object({ projectId: uuid, membershipId: uuid })
     .safeParse({ projectId: form.get("projectId"), membershipId: form.get("membershipId") });
-  if (!ids.success) return invalid(t, { projectId: "crew.errors.project", membershipId: "crew.errors.person" });
+  if (!ids.success)
+    return invalid(t, { projectId: "crew.errors.project", membershipId: "crew.errors.person" });
   const times = entryTimes(form, t);
   if (!times.ok) return times.state;
   const shift = text(form, "shiftId");
@@ -358,7 +370,9 @@ export async function requestCorrectionAction(_: State, form: FormData): Promise
 
 export async function decideCorrectionAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
-  const parsed = z.object({ id: uuid, decision: DECISION, reason }).safeParse(Object.fromEntries(form));
+  const parsed = z
+    .object({ id: uuid, decision: DECISION, reason })
+    .safeParse(Object.fromEntries(form));
   if (!parsed.success) return invalid(t, { reason: "crew.errors.reason" });
   return done(
     ctx.org.slug,
@@ -376,7 +390,8 @@ export async function createTimesheetAction(_: State, form: FormData): Promise<S
   const parsed = z
     .object({ projectId: uuid, membershipId: uuid, periodStart: isoDate, periodEnd: isoDate })
     .safeParse(Object.fromEntries(form));
-  if (!parsed.success) return invalid(t, { periodStart: "crew.errors.date", periodEnd: "crew.errors.date" });
+  if (!parsed.success)
+    return invalid(t, { periodStart: "crew.errors.date", periodEnd: "crew.errors.date" });
   if (parsed.data.periodEnd < parsed.data.periodStart) {
     return invalid(t, { periodEnd: "crew.errors.endAfterStart" });
   }
@@ -392,7 +407,9 @@ export async function submitTimesheetAction(_: State, form: FormData): Promise<S
 
 export async function decideTimesheetAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
-  const parsed = z.object({ id: uuid, decision: DECISION, reason }).safeParse(Object.fromEntries(form));
+  const parsed = z
+    .object({ id: uuid, decision: DECISION, reason })
+    .safeParse(Object.fromEntries(form));
   if (!parsed.success) return invalid(t, { reason: "crew.errors.reason" });
   return done(
     ctx.org.slug,
@@ -424,7 +441,8 @@ export async function createRateCardAction(_: State, form: FormData): Promise<St
       effectiveTo: z.union([isoDate, z.literal("")]),
     })
     .safeParse(Object.fromEntries(form));
-  if (!parsed.success) return invalid(t, { name: "crew.errors.name", effectiveFrom: "crew.errors.date" });
+  if (!parsed.success)
+    return invalid(t, { name: "crew.errors.name", effectiveFrom: "crew.errors.date" });
   const p = parsed.data;
   if (p.effectiveTo !== "" && p.effectiveTo < p.effectiveFrom) {
     return invalid(t, { effectiveTo: "crew.errors.endAfterStart" });
@@ -450,7 +468,8 @@ export async function updateRateCardAction(_: State, form: FormData): Promise<St
       effectiveTo: z.union([isoDate, z.literal("")]),
     })
     .safeParse(Object.fromEntries(form));
-  if (!parsed.success) return invalid(t, { name: "crew.errors.name", effectiveFrom: "crew.errors.date" });
+  if (!parsed.success)
+    return invalid(t, { name: "crew.errors.name", effectiveFrom: "crew.errors.date" });
   const p = parsed.data;
   return done(
     ctx.org.slug,
@@ -477,8 +496,16 @@ export async function addRateLineAction(_: State, form: FormData): Promise<State
   if (!parsed.success) return invalid(t, { roleCode: "crew.errors.role" });
   const [payBasis, classification] = text(form, "payBasis").split("|");
   const [arrangement, classification2] = text(form, "arrangement").split("|");
-  if (!payBasis || !arrangement || classification !== parsed.data.worker || classification2 !== parsed.data.worker) {
-    return invalid(t, { payBasis: "crew.errors.combination", arrangement: "crew.errors.combination" });
+  if (
+    !payBasis ||
+    !arrangement ||
+    classification !== parsed.data.worker ||
+    classification2 !== parsed.data.worker
+  ) {
+    return invalid(t, {
+      payBasis: "crew.errors.combination",
+      arrangement: "crew.errors.combination",
+    });
   }
   const rate = toMinor(text(form, "rate"), await exponentOf(form, parsed.data.currencyCode));
   if (rate === undefined) return invalid(t, { rate: "crew.errors.money" });
@@ -508,7 +535,10 @@ export async function updateRateLineAction(_: State, form: FormData): Promise<St
   const rule = text(form, "overtimeRuleId");
   return done(
     ctx.org.slug,
-    await updateRateCardLine(db, id.data, { rateMinor: rate, ...(rule ? { overtimeRuleId: rule } : {}) }),
+    await updateRateCardLine(db, id.data, {
+      rateMinor: rate,
+      ...(rule ? { overtimeRuleId: rule } : {}),
+    }),
     t,
   );
 }
@@ -530,27 +560,40 @@ export async function recordPayRateAction(_: State, form: FormData): Promise<Sta
       effectiveFrom: isoDate,
     })
     .safeParse(Object.fromEntries(form));
-  if (!parsed.success) return invalid(t, { membershipId: "crew.errors.person", roleCode: "crew.errors.role" });
+  if (!parsed.success)
+    return invalid(t, { membershipId: "crew.errors.person", roleCode: "crew.errors.role" });
   const rate = toMinor(text(form, "rate"), await exponentOf(form, parsed.data.currencyCode));
   if (rate === undefined || rate === null) return invalid(t, { rate: "crew.errors.moneyRequired" });
-  return done(ctx.org.slug, await recordPayRate(db, { orgId: ctx.org.id, ...parsed.data, rateMinor: rate }), t);
+  return done(
+    ctx.org.slug,
+    await recordPayRate(db, { orgId: ctx.org.id, ...parsed.data, rateMinor: rate }),
+    t,
+  );
 }
 
 // Pay periods and payroll runs ------------------------------------------------------------------------------
 
 export async function createPayPeriodAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
-  const parsed = z.object({ startsOn: isoDate, endsOn: isoDate }).safeParse(Object.fromEntries(form));
-  if (!parsed.success) return invalid(t, { startsOn: "crew.errors.date", endsOn: "crew.errors.date" });
-  if (parsed.data.endsOn < parsed.data.startsOn) return invalid(t, { endsOn: "crew.errors.endAfterStart" });
+  const parsed = z
+    .object({ startsOn: isoDate, endsOn: isoDate })
+    .safeParse(Object.fromEntries(form));
+  if (!parsed.success)
+    return invalid(t, { startsOn: "crew.errors.date", endsOn: "crew.errors.date" });
+  if (parsed.data.endsOn < parsed.data.startsOn)
+    return invalid(t, { endsOn: "crew.errors.endAfterStart" });
   return done(ctx.org.slug, await createPayPeriod(db, ctx.org.id, parsed.data), t);
 }
 
 export async function updatePayPeriodAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
-  const parsed = z.object({ id: uuid, startsOn: isoDate, endsOn: isoDate }).safeParse(Object.fromEntries(form));
-  if (!parsed.success) return invalid(t, { startsOn: "crew.errors.date", endsOn: "crew.errors.date" });
-  if (parsed.data.endsOn < parsed.data.startsOn) return invalid(t, { endsOn: "crew.errors.endAfterStart" });
+  const parsed = z
+    .object({ id: uuid, startsOn: isoDate, endsOn: isoDate })
+    .safeParse(Object.fromEntries(form));
+  if (!parsed.success)
+    return invalid(t, { startsOn: "crew.errors.date", endsOn: "crew.errors.date" });
+  if (parsed.data.endsOn < parsed.data.startsOn)
+    return invalid(t, { endsOn: "crew.errors.endAfterStart" });
   return done(ctx.org.slug, await updatePayPeriod(db, parsed.data.id, parsed.data), t);
 }
 
@@ -565,7 +608,13 @@ export async function transitionPayPeriodAction(_: State, form: FormData): Promi
   const p = parsed.data;
   return done(
     ctx.org.slug,
-    await transitionPayPeriod(db, p.id, p.expected as PayPeriodState, p.next as PayPeriodState, p.reason),
+    await transitionPayPeriod(
+      db,
+      p.id,
+      p.expected as PayPeriodState,
+      p.next as PayPeriodState,
+      p.reason,
+    ),
     t,
   );
 }
@@ -593,7 +642,9 @@ export async function approveRunAction(_: State, form: FormData): Promise<State>
   const result = await approvePayrollRun(db, parsed.data.id, parsed.data.reason);
   if (!result.ok) return failed(t, result.error);
   revalidatePath(`/${ctx.org.slug}/crew`, "layout");
-  return result.data.complete ? { ok: true } : { ok: true, error: t("crew.payroll.secondApprover") };
+  return result.data.complete
+    ? { ok: true }
+    : { ok: true, error: t("crew.payroll.secondApprover") };
 }
 
 const RUN_STATE = z.enum(["Draft", "Calculated", "Approved", "Exported", "Accepted", "Canceled"]);
@@ -607,7 +658,13 @@ export async function transitionRunAction(_: State, form: FormData): Promise<Sta
   const p = parsed.data;
   return done(
     ctx.org.slug,
-    await transitionPayrollRun(db, p.id, p.expected as PayrollRunState, p.next as PayrollRunState, p.reason),
+    await transitionPayrollRun(
+      db,
+      p.id,
+      p.expected as PayrollRunState,
+      p.next as PayrollRunState,
+      p.reason,
+    ),
     t,
   );
 }
@@ -648,27 +705,42 @@ export async function requestTimeOffAction(_: State, form: FormData): Promise<St
       hours: z.coerce.number().positive().max(10000),
     })
     .safeParse(Object.fromEntries(form));
-  if (!parsed.success) return invalid(t, { startsOn: "crew.errors.date", hours: "crew.errors.hours" });
-  if (parsed.data.endsOn < parsed.data.startsOn) return invalid(t, { endsOn: "crew.errors.endAfterStart" });
+  if (!parsed.success)
+    return invalid(t, { startsOn: "crew.errors.date", hours: "crew.errors.hours" });
+  if (parsed.data.endsOn < parsed.data.startsOn)
+    return invalid(t, { endsOn: "crew.errors.endAfterStart" });
   return done(ctx.org.slug, await requestTimeOff(db, { orgId: ctx.org.id, ...parsed.data }), t);
 }
 
 export async function decideTimeOffAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
-  const parsed = z.object({ id: uuid, decision: DECISION, reason }).safeParse(Object.fromEntries(form));
+  const parsed = z
+    .object({ id: uuid, decision: DECISION, reason })
+    .safeParse(Object.fromEntries(form));
   if (!parsed.success) return invalid(t, { reason: "crew.errors.reason" });
-  return done(ctx.org.slug, await decideTimeOff(db, parsed.data.id, parsed.data.decision, parsed.data.reason), t);
+  return done(
+    ctx.org.slug,
+    await decideTimeOff(db, parsed.data.id, parsed.data.decision, parsed.data.reason),
+    t,
+  );
 }
 
 const OFF_STATE = z.enum(["Proposed", "Approved", "Rejected", "Canceled"]);
 
 export async function cancelTimeOffAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
-  const parsed = z.object({ id: uuid, expected: OFF_STATE, reason }).safeParse(Object.fromEntries(form));
+  const parsed = z
+    .object({ id: uuid, expected: OFF_STATE, reason })
+    .safeParse(Object.fromEntries(form));
   if (!parsed.success) return invalid(t, { reason: "crew.errors.reason" });
   return done(
     ctx.org.slug,
-    await cancelTimeOff(db, parsed.data.id, parsed.data.expected as TimeOffState, parsed.data.reason),
+    await cancelTimeOff(
+      db,
+      parsed.data.id,
+      parsed.data.expected as TimeOffState,
+      parsed.data.reason,
+    ),
     t,
   );
 }

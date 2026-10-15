@@ -36,7 +36,12 @@ const ICONS: Record<Lifecycle, Record<string, RecordState>> = {
     Accepted: "complete",
     Canceled: "canceled",
   },
-  timeOff: { Proposed: "in-review", Approved: "complete", Rejected: "blocked", Canceled: "canceled" },
+  timeOff: {
+    Proposed: "in-review",
+    Approved: "complete",
+    Rejected: "blocked",
+    Canceled: "canceled",
+  },
   rateCard: { Upcoming: "scheduled", Current: "active", Ended: "complete" },
 };
 
@@ -50,7 +55,10 @@ export function lifecycleStates(lifecycle: Lifecycle): string[] {
 }
 
 /** A rate card is upcoming, current or ended on a day (ISO dates compare as strings). */
-export function rateCardPhase(card: { effectiveFrom: string; effectiveTo: string | null }, day: string) {
+export function rateCardPhase(
+  card: { effectiveFrom: string; effectiveTo: string | null },
+  day: string,
+) {
   if (card.effectiveFrom > day) return "Upcoming";
   if (card.effectiveTo !== null && card.effectiveTo < day) return "Ended";
   return "Current";

@@ -25,7 +25,14 @@ export type FieldSpec =
       readonly step?: string;
       readonly min?: string;
     }
-  | { readonly kind: "textarea"; readonly name: string; readonly label: string; readonly value?: string; readonly required?: boolean; readonly help?: string }
+  | {
+      readonly kind: "textarea";
+      readonly name: string;
+      readonly label: string;
+      readonly value?: string;
+      readonly required?: boolean;
+      readonly help?: string;
+    }
   | {
       readonly kind: "select";
       readonly name: string;
@@ -91,7 +98,9 @@ function Field({ spec, error }: { spec: FieldSpec; error?: string }) {
           defaultValue={spec.value ?? ""}
           required={spec.required}
           width="100%"
-          {...(spec.kind === "money" ? { step: "0.01", min: "0", inputMode: "decimal" as const } : {})}
+          {...(spec.kind === "money"
+            ? { step: "0.01", min: "0", inputMode: "decimal" as const }
+            : {})}
           {...(spec.step ? { step: spec.step } : {})}
           {...(spec.min ? { min: spec.min } : {})}
           {...(spec.help ? { help: spec.help } : {})}
@@ -122,7 +131,11 @@ export function DrawerForm(props: {
     }
   }, [state, close, router]);
   return (
-    <Drawer title={props.title} open onOpenChange={(open) => (open ? undefined : router.push(close))}>
+    <Drawer
+      title={props.title}
+      open
+      onOpenChange={(open) => (open ? undefined : router.push(close))}
+    >
       <form action={action} className="flex flex-col gap-16" noValidate>
         {state.error ? (
           <InlineAlert tone="danger" title={t("refused")}>
@@ -130,7 +143,11 @@ export function DrawerForm(props: {
           </InlineAlert>
         ) : null}
         {props.fields.map((f) => (
-          <Field key={f.name} spec={f} {...(state.fieldErrors?.[f.name] ? { error: state.fieldErrors[f.name] } : {})} />
+          <Field
+            key={f.name}
+            spec={f}
+            {...(state.fieldErrors?.[f.name] ? { error: state.fieldErrors[f.name] } : {})}
+          />
         ))}
         <div className="flex gap-8">
           <Button type="submit" variant="primary" loading={pending}>
@@ -164,17 +181,23 @@ export function ConfirmButton(props: {
   const t = useTranslations("crew.form");
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [state, action, pending] = useActionState(props.action, INITIAL);
-  useEffect(() => {
-    if (state.ok) {
+  const [state, action, pending] = useActionState(async (prev: CrewActionState, form: FormData) => {
+    const next = await props.action(prev, form);
+    if (next.ok) {
       setOpen(false);
       router.refresh();
     }
-  }, [state, router]);
+    return next;
+  }, INITIAL);
   const formId = `confirm-${props.label.replace(/\W+/g, "-")}-${Object.values(props.hidden).join("-")}`;
   return (
     <>
-      <Button type="button" variant={props.variant ?? "secondary"} size="sm" onClick={() => setOpen(true)}>
+      <Button
+        type="button"
+        variant={props.variant ?? "secondary"}
+        size="sm"
+        onClick={() => setOpen(true)}
+      >
         {props.label}
       </Button>
       {open ? (
@@ -188,7 +211,12 @@ export function ConfirmButton(props: {
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                 {t("cancel")}
               </Button>
-              <Button type="submit" form={formId} variant={props.variant === "danger" ? "danger" : "primary"} loading={pending}>
+              <Button
+                type="submit"
+                form={formId}
+                variant={props.variant === "danger" ? "danger" : "primary"}
+                loading={pending}
+              >
                 {props.confirmLabel ?? props.label}
               </Button>
             </>

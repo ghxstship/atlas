@@ -116,7 +116,8 @@ export interface EngagementRow {
 }
 
 /** The PostgREST embed that reads an engagement and its person's name. */
-export const ENGAGEMENT_EMBED = "id, person_id, person:people!engagements_person_id_fkey(full_name)";
+export const ENGAGEMENT_EMBED =
+  "id, person_id, person:people!engagements_person_id_fkey(full_name)";
 
 export function toWorker(
   membership: MembershipRow | null,
@@ -124,7 +125,8 @@ export function toWorker(
   engagement: EngagementRow | null,
   engagementId: string | null,
 ): WorkerRef {
-  if (membershipId !== null) return { ...toMemberRef(membership, membershipId), engagementId: null };
+  if (membershipId !== null)
+    return { ...toMemberRef(membership, membershipId), engagementId: null };
   return {
     membershipId: "",
     personId: engagement?.person_id ?? null,
@@ -171,7 +173,13 @@ export async function listCrewProjects(
   if (error) return fail(toDataError(error));
   return ok(
     data
-      .map((p) => ({ id: p.id, key: p.project_key, name: p.name, timeZone: p.time_zone, jurisdictionId: p.jurisdiction_id }))
+      .map((p) => ({
+        id: p.id,
+        key: p.project_key,
+        name: p.name,
+        timeZone: p.time_zone,
+        jurisdictionId: p.jurisdiction_id,
+      }))
       .sort((a, b) => a.key.localeCompare(b.key)),
   );
 }
@@ -191,7 +199,13 @@ export async function getCrewProject(
     .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "not-found" });
-  return ok({ id: data.id, key: data.project_key, name: data.name, timeZone: data.time_zone, jurisdictionId: data.jurisdiction_id });
+  return ok({
+    id: data.id,
+    key: data.project_key,
+    name: data.name,
+    timeZone: data.time_zone,
+    jurisdictionId: data.jurisdiction_id,
+  });
 }
 
 /** Active members of the org the caller may see, by name, for assignment pickers. */

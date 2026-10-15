@@ -43,6 +43,8 @@ export function PeekTable(props: {
   rows: Array<Record<string, unknown> & { id: string }>;
   totals?: Record<string, unknown>;
   totalsLabel?: string;
+  /** False for tables inside a record, whose rows open nothing. */
+  activatable?: boolean;
 }) {
   const router = useRouter();
   const href = useQueryHref();
@@ -53,7 +55,12 @@ export function PeekTable(props: {
       rows={props.rows}
       {...(props.totals ? { totals: props.totals } : {})}
       {...(props.totalsLabel ? { totalsLabel: props.totalsLabel } : {})}
-      onRowActivate={(row) => router.push(href({ peek: String(row["id"]), full: null }))}
+      {...(props.activatable === false
+        ? {}
+        : {
+            onRowActivate: (row: Record<string, unknown>) =>
+              router.push(href({ peek: String(row["id"]), full: null })),
+          })}
     />
   );
 }
@@ -113,7 +120,9 @@ export function FilterSelect(props: {
       value={props.value}
       options={props.options}
       onChange={(e) =>
-        router.replace(href({ [props.name]: e.target.value === "" ? null : e.target.value, peek: null }))
+        router.replace(
+          href({ [props.name]: e.target.value === "" ? null : e.target.value, peek: null }),
+        )
       }
     />
   );
@@ -165,9 +174,11 @@ export function PeekPanel(props: {
                 icon="Link2"
                 label={t("copyLink")}
                 onClick={() => {
-                  void navigator.clipboard.writeText(window.location.href).catch((error: unknown) => {
-                    console.error("Copying the link failed", error);
-                  });
+                  void navigator.clipboard
+                    .writeText(window.location.href)
+                    .catch((error: unknown) => {
+                      console.error("Copying the link failed", error);
+                    });
                 }}
               />
               <RDialog.Close asChild>
@@ -176,7 +187,9 @@ export function PeekPanel(props: {
             </span>
           </header>
           <div className="flex flex-col gap-16 p-20">
-            <RDialog.Title className="m-0 text-heading-20 font-semibold">{props.title}</RDialog.Title>
+            <RDialog.Title className="m-0 text-heading-20 font-semibold">
+              {props.title}
+            </RDialog.Title>
             <div>
               <StateChip state={props.state} label={props.stateLabel} />
             </div>

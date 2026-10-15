@@ -2,7 +2,7 @@ import { getNode, isNodeVisible } from "@xos/ia";
 import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
-import { PageHeader, TemplateCollection } from "@/components/ui";
+import { PageHeader, TemplateCollection } from "./ui";
 import { withParams, type CrewContext, type SearchParams } from "@/lib/crew/context";
 import { navigableChildren, nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -34,7 +34,9 @@ export interface FrameProps {
 export function resolveView(node: string, requested: string | undefined): string {
   const list = getNode(sitemap, node).node.list;
   if (!list) return "list";
-  return requested !== undefined && list.views.includes(requested) ? requested : list.default;
+  return requested !== undefined && (list.views as readonly string[]).includes(requested)
+    ? requested
+    : list.default;
 }
 
 export async function CrewFrame(props: FrameProps) {

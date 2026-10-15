@@ -45,7 +45,9 @@ async function History(props: {
     props.history.map((h) => h.by),
   );
   const nameOf = (id: string | null) =>
-    id === null ? t("crew.record.system") : ((names.ok ? names.data.get(id) : null) ?? t("crew.record.someone"));
+    id === null
+      ? t("crew.record.system")
+      : ((names.ok ? names.data.get(id) : null) ?? t("crew.record.someone"));
   return (
     <section aria-labelledby="record-history" className="flex flex-col gap-8">
       <h2 id="record-history" className="m-0 text-text-13 font-semibold">
@@ -119,7 +121,10 @@ export async function CrewRecord(props: RecordProps) {
 
   return (
     <div className="flex flex-col gap-12">
-      <Link href={props.backHref as Route} className="text-text-12 text-text-secondary hover:text-text-primary">
+      <Link
+        href={props.backHref as Route}
+        className="text-text-12 text-text-secondary hover:text-text-primary"
+      >
         {t("crew.record.back")}
       </Link>
       <TemplateRecord

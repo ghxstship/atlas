@@ -76,20 +76,39 @@ export async function ScheduleGrid(props: {
   };
 
   return (
-    <div role="region" aria-label={props.label} tabIndex={0} className="overflow-x-auto rounded-card border border-border-subtle">
+    <div
+      role="region"
+      aria-label={props.label}
+      tabIndex={0}
+      className="overflow-x-auto rounded-card border border-border-subtle"
+    >
       <table className="w-full border-collapse text-text-13">
         <caption className="sr-only">{props.label}</caption>
         <thead>
           <tr>
-            <th scope="col" className="h-control-lg border-b border-border-subtle bg-bg-surface px-12 text-start text-text-12 font-medium text-text-secondary">
+            <th
+              scope="col"
+              className="h-control-lg border-b border-border-subtle bg-bg-surface px-12 text-start text-text-12 font-medium text-text-secondary"
+            >
               {t("crew.shifts.person")}
             </th>
             {days.map((d) => (
-              <th key={d} scope="col" className="h-control-lg border-b border-border-subtle bg-bg-surface px-12 text-start text-text-12 font-medium">
-                {format.dateTime(new Date(`${d}T12:00:00Z`), { timeZone: "UTC", weekday: "short", day: "numeric" })}
+              <th
+                key={d}
+                scope="col"
+                className="h-control-lg border-b border-border-subtle bg-bg-surface px-12 text-start text-text-12 font-medium"
+              >
+                {format.dateTime(new Date(`${d}T12:00:00Z`), {
+                  timeZone: "UTC",
+                  weekday: "short",
+                  day: "numeric",
+                })}
               </th>
             ))}
-            <th scope="col" className="h-control-lg border-b border-border-subtle bg-bg-surface px-12 text-end text-text-12 font-medium text-text-secondary">
+            <th
+              scope="col"
+              className="h-control-lg border-b border-border-subtle bg-bg-surface px-12 text-end text-text-12 font-medium text-text-secondary"
+            >
               {t("crew.shifts.weekHours")}
             </th>
           </tr>
@@ -98,26 +117,36 @@ export async function ScheduleGrid(props: {
           {people.map((p) => {
             const minutes = p.shifts
               .filter((s) => s.state !== "Canceled")
-              .reduce((sum, s) => sum + (Date.parse(s.endsAt) - Date.parse(s.startsAt)) / 60_000, 0);
+              .reduce(
+                (sum, s) => sum + (Date.parse(s.endsAt) - Date.parse(s.startsAt)) / 60_000,
+                0,
+              );
             const hours = hoursFromMinutes(minutes);
             const thresholds = p.shifts
               .map((s) => props.overtimeHours.get(s.projectId) ?? null)
               .filter((h): h is number => h !== null);
-            const over = p.key !== "open" && thresholds.length > 0 && hours > Math.min(...thresholds);
+            const over =
+              p.key !== "open" && thresholds.length > 0 && hours > Math.min(...thresholds);
             return (
               <tr key={p.key}>
-                <th scope="row" className="border-b border-border-subtle px-12 py-6 text-start font-normal">
+                <th
+                  scope="row"
+                  className="border-b border-border-subtle px-12 py-6 text-start font-normal"
+                >
                   <span className="flex items-center gap-8 whitespace-nowrap">
                     {p.key === "open" ? null : <Avatar name={p.name} />}
                     <span className="flex flex-col">
                       <span>{p.name}</span>
-                      {p.role ? <span className="text-text-12 text-text-secondary">{p.role}</span> : null}
+                      {p.role ? (
+                        <span className="text-text-12 text-text-secondary">{p.role}</span>
+                      ) : null}
                     </span>
                   </span>
                 </th>
                 {days.map((d) => {
                   const today = p.shifts.filter((s) => dayIn(s.startsAt, s.timeZone) === d);
-                  const clash = p.key !== "open" && today.filter((s) => s.state !== "Canceled").length > 1;
+                  const clash =
+                    p.key !== "open" && today.filter((s) => s.state !== "Canceled").length > 1;
                   return (
                     <td
                       key={d}
@@ -129,7 +158,9 @@ export async function ScheduleGrid(props: {
                     >
                       {today.map(chip)}
                       {clash ? (
-                        <span className="text-text-11 font-medium text-danger-text">{t("crew.shifts.doubleBooked")}</span>
+                        <span className="text-text-11 font-medium text-danger-text">
+                          {t("crew.shifts.doubleBooked")}
+                        </span>
                       ) : null}
                     </td>
                   );
@@ -138,7 +169,11 @@ export async function ScheduleGrid(props: {
                   <span className={over ? "font-medium text-warning-text" : undefined}>
                     {format.number(hours, { maximumFractionDigits: 2 })}
                   </span>
-                  {over ? <span className="block text-text-11 text-warning-text">{t("crew.shifts.overtimeRisk")}</span> : null}
+                  {over ? (
+                    <span className="block text-text-11 text-warning-text">
+                      {t("crew.shifts.overtimeRisk")}
+                    </span>
+                  ) : null}
                 </td>
               </tr>
             );
