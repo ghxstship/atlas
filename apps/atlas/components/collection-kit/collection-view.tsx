@@ -12,7 +12,6 @@ import {
   PageHeader,
   RecordList,
   RecordRow,
-  SegmentedControl,
   StateChip,
   TemplateCollection,
   TreeView,
@@ -24,6 +23,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { useCopy } from "./use-copy";
 import type { KitBoardColumn, KitChart, KitColumn, KitRow, KitTreeNode, ViewKind } from "./types";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
@@ -99,7 +99,7 @@ export function CollectionView({
 
   const switcher =
     views.length > 1 ? (
-      <SegmentedControl
+      <CollectionViews
         label={t("views")}
         value={view}
         options={views.map((v) => ({ value: v, label: t(`view.${v}`) }))}

@@ -95,6 +95,7 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
     }
     const next = new URLSearchParams(search.toString());
     next.set("view", view);
+    for (const key of ["peek", "full"]) next.delete(key);
     go(next.toString());
   };
 

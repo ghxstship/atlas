@@ -10942,6 +10942,12 @@ var support_default$1 = {
     loadFailed: "The request could not be loaded. Close it and try again.",
     replied: "Reply sent.",
     moved: "Moved to {state}.",
+    fields: {
+      route: "Page",
+      appVersion: "App version",
+      device: "Browser and device",
+      recentErrors: "Recent errors",
+    },
   },
   errors: {
     denied: "You cannot do that on this request. Only the requester and its responders can.",
@@ -10950,6 +10956,8 @@ var support_default$1 = {
     conflict: "The request changed while you were looking at it. Reload to see its current state.",
     unexpected: "Support could not be reached. Try again in a moment.",
     loadFailed: "Support requests could not be loaded. Reload the page to try again.",
+    notFound:
+      "This request no longer exists or you can no longer see it. Reload to see current requests.",
   },
   preferences: {
     title: "Tours and tips",
@@ -10969,7 +10977,9 @@ var support_default$1 = {
       "{count, plural, =0 {No tips dismissed} one {# tip dismissed} other {# tips dismissed}}",
     resetDone: "Tips will show again on the pages they belong to.",
     replayReady: "The tour starts when you open its page.",
+    resetFailed: "Tips could not be reset. Try again in a moment.",
   },
+  openHelp: "Open help",
 };
 var ui_default$1 = {
   access: {
@@ -22703,6 +22713,12 @@ var support_default = {
     loadFailed: "No se pudo cargar la solicitud. Ciérrela e inténtelo de nuevo.",
     replied: "Respuesta enviada.",
     moved: "Pasó a {state}.",
+    fields: {
+      route: "Página",
+      appVersion: "Versión de la aplicación",
+      device: "Navegador y dispositivo",
+      recentErrors: "Errores recientes",
+    },
   },
   errors: {
     denied: "No puede hacer eso en esta solicitud. Solo el solicitante y sus responsables pueden.",
@@ -22711,6 +22727,8 @@ var support_default = {
     conflict: "La solicitud cambió mientras la veía. Vuelva a cargar para ver su estado actual.",
     unexpected: "No se pudo acceder a soporte. Inténtelo de nuevo en un momento.",
     loadFailed: "No se pudieron cargar las solicitudes de soporte. Vuelva a cargar la página.",
+    notFound:
+      "Esta solicitud ya no existe o ya no puede verla. Vuelva a cargar para ver las solicitudes actuales.",
   },
   preferences: {
     title: "Recorridos y consejos",
@@ -22730,7 +22748,9 @@ var support_default = {
       "{count, plural, =0 {Ningún consejo descartado} one {# consejo descartado} other {# consejos descartados}}",
     resetDone: "Los consejos volverán a mostrarse en sus páginas.",
     replayReady: "El recorrido comienza cuando abra su página.",
+    resetFailed: "No se pudieron restablecer los consejos. Inténtelo de nuevo en un momento.",
   },
+  openHelp: "Abrir la ayuda",
 };
 var ui_default = {
   access: {

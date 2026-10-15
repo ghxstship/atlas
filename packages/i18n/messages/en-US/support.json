@@ -86,7 +86,13 @@
     "notFound": "This request no longer exists or you can no longer see it.",
     "loadFailed": "The request could not be loaded. Close it and try again.",
     "replied": "Reply sent.",
-    "moved": "Moved to {state}."
+    "moved": "Moved to {state}.",
+    "fields": {
+      "route": "Page",
+      "appVersion": "App version",
+      "device": "Browser and device",
+      "recentErrors": "Recent errors"
+    }
   },
   "errors": {
     "denied": "You cannot do that on this request. Only the requester and its responders can.",
@@ -94,7 +100,8 @@
     "invalid": "Something is missing. Write a reply or a reason first.",
     "conflict": "The request changed while you were looking at it. Reload to see its current state.",
     "unexpected": "Support could not be reached. Try again in a moment.",
-    "loadFailed": "Support requests could not be loaded. Reload the page to try again."
+    "loadFailed": "Support requests could not be loaded. Reload the page to try again.",
+    "notFound": "This request no longer exists or you can no longer see it. Reload to see current requests."
   },
   "preferences": {
     "title": "Tours and tips",
@@ -111,6 +118,8 @@
     "resetTips": "Show all tips again",
     "tipsDismissed": "{count, plural, =0 {No tips dismissed} one {# tip dismissed} other {# tips dismissed}}",
     "resetDone": "Tips will show again on the pages they belong to.",
-    "replayReady": "The tour starts when you open its page."
-  }
+    "replayReady": "The tour starts when you open its page.",
+    "resetFailed": "Tips could not be reset. Try again in a moment."
+  },
+  "openHelp": "Open help"
 }

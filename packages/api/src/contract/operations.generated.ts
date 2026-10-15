@@ -5533,7 +5533,32 @@ export interface Components {
     collection_key: string;
     group_by_field?: string | null;
   };
+  SavedViewDefault: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    membership_id: string;
+    collection_key: string;
+    saved_view_id: string;
+  };
+  SavedViewDefaultCreate: { saved_view_id: string };
+  SavedViewDefaultPage: { data: Array<Components["SavedViewDefault"]>; next_cursor: string | null };
   SavedViewPage: { data: Array<Components["SavedView"]>; next_cursor: string | null };
+  SavedViewShare: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    saved_view_id: string;
+    team_id: string;
+  };
+  SavedViewShareCreate: { saved_view_id: string; team_id: string };
+  SavedViewSharePage: { data: Array<Components["SavedViewShare"]>; next_cursor: string | null };
   SavedViewUpdate: {
     name?: string;
     view_type?: string;
@@ -6061,6 +6086,80 @@ export interface Components {
   };
   SubscriptionPage: { data: Array<Components["Subscription"]>; next_cursor: string | null };
   SubscriptionUpdate: { plan_code?: string };
+  SupportTicket: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    membership_id: string;
+    ticket_number: string;
+    queue: "Organization" | "Platform";
+    category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
+    severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
+    subject: string;
+    body: string;
+    ticket_state: "Open" | "Waiting" | "Resolved" | "Closed";
+    channel: "In App" | "Email" | "Chat" | "Priority Queue" | "Dedicated Channel";
+    first_response_due_at: string | null;
+    first_responded_at: string | null;
+  };
+  SupportTicketDiagnostics: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    support_ticket_id: string;
+    consented_at: string;
+    route: string | null;
+    app_version: string | null;
+    device: string | null;
+    recent_errors: string | null;
+    screenshot_path: string | null;
+  };
+  SupportTicketDiagnosticsPage: {
+    data: Array<Components["SupportTicketDiagnostics"]>;
+    next_cursor: string | null;
+  };
+  SupportTicketMessage: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    support_ticket_id: string;
+    author_membership_id: string | null;
+    body: string;
+  };
+  SupportTicketMessagePage: {
+    data: Array<Components["SupportTicketMessage"]>;
+    next_cursor: string | null;
+  };
+  SupportTicketOpenRequest: {
+    queue: "Organization" | "Platform";
+    category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
+    severity?: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
+    subject: string;
+    body: string;
+    diagnostics?: {
+      consent: true;
+      route?: string;
+      app_version?: string;
+      device?: string;
+      recent_errors?: string;
+    };
+  };
+  SupportTicketPage: { data: Array<Components["SupportTicket"]>; next_cursor: string | null };
+  SupportTicketReplyRequest: { body: string };
+  SupportTicketTransitionRequest: {
+    expected_state: "Open" | "Waiting" | "Resolved" | "Closed";
+    to_state: "Open" | "Waiting" | "Resolved" | "Closed";
+    reason?: string;
+  };
   TagId: string;
   TalentPool: {
     id: string;
@@ -6333,7 +6432,41 @@ export interface Components {
     period_end: string;
   };
   TimesheetPage: { data: Array<Components["Timesheet"]>; next_cursor: string | null };
+  TipDismissal: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    membership_id: string;
+    tip_key: string;
+  };
+  TipDismissalCreate: { tip_key: string };
+  TipDismissalPage: { data: Array<Components["TipDismissal"]>; next_cursor: string | null };
   TouchpointId: string;
+  TourProgress: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    membership_id: string;
+    tour_key: string;
+    tour_state: "Offered" | "Started" | "Completed" | "Dismissed";
+    step: number;
+  };
+  TourProgressCreate: {
+    tour_key: string;
+    tour_state: "Offered" | "Started" | "Completed" | "Dismissed";
+    step: number;
+  };
+  TourProgressPage: { data: Array<Components["TourProgress"]>; next_cursor: string | null };
+  TourProgressUpdate: {
+    tour_state?: "Offered" | "Started" | "Completed" | "Dismissed";
+    step?: number;
+  };
   TrashItem: { subject_urn: string; deleted_at: string; purge_after: string };
   TrashItemPage: { data: Array<Components["TrashItem"]>; next_cursor: string | null };
   UnionLocalRate: {
@@ -20560,6 +20693,273 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
   };
+  "savedViewShares.list": {
+    module: "Platform";
+    method: "get";
+    path: "/saved-view-shares";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SavedViewSharePage"] };
+  };
+  "savedViewShares.create": {
+    module: "Platform";
+    method: "post";
+    path: "/saved-view-shares";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SavedViewShareCreate"];
+    responses: { 201: Components["SavedViewShare"] };
+  };
+  "savedViewShares.get": {
+    module: "Platform";
+    method: "get";
+    path: "/saved-view-shares/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SavedViewShare"] };
+  };
+  "savedViewShares.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/saved-view-shares/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "savedViewDefaults.list": {
+    module: "Platform";
+    method: "get";
+    path: "/saved-view-defaults";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SavedViewDefaultPage"] };
+  };
+  "savedViewDefaults.create": {
+    module: "Platform";
+    method: "post";
+    path: "/saved-view-defaults";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SavedViewDefaultCreate"];
+    responses: { 201: Components["SavedViewDefault"] };
+  };
+  "savedViewDefaults.get": {
+    module: "Platform";
+    method: "get";
+    path: "/saved-view-defaults/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SavedViewDefault"] };
+  };
+  "savedViewDefaults.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/saved-view-defaults/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "tourProgress.list": {
+    module: "Platform";
+    method: "get";
+    path: "/tour-progress";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TourProgressPage"] };
+  };
+  "tourProgress.create": {
+    module: "Platform";
+    method: "post";
+    path: "/tour-progress";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TourProgressCreate"];
+    responses: { 201: Components["TourProgress"] };
+  };
+  "tourProgress.get": {
+    module: "Platform";
+    method: "get";
+    path: "/tour-progress/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TourProgress"] };
+  };
+  "tourProgress.update": {
+    module: "Platform";
+    method: "patch";
+    path: "/tour-progress/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["TourProgressUpdate"];
+    responses: { 200: Components["TourProgress"] };
+  };
+  "tipDismissals.list": {
+    module: "Platform";
+    method: "get";
+    path: "/tip-dismissals";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TipDismissalPage"] };
+  };
+  "tipDismissals.create": {
+    module: "Platform";
+    method: "post";
+    path: "/tip-dismissals";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TipDismissalCreate"];
+    responses: { 201: Components["TipDismissal"] };
+  };
+  "tipDismissals.get": {
+    module: "Platform";
+    method: "get";
+    path: "/tip-dismissals/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TipDismissal"] };
+  };
+  "tipDismissals.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/tip-dismissals/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "supportTickets.list": {
+    module: "Platform";
+    method: "get";
+    path: "/support-tickets";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SupportTicketPage"] };
+  };
+  "supportTickets.open": {
+    module: "Platform";
+    method: "post";
+    path: "/support-tickets";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SupportTicketOpenRequest"];
+    responses: { 201: Components["SupportTicket"] };
+  };
+  "supportTickets.get": {
+    module: "Platform";
+    method: "get";
+    path: "/support-tickets/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SupportTicket"] };
+  };
+  "supportTickets.transition": {
+    module: "Platform";
+    method: "post";
+    path: "/support-tickets/{id}/transition";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SupportTicketTransitionRequest"];
+    responses: { 200: Components["SupportTicket"] };
+  };
+  "supportTickets.reply": {
+    module: "Platform";
+    method: "post";
+    path: "/support-tickets/{id}/reply";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SupportTicketReplyRequest"];
+    responses: { 201: Components["SupportTicketMessage"] };
+  };
+  "supportTicketMessages.list": {
+    module: "Platform";
+    method: "get";
+    path: "/support-ticket-messages";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SupportTicketMessagePage"] };
+  };
+  "supportTicketMessages.get": {
+    module: "Platform";
+    method: "get";
+    path: "/support-ticket-messages/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SupportTicketMessage"] };
+  };
+  "supportTicketDiagnostics.list": {
+    module: "Platform";
+    method: "get";
+    path: "/support-ticket-diagnostics";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SupportTicketDiagnosticsPage"] };
+  };
+  "supportTicketDiagnostics.get": {
+    module: "Platform";
+    method: "get";
+    path: "/support-ticket-diagnostics/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SupportTicketDiagnostics"] };
+  };
 }
 
 /** The operationIds of each module. */
@@ -21893,5 +22293,30 @@ export interface ModuleOperations {
     | "templates.delete"
     | "templateApplications.list"
     | "templateApplications.create"
-    | "templateApplications.get";
+    | "templateApplications.get"
+    | "savedViewShares.list"
+    | "savedViewShares.create"
+    | "savedViewShares.get"
+    | "savedViewShares.delete"
+    | "savedViewDefaults.list"
+    | "savedViewDefaults.create"
+    | "savedViewDefaults.get"
+    | "savedViewDefaults.delete"
+    | "tourProgress.list"
+    | "tourProgress.create"
+    | "tourProgress.get"
+    | "tourProgress.update"
+    | "tipDismissals.list"
+    | "tipDismissals.create"
+    | "tipDismissals.get"
+    | "tipDismissals.delete"
+    | "supportTickets.list"
+    | "supportTickets.open"
+    | "supportTickets.get"
+    | "supportTickets.transition"
+    | "supportTickets.reply"
+    | "supportTicketMessages.list"
+    | "supportTicketMessages.get"
+    | "supportTicketDiagnostics.list"
+    | "supportTicketDiagnostics.get";
 }
