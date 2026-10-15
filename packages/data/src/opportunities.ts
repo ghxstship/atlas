@@ -284,6 +284,7 @@ export interface ApplicationCard {
   readonly hasBid: boolean;
   readonly bidSealed: boolean;
   readonly bidTotalMinor: number | null;
+  readonly bidCurrencyCode: string | null;
   readonly engagementId: string | null;
 }
 
@@ -906,6 +907,7 @@ interface BoardRow {
   has_bid: boolean | null;
   bid_sealed: boolean | null;
   bid_total_minor: number | null;
+  bid_currency_code: string | null;
   engagement_id: string | null;
 }
 
@@ -939,6 +941,7 @@ function toCard(r: BoardRow): ApplicationCard {
     hasBid: Boolean(r.has_bid),
     bidSealed: Boolean(r.bid_sealed),
     bidTotalMinor: r.bid_total_minor,
+    bidCurrencyCode: r.bid_currency_code,
     engagementId: r.engagement_id,
   };
 }

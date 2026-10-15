@@ -22,7 +22,8 @@ select a.id as application_id, a.org_id, a.opportunity_id, o.title as opportunit
   (b.id is not null) as has_bid,
   (b.id is not null and not private.bid_readable_by_org(a.id)) as bid_sealed,
   case when b.id is not null and private.bid_readable_by_org(a.id) then bt.total_minor end as bid_total_minor,
-  (select e.id from app.engagements e where e.application_id = a.id and e.deleted_at is null limit 1) as engagement_id
+  (select e.id from app.engagements e where e.application_id = a.id and e.deleted_at is null limit 1) as engagement_id,
+  b.currency_code as bid_currency_code
 from app.applications a
 join app.opportunities o on o.id = a.opportunity_id
 join app.projects pj on pj.id = o.project_id
@@ -53,7 +54,7 @@ call private.describe('app.application_board', 'Applications as the Pipeline boa
   'offer_currency_code', 'Currency of the terms in force.', 'offer_expires_at', 'When the terms in force lapse.',
   'has_bid', 'True when the applicant submitted a bid.', 'bid_sealed', 'True while the bid stays sealed for the reader.',
   'bid_total_minor', 'Bid total in minor units once unsealed; NULL while sealed or with an unpriced line.',
-  'engagement_id', 'Engagement created from the application.']);
+  'engagement_id', 'Engagement created from the application.', 'bid_currency_code', 'Currency of the bid.']);
 
 create or replace function private.open_blocking_count(p_engagement_id uuid)
 returns bigint

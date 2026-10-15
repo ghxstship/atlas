@@ -777,6 +777,7 @@ export type Database = {
           name: string | null;
           organization_type: string | null;
           slug: string | null;
+          verified: boolean | null;
         };
         ComputedFields: never;
         Insert: {
@@ -785,6 +786,7 @@ export type Database = {
           name?: string | null;
           organization_type?: string | null;
           slug?: string | null;
+          verified?: never;
         };
         Update: {
           account_id?: string | null;
@@ -792,6 +794,7 @@ export type Database = {
           name?: string | null;
           organization_type?: string | null;
           slug?: string | null;
+          verified?: never;
         };
         Relationships: [];
       };
@@ -1239,6 +1242,7 @@ export type Database = {
           opportunity_state: Database["app"]["Enums"]["opportunity_state"] | null;
           org_id: string | null;
           org_name: string | null;
+          org_verified: boolean | null;
           pay_max_minor: number | null;
           pay_min_minor: number | null;
           position_count: number | null;
@@ -35283,6 +35287,7 @@ export type Database = {
           application_id: string | null;
           application_state: Database["app"]["Enums"]["application_state"] | null;
           availability_confirmed: boolean | null;
+          bid_currency_code: string | null;
           bid_sealed: boolean | null;
           bid_total_minor: number | null;
           cover_note: string | null;
@@ -35350,6 +35355,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bids_currency_code_fkey";
+            columns: ["bid_currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
           },
           {
             foreignKeyName: "offer_versions_currency_code_fkey";
