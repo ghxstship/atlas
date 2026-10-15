@@ -7,6 +7,7 @@ import type { XosClient } from "@xos/data";
 import type { Components } from "../contract/operations.generated.ts";
 import { badRequest, notFound, refused } from "../problem.ts";
 import { requireOrg, requirePerson } from "../runtime/context.ts";
+import { assertIfMatch } from "../runtime/etag.ts";
 import { created, defineHandlers, ok } from "../runtime/handler.ts";
 import { decodeCursor, pageSize, toPage } from "../runtime/pagination.ts";
 
@@ -410,15 +411,31 @@ export const handlers = defineHandlers("Identity", {
   "personProfiles.get": async ({ params }, { db }) =>
     ok(toPersonProfile(await readPersonProfile(db, params.id))),
 
-  "personProfiles.create": async (_request, context) => {
-    requirePerson(context);
+  "personProfiles.create": async ({ body }, context) => {
+    const person = requirePerson(context);
+    if (body.person_id !== person) {
+      throw refused("REFUSE", "A person creates only their own profile.", "profile_owner_only");
+    }
     const { data, error } = await context.db.rpc("ensure_my_profile");
     if (error !== null) throw error;
+    const saved = await context.db
+      .from("person_profiles")
+      .update({
+        headline: body.headline ?? null,
+        bio: body.bio ?? null,
+        pronouns: body.pronouns ?? null,
+        city: body.locality ?? null,
+        country_code: body.country ?? null,
+        visibility: body.visibility,
+        search_indexing: body.search_indexing,
+      })
+      .eq("id", data);
+    if (saved.error !== null) throw saved.error;
     return created(toPersonProfile(await readPersonProfile(context.db, data)));
   },
 
-  "personProfiles.update": async ({ params, body }, { db }) => {
-    await readPersonProfile(db, params.id);
+  "personProfiles.update": async ({ params, body, ifMatch }, { db }) => {
+    assertIfMatch(ifMatch ?? "*", toPersonProfile(await readPersonProfile(db, params.id)));
     const { error } = await db
       .from("person_profiles")
       .update({
@@ -454,17 +471,25 @@ export const handlers = defineHandlers("Identity", {
   "organizationProfiles.get": async ({ params }, { db }) =>
     ok(toOrganizationProfile(await readOrgProfile(db, params.id))),
 
-  "organizationProfiles.create": async (_request, context) => {
-    const org = requireOrg(context);
+  "organizationProfiles.create": async ({ body }, context) => {
     const { data, error } = await context.db.rpc("ensure_organization_profile", {
-      p_org_id: org.id,
+      p_org_id: body.organization_id,
     });
     if (error !== null) throw error;
+    const saved = await context.db
+      .from("organization_profiles")
+      .update({
+        about: body.about ?? null,
+        visibility: body.visibility,
+        search_indexing: body.search_indexing,
+      })
+      .eq("id", data);
+    if (saved.error !== null) throw saved.error;
     return created(toOrganizationProfile(await readOrgProfile(context.db, data)));
   },
 
-  "organizationProfiles.update": async ({ params, body }, { db }) => {
-    await readOrgProfile(db, params.id);
+  "organizationProfiles.update": async ({ params, body, ifMatch }, { db }) => {
+    assertIfMatch(ifMatch ?? "*", toOrganizationProfile(await readOrgProfile(db, params.id)));
     const { data, error } = await db
       .from("organization_profiles")
       .update({
@@ -513,8 +538,9 @@ export const handlers = defineHandlers("Identity", {
     return ok(toChecklist(row, await openRecordCounts(db, [row.id])));
   },
 
-  "offboardingChecklists.update": async ({ params, body }, { db }) => {
+  "offboardingChecklists.update": async ({ params, body, ifMatch }, { db }) => {
     const row = await readOffboarding(db, params.id);
+    assertIfMatch(ifMatch ?? "*", toChecklist(row, await openRecordCounts(db, [row.id])));
     const to = body.reassign_to_person_id ?? null;
     if (to !== null) {
       const { error } = await db.rpc("reassign_offboarding_records", {

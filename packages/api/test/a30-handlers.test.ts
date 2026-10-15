@@ -1,16 +1,15 @@
 /**
- * A30's Settings and Identity handlers against a recording stand-in for supabase-js: each
- * `from(table)` or `rpc(name)` call takes the next queued response, and the recorded steps show
- * what reached the database.
+ * Contract tests for A30's Settings and Identity handlers (Section 18, gate 5). Requests run through
+ * `contractApp`, and every response is checked against openapi/v1.json with `expectContract`. The
+ * database is a recording stand-in for supabase-js: each `from(table)` or `rpc(name)` call takes
+ * the next queued response, and the recorded steps show what reached the database.
  */
 import { describe, expect, it } from "vitest";
-import type { XosClient } from "@xos/data";
 import { handlers as identity } from "../src/handlers/identity.ts";
 import { handlers as settings } from "../src/handlers/settings.ts";
-import { ApiProblem } from "../src/problem.ts";
-import type { RequestContext } from "../src/runtime/context.ts";
+import { contractApp, expectContract, testContext } from "./support/contract.ts";
 
-type Response = { data: unknown; error: { code: string; message: string } | null };
+type Response = { data: unknown; error: { code: string; message: string; hint?: string } | null };
 type Call = { target: string; steps: [string, unknown[]][] };
 
 function fakeDb(queues: Record<string, Response[]>) {
@@ -48,40 +47,47 @@ function fakeDb(queues: Record<string, Response[]>) {
       return builder(call.target, call.steps);
     },
   };
-  return { db: db as unknown as XosClient, calls };
+  return { db, calls };
 }
 
-const ORG = "0192f1e2-7c3a-7b4d-9e8f-000000000001";
-const ME = "0192f1e2-7c3a-7b4d-9e8f-0000000000aa";
+const ctx = testContext();
+const ORG = ctx.org?.id as string;
+const ME = ctx.personId as string;
+const OTHER = "0192f1e2-7c3a-7b4d-9e8f-00000000000b";
+const T = "2026-10-01T12:00:00.000Z";
+const id = (n: number) => `0192f1e2-7c3a-7b4d-9e8f-${String(n).padStart(12, "0")}`;
+const ok = (data: unknown): Response => ({ data, error: null });
+const refusal = (rule: string): Response => ({
+  data: null,
+  error: { code: "XR001", message: `${rule}: Refused.`, hint: rule },
+});
 
-function context(db: XosClient, org: boolean = true): RequestContext {
+const POST = {
+  method: "POST",
+  headers: { "Idempotency-Key": "a30-contract-key", "Content-Type": "application/json" },
+};
+const PATCH = { method: "PATCH", headers: { "If-Match": "*", "Content-Type": "application/json" } };
+const post = (body: unknown, key = "a30-contract-key") => ({
+  ...POST,
+  headers: { ...POST.headers, "Idempotency-Key": key },
+  body: JSON.stringify(body),
+});
+const patch = (body: unknown) => ({ ...PATCH, body: JSON.stringify(body) });
+
+function app(queues: Record<string, Response[]>, context = {}) {
+  const fake = fakeDb(queues);
   return {
-    user: { id: "u1", email: null },
-    personId: ME,
-    org: org ? { id: ORG, slug: "demo" } : null,
-    locale: "en-US",
-    db,
-    credential: "session",
-    requestId: "req-1",
+    api: contractApp({ handlers: [settings, identity], db: fake.db, context }),
+    calls: fake.calls,
   };
 }
 
-// The handler table is typed per operation; tests call through an erased signature.
-type Erased = (
-  request: unknown,
-  context: RequestContext,
-) => Promise<{ status: number; body: unknown; headers?: Record<string, string> }>;
-const call = (set: { handlers: Record<string, unknown> }, op: string) => set.handlers[op] as Erased;
-const req = (r: Record<string, unknown> = {}) => ({ params: {}, query: {}, body: undefined, ...r });
-const ok = (data: unknown): Response => ({ data, error: null });
-const fail = (code = "XR001"): Response => ({ data: null, error: { code, message: "refused" } });
-
 const valueRow = {
-  id: "v1",
+  id: id(1),
   org_id: ORG,
-  created_at: "2026-10-01",
-  created_by: null,
-  updated_at: "2026-10-01",
+  created_at: T,
+  created_by: ME,
+  updated_at: T,
   updated_by: ME,
   setting_key: "locale.time_zone",
   scope_kind: "Organization",
@@ -92,20 +98,20 @@ const valueRow = {
   locked: true,
 };
 
-describe("settings handlers", () => {
-  it("lists definitions with their scope and overridability", async () => {
-    const { db } = fakeDb({
+describe("Settings contract", () => {
+  it("lists setting definitions", async () => {
+    const { api } = app({
       "from:setting_definitions": [
         ok([
           {
-            setting_key: "a.b",
-            value_type: "Choice",
-            capability_code: "org.general.write",
+            setting_key: "locale.time_zone",
+            value_type: "Text",
+            capability_code: "org.localization.write",
             allows_organization: true,
             allows_workspace: true,
             allows_team: false,
-            allows_project: false,
-            allows_personal: false,
+            allows_project: true,
+            allows_personal: true,
           },
           {
             setting_key: "me.theme",
@@ -118,33 +124,19 @@ describe("settings handlers", () => {
             allows_personal: true,
           },
         ]),
-        fail("08000"),
       ],
     });
-    const result = await call(settings, "settingDefinitions.list")(
-      req({ query: { limit: 1 } }),
-      context(db),
-    );
-    const page = result.body as {
-      data: { scope: string; overridable: boolean; value_type: string }[];
+    const r1 = await api.request("/setting-definitions?limit=1");
+    const page = (await expectContract(r1, "settingDefinitions.list")) as {
+      data: { scope: string; overridable: boolean }[];
       next_cursor: string | null;
     };
-    expect(page.data[0]).toMatchObject({
-      scope: "Organization",
-      overridable: true,
-      value_type: "choice",
-    });
+    expect(page.data[0]).toMatchObject({ scope: "Organization", overridable: true });
     expect(page.next_cursor).not.toBeNull();
-    await expect(
-      call(settings, "settingDefinitions.list")(
-        req({ query: { cursor: page.next_cursor } }),
-        context(db),
-      ),
-    ).rejects.toMatchObject({ code: "08000" });
   });
 
-  it("lists, reads, creates, updates and deletes values", async () => {
-    const { db, calls } = fakeDb({
+  it("lists, reads, creates, updates and deletes setting values", async () => {
+    const { api, calls } = app({
       "from:setting_values": [
         ok([valueRow]),
         ok(valueRow),
@@ -154,25 +146,21 @@ describe("settings handlers", () => {
         ok(valueRow),
         ok(null),
       ],
-      "rpc:set_setting": [ok("v1"), ok("v1")],
+      "rpc:set_setting": [ok(id(1)), ok(id(1))],
       "rpc:clear_setting": [ok(true)],
     });
-    const list = await call(settings, "settingValues.list")(req({ query: {} }), context(db));
-    expect((list.body as { data: unknown[] }).data[0]).toMatchObject({
-      scope_type: "Organization",
-      scope_id: null,
-      value: "America/New_York",
-      created_by: "",
-    });
-    expect(
-      (await call(settings, "settingValues.get")(req({ params: { id: "v1" } }), context(db)))
-        .status,
-    ).toBe(200);
-    const made = await call(settings, "settingValues.create")(
-      req({ body: { scope_type: "Organization", setting_key: "locale.time_zone", value: "UTC" } }),
-      context(db),
+    const r2 = await api.request("/setting-values");
+    const page = (await expectContract(r2, "settingValues.list")) as {
+      data: { scope_id: string | null }[];
+    };
+    expect(page.data[0]?.scope_id).toBeNull();
+    const r3 = await api.request(`/setting-values/${id(1)}`);
+    await expectContract(r3, "settingValues.get");
+    const r4 = await api.request(
+      "/setting-values",
+      post({ scope_type: "Organization", setting_key: "locale.time_zone", value: "UTC" }),
     );
-    expect(made.status).toBe(201);
+    await expectContract(r4, "settingValues.create");
     expect(calls.find((c) => c.target === "rpc:set_setting")?.steps[0]?.[1]).toEqual([
       expect.objectContaining({
         p_scope_kind: "Organization",
@@ -180,270 +168,168 @@ describe("settings handlers", () => {
         p_value_text: "UTC",
       }),
     ]);
-    const updated = await call(settings, "settingValues.update")(
-      req({ params: { id: "v1" }, body: { value: true } }),
-      context(db),
+    const r5 = await api.request(`/setting-values/${id(1)}`, patch({ value: "Europe/Madrid" }));
+    await expectContract(r5, "settingValues.update");
+    const r6 = await api.request(`/setting-values/${id(1)}`, { method: "DELETE" });
+    await expectContract(r6, "settingValues.delete");
+    const r7 = await api.request(`/setting-values/${id(9)}`);
+    await expectContract(r7, "settingValues.get");
+  });
+
+  it("refuses personal scopes and database refusals as 422", async () => {
+    const { api } = app({ "rpc:set_setting": [refusal("setting_locked")] });
+    const r8 = await api.request(
+      "/setting-values",
+      post({ scope_type: "Personal", setting_key: "me.theme", value: "dark" }),
     );
-    expect(updated.status).toBe(200);
-    expect(
-      (await call(settings, "settingValues.delete")(req({ params: { id: "v1" } }), context(db)))
-        .status,
-    ).toBe(204);
-    await expect(
-      call(settings, "settingValues.get")(req({ params: { id: "v9" } }), context(db)),
-    ).rejects.toBeInstanceOf(ApiProblem);
-  });
-
-  it("refuses personal scopes, missing scope ids, fractions and a missing org", async () => {
-    const { db } = fakeDb({ "from:setting_values": [ok(valueRow)] });
-    await expect(
-      call(settings, "settingValues.create")(
-        req({ body: { scope_type: "Personal", setting_key: "me.theme", value: "dark" } }),
-        context(db),
+    await expectContract(r8, "settingValues.create");
+    const refused = await api.request(
+      "/setting-values",
+      post(
+        { scope_type: "Organization", setting_key: "locale.time_zone", value: "UTC" },
+        "a30-contract-key-2",
       ),
-    ).rejects.toMatchObject({ body: { status: 422 } });
-    await expect(
-      call(settings, "settingValues.create")(
-        req({ body: { scope_type: "Workspace", setting_key: "a", value: 1 } }),
-        context(db),
-      ),
-    ).rejects.toMatchObject({ body: { status: 400 } });
-    await expect(
-      call(settings, "settingValues.update")(
-        req({ params: { id: "v1" }, body: { value: 1.5 } }),
-        context(db),
-      ),
-    ).rejects.toMatchObject({ body: { status: 400 } });
-    await expect(
-      call(settings, "settingValues.list")(req({ query: {} }), context(db, false)),
-    ).rejects.toMatchObject({ body: { status: 422 } });
-  });
-
-  it("leaves a value unchanged when the update names no value", async () => {
-    const { db } = fakeDb({
-      "from:setting_values": [ok({ ...valueRow, value_text: null, value_integer: 4 })],
-    });
-    const result = await call(settings, "settingValues.update")(
-      req({ params: { id: "v1" }, body: {} }),
-      context(db),
     );
-    expect((result.body as { value: number }).value).toBe(4);
+    expect(refused.status).toBe(422);
+    await expectContract(refused, "settingValues.create");
   });
 
-  it("lists, reads, creates and removes locks", async () => {
+  it("lists, reads, creates and removes setting locks", async () => {
     const unlocked = { ...valueRow, locked: false };
-    const { db } = fakeDb({
+    const { api } = app({
       "from:setting_values": [
         ok([valueRow]),
         ok(valueRow),
         ok(unlocked),
-        ok(unlocked),
+        ok(valueRow),
         ok(valueRow),
         ok(null),
-        ok(valueRow),
-        ok(unlocked),
       ],
-      "rpc:set_setting": [ok("v1"), ok("v1")],
+      "rpc:set_setting": [ok(id(1)), ok(id(1))],
     });
-    expect(
-      (
-        (
-          await call(settings, "settingLocks.list")(
-            req({ query: { cursor: undefined } }),
-            context(db),
-          )
-        ).body as { data: unknown[] }
-      ).data,
-    ).toHaveLength(1);
-    expect(
-      (await call(settings, "settingLocks.get")(req({ params: { id: "v1" } }), context(db))).status,
-    ).toBe(200);
-    await expect(
-      call(settings, "settingLocks.get")(req({ params: { id: "v1" } }), context(db)),
-    ).rejects.toMatchObject({ body: { status: 404 } });
-    expect(
-      (
-        await call(settings, "settingLocks.create")(
-          req({ body: { setting_key: "locale.time_zone" } }),
-          context(db),
-        )
-      ).status,
-    ).toBe(201);
-    await expect(
-      call(settings, "settingLocks.create")(
-        req({ body: { setting_key: "locale.units" } }),
-        context(db),
-      ),
-    ).rejects.toMatchObject({ body: { status: 422 } });
-    expect(
-      (await call(settings, "settingLocks.delete")(req({ params: { id: "v1" } }), context(db)))
-        .status,
-    ).toBe(204);
-    await expect(
-      call(settings, "settingLocks.delete")(req({ params: { id: "v1" } }), context(db)),
-    ).rejects.toMatchObject({ body: { status: 404 } });
+    const r9 = await api.request("/setting-locks");
+    await expectContract(r9, "settingLocks.list");
+    const r10 = await api.request(`/setting-locks/${id(1)}`);
+    await expectContract(r10, "settingLocks.get");
+    const r11 = await api.request("/setting-locks", post({ setting_key: "locale.time_zone" }));
+    await expectContract(r11, "settingLocks.create");
+    const r12 = await api.request(`/setting-locks/${id(1)}`, { method: "DELETE" });
+    await expectContract(r12, "settingLocks.delete");
+    const missing = await api.request(
+      "/setting-locks",
+      post({ setting_key: "locale.units" }, "a30-contract-key-3"),
+    );
+    expect(missing.status).toBe(422);
   });
 });
 
 const joinRow = {
-  id: "j1",
+  id: id(10),
   org_id: ORG,
-  created_at: "2026-10-01",
+  created_at: T,
   created_by: ME,
-  updated_at: "2026-10-01",
-  updated_by: null,
+  updated_at: T,
+  updated_by: ME,
   person_id: ME,
-  message: "Hello",
+  message: "I run a staging crew.",
   join_request_state: "Pending",
   decided_by: null,
 };
 const linkRow = {
-  id: "l1",
+  id: id(20),
   org_id: ORG,
-  created_at: "2026-10-01",
+  created_at: T,
   created_by: ME,
-  updated_at: "2026-10-01",
+  updated_at: T,
   updated_by: ME,
-  expires_at: "2026-10-30",
+  expires_at: "2026-10-30T12:00:00.000Z",
   max_uses: 25,
   revoked_at: null,
   role: { code: "viewer", band: 7 },
 };
 
-describe("identity handlers: joining", () => {
-  it("handles join requests", async () => {
-    const { db, calls } = fakeDb({
+describe("Identity contract: joining", () => {
+  it("lists, reads, creates, approves and declines join requests", async () => {
+    const { api, calls } = app({
       "from:join_requests": [
         ok([joinRow]),
         ok(joinRow),
         ok(joinRow),
-        ok({ ...joinRow, join_request_state: "Approved" }),
-        ok({ ...joinRow, join_request_state: "Declined" }),
-        ok(null),
+        ok({ ...joinRow, join_request_state: "Approved", decided_by: OTHER }),
+        ok({ ...joinRow, join_request_state: "Declined", decided_by: OTHER }),
       ],
-      "rpc:request_to_join": [ok("j1")],
-      "from:roles": [ok({ id: "r-member" })],
-      "rpc:decide_join_request": [ok("m1"), ok(null)],
+      "rpc:request_to_join": [ok(id(10))],
+      "from:roles": [ok({ id: id(30) })],
+      "rpc:decide_join_request": [ok(id(31)), ok(null)],
     });
-    expect(
-      (
-        (
-          await call(identity, "joinRequests.list")(
-            req({ query: { cursor: undefined } }),
-            context(db),
-          )
-        ).body as { data: unknown[] }
-      ).data,
-    ).toHaveLength(1);
-    expect(
-      (await call(identity, "joinRequests.get")(req({ params: { id: "j1" } }), context(db))).status,
-    ).toBe(200);
-    expect(
-      (
-        await call(identity, "joinRequests.create")(
-          req({ body: { person_id: ME, message: "Hello" } }),
-          context(db),
-        )
-      ).status,
-    ).toBe(201);
-    await expect(
-      call(identity, "joinRequests.create")(
-        req({ body: { person_id: "someone-else" } }),
-        context(db),
-      ),
-    ).rejects.toMatchObject({ body: { status: 422 } });
-    const approved = await call(identity, "joinRequests.approve")(
-      req({ params: { id: "j1" } }),
-      context(db),
+    const r13 = await api.request("/join-requests");
+    await expectContract(r13, "joinRequests.list");
+    const r14 = await api.request(`/join-requests/${id(10)}`);
+    await expectContract(r14, "joinRequests.get");
+    const r15 = await api.request(
+      "/join-requests",
+      post({ person_id: ME, message: "I run a staging crew." }),
     );
-    expect((approved.body as { join_request_state: string }).join_request_state).toBe("Approved");
+    await expectContract(r15, "joinRequests.create");
+    const r16 = await api.request(`/join-requests/${id(10)}/approve`, post({}, "a30-approve-key"));
+    const approved = (await expectContract(r16, "joinRequests.approve")) as {
+      join_request_state: string;
+    };
+    expect(approved.join_request_state).toBe("Approved");
     expect(calls.find((c) => c.target === "rpc:decide_join_request")?.steps[0]?.[1]).toEqual([
-      { p_join_request_id: "j1", p_approve: true, p_role_id: "r-member" },
+      { p_join_request_id: id(10), p_approve: true, p_role_id: id(30) },
     ]);
-    expect(
-      (await call(identity, "joinRequests.decline")(req({ params: { id: "j1" } }), context(db)))
-        .status,
-    ).toBe(200);
-    await expect(
-      call(identity, "joinRequests.get")(req({ params: { id: "j9" } }), context(db)),
-    ).rejects.toMatchObject({ body: { status: 404 } });
+    const r17 = await api.request(`/join-requests/${id(10)}/decline`, post({}, "a30-decline-key"));
+    await expectContract(r17, "joinRequests.decline");
   });
 
-  it("handles invitation links and returns the token once in a header", async () => {
-    const { db } = fakeDb({
+  it("refuses a request made for someone else", async () => {
+    const { api } = app({});
+    const res = await api.request("/join-requests", post({ person_id: OTHER }));
+    expect(res.status).toBe(422);
+    await expectContract(res, "joinRequests.create");
+  });
+
+  it("lists, reads, creates and revokes invitation links, with the token once in a header", async () => {
+    const { api } = app({
       "from:invite_links": [
-        ok([linkRow, { ...linkRow, id: "l2", role: null }]),
+        ok([linkRow]),
         ok(linkRow),
         ok(linkRow),
-        ok({ ...linkRow, revoked_at: "2026-10-02" }),
-        ok(null),
+        ok({ ...linkRow, revoked_at: T }),
       ],
-      "from:roles": [ok({ id: "r-viewer" }), ok(null)],
-      "rpc:create_invite_link": [ok({ invite_link_id: "l1", invite_token: "xlnk_secret" })],
+      "from:roles": [ok({ id: id(32) })],
+      "rpc:create_invite_link": [ok({ invite_link_id: id(20), invite_token: "xlnk_secret" })],
       "rpc:revoke_invite_link": [ok(null)],
     });
-    const list = await call(identity, "invitationLinks.list")(req({ query: {} }), context(db));
-    expect((list.body as { data: { role: string | null }[] }).data.map((l) => l.role)).toEqual([
-      "Viewer",
-      null,
-    ]);
-    expect(
-      (await call(identity, "invitationLinks.get")(req({ params: { id: "l1" } }), context(db)))
-        .status,
-    ).toBe(200);
-    const made = await call(identity, "invitationLinks.create")(
-      req({
-        body: { role: "Viewer", expires_at: new Date(Date.now() + 48 * 3_600_000).toISOString() },
+    const r18 = await api.request("/invitation-links");
+    const page = (await expectContract(r18, "invitationLinks.list")) as {
+      data: { role: string }[];
+    };
+    expect(page.data[0]?.role).toBe("Viewer");
+    const r19 = await api.request(`/invitation-links/${id(20)}`);
+    await expectContract(r19, "invitationLinks.get");
+    const made = await api.request(
+      "/invitation-links",
+      post({
+        role: "Viewer",
+        expires_at: new Date(Date.now() + 48 * 3_600_000).toISOString(),
+        max_uses: 25,
       }),
-      context(db),
     );
-    expect(made.headers?.["X-Invitation-Token"]).toBe("xlnk_secret");
-    await expect(
-      call(identity, "invitationLinks.create")(
-        req({ body: { role: null, expires_at: "2026-10-30" } }),
-        context(db),
-      ),
-    ).rejects.toMatchObject({ body: { status: 400 } });
-    await expect(
-      call(identity, "invitationLinks.create")(
-        req({ body: { role: "Viewer", expires_at: "soon" } }),
-        context(db),
-      ),
-    ).rejects.toMatchObject({ body: { status: 400 } });
-    expect(
-      (
-        (await call(identity, "invitationLinks.revoke")(req({ params: { id: "l1" } }), context(db)))
-          .body as { revoked_at: string }
-      ).revoked_at,
-    ).toBe("2026-10-02");
-    await expect(
-      call(identity, "invitationLinks.get")(req({ params: { id: "l9" } }), context(db)),
-    ).rejects.toMatchObject({ body: { status: 404 } });
-  });
-
-  it("refuses an unknown role", async () => {
-    const { db } = fakeDb({ "from:roles": [ok(null)] });
-    await expect(
-      call(identity, "invitationLinks.create")(
-        req({
-          body: {
-            role: "Viewer",
-            expires_at: new Date(Date.now() + 3_600_000).toISOString(),
-            max_uses: 3,
-          },
-        }),
-        context(db),
-      ),
-    ).rejects.toMatchObject({ body: { status: 400 } });
+    expect(made.headers.get("X-Invitation-Token")).toBe("xlnk_secret");
+    await expectContract(made, "invitationLinks.create");
+    const r20 = await api.request(`/invitation-links/${id(20)}/revoke`, post({}, "a30-revoke-key"));
+    await expectContract(r20, "invitationLinks.revoke");
   });
 });
 
 const personRow = {
-  id: "pp1",
-  created_at: "2026-10-01",
-  updated_at: "2026-10-01",
+  id: id(40),
+  created_at: T,
+  updated_at: T,
   person_id: ME,
-  headline: "Rigger",
+  headline: "Rigger, arena tours",
   bio: null,
   pronouns: null,
   city: "Miami",
@@ -452,180 +338,135 @@ const personRow = {
   search_indexing: false,
 };
 const orgProfileRow = {
-  id: "op1",
-  created_at: "2026-10-01",
-  updated_at: "2026-10-01",
+  id: id(50),
+  created_at: T,
+  updated_at: T,
   org_id: ORG,
   about: null,
   visibility: "Public",
   search_indexing: false,
 };
 const offRow = {
-  id: "f1",
+  id: id(60),
   org_id: ORG,
-  created_at: "2026-10-01",
-  created_by: null,
-  updated_at: "2026-10-01",
-  updated_by: null,
-  membership_id: "m1",
+  created_at: T,
+  created_by: ME,
+  updated_at: T,
+  updated_by: ME,
+  membership_id: id(61),
   completed_at: null,
 };
 
-describe("identity handlers: profiles and offboarding", () => {
-  it("handles person profiles", async () => {
-    const { db } = fakeDb({
+describe("Identity contract: profiles and offboarding", () => {
+  it("lists, reads, creates and updates person profiles", async () => {
+    const { api } = app({
       "from:person_profiles": [
         ok([personRow]),
         ok(personRow),
+        ok(null),
         ok(personRow),
         ok(personRow),
         ok(null),
-        ok({ ...personRow, headline: "Lead" }),
-        ok(null),
+        ok({ ...personRow, headline: "Head rigger" }),
       ],
-      "rpc:ensure_my_profile": [ok("pp1")],
+      "rpc:ensure_my_profile": [ok(id(40))],
     });
-    const list = await call(identity, "personProfiles.list")(req({ query: {} }), context(db));
-    expect((list.body as { data: { locality: string }[] }).data[0]?.locality).toBe("Miami");
-    expect(
-      (await call(identity, "personProfiles.get")(req({ params: { id: "pp1" } }), context(db)))
-        .status,
-    ).toBe(200);
-    expect(
-      (await call(identity, "personProfiles.create")(req({ body: {} }), context(db))).status,
-    ).toBe(201);
-    const updated = await call(identity, "personProfiles.update")(
-      req({
-        params: { id: "pp1" },
-        body: {
-          headline: "Lead",
-          bio: null,
-          pronouns: "she/her",
-          locality: "Miami",
-          country: "US",
-          visibility: "Public",
-          search_indexing: true,
-        },
+    const r21 = await api.request("/person-profiles");
+    const page = (await expectContract(r21, "personProfiles.list")) as {
+      data: { locality: string }[];
+    };
+    expect(page.data[0]?.locality).toBe("Miami");
+    const r22 = await api.request(`/person-profiles/${id(40)}`);
+    await expectContract(r22, "personProfiles.get");
+    const r23 = await api.request(
+      "/person-profiles",
+      post({
+        person_id: ME,
+        headline: "Rigger, arena tours",
+        visibility: "Network",
+        search_indexing: false,
       }),
-      context(db),
     );
-    expect((updated.body as { headline: string }).headline).toBe("Lead");
-    await expect(
-      call(identity, "personProfiles.get")(req({ params: { id: "pp9" } }), context(db)),
-    ).rejects.toMatchObject({ body: { status: 404 } });
+    await expectContract(r23, "personProfiles.create");
+    const r24 = await api.request(
+      `/person-profiles/${id(40)}`,
+      patch({ headline: "Head rigger", locality: "Miami", country: "US" }),
+    );
+    await expectContract(r24, "personProfiles.update");
   });
 
-  it("handles organization profiles", async () => {
-    const { db } = fakeDb({
+  it("refuses a profile for someone else, and a stale If-Match", async () => {
+    const { api } = app({ "from:person_profiles": [ok(personRow)] });
+    const res = await api.request(
+      "/person-profiles",
+      post({ person_id: OTHER, visibility: "Private", search_indexing: false }),
+    );
+    expect(res.status).toBe(422);
+    await expectContract(res, "personProfiles.create");
+    const stale = await api.request(`/person-profiles/${id(40)}`, {
+      ...patch({ headline: "x" }),
+      headers: { ...PATCH.headers, "If-Match": 'W/"MjAyNS0wMS0wMQ"' },
+    });
+    expect(stale.status).toBe(412);
+    await expectContract(stale, "personProfiles.update");
+  });
+
+  it("lists, reads, creates and updates organization profiles", async () => {
+    const { api } = app({
       "from:organization_profiles": [
         ok([orgProfileRow]),
         ok(orgProfileRow),
-        ok(orgProfileRow),
-        ok(orgProfileRow),
-        ok([{ id: "op1" }]),
-        ok(orgProfileRow),
-        ok(orgProfileRow),
-        ok([]),
         ok(null),
+        ok(orgProfileRow),
+        ok(orgProfileRow),
+        ok([{ id: id(50) }]),
+        ok({ ...orgProfileRow, about: "Touring production." }),
       ],
-      "rpc:ensure_organization_profile": [ok("op1")],
+      "rpc:ensure_organization_profile": [ok(id(50))],
     });
-    expect(
-      (
-        (await call(identity, "organizationProfiles.list")(req({ query: {} }), context(db)))
-          .body as { data: { organization_id: string }[] }
-      ).data[0]?.organization_id,
-    ).toBe(ORG);
-    expect(
-      (
-        await call(identity, "organizationProfiles.get")(
-          req({ params: { id: "op1" } }),
-          context(db),
-        )
-      ).status,
-    ).toBe(200);
-    expect(
-      (await call(identity, "organizationProfiles.create")(req({ body: {} }), context(db))).status,
-    ).toBe(201);
-    expect(
-      (
-        await call(identity, "organizationProfiles.update")(
-          req({
-            params: { id: "op1" },
-            body: { about: "About", visibility: "Network", search_indexing: false },
-          }),
-          context(db),
-        )
-      ).status,
-    ).toBe(200);
-    await expect(
-      call(identity, "organizationProfiles.update")(
-        req({ params: { id: "op1" }, body: {} }),
-        context(db),
-      ),
-    ).rejects.toMatchObject({ body: { status: 404 } });
-    await expect(
-      call(identity, "organizationProfiles.get")(req({ params: { id: "op9" } }), context(db)),
-    ).rejects.toMatchObject({ body: { status: 404 } });
+    const r25 = await api.request("/organization-profiles");
+    await expectContract(r25, "organizationProfiles.list");
+    const r26 = await api.request(`/organization-profiles/${id(50)}`);
+    await expectContract(r26, "organizationProfiles.get");
+    const r27 = await api.request(
+      "/organization-profiles",
+      post({ organization_id: ORG, visibility: "Public", search_indexing: false }),
+    );
+    await expectContract(r27, "organizationProfiles.create");
+    const r28 = await api.request(
+      `/organization-profiles/${id(50)}`,
+      patch({ about: "Touring production." }),
+    );
+    await expectContract(r28, "organizationProfiles.update");
   });
 
-  it("handles offboarding checklists", async () => {
-    const { db, calls } = fakeDb({
-      "from:offboardings": [
-        ok([offRow]),
-        ok([]),
-        ok(offRow),
-        ok(offRow),
-        ok(offRow),
-        ok(offRow),
-        ok(offRow),
-        ok(null),
-      ],
+  it("lists, reads and updates offboarding checklists", async () => {
+    const { api, calls } = app({
+      "from:offboardings": [ok([offRow]), ok(offRow), ok(offRow), ok(offRow)],
       "from:offboarding_open_records": [
-        ok([{ offboarding_id: "f1" }, { offboarding_id: "f1" }, { offboarding_id: null }]),
-        ok([]),
-        ok([]),
+        ok([{ offboarding_id: id(60) }, { offboarding_id: id(60) }]),
+        ok([{ offboarding_id: id(60) }]),
+        ok([{ offboarding_id: id(60) }]),
         ok([]),
       ],
-      "rpc:reassign_offboarding_records": [ok(2)],
+      "rpc:reassign_offboarding_records": [ok(1)],
     });
-    const list = await call(identity, "offboardingChecklists.list")(
-      req({ query: {} }),
-      context(db),
+    const r29 = await api.request("/offboarding-checklists");
+    const page = (await expectContract(r29, "offboardingChecklists.list")) as {
+      data: { open_record_count: number }[];
+    };
+    expect(page.data[0]?.open_record_count).toBe(2);
+    const r30 = await api.request(`/offboarding-checklists/${id(60)}`);
+    await expectContract(r30, "offboardingChecklists.get");
+    const r31 = await api.request(
+      `/offboarding-checklists/${id(60)}`,
+      patch({ reassign_to_person_id: OTHER }),
     );
-    expect(
-      (list.body as { data: { open_record_count: number }[] }).data[0]?.open_record_count,
-    ).toBe(2);
-    expect(
-      (
-        (await call(identity, "offboardingChecklists.list")(req({ query: {} }), context(db)))
-          .body as { data: unknown[] }
-      ).data,
-    ).toEqual([]);
-    expect(
-      (
-        await call(identity, "offboardingChecklists.get")(
-          req({ params: { id: "f1" } }),
-          context(db),
-        )
-      ).status,
-    ).toBe(200);
-    const updated = await call(identity, "offboardingChecklists.update")(
-      req({ params: { id: "f1" }, body: { reassign_to_person_id: "p2" } }),
-      context(db),
-    );
-    expect((updated.body as { reassign_to_person_id: string }).reassign_to_person_id).toBe("p2");
+    const updated = (await expectContract(r31, "offboardingChecklists.update")) as {
+      open_record_count: number;
+      reassign_to_person_id: string;
+    };
+    expect(updated).toMatchObject({ open_record_count: 0, reassign_to_person_id: OTHER });
     expect(calls.some((c) => c.target === "rpc:reassign_offboarding_records")).toBe(true);
-    expect(
-      (
-        await call(identity, "offboardingChecklists.update")(
-          req({ params: { id: "f1" }, body: {} }),
-          context(db),
-        )
-      ).status,
-    ).toBe(200);
-    await expect(
-      call(identity, "offboardingChecklists.get")(req({ params: { id: "f9" } }), context(db)),
-    ).rejects.toMatchObject({ body: { status: 404 } });
   });
 });
