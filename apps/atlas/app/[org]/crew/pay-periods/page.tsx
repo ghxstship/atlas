@@ -43,13 +43,22 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const manage = crew.can("crew.pay_period.manage");
   const exportAllowed = await planHasFeature(crew.ctx, "payroll_export");
   const range = (a: string, b: string) =>
-    format.dateTimeRange(new Date(`${a}T12:00:00Z`), new Date(`${b}T12:00:00Z`), { timeZone: "UTC", dateStyle: "medium" });
+    format.dateTimeRange(new Date(`${a}T12:00:00Z`), new Date(`${b}T12:00:00Z`), {
+      timeZone: "UTC",
+      dateStyle: "medium",
+    });
   const back = withParams(base, search, { peek: null, full: null });
 
   let peek = null;
   const peekId = search["peek"];
   if (peekId?.startsWith("run:")) {
-    peek = await PayrollRunRecord({ crew, runId: peekId.slice(4), mode: search["full"] === "1" ? "full" : "peek", backHref: back, exportAllowed });
+    peek = await PayrollRunRecord({
+      crew,
+      runId: peekId.slice(4),
+      mode: search["full"] === "1" ? "full" : "peek",
+      backHref: back,
+      exportAllowed,
+    });
     if (search["full"] === "1" && peek) return peek;
   } else if (peekId) {
     const detail = await getPayPeriod(db, peekId);
@@ -73,15 +82,46 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
               <>
                 {p.state === "Open" ? (
                   <>
-                    <ButtonLink href={withParams(base, search, { run: p.id })} size="sm" variant="primary">{t("crew.payroll.newRun")}</ButtonLink>
-                    <ButtonLink href={withParams(base, search, { peek: null, edit: p.id })} size="sm">{t("crew.common.edit")}</ButtonLink>
-                    <ConfirmButton label={t("crew.payroll.close")} title={t("crew.payroll.closeTitle")} defaultReason={t("crew.payroll.closeReason")} action={transitionPayPeriodAction} hidden={{ ...hidden, expected: "Open", next: "Closed" }} />
+                    <ButtonLink
+                      href={withParams(base, search, { run: p.id })}
+                      size="sm"
+                      variant="primary"
+                    >
+                      {t("crew.payroll.newRun")}
+                    </ButtonLink>
+                    <ButtonLink
+                      href={withParams(base, search, { peek: null, edit: p.id })}
+                      size="sm"
+                    >
+                      {t("crew.common.edit")}
+                    </ButtonLink>
+                    <ConfirmButton
+                      label={t("crew.payroll.close")}
+                      title={t("crew.payroll.closeTitle")}
+                      defaultReason={t("crew.payroll.closeReason")}
+                      action={transitionPayPeriodAction}
+                      hidden={{ ...hidden, expected: "Open", next: "Closed" }}
+                    />
                   </>
                 ) : null}
                 {p.state === "Closed" ? (
                   <>
-                    <ConfirmButton label={t("crew.payroll.post")} title={t("crew.payroll.postTitle")} description={t("crew.payroll.postHelp")} defaultReason={t("crew.payroll.postReason")} action={transitionPayPeriodAction} hidden={{ ...hidden, expected: "Closed", next: "Posted" }} variant="primary" />
-                    <ConfirmButton label={t("crew.payroll.reopen")} title={t("crew.payroll.reopenTitle")} defaultReason={t("crew.payroll.reopenReason")} action={transitionPayPeriodAction} hidden={{ ...hidden, expected: "Closed", next: "Open" }} />
+                    <ConfirmButton
+                      label={t("crew.payroll.post")}
+                      title={t("crew.payroll.postTitle")}
+                      description={t("crew.payroll.postHelp")}
+                      defaultReason={t("crew.payroll.postReason")}
+                      action={transitionPayPeriodAction}
+                      hidden={{ ...hidden, expected: "Closed", next: "Posted" }}
+                      variant="primary"
+                    />
+                    <ConfirmButton
+                      label={t("crew.payroll.reopen")}
+                      title={t("crew.payroll.reopenTitle")}
+                      defaultReason={t("crew.payroll.reopenReason")}
+                      action={transitionPayPeriodAction}
+                      hidden={{ ...hidden, expected: "Closed", next: "Open" }}
+                    />
                   </>
                 ) : null}
               </>
@@ -94,16 +134,30 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           ]}
         >
           <section aria-labelledby="period-runs" className="flex flex-col gap-8">
-            <h2 id="period-runs" className="m-0 text-text-13 font-semibold">{t("crew.payroll.runs")}</h2>
+            <h2 id="period-runs" className="m-0 text-text-13 font-semibold">
+              {t("crew.payroll.runs")}
+            </h2>
             {p.runs.length === 0 ? (
-              <p className="m-0 text-text-12 text-text-secondary">{p.state === "Open" ? t("crew.payroll.noRunsOpen") : t("crew.payroll.noRuns")}</p>
+              <p className="m-0 text-text-12 text-text-secondary">
+                {p.state === "Open" ? t("crew.payroll.noRunsOpen") : t("crew.payroll.noRuns")}
+              </p>
             ) : (
               <ul className="m-0 flex list-none flex-col gap-4 p-0">
                 {p.runs.map((r) => (
                   <li key={r.id}>
-                    <Link href={withParams(base, search, { peek: `run:${r.id}` }) as Route} className="flex items-center justify-between gap-8 rounded-card border border-border-subtle px-8 py-6 text-text-12 hover:bg-bg-hover">
-                      <span>{t("crew.payroll.runLine", { currency: r.currencyCode, at: format.dateTime(new Date(r.createdAt), { dateStyle: "medium" }) })}</span>
-                      <span className="text-text-secondary">{t(`crew.states.payrollRun.${r.state}`)}</span>
+                    <Link
+                      href={withParams(base, search, { peek: `run:${r.id}` }) as Route}
+                      className="flex items-center justify-between gap-8 rounded-card border border-border-subtle px-8 py-6 text-text-12 hover:bg-bg-hover"
+                    >
+                      <span>
+                        {t("crew.payroll.runLine", {
+                          currency: r.currencyCode,
+                          at: format.dateTime(new Date(r.createdAt), { dateStyle: "medium" }),
+                        })}
+                      </span>
+                      <span className="text-text-secondary">
+                        {t(`crew.states.payrollRun.${r.state}`)}
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -121,7 +175,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
 
   // Drawers: a new period suggested after the latest one, edits while Open, and new runs.
   const latest = result.data[0];
-  const suggestStart = latest ? addDays(latest.endsOn, 1) : mondayOf(new Date().toISOString().slice(0, 10));
+  const suggestStart = latest
+    ? addDays(latest.endsOn, 1)
+    : mondayOf(new Date().toISOString().slice(0, 10));
   const editing = search["edit"] ? result.data.find((p) => p.id === search["edit"]) : undefined;
   const runFor = search["run"] ? result.data.find((p) => p.id === search["run"]) : undefined;
   const currencies = runFor ? await listCurrencies(db) : null;
@@ -134,8 +190,21 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         action={createPayPeriodAction}
         fields={[
           { kind: "hidden", name: "org", value: crew.slug },
-          { kind: "date", name: "startsOn", label: t("crew.payroll.firstDay"), value: suggestStart, required: true },
-          { kind: "date", name: "endsOn", label: t("crew.payroll.lastDay"), value: addDays(suggestStart, 13), required: true, help: t("crew.payroll.periodHelp") },
+          {
+            kind: "date",
+            name: "startsOn",
+            label: t("crew.payroll.firstDay"),
+            value: suggestStart,
+            required: true,
+          },
+          {
+            kind: "date",
+            name: "endsOn",
+            label: t("crew.payroll.lastDay"),
+            value: addDays(suggestStart, 13),
+            required: true,
+            help: t("crew.payroll.periodHelp"),
+          },
         ]}
       />
     );
@@ -148,8 +217,20 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         fields={[
           { kind: "hidden", name: "org", value: crew.slug },
           { kind: "hidden", name: "id", value: editing.id },
-          { kind: "date", name: "startsOn", label: t("crew.payroll.firstDay"), value: editing.startsOn, required: true },
-          { kind: "date", name: "endsOn", label: t("crew.payroll.lastDay"), value: editing.endsOn, required: true },
+          {
+            kind: "date",
+            name: "startsOn",
+            label: t("crew.payroll.firstDay"),
+            value: editing.startsOn,
+            required: true,
+          },
+          {
+            kind: "date",
+            name: "endsOn",
+            label: t("crew.payroll.lastDay"),
+            value: editing.endsOn,
+            required: true,
+          },
         ]}
       />
     );
@@ -163,7 +244,16 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         fields={[
           { kind: "hidden", name: "org", value: crew.slug },
           { kind: "hidden", name: "payPeriodId", value: runFor.id },
-          { kind: "select", name: "currencyCode", label: t("crew.rates.currency"), value: "USD", options: (currencies?.ok ? currencies.data : ["USD"]).map((c) => ({ value: c, label: c })) },
+          {
+            kind: "select",
+            name: "currencyCode",
+            label: t("crew.rates.currency"),
+            value: "USD",
+            options: (currencies?.ok ? currencies.data : ["USD"]).map((c) => ({
+              value: c,
+              label: c,
+            })),
+          },
         ]}
       />
     );
@@ -174,19 +264,45 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
     body = (
       <EmptyStateLink
         icon="CalendarRange"
-        sentence={stateFilter ? t("crew.swapsPage.emptyFiltered") : manage ? t("crew.payroll.emptyWriter") : t("crew.payroll.emptyReader")}
-        actionLabel={stateFilter ? t("crew.common.clearFilter") : manage ? t("crew.payroll.create") : t("crew.sheets.viewEntries")}
-        href={stateFilter ? withParams(base, search, { state: null }) : manage ? withParams(base, search, { create: "1" }) : `/${crew.slug}/crew/timesheets`}
+        sentence={
+          stateFilter
+            ? t("crew.swapsPage.emptyFiltered")
+            : manage
+              ? t("crew.payroll.emptyWriter")
+              : t("crew.payroll.emptyReader")
+        }
+        actionLabel={
+          stateFilter
+            ? t("crew.common.clearFilter")
+            : manage
+              ? t("crew.payroll.create")
+              : t("crew.sheets.viewEntries")
+        }
+        href={
+          stateFilter
+            ? withParams(base, search, { state: null })
+            : manage
+              ? withParams(base, search, { create: "1" })
+              : `/${crew.slug}/crew/timesheets`
+        }
       />
     );
   } else if (view === "list") {
     body = (
-      <ul aria-label={t("crew.payroll.periods")} className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0">
+      <ul
+        aria-label={t("crew.payroll.periods")}
+        className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0"
+      >
         {periods.map((p) => (
           <li key={p.id}>
-            <Link href={withParams(base, search, { peek: p.id }) as Route} className="flex items-center justify-between gap-8 px-12 py-8 hover:bg-bg-hover">
+            <Link
+              href={withParams(base, search, { peek: p.id }) as Route}
+              className="flex items-center justify-between gap-8 px-12 py-8 hover:bg-bg-hover"
+            >
               <span className="text-text-13 font-medium">{range(p.startsOn, p.endsOn)}</span>
-              <span className="text-text-12 text-text-secondary">{t(`crew.states.payPeriod.${p.state}`)}</span>
+              <span className="text-text-12 text-text-secondary">
+                {t(`crew.states.payPeriod.${p.state}`)}
+              </span>
             </Link>
           </li>
         ))}
@@ -205,7 +321,10 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           id: p.id,
           period: range(p.startsOn, p.endsOn),
           runs: p.runCount,
-          state: { state: stateIcon("payPeriod", p.state), label: t(`crew.states.payPeriod.${p.state}`) },
+          state: {
+            state: stateIcon("payPeriod", p.state),
+            label: t(`crew.states.payPeriod.${p.state}`),
+          },
         }))}
       />
     );
@@ -220,9 +339,29 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       search={search}
       count={periods.length}
       view={view}
-      {...(manage ? { actions: <ButtonLink href={withParams(base, search, { create: "1" })} variant="primary" size="sm">{t("crew.payroll.create")}</ButtonLink> } : {})}
+      {...(manage
+        ? {
+            actions: (
+              <ButtonLink
+                href={withParams(base, search, { create: "1" })}
+                variant="primary"
+                size="sm"
+              >
+                {t("crew.payroll.create")}
+              </ButtonLink>
+            ),
+          }
+        : {})}
       filters={
-        <FilterSelect name="state" label={t("crew.fields.state")} value={stateFilter ?? ""} options={[{ value: "", label: t("crew.common.allStates") }, ...PAY_PERIOD_STATES.map((v) => ({ value: v, label: t(`crew.states.payPeriod.${v}`) }))]} />
+        <FilterSelect
+          name="state"
+          label={t("crew.fields.state")}
+          value={stateFilter ?? ""}
+          options={[
+            { value: "", label: t("crew.common.allStates") },
+            ...PAY_PERIOD_STATES.map((v) => ({ value: v, label: t(`crew.states.payPeriod.${v}`) })),
+          ]}
+        />
       }
       peek={
         <>

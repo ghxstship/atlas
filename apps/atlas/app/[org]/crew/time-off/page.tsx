@@ -8,7 +8,11 @@ import {
 import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
-import { cancelTimeOffAction, decideTimeOffAction, requestTimeOffAction } from "@/app/[org]/crew/actions";
+import {
+  cancelTimeOffAction,
+  decideTimeOffAction,
+  requestTimeOffAction,
+} from "@/app/[org]/crew/actions";
 import { ConfirmButton, DrawerForm } from "@/components/crew/forms";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { CrewRecord } from "@/components/crew/record";
@@ -38,9 +42,13 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const stateFilter = TIME_OFF_STATES.find((s) => s === search["state"]);
   const [policiesResult, requestsResult] = await Promise.all([
     listTimeOffPolicies(db, crew.orgId),
-    listTimeOffRequests(db, { orgId: crew.orgId, ...(stateFilter ? { states: [stateFilter] } : {}) }),
+    listTimeOffRequests(db, {
+      orgId: crew.orgId,
+      ...(stateFilter ? { states: [stateFilter] } : {}),
+    }),
   ]);
-  if (!policiesResult.ok) throw new Error(`Cannot list time off policies: ${policiesResult.error.kind}`);
+  if (!policiesResult.ok)
+    throw new Error(`Cannot list time off policies: ${policiesResult.error.kind}`);
   if (!requestsResult.ok) throw new Error(`Cannot list time off: ${requestsResult.error.kind}`);
   const policies = policiesResult.data;
   const requests = requestsResult.data;
@@ -48,8 +56,13 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const canRequest = crew.can("crew.time_off.request") || canApprove;
   const name = (r: TimeOffRequest) => r.member.name ?? t("crew.common.unnamed");
   const days = (r: TimeOffRequest) =>
-    format.dateTimeRange(new Date(`${r.startsOn}T12:00:00Z`), new Date(`${r.endsOn}T12:00:00Z`), { timeZone: "UTC", month: "short", day: "numeric" });
-  const title = (r: TimeOffRequest) => t("crew.timeOff.title", { name: name(r), policy: r.policyName });
+    format.dateTimeRange(new Date(`${r.startsOn}T12:00:00Z`), new Date(`${r.endsOn}T12:00:00Z`), {
+      timeZone: "UTC",
+      month: "short",
+      day: "numeric",
+    });
+  const title = (r: TimeOffRequest) =>
+    t("crew.timeOff.title", { name: name(r), policy: r.policyName });
 
   let peek = null;
   if (search["peek"]) {
@@ -74,12 +87,32 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
             <>
               {r.state === "Proposed" && canApprove && !mine ? (
                 <>
-                  <ConfirmButton label={t("crew.swapsPage.approve")} title={t("crew.timeOff.approveTitle")} defaultReason={t("crew.timeOff.approveReason")} action={decideTimeOffAction} hidden={{ ...hidden, decision: "Approved" }} variant="primary" />
-                  <ConfirmButton label={t("crew.swapsPage.reject")} title={t("crew.timeOff.rejectTitle")} defaultReason={t("crew.timeOff.rejectReason")} action={decideTimeOffAction} hidden={{ ...hidden, decision: "Rejected" }} />
+                  <ConfirmButton
+                    label={t("crew.swapsPage.approve")}
+                    title={t("crew.timeOff.approveTitle")}
+                    defaultReason={t("crew.timeOff.approveReason")}
+                    action={decideTimeOffAction}
+                    hidden={{ ...hidden, decision: "Approved" }}
+                    variant="primary"
+                  />
+                  <ConfirmButton
+                    label={t("crew.swapsPage.reject")}
+                    title={t("crew.timeOff.rejectTitle")}
+                    defaultReason={t("crew.timeOff.rejectReason")}
+                    action={decideTimeOffAction}
+                    hidden={{ ...hidden, decision: "Rejected" }}
+                  />
                 </>
               ) : null}
               {(r.state === "Proposed" || r.state === "Approved") && (mine || canApprove) ? (
-                <ConfirmButton label={t("crew.timeOff.cancel")} title={t("crew.timeOff.cancelTitle")} defaultReason={t("crew.timeOff.cancelReason")} action={cancelTimeOffAction} hidden={{ ...hidden, expected: r.state }} variant="ghost" />
+                <ConfirmButton
+                  label={t("crew.timeOff.cancel")}
+                  title={t("crew.timeOff.cancelTitle")}
+                  defaultReason={t("crew.timeOff.cancelReason")}
+                  action={cancelTimeOffAction}
+                  hidden={{ ...hidden, expected: r.state }}
+                  variant="ghost"
+                />
               ) : null}
             </>
           }
@@ -109,12 +142,46 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         fields={[
           { kind: "hidden", name: "org", value: crew.slug },
           canApprove
-            ? { kind: "select", name: "membershipId", label: t("crew.fields.person"), value: crew.membershipId, options: members.map((m) => ({ value: m.membershipId, label: m.name ?? t("crew.common.unnamed") })) }
+            ? {
+                kind: "select",
+                name: "membershipId",
+                label: t("crew.fields.person"),
+                value: crew.membershipId,
+                options: members.map((m) => ({
+                  value: m.membershipId,
+                  label: m.name ?? t("crew.common.unnamed"),
+                })),
+              }
             : { kind: "hidden", name: "membershipId", value: crew.membershipId },
-          { kind: "select", name: "policyId", label: t("crew.timeOff.policy"), options: policies.map((p) => ({ value: p.id, label: p.name })) },
-          { kind: "date", name: "startsOn", label: t("crew.timeOff.firstDay"), value: today, required: true },
-          { kind: "date", name: "endsOn", label: t("crew.timeOff.lastDay"), value: today, required: true },
-          { kind: "number", name: "hours", label: t("crew.timeOff.hours"), value: "8", min: "0.5", step: "0.5", required: true },
+          {
+            kind: "select",
+            name: "policyId",
+            label: t("crew.timeOff.policy"),
+            options: policies.map((p) => ({ value: p.id, label: p.name })),
+          },
+          {
+            kind: "date",
+            name: "startsOn",
+            label: t("crew.timeOff.firstDay"),
+            value: today,
+            required: true,
+          },
+          {
+            kind: "date",
+            name: "endsOn",
+            label: t("crew.timeOff.lastDay"),
+            value: today,
+            required: true,
+          },
+          {
+            kind: "number",
+            name: "hours",
+            label: t("crew.timeOff.hours"),
+            value: "8",
+            min: "0.5",
+            step: "0.5",
+            required: true,
+          },
         ]}
       />
     ) : null;
@@ -135,17 +202,28 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         icon="Palmtree"
         sentence={stateFilter ? t("crew.swapsPage.emptyFiltered") : t("crew.timeOff.empty")}
         actionLabel={stateFilter ? t("crew.common.clearFilter") : t("crew.timeOff.create")}
-        href={stateFilter ? withParams(base, search, { state: null }) : withParams(base, search, { create: "1" })}
+        href={
+          stateFilter
+            ? withParams(base, search, { state: null })
+            : withParams(base, search, { create: "1" })
+        }
       />
     );
   } else if (view === "calendar") {
-    const month = isIsoDate(search["month"]) ? `${search["month"].slice(0, 7)}-01` : `${today.slice(0, 7)}-01`;
+    const month = isIsoDate(search["month"])
+      ? `${search["month"].slice(0, 7)}-01`
+      : `${today.slice(0, 7)}-01`;
     body = (
       <PeekCalendar
         month={month}
         today={today}
         events={requests.flatMap((r) => {
-          const out: Array<{ id: string; date: string; label: string; state: ReturnType<typeof stateIcon> }> = [];
+          const out: Array<{
+            id: string;
+            date: string;
+            label: string;
+            state: ReturnType<typeof stateIcon>;
+          }> = [];
           for (let d = r.startsOn; d <= r.endsOn && out.length < 31; d = addDays(d, 1)) {
             out.push({ id: r.id, date: d, label: name(r), state: stateIcon("timeOff", r.state) });
           }
@@ -170,21 +248,34 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           policy: r.policyName,
           days: days(r),
           hours: r.hours,
-          state: { state: stateIcon("timeOff", r.state), label: t(`crew.states.timeOff.${r.state}`) },
+          state: {
+            state: stateIcon("timeOff", r.state),
+            label: t(`crew.states.timeOff.${r.state}`),
+          },
         }))}
       />
     );
   } else {
     body = (
-      <ul aria-label={t("crew.timeOff.caption")} className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0">
+      <ul
+        aria-label={t("crew.timeOff.caption")}
+        className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0"
+      >
         {requests.map((r) => (
           <li key={r.id}>
-            <Link href={withParams(base, search, { peek: r.id }) as Route} className="flex flex-wrap items-center justify-between gap-8 px-12 py-8 hover:bg-bg-hover">
+            <Link
+              href={withParams(base, search, { peek: r.id }) as Route}
+              className="flex flex-wrap items-center justify-between gap-8 px-12 py-8 hover:bg-bg-hover"
+            >
               <span className="flex flex-col">
                 <span className="text-text-13 font-medium">{title(r)}</span>
-                <span className="text-text-12 text-text-secondary">{t("crew.timeOff.meta", { days: days(r), hours: format.number(r.hours) })}</span>
+                <span className="text-text-12 text-text-secondary">
+                  {t("crew.timeOff.meta", { days: days(r), hours: format.number(r.hours) })}
+                </span>
               </span>
-              <span className="text-text-12 text-text-secondary">{t(`crew.states.timeOff.${r.state}`)}</span>
+              <span className="text-text-12 text-text-secondary">
+                {t(`crew.states.timeOff.${r.state}`)}
+              </span>
             </Link>
           </li>
         ))}
@@ -201,9 +292,29 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       search={search}
       count={requests.length}
       view={view}
-      {...(canRequest && policies.length > 0 ? { actions: <ButtonLink href={withParams(base, search, { create: "1" })} variant="primary" size="sm">{t("crew.timeOff.create")}</ButtonLink> } : {})}
+      {...(canRequest && policies.length > 0
+        ? {
+            actions: (
+              <ButtonLink
+                href={withParams(base, search, { create: "1" })}
+                variant="primary"
+                size="sm"
+              >
+                {t("crew.timeOff.create")}
+              </ButtonLink>
+            ),
+          }
+        : {})}
       filters={
-        <FilterSelect name="state" label={t("crew.fields.state")} value={stateFilter ?? ""} options={[{ value: "", label: t("crew.common.allStates") }, ...TIME_OFF_STATES.map((v) => ({ value: v, label: t(`crew.states.timeOff.${v}`) }))]} />
+        <FilterSelect
+          name="state"
+          label={t("crew.fields.state")}
+          value={stateFilter ?? ""}
+          options={[
+            { value: "", label: t("crew.common.allStates") },
+            ...TIME_OFF_STATES.map((v) => ({ value: v, label: t(`crew.states.timeOff.${v}`) })),
+          ]}
+        />
       }
       peek={
         <>

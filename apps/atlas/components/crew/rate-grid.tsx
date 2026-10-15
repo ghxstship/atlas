@@ -50,7 +50,13 @@ export function RateGrid(props: {
           <input type="hidden" name="org" value={props.org} />
           <input type="hidden" name="currencyCode" value={props.currency} />
           <input type="hidden" name="changes" value={JSON.stringify(changes)} />
-          <Button type="submit" variant="primary" size="sm" loading={pending} disabled={changes.length === 0}>
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            loading={pending}
+            disabled={changes.length === 0}
+          >
             {t("saveRates", { count: changes.length })}
           </Button>
           {changes.length > 0 ? (

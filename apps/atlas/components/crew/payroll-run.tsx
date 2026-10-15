@@ -42,8 +42,22 @@ export async function PayrollRunRecord(props: {
   const manage = crew.can("crew.pay_period.manage");
   const canExport = crew.can("crew.payroll.export");
   const hidden = { org: crew.slug, id: run.id };
-  const move = (label: string, title: string, reason: string, expected: string, next: string, variant?: "primary" | "danger") => (
-    <ConfirmButton label={label} title={title} defaultReason={reason} action={transitionRunAction} hidden={{ ...hidden, expected, next }} {...(variant ? { variant } : {})} />
+  const move = (
+    label: string,
+    title: string,
+    reason: string,
+    expected: string,
+    next: string,
+    variant?: "primary" | "danger",
+  ) => (
+    <ConfirmButton
+      label={label}
+      title={title}
+      defaultReason={reason}
+      action={transitionRunAction}
+      hidden={{ ...hidden, expected, next }}
+      {...(variant ? { variant } : {})}
+    />
   );
   const anyMasked = run.lines.some((l) => l.masked);
   return (
@@ -53,7 +67,11 @@ export async function PayrollRunRecord(props: {
       kindLabel={t("crew.kinds.payrollRun")}
       recordKey={run.currencyCode}
       title={t("crew.payroll.runTitle", {
-        period: format.dateTimeRange(new Date(`${run.periodStartsOn}T12:00:00Z`), new Date(`${run.periodEndsOn}T12:00:00Z`), { timeZone: "UTC", dateStyle: "medium" }),
+        period: format.dateTimeRange(
+          new Date(`${run.periodStartsOn}T12:00:00Z`),
+          new Date(`${run.periodEndsOn}T12:00:00Z`),
+          { timeZone: "UTC", dateStyle: "medium" },
+        ),
       })}
       state={stateIcon("payrollRun", run.state)}
       stateLabel={t(`crew.states.payrollRun.${run.state}`)}
@@ -63,30 +81,83 @@ export async function PayrollRunRecord(props: {
       actions={
         <>
           {manage && run.state === "Draft" ? (
-            <ConfirmButton label={t("crew.payroll.calculate")} title={t("crew.payroll.calculateTitle")} description={t("crew.payroll.calculateHelp")} defaultReason={t("crew.payroll.calculateReason")} action={calculateRunAction} hidden={hidden} variant="primary" />
+            <ConfirmButton
+              label={t("crew.payroll.calculate")}
+              title={t("crew.payroll.calculateTitle")}
+              description={t("crew.payroll.calculateHelp")}
+              defaultReason={t("crew.payroll.calculateReason")}
+              action={calculateRunAction}
+              hidden={hidden}
+              variant="primary"
+            />
           ) : null}
           {manage && run.state === "Calculated" ? (
             <>
-              <ConfirmButton label={t("crew.swapsPage.approve")} title={t("crew.payroll.approveTitle")} description={t("crew.payroll.approveHelp")} defaultReason={t("crew.payroll.approveReason")} action={approveRunAction} hidden={hidden} variant="primary" />
-              {move(t("crew.payroll.toDraft"), t("crew.payroll.toDraftTitle"), t("crew.payroll.toDraftReason"), "Calculated", "Draft")}
+              <ConfirmButton
+                label={t("crew.swapsPage.approve")}
+                title={t("crew.payroll.approveTitle")}
+                description={t("crew.payroll.approveHelp")}
+                defaultReason={t("crew.payroll.approveReason")}
+                action={approveRunAction}
+                hidden={hidden}
+                variant="primary"
+              />
+              {move(
+                t("crew.payroll.toDraft"),
+                t("crew.payroll.toDraftTitle"),
+                t("crew.payroll.toDraftReason"),
+                "Calculated",
+                "Draft",
+              )}
             </>
           ) : null}
           {canExport && run.state === "Approved" && props.exportAllowed ? (
-            <DownloadButton label={t("crew.payroll.produce")} action={produceExportAction} hidden={hidden} />
+            <DownloadButton
+              label={t("crew.payroll.produce")}
+              action={produceExportAction}
+              hidden={hidden}
+            />
           ) : null}
-          {canExport && run.state === "Exported" ? move(t("crew.payroll.accepted"), t("crew.payroll.acceptedTitle"), t("crew.payroll.acceptedReason"), "Exported", "Accepted", "primary") : null}
+          {canExport && run.state === "Exported"
+            ? move(
+                t("crew.payroll.accepted"),
+                t("crew.payroll.acceptedTitle"),
+                t("crew.payroll.acceptedReason"),
+                "Exported",
+                "Accepted",
+                "primary",
+              )
+            : null}
           {manage && ["Draft", "Calculated", "Approved"].includes(run.state)
-            ? move(t("crew.payroll.cancel"), t("crew.payroll.cancelTitle"), t("crew.payroll.cancelReason"), run.state, "Canceled", "danger")
+            ? move(
+                t("crew.payroll.cancel"),
+                t("crew.payroll.cancelTitle"),
+                t("crew.payroll.cancelReason"),
+                run.state,
+                "Canceled",
+                "danger",
+              )
             : null}
         </>
       }
       properties={[
-        { label: t("crew.payroll.period"), value: t("crew.common.range", { start: run.periodStartsOn, end: run.periodEndsOn }) },
+        {
+          label: t("crew.payroll.period"),
+          value: t("crew.common.range", { start: run.periodStartsOn, end: run.periodEndsOn }),
+        },
         { label: t("crew.rates.currency"), value: run.currencyCode },
         { label: t("crew.payroll.lines"), value: format.number(run.lines.length) },
         { label: t("crew.fields.hours"), value: format.number(run.totalHours) },
-        { label: t("crew.payroll.total"), value: money(format, t, run.totalMinor, run.currencyCode, anyMasked) },
-        { label: t("crew.payroll.createdBy"), value: (run.createdBy && creators.ok ? creators.data.get(run.createdBy) : null) ?? t("crew.record.someone") },
+        {
+          label: t("crew.payroll.total"),
+          value: money(format, t, run.totalMinor, run.currencyCode, anyMasked),
+        },
+        {
+          label: t("crew.payroll.createdBy"),
+          value:
+            (run.createdBy && creators.ok ? creators.data.get(run.createdBy) : null) ??
+            t("crew.record.someone"),
+        },
       ]}
     >
       {run.state === "Approved" && canExport && !props.exportAllowed ? (
@@ -120,17 +191,40 @@ export async function PayrollRunRecord(props: {
           }))}
         />
       ) : (
-        <p className="m-0 text-text-12 text-text-secondary">{run.state === "Draft" ? t("crew.payroll.noLinesDraft") : t("crew.payroll.noLines")}</p>
+        <p className="m-0 text-text-12 text-text-secondary">
+          {run.state === "Draft" ? t("crew.payroll.noLinesDraft") : t("crew.payroll.noLines")}
+        </p>
       )}
       {run.exports.length > 0 ? (
         <section aria-labelledby="run-exports" className="flex flex-col gap-8">
-          <h2 id="run-exports" className="m-0 text-text-13 font-semibold">{t("crew.payroll.exports")}</h2>
+          <h2 id="run-exports" className="m-0 text-text-13 font-semibold">
+            {t("crew.payroll.exports")}
+          </h2>
           <ul className="m-0 flex list-none flex-col gap-8 p-0">
             {run.exports.map((x) => (
-              <li key={x.id} className="flex flex-col gap-4 rounded-card border border-border-subtle p-8 text-text-12">
-                <span>{t("crew.payroll.exportLine", { provider: x.provider, at: format.dateTime(new Date(x.createdAt), { dateStyle: "medium", timeStyle: "short" }) })}</span>
-                <span className="break-all font-mono text-text-11 text-text-secondary">{x.checksum}</span>
-                {canExport && props.exportAllowed ? <DownloadButton label={t("crew.payroll.download")} action={downloadExportAction} hidden={{ org: crew.slug, id: x.id }} /> : null}
+              <li
+                key={x.id}
+                className="flex flex-col gap-4 rounded-card border border-border-subtle p-8 text-text-12"
+              >
+                <span>
+                  {t("crew.payroll.exportLine", {
+                    provider: x.provider,
+                    at: format.dateTime(new Date(x.createdAt), {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }),
+                  })}
+                </span>
+                <span className="break-all font-mono text-text-11 text-text-secondary">
+                  {x.checksum}
+                </span>
+                {canExport && props.exportAllowed ? (
+                  <DownloadButton
+                    label={t("crew.payroll.download")}
+                    action={downloadExportAction}
+                    hidden={{ org: crew.slug, id: x.id }}
+                  />
+                ) : null}
               </li>
             ))}
           </ul>

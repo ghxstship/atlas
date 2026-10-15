@@ -400,7 +400,10 @@ export async function recordPayRate(
 }
 
 /** Minor unit exponent of a currency (2 for USD, 0 for JPY); not-found for an unknown code. */
-export async function getCurrencyExponent(db: XosClient, currency: string): Promise<Result<number>> {
+export async function getCurrencyExponent(
+  db: XosClient,
+  currency: string,
+): Promise<Result<number>> {
   const { data, error } = await db
     .from("currencies")
     .select("minor_unit_exponent")

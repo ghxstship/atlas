@@ -19,7 +19,10 @@ import { getTranslate } from "@/lib/shell/translate";
  * explains the upgrade instead of offering the export, and SQL refuses it anyway (migration 0461).
  * A19's payroll handoffs (Gusto, ADP, Rippling) consume the produced file.
  */
-export default async function Page({ params, searchParams }: PageProps<"/[org]/crew/payroll-exports">) {
+export default async function Page({
+  params,
+  searchParams,
+}: PageProps<"/[org]/crew/payroll-exports">) {
   const routeParams = await params;
   const search = flatParams(await searchParams);
   const node = "crew.payroll-exports";
@@ -34,22 +37,43 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
     listPayrollExports(db, crew.orgId),
     listPayrollRuns(db, { orgId: crew.orgId, states: ["Approved"] }),
   ]);
-  if (!exportsResult.ok) throw new Error(`Cannot list payroll exports: ${exportsResult.error.kind}`);
+  if (!exportsResult.ok)
+    throw new Error(`Cannot list payroll exports: ${exportsResult.error.kind}`);
   if (!readyResult.ok) throw new Error(`Cannot list payroll runs: ${readyResult.error.kind}`);
   const exportsList = exportsResult.data;
   const ready = readyResult.data;
   const back = withParams(base, search, { peek: null, full: null });
   const range = (a: string, b: string) =>
-    a && b ? format.dateTimeRange(new Date(`${a}T12:00:00Z`), new Date(`${b}T12:00:00Z`), { timeZone: "UTC", dateStyle: "medium" }) : "";
+    a && b
+      ? format.dateTimeRange(new Date(`${a}T12:00:00Z`), new Date(`${b}T12:00:00Z`), {
+          timeZone: "UTC",
+          dateStyle: "medium",
+        })
+      : "";
 
   let peek = null;
   if (search["peek"]) {
-    peek = await PayrollRunRecord({ crew, runId: search["peek"], mode: search["full"] === "1" ? "full" : "peek", backHref: back, exportAllowed });
+    peek = await PayrollRunRecord({
+      crew,
+      runId: search["peek"],
+      mode: search["full"] === "1" ? "full" : "peek",
+      backHref: back,
+      exportAllowed,
+    });
     if (search["full"] === "1" && peek) return peek;
   }
 
   return (
-    <CrewFrame crew={crew} node={node} module="crew" params={routeParams} search={search} count={exportsList.length} view={view} peek={peek}>
+    <CrewFrame
+      crew={crew}
+      node={node}
+      module="crew"
+      params={routeParams}
+      search={search}
+      count={exportsList.length}
+      view={view}
+      peek={peek}
+    >
       {!exportAllowed ? (
         <RefusalNotice
           outcome="REFUSE"
@@ -59,13 +83,24 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       ) : null}
       {exportAllowed && ready.length > 0 ? (
         <section aria-labelledby="ready-runs" className="flex flex-col gap-8">
-          <h2 id="ready-runs" className="m-0 text-heading-16 font-semibold">{t("crew.payroll.ready")}</h2>
+          <h2 id="ready-runs" className="m-0 text-heading-16 font-semibold">
+            {t("crew.payroll.ready")}
+          </h2>
           <ul className="m-0 flex list-none flex-col gap-4 p-0">
             {ready.map((r) => (
               <li key={r.id}>
-                <Link href={withParams(base, search, { peek: r.id }) as Route} className="flex items-center justify-between gap-8 rounded-card border border-border-subtle px-12 py-8 hover:bg-bg-hover">
-                  <span className="text-text-13">{t("crew.payroll.runTitle", { period: range(r.periodStartsOn, r.periodEndsOn) })}</span>
-                  <span className="text-text-12 text-text-secondary">{t("crew.payroll.readyHint")}</span>
+                <Link
+                  href={withParams(base, search, { peek: r.id }) as Route}
+                  className="flex items-center justify-between gap-8 rounded-card border border-border-subtle px-12 py-8 hover:bg-bg-hover"
+                >
+                  <span className="text-text-13">
+                    {t("crew.payroll.runTitle", {
+                      period: range(r.periodStartsOn, r.periodEndsOn),
+                    })}
+                  </span>
+                  <span className="text-text-12 text-text-secondary">
+                    {t("crew.payroll.readyHint")}
+                  </span>
                 </Link>
               </li>
             ))}
@@ -77,18 +112,40 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           icon="FileOutput"
           sentence={exportAllowed ? t("crew.payroll.noExports") : t("crew.payroll.noExportsPlan")}
           actionLabel={exportAllowed ? t("crew.payroll.goPeriods") : t("crew.payroll.seePlans")}
-          href={exportAllowed ? `/${crew.slug}/crew/pay-periods` : `/${crew.slug}/settings/billing-and-plan`}
+          href={
+            exportAllowed
+              ? `/${crew.slug}/crew/pay-periods`
+              : `/${crew.slug}/settings/billing-and-plan`
+          }
         />
       ) : view === "list" ? (
-        <ul aria-label={t("crew.payroll.exports")} className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0">
+        <ul
+          aria-label={t("crew.payroll.exports")}
+          className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle p-0"
+        >
           {exportsList.map((x) => (
             <li key={x.id}>
-              <Link href={withParams(base, search, { peek: x.payrollRunId }) as Route} className="flex items-center justify-between gap-8 px-12 py-8 hover:bg-bg-hover">
+              <Link
+                href={withParams(base, search, { peek: x.payrollRunId }) as Route}
+                className="flex items-center justify-between gap-8 px-12 py-8 hover:bg-bg-hover"
+              >
                 <span className="flex flex-col">
-                  <span className="text-text-13 font-medium">{t("crew.payroll.exportLine", { provider: x.provider, at: format.dateTime(new Date(x.createdAt), { dateStyle: "medium", timeStyle: "short" }) })}</span>
-                  <span className="text-text-12 text-text-secondary">{x.run ? range(x.run.periodStartsOn, x.run.periodEndsOn) : ""}</span>
+                  <span className="text-text-13 font-medium">
+                    {t("crew.payroll.exportLine", {
+                      provider: x.provider,
+                      at: format.dateTime(new Date(x.createdAt), {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }),
+                    })}
+                  </span>
+                  <span className="text-text-12 text-text-secondary">
+                    {x.run ? range(x.run.periodStartsOn, x.run.periodEndsOn) : ""}
+                  </span>
                 </span>
-                <span className="text-text-12 text-text-secondary">{x.run ? t(`crew.states.payrollRun.${x.run.state}`) : ""}</span>
+                <span className="text-text-12 text-text-secondary">
+                  {x.run ? t(`crew.states.payrollRun.${x.run.state}`) : ""}
+                </span>
               </Link>
             </li>
           ))}
@@ -109,7 +166,12 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
             period: x.run ? range(x.run.periodStartsOn, x.run.periodEndsOn) : "",
             provider: x.provider,
             checksum: x.checksum.slice(0, 12),
-            state: x.run ? { state: stateIcon("payrollRun", x.run.state), label: t(`crew.states.payrollRun.${x.run.state}`) } : null,
+            state: x.run
+              ? {
+                  state: stateIcon("payrollRun", x.run.state),
+                  label: t(`crew.states.payrollRun.${x.run.state}`),
+                }
+              : null,
           }))}
         />
       )}
