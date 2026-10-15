@@ -7,8 +7,10 @@
  * 2. validates path parameters, query (including `filter[field][op]`) and JSON body with the
  *    route's zod schemas (422 with one JSON Pointer per invalid member);
  * 3. checks `Idempotency-Key` on POST (400 when absent) and `If-Match` on PATCH (428 when absent);
- * 4. runs the handler and serializes its typed result, mapping thrown problems and database
- *    errors to RFC 9457 responses.
+ * 4. applies the caller's rate limit (429 with `Retry-After`; headers on every response);
+ * 5. replays or claims the Idempotency-Key of a POST in the tenant's ledger;
+ * 6. runs the handler and serializes its typed result, adding `ETag` where the contract declares
+ *    it, and maps thrown problems and database errors to RFC 9457 responses.
  */
 import type { OpenAPIHono, RouteConfig } from "@hono/zod-openapi";
 import type { Context } from "hono";
@@ -27,8 +29,13 @@ import {
   validationProblem,
 } from "../problem.ts";
 import type { ValidationIssue } from "../problem.ts";
-import type { Authenticate } from "./context.ts";
-import type { AnyModuleHandlers, ErasedHandler, ErasedRequest } from "./handler.ts";
+import type { Authenticate, RequestContext } from "./context.ts";
+import { etagOf } from "./etag.ts";
+import { databaseIdempotencyStore, inProgress, keyReused, requestHash } from "./idempotency.ts";
+import type { IdempotencyStore } from "./idempotency.ts";
+import { createWindowRateLimiter, enforce, rateLimitHeaders } from "./rate-limit.ts";
+import type { RateLimiter } from "./rate-limit.ts";
+import type { AnyModuleHandlers, ErasedHandler, ErasedRequest, ErasedResult } from "./handler.ts";
 import { parseQuery } from "./query.ts";
 
 const JSON_MEDIA_TYPE = "application/json";
@@ -41,6 +48,10 @@ export interface MountOptions {
   readonly onError?: (error: unknown, requestId: string) => void;
   /** Request id generator; defaults to `crypto.randomUUID`. */
   readonly requestId?: () => string;
+  /** Idempotency-Key ledger; defaults to A18's `app.idempotency_keys`. `false` turns storage off. */
+  readonly idempotency?: IdempotencyStore | false;
+  /** Rate limiter; defaults to 600 requests a minute per caller in this process. */
+  readonly rateLimiter?: RateLimiter | false;
 }
 
 /** What the runtime knows about one operation, taken from its route definition. */
@@ -53,6 +64,10 @@ export interface OperationRoute {
   readonly query: z.ZodType | undefined;
   readonly body: z.ZodType | undefined;
   readonly responses: ReadonlyMap<number, z.ZodType | undefined>;
+  /** Success statuses whose response declares an `ETag` header. */
+  readonly etag: ReadonlySet<number>;
+  /** `x-xos-capability`: the capability the operation requires. */
+  readonly capability: string | undefined;
 }
 
 function asZod(value: unknown): z.ZodType | undefined {
@@ -66,10 +81,15 @@ export function operationRoute(route: RouteConfig): OperationRoute {
   const content = (route.request?.body as { content?: Record<string, { schema?: unknown }> })
     ?.content;
   const responses = new Map<number, z.ZodType | undefined>();
+  const etag = new Set<number>();
   for (const [status, response] of Object.entries(route.responses)) {
     if (!/^2\d\d$/.test(status)) continue;
-    const media = (response as { content?: Record<string, { schema?: unknown }> }).content;
-    responses.set(Number(status), asZod(media?.[JSON_MEDIA_TYPE]?.schema));
+    const r = response as {
+      content?: Record<string, { schema?: unknown }>;
+      headers?: Record<string, unknown>;
+    };
+    responses.set(Number(status), asZod(r.content?.[JSON_MEDIA_TYPE]?.schema));
+    if (r.headers !== undefined && "ETag" in r.headers) etag.add(Number(status));
   }
   return {
     operationId: r.operationId,
@@ -80,6 +100,8 @@ export function operationRoute(route: RouteConfig): OperationRoute {
     query: asZod(route.request?.query),
     body: asZod(content?.[JSON_MEDIA_TYPE]?.schema),
     responses,
+    etag,
+    capability: (route as { "x-xos-capability"?: string })["x-xos-capability"],
   };
 }
 
@@ -178,35 +200,124 @@ function contractViolation(op: OperationRoute, detail: string): Error {
   return new Error(`${op.operationId} returned a response outside its contract: ${detail}`);
 }
 
-function serve(op: OperationRoute, handler: ErasedHandler, options: MountOptions) {
+interface Shape {
+  readonly shape?: Record<string, unknown>;
+  partial?: () => z.ZodType;
+}
+
+/**
+ * Validates a body against its response schema. With a sparse fieldset, fields may be absent,
+ * so objects (and the items of a page) are checked as partial shapes.
+ */
+function checkBody(schema: z.ZodType, body: unknown, sparse: boolean): string[] {
+  const issues = (result: { success: boolean; error?: z.ZodError }, prefix = "") =>
+    result.success
+      ? []
+      : (result.error as z.ZodError).issues.map(
+          (i) => `${prefix}${toPointer(i.path)} ${i.message}`,
+        );
+  const shaped = schema as unknown as Shape;
+  if (!sparse || shaped.shape === undefined) return issues(schema.safeParse(body));
+  const data = shaped.shape["data"] as { element?: Shape } | undefined;
+  const element = data?.element;
+  if (element?.partial !== undefined && Array.isArray((body as { data?: unknown }).data)) {
+    const partial = element.partial();
+    const page = body as { data: unknown[]; next_cursor?: unknown };
+    return [
+      ...page.data.flatMap((item, i) => issues(partial.safeParse(item), `/data/${i}`)),
+      ...(typeof page.next_cursor === "string" || page.next_cursor === null
+        ? []
+        : ["/next_cursor must be a string or null"]),
+    ];
+  }
+  return shaped.partial === undefined
+    ? issues(schema.safeParse(body))
+    : issues(shaped.partial().safeParse(body));
+}
+
+/** An API key reaches only the capability groups in its scopes (OAuth scopes map the same way). */
+function assertScope(op: OperationRoute, context: RequestContext): void {
+  if (context.scopes === undefined || op.capability === undefined) return;
+  const group = op.capability.split(".")[0] as string;
+  if (!context.scopes.includes(group)) {
+    throw unauthorized(
+      `This credential's scopes do not include ${group}, which ${op.operationId} needs.`,
+    );
+  }
+}
+
+async function runIdempotent(
+  store: IdempotencyStore | undefined,
+  context: RequestContext,
+  op: OperationRoute,
+  request: ErasedRequest,
+  path: string,
+  run: () => Promise<ErasedResult>,
+): Promise<{ result: ErasedResult; replayed: boolean }> {
+  const key = request.idempotencyKey;
+  if (store === undefined || key === undefined || op.method !== "post") {
+    return { result: await run(), replayed: false };
+  }
+  const hash = requestHash(context.user.id, op.method, path, request.body);
+  const begun = await store.begin(context, key, hash);
+  if (begun.outcome === "replay") {
+    return { result: { status: begun.response.status, body: begun.response.body }, replayed: true };
+  }
+  if (begun.outcome === "in_progress") throw inProgress();
+  if (begun.outcome === "mismatch") throw keyReused();
+  let result: ErasedResult;
+  try {
+    result = await run();
+  } catch (error) {
+    await store.abandon(context, key);
+    throw error;
+  }
+  await store.complete(context, key, { status: result.status, body: result.body });
+  return { result, replayed: false };
+}
+
+function serve(
+  op: OperationRoute,
+  handler: ErasedHandler,
+  options: MountOptions,
+  limiter: RateLimiter | undefined,
+) {
+  const store =
+    options.idempotency === false ? undefined : (options.idempotency ?? databaseIdempotencyStore);
   return async (c: Context): Promise<Response> => {
     const requestId = options.requestId?.() ?? crypto.randomUUID();
     const instance = new URL(c.req.url).pathname;
-    const base = { "X-Request-Id": requestId };
+    let base: Record<string, string> = { "X-Request-Id": requestId };
     try {
       const context = await options.authenticate(c.req.raw, requestId);
       if (context === null) throw unauthorized("Send a valid bearer token or session cookie.");
+      assertScope(op, context);
+      if (limiter !== undefined) {
+        const decision = await limiter.take(`${context.credential}:${context.user.id}`);
+        base = { ...base, ...rateLimitHeaders(decision) };
+        enforce(decision);
+      }
       const request = await validateRequest(c, op);
       if (op.method === "patch" && request.ifMatch === undefined) throw preconditionRequired();
-      const result = await handler(request, context);
+      const { result, replayed } = await runIdempotent(store, context, op, request, instance, () =>
+        handler(request, context),
+      );
       if (!op.responses.has(result.status)) {
         throw contractViolation(op, `status ${result.status} is not a documented success status`);
       }
-      if (options.validateResponses === true) {
-        const schema = op.responses.get(result.status);
-        if (schema !== undefined) {
-          const parsed = schema.safeParse(result.body);
-          if (!parsed.success) {
-            throw contractViolation(
-              op,
-              parsed.error.issues.map((i) => `${toPointer(i.path)} ${i.message}`).join("; "),
-            );
-          }
-        }
+      const schema = op.responses.get(result.status);
+      if (options.validateResponses === true && schema !== undefined) {
+        const sparse = typeof request.query["fields"] === "string";
+        const found = checkBody(schema, result.body, sparse);
+        if (found.length > 0) throw contractViolation(op, found.join("; "));
       }
-      const headers = { ...base, ...result.headers };
-      if (result.status === 204 || op.responses.get(result.status) === undefined) {
+      const headers: Record<string, string> = { ...base, ...result.headers };
+      if (replayed) headers["Idempotent-Replayed"] = "true";
+      if (result.status === 204 || schema === undefined) {
         return new Response(null, { status: result.status, headers });
+      }
+      if (op.etag.has(result.status) && headers["ETag"] === undefined) {
+        headers["ETag"] = etagOf(result.body);
       }
       return new Response(JSON.stringify(result.body), {
         status: result.status,
@@ -251,8 +362,10 @@ export function mountHandlers(
     }
   }
   selected.sort(([a], [b]) => compareRoutes(a, b));
+  const limiter =
+    options.rateLimiter === false ? undefined : (options.rateLimiter ?? createWindowRateLimiter());
   for (const [op, handler] of selected) {
-    app.on(op.method.toUpperCase(), honoPath(op.path), serve(op, handler, options));
+    app.on(op.method.toUpperCase(), honoPath(op.path), serve(op, handler, options, limiter));
   }
   return selected.map(([op]) => op.operationId);
 }

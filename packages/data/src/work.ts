@@ -1,5 +1,6 @@
-import type { Database, XosClient } from "./client";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Work repository (Section 3.10, Section 4.2 Work): the record spine for all 26 record kinds, their
@@ -467,20 +468,22 @@ export interface RecordInput {
   readonly orgId: string;
   readonly projectId: string;
   readonly kind: string;
-  readonly subtype?: string | null;
+  readonly subtype?: string | null | undefined;
   readonly title: string;
-  readonly scopeNodeId?: string | null;
-  readonly phaseCode?: string | null;
+  readonly scopeNodeId?: string | null | undefined;
+  readonly phaseCode?: string | null | undefined;
   /** A URID category: the XYZ tag then follows the category (basis Category). */
-  readonly urid?: string | null;
+  readonly urid?: string | null | undefined;
   /** Required without a URID category, or to differ from it (basis Declared). */
-  readonly xyz?: string | null;
-  readonly ownerId?: string | null;
-  readonly accountableId?: string | null;
-  readonly startsAt?: string | null;
-  readonly endsAt?: string | null;
-  readonly dueAt?: string | null;
-  readonly timeZone?: string | null;
+  readonly xyz?: string | null | undefined;
+  readonly ownerId?: string | null | undefined;
+  readonly accountableId?: string | null | undefined;
+  readonly startsAt?: string | null | undefined;
+  readonly endsAt?: string | null | undefined;
+  readonly dueAt?: string | null | undefined;
+  readonly timeZone?: string | null | undefined;
+  /** The kind's attributes to write with the record, for kinds whose extension needs values. */
+  readonly extension?: ExtensionValues | undefined;
 }
 
 /** The XYZ tag and its basis (Section 3.6) for a URID category's tag and a declared tag. */
@@ -552,25 +555,25 @@ export async function createRecord(
     orgId: input.orgId,
     recordId: data.id,
     kind: input.kind,
-    fields: {},
+    fields: input.extension ?? {},
   });
   if (!extension.ok) return extension;
   return ok({ id: data.id, number: data.record_number });
 }
 
 export interface RecordPatch {
-  readonly title?: string;
-  readonly subtype?: string | null;
-  readonly scopeNodeId?: string | null;
-  readonly phaseCode?: string | null;
-  readonly ownerId?: string | null;
-  readonly accountableId?: string | null;
-  readonly startsAt?: string | null;
-  readonly endsAt?: string | null;
-  readonly dueAt?: string | null;
-  readonly timeZone?: string | null;
+  readonly title?: string | undefined;
+  readonly subtype?: string | null | undefined;
+  readonly scopeNodeId?: string | null | undefined;
+  readonly phaseCode?: string | null | undefined;
+  readonly ownerId?: string | null | undefined;
+  readonly accountableId?: string | null | undefined;
+  readonly startsAt?: string | null | undefined;
+  readonly endsAt?: string | null | undefined;
+  readonly dueAt?: string | null | undefined;
+  readonly timeZone?: string | null | undefined;
   /** Logged with the replan when the record is Scheduled or later (Section 3.10). */
-  readonly replanReason?: string | null;
+  readonly replanReason?: string | null | undefined;
 }
 
 /** Edits a record. From Scheduled onward a date change is written to the replan log. */
@@ -602,8 +605,8 @@ export interface TransitionInput {
   readonly expected: string;
   readonly next: string;
   readonly reason: string;
-  readonly blockerText?: string | null;
-  readonly replanReason?: string | null;
+  readonly blockerText?: string | null | undefined;
+  readonly replanReason?: string | null | undefined;
 }
 
 /** Moves a record to another state (app.transition_record, compare-and-set). */
@@ -646,6 +649,54 @@ export async function restoreRecord(db: XosClient, id: string): Promise<Result<n
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/**
+ * Copies a record into a new Proposed record of the same project (journey 70): kind, subtype,
+ * title, scope, phase, URID, XYZ tag, people, dates and the kind's attributes. With children, the
+ * checklist is copied too, every item open.
+ */
+export async function duplicateRecord(
+  db: XosClient,
+  input: { readonly orgId: string; readonly recordId: string; readonly withChildren?: boolean },
+): Promise<Result<{ id: string; number: number }>> {
+  const source = await getRecord(db, input.recordId);
+  if (!source.ok) return source;
+  const r = source.data;
+  const extension = await getRecordExtension(db, r.kind, r.id);
+  if (!extension.ok) return extension;
+  const created = await createRecord(db, {
+    orgId: input.orgId,
+    projectId: r.projectId,
+    kind: r.kind,
+    subtype: r.subtype,
+    title: r.title,
+    scopeNodeId: r.scopeNodeId,
+    phaseCode: r.phaseCode,
+    urid: r.urid,
+    xyz: r.xyz,
+    ownerId: r.ownerId,
+    accountableId: r.accountableId,
+    startsAt: r.startsAt,
+    endsAt: r.endsAt,
+    dueAt: r.dueAt,
+    timeZone: r.timeZone,
+    extension: extension.data,
+  });
+  if (!created.ok) return created;
+  if (input.withChildren) {
+    const items = await listChecklist(db, r.id);
+    if (!items.ok) return items;
+    for (const item of items.data) {
+      const added = await addChecklistItem(db, {
+        orgId: input.orgId,
+        recordId: created.data.id,
+        label: item.label,
+      });
+      if (!added.ok) return added;
+    }
+  }
+  return created;
+}
+
 // Kind extensions ----------------------------------------------------------------------------------
 
 /** The extension table of a kind: record_build for Build (Section 7.4, one table per kind). */
@@ -673,7 +724,7 @@ export async function getRecordExtension(
   kind: string,
   recordId: string,
 ): Promise<Result<ExtensionValues>> {
-  const { data, error } = await (db as unknown as GenericClient)
+  const { data, error } = await untyped(db)
     .from(extensionTable(kind))
     .select("*")
     .eq("record_id", recordId)
@@ -700,8 +751,7 @@ export async function saveRecordExtension(
   const fields = Object.fromEntries(
     Object.entries(input.fields).filter(([c]) => !EXTENSION_MACHINERY.has(c) && c !== "score"),
   );
-  const table = (db as unknown as GenericClient).from(extensionTable(input.kind));
-  const existing = await (db as unknown as GenericClient)
+  const existing = await untyped(db)
     .from(extensionTable(input.kind))
     .select("record_id")
     .eq("record_id", input.recordId)
@@ -709,36 +759,21 @@ export async function saveRecordExtension(
   if (existing.error) return fail(toDataError(existing.error));
   if (existing.data) {
     if (Object.keys(fields).length === 0) return ok(null);
-    const { error } = await table.update(fields).eq("record_id", input.recordId);
+    const { error } = await untyped(db)
+      .from(extensionTable(input.kind))
+      .update(fields)
+      .eq("record_id", input.recordId);
     return error ? fail(toDataError(error)) : ok(null);
   }
-  const { error } = await table.insert({
-    ...fields,
-    record_id: input.recordId,
-    org_id: input.orgId,
-    record_kind: input.kind,
-  });
+  const { error } = await untyped(db)
+    .from(extensionTable(input.kind))
+    .insert({
+      ...fields,
+      record_id: input.recordId,
+      org_id: input.orgId,
+      record_kind: input.kind,
+    });
   return error ? fail(toDataError(error)) : ok(null);
-}
-
-/**
- * The untyped view of the client for the kind extension tables, whose name is computed from the
- * kind. Their row shapes differ per kind; the record page renders them from a per-kind field map.
- */
-interface GenericResponse<T> {
-  data: T | null;
-  error: { code?: string; message: string; hint?: string | null } | null;
-}
-interface GenericFilter<T> extends PromiseLike<GenericResponse<T>> {
-  eq(column: string, value: unknown): GenericFilter<T>;
-  maybeSingle(): PromiseLike<GenericResponse<Record<string, unknown>>>;
-}
-interface GenericClient {
-  from(table: string): {
-    select(columns: string): GenericFilter<Record<string, unknown>[]>;
-    update(values: Record<string, unknown>): GenericFilter<null>;
-    insert(values: Record<string, unknown>): PromiseLike<GenericResponse<null>>;
-  };
 }
 
 // History ----------------------------------------------------------------------------------------------
@@ -1342,5 +1377,20 @@ export async function listVenueOptions(
     data
       .map((v) => ({ value: v.id, label: v.name }))
       .sort((a, b) => a.label.localeCompare(b.label)),
+  );
+}
+
+/** ISO 4217 currencies with their minor unit exponent, for money in minor units. */
+export async function listCurrencyOptions(
+  db: XosClient,
+): Promise<Result<{ code: string; exponent: number }[]>> {
+  const { data, error } = await db.from("currencies").select("currency_code, minor_unit_exponent");
+  if (error) return fail(toDataError(error));
+  return ok(
+    data
+      .flatMap((c) =>
+        c.currency_code ? [{ code: c.currency_code, exponent: c.minor_unit_exponent ?? 2 }] : [],
+      )
+      .sort((a, b) => a.code.localeCompare(b.code)),
   );
 }

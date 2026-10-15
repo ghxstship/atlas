@@ -29,8 +29,8 @@ insert into app.certification_holders (certification_id, person_id, issued_on, e
 values (pg_temp.id('cert_rig'), pg_temp.id('ivy'), '2026-01-01', '2030-01-01'),
        (pg_temp.id('cert_aid'), pg_temp.id('ivy'), '2020-01-01', '2021-01-01');
 select pg_temp.as_user('carol');
-with o as (insert into app.opportunities (project_id, role_type, role_code, title, visibility, venue_id, starts_on, ends_on)
-  values (pg_temp.id('prj_a'), 'Crew', '5000.51.02', 'Summer Series Riggers', 'Invited', pg_temp.id('venue_a'), '2027-06-01', '2027-06-03')
+with o as (insert into app.opportunities (project_id, role_type, role_code, title, visibility, venue_id, starts_on, ends_on, requisition_id)
+  values (pg_temp.id('prj_a'), 'Crew', '5000.51.02', 'Summer Series Riggers', 'Invited', pg_temp.id('venue_a'), '2027-06-01', '2027-06-03', pg_temp.id('requisition_a'))
   returning id) insert into world select 'opp', id from o;
 insert into app.opportunity_invitations (opportunity_id, person_id) values (pg_temp.id('opp'), pg_temp.id('ivy')), (pg_temp.id('opp'), pg_temp.id('quinn'));
 insert into app.opportunity_requirements (opportunity_id, requirement_kind, description, certification_id) values

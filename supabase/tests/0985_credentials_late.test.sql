@@ -34,7 +34,7 @@ with x as (insert into app.access_grid (credential_category_id, zone_id, access_
   values (pg_temp.id('cat'), pg_temp.id('zone'), 'ENM-036', now() - interval '1 day', now() + interval '1 day') returning id) insert into world select 'grid', id from x;
 with x as (insert into app.incidents (project_id, title, severity_enum_id, occurred_at) values (pg_temp.id('prj_a'), 'Guest Fall Near Gate 2', 'ENM-099', now()) returning id) insert into world select 'inc', id from x;
 select pg_temp.as_user('alice');
-insert into app.medical_encounters (incident_id, patient_description, treatment_notes, disposition) values (pg_temp.id('inc'), 'Guest, adult.', 'Abrasion to the knee, cleaned and dressed.', 'Released');
+select app.record_medical_encounter(pg_temp.id('inc'), 'Guest, adult.', 'Abrasion to the knee, cleaned and dressed.', 'Released');
 select pg_temp.as_platform();
 select ok(exists (select 1 from app.audit_events where subject_table = 'app.credentials' and subject_id = (select id from app.credentials where holder_person_id = pg_temp.id('erin'))), 'issuing a credential is audited');
 select ok(exists (select 1 from app.audit_events where subject_table = 'app.access_grid' and subject_id = pg_temp.id('grid')), 'a grid change is audited');

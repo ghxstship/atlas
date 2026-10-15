@@ -146,6 +146,8 @@ select throws_ok($$select app.calculate_payroll_run((select id from world where 
   'XR001', 'payroll_run_not_draft: Only a Draft payroll run is calculated; return it to Draft first.', 'only a Draft run is calculated');
 
 -- Payroll export ---------------------------------------------------------------------------------------------
+select pg_temp.as_platform();
+insert into app.accounting_periods (org_id, starts_on, ends_on) values (pg_temp.id('org_a'), '2027-06-01', '2027-06-30');
 select pg_temp.as_user('alice');
 insert into app.spend_authorities (org_id, role_id, document_type, currency_code, limit_minor) values (pg_temp.id('org_a'), pg_temp.system_role('admin'), 'Payroll Run', 'USD', 100000000);
 select pg_temp.as_user('bob');

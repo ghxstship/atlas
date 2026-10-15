@@ -7,12 +7,14 @@ import {
   isOrgSlug,
   listMyOrganizations,
 } from "@xos/data";
+import { acceptInviteLink } from "@xos/data/profiles";
+import { recordLegalAcceptances } from "@xos/data/settings";
 import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { authErrorKey } from "@/lib/auth/errors";
-import { clientIp, withAcceptances } from "@/lib/auth/legal";
+import { clientIp, signupAcceptances } from "@/lib/auth/legal";
 import { isOAuthProvider } from "@/lib/auth/providers";
 import { safeNext, siteUrl } from "@/lib/auth/redirect";
 import { env } from "@/lib/env";
@@ -169,15 +171,14 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
     return { error: "unexpected", values };
   }
 
-  const acceptances = withAcceptances(auth.user.user_metadata["legal_acceptances"], {
+  const recorded = await recordLegalAcceptances(db, {
     orgId: created.data.orgId,
-    ip: clientIp(await headers()),
-    at: new Date(),
+    documents: signupAcceptances(),
+    clientIp: clientIp(await headers()),
   });
-  const { error: recordError } = await db.auth.updateUser({
-    data: { legal_acceptances: acceptances },
-  });
-  if (recordError) throw new Error(`Legal acceptance was not recorded: ${recordError.message}`);
+  if (!recorded.ok) {
+    throw new Error(`Legal acceptance was not recorded: ${JSON.stringify(recorded.error)}`);
+  }
   redirect(`/${parsed.data.orgSlug}/home`);
 }
 
@@ -186,7 +187,15 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
 export async function acceptInvitation(_: FormState, form: FormData): Promise<FormState> {
   const token = text(form, "token");
   const db = await createServerSupabase();
-  const accepted = await acceptInvite(db, token);
+  // Invitation links (xlnk_, migration 0861) are not tied to an email address; their refusals map to
+  // the invitation messages.
+  const accepted = token.startsWith("xlnk_")
+    ? await acceptInviteLink(db, token).then((r) =>
+        r.ok || r.error.kind !== "refusal" || r.error.rule === "invite_rate_limited"
+          ? r
+          : { ok: false as const, error: { ...r.error, rule: "invite_invalid" } },
+      )
+    : await acceptInvite(db, token);
   if (!accepted.ok) {
     const error = accepted.error;
     return { error: error.kind === "refusal" ? `invite.${error.rule}` : "unexpected" };
