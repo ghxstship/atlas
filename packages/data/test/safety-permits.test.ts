@@ -10,6 +10,7 @@ import {
   listInspections,
   listInspectionTemplates,
   listPeopleNames,
+  listPunchItemsForResults,
   listPermitRequirements,
   listPermitRules,
   listRecordStates,
@@ -495,5 +496,33 @@ describe("inspections", () => {
     const names = await listPeopleNames(db, ["a", "b", "a"]);
     expect(names.ok && [...names.data]).toEqual([["a", "Dana Diaz"]]);
     expect((await listPeopleNames(db, ["a"])).ok).toBe(false);
+  });
+});
+
+describe("punch items opened by failed results", () => {
+  it("maps each result to its punch item's Task record key", async () => {
+    const { db } = fakeClient({
+      "from:punch_items": [
+        okResponse([
+          { inspection_result_id: "x1", record_id: "r9" },
+          { inspection_result_id: null, record_id: "r8" },
+        ]),
+        okResponse([]),
+        errorResponse("PGRST000", "x"),
+        okResponse([{ inspection_result_id: "x2", record_id: "r7" }]),
+      ],
+      "from:records": [
+        okResponse([{ id: "r9", display_key: "NWL-12" }]),
+        errorResponse("PGRST000", "x"),
+      ],
+    });
+    expect(await listPunchItemsForResults(db, [])).toEqual({ ok: true, data: new Map() });
+    const mapped = await listPunchItemsForResults(db, ["x1"]);
+    expect(mapped.ok && [...mapped.data]).toEqual([
+      ["x1", { recordId: "r9", displayKey: "NWL-12" }],
+    ]);
+    expect(await listPunchItemsForResults(db, ["x3"])).toEqual({ ok: true, data: new Map() });
+    expect((await listPunchItemsForResults(db, ["x1"])).ok).toBe(false);
+    expect((await listPunchItemsForResults(db, ["x2"])).ok).toBe(false);
   });
 });

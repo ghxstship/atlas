@@ -4,3 +4,8 @@ places.venues
 places.spaces-and-zones
 places.capability-documents
 places.site-plans
+safety
+safety.permits
+safety.inspections
+safety.inspection-templates
+project.safety

@@ -90,7 +90,14 @@
     "direction": "Choose whether this is required or provided.",
     "urid": "Choose a URID category.",
     "description": "Describe it in 1 to 500 characters.",
-    "provider": "Choose the venue that provides it."
+    "provider": "Choose the venue that provides it.",
+    "state": "Choose the new state.",
+    "reason": "Give a reason for the change.",
+    "blocker": "Name what is blocking the permit.",
+    "replanReason": "Give the replan reason.",
+    "template": "Choose a template.",
+    "result": "Choose a result.",
+    "prompt": "Describe what is checked in 1 to 500 characters."
   },
   "venues": {
     "title": "Venues",

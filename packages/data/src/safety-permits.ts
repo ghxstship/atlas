@@ -625,6 +625,49 @@ export async function signOffInspection(
   return ok({ id: data });
 }
 
+/**
+ * The punch items failed results opened (journey 17), keyed by inspection result, with the display
+ * key of each item's Task record. Punch items are A08's (app.punch_items, 0410); this only reads them.
+ */
+export async function listPunchItemsForResults(
+  db: XosClient,
+  resultIds: readonly string[],
+): Promise<Result<ReadonlyMap<string, { recordId: string; displayKey: string }>>> {
+  if (resultIds.length === 0) return ok(new Map());
+  const items = await db
+    .from("punch_items")
+    .select("inspection_result_id, record_id")
+    .in("inspection_result_id", [...resultIds])
+    .is("deleted_at", null);
+  if (items.error) return fail(toDataError(items.error));
+  const recordIds = items.data.map((i) => i.record_id);
+  const records =
+    recordIds.length === 0
+      ? { data: [] as { id: string; display_key: string | null }[], error: null }
+      : await db.from("records").select("id, display_key:record_display_key").in("id", recordIds);
+  if (records.error) return fail(toDataError(records.error));
+  const keys = new Map(
+    (records.data as unknown as { id: string; display_key: string | null }[]).map((r) => [
+      r.id,
+      r.display_key ?? "",
+    ]),
+  );
+  return ok(
+    new Map(
+      items.data.flatMap((i) =>
+        i.inspection_result_id
+          ? [
+              [
+                i.inspection_result_id,
+                { recordId: i.record_id, displayKey: keys.get(i.record_id) ?? "" },
+              ] as const,
+            ]
+          : [],
+      ),
+    ),
+  );
+}
+
 // People names ---------------------------------------------------------------------------------------------
 
 /** Display names of people by id, for inspector and sign-off columns; unknown ids are omitted. */
