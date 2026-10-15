@@ -957,6 +957,373 @@ var activity_default$1 = {
     fallback: "a record",
   },
 };
+var assets_default$1 = {
+  states: {
+    proposed: "Proposed",
+    received: "Received",
+    available: "Available",
+    reserved: "Reserved",
+    deployed: "Deployed",
+    inMaintenance: "In Maintenance",
+    damaged: "Damaged",
+    lost: "Lost",
+    retired: "Retired",
+  },
+  actions: {
+    checkOut: "Check out",
+    checkIn: "Check in",
+    transfer: "Transfer",
+  },
+  views: {
+    table: "Table",
+    list: "List",
+    board: "Board",
+    gallery: "Gallery",
+    calendar: "Calendar",
+    "resource-schedule": "Schedule",
+  },
+  collection: {
+    view: "View",
+    filters: "Filter this list",
+    search: "Search",
+    state: "State",
+    allStates: "All states",
+    apply: "Apply",
+    clear: "Clear filters",
+    noMatches: "Nothing here matches these filters. Clear the filters to see everything again.",
+    open: "Open",
+    openFull: "Open full page",
+  },
+  common: {
+    cancel: "Cancel",
+    save: "Save",
+    notRecorded: "Not recorded",
+    noVenue: "No home venue",
+    noProject: "No project",
+    homeVenue: "Its home venue",
+    keepProject: "Keep the current project",
+    costUnknown: "Cost unknown",
+    unnamed: "Unnamed member",
+  },
+  fields: {
+    name: "Name",
+    elementId: "Canon element",
+    element: "Element",
+    urid: "URID",
+    units: "Units",
+    lots: "Lots",
+    classId: "Asset class",
+    assetTag: "Asset tag",
+    state: "State",
+    conditionEnumId: "Condition",
+    homeVenueId: "Home venue",
+    custodian: "Held by",
+    projectId: "Project",
+    since: "Held since",
+    createdAt: "Registered",
+    venueId: "Venue",
+    quantity: "Quantity",
+    onHand: "On hand",
+    opening: "Opening count",
+    lotCode: "Label code",
+    counted: "Counted quantity",
+    note: "Note",
+    membershipId: "Member who takes it",
+    checkInVenue: "Returned to",
+    next: "Move to",
+    reason: "Reason",
+    scheme: "Scheme",
+    value: "Identifier",
+    unitId: "Asset unit",
+    performedOn: "Done on",
+    description: "Description",
+    cost: "Cost in {currency}",
+    costColumn: "Cost",
+    currencyCode: "Currency",
+    reportedAt: "Reported",
+    at: "When",
+    code: "Code",
+    eventId: "Scan event",
+    action: "Action",
+    comment: "Comment",
+    file: "File",
+  },
+  errors: {
+    field: "Check {field}.",
+    unexpected:
+      "That did not save because of a problem on our side. Try again; if it keeps failing, contact support.",
+    notFound:
+      "That item is gone or you no longer have access to it. Refresh the page to see the current list.",
+    conflict: "That value is already taken in this organization. Choose another one.",
+    invalid: "Some of what you entered is not valid.",
+    refused: "The database refused that change. Refresh the page and try again.",
+    fileTooLarge: "That file is larger than 50 MB. Upload a smaller file.",
+    scanning: "That file is still being scanned for viruses. Try the download again in a minute.",
+    asset_class_in_use:
+      "This class still has units or lots. Move or archive them before you archive the class.",
+    asset_lot_count_negative: "A count is zero or more. Enter the quantity you counted.",
+    asset_lot_insufficient:
+      "There is not that much on hand in this lot. Check the quantity and try again.",
+    asset_lot_quantity_ledger:
+      "A lot quantity changes through a count or a check-out, not an edit. Record a count instead.",
+    asset_state_conflict:
+      "Someone moved this asset a moment ago. Refresh the page to see its current state.",
+    asset_tag_immutable: "An asset keeps its tag. Register a new unit if the tag must change.",
+    asset_transition_not_allowed:
+      "An asset cannot make that move from its current state. Choose one of the moves offered.",
+    cross_org_reference:
+      "That choice belongs to another organization. Choose one from this organization.",
+    enumeration_domain:
+      "That condition is not in the canon Asset Condition list. Choose one of the conditions offered.",
+    transition_reason_required: "Every state change carries a reason. Say why the asset moves.",
+    asset_code_unknown:
+      "No asset or lot in this organization carries that code. Check the label and scan again.",
+    asset_code_ambiguous:
+      "More than one asset carries that identifier, so it cannot be told apart. Scan the asset tag instead.",
+    asset_scan_custodian_required: "Choose the one member who takes the asset.",
+    asset_scan_lot_transfer:
+      "A lot quantity is not passed hand to hand. Check it in, then out to the next person.",
+    asset_scan_place_required: "This asset has no home venue. Choose the place it comes back to.",
+    asset_scan_quantity_required: "Enter how many of the lot move.",
+    asset_scan_state_conflict:
+      "Someone moved this asset since you looked it up. Look it up again to see where it is now.",
+    asset_scan_unavailable:
+      "This asset is not in service, so it cannot be checked out or in. Move it back to Available first.",
+    asset_scan_event_reused:
+      "That scan was already used for another item. Close this window and scan again.",
+  },
+  load: {
+    loading: "Loading assets",
+    title: "Assets did not load",
+    sentence:
+      "We could not read this page just now. Try again; if it keeps failing, contact support with the reference below.",
+    retry: "Try again",
+  },
+  collab: {
+    comments: "Comments",
+    noComments: "No comments yet. Add context the next person will need.",
+    unknownAuthor: "Former member",
+    deleted: "This comment was deleted.",
+    delete: "Delete",
+    write: "Write a comment",
+    post: "Post comment",
+    attachments: "Attachments",
+    noAttachments: "No files yet. Upload photos, manuals or service records.",
+    download: "Download",
+    remove: "Remove",
+    file: "File",
+    upload: "Upload",
+    scan: {
+      PendingUpload: "Uploading",
+      Scanning: "Scanning",
+      Clean: "Ready",
+      Infected: "Blocked",
+      ScanFailed: "Scan failed",
+    },
+  },
+  classes: {
+    counts:
+      "{units, plural, one {# unit} other {# units}} · {lots, plural, one {# lot} other {# lots}}",
+    empty:
+      "No asset classes yet. Define the kinds of gear you own, each bound to its canon element.",
+    emptyReadOnly:
+      "No asset classes yet. Browse the canon elements while an asset manager sets them up.",
+    emptyReadOnlyAction: "Browse canon elements",
+    notFound:
+      "No asset class matches that link. It may have been archived; pick one from the list.",
+    units: "Units",
+    lots: "Lots",
+    noUnits: "No units of this class yet. Register one from Units.",
+    noLots: "No lots of this class yet. Count one from Lots.",
+    lotLine: "{venue}: {onHand} on hand",
+    create: {
+      open: "New asset class",
+      title: "New asset class",
+      description: "Find the canon element this gear is, then name it the way your crew does.",
+      search: "Find a canon element",
+      searchHelp: "Search by item name or element ID, for example moving head or 5000.02.",
+      find: "Find",
+      noElements: "No canon element matches. Try a shorter word.",
+      nameHelp: "The name your crew uses, such as Spot Fixture.",
+      submit: "Create class",
+    },
+    rename: {
+      open: "Rename",
+      title: "Rename {name}",
+    },
+    archive: {
+      open: "Archive",
+      title: "Archive {name}",
+      description:
+        "The class leaves the catalog. It has no units or lots, so nothing else changes.",
+      submit: "Archive class",
+    },
+  },
+  units: {
+    empty: "No units yet. Register each serialized piece of gear to track who holds it.",
+    emptyReadOnly:
+      "No units yet. Check the custody ledger for gear moves once units are registered.",
+    emptyReadOnlyAction: "Open the custody ledger",
+    emptyNoClasses: "Register units after you define an asset class for them.",
+    emptyNoClassesAction: "Define an asset class",
+    notFound:
+      "No unit carries the tag {tag}. It may have been retired from the register; search the list.",
+    backToUnits: "Back to units",
+    heldBy: "Held by {custodian}",
+    noCustody: "Not checked out yet",
+    out: "Out",
+    properties: "Unit properties",
+    moved: "{from} to {to}",
+    registered: "Registered as {state}",
+    none: {
+      custody: "This unit has not changed hands yet. Check it out to start its custody record.",
+      maintenance: "No maintenance recorded. Record service when it is done.",
+      damage: "No damage reported. Report damage as soon as it comes back hurt.",
+      identifiers:
+        "No serial or GTIN recorded. Add the manufacturer's serial so a scan finds this unit.",
+    },
+    sections: {
+      custody: "Custody",
+      history: "State history",
+      maintenance: "Maintenance",
+      damage: "Damage",
+      identifiers: "Identifiers",
+    },
+    create: {
+      open: "Register unit",
+      title: "Register unit",
+      description: "The unit starts Proposed. Move it to Received, then Available, as it arrives.",
+      tagHelp: "Letters, digits and hyphens, as printed on the label, for example NWL-RAD-014.",
+      submit: "Register unit",
+    },
+    edit: {
+      open: "Edit",
+      title: "Edit {tag}",
+    },
+    transition: {
+      open: "Change state",
+      title: "Change the state of {tag}",
+      description: "It is {state} now. Only the moves the asset lifecycle allows are offered.",
+      reasonHelp: "Say why, for example Back from the shop or Written off after the storm.",
+      submit: "Change state",
+    },
+    identifiers: {
+      add: "Add identifier",
+      title: "Add identifier",
+      description:
+        "Record a value the manufacturer or another authority issued, exactly as printed.",
+      schemeHelp: "Lowercase, such as serial, gtin14 or mpn.",
+      submit: "Add identifier",
+      remove: "Remove {identifier}",
+      removeTitle: "Remove {identifier}?",
+      removeSubmit: "Remove identifier",
+    },
+  },
+  lots: {
+    line: "{venue}: {onHand} on hand",
+    empty: "No lots yet. Count bulk gear you track by quantity, such as cable or sandbags.",
+    emptyReadOnly: "No lots yet. Check the custody ledger for gear moves meanwhile.",
+    emptyNoClasses: "Count lots after you define an asset class for them.",
+    emptyNoVenues: "A lot sits at a venue. Add a venue first.",
+    emptyNoVenuesAction: "Add a venue",
+    notFound: "No lot matches that link. It may have been archived; pick one from the list.",
+    ledger: "Lot ledger",
+    noMovements: "Nothing has moved yet. Check a quantity out or record a count.",
+    kinds: {
+      Count: "Counted, {delta} difference",
+      CheckOut: "{delta} checked out to {custodian}",
+      CheckIn: "{delta} checked in",
+    },
+    create: {
+      open: "New lot",
+      title: "New lot",
+      description:
+        "Count what is on the shelf now. Later changes are counts and check-outs in the lot ledger.",
+      quantityHelp: "The quantity on hand today.",
+      submit: "Create lot",
+    },
+    count: {
+      open: "Record count",
+      title: "Record a count",
+      description:
+        "The ledger shows {onHand} on hand. Enter what you counted; the difference is recorded.",
+      submit: "Record count",
+    },
+  },
+  custody: {
+    line: "{tag} to {holder}",
+    empty: "No custody moves yet. Scan or type an asset tag above to check gear out.",
+    emptyReadOnly: "No custody moves yet. Gear moves appear here as they happen.",
+    emptyAction: "Open units",
+    notFound: "No custody entry matches that link. Pick one from the ledger.",
+    openUnit: "Open {tag}",
+    projectHelp: "The project the gear is out for, if any.",
+    desk: {
+      title: "Scan or type a code",
+      code: "Asset tag, serial or lot label",
+      help: "A handheld scanner types the code and presses Enter for you.",
+      find: "Look up",
+      noAnswer: "Nothing found for {code}",
+      again: "Scan again",
+      unitState: "It is {state} now.",
+      cannotMove:
+        "It is not in service, so it cannot be checked out or in from here. Open the unit to change its state.",
+      lotOnHand: "{onHand} on hand",
+    },
+    checkOut: {
+      title: "Check out {code}",
+      description: "Hand it to a member. It moves to Deployed.",
+      submit: "Check out",
+    },
+    checkIn: {
+      title: "Check in {code}",
+      description: "Bring it back to a place. It moves to Available.",
+      submit: "Check in",
+      venueHelp: "Leave as is to return it to its home venue.",
+    },
+    transfer: {
+      title: "Transfer {code}",
+      description: "Pass it from the current holder to another member. It stays Deployed.",
+      submit: "Transfer",
+    },
+  },
+  maintenance: {
+    empty:
+      "No maintenance recorded yet. Record service as it is done so the history follows the gear.",
+    emptyReadOnly: "No maintenance recorded yet. Service records appear here as they are added.",
+    emptyNoUnits: "Record maintenance once units are registered.",
+    emptyNoUnitsAction: "Open units",
+    notFound: "No maintenance record matches that link. Pick one from the list.",
+    create: {
+      open: "Record maintenance",
+      title: "Record maintenance",
+      description: "Say what was done and when. Leave the cost blank when you do not know it yet.",
+      costHelp: "Leave blank when unknown. A blank cost stays unknown, never zero.",
+      submit: "Record maintenance",
+    },
+  },
+  damage: {
+    empty: "No damage reported. Report damage as soon as gear comes back hurt.",
+    emptyReadOnly: "No damage reported. Reports appear here as they are filed.",
+    emptyNoUnits: "Report damage once units are registered.",
+    notFound: "No damage report matches that link. Pick one from the list.",
+    openUnit: "Open {tag} to repair or write it off",
+    create: {
+      open: "Report damage",
+      title: "Report damage",
+      description:
+        "Describe what happened and when. Move the unit to Damaged from its page if it is out of service.",
+      descriptionHelp: "What is broken and how it happened.",
+      submit: "Report damage",
+    },
+  },
+  project: {
+    unitsTitle: "Assets on {project}",
+    empty:
+      "No gear is checked out to {project} yet. Check units out to this project from the custody ledger.",
+    emptyAction: "Open the custody ledger",
+  },
+};
 var compass_default$1 = {
   app: {
     name: "Compass",
@@ -9512,6 +9879,390 @@ var activity_default = {
     fallback: "un registro",
   },
 };
+var assets_default = {
+  states: {
+    proposed: "Propuesto",
+    received: "Recibido",
+    available: "Disponible",
+    reserved: "Reservado",
+    deployed: "En uso",
+    inMaintenance: "En mantenimiento",
+    damaged: "Dañado",
+    lost: "Perdido",
+    retired: "Dado de baja",
+  },
+  actions: {
+    checkOut: "Entregar",
+    checkIn: "Devolver",
+    transfer: "Transferir",
+  },
+  views: {
+    table: "Tabla",
+    list: "Lista",
+    board: "Tablero",
+    gallery: "Galería",
+    calendar: "Calendario",
+    "resource-schedule": "Programación",
+  },
+  collection: {
+    view: "Vista",
+    filters: "Filtrar esta lista",
+    search: "Buscar",
+    state: "Estado",
+    allStates: "Todos los estados",
+    apply: "Aplicar",
+    clear: "Quitar filtros",
+    noMatches: "Nada coincide con estos filtros. Quita los filtros para ver todo de nuevo.",
+    open: "Abrir",
+    openFull: "Abrir página completa",
+  },
+  common: {
+    cancel: "Cancelar",
+    save: "Guardar",
+    notRecorded: "Sin registrar",
+    noVenue: "Sin sede de origen",
+    noProject: "Sin proyecto",
+    homeVenue: "Su sede de origen",
+    keepProject: "Mantener el proyecto actual",
+    costUnknown: "Costo desconocido",
+    unnamed: "Miembro sin nombre",
+  },
+  fields: {
+    name: "Nombre",
+    elementId: "Elemento canónico",
+    element: "Elemento",
+    urid: "URID",
+    units: "Unidades",
+    lots: "Lotes",
+    classId: "Clase de activo",
+    assetTag: "Etiqueta de activo",
+    state: "Estado",
+    conditionEnumId: "Condición",
+    homeVenueId: "Sede de origen",
+    custodian: "En manos de",
+    projectId: "Proyecto",
+    since: "En custodia desde",
+    createdAt: "Registrado",
+    venueId: "Sede",
+    quantity: "Cantidad",
+    onHand: "Disponible",
+    opening: "Conteo inicial",
+    lotCode: "Código de etiqueta",
+    counted: "Cantidad contada",
+    note: "Nota",
+    membershipId: "Miembro que lo recibe",
+    checkInVenue: "Devuelto a",
+    next: "Pasar a",
+    reason: "Motivo",
+    scheme: "Esquema",
+    value: "Identificador",
+    unitId: "Unidad de activo",
+    performedOn: "Realizado el",
+    description: "Descripción",
+    cost: "Costo en {currency}",
+    costColumn: "Costo",
+    currencyCode: "Moneda",
+    reportedAt: "Reportado",
+    at: "Cuándo",
+    code: "Código",
+    eventId: "Evento de escaneo",
+    action: "Acción",
+    comment: "Comentario",
+    file: "Archivo",
+  },
+  errors: {
+    field: "Revisa {field}.",
+    unexpected:
+      "No se guardó por un problema de nuestra parte. Inténtalo de nuevo; si sigue fallando, contacta a soporte.",
+    notFound:
+      "Ese elemento ya no existe o ya no tienes acceso. Actualiza la página para ver la lista actual.",
+    conflict: "Ese valor ya está en uso en esta organización. Elige otro.",
+    invalid: "Algo de lo que escribiste no es válido.",
+    refused: "La base de datos rechazó ese cambio. Actualiza la página e inténtalo de nuevo.",
+    fileTooLarge: "Ese archivo pesa más de 50 MB. Sube un archivo más pequeño.",
+    scanning:
+      "Ese archivo aún se está revisando en busca de virus. Intenta la descarga de nuevo en un minuto.",
+    asset_class_in_use:
+      "Esta clase todavía tiene unidades o lotes. Muévelos o archívalos antes de archivar la clase.",
+    asset_lot_count_negative: "Un conteo es cero o más. Escribe la cantidad que contaste.",
+    asset_lot_insufficient:
+      "No hay tanto disponible en este lote. Revisa la cantidad e inténtalo de nuevo.",
+    asset_lot_quantity_ledger:
+      "La cantidad de un lote cambia con un conteo o una entrega, no con una edición. Registra un conteo.",
+    asset_state_conflict:
+      "Alguien movió este activo hace un momento. Actualiza la página para ver su estado actual.",
+    asset_tag_immutable:
+      "Un activo conserva su etiqueta. Registra una unidad nueva si la etiqueta debe cambiar.",
+    asset_transition_not_allowed:
+      "Un activo no puede hacer ese cambio desde su estado actual. Elige uno de los cambios ofrecidos.",
+    cross_org_reference:
+      "Esa opción pertenece a otra organización. Elige una de esta organización.",
+    enumeration_domain:
+      "Esa condición no está en la lista canónica de condiciones de activos. Elige una de las condiciones ofrecidas.",
+    transition_reason_required:
+      "Cada cambio de estado lleva un motivo. Indica por qué se mueve el activo.",
+    asset_code_unknown:
+      "Ningún activo ni lote de esta organización tiene ese código. Revisa la etiqueta y escanea de nuevo.",
+    asset_code_ambiguous:
+      "Más de un activo tiene ese identificador, así que no se pueden distinguir. Escanea la etiqueta de activo.",
+    asset_scan_custodian_required: "Elige el único miembro que recibe el activo.",
+    asset_scan_lot_transfer:
+      "La cantidad de un lote no se pasa de mano en mano. Devuélvela y luego entrégala a la siguiente persona.",
+    asset_scan_place_required:
+      "Este activo no tiene sede de origen. Elige el lugar al que regresa.",
+    asset_scan_quantity_required: "Escribe cuántas unidades del lote se mueven.",
+    asset_scan_state_conflict:
+      "Alguien movió este activo desde que lo buscaste. Búscalo de nuevo para ver dónde está.",
+    asset_scan_unavailable:
+      "Este activo no está en servicio, así que no se puede entregar ni devolver. Primero pásalo a Disponible.",
+    asset_scan_event_reused:
+      "Ese escaneo ya se usó para otro elemento. Cierra esta ventana y escanea de nuevo.",
+  },
+  load: {
+    loading: "Cargando activos",
+    title: "Los activos no se cargaron",
+    sentence:
+      "No pudimos leer esta página en este momento. Inténtalo de nuevo; si sigue fallando, contacta a soporte con la referencia de abajo.",
+    retry: "Intentar de nuevo",
+  },
+  collab: {
+    comments: "Comentarios",
+    noComments: "Aún no hay comentarios. Agrega el contexto que necesitará la siguiente persona.",
+    unknownAuthor: "Antiguo miembro",
+    deleted: "Este comentario se eliminó.",
+    delete: "Eliminar",
+    write: "Escribe un comentario",
+    post: "Publicar comentario",
+    attachments: "Archivos adjuntos",
+    noAttachments: "Aún no hay archivos. Sube fotos, manuales o registros de servicio.",
+    download: "Descargar",
+    remove: "Quitar",
+    file: "Archivo",
+    upload: "Subir",
+    scan: {
+      PendingUpload: "Subiendo",
+      Scanning: "Revisando",
+      Clean: "Listo",
+      Infected: "Bloqueado",
+      ScanFailed: "La revisión falló",
+    },
+  },
+  classes: {
+    counts:
+      "{units, plural, one {# unidad} other {# unidades}} · {lots, plural, one {# lote} other {# lotes}}",
+    empty:
+      "Aún no hay clases de activos. Define los tipos de equipo que tienes, cada uno ligado a su elemento canónico.",
+    emptyReadOnly:
+      "Aún no hay clases de activos. Explora los elementos canónicos mientras un responsable de activos las configura.",
+    emptyReadOnlyAction: "Explorar elementos canónicos",
+    notFound:
+      "Ninguna clase de activo coincide con ese enlace. Puede haberse archivado; elige una de la lista.",
+    units: "Unidades",
+    lots: "Lotes",
+    noUnits: "Aún no hay unidades de esta clase. Registra una desde Unidades.",
+    noLots: "Aún no hay lotes de esta clase. Cuenta uno desde Lotes.",
+    lotLine: "{venue}: {onHand} disponibles",
+    create: {
+      open: "Nueva clase de activo",
+      title: "Nueva clase de activo",
+      description:
+        "Busca el elemento canónico que corresponde a este equipo y nómbralo como lo llama tu equipo.",
+      search: "Buscar un elemento canónico",
+      searchHelp: "Busca por nombre o ID de elemento, por ejemplo cabeza móvil o 5000.02.",
+      find: "Buscar",
+      noElements: "Ningún elemento canónico coincide. Prueba con una palabra más corta.",
+      nameHelp: "El nombre que usa tu equipo, como Luminaria Spot.",
+      submit: "Crear clase",
+    },
+    rename: {
+      open: "Cambiar nombre",
+      title: "Cambiar el nombre de {name}",
+    },
+    archive: {
+      open: "Archivar",
+      title: "Archivar {name}",
+      description:
+        "La clase sale del catálogo. No tiene unidades ni lotes, así que nada más cambia.",
+      submit: "Archivar clase",
+    },
+  },
+  units: {
+    empty:
+      "Aún no hay unidades. Registra cada equipo con número de serie para saber quién lo tiene.",
+    emptyReadOnly:
+      "Aún no hay unidades. Revisa el registro de custodia cuando se registren unidades.",
+    emptyReadOnlyAction: "Abrir el registro de custodia",
+    emptyNoClasses: "Registra unidades después de definir una clase de activo para ellas.",
+    emptyNoClassesAction: "Definir una clase de activo",
+    notFound:
+      "Ninguna unidad tiene la etiqueta {tag}. Puede haberse dado de baja del registro; busca en la lista.",
+    backToUnits: "Volver a unidades",
+    heldBy: "En manos de {custodian}",
+    noCustody: "Aún no se ha entregado",
+    out: "Fuera",
+    properties: "Propiedades de la unidad",
+    moved: "De {from} a {to}",
+    registered: "Registrado como {state}",
+    none: {
+      custody:
+        "Esta unidad aún no ha cambiado de manos. Entrégala para iniciar su registro de custodia.",
+      maintenance: "No hay mantenimiento registrado. Registra el servicio cuando se haga.",
+      damage: "No hay daños reportados. Reporta el daño en cuanto regrese dañado.",
+      identifiers:
+        "No hay número de serie ni GTIN registrado. Agrega el número de serie del fabricante para que un escaneo encuentre esta unidad.",
+    },
+    sections: {
+      custody: "Custodia",
+      history: "Historial de estados",
+      maintenance: "Mantenimiento",
+      damage: "Daños",
+      identifiers: "Identificadores",
+    },
+    create: {
+      open: "Registrar unidad",
+      title: "Registrar unidad",
+      description:
+        "La unidad empieza como Propuesto. Pásala a Recibido y luego a Disponible cuando llegue.",
+      tagHelp:
+        "Letras, dígitos y guiones, tal como aparece en la etiqueta, por ejemplo NWL-RAD-014.",
+      submit: "Registrar unidad",
+    },
+    edit: {
+      open: "Editar",
+      title: "Editar {tag}",
+    },
+    transition: {
+      open: "Cambiar estado",
+      title: "Cambiar el estado de {tag}",
+      description:
+        "Ahora está en {state}. Solo se ofrecen los cambios que permite el ciclo de vida del activo.",
+      reasonHelp:
+        "Di por qué, por ejemplo De vuelta del taller o Dado de baja después de la tormenta.",
+      submit: "Cambiar estado",
+    },
+    identifiers: {
+      add: "Agregar identificador",
+      title: "Agregar identificador",
+      description:
+        "Registra un valor emitido por el fabricante u otra autoridad, tal como está impreso.",
+      schemeHelp: "En minúsculas, como serial, gtin14 o mpn.",
+      submit: "Agregar identificador",
+      remove: "Quitar {identifier}",
+      removeTitle: "¿Quitar {identifier}?",
+      removeSubmit: "Quitar identificador",
+    },
+  },
+  lots: {
+    line: "{venue}: {onHand} disponibles",
+    empty:
+      "Aún no hay lotes. Cuenta el equipo a granel que controlas por cantidad, como cable o sacos de arena.",
+    emptyReadOnly: "Aún no hay lotes. Mientras tanto, revisa el registro de custodia.",
+    emptyNoClasses: "Cuenta lotes después de definir una clase de activo para ellos.",
+    emptyNoVenues: "Un lote está en una sede. Primero agrega una sede.",
+    emptyNoVenuesAction: "Agregar una sede",
+    notFound:
+      "Ningún lote coincide con ese enlace. Puede haberse archivado; elige uno de la lista.",
+    ledger: "Registro del lote",
+    noMovements: "Aún no se ha movido nada. Entrega una cantidad o registra un conteo.",
+    kinds: {
+      Count: "Contado, diferencia de {delta}",
+      CheckOut: "{delta} entregados a {custodian}",
+      CheckIn: "{delta} devueltos",
+    },
+    create: {
+      open: "Nuevo lote",
+      title: "Nuevo lote",
+      description:
+        "Cuenta lo que hay en el estante ahora. Los cambios posteriores son conteos y entregas en el registro del lote.",
+      quantityHelp: "La cantidad disponible hoy.",
+      submit: "Crear lote",
+    },
+    count: {
+      open: "Registrar conteo",
+      title: "Registrar un conteo",
+      description:
+        "El registro muestra {onHand} disponibles. Escribe lo que contaste; se registra la diferencia.",
+      submit: "Registrar conteo",
+    },
+  },
+  custody: {
+    line: "{tag} a {holder}",
+    empty:
+      "Aún no hay movimientos de custodia. Escanea o escribe una etiqueta de activo arriba para entregar equipo.",
+    emptyReadOnly:
+      "Aún no hay movimientos de custodia. Los movimientos de equipo aparecen aquí cuando ocurren.",
+    emptyAction: "Abrir unidades",
+    notFound: "Ninguna entrada de custodia coincide con ese enlace. Elige una del registro.",
+    openUnit: "Abrir {tag}",
+    projectHelp: "El proyecto para el que sale el equipo, si lo hay.",
+    desk: {
+      title: "Escanea o escribe un código",
+      code: "Etiqueta de activo, número de serie o etiqueta de lote",
+      help: "Un escáner de mano escribe el código y presiona Enter por ti.",
+      find: "Buscar",
+      noAnswer: "No se encontró nada para {code}",
+      again: "Escanear de nuevo",
+      unitState: "Ahora está en {state}.",
+      cannotMove:
+        "No está en servicio, así que no se puede entregar ni devolver desde aquí. Abre la unidad para cambiar su estado.",
+      lotOnHand: "{onHand} disponibles",
+    },
+    checkOut: {
+      title: "Entregar {code}",
+      description: "Entrégalo a un miembro. Pasa a En uso.",
+      submit: "Entregar",
+    },
+    checkIn: {
+      title: "Devolver {code}",
+      description: "Regrésalo a un lugar. Pasa a Disponible.",
+      submit: "Devolver",
+      venueHelp: "Déjalo así para regresarlo a su sede de origen.",
+    },
+    transfer: {
+      title: "Transferir {code}",
+      description: "Pásalo de quien lo tiene a otro miembro. Sigue En uso.",
+      submit: "Transferir",
+    },
+  },
+  maintenance: {
+    empty:
+      "Aún no hay mantenimiento registrado. Registra el servicio cuando se haga para que el historial acompañe al equipo.",
+    emptyReadOnly:
+      "Aún no hay mantenimiento registrado. Los registros de servicio aparecen aquí cuando se agregan.",
+    emptyNoUnits: "Registra mantenimiento cuando haya unidades registradas.",
+    emptyNoUnitsAction: "Abrir unidades",
+    notFound: "Ningún registro de mantenimiento coincide con ese enlace. Elige uno de la lista.",
+    create: {
+      open: "Registrar mantenimiento",
+      title: "Registrar mantenimiento",
+      description: "Indica qué se hizo y cuándo. Deja el costo en blanco si aún no lo sabes.",
+      costHelp:
+        "Déjalo en blanco si no se conoce. Un costo en blanco sigue desconocido, nunca cero.",
+      submit: "Registrar mantenimiento",
+    },
+  },
+  damage: {
+    empty: "No hay daños reportados. Reporta el daño en cuanto el equipo regrese dañado.",
+    emptyReadOnly: "No hay daños reportados. Los reportes aparecen aquí cuando se presentan.",
+    emptyNoUnits: "Reporta daños cuando haya unidades registradas.",
+    notFound: "Ningún reporte de daños coincide con ese enlace. Elige uno de la lista.",
+    openUnit: "Abrir {tag} para repararlo o darlo de baja",
+    create: {
+      open: "Reportar daño",
+      title: "Reportar daño",
+      description:
+        "Describe qué pasó y cuándo. Pasa la unidad a Dañado desde su página si está fuera de servicio.",
+      descriptionHelp: "Qué está roto y cómo pasó.",
+      submit: "Reportar daño",
+    },
+  },
+  project: {
+    unitsTitle: "Activos en {project}",
+    empty:
+      "Aún no hay equipo entregado a {project}. Entrega unidades a este proyecto desde el registro de custodia.",
+    emptyAction: "Abrir el registro de custodia",
+  },
+};
 var compass_default = {
   app: {
     name: "Compass",
@@ -17774,6 +18525,7 @@ var work_default = {
 //#region ../i18n/src/catalogs.generated.ts
 var enUS = {
   activity: activity_default$1,
+  assets: assets_default$1,
   compass: compass_default$1,
   credentials: credentials_default$1,
   crew: crew_default$1,
@@ -17799,6 +18551,7 @@ var enUS = {
 };
 var esUS = {
   activity: activity_default,
+  assets: assets_default,
   compass: compass_default,
   credentials: credentials_default,
   crew: crew_default,

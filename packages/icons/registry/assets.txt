@@ -1,0 +1,11 @@
+# Icons the Assets pages (A12) draw by name through @xos/ui. One lucide-react name per line.
+Archive
+ArrowRightLeft
+ListChecks
+Package
+Pencil
+Plus
+SearchX
+TriangleAlert
+Wrench
+X

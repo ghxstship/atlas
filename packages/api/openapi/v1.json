@@ -9052,8 +9052,12 @@
             "description": "Asset class name.",
             "example": "Truss Section 10 ft"
           },
-          "element_id": { "$ref": "#/components/schemas/ItemId" },
-          "urid": { "$ref": "#/components/schemas/Urid" }
+          "element_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon element the class is.",
+            "example": "5000.02.02-XPMS-003"
+          }
         },
         "required": [
           "id",
@@ -9063,16 +9067,9 @@
           "updated_at",
           "updated_by",
           "name",
-          "element_id",
-          "urid"
+          "element_id"
         ],
         "description": "An asset class bound to a catalog element (class grain)."
-      },
-      "ItemId": {
-        "type": ["string", "null"],
-        "pattern": "^[0-9]000\\.[0-9]{2}\\.[0-9]{2}-[A-Z0-9]+-[0-9]+$",
-        "description": "Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).",
-        "example": "4000.01.01-XPMS-001"
       },
       "AssetClassCreate": {
         "type": "object",
@@ -9084,10 +9081,14 @@
             "description": "Asset class name.",
             "example": "Truss Section 10 ft"
           },
-          "element_id": { "$ref": "#/components/schemas/ItemId" },
-          "urid": { "$ref": "#/components/schemas/Urid" }
+          "element_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon element the class is.",
+            "example": "5000.02.02-XPMS-003"
+          }
         },
-        "required": ["name", "urid"],
+        "required": ["name", "element_id"],
         "description": "Fields accepted when creating a AssetClass."
       },
       "AssetClassUpdate": {
@@ -9100,8 +9101,12 @@
             "description": "Asset class name.",
             "example": "Truss Section 10 ft"
           },
-          "element_id": { "$ref": "#/components/schemas/ItemId" },
-          "urid": { "$ref": "#/components/schemas/Urid" }
+          "element_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon element the class is.",
+            "example": "5000.02.02-XPMS-003"
+          }
         },
         "description": "Fields accepted when updating a AssetClass. Omitted fields are unchanged."
       },
@@ -9173,17 +9178,33 @@
             "description": "Asset tag (a code that is ours).",
             "example": "NWL-TR-0042"
           },
-          "serial_number": {
-            "type": ["string", "null"],
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Manufacturer serial (an identifier).",
-            "example": "SN-88231"
-          },
           "asset_state": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Asset lifecycle state. A Title Case value from the lifecycle's database enum.",
-            "example": "Active"
+            "enum": [
+              "Proposed",
+              "Received",
+              "Available",
+              "Reserved",
+              "Deployed",
+              "In Maintenance",
+              "Damaged",
+              "Lost",
+              "Retired"
+            ],
+            "description": "Asset lifecycle state.",
+            "example": "Available"
+          },
+          "condition_enum_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Condition: a row of the canon Asset Condition enumeration.",
+            "example": "ENM-017"
+          },
+          "home_venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the venue the unit returns to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -9195,8 +9216,9 @@
           "updated_by",
           "asset_class_id",
           "asset_tag",
-          "serial_number",
-          "asset_state"
+          "asset_state",
+          "condition_enum_id",
+          "home_venue_id"
         ],
         "description": "An individual asset tracked by serial or asset tag (unit grain), with a nine-value lifecycle."
       },
@@ -9215,11 +9237,17 @@
             "description": "Asset tag (a code that is ours).",
             "example": "NWL-TR-0042"
           },
-          "serial_number": {
+          "condition_enum_id": {
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Manufacturer serial (an identifier).",
-            "example": "SN-88231"
+            "description": "Condition: a row of the canon Asset Condition enumeration.",
+            "example": "ENM-017"
+          },
+          "home_venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the venue the unit returns to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": ["asset_class_id", "asset_tag"],
@@ -9228,17 +9256,17 @@
       "AssetUnitUpdate": {
         "type": "object",
         "properties": {
-          "asset_tag": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Asset tag (a code that is ours).",
-            "example": "NWL-TR-0042"
-          },
-          "serial_number": {
+          "condition_enum_id": {
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Manufacturer serial (an identifier).",
-            "example": "SN-88231"
+            "description": "Condition: a row of the canon Asset Condition enumeration.",
+            "example": "ENM-017"
+          },
+          "home_venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the venue the unit returns to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a AssetUnit. Omitted fields are unchanged."
@@ -9286,6 +9314,128 @@
         },
         "required": ["code", "symbology"],
         "description": "A scanned code."
+      },
+      "AssetScanResult": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": ["applied", "duplicate"],
+            "description": "applied for a new event; duplicate when the event id was already applied.",
+            "example": "applied"
+          },
+          "subject_kind": {
+            "type": "string",
+            "enum": ["unit", "lot"],
+            "description": "What the code named.",
+            "example": "unit"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The asset unit or lot moved.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "ledger_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The custody entry or lot movement, equal to the event id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_state": {
+            "type": ["string", "null"],
+            "enum": [
+              "Proposed",
+              "Received",
+              "Available",
+              "Reserved",
+              "Deployed",
+              "In Maintenance",
+              "Damaged",
+              "Lost",
+              "Retired",
+              null
+            ],
+            "description": "Units: the state after the move.",
+            "example": "Available"
+          },
+          "on_hand": {
+            "type": ["number", "null"],
+            "description": "Lots: the quantity on hand after the move.",
+            "example": 72
+          }
+        },
+        "required": [
+          "outcome",
+          "subject_kind",
+          "subject_id",
+          "ledger_id",
+          "asset_state",
+          "on_hand"
+        ],
+        "description": "The outcome of one scan event."
+      },
+      "AssetScanEvent": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID the device minted when the scan happened and keeps in its offline queue. It becomes the custody entry or lot movement id, so replaying the event at any later time changes nothing.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e70"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The scanned asset tag, external identifier (serial, GTIN) or lot label (LOT:<lot id>).",
+            "example": "NWL-RAD-014"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["check-out", "check-in", "transfer"],
+            "description": "check-out hands the item to one custodian (the unit becomes Deployed); check-in returns it to a venue (the unit becomes Available); transfer passes a deployed unit to another custodian.",
+            "example": "check-out"
+          },
+          "custodian_membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the member who takes the item.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "custodian_engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the external engagement that takes the item; never together with a member.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the venue the item returns to; the unit's home venue by default.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project the item is out for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "maxLength": 1000,
+            "description": "Hand-over note.",
+            "example": "Stage left radio."
+          },
+          "quantity": {
+            "type": ["number", "null"],
+            "exclusiveMinimum": 0,
+            "description": "Lots only: how many move.",
+            "example": 12
+          }
+        },
+        "required": ["event_id", "code", "action"],
+        "description": "One custody move scanned on a device."
       },
       "AssetLotPage": {
         "type": "object",
@@ -9350,12 +9500,17 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "venue_id": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "uuid",
-            "description": "Identifier of the venue.",
+            "description": "Identifier of the venue the lot sits at.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "quantity": { "type": "number", "description": "Quantity on hand.", "example": 36 }
+          "quantity": { "type": "number", "description": "Quantity on hand.", "example": 36 },
+          "on_hand": {
+            "type": "number",
+            "description": "Quantity on hand: the opening count plus the lot ledger.",
+            "example": 34
+          }
         },
         "required": [
           "id",
@@ -9366,7 +9521,8 @@
           "updated_by",
           "asset_class_id",
           "venue_id",
-          "quantity"
+          "quantity",
+          "on_hand"
         ],
         "description": "A quantity of an asset class at a place (lot grain)."
       },
@@ -9380,26 +9536,25 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "venue_id": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "uuid",
-            "description": "Identifier of the venue.",
+            "description": "Identifier of the venue the lot sits at.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "quantity": { "type": "number", "description": "Quantity on hand.", "example": 36 }
         },
-        "required": ["asset_class_id", "quantity"],
+        "required": ["asset_class_id", "venue_id", "quantity"],
         "description": "Fields accepted when creating a AssetLot."
       },
       "AssetLotUpdate": {
         "type": "object",
         "properties": {
           "venue_id": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "uuid",
-            "description": "Identifier of the venue.",
+            "description": "Identifier of the venue the lot sits at.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "quantity": { "type": "number", "description": "Quantity on hand.", "example": 36 }
+          }
         },
         "description": "Fields accepted when updating a AssetLot. Omitted fields are unchanged."
       },
@@ -9476,6 +9631,12 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Identifier value.",
             "example": "00012345678905"
+          },
+          "scheme": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Scheme, such as serial, gtin14 or mpn.",
+            "example": "serial"
           }
         },
         "required": [
@@ -9487,7 +9648,8 @@
           "updated_by",
           "asset_unit_id",
           "identifier_class",
-          "value"
+          "value",
+          "scheme"
         ],
         "description": "An external identifier recorded against an asset unit, such as a GTIN or an NFC tag."
       },
@@ -9500,20 +9662,20 @@
             "description": "Identifier of the asset unit.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "identifier_class": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Identifier class.",
-            "example": "gtin"
-          },
           "value": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Identifier value.",
             "example": "00012345678905"
+          },
+          "scheme": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Scheme, such as serial, gtin14 or mpn.",
+            "example": "serial"
           }
         },
-        "required": ["asset_unit_id", "identifier_class", "value"],
+        "required": ["asset_unit_id", "value", "scheme"],
         "description": "Fields accepted when creating a AssetIdentifier."
       },
       "AssetCustodyPage": {
@@ -9578,29 +9740,35 @@
             "description": "Identifier of the asset unit.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "custodian_person_id": {
+          "custodian_membership_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the custodian person.",
+            "description": "Identifier of the member who holds the unit.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "custodian_organization_id": {
+          "custodian_engagement_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the custodian organization.",
+            "description": "Identifier of the external engagement that holds the unit.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "location_venue_id": {
+          "venue_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the venue.",
+            "description": "Identifier of the place the unit is kept.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "recorded_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When custody changed.",
-            "example": "2026-10-08T14:30:00Z"
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project the unit is out for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "maxLength": 1000,
+            "description": "Hand-over note.",
+            "example": "Issued for load-in."
           }
         },
         "required": [
@@ -9611,10 +9779,11 @@
           "updated_at",
           "updated_by",
           "asset_unit_id",
-          "custodian_person_id",
-          "custodian_organization_id",
-          "location_venue_id",
-          "recorded_at"
+          "custodian_membership_id",
+          "custodian_engagement_id",
+          "venue_id",
+          "project_id",
+          "note"
         ],
         "description": "An append-only custody ledger entry."
       },
@@ -9627,23 +9796,35 @@
             "description": "Identifier of the asset unit.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "custodian_person_id": {
+          "custodian_membership_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the custodian person.",
+            "description": "Identifier of the member who holds the unit.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "custodian_organization_id": {
+          "custodian_engagement_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the custodian organization.",
+            "description": "Identifier of the external engagement that holds the unit.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "location_venue_id": {
+          "venue_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the venue.",
+            "description": "Identifier of the place the unit is kept.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project the unit is out for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "maxLength": 1000,
+            "description": "Hand-over note.",
+            "example": "Issued for load-in."
           }
         },
         "required": ["asset_unit_id"],
@@ -9730,8 +9911,8 @@
             "example": 12000,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
@@ -9748,7 +9929,7 @@
           "performed_on",
           "description",
           "cost_minor",
-          "currency"
+          "currency_code"
         ],
         "description": "A maintenance event for an asset unit."
       },
@@ -9780,14 +9961,14 @@
             "example": 12000,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
           }
         },
-        "required": ["asset_unit_id", "performed_on", "description", "currency"],
+        "required": ["asset_unit_id", "performed_on", "description"],
         "description": "Fields accepted when creating a AssetMaintenance."
       },
       "AssetMaintenanceUpdate": {
@@ -9812,8 +9993,8 @@
             "example": 12000,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
@@ -9896,10 +10077,16 @@
             "description": "What is damaged.",
             "example": "Bent chord on one end."
           },
-          "engagement_id": {
+          "project_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the responsible engagement.",
+            "description": "Identifier of the project during which the damage happened.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "responsible_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the counterparty responsible.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -9913,7 +10100,8 @@
           "asset_unit_id",
           "reported_at",
           "description",
-          "engagement_id"
+          "project_id",
+          "responsible_counterparty_id"
         ],
         "description": "A damage report for an asset unit."
       },
@@ -9939,14 +10127,20 @@
             "description": "What is damaged.",
             "example": "Bent chord on one end."
           },
-          "engagement_id": {
+          "project_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the responsible engagement.",
+            "description": "Identifier of the project during which the damage happened.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "responsible_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the counterparty responsible.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["asset_unit_id", "reported_at", "description"],
+        "required": ["asset_unit_id", "description"],
         "description": "Fields accepted when creating a AssetDamage."
       },
       "AssetDamageUpdate": {
@@ -9965,10 +10159,16 @@
             "description": "What is damaged.",
             "example": "Bent chord on one end."
           },
-          "engagement_id": {
+          "project_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the responsible engagement.",
+            "description": "Identifier of the project during which the damage happened.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "responsible_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the counterparty responsible.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -15762,6 +15962,12 @@
         "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
         "description": "Price band grade from `xpms.element_price_bands`.",
         "example": "Elevated"
+      },
+      "ItemId": {
+        "type": ["string", "null"],
+        "pattern": "^[0-9]000\\.[0-9]{2}\\.[0-9]{2}-[A-Z0-9]+-[0-9]+$",
+        "description": "Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).",
+        "example": "4000.01.01-XPMS-001"
       },
       "SharedState": {
         "type": "string",
@@ -57904,8 +58110,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Truss Section 10 ft",
-                      "element_id": "4000.01.01-XPMS-001",
-                      "urid": "4000.01.01"
+                      "element_id": "5000.02.02-XPMS-003"
                     }
                   ],
                   "next_cursor": null
@@ -57932,11 +58137,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "name": "Truss Section 10 ft",
-                "element_id": "4000.01.01-XPMS-001",
-                "urid": "4000.01.01"
-              },
+              "example": { "name": "Truss Section 10 ft", "element_id": "5000.02.02-XPMS-003" },
               "schema": { "$ref": "#/components/schemas/AssetClassCreate" }
             }
           }
@@ -57960,8 +58161,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Truss Section 10 ft",
-                  "element_id": "4000.01.01-XPMS-001",
-                  "urid": "4000.01.01"
+                  "element_id": "5000.02.02-XPMS-003"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetClass" }
               }
@@ -58018,8 +58218,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Truss Section 10 ft",
-                  "element_id": "4000.01.01-XPMS-001",
-                  "urid": "4000.01.01"
+                  "element_id": "5000.02.02-XPMS-003"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetClass" }
               }
@@ -58058,11 +58257,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "name": "Truss Section 10 ft",
-                "element_id": "4000.01.01-XPMS-001",
-                "urid": "4000.01.01"
-              },
+              "example": { "name": "Truss Section 10 ft", "element_id": "5000.02.02-XPMS-003" },
               "schema": { "$ref": "#/components/schemas/AssetClassUpdate" }
             }
           }
@@ -58086,8 +58281,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Truss Section 10 ft",
-                  "element_id": "4000.01.01-XPMS-001",
-                  "urid": "4000.01.01"
+                  "element_id": "5000.02.02-XPMS-003"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetClass" }
               }
@@ -58171,8 +58365,9 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "asset_tag": "NWL-TR-0042",
-                      "serial_number": "SN-88231",
-                      "asset_state": "Active"
+                      "asset_state": "Available",
+                      "condition_enum_id": "ENM-017",
+                      "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -58202,7 +58397,8 @@
               "example": {
                 "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "asset_tag": "NWL-TR-0042",
-                "serial_number": "SN-88231"
+                "condition_enum_id": "ENM-017",
+                "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/AssetUnitCreate" }
             }
@@ -58228,8 +58424,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_tag": "NWL-TR-0042",
-                  "serial_number": "SN-88231",
-                  "asset_state": "Active"
+                  "asset_state": "Available",
+                  "condition_enum_id": "ENM-017",
+                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetUnit" }
               }
@@ -58287,8 +58484,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_tag": "NWL-TR-0042",
-                  "serial_number": "SN-88231",
-                  "asset_state": "Active"
+                  "asset_state": "Available",
+                  "condition_enum_id": "ENM-017",
+                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetUnit" }
               }
@@ -58327,7 +58525,10 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "asset_tag": "NWL-TR-0042", "serial_number": "SN-88231" },
+              "example": {
+                "condition_enum_id": "ENM-017",
+                "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
               "schema": { "$ref": "#/components/schemas/AssetUnitUpdate" }
             }
           }
@@ -58352,8 +58553,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_tag": "NWL-TR-0042",
-                  "serial_number": "SN-88231",
-                  "asset_state": "Active"
+                  "asset_state": "Available",
+                  "condition_enum_id": "ENM-017",
+                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetUnit" }
               }
@@ -58456,8 +58658,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_tag": "NWL-TR-0042",
-                  "serial_number": "SN-88231",
-                  "asset_state": "Active"
+                  "asset_state": "Available",
+                  "condition_enum_id": "ENM-017",
+                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetUnit" }
               }
@@ -58511,10 +58714,71 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_tag": "NWL-TR-0042",
-                  "serial_number": "SN-88231",
-                  "asset_state": "Active"
+                  "asset_state": "Available",
+                  "condition_enum_id": "ENM-017",
+                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetUnit" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/asset-units/scans": {
+      "post": {
+        "operationId": "assetUnits.applyScan",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_units",
+        "x-xos-capability": "assets.custody.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "x-xos-rpc": "app.apply_asset_scan",
+        "summary": "Apply a scan event",
+        "description": "Applies one scanned custody move in one transaction (app.apply_asset_scan): resolves the code to a unit or lot, writes the custody entry or lot movement under the device's event id, and moves the unit's state. Replaying an event id returns `duplicate` and changes nothing. A unit someone else moved meanwhile is refused (422, asset_scan_state_conflict); a code no item carries is refused with NO_ANSWER. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e70",
+                "code": "NWL-RAD-014",
+                "action": "check-out",
+                "custodian_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "custodian_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "note": "Stage left radio.",
+                "quantity": 12
+              },
+              "schema": { "$ref": "#/components/schemas/AssetScanEvent" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "applied",
+                  "subject_kind": "unit",
+                  "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "ledger_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_state": "Available",
+                  "on_hand": 72
+                },
+                "schema": { "$ref": "#/components/schemas/AssetScanResult" }
               }
             }
           },
@@ -58564,7 +58828,8 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "quantity": 36
+                      "quantity": 36,
+                      "on_hand": 34
                     }
                   ],
                   "next_cursor": null
@@ -58620,7 +58885,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "quantity": 36
+                  "quantity": 36,
+                  "on_hand": 34
                 },
                 "schema": { "$ref": "#/components/schemas/AssetLot" }
               }
@@ -58678,7 +58944,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "quantity": 36
+                  "quantity": 36,
+                  "on_hand": 34
                 },
                 "schema": { "$ref": "#/components/schemas/AssetLot" }
               }
@@ -58717,7 +58984,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f", "quantity": 36 },
+              "example": { "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
               "schema": { "$ref": "#/components/schemas/AssetLotUpdate" }
             }
           }
@@ -58742,7 +59009,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "quantity": 36
+                  "quantity": 36,
+                  "on_hand": 34
                 },
                 "schema": { "$ref": "#/components/schemas/AssetLot" }
               }
@@ -58826,7 +59094,8 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "identifier_class": "gtin",
-                      "value": "00012345678905"
+                      "value": "00012345678905",
+                      "scheme": "serial"
                     }
                   ],
                   "next_cursor": null
@@ -58855,8 +59124,8 @@
             "application/json": {
               "example": {
                 "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "identifier_class": "gtin",
-                "value": "00012345678905"
+                "value": "00012345678905",
+                "scheme": "serial"
               },
               "schema": { "$ref": "#/components/schemas/AssetIdentifierCreate" }
             }
@@ -58882,7 +59151,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "identifier_class": "gtin",
-                  "value": "00012345678905"
+                  "value": "00012345678905",
+                  "scheme": "serial"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetIdentifier" }
               }
@@ -58940,7 +59210,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "identifier_class": "gtin",
-                  "value": "00012345678905"
+                  "value": "00012345678905",
+                  "scheme": "serial"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetIdentifier" }
               }
@@ -58990,9 +59261,9 @@
         "x-xos-table": "app.asset_custody",
         "x-xos-capability": "assets.asset.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
-        "x-xos-order": { "by": ["recorded_at"], "numeric": false },
+        "x-xos-order": { "by": ["id"], "numeric": false },
         "summary": "List asset custody rows",
-        "description": "An append-only custody ledger entry. Returns a cursor page of asset custody rows the caller may see. The default order is `recorded_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "An append-only custody ledger entry. Returns a cursor page of asset custody rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -59020,10 +59291,11 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "custodian_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "custodian_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "location_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "recorded_at": "2026-10-08T14:30:00Z"
+                      "custodian_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "custodian_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "note": "Issued for load-in."
                     }
                   ],
                   "next_cursor": null
@@ -59052,9 +59324,11 @@
             "application/json": {
               "example": {
                 "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "custodian_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "custodian_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "location_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "custodian_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "custodian_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "note": "Issued for load-in."
               },
               "schema": { "$ref": "#/components/schemas/AssetCustodyCreate" }
             }
@@ -59079,10 +59353,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "custodian_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "custodian_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "location_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "recorded_at": "2026-10-08T14:30:00Z"
+                  "custodian_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "custodian_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "note": "Issued for load-in."
                 },
                 "schema": { "$ref": "#/components/schemas/AssetCustody" }
               }
@@ -59139,10 +59414,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "custodian_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "custodian_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "location_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "recorded_at": "2026-10-08T14:30:00Z"
+                  "custodian_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "custodian_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "note": "Issued for load-in."
                 },
                 "schema": { "$ref": "#/components/schemas/AssetCustody" }
               }
@@ -59195,7 +59471,7 @@
                       "performed_on": "2026-10-08",
                       "description": "Replaced the spigots.",
                       "cost_minor": 12000,
-                      "currency": "USD"
+                      "currency_code": "USD"
                     }
                   ],
                   "next_cursor": null
@@ -59227,7 +59503,7 @@
                 "performed_on": "2026-10-08",
                 "description": "Replaced the spigots.",
                 "cost_minor": 12000,
-                "currency": "USD"
+                "currency_code": "USD"
               },
               "schema": { "$ref": "#/components/schemas/AssetMaintenanceCreate" }
             }
@@ -59255,7 +59531,7 @@
                   "performed_on": "2026-10-08",
                   "description": "Replaced the spigots.",
                   "cost_minor": 12000,
-                  "currency": "USD"
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetMaintenance" }
               }
@@ -59315,7 +59591,7 @@
                   "performed_on": "2026-10-08",
                   "description": "Replaced the spigots.",
                   "cost_minor": 12000,
-                  "currency": "USD"
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetMaintenance" }
               }
@@ -59358,7 +59634,7 @@
                 "performed_on": "2026-10-08",
                 "description": "Replaced the spigots.",
                 "cost_minor": 12000,
-                "currency": "USD"
+                "currency_code": "USD"
               },
               "schema": { "$ref": "#/components/schemas/AssetMaintenanceUpdate" }
             }
@@ -59386,7 +59662,7 @@
                   "performed_on": "2026-10-08",
                   "description": "Replaced the spigots.",
                   "cost_minor": 12000,
-                  "currency": "USD"
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetMaintenance" }
               }
@@ -59471,7 +59747,8 @@
                       "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "reported_at": "2026-10-08T14:30:00Z",
                       "description": "Bent chord on one end.",
-                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "responsible_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -59502,7 +59779,8 @@
                 "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "reported_at": "2026-10-08T14:30:00Z",
                 "description": "Bent chord on one end.",
-                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "responsible_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/AssetDamageCreate" }
             }
@@ -59529,7 +59807,8 @@
                   "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "reported_at": "2026-10-08T14:30:00Z",
                   "description": "Bent chord on one end.",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "responsible_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetDamage" }
               }
@@ -59588,7 +59867,8 @@
                   "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "reported_at": "2026-10-08T14:30:00Z",
                   "description": "Bent chord on one end.",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "responsible_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetDamage" }
               }
@@ -59630,7 +59910,8 @@
               "example": {
                 "reported_at": "2026-10-08T14:30:00Z",
                 "description": "Bent chord on one end.",
-                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "responsible_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/AssetDamageUpdate" }
             }
@@ -59657,7 +59938,8 @@
                   "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "reported_at": "2026-10-08T14:30:00Z",
                   "description": "Bent chord on one end.",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "responsible_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetDamage" }
               }

@@ -1,0 +1,8 @@
+# Hand-written Atlas pages owned by A12 (Assets, RRR-24). One sitemap node id per line.
+assets.asset-classes
+assets.units
+assets.lots
+assets.custody-ledger
+assets.maintenance
+assets.damage
+project.assets
