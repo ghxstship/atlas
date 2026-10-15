@@ -1,3 +1,7 @@
 # Hand-written Atlas pages owned by A07 (Projects, scope tree, gates and evidence, Home, Activity).
 # One sitemap node id per line.
+projects
+projects.all
+projects.by-phase
+projects.portfolio-timeline
 project
