@@ -119,7 +119,7 @@ update app.advance_submissions set reviewed_at = '2000-01-01', reviewed_by = pg_
 select is((select reviewed_by from app.advance_submissions where id = pg_temp.id('sub_phone')), pg_temp.id('alice'), 'the review is stamped with the reviewer');
 select ok((select reviewed_at > '2020-01-01' from app.advance_submissions where id = pg_temp.id('sub_phone')), 'and the database time');
 select pg_temp.as_platform();
-select is((select count(*)::int from app.domain_events where event_type = 'advance_submission.reviewed'), 2, 'each review emits advance_submission.reviewed');
+select is((select count(*)::int from app.domain_events where event_type = 'advance_submission.reviewed' and subject_id in (pg_temp.id('sub_token'), pg_temp.id('sub_phone'))), 2, 'each review emits advance_submission.reviewed');
 
 -- Lock, reissue, expiry ------------------------------------------------------------------------------------------
 select pg_temp.as_anon();
@@ -143,7 +143,7 @@ select is((select claimed_tokens from app.claim_advance_token((select token from
   'the verified email claims the link and every earlier link sent to it');
 select is((select count(*)::int from app.my_advance_submissions()), 1, 'the earlier token answer appears under the account');
 select pg_temp.as_platform();
-select is((select count(*)::int from app.domain_events where event_type = 'advance_token.claimed'), 2, 'each claim emits advance_token.claimed');
+select is((select count(*)::int from app.domain_events where event_type = 'advance_token.claimed' and subject_id in (select token_id from links)), 2, 'each claim emits advance_token.claimed');
 
 select * from finish();
 rollback;
