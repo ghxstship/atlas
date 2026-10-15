@@ -19,6 +19,8 @@ export interface NavLink {
   readonly label: string;
   readonly href: string;
   readonly icon: string;
+  /** Label keys of the navigable ancestors, for "Settings · Profile" style command entries. */
+  readonly context?: readonly string[];
 }
 
 export interface AvatarEntry {
@@ -83,6 +85,7 @@ export function buildNav(sitemap: Sitemap, ctx: NavContext): GatewayNav {
     label: e.label,
     href: fillRoute(e.route, {}),
     icon: icon(e.id),
+    context: e.context,
   }));
   return { primary: links("topBar"), bottomBar: links("mobileBottomBar"), avatar, commands };
 }
