@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { committedSpend, countMyRecords, orgBaseCurrency } from "../src/home";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 describe("home summary", () => {
   it("counts open and blocked records of the person", async () => {

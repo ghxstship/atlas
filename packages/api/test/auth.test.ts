@@ -167,7 +167,8 @@ describe("API keys", () => {
     expect(exchanges).toHaveLength(1);
 
     const app = createApiApp({ authenticate, rateLimiter: false });
-    const outOfScope = await app.request("/projects", {
+    // A path no module ever handles, so this stays a 404 as module agents add handlers.
+    const outOfScope = await app.request("/no-such-resource", {
       headers: { authorization: "Bearer xos_live_valid" },
     });
     expect(outOfScope.status).toBe(404);

@@ -1968,6 +1968,7 @@ var projects_default$1 = {
     endsOn: "Last production day",
     dates: "Dates",
     updated: "Updated",
+    currency: "Currency",
   },
   values: {
     unresolved: "Not resolved",
@@ -2015,8 +2016,7 @@ var projects_default$1 = {
   },
   create: {
     title: "New project",
-    description:
-      "A project starts Proposed at Scope with its engagement root. You can resolve the jurisdiction now or at gate 1.",
+    description: "Description",
     key: "Project key",
     keyHelp:
       "Two to five capital letters, unique in your organization. Record keys start with it, for example NWL-142.",
@@ -2033,6 +2033,10 @@ var projects_default$1 = {
     endsOn: "Last production day",
     submit: "Create project",
     cancel: "Cancel",
+    currency: "Currency",
+    currencyDefault: "Jurisdiction or organization default",
+    currencyHelp:
+      "Money on the project is priced in this currency. Left on the default, the jurisdiction's country decides, then your organization's base currency.",
   },
   errors: {
     keyFormat: "Use two to five capital letters for the key, for example NWL.",
@@ -2081,6 +2085,10 @@ var projects_default$1 = {
     comment: "Write a comment of up to 10,000 characters.",
     file: "Choose a file to attach.",
     fileSize: "Files can be up to 50 MB. Choose a smaller file.",
+    description: "Keep the description under 20,000 characters.",
+    currency: "Choose a currency from the list.",
+    project_currency_required:
+      "Choose a currency, or set your organization's base currency in settings.",
   },
   transition: {
     projectTitle: "Change project state",
@@ -4752,6 +4760,7 @@ var projects_default = {
     endsOn: "Último día de producción",
     dates: "Fechas",
     updated: "Actualizado",
+    currency: "Moneda",
   },
   values: {
     unresolved: "Sin resolver",
@@ -4801,8 +4810,7 @@ var projects_default = {
   },
   create: {
     title: "Nuevo proyecto",
-    description:
-      "Un proyecto empieza como Propuesto en Alcance con su raíz del encargo. Puedes resolver la jurisdicción ahora o en la puerta 1.",
+    description: "Descripción",
     key: "Clave del proyecto",
     keyHelp:
       "De dos a cinco letras mayúsculas, única en tu organización. Las claves de registro empiezan con ella, por ejemplo NWL-142.",
@@ -4819,6 +4827,10 @@ var projects_default = {
     endsOn: "Último día de producción",
     submit: "Crear proyecto",
     cancel: "Cancelar",
+    currency: "Moneda",
+    currencyDefault: "Predeterminada de la jurisdicción o de la organización",
+    currencyHelp:
+      "El dinero del proyecto se expresa en esta moneda. Si dejas la predeterminada, decide el país de la jurisdicción y después la moneda base de tu organización.",
   },
   errors: {
     keyFormat: "Usa de dos a cinco letras mayúsculas para la clave, por ejemplo NWL.",
@@ -4868,6 +4880,10 @@ var projects_default = {
     comment: "Escribe un comentario de hasta 10,000 caracteres.",
     file: "Elige un archivo para adjuntar.",
     fileSize: "Los archivos pueden pesar hasta 50 MB. Elige un archivo más pequeño.",
+    description: "Mantén la descripción por debajo de 20,000 caracteres.",
+    currency: "Elige una moneda de la lista.",
+    project_currency_required:
+      "Elige una moneda o define la moneda base de tu organización en la configuración.",
   },
   transition: {
     projectTitle: "Cambiar el estado del proyecto",
