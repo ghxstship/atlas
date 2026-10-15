@@ -232,6 +232,7 @@ export async function ShiftsCollection(props: {
         <CrewRecord
           crew={crew}
           mode={search["full"] === "1" ? "full" : "peek"}
+          subject={{ table: "app.shifts", id: s.id }}
           kindLabel={t("crew.kinds.shift")}
           recordKey={s.projectKey}
           title={`${roleName(s.roleCode)} · ${personName(s)}`}

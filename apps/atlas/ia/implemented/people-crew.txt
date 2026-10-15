@@ -9,3 +9,9 @@ crew.pay-periods
 crew.payroll-exports
 crew.time-off
 project.crew
+people.directory
+people.roles
+people.requisitions
+people.offers
+people.agreements
+people.certifications
