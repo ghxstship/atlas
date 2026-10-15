@@ -10,7 +10,10 @@ export function SettingsNav({
   groups,
 }: {
   label: string;
-  groups: readonly { label: string; items: readonly { id: string; label: string; href: string }[] }[];
+  groups: readonly {
+    label: string;
+    items: readonly { id: string; label: string; href: string }[];
+  }[];
 }) {
   const pathname = usePathname();
   return (

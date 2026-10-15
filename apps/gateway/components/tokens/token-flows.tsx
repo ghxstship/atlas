@@ -80,16 +80,25 @@ function AccessCode({
 function ClaimOffer({ title }: { title: string }) {
   const t = useCopy();
   return (
-    <section aria-labelledby="claim-offer" className="flex flex-col gap-8 rounded-card border border-border-subtle bg-bg-raised p-16">
+    <section
+      aria-labelledby="claim-offer"
+      className="flex flex-col gap-8 rounded-card border border-border-subtle bg-bg-raised p-16"
+    >
       <h2 id="claim-offer" className="m-0 text-heading-16 font-semibold">
         {title}
       </h2>
       <p className="m-0 text-text-13 text-text-secondary">{t("claimBody")}</p>
       <div className="flex flex-wrap gap-8">
-        <NextLink href={"/auth/sign-up?next=%2Fauth%2Fclaim" as Route} className={buttonClass("primary", "md")}>
+        <NextLink
+          href={"/auth/sign-up?next=%2Fauth%2Fclaim" as Route}
+          className={buttonClass("primary", "md")}
+        >
           {t("claimCreate")}
         </NextLink>
-        <NextLink href={"/auth/sign-in?next=%2Fauth%2Fclaim" as Route} className={buttonClass("secondary", "md")}>
+        <NextLink
+          href={"/auth/sign-in?next=%2Fauth%2Fclaim" as Route}
+          className={buttonClass("secondary", "md")}
+        >
           {t("claimSignIn")}
         </NextLink>
       </div>
@@ -97,7 +106,15 @@ function ClaimOffer({ title }: { title: string }) {
   );
 }
 
-function Header({ eyebrow, title, children }: { eyebrow: string; title: string; children?: ReactNode }) {
+function Header({
+  eyebrow,
+  title,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  children?: ReactNode;
+}) {
   return (
     <header className="flex flex-col gap-4">
       <span className="text-text-13 text-text-secondary">{eyebrow}</span>
@@ -138,19 +155,28 @@ export function AdvanceTokenFlow({ token }: { token: string }) {
   return (
     <div className="flex flex-col gap-16">
       <Header eyebrow={packet.orgName} title={packet.title}>
-        <p className="m-0 text-text-13 text-text-secondary">{t("advance.remaining", { n: remaining })}</p>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("advance.remaining", { n: remaining })}
+        </p>
       </Header>
       <ol className="m-0 flex list-none flex-col gap-16 p-0">
         {packet.sections.map((s) => {
           const result = sent[s.id];
           const answered = Boolean(s.answer) || result?.ok;
           return (
-            <li key={s.id} className="flex flex-col gap-8 rounded-card border border-border-subtle bg-bg-raised p-16">
+            <li
+              key={s.id}
+              className="flex flex-col gap-8 rounded-card border border-border-subtle bg-bg-raised p-16"
+            >
               <h2 className="m-0 text-heading-16 font-semibold">
-                {`${s.position}. ${s.title}`}
+                {t("advance.section", { n: s.position, title: s.title })}
               </h2>
               {s.prompt ? <p className="m-0 text-text-13 text-text-secondary">{s.prompt}</p> : null}
-              {s.answer ? <p className="m-0 whitespace-pre-line rounded-control bg-bg-surface p-8 text-text-13">{s.answer}</p> : null}
+              {s.answer ? (
+                <p className="m-0 whitespace-pre-line rounded-control bg-bg-surface p-8 text-text-13">
+                  {s.answer}
+                </p>
+              ) : null}
               {result?.ok ? <InlineAlert tone="success">{t("advance.sent")}</InlineAlert> : null}
               <Problem result={result ?? null} />
               {!answered ? (
@@ -159,7 +185,12 @@ export function AdvanceTokenFlow({ token }: { token: string }) {
                   onSubmit={(event) => {
                     event.preventDefault();
                     start(async () => {
-                      const next = await answerAdvanceTokenAction({ token, accessCode: code, sectionId: s.id, body: answers[s.id] ?? "" });
+                      const next = await answerAdvanceTokenAction({
+                        token,
+                        accessCode: code,
+                        sectionId: s.id,
+                        body: answers[s.id] ?? "",
+                      });
                       setSent((prev) => ({ ...prev, [s.id]: next }));
                     });
                   }}
@@ -174,7 +205,13 @@ export function AdvanceTokenFlow({ token }: { token: string }) {
                     onChange={(e) => setAnswers((prev) => ({ ...prev, [s.id]: e.target.value }))}
                   />
                   <div>
-                    <Button type="submit" variant="primary" size="sm" disabled={pending} aria-busy={pending}>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="sm"
+                      disabled={pending}
+                      aria-busy={pending}
+                    >
                       {t("advance.submit")}
                     </Button>
                   </div>
@@ -220,8 +257,13 @@ export function SignTokenFlow({ token }: { token: string }) {
   const alreadySigned = Boolean(doc.signedAt) || signed?.ok;
   return (
     <div className="flex flex-col gap-16">
-      <Header eyebrow={[doc.orgName, doc.projectName].filter(Boolean).join(" · ")} title={doc.title}>
-        <p className="m-0 text-text-13 text-text-secondary">{t("sign.state", { state: tRoot(enumLabelKey("engagementDocumentState", doc.state)) })}</p>
+      <Header
+        eyebrow={[doc.orgName, doc.projectName].filter(Boolean).join(" · ")}
+        title={doc.title}
+      >
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("sign.state", { state: tRoot(enumLabelKey("engagementDocumentState", doc.state)) })}
+        </p>
       </Header>
       {doc.storageUri ? <p className="m-0 text-text-13">{t("sign.read")}</p> : null}
       {alreadySigned ? (
@@ -237,7 +279,11 @@ export function SignTokenFlow({ token }: { token: string }) {
           aria-label={t("sign.title")}
           onSubmit={(event) => {
             event.preventDefault();
-            start(async () => setSigned(await signDocumentTokenAction({ token, accessCode: code, signerName: name })));
+            start(async () =>
+              setSigned(
+                await signDocumentTokenAction({ token, accessCode: code, signerName: name }),
+              ),
+            );
           }}
         >
           <Problem result={signed} />
@@ -251,7 +297,13 @@ export function SignTokenFlow({ token }: { token: string }) {
             onChange={(e) => setName(e.target.value)}
           />
           <div>
-            <Button type="submit" variant="primary" icon="FileSignature" disabled={pending} aria-busy={pending}>
+            <Button
+              type="submit"
+              variant="primary"
+              icon="FileSignature"
+              disabled={pending}
+              aria-busy={pending}
+            >
               {t("sign.submit")}
             </Button>
           </div>

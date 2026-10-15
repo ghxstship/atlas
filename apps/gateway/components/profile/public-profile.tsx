@@ -46,20 +46,35 @@ export function PublicPersonProfile({
           </p>
         </div>
       </header>
-      {p.bio ? <p className="m-0 max-w-layout-reading whitespace-pre-line text-text-14">{p.bio}</p> : null}
+      {p.bio ? (
+        <p className="m-0 max-w-layout-reading whitespace-pre-line text-text-14">{p.bio}</p>
+      ) : null}
 
       {data.certifications.length > 0 ? (
         <Section title={t("gateway.profile.public.certifications")}>
           <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
             {data.certifications.map((c) => (
-              <li key={`${c.name}-${c.issued_on ?? ""}`} className="inline-flex items-center gap-6 rounded-pill border border-border-subtle px-12 py-4 text-text-13">
+              <li
+                key={`${c.name}-${c.issued_on ?? ""}`}
+                className="inline-flex items-center gap-6 rounded-pill border border-border-subtle px-12 py-4 text-text-13"
+              >
                 {c.verified ? (
                   <span className="text-success">
-                    <Icon name="BadgeCheck" size={14} label={t("gateway.profile.public.verified", { org: c.verified_by ?? "" })} />
+                    <Icon
+                      name="BadgeCheck"
+                      size={14}
+                      label={t("gateway.profile.public.verified", { org: c.verified_by ?? "" })}
+                    />
                   </span>
                 ) : null}
                 {c.name}
-                {c.expires_on ? <span className="text-text-secondary">{t("gateway.engagement.documents.expires", { date: formatDate(locale, c.expires_on) })}</span> : null}
+                {c.expires_on ? (
+                  <span className="text-text-secondary">
+                    {t("gateway.engagement.documents.expires", {
+                      date: formatDate(locale, c.expires_on),
+                    })}
+                  </span>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -70,7 +85,10 @@ export function PublicPersonProfile({
         <Section title={t("gateway.profile.public.skills")}>
           <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
             {data.skills.map((s) => (
-              <li key={s.cat_urid} className="inline-flex items-center gap-6 rounded-pill border border-border-subtle px-12 py-4 text-text-13">
+              <li
+                key={s.cat_urid}
+                className="inline-flex items-center gap-6 rounded-pill border border-border-subtle px-12 py-4 text-text-13"
+              >
                 {s.category}
                 <span className="font-mono text-text-12 text-text-secondary">{s.cat_urid}</span>
               </li>
@@ -83,19 +101,29 @@ export function PublicPersonProfile({
         <Section title={t("gateway.profile.public.portfolio")}>
           <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,var(--ui-gateway-aside)),1fr))] gap-12 p-0">
             {data.portfolio.map((item) => (
-              <li key={`${item.title}-${item.url ?? item.media_path ?? ""}`} className="flex flex-col gap-4 rounded-card border border-border-subtle bg-bg-raised p-12">
+              <li
+                key={`${item.title}-${item.url ?? item.media_path ?? ""}`}
+                className="flex flex-col gap-4 rounded-card border border-border-subtle bg-bg-raised p-12"
+              >
                 <span className="flex items-center gap-6">
                   <Tag>{t(enumLabelKey("portfolioKind", item.portfolio_kind))}</Tag>
                   {item.is_epk ? <Tag tone="accent">{t("gateway.profile.public.epk")}</Tag> : null}
                 </span>
                 {item.url ? (
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="font-medium text-accent-text underline">
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-accent-text underline"
+                  >
                     {item.title}
                   </a>
                 ) : (
                   <span className="font-medium">{item.title}</span>
                 )}
-                {item.description ? <span className="text-text-13 text-text-secondary">{item.description}</span> : null}
+                {item.description ? (
+                  <span className="text-text-13 text-text-secondary">{item.description}</span>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -106,7 +134,14 @@ export function PublicPersonProfile({
         <Section title={t("gateway.profile.public.languages")}>
           <p className="m-0 text-text-14">
             {data.languages
-              .map((l) => [l.language_tag, l.proficiency ? t(enumLabelKey("languageProficiency", l.proficiency)) : null].filter(Boolean).join(" · "))
+              .map((l) =>
+                [
+                  l.language_tag,
+                  l.proficiency ? t(enumLabelKey("languageProficiency", l.proficiency)) : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · "),
+              )
               .join(", ")}
           </p>
         </Section>
@@ -118,7 +153,9 @@ export function PublicPersonProfile({
             {data.references.map((r) => (
               <li key={r.referee_name} className="flex flex-col gap-2">
                 <strong>{r.referee_name}</strong>
-                <span className="text-text-13 text-text-secondary">{[r.relationship, r.organization_name].filter(Boolean).join(" · ")}</span>
+                <span className="text-text-13 text-text-secondary">
+                  {[r.relationship, r.organization_name].filter(Boolean).join(" · ")}
+                </span>
                 {r.statement ? <span className="text-text-14">{r.statement}</span> : null}
               </li>
             ))}
@@ -130,12 +167,20 @@ export function PublicPersonProfile({
         <Section title={t("gateway.profile.public.ratings")}>
           <ul className="m-0 flex list-none flex-col gap-12 p-0">
             {ratings.map((r) => (
-              <li key={r.id} className="flex flex-col gap-4 rounded-card border border-border-subtle p-12">
-                <span className="font-semibold" aria-label={t("gateway.profile.public.score", { n: r.score })}>
+              <li
+                key={r.id}
+                className="flex flex-col gap-4 rounded-card border border-border-subtle p-12"
+              >
+                <span
+                  className="font-semibold"
+                  aria-label={t("gateway.profile.public.score", { n: r.score })}
+                >
                   {t("gateway.profile.public.score", { n: r.score })}
                 </span>
                 {r.comment ? <span className="text-text-14">{r.comment}</span> : null}
-                <span className="text-text-12 text-text-secondary">{formatDate(locale, r.submittedAt)}</span>
+                <span className="text-text-12 text-text-secondary">
+                  {formatDate(locale, r.submittedAt)}
+                </span>
                 {r.reply ? (
                   <span className="border-s-(length:--stroke-width-accent) border-border-subtle ps-8 text-text-13 text-text-secondary">
                     {t("gateway.profile.public.reply", { reply: r.reply })}
@@ -166,7 +211,12 @@ export function PublicPersonProfile({
           <ul className="m-0 flex list-none flex-wrap gap-12 p-0">
             {data.links.map((l) => (
               <li key={l.url}>
-                <a href={l.url} target="_blank" rel="noopener noreferrer me" className="inline-flex items-center gap-4 text-accent-text underline">
+                <a
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer me"
+                  className="inline-flex items-center gap-4 text-accent-text underline"
+                >
                   {l.label}
                   <Icon name="ExternalLink" size={12} />
                 </a>

@@ -47,7 +47,10 @@ function text(form: FormData, name: string): string {
 
 const nullable = (v: string) => (v === "" ? null : v);
 
-export async function saveProfileAction(_: SimpleFormState, form: FormData): Promise<SimpleFormState> {
+export async function saveProfileAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
   const ctx = await ctxOr();
   const current = await getMyProfile(ctx.db);
   if (!current.ok) return { outcome: outcomeFor(current.error) };
@@ -78,7 +81,10 @@ export async function saveProfileAction(_: SimpleFormState, form: FormData): Pro
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 
-export async function savePrivacyAction(_: SimpleFormState, form: FormData): Promise<SimpleFormState> {
+export async function savePrivacyAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
   const ctx = await ctxOr();
   const current = await getMyProfile(ctx.db);
   if (!current.ok) return { outcome: outcomeFor(current.error) };
@@ -94,7 +100,8 @@ export async function savePrivacyAction(_: SimpleFormState, form: FormData): Pro
   for (const section of APP_ENUMS.profile_section) {
     const value = text(form, `section_${section}`);
     if (value === "") continue;
-    const parsed = value === "inherit" ? null : z.enum(APP_ENUMS.profile_visibility).safeParse(value);
+    const parsed =
+      value === "inherit" ? null : z.enum(APP_ENUMS.profile_visibility).safeParse(value);
     if (parsed !== null && !parsed.success) return { fieldError: "visibility" };
     const saved = await setSectionVisibility(ctx.db, {
       personId: ctx.personId,
@@ -110,11 +117,18 @@ export async function addSkillAction(_: SimpleFormState, form: FormData): Promis
   const ctx = await ctxOr();
   const urid = text(form, "catUrid");
   if (!/^\d{4}\.\d{2}\.\d{2}$/.test(urid)) return { fieldError: "urid" };
-  const result = await addSkill(ctx.db, { personId: ctx.personId, catUrid: urid, sortOrder: Number(text(form, "sortOrder") || "0") });
+  const result = await addSkill(ctx.db, {
+    personId: ctx.personId,
+    catUrid: urid,
+    sortOrder: Number(text(form, "sortOrder") || "0"),
+  });
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 
-export async function addLanguageAction(_: SimpleFormState, form: FormData): Promise<SimpleFormState> {
+export async function addLanguageAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
   const ctx = await ctxOr();
   const tag = text(form, "tag");
   if (!/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(tag)) return { fieldError: "language" };
@@ -129,22 +143,28 @@ export async function addLanguageAction(_: SimpleFormState, form: FormData): Pro
 
 export async function addLinkAction(_: SimpleFormState, form: FormData): Promise<SimpleFormState> {
   const ctx = await ctxOr();
-  const parsed = z.object({ label: z.string().min(1).max(100), url: z.url({ protocol: /^https?$/ }) }).safeParse({
-    label: text(form, "label"),
-    url: text(form, "url"),
-  });
+  const parsed = z
+    .object({ label: z.string().min(1).max(100), url: z.url({ protocol: /^https?$/ }) })
+    .safeParse({
+      label: text(form, "label"),
+      url: text(form, "url"),
+    });
   if (!parsed.success) return { fieldError: "link" };
   const result = await addLink(ctx.db, { personId: ctx.personId, ...parsed.data });
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 
-export async function addCertificationAction(_: SimpleFormState, form: FormData): Promise<SimpleFormState> {
+export async function addCertificationAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
   const ctx = await ctxOr();
   const name = text(form, "name");
   const issuingBody = text(form, "issuingBody");
   const date = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
   const issuedOn = date(text(form, "issuedOn"));
-  if (name === "" || issuingBody === "" || issuedOn === null) return { fieldError: "certification" };
+  if (name === "" || issuingBody === "" || issuedOn === null)
+    return { fieldError: "certification" };
   const result = await addCertification(ctx.db, {
     personId: ctx.personId,
     name,
@@ -155,11 +175,21 @@ export async function addCertificationAction(_: SimpleFormState, form: FormData)
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 
-const PROFILE_TABLES = ["person_skills", "person_languages", "person_links", "person_certifications"] as const;
+const PROFILE_TABLES = [
+  "person_skills",
+  "person_languages",
+  "person_links",
+  "person_certifications",
+] as const;
 
-export async function removeProfileItemAction(table: (typeof PROFILE_TABLES)[number], id: string): Promise<ActionResult> {
+export async function removeProfileItemAction(
+  table: (typeof PROFILE_TABLES)[number],
+  id: string,
+): Promise<ActionResult> {
   const ctx = await ctxOr();
-  return toAction(await removeProfileItem(ctx.db, z.enum(PROFILE_TABLES).parse(table), z.uuid().parse(id)));
+  return toAction(
+    await removeProfileItem(ctx.db, z.enum(PROFILE_TABLES).parse(table), z.uuid().parse(id)),
+  );
 }
 
 export async function carryCertificationAction(holderId: string): Promise<ActionResult> {
@@ -167,7 +197,10 @@ export async function carryCertificationAction(holderId: string): Promise<Action
   return toAction(await carryCertification(ctx.db, z.uuid().parse(holderId)));
 }
 
-export async function addAvailabilityAction(_: SimpleFormState, form: FormData): Promise<SimpleFormState> {
+export async function addAvailabilityAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
   const ctx = await ctxOr();
   const parsed = z
     .object({ start: z.iso.date(), end: z.iso.date(), kind: z.enum(APP_ENUMS.availability_kind) })
@@ -176,7 +209,11 @@ export async function addAvailabilityAction(_: SimpleFormState, form: FormData):
   let calendarId = text(form, "calendarId");
   if (calendarId === "") {
     const timeZone = text(form, "timeZone") || "UTC";
-    const created = await createAvailabilityCalendar(ctx.db, { personId: ctx.personId, timeZone, visibility: "Shared on Application" });
+    const created = await createAvailabilityCalendar(ctx.db, {
+      personId: ctx.personId,
+      timeZone,
+      visibility: "Shared on Application",
+    });
     if (!created.ok) return { outcome: outcomeFor(created.error) };
     calendarId = created.data.calendarId;
   }
@@ -204,11 +241,19 @@ export async function saveNameAction(_: SimpleFormState, form: FormData): Promis
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 
-export async function createAccountAction(_: SimpleFormState, form: FormData): Promise<SimpleFormState> {
+export async function createAccountAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
   const ctx = await ctxOr();
   const name = text(form, "name");
   const slug = text(form, "slug").toLowerCase();
-  if (name === "" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length < 2 || slug.length > 48) {
+  if (
+    name === "" ||
+    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ||
+    slug.length < 2 ||
+    slug.length > 48
+  ) {
     return { fieldError: "account" };
   }
   const result = await createExternalAccount(ctx.db, { name, slug });
@@ -220,17 +265,25 @@ export async function leaveAccountAction(membershipId: string): Promise<ActionRe
   return toAction(await endAccountMembership(ctx.db, z.uuid().parse(membershipId)));
 }
 
-export async function saveCompanyProfileAction(_: SimpleFormState, form: FormData): Promise<SimpleFormState> {
+export async function saveCompanyProfileAction(
+  _: SimpleFormState,
+  form: FormData,
+): Promise<SimpleFormState> {
   const ctx = await ctxOr();
   if (!ctx.acting) return { outcome: "notFound" };
   const profileId = z.uuid().safeParse(text(form, "profileId"));
   const visibility = z.enum(APP_ENUMS.profile_visibility).safeParse(text(form, "visibility"));
   const handle = text(form, "handle").toLowerCase();
-  if (!profileId.success || !visibility.success || !/^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(handle)) {
+  if (
+    !profileId.success ||
+    !visibility.success ||
+    !/^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(handle)
+  ) {
     return { fieldError: "company" };
   }
   const website = text(form, "websiteUrl");
-  if (website !== "" && !z.url({ protocol: /^https?$/ }).safeParse(website).success) return { fieldError: "website" };
+  if (website !== "" && !z.url({ protocol: /^https?$/ }).safeParse(website).success)
+    return { fieldError: "website" };
   const email = text(form, "contactEmail");
   if (email !== "" && !z.email().safeParse(email).success) return { fieldError: "email" };
   const result = await updateOrganizationProfile(ctx.db, profileId.data, {

@@ -14,7 +14,10 @@ export interface StartThreadState {
   readonly threadKey?: string;
 }
 
-export async function startPartyThreadAction(_: StartThreadState, form: FormData): Promise<StartThreadState> {
+export async function startPartyThreadAction(
+  _: StartThreadState,
+  form: FormData,
+): Promise<StartThreadState> {
   const ctx = await getGatewayContext();
   if (!ctx) return { outcome: "notFound" };
   const parsed = z
@@ -34,7 +37,10 @@ export async function startPartyThreadAction(_: StartThreadState, form: FormData
   return { threadKey: toDisplayKey("thread", result.data.threadId) };
 }
 
-export async function markReadAction(kind: "engagement" | "party", threadId: string): Promise<void> {
+export async function markReadAction(
+  kind: "engagement" | "party",
+  threadId: string,
+): Promise<void> {
   const id = z.uuid().parse(threadId);
   const result = await markThreadRead(
     await createServerSupabase(),

@@ -24,7 +24,10 @@ export interface PersonalSettingProps {
 export function PersonalSetting(props: PersonalSettingProps) {
   const t = useTranslations("settings") as unknown as Translate;
   const router = useRouter();
-  const [state, action, pending] = useActionState<SettingState, FormData>(savePersonalSettingAction, {});
+  const [state, action, pending] = useActionState<SettingState, FormData>(
+    savePersonalSettingAction,
+    {},
+  );
   useEffect(() => {
     if (state.saved) router.refresh();
   }, [state.saved, router]);
@@ -33,8 +36,17 @@ export function PersonalSetting(props: PersonalSettingProps) {
     <form action={action} className="flex flex-col gap-8 py-12" aria-label={props.label}>
       <input type="hidden" name="key" value={props.settingKey} />
       {props.type === "boolean" ? (
-        <label htmlFor={id} className="flex min-h-touch-min items-center gap-8 text-text-14 font-medium">
-          <input id={id} type="checkbox" name="value" defaultChecked={props.initial === "on"} className="size-icon-16" />
+        <label
+          htmlFor={id}
+          className="flex min-h-touch-min items-center gap-8 text-text-14 font-medium"
+        >
+          <input
+            id={id}
+            type="checkbox"
+            name="value"
+            defaultChecked={props.initial === "on"}
+            className="size-icon-16"
+          />
           {props.label}
         </label>
       ) : props.type === "choice" || props.input === "time_zone" ? (
@@ -59,7 +71,17 @@ export function PersonalSetting(props: PersonalSettingProps) {
           name="value"
           label={props.label}
           defaultValue={props.initial}
-          type={props.type === "integer" ? "number" : props.input === "date" ? "date" : props.input === "email" ? "email" : props.input === "url" ? "url" : "text"}
+          type={
+            props.type === "integer"
+              ? "number"
+              : props.input === "date"
+                ? "date"
+                : props.input === "email"
+                  ? "email"
+                  : props.input === "url"
+                    ? "url"
+                    : "text"
+          }
         />
       )}
       {props.help ? <p className="m-0 text-text-12 text-text-secondary">{props.help}</p> : null}
@@ -71,11 +93,25 @@ export function PersonalSetting(props: PersonalSettingProps) {
         </p>
       ) : null}
       <div className="flex gap-8">
-        <Button type="submit" size="sm" name="intent" value="save" disabled={pending} aria-busy={pending}>
+        <Button
+          type="submit"
+          size="sm"
+          name="intent"
+          value="save"
+          disabled={pending}
+          aria-busy={pending}
+        >
           {t("save")}
         </Button>
         {props.setHere ? (
-          <Button type="submit" size="sm" variant="ghost" name="intent" value="reset" disabled={pending}>
+          <Button
+            type="submit"
+            size="sm"
+            variant="ghost"
+            name="intent"
+            value="reset"
+            disabled={pending}
+          >
             {t("reset")}
           </Button>
         ) : null}

@@ -30,13 +30,25 @@ export function ConversationList({
               <BrandMark name={c.orgName} size="sm" iconOnly />
               <span className="flex min-w-0 flex-1 flex-col gap-2">
                 <span className="flex items-center gap-8">
-                  <span className={`truncate ${c.unread > 0 ? "font-semibold" : "font-medium"}`}>{c.subject}</span>
+                  <span className={`truncate ${c.unread > 0 ? "font-semibold" : "font-medium"}`}>
+                    {c.subject}
+                  </span>
                   {c.unread > 0 ? (
-                    <Badge count={c.unread} tone="accent" label={t("gateway.messages.unread", { n: c.unread })} />
+                    <Badge
+                      count={c.unread}
+                      tone="accent"
+                      label={t("gateway.messages.unread", { n: c.unread })}
+                    />
                   ) : null}
                 </span>
                 <span className="truncate text-text-13 text-text-secondary">
-                  {[c.orgName, c.context ?? t("gateway.messages.withOrg"), formatDateTime(locale, c.at)].filter(Boolean).join(" · ")}
+                  {[
+                    c.orgName,
+                    c.context ?? t("gateway.messages.withOrg"),
+                    formatDateTime(locale, c.at),
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </span>
               </span>
             </Link>

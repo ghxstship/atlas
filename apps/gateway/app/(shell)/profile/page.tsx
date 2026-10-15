@@ -30,7 +30,11 @@ import {
   revokeProfileShareAction,
   revokeRepresentationAction,
 } from "@/lib/actions/engagement";
-import { addAvailabilityAction, carryCertificationAction, removeAvailabilityAction } from "@/lib/actions/profile";
+import {
+  addAvailabilityAction,
+  carryCertificationAction,
+  removeAvailabilityAction,
+} from "@/lib/actions/profile";
 import { formatDate, formatDateRange, todayIso } from "@/lib/format";
 import { profileStrength } from "@/lib/profile";
 import { requireNode } from "@/lib/shell/sitemap";
@@ -42,7 +46,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Days from blocks, as ISO dates, for the availability calendar. */
-function blockDays(blocks: readonly { startsAt: string; endsAt: string; kind: string }[], kind: string): string[] {
+function blockDays(
+  blocks: readonly { startsAt: string; endsAt: string; kind: string }[],
+  kind: string,
+): string[] {
   const days: string[] = [];
   for (const b of blocks.filter((x) => x.kind === kind)) {
     const d = new Date(b.startsAt);
@@ -72,7 +79,11 @@ export default async function ProfilePage() {
         <PageTitle
           title={ctx.acting.name}
           lead={ctx.acting.roles.map((r) => t(enumLabelKey("accountRole", r))).join(", ")}
-          action={<ButtonLink href="/settings/company">{t("gateway.profile.company.settings")}</ButtonLink>}
+          action={
+            <ButtonLink href="/settings/company">
+              {t("gateway.profile.company.settings")}
+            </ButtonLink>
+          }
         />
         <Section title={t("gateway.profile.company.team")}>
           {!members.ok ? (
@@ -83,7 +94,10 @@ export default async function ProfilePage() {
               items={members.data.map((m) => ({
                 id: m.membershipId,
                 title: m.fullName ?? "",
-                meta: [m.roles.map((r) => t(enumLabelKey("accountRole", r))).join(", "), t("gateway.profile.company.since", { date: formatDate(locale, m.validFrom) })],
+                meta: [
+                  m.roles.map((r) => t(enumLabelKey("accountRole", r))).join(", "),
+                  t("gateway.profile.company.since", { date: formatDate(locale, m.validFrom) }),
+                ],
               }))}
             />
           )}
@@ -102,7 +116,19 @@ export default async function ProfilePage() {
     );
   }
   const p = profile.data;
-  const [skills, certs, languages, links, availability, ratings, representations, shares, carryable, calendars, publicView] = await Promise.all([
+  const [
+    skills,
+    certs,
+    languages,
+    links,
+    availability,
+    ratings,
+    representations,
+    shares,
+    carryable,
+    calendars,
+    publicView,
+  ] = await Promise.all([
     listMySkills(ctx.db, ctx.personId),
     listMyCertifications(ctx.db, ctx.personId),
     listMyLanguages(ctx.db, ctx.personId),
@@ -115,7 +141,8 @@ export default async function ProfilePage() {
     readView(ctx.db, "my_availability_calendars", {}),
     getPublicPersonProfile(ctx.db, p.handle),
   ]);
-  const count = <T,>(r: { ok: true; data: readonly T[] } | { ok: false }) => (r.ok ? r.data.length : 0);
+  const count = <T,>(r: { ok: true; data: readonly T[] } | { ok: false }) =>
+    r.ok ? r.data.length : 0;
   const blocks = availability.ok ? availability.data : [];
   const strength = profileStrength({
     headline: p.headline,
@@ -129,7 +156,9 @@ export default async function ProfilePage() {
     availability: blocks.length,
   });
   const today = todayIso();
-  const asArtist = representations.ok ? representations.data.filter((r) => r.artistPersonId === ctx.personId) : [];
+  const asArtist = representations.ok
+    ? representations.data.filter((r) => r.artistPersonId === ctx.personId)
+    : [];
   const calendarId = calendars.ok ? (calendars.data.find((c) => c.org_id === null)?.id ?? "") : "";
   const name = p.preferredName ?? ctx.personName ?? p.handle;
 
@@ -146,17 +175,27 @@ export default async function ProfilePage() {
             <Tag>{t(enumLabelKey("profileVisibility", p.visibility))}</Tag>
           </span>
         }
-        action={<ButtonLink href="/settings/profile" variant="primary">{t("gateway.profile.edit")}</ButtonLink>}
+        action={
+          <ButtonLink href="/settings/profile" variant="primary">
+            {t("gateway.profile.edit")}
+          </ButtonLink>
+        }
       />
 
       <Card title={t("gateway.profile.strength.title")} meta={`${strength.percent}%`}>
         <ProgressBar
-          label={strength.next ? t(`gateway.profile.strength.next.${strength.next}`) : t("gateway.profile.strength.complete")}
+          label={
+            strength.next
+              ? t(`gateway.profile.strength.next.${strength.next}`)
+              : t("gateway.profile.strength.complete")
+          }
           value={strength.percent}
         />
         {strength.next ? (
           <Link
-            href={(strength.next === "availability" ? "#availability" : "/settings/profile") as Route}
+            href={
+              (strength.next === "availability" ? "#availability" : "/settings/profile") as Route
+            }
             className="text-text-13 text-accent-text underline"
           >
             {t("gateway.profile.strength.action")}
@@ -168,17 +207,29 @@ export default async function ProfilePage() {
         {!certs.ok ? (
           <RegionError />
         ) : certs.data.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">{t("gateway.profile.certifications.empty")}</p>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("gateway.profile.certifications.empty")}
+          </p>
         ) : (
           <RowList
             label={t("gateway.profile.certifications.title")}
             items={certs.data.map((c) => ({
               id: c.id,
               title: c.name,
-              meta: [c.issuingBody, c.expiresOn ? t("gateway.engagement.documents.expires", { date: formatDate(locale, c.expiresOn) }) : null],
+              meta: [
+                c.issuingBody,
+                c.expiresOn
+                  ? t("gateway.engagement.documents.expires", {
+                      date: formatDate(locale, c.expiresOn),
+                    })
+                  : null,
+              ],
               tag: c.verified
                 ? { label: t("gateway.profile.certifications.verified"), tone: "success" as const }
-                : { label: t("gateway.profile.certifications.selfReported"), tone: "neutral" as const },
+                : {
+                    label: t("gateway.profile.certifications.selfReported"),
+                    tone: "neutral" as const,
+                  },
             }))}
           />
         )}
@@ -191,22 +242,40 @@ export default async function ProfilePage() {
                 id: c.holderId,
                 title: c.name,
                 meta: [t("gateway.profile.certifications.recordedBy", { org: c.orgName })],
-                action: <ActionButton action={carryCertificationAction.bind(null, c.holderId)} label={t("gateway.profile.certifications.add")} />,
+                action: (
+                  <ActionButton
+                    action={carryCertificationAction.bind(null, c.holderId)}
+                    label={t("gateway.profile.certifications.add")}
+                  />
+                ),
               }))}
           />
         ) : null}
       </Section>
 
       <Section title={t("gateway.profile.availability.title")} id="availability">
-        <AvailabilityCalendar month={`${today.slice(0, 7)}-01`} available={blockDays(blocks, "Available")} booked={blockDays(blocks, "Unavailable")} />
+        <AvailabilityCalendar
+          month={`${today.slice(0, 7)}-01`}
+          available={blockDays(blocks, "Available")}
+          booked={blockDays(blocks, "Unavailable")}
+        />
         {blocks.length > 0 ? (
           <RowList
             label={t("gateway.profile.availability.title")}
             items={blocks.map((b) => ({
               id: b.id,
               title: formatDateRange(locale, b.startsAt.slice(0, 10), b.endsAt.slice(0, 10)),
-              tag: { label: t(enumLabelKey("availabilityKind", b.kind)), tone: b.kind === "Available" ? ("success" as const) : ("neutral" as const) },
-              action: <ActionButton action={removeAvailabilityAction.bind(null, b.id)} label={t("gateway.profile.availability.remove")} variant="ghost" />,
+              tag: {
+                label: t(enumLabelKey("availabilityKind", b.kind)),
+                tone: b.kind === "Available" ? ("success" as const) : ("neutral" as const),
+              },
+              action: (
+                <ActionButton
+                  action={removeAvailabilityAction.bind(null, b.id)}
+                  label={t("gateway.profile.availability.remove")}
+                  variant="ghost"
+                />
+              ),
             }))}
           />
         ) : null}
@@ -220,13 +289,26 @@ export default async function ProfilePage() {
           resetOnDone
           hidden={{ calendarId, timeZone: "UTC" }}
           fields={[
-            { name: "start", label: t("gateway.profile.availability.start"), kind: "date", required: true },
-            { name: "end", label: t("gateway.profile.availability.end"), kind: "date", required: true },
+            {
+              name: "start",
+              label: t("gateway.profile.availability.start"),
+              kind: "date",
+              required: true,
+            },
+            {
+              name: "end",
+              label: t("gateway.profile.availability.end"),
+              kind: "date",
+              required: true,
+            },
             {
               name: "kind",
               label: t("gateway.profile.availability.kind"),
               kind: "select",
-              options: APP_ENUMS.availability_kind.map((k) => ({ value: k, label: t(enumLabelKey("availabilityKind", k)) })),
+              options: APP_ENUMS.availability_kind.map((k) => ({
+                value: k,
+                label: t(enumLabelKey("availabilityKind", k)),
+              })),
             },
           ]}
         />
@@ -236,7 +318,9 @@ export default async function ProfilePage() {
         {!ratings.ok ? (
           <RegionError />
         ) : ratings.data.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">{t("gateway.profile.ratings.empty")}</p>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("gateway.profile.ratings.empty")}
+          </p>
         ) : (
           <RowList
             label={t("gateway.profile.ratings.title")}
@@ -245,7 +329,9 @@ export default async function ProfilePage() {
               title: t("gateway.profile.public.score", { n: r.score }),
               meta: [r.comment, formatDate(locale, r.submittedAt)],
               detail: r.reply ? (
-                <p className="m-0 text-text-13 text-text-secondary">{t("gateway.profile.public.reply", { reply: r.reply })}</p>
+                <p className="m-0 text-text-13 text-text-secondary">
+                  {t("gateway.profile.public.reply", { reply: r.reply })}
+                </p>
               ) : (
                 <ReplyForm ratingId={r.id} />
               ),
@@ -263,16 +349,41 @@ export default async function ProfilePage() {
               return {
                 id: r.id,
                 title: r.accountName,
-                meta: [r.scopes.map((s) => t(enumLabelKey("representationScope", s))).join(", "), t("gateway.profile.representation.expires", { date: formatDate(locale, r.expiresOn) })],
-                tag: { label: t(`gateway.profile.representation.standing.${standing}`), tone: standing === "active" ? ("success" as const) : standing === "pending" ? ("warning" as const) : ("neutral" as const) },
+                meta: [
+                  r.scopes.map((s) => t(enumLabelKey("representationScope", s))).join(", "),
+                  t("gateway.profile.representation.expires", {
+                    date: formatDate(locale, r.expiresOn),
+                  }),
+                ],
+                tag: {
+                  label: t(`gateway.profile.representation.standing.${standing}`),
+                  tone:
+                    standing === "active"
+                      ? ("success" as const)
+                      : standing === "pending"
+                        ? ("warning" as const)
+                        : ("neutral" as const),
+                },
                 action:
                   standing === "pending" ? (
                     <span className="inline-flex gap-8">
-                      <ActionButton action={acceptRepresentationAction.bind(null, r.id)} label={t("gateway.profile.representation.accept")} variant="primary" />
-                      <ActionButton action={revokeRepresentationAction.bind(null, r.id)} label={t("gateway.profile.representation.decline")} variant="ghost" />
+                      <ActionButton
+                        action={acceptRepresentationAction.bind(null, r.id)}
+                        label={t("gateway.profile.representation.accept")}
+                        variant="primary"
+                      />
+                      <ActionButton
+                        action={revokeRepresentationAction.bind(null, r.id)}
+                        label={t("gateway.profile.representation.decline")}
+                        variant="ghost"
+                      />
                     </span>
                   ) : standing === "active" ? (
-                    <ActionButton action={revokeRepresentationAction.bind(null, r.id)} label={t("gateway.profile.representation.revoke")} variant="ghost" />
+                    <ActionButton
+                      action={revokeRepresentationAction.bind(null, r.id)}
+                      label={t("gateway.profile.representation.revoke")}
+                      variant="ghost"
+                    />
                   ) : undefined,
               };
             })}
@@ -284,16 +395,33 @@ export default async function ProfilePage() {
         {!shares.ok ? (
           <RegionError />
         ) : shares.data.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">{t("gateway.profile.shares.empty")}</p>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("gateway.profile.shares.empty")}
+          </p>
         ) : (
           <RowList
             label={t("gateway.profile.shares.title")}
             items={shares.data.map((s) => ({
               id: s.id ?? "",
               title: s.org_name ?? "",
-              meta: [s.shared_at ? t("gateway.profile.shares.shared", { date: formatDate(locale, s.shared_at) }) : null, s.revoked_at ? t("gateway.profile.shares.revoked", { date: formatDate(locale, s.revoked_at) }) : null],
+              meta: [
+                s.shared_at
+                  ? t("gateway.profile.shares.shared", { date: formatDate(locale, s.shared_at) })
+                  : null,
+                s.revoked_at
+                  ? t("gateway.profile.shares.revoked", { date: formatDate(locale, s.revoked_at) })
+                  : null,
+              ],
               ...(!s.revoked_at && s.id
-                ? { action: <ActionButton action={revokeProfileShareAction.bind(null, s.id)} label={t("gateway.profile.shares.revoke")} variant="ghost" /> }
+                ? {
+                    action: (
+                      <ActionButton
+                        action={revokeProfileShareAction.bind(null, s.id)}
+                        label={t("gateway.profile.shares.revoke")}
+                        variant="ghost"
+                      />
+                    ),
+                  }
                 : {}),
             }))}
           />

@@ -17,7 +17,10 @@ function errorKey(error: { kind: string; rule?: string }): string {
   return error.kind === "conflict" || error.kind === "invalid" ? error.kind : "unexpected";
 }
 
-export async function savePersonalSettingAction(prev: SettingState, form: FormData): Promise<SettingState> {
+export async function savePersonalSettingAction(
+  prev: SettingState,
+  form: FormData,
+): Promise<SettingState> {
   const def = settingByKey(String(form.get("key") ?? ""));
   if (!def || !def.scopes.includes("personal")) return { error: "setting_unknown" };
   const db = await createServerSupabase();
@@ -25,11 +28,15 @@ export async function savePersonalSettingAction(prev: SettingState, form: FormDa
     const cleared = await clearPersonalSetting(db, { key: def.key });
     return cleared.ok ? { saved: (prev.saved ?? 0) + 1 } : { error: errorKey(cleared.error) };
   }
-  const parsed = parseSettingValue(def, typeof form.get("value") === "string" ? (form.get("value") as string) : null);
+  const parsed = parseSettingValue(
+    def,
+    typeof form.get("value") === "string" ? (form.get("value") as string) : null,
+  );
   if (!parsed.ok) return { error: parsed.error };
   const result = await setPersonalSetting(db, { key: def.key, value: parsed.value });
   if (!result.ok) {
-    if (result.error.kind === "unexpected") console.error("set_personal_setting failed", result.error);
+    if (result.error.kind === "unexpected")
+      console.error("set_personal_setting failed", result.error);
     return { error: errorKey(result.error) };
   }
   return { saved: (prev.saved ?? 0) + 1 };

@@ -26,13 +26,21 @@ export type TokenOutcome<T> =
   | { readonly ok: true; readonly data: T }
   | { readonly ok: false; readonly refusal?: string; readonly outcome?: string };
 
-export async function openAdvanceAction(input: { token: string; accessCode: string }): Promise<TokenOutcome<AdvancePacket>> {
+export async function openAdvanceAction(input: {
+  token: string;
+  accessCode: string;
+}): Promise<TokenOutcome<AdvancePacket>> {
   const t = token.safeParse(input.token);
   const c = code.safeParse(input.accessCode);
   if (!t.success || !c.success) return { ok: false, refusal: "advance_access_code" };
-  const result = await previewAdvance(await createServerSupabase(), { token: t.data, accessCode: c.data });
+  const result = await previewAdvance(await createServerSupabase(), {
+    token: t.data,
+    accessCode: c.data,
+  });
   if (!result.ok) return { ok: false, outcome: outcomeFor(result.error) };
-  return result.data.refused ? { ok: false, refusal: result.data.reason } : { ok: true, data: result.data };
+  return result.data.refused
+    ? { ok: false, refusal: result.data.reason }
+    : { ok: true, data: result.data };
 }
 
 export async function answerAdvanceTokenAction(input: {
@@ -42,21 +50,36 @@ export async function answerAdvanceTokenAction(input: {
   body: string;
 }): Promise<TokenOutcome<{ submittedAt: string }>> {
   const parsed = z
-    .object({ token, accessCode: code, sectionId: z.uuid(), body: z.string().trim().min(1).max(20000) })
+    .object({
+      token,
+      accessCode: code,
+      sectionId: z.uuid(),
+      body: z.string().trim().min(1).max(20000),
+    })
     .safeParse(input);
   if (!parsed.success) return { ok: false, refusal: "advance_answer_length" };
   const result = await submitAdvance(await createServerSupabase(), parsed.data);
   if (!result.ok) return { ok: false, outcome: outcomeFor(result.error) };
-  return result.data.refused ? { ok: false, refusal: result.data.reason } : { ok: true, data: { submittedAt: result.data.submittedAt } };
+  return result.data.refused
+    ? { ok: false, refusal: result.data.reason }
+    : { ok: true, data: { submittedAt: result.data.submittedAt } };
 }
 
-export async function openDocumentAction(input: { token: string; accessCode: string }): Promise<TokenOutcome<TokenDocument>> {
+export async function openDocumentAction(input: {
+  token: string;
+  accessCode: string;
+}): Promise<TokenOutcome<TokenDocument>> {
   const t = token.safeParse(input.token);
   const c = code.safeParse(input.accessCode);
   if (!t.success || !c.success) return { ok: false, refusal: "document_access_code" };
-  const result = await previewTokenDocument(await createServerSupabase(), { token: t.data, accessCode: c.data });
+  const result = await previewTokenDocument(await createServerSupabase(), {
+    token: t.data,
+    accessCode: c.data,
+  });
   if (!result.ok) return { ok: false, outcome: outcomeFor(result.error) };
-  return result.data.refused ? { ok: false, refusal: result.data.reason } : { ok: true, data: result.data };
+  return result.data.refused
+    ? { ok: false, refusal: result.data.reason }
+    : { ok: true, data: result.data };
 }
 
 export async function signDocumentTokenAction(input: {
@@ -64,9 +87,13 @@ export async function signDocumentTokenAction(input: {
   accessCode: string;
   signerName: string;
 }): Promise<TokenOutcome<{ signedAt: string }>> {
-  const parsed = z.object({ token, accessCode: code, signerName: z.string().trim().min(2).max(200) }).safeParse(input);
+  const parsed = z
+    .object({ token, accessCode: code, signerName: z.string().trim().min(2).max(200) })
+    .safeParse(input);
   if (!parsed.success) return { ok: false, refusal: "document_signer_name" };
   const result = await signTokenDocument(await createServerSupabase(), parsed.data);
   if (!result.ok) return { ok: false, outcome: outcomeFor(result.error) };
-  return result.data.refused ? { ok: false, refusal: result.data.reason } : { ok: true, data: { signedAt: result.data.signedAt } };
+  return result.data.refused
+    ? { ok: false, refusal: result.data.reason }
+    : { ok: true, data: { signedAt: result.data.signedAt } };
 }

@@ -18,7 +18,9 @@ export function ClaimForm({ email }: { email: string }) {
     return (
       <div className="flex flex-col gap-12">
         <InlineAlert tone="success">
-          {state.claimed.advance + state.claimed.documents > 0 ? t("done", { advance: state.claimed.advance, documents: state.claimed.documents }) : t("nothing", { email })}
+          {state.claimed.advance + state.claimed.documents > 0
+            ? t("done", { advance: state.claimed.advance, documents: state.claimed.documents })
+            : t("nothing", { email })}
         </InlineAlert>
         <NextLink href={"/home" as Route} className={buttonClass("primary", "md")}>
           {t("home")}

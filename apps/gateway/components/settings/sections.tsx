@@ -28,7 +28,7 @@ import { ActionButton } from "@/components/actions/action-button";
 import { RowList, TabEmpty } from "@/components/engagement/rows";
 import { SimpleForm } from "@/components/forms/simple-form";
 import { RegionError, Section } from "@/components/page/page";
-import { InlineAlert, Tag } from "@/components/ui";
+import { InlineAlert } from "@/components/ui";
 import { revokeProfileShareAction, revokeRepresentationAction } from "@/lib/actions/engagement";
 import {
   addCertificationAction,
@@ -67,7 +67,11 @@ function Header({ t, node, children }: { t: Translate; node: string; children?: 
   return (
     <header className="flex flex-col gap-4">
       <h1 className="m-0 text-heading-20 font-semibold">{t(getNode(sitemap, node).node.label)}</h1>
-      <p className="m-0 text-text-13 text-text-secondary">{t(`gateway.settings.leads.${node.replace(/^settings\./, "").replace(/[.-]([a-z])/g, (_, c: string) => c.toUpperCase())}`)}</p>
+      <p className="m-0 text-text-13 text-text-secondary">
+        {t(
+          `gateway.settings.leads.${node.replace(/^settings\./, "").replace(/[.-]([a-z])/g, (_, c: string) => c.toUpperCase())}`,
+        )}
+      </p>
       {children}
     </header>
   );
@@ -81,7 +85,10 @@ async function RegistrySettings({ ctx, t, node }: SectionProps) {
   if (!resolved.ok) return <InlineAlert tone="danger">{t("settings.loadFailed")}</InlineAlert>;
   const zones = ["UTC", ...Intl.supportedValuesOf("timeZone").filter((z) => z !== "UTC")];
   return (
-    <ul aria-label={t("settings.registryHeading")} className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
+    <ul
+      aria-label={t("settings.registryHeading")}
+      className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0"
+    >
       {defs.map((def) => {
         const r = resolved.data.get(def.key);
         const source = r?.source ?? "Default";
@@ -140,17 +147,42 @@ async function ProfileSection(props: SectionProps) {
         submitLabel={t("settings.save")}
         doneLabel={t("settings.saved")}
         fields={[
-          { name: "handle", label: t("gateway.settings.profile.handle"), required: true, defaultValue: p.handle, help: t("gateway.settings.profile.handleHelp") },
-          { name: "preferredName", label: t("gateway.settings.profile.preferredName"), defaultValue: p.preferredName ?? "" },
-          { name: "pronouns", label: t("gateway.settings.profile.pronouns"), defaultValue: p.pronouns ?? "" },
-          { name: "headline", label: t("gateway.settings.profile.headline"), defaultValue: p.headline ?? "", width: "100%" },
+          {
+            name: "handle",
+            label: t("gateway.settings.profile.handle"),
+            required: true,
+            defaultValue: p.handle,
+            help: t("gateway.settings.profile.handleHelp"),
+          },
+          {
+            name: "preferredName",
+            label: t("gateway.settings.profile.preferredName"),
+            defaultValue: p.preferredName ?? "",
+          },
+          {
+            name: "pronouns",
+            label: t("gateway.settings.profile.pronouns"),
+            defaultValue: p.pronouns ?? "",
+          },
+          {
+            name: "headline",
+            label: t("gateway.settings.profile.headline"),
+            defaultValue: p.headline ?? "",
+            width: "100%",
+          },
           { name: "city", label: t("gateway.settings.profile.city"), defaultValue: p.city ?? "" },
-          { name: "countryCode", label: t("gateway.settings.profile.country"), defaultValue: p.countryCode ?? "", width: 120 },
+          {
+            name: "countryCode",
+            label: t("gateway.settings.profile.country"),
+            defaultValue: p.countryCode ?? "",
+            width: 120,
+          },
           {
             name: "rate",
             label: t("gateway.settings.profile.rate", { currency }),
             inputMode: "decimal",
-            defaultValue: p.rateMinor === null ? "" : String(p.rateMinor / 10 ** minorDigits(currency)),
+            defaultValue:
+              p.rateMinor === null ? "" : String(p.rateMinor / 10 ** minorDigits(currency)),
             help: t("gateway.settings.profile.rateHelp"),
           },
         ]}
@@ -164,7 +196,14 @@ async function ProfileSection(props: SectionProps) {
           errorsNamespace="gateway.profile.errors"
           submitLabel={t("settings.save")}
           doneLabel={t("settings.saved")}
-          fields={[{ name: "bio", label: t("gateway.settings.profile.bio"), kind: "textarea", defaultValue: p.bio ?? "" }]}
+          fields={[
+            {
+              name: "bio",
+              label: t("gateway.settings.profile.bio"),
+              kind: "textarea",
+              defaultValue: p.bio ?? "",
+            },
+          ]}
           hidden={{
             handle: p.handle,
             preferredName: p.preferredName ?? "",
@@ -186,7 +225,13 @@ async function ProfileSection(props: SectionProps) {
               id: s.id,
               title: categories.data?.find((c) => c.cat_urid === s.catUrid)?.category ?? s.catUrid,
               meta: [s.catUrid],
-              action: <ActionButton action={removeProfileItemAction.bind(null, "person_skills", s.id)} label={t("gateway.settings.remove")} variant="ghost" />,
+              action: (
+                <ActionButton
+                  action={removeProfileItemAction.bind(null, "person_skills", s.id)}
+                  label={t("gateway.settings.remove")}
+                  variant="ghost"
+                />
+              ),
             }))}
           />
         ) : null}
@@ -205,7 +250,10 @@ async function ProfileSection(props: SectionProps) {
               label: t("gateway.settings.profile.skill"),
               kind: "select",
               required: true,
-              options: (categories.data ?? []).map((c) => ({ value: c.cat_urid, label: `${c.category} · ${c.cat_urid}` })),
+              options: (categories.data ?? []).map((c) => ({
+                value: c.cat_urid,
+                label: `${c.category} · ${c.cat_urid}`,
+              })),
             },
           ]}
         />
@@ -218,8 +266,19 @@ async function ProfileSection(props: SectionProps) {
               id: c.id,
               title: c.name,
               meta: [c.issuingBody],
-              tag: c.verified ? { label: t("gateway.profile.certifications.verified"), tone: "success" as const } : { label: t("gateway.profile.certifications.selfReported"), tone: "neutral" as const },
-              action: <ActionButton action={removeProfileItemAction.bind(null, "person_certifications", c.id)} label={t("gateway.settings.remove")} variant="ghost" />,
+              tag: c.verified
+                ? { label: t("gateway.profile.certifications.verified"), tone: "success" as const }
+                : {
+                    label: t("gateway.profile.certifications.selfReported"),
+                    tone: "neutral" as const,
+                  },
+              action: (
+                <ActionButton
+                  action={removeProfileItemAction.bind(null, "person_certifications", c.id)}
+                  label={t("gateway.settings.remove")}
+                  variant="ghost"
+                />
+              ),
             }))}
           />
         ) : null}
@@ -234,7 +293,12 @@ async function ProfileSection(props: SectionProps) {
           fields={[
             { name: "name", label: t("gateway.settings.profile.certName"), required: true },
             { name: "issuingBody", label: t("gateway.settings.profile.certBody"), required: true },
-            { name: "issuedOn", label: t("gateway.settings.profile.certIssued"), kind: "date", required: true },
+            {
+              name: "issuedOn",
+              label: t("gateway.settings.profile.certIssued"),
+              kind: "date",
+              required: true,
+            },
             { name: "expiresOn", label: t("gateway.settings.profile.certExpires"), kind: "date" },
           ]}
         />
@@ -247,7 +311,13 @@ async function ProfileSection(props: SectionProps) {
               id: l.id,
               title: l.tag,
               meta: [l.proficiency ? t(enumLabelKey("languageProficiency", l.proficiency)) : null],
-              action: <ActionButton action={removeProfileItemAction.bind(null, "person_languages", l.id)} label={t("gateway.settings.remove")} variant="ghost" />,
+              action: (
+                <ActionButton
+                  action={removeProfileItemAction.bind(null, "person_languages", l.id)}
+                  label={t("gateway.settings.remove")}
+                  variant="ghost"
+                />
+              ),
             }))}
           />
         ) : null}
@@ -260,12 +330,20 @@ async function ProfileSection(props: SectionProps) {
           doneLabel={t("settings.saved")}
           resetOnDone
           fields={[
-            { name: "tag", label: t("gateway.settings.profile.languageTag"), required: true, help: t("gateway.settings.profile.languageHelp") },
+            {
+              name: "tag",
+              label: t("gateway.settings.profile.languageTag"),
+              required: true,
+              help: t("gateway.settings.profile.languageHelp"),
+            },
             {
               name: "proficiency",
               label: t("gateway.settings.profile.proficiency"),
               kind: "select",
-              options: APP_ENUMS.language_proficiency.map((v) => ({ value: v, label: t(enumLabelKey("languageProficiency", v)) })),
+              options: APP_ENUMS.language_proficiency.map((v) => ({
+                value: v,
+                label: t(enumLabelKey("languageProficiency", v)),
+              })),
             },
           ]}
         />
@@ -278,7 +356,13 @@ async function ProfileSection(props: SectionProps) {
               id: l.id,
               title: l.label,
               meta: [l.url],
-              action: <ActionButton action={removeProfileItemAction.bind(null, "person_links", l.id)} label={t("gateway.settings.remove")} variant="ghost" />,
+              action: (
+                <ActionButton
+                  action={removeProfileItemAction.bind(null, "person_links", l.id)}
+                  label={t("gateway.settings.remove")}
+                  variant="ghost"
+                />
+              ),
             }))}
           />
         ) : null}
@@ -292,7 +376,12 @@ async function ProfileSection(props: SectionProps) {
           resetOnDone
           fields={[
             { name: "label", label: t("gateway.settings.profile.linkLabel"), required: true },
-            { name: "url", label: t("gateway.settings.profile.linkUrl"), kind: "url", required: true },
+            {
+              name: "url",
+              label: t("gateway.settings.profile.linkUrl"),
+              kind: "url",
+              required: true,
+            },
           ]}
         />
       </Section>
@@ -308,7 +397,10 @@ async function PrivacySection(props: SectionProps) {
     readView(ctx.db, "my_profile_shares", { order: ["shared_at", "desc"] }),
   ]);
   if (!profile.ok || !sections.ok || !shares.ok) return <RegionError />;
-  const visibility = APP_ENUMS.profile_visibility.map((v) => ({ value: v, label: t(enumLabelKey("profileVisibility", v)) }));
+  const visibility = APP_ENUMS.profile_visibility.map((v) => ({
+    value: v,
+    label: t(enumLabelKey("profileVisibility", v)),
+  }));
   return (
     <>
       <Header t={t} node={props.node} />
@@ -320,30 +412,71 @@ async function PrivacySection(props: SectionProps) {
         submitLabel={t("settings.save")}
         doneLabel={t("settings.saved")}
         fields={[
-          { name: "visibility", label: t("gateway.settings.privacy.visibility"), kind: "select", options: visibility, defaultValue: profile.data.visibility, help: t("gateway.settings.privacy.visibilityHelp") },
-          { name: "marketplaceDiscoverable", label: t("gateway.settings.privacy.discoverable"), kind: "checkbox", defaultChecked: profile.data.marketplaceDiscoverable },
-          { name: "searchIndexing", label: t("gateway.settings.privacy.indexing"), kind: "checkbox", defaultChecked: profile.data.searchIndexing },
+          {
+            name: "visibility",
+            label: t("gateway.settings.privacy.visibility"),
+            kind: "select",
+            options: visibility,
+            defaultValue: profile.data.visibility,
+            help: t("gateway.settings.privacy.visibilityHelp"),
+          },
+          {
+            name: "marketplaceDiscoverable",
+            label: t("gateway.settings.privacy.discoverable"),
+            kind: "checkbox",
+            defaultChecked: profile.data.marketplaceDiscoverable,
+          },
+          {
+            name: "searchIndexing",
+            label: t("gateway.settings.privacy.indexing"),
+            kind: "checkbox",
+            defaultChecked: profile.data.searchIndexing,
+          },
           ...PROFILE_SECTIONS.map((section) => ({
             name: `section_${section}`,
             label: t(`gateway.settings.privacy.sections.${section}`),
             kind: "select" as const,
             defaultValue: sections.data.get(section) ?? "inherit",
-            options: [{ value: "inherit", label: t("gateway.settings.privacy.inherit") }, ...visibility],
+            options: [
+              { value: "inherit", label: t("gateway.settings.privacy.inherit") },
+              ...visibility,
+            ],
           })),
         ]}
       />
       <Section title={t("gateway.profile.shares.title")}>
-        <p className="m-0 text-text-13 text-text-secondary">{t("gateway.settings.privacy.sharesBody")}</p>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.settings.privacy.sharesBody")}
+        </p>
         {shares.data.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">{t("gateway.profile.shares.empty")}</p>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t("gateway.profile.shares.empty")}
+          </p>
         ) : (
           <RowList
             label={t("gateway.profile.shares.title")}
             items={shares.data.map((s) => ({
               id: s.id ?? "",
               title: s.org_name ?? "",
-              meta: [s.shared_at ? t("gateway.profile.shares.shared", { date: formatDate(locale, s.shared_at) }) : null, s.revoked_at ? t("gateway.profile.shares.revoked", { date: formatDate(locale, s.revoked_at) }) : null],
-              ...(!s.revoked_at && s.id ? { action: <ActionButton action={revokeProfileShareAction.bind(null, s.id)} label={t("gateway.profile.shares.revoke")} variant="ghost" /> } : {}),
+              meta: [
+                s.shared_at
+                  ? t("gateway.profile.shares.shared", { date: formatDate(locale, s.shared_at) })
+                  : null,
+                s.revoked_at
+                  ? t("gateway.profile.shares.revoked", { date: formatDate(locale, s.revoked_at) })
+                  : null,
+              ],
+              ...(!s.revoked_at && s.id
+                ? {
+                    action: (
+                      <ActionButton
+                        action={revokeProfileShareAction.bind(null, s.id)}
+                        label={t("gateway.profile.shares.revoke")}
+                        variant="ghost"
+                      />
+                    ),
+                  }
+                : {}),
             }))}
           />
         )}
@@ -364,10 +497,22 @@ function AccountSection(props: SectionProps) {
         errorsNamespace="gateway.profile.errors"
         submitLabel={t("settings.save")}
         doneLabel={t("settings.saved")}
-        fields={[{ name: "fullName", label: t("gateway.settings.account.name"), required: true, defaultValue: ctx.personName ?? "", autoComplete: "name" }]}
+        fields={[
+          {
+            name: "fullName",
+            label: t("gateway.settings.account.name"),
+            required: true,
+            defaultValue: ctx.personName ?? "",
+            autoComplete: "name",
+          },
+        ]}
       />
-      <p className="m-0 text-text-13">{t("gateway.settings.account.email", { email: ctx.email ?? "" })}</p>
-      <p className="m-0 text-text-13 text-text-secondary">{t("gateway.settings.account.oneAccount")}</p>
+      <p className="m-0 text-text-13">
+        {t("gateway.settings.account.email", { email: ctx.email ?? "" })}
+      </p>
+      <p className="m-0 text-text-13 text-text-secondary">
+        {t("gateway.settings.account.oneAccount")}
+      </p>
     </>
   );
 }
@@ -379,7 +524,10 @@ function SecuritySection(props: SectionProps) {
       <Header t={t} node={props.node} />
       <p className="m-0 text-text-14">{t("gateway.settings.security.passwordless")}</p>
       <form method="post" action="/auth/sign-out">
-        <button type="submit" className="min-h-touch-min rounded-control border border-border-control bg-bg-surface px-12 text-text-13 font-medium text-text-primary">
+        <button
+          type="submit"
+          className="min-h-touch-min rounded-control border border-border-control bg-bg-surface px-12 text-text-13 font-medium text-text-primary"
+        >
           {t("gateway.settings.security.signOut")}
         </button>
       </form>
@@ -390,30 +538,48 @@ function SecuritySection(props: SectionProps) {
 async function OrganizationsSection(props: SectionProps) {
   const { ctx, t } = props;
   const accounts = await listMyAccounts(ctx.db);
-  const members = accounts.ok ? await Promise.all(accounts.data.map((a) => listAccountMembers(ctx.db, a.id))) : [];
+  const members = accounts.ok
+    ? await Promise.all(accounts.data.map((a) => listAccountMembers(ctx.db, a.id)))
+    : [];
   return (
     <>
       <Header t={t} node={props.node} />
       {!accounts.ok ? (
         <RegionError />
       ) : accounts.data.length === 0 ? (
-        <p className="m-0 text-text-13 text-text-secondary">{t("gateway.settings.organizations.none")}</p>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.settings.organizations.none")}
+        </p>
       ) : (
         <RowList
           label={t("gateway.settings.organizations.accounts")}
           items={accounts.data.map((a, i) => {
-            const mine = members[i]?.ok ? members[i].data.find((m) => m.personId === ctx.personId) : undefined;
+            const mine = members[i]?.ok
+              ? members[i].data.find((m) => m.personId === ctx.personId)
+              : undefined;
             return {
               id: a.id,
               title: a.name,
               meta: [a.roles.map((r) => t(enumLabelKey("accountRole", r))).join(", "), a.slug],
-              ...(mine ? { action: <ActionButton action={leaveAccountAction.bind(null, mine.membershipId)} label={t("gateway.settings.organizations.leave")} variant="ghost" /> } : {}),
+              ...(mine
+                ? {
+                    action: (
+                      <ActionButton
+                        action={leaveAccountAction.bind(null, mine.membershipId)}
+                        label={t("gateway.settings.organizations.leave")}
+                        variant="ghost"
+                      />
+                    ),
+                  }
+                : {}),
             };
           })}
         />
       )}
       <Section title={t("gateway.settings.organizations.create")}>
-        <p className="m-0 text-text-13 text-text-secondary">{t("gateway.settings.organizations.createBody")}</p>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.settings.organizations.createBody")}
+        </p>
         <SimpleForm
           id="create-account"
           action={createAccountAction}
@@ -423,8 +589,18 @@ async function OrganizationsSection(props: SectionProps) {
           doneLabel={t("gateway.settings.organizations.created")}
           resetOnDone
           fields={[
-            { name: "name", label: t("gateway.settings.organizations.name"), required: true, autoComplete: "organization" },
-            { name: "slug", label: t("gateway.settings.organizations.slug"), required: true, help: t("gateway.settings.organizations.slugHelp") },
+            {
+              name: "name",
+              label: t("gateway.settings.organizations.name"),
+              required: true,
+              autoComplete: "organization",
+            },
+            {
+              name: "slug",
+              label: t("gateway.settings.organizations.slug"),
+              required: true,
+              help: t("gateway.settings.organizations.slugHelp"),
+            },
           ]}
         />
       </Section>
@@ -465,7 +641,11 @@ async function PayoutTaxSection(props: SectionProps & { account?: boolean }) {
             items={forms.data.filter(scope).map((f) => ({
               id: f.id,
               title: t(enumLabelKey("taxFormKind", f.kind)),
-              meta: [f.orgName, t("gateway.money.tax.last4", { last4: f.tinLast4 }), formatDate(locale, f.signedAt)],
+              meta: [
+                f.orgName,
+                t("gateway.money.tax.last4", { last4: f.tinLast4 }),
+                formatDate(locale, f.signedAt),
+              ],
             }))}
           />
         )}
@@ -474,11 +654,18 @@ async function PayoutTaxSection(props: SectionProps & { account?: boolean }) {
   );
 }
 
-function NoteSection(props: SectionProps & { note: string; action: { label: string; href: string } }) {
+function NoteSection(
+  props: SectionProps & { note: string; action: { label: string; href: string } },
+) {
   return (
     <>
       <Header t={props.t} node={props.node} />
-      <TabEmpty icon="Info" sentence={props.note} actionLabel={props.action.label} href={props.action.href} />
+      <TabEmpty
+        icon="Info"
+        sentence={props.note}
+        actionLabel={props.action.label}
+        href={props.action.href}
+      />
     </>
   );
 }
@@ -503,7 +690,10 @@ async function CompanyProfileSection(props: SectionProps) {
         <InlineAlert tone="info">{t("gateway.settings.company.profileUnavailable")}</InlineAlert>
       ) : (
         <>
-          <Link href={`/c/${profile.data.handle}` as Route} className="text-text-13 text-accent-text underline">
+          <Link
+            href={`/c/${profile.data.handle}` as Route}
+            className="text-text-13 text-accent-text underline"
+          >
             {t("gateway.settings.company.publicLink", { handle: profile.data.handle })}
           </Link>
           <SimpleForm
@@ -515,18 +705,46 @@ async function CompanyProfileSection(props: SectionProps) {
             doneLabel={t("settings.saved")}
             hidden={{ profileId: profile.data.id }}
             fields={[
-              { name: "handle", label: t("gateway.settings.profile.handle"), required: true, defaultValue: profile.data.handle },
-              { name: "about", label: t("gateway.settings.company.about"), kind: "textarea", defaultValue: profile.data.about ?? "" },
-              { name: "websiteUrl", label: t("gateway.settings.company.website"), kind: "url", defaultValue: profile.data.websiteUrl ?? "" },
-              { name: "contactEmail", label: t("gateway.settings.company.email"), kind: "email", defaultValue: profile.data.contactEmail ?? "" },
+              {
+                name: "handle",
+                label: t("gateway.settings.profile.handle"),
+                required: true,
+                defaultValue: profile.data.handle,
+              },
+              {
+                name: "about",
+                label: t("gateway.settings.company.about"),
+                kind: "textarea",
+                defaultValue: profile.data.about ?? "",
+              },
+              {
+                name: "websiteUrl",
+                label: t("gateway.settings.company.website"),
+                kind: "url",
+                defaultValue: profile.data.websiteUrl ?? "",
+              },
+              {
+                name: "contactEmail",
+                label: t("gateway.settings.company.email"),
+                kind: "email",
+                defaultValue: profile.data.contactEmail ?? "",
+              },
               {
                 name: "visibility",
                 label: t("gateway.settings.privacy.visibility"),
                 kind: "select",
                 defaultValue: profile.data.visibility,
-                options: APP_ENUMS.profile_visibility.map((v) => ({ value: v, label: t(enumLabelKey("profileVisibility", v)) })),
+                options: APP_ENUMS.profile_visibility.map((v) => ({
+                  value: v,
+                  label: t(enumLabelKey("profileVisibility", v)),
+                })),
               },
-              { name: "searchIndexing", label: t("gateway.settings.privacy.indexing"), kind: "checkbox", defaultChecked: profile.data.searchIndexing },
+              {
+                name: "searchIndexing",
+                label: t("gateway.settings.privacy.indexing"),
+                kind: "checkbox",
+                defaultChecked: profile.data.searchIndexing,
+              },
             ]}
           />
         </>
@@ -551,21 +769,36 @@ async function TeamSection(props: SectionProps) {
           items={members.data.map((m) => ({
             id: m.membershipId,
             title: m.fullName ?? "",
-            meta: [m.roles.map((r) => t(enumLabelKey("accountRole", r))).join(", "), t("gateway.profile.company.since", { date: formatDate(locale, m.validFrom) })],
+            meta: [
+              m.roles.map((r) => t(enumLabelKey("accountRole", r))).join(", "),
+              t("gateway.profile.company.since", { date: formatDate(locale, m.validFrom) }),
+            ],
             ...(admin && m.personId !== ctx.personId
-              ? { action: <ActionButton action={leaveAccountAction.bind(null, m.membershipId)} label={t("gateway.settings.company.remove")} variant="ghost" /> }
+              ? {
+                  action: (
+                    <ActionButton
+                      action={leaveAccountAction.bind(null, m.membershipId)}
+                      label={t("gateway.settings.company.remove")}
+                      variant="ghost"
+                    />
+                  ),
+                }
               : {}),
           }))}
         />
       )}
-      <p className="m-0 text-text-13 text-text-secondary">{t("gateway.settings.company.inviteNote")}</p>
+      <p className="m-0 text-text-13 text-text-secondary">
+        {t("gateway.settings.company.inviteNote")}
+      </p>
     </>
   );
 }
 
 async function InsuranceSection(props: SectionProps) {
   const { ctx, t, locale } = props;
-  const certificates = await readView(ctx.db, "vendor_insurance_certificates", { order: ["valid_to", "desc"] });
+  const certificates = await readView(ctx.db, "vendor_insurance_certificates", {
+    order: ["valid_to", "desc"],
+  });
   const prequal = await readView(ctx.db, "vendor_prequalifications", {});
   if (!certificates.ok || !prequal.ok) return <RegionError />;
   const mine = certificates.data.filter((c) => c.account_id === ctx.acting?.id);
@@ -573,15 +806,31 @@ async function InsuranceSection(props: SectionProps) {
     <>
       <Header t={t} node={props.node} />
       {mine.length === 0 ? (
-        <TabEmpty icon="ShieldCheck" sentence={t("gateway.settings.company.noInsurance")} actionLabel={t("gateway.settings.company.toEngagements")} href="/work/engagements" />
+        <TabEmpty
+          icon="ShieldCheck"
+          sentence={t("gateway.settings.company.noInsurance")}
+          actionLabel={t("gateway.settings.company.toEngagements")}
+          href="/work/engagements"
+        />
       ) : (
         <RowList
           label={t("gateway.engagement.compliance.insurance")}
           items={mine.map((c) => ({
             id: c.id ?? "",
             title: c.coverage_type ?? "",
-            meta: [c.org_name, c.insurer, formatMoney(locale, c.coverage_limit_minor, c.currency_code), c.valid_to ? t("gateway.engagement.compliance.validTo", { date: formatDate(locale, c.valid_to) }) : null],
-            tag: c.is_current ? { label: t("gateway.engagement.compliance.current"), tone: "success" as const } : { label: t("gateway.engagement.compliance.expired"), tone: "danger" as const },
+            meta: [
+              c.org_name,
+              c.insurer,
+              formatMoney(locale, c.coverage_limit_minor, c.currency_code),
+              c.valid_to
+                ? t("gateway.engagement.compliance.validTo", {
+                    date: formatDate(locale, c.valid_to),
+                  })
+                : null,
+            ],
+            tag: c.is_current
+              ? { label: t("gateway.engagement.compliance.current"), tone: "success" as const }
+              : { label: t("gateway.engagement.compliance.expired"), tone: "danger" as const },
           }))}
         />
       )}
@@ -595,7 +844,15 @@ async function InsuranceSection(props: SectionProps) {
                 id: p.id ?? "",
                 title: p.org_name ?? "",
                 meta: [p.scope],
-                ...(p.decision ? { tag: { label: t(enumLabelKey("approvalDecision", p.decision)), tone: p.decision === "Approved" ? ("success" as const) : ("danger" as const) } } : {}),
+                ...(p.decision
+                  ? {
+                      tag: {
+                        label: t(enumLabelKey("approvalDecision", p.decision)),
+                        tone:
+                          p.decision === "Approved" ? ("success" as const) : ("danger" as const),
+                      },
+                    }
+                  : {}),
               }))}
           />
         </Section>
@@ -614,7 +871,9 @@ async function RepresentationSection(props: SectionProps) {
     <>
       <Header t={t} node={props.node} />
       {mine.length === 0 ? (
-        <p className="m-0 text-text-13 text-text-secondary">{t("gateway.settings.company.noRepresentation")}</p>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.settings.company.noRepresentation")}
+        </p>
       ) : (
         <RowList
           label={t("gateway.profile.representation.title")}
@@ -623,16 +882,34 @@ async function RepresentationSection(props: SectionProps) {
             return {
               id: r.id,
               title: r.artistName ?? "",
-              meta: [r.scopes.map((s) => t(enumLabelKey("representationScope", s))).join(", "), t("gateway.profile.representation.expires", { date: formatDate(locale, r.expiresOn) })],
-              tag: { label: t(`gateway.profile.representation.standing.${standing}`), tone: standing === "active" ? ("success" as const) : ("neutral" as const) },
+              meta: [
+                r.scopes.map((s) => t(enumLabelKey("representationScope", s))).join(", "),
+                t("gateway.profile.representation.expires", {
+                  date: formatDate(locale, r.expiresOn),
+                }),
+              ],
+              tag: {
+                label: t(`gateway.profile.representation.standing.${standing}`),
+                tone: standing === "active" ? ("success" as const) : ("neutral" as const),
+              },
               ...(standing === "active" || standing === "pending"
-                ? { action: <ActionButton action={revokeRepresentationAction.bind(null, r.id)} label={t("gateway.profile.representation.revoke")} variant="ghost" /> }
+                ? {
+                    action: (
+                      <ActionButton
+                        action={revokeRepresentationAction.bind(null, r.id)}
+                        label={t("gateway.profile.representation.revoke")}
+                        variant="ghost"
+                      />
+                    ),
+                  }
                 : {}),
             };
           })}
         />
       )}
-      <p className="m-0 text-text-13 text-text-secondary">{t("gateway.settings.company.proposeNote")}</p>
+      <p className="m-0 text-text-13 text-text-secondary">
+        {t("gateway.settings.company.proposeNote")}
+      </p>
     </>
   );
 }
@@ -657,28 +934,82 @@ export async function SettingsSection({ node, ctx }: { node: string; ctx: Gatewa
     case "settings.company.payout-and-tax":
       return <PayoutTaxSection {...props} account />;
     case "settings.work-details":
-      return <NoteSection {...props} note={t("gateway.settings.notes.workDetails")} action={{ label: t("gateway.settings.notes.toProfile"), href: "/settings/profile" }} />;
+      return (
+        <NoteSection
+          {...props}
+          note={t("gateway.settings.notes.workDetails")}
+          action={{ label: t("gateway.settings.notes.toProfile"), href: "/settings/profile" }}
+        />
+      );
     case "settings.calendar-feeds":
-      return <NoteSection {...props} note={t("gateway.settings.notes.calendarFeeds")} action={{ label: t("gateway.settings.notes.toUpcoming"), href: "/work/upcoming" }} />;
+      return (
+        <NoteSection
+          {...props}
+          note={t("gateway.settings.notes.calendarFeeds")}
+          action={{ label: t("gateway.settings.notes.toUpcoming"), href: "/work/upcoming" }}
+        />
+      );
     case "settings.connected-apps":
-      return <NoteSection {...props} note={t("gateway.settings.notes.connectedApps")} action={{ label: t("gateway.settings.notes.toOrganizations"), href: "/settings/organizations" }} />;
+      return (
+        <NoteSection
+          {...props}
+          note={t("gateway.settings.notes.connectedApps")}
+          action={{
+            label: t("gateway.settings.notes.toOrganizations"),
+            href: "/settings/organizations",
+          }}
+        />
+      );
     case "settings.notifications":
     case "settings.company.notifications":
-      return <NoteSection {...props} note={t("gateway.settings.notes.notifications")} action={{ label: t("gateway.settings.notes.toPreferences"), href: "/settings/preferences" }} />;
+      return (
+        <NoteSection
+          {...props}
+          note={t("gateway.settings.notes.notifications")}
+          action={{
+            label: t("gateway.settings.notes.toPreferences"),
+            href: "/settings/preferences",
+          }}
+        />
+      );
     case "settings.developer":
-      return <NoteSection {...props} note={t("gateway.settings.notes.developer")} action={{ label: t("gateway.settings.notes.toSecurity"), href: "/settings/security" }} />;
+      return (
+        <NoteSection
+          {...props}
+          note={t("gateway.settings.notes.developer")}
+          action={{ label: t("gateway.settings.notes.toSecurity"), href: "/settings/security" }}
+        />
+      );
     case "settings.company.company-profile-and-privacy":
       return <CompanyProfileSection {...props} />;
     case "settings.company.team-and-account-roles":
       return <TeamSection {...props} />;
     case "settings.company.service-regions-and-capabilities":
-      return <NoteSection {...props} note={t("gateway.settings.notes.regions")} action={{ label: t("gateway.settings.notes.toCompanyProfile"), href: "/settings/company/company-profile-and-privacy" }} />;
+      return (
+        <NoteSection
+          {...props}
+          note={t("gateway.settings.notes.regions")}
+          action={{
+            label: t("gateway.settings.notes.toCompanyProfile"),
+            href: "/settings/company/company-profile-and-privacy",
+          }}
+        />
+      );
     case "settings.company.insurance-and-compliance-documents":
       return <InsuranceSection {...props} />;
     case "settings.company.representation":
       return <RepresentationSection {...props} />;
     case "settings.company.danger-zone":
-      return <NoteSection {...props} note={t("gateway.settings.notes.dangerZone")} action={{ label: t("gateway.settings.notes.toTeam"), href: "/settings/company/team-and-account-roles" }} />;
+      return (
+        <NoteSection
+          {...props}
+          note={t("gateway.settings.notes.dangerZone")}
+          action={{
+            label: t("gateway.settings.notes.toTeam"),
+            href: "/settings/company/team-and-account-roles",
+          }}
+        />
+      );
     default:
       return <RegistrySection {...props} />;
   }

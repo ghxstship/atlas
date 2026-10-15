@@ -58,19 +58,17 @@ export function mergeConversations(
         unread: 0,
       };
     }),
-    ...party.map(
-      (p): Conversation => ({
-        kind: "party",
-        key: p.key,
-        id: p.id,
-        subject: p.subject,
-        orgId: p.orgId,
-        orgName: p.orgName,
-        context: null,
-        at: p.lastMessageAt ?? p.createdAt,
-        unread: p.unread,
-      }),
-    ),
+    ...party.map((p): Conversation => ({
+      kind: "party",
+      key: p.key,
+      id: p.id,
+      subject: p.subject,
+      orgId: p.orgId,
+      orgName: p.orgName,
+      context: null,
+      at: p.lastMessageAt ?? p.createdAt,
+      unread: p.unread,
+    })),
   ];
   return list.sort((a, b) => b.at.localeCompare(a.at));
 }

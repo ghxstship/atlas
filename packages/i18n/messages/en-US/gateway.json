@@ -1043,6 +1043,7 @@
       "title": "Answer your advance",
       "remaining": "{n, plural, =0 {Every section is answered} one {# section left} other {# sections left}}",
       "answer": "Your answer",
+      "section": "{n}. {title}",
       "submit": "Send answer",
       "sent": "Answer sent. The organization reviews it next.",
       "done": "Your advance is complete"

@@ -25,10 +25,17 @@ export default async function MessagesPage({ searchParams }: PageProps<"/message
   const query = await searchParams;
   const views = getNode(sitemap, "messages").node.list?.views ?? ["split"];
   const view = pickView(query["view"], views, "split");
-  const [t, locale, loaded] = await Promise.all([getTranslate(), getLocale(), loadConversations(ctx.db)]);
+  const [t, locale, loaded] = await Promise.all([
+    getTranslate(),
+    getLocale(),
+    loadConversations(ctx.db),
+  ]);
   const orgs = new Map<string, string>();
-  for (const e of loaded?.engagements ?? []) if (inBrandScope(ctx.brand, e.orgId)) orgs.set(e.orgId, e.orgName);
-  const conversations = (loaded?.conversations ?? []).filter((c) => inBrandScope(ctx.brand, c.orgId));
+  for (const e of loaded?.engagements ?? [])
+    if (inBrandScope(ctx.brand, e.orgId)) orgs.set(e.orgId, e.orgName);
+  const conversations = (loaded?.conversations ?? []).filter((c) =>
+    inBrandScope(ctx.brand, c.orgId),
+  );
   return (
     <>
       <PageTitle
@@ -45,10 +52,18 @@ export default async function MessagesPage({ searchParams }: PageProps<"/message
           href="/work/engagements"
         />
       ) : (
-        <div className={view === "split" ? "grid grid-cols-[minmax(0,var(--layout-sidebar-max))_minmax(0,1fr)] gap-16 max-md:grid-cols-[minmax(0,1fr)]" : "flex flex-col gap-16"}>
+        <div
+          className={
+            view === "split"
+              ? "grid grid-cols-[minmax(0,var(--layout-sidebar-max))_minmax(0,1fr)] gap-16 max-md:grid-cols-[minmax(0,1fr)]"
+              : "flex flex-col gap-16"
+          }
+        >
           <ConversationList conversations={conversations} locale={locale} t={t} />
           {view === "split" ? (
-            <p className="m-0 self-center text-center text-text-14 text-text-secondary max-md:hidden">{t("gateway.messages.pick")}</p>
+            <p className="m-0 self-center text-center text-text-14 text-text-secondary max-md:hidden">
+              {t("gateway.messages.pick")}
+            </p>
           ) : null}
         </div>
       )}

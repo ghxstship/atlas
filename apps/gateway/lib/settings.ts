@@ -60,10 +60,13 @@ export function parseSettingValue(def: SettingDefinition, raw: string | null): P
       return { ok: true, value };
     }
     case "choice":
-      return def.choices.includes(text) ? { ok: true, value: text } : { ok: false, error: "setting_choice" };
+      return def.choices.includes(text)
+        ? { ok: true, value: text }
+        : { ok: false, error: "setting_choice" };
     case "text": {
       if (text === "") return { ok: false, error: "required" };
-      if (def.maxLength !== null && text.length > def.maxLength) return { ok: false, error: "setting_too_long" };
+      if (def.maxLength !== null && text.length > def.maxLength)
+        return { ok: false, error: "setting_too_long" };
       const valid =
         def.input === "email"
           ? EMAIL.test(text)

@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect } from "react";
 import { OutcomeAlert } from "@/components/actions/action-button";
-import { markReadAction, startPartyThreadAction, type StartThreadState } from "@/lib/actions/messages";
+import {
+  markReadAction,
+  startPartyThreadAction,
+  type StartThreadState,
+} from "@/lib/actions/messages";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -22,11 +26,15 @@ export function MarkRead({ kind, threadId }: { kind: "engagement" | "party"; thr
 export function StartConversationForm({ orgs }: { orgs: readonly { id: string; name: string }[] }) {
   const t = useTranslations("gateway.messages.start") as unknown as Translate;
   const router = useRouter();
-  const [state, action, pending] = useActionState<StartThreadState, FormData>(startPartyThreadAction, {});
+  const [state, action, pending] = useActionState<StartThreadState, FormData>(
+    startPartyThreadAction,
+    {},
+  );
   useEffect(() => {
     if (state.threadKey) router.push(`/messages/${state.threadKey}` as Route);
   }, [state.threadKey, router]);
-  if (orgs.length === 0) return <p className="m-0 text-text-13 text-text-secondary">{t("noOrgs")}</p>;
+  if (orgs.length === 0)
+    return <p className="m-0 text-text-13 text-text-secondary">{t("noOrgs")}</p>;
   return (
     <form action={action} className="flex flex-col gap-12" aria-label={t("title")}>
       {state.fieldError ? <InlineAlert tone="danger">{t("error")}</InlineAlert> : null}

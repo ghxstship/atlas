@@ -40,18 +40,32 @@ export default async function PersonProfilePage({ params }: PageProps<"/u/[handl
   if (!data) notFound();
   if (data.profile.redirected) permanentRedirect(`/u/${data.profile.handle}` as Route);
   const [t, locale, ctx] = await Promise.all([getTranslate(), getLocale(), getGatewayContext()]);
-  const ratings = ctx && data.profile.viewer_is_owner ? await listRatingsAbout(ctx.db, { personId: ctx.personId }) : null;
+  const ratings =
+    ctx && data.profile.viewer_is_owner
+      ? await listRatingsAbout(ctx.db, { personId: ctx.personId })
+      : null;
   return (
     <>
       {data.profile.viewer_is_owner ? (
         <div className="flex flex-wrap items-center justify-between gap-8 rounded-control bg-bg-surface p-12 text-text-13">
-          <span>{t("gateway.profile.public.ownerNote", { visibility: t(`gateway.enums.profileVisibility.${data.profile.visibility.toLowerCase()}`) })}</span>
+          <span>
+            {t("gateway.profile.public.ownerNote", {
+              visibility: t(
+                `gateway.enums.profileVisibility.${data.profile.visibility.toLowerCase()}`,
+              ),
+            })}
+          </span>
           <ButtonLink href="/settings/profile-privacy" size="sm">
             {t("gateway.profile.public.ownerAction")}
           </ButtonLink>
         </div>
       ) : null}
-      <PublicPersonProfile data={data} ratings={ratings?.ok ? ratings.data : []} locale={locale} t={t} />
+      <PublicPersonProfile
+        data={data}
+        ratings={ratings?.ok ? ratings.data : []}
+        locale={locale}
+        t={t}
+      />
     </>
   );
 }

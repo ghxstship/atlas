@@ -1043,6 +1043,7 @@
       "title": "Responde tu avance",
       "remaining": "{n, plural, =0 {Todas las secciones respondidas} one {Falta # sección} other {Faltan # secciones}}",
       "answer": "Tu respuesta",
+      "section": "{n}. {title}",
       "submit": "Enviar respuesta",
       "sent": "Respuesta enviada. La organización la revisa después.",
       "done": "Tu avance está completo"

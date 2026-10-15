@@ -23,7 +23,9 @@ export default async function ClaimPage() {
         <Icon name="Link2" size={28} />
       </span>
       <h1 className="m-0 text-heading-20 font-semibold">{t("title")}</h1>
-      <p className="m-0 text-text-14 text-text-secondary">{t("body", { email: ctx.email ?? "" })}</p>
+      <p className="m-0 text-text-14 text-text-secondary">
+        {t("body", { email: ctx.email ?? "" })}
+      </p>
       <ClaimForm email={ctx.email ?? ""} />
     </div>
   );

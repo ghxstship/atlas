@@ -1,4 +1,9 @@
-import { listEngagementDocuments, listMyEngagements, listTaxForms, readView } from "@xos/data/gateway";
+import {
+  listEngagementDocuments,
+  listMyEngagements,
+  listTaxForms,
+  readView,
+} from "@xos/data/gateway";
 import { getNode } from "@xos/ia";
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
@@ -51,15 +56,34 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
   const docs = documents.data
     .map((d) => ({ d, e: byId.get(d.engagementId) }))
     .filter(({ e }) => e && inBrandScope(ctx.brand, e.orgId))
-    .sort((a, b) => Number(b.d.state === "Sent") - Number(a.d.state === "Sent") || (a.d.expiresOn ?? "9999").localeCompare(b.d.expiresOn ?? "9999"));
-  const expiring = docs.filter(({ d }) => d.expiresOn && d.expiresOn >= today && d.expiresOn <= soon);
+    .sort(
+      (a, b) =>
+        Number(b.d.state === "Sent") - Number(a.d.state === "Sent") ||
+        (a.d.expiresOn ?? "9999").localeCompare(b.d.expiresOn ?? "9999"),
+    );
+  const expiring = docs.filter(
+    ({ d }) => d.expiresOn && d.expiresOn >= today && d.expiresOn <= soon,
+  );
   const empty = docs.length === 0 && signedByLink.data.length === 0 && taxForms.data.length === 0;
   return (
     <>
-      <PageTitle title={t("nav.gateway.avatar.documents")} lead={t("gateway.documents.lead")} action={<ViewSwitcher views={views} current={view} path="/documents" query={query} />} />
-      {expiring.length > 0 ? <InlineAlert tone="warning">{t("gateway.documents.expiring", { n: expiring.length })}</InlineAlert> : null}
+      <PageTitle
+        title={t("nav.gateway.avatar.documents")}
+        lead={t("gateway.documents.lead")}
+        action={<ViewSwitcher views={views} current={view} path="/documents" query={query} />}
+      />
+      {expiring.length > 0 ? (
+        <InlineAlert tone="warning">
+          {t("gateway.documents.expiring", { n: expiring.length })}
+        </InlineAlert>
+      ) : null}
       {empty ? (
-        <EmptyStateLink icon="FolderLock" sentence={t("gateway.documents.empty")} actionLabel={t("gateway.documents.emptyAction")} href="/work/engagements" />
+        <EmptyStateLink
+          icon="FolderLock"
+          sentence={t("gateway.documents.empty")}
+          actionLabel={t("gateway.documents.emptyAction")}
+          href="/work/engagements"
+        />
       ) : view === "table" ? (
         <LinkTable
           caption={t("nav.gateway.avatar.documents")}
@@ -85,11 +109,31 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
           items={docs.map(({ d, e }) => ({
             id: d.id,
             title: d.title,
-            meta: [t(enumLabelKey("engagementDocumentKind", d.kind)), e?.orgName, d.expiresOn ? t("gateway.engagement.documents.expires", { date: formatDate(locale, d.expiresOn) }) : null],
-            tag: { label: t(enumLabelKey("engagementDocumentState", d.state)), tone: toneFor(d.state) },
+            meta: [
+              t(enumLabelKey("engagementDocumentKind", d.kind)),
+              e?.orgName,
+              d.expiresOn
+                ? t("gateway.engagement.documents.expires", {
+                    date: formatDate(locale, d.expiresOn),
+                  })
+                : null,
+            ],
+            tag: {
+              label: t(enumLabelKey("engagementDocumentState", d.state)),
+              tone: toneFor(d.state),
+            },
             ...(e ? { href: `/work/engagements/${e.key}/documents` } : {}),
             ...(d.state === "Sent"
-              ? { action: <ActionButton action={signDocumentAction.bind(null, d.id)} label={t("gateway.common.sign")} variant="primary" done={t("gateway.common.signed")} /> }
+              ? {
+                  action: (
+                    <ActionButton
+                      action={signDocumentAction.bind(null, d.id)}
+                      label={t("gateway.common.sign")}
+                      variant="primary"
+                      done={t("gateway.common.signed")}
+                    />
+                  ),
+                }
               : {}),
           }))}
         />
@@ -101,8 +145,25 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
             items={signedByLink.data.map((d) => ({
               id: d.engagement_document_id ?? "",
               title: d.title ?? "",
-              meta: [d.org_name, d.signed_at ? t("gateway.documents.signedOn", { date: formatDate(locale, d.signed_at), name: d.signer_name ?? "" }) : null],
-              ...(d.engagement_document_state ? { tag: { label: t(enumLabelKey("engagementDocumentState", d.engagement_document_state)), tone: toneFor(d.engagement_document_state) } } : {}),
+              meta: [
+                d.org_name,
+                d.signed_at
+                  ? t("gateway.documents.signedOn", {
+                      date: formatDate(locale, d.signed_at),
+                      name: d.signer_name ?? "",
+                    })
+                  : null,
+              ],
+              ...(d.engagement_document_state
+                ? {
+                    tag: {
+                      label: t(
+                        enumLabelKey("engagementDocumentState", d.engagement_document_state),
+                      ),
+                      tone: toneFor(d.engagement_document_state),
+                    },
+                  }
+                : {}),
             }))}
           />
         </Section>
@@ -114,7 +175,11 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
             items={taxForms.data.map((f) => ({
               id: f.id,
               title: t(enumLabelKey("taxFormKind", f.kind)),
-              meta: [f.orgName, t("gateway.money.tax.last4", { last4: f.tinLast4 }), formatDate(locale, f.signedAt)],
+              meta: [
+                f.orgName,
+                t("gateway.money.tax.last4", { last4: f.tinLast4 }),
+                formatDate(locale, f.signedAt),
+              ],
               href: "/money/tax-documents",
             }))}
           />

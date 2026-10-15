@@ -13,11 +13,15 @@ import { getTranslate } from "@/lib/shell/translate";
 export default async function SettingsLayout({ children }: { children: ReactNode }) {
   const ctx = await requireNode("settings");
   const t = await getTranslate();
-  const sections = (getNode(sitemap, "settings").node.children ?? []).filter((c) => c.kind === "section" && isNodeVisible(sitemap, c.id, ctx.nav));
+  const sections = (getNode(sitemap, "settings").node.children ?? []).filter(
+    (c) => c.kind === "section" && isNodeVisible(sitemap, c.id, ctx.nav),
+  );
   const groups = [
     {
       label: t("nav.gateway.avatar.settings"),
-      items: sections.filter((s) => s.id !== "settings.company").map((s) => ({ id: s.id, label: t(s.label), href: s.route ?? "/settings" })),
+      items: sections
+        .filter((s) => s.id !== "settings.company")
+        .map((s) => ({ id: s.id, label: t(s.label), href: s.route ?? "/settings" })),
     },
     ...(sections.some((s) => s.id === "settings.company")
       ? [
@@ -30,5 +34,11 @@ export default async function SettingsLayout({ children }: { children: ReactNode
         ]
       : []),
   ];
-  return <TemplateSettings sections={<SettingsNav label={t("nav.gateway.avatar.settings")} groups={groups} />}>{children}</TemplateSettings>;
+  return (
+    <TemplateSettings
+      sections={<SettingsNav label={t("nav.gateway.avatar.settings")} groups={groups} />}
+    >
+      {children}
+    </TemplateSettings>
+  );
 }

@@ -11,7 +11,16 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 export interface FieldSpec {
   readonly name: string;
   readonly label: string;
-  readonly kind?: "text" | "textarea" | "date" | "datetime-local" | "number" | "email" | "url" | "select" | "checkbox";
+  readonly kind?:
+    | "text"
+    | "textarea"
+    | "date"
+    | "datetime-local"
+    | "number"
+    | "email"
+    | "url"
+    | "select"
+    | "checkbox";
   readonly required?: boolean;
   readonly help?: string;
   readonly defaultValue?: string;
@@ -98,7 +107,15 @@ export function SimpleForm({
             );
           }
           if (f.kind === "checkbox") {
-            return <Checkbox key={f.name} id={fieldId} name={f.name} label={f.label} defaultChecked={f.defaultChecked ?? false} />;
+            return (
+              <Checkbox
+                key={f.name}
+                id={fieldId}
+                name={f.name}
+                label={f.label}
+                defaultChecked={f.defaultChecked ?? false}
+              />
+            );
           }
           if (f.kind === "select") {
             return (

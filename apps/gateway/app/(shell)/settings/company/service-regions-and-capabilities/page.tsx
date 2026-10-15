@@ -6,7 +6,9 @@ import { getTranslate } from "@/lib/shell/translate";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
-  return { title: t(getNode(sitemap, "settings.company.service-regions-and-capabilities").node.label) };
+  return {
+    title: t(getNode(sitemap, "settings.company.service-regions-and-capabilities").node.label),
+  };
 }
 
 /** Settings section settings.company.service-regions-and-capabilities (Section 4.5.8); its content comes from the settings sections. */

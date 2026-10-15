@@ -17,7 +17,9 @@ const load = cache(async (handle: string) => {
   return result.data;
 });
 
-export async function generateMetadata({ params }: PageProps<"/c/[companyHandle]">): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/c/[companyHandle]">): Promise<Metadata> {
   const { companyHandle } = await params;
   const data = await load(companyHandle);
   if (!data) return { robots: { index: false, follow: false } };
@@ -25,7 +27,11 @@ export async function generateMetadata({ params }: PageProps<"/c/[companyHandle]
     title: data.profile.name,
     description: data.profile.about ?? undefined,
     robots: { index: data.profile.indexable, follow: data.profile.indexable },
-    openGraph: { title: data.profile.name, description: data.profile.about ?? undefined, type: "website" },
+    openGraph: {
+      title: data.profile.name,
+      description: data.profile.about ?? undefined,
+      type: "website",
+    },
   };
 }
 
@@ -41,8 +47,11 @@ export default async function CompanyProfilePage({ params }: PageProps<"/c/[comp
   if (data.profile.redirected) permanentRedirect(`/c/${data.profile.handle}` as Route);
   const [t, locale, ctx] = await Promise.all([getTranslate(), getLocale(), getGatewayContext()]);
   const opportunities = ctx ? await searchOpportunities(ctx.db, { limit: 12 }) : null;
-  const open = opportunities?.ok ? opportunities.data.filter((o) => o.orgName === data.profile.name) : [];
-  const details = (kind: string) => data.details.filter((d) => d.detail_kind === kind).sort((a, b) => a.sort_order - b.sort_order);
+  const open = opportunities?.ok
+    ? opportunities.data.filter((o) => o.orgName === data.profile.name)
+    : [];
+  const details = (kind: string) =>
+    data.details.filter((d) => d.detail_kind === kind).sort((a, b) => a.sort_order - b.sort_order);
   const domains = details("verified_domain");
   return (
     <article className="flex flex-col gap-24">
@@ -58,16 +67,29 @@ export default async function CompanyProfilePage({ params }: PageProps<"/c/[comp
           </Tag>
         ) : null}
       </header>
-      {data.profile.about ? <p className="m-0 max-w-layout-reading whitespace-pre-line text-text-14">{data.profile.about}</p> : null}
+      {data.profile.about ? (
+        <p className="m-0 max-w-layout-reading whitespace-pre-line text-text-14">
+          {data.profile.about}
+        </p>
+      ) : null}
       <p className="m-0 flex flex-wrap gap-12 text-text-13">
         {data.profile.website_url ? (
-          <a href={data.profile.website_url} target="_blank" rel="noopener noreferrer" className="text-accent-text underline">
+          <a
+            href={data.profile.website_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent-text underline"
+          >
             {data.profile.website_url.replace(/^https?:\/\//, "")}
           </a>
         ) : null}
         {domains.map((d) => (
           <span key={d.code} className="inline-flex items-center gap-4 text-text-secondary">
-            <Icon name="ShieldCheck" size={14} label={t("gateway.profile.company.verifiedDomain")} />
+            <Icon
+              name="ShieldCheck"
+              size={14}
+              label={t("gateway.profile.company.verifiedDomain")}
+            />
             {d.label}
           </span>
         ))}
@@ -76,7 +98,10 @@ export default async function CompanyProfilePage({ params }: PageProps<"/c/[comp
         <Section title={t("gateway.profile.company.capabilities")}>
           <ul className="m-0 flex list-none flex-wrap gap-8 p-0">
             {details("capability").map((c) => (
-              <li key={c.code} className="inline-flex items-center gap-6 rounded-pill border border-border-subtle px-12 py-4 text-text-13">
+              <li
+                key={c.code}
+                className="inline-flex items-center gap-6 rounded-pill border border-border-subtle px-12 py-4 text-text-13"
+              >
                 {c.label}
                 <span className="font-mono text-text-12 text-text-secondary">{c.code}</span>
               </li>
@@ -86,7 +111,11 @@ export default async function CompanyProfilePage({ params }: PageProps<"/c/[comp
       ) : null}
       {details("service_region").length > 0 ? (
         <Section title={t("gateway.profile.company.regions")}>
-          <p className="m-0 font-mono text-text-13">{details("service_region").map((r) => r.label).join(", ")}</p>
+          <p className="m-0 font-mono text-text-13">
+            {details("service_region")
+              .map((r) => r.label)
+              .join(", ")}
+          </p>
         </Section>
       ) : null}
       {details("team_member").length > 0 ? (
