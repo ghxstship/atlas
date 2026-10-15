@@ -77,7 +77,16 @@ export function ProjectCollection({
   const pathname = usePathname();
   const params = useSearchParams();
   const [query, setQuery] = useState("");
-  const [peekKey, setPeekKey] = useState<string | null>(null);
+  const [peekKey, setPeekState] = useState<string | null>(params.get("peek"));
+  /** Opens or closes the peek and keeps it in the URL (`?peek=KEY`) without a server round trip. */
+  const setPeekKey = (key: string | null) => {
+    setPeekState(key);
+    const next = new URLSearchParams(window.location.search);
+    if (key === null) next.delete("peek");
+    else next.set("peek", key);
+    const qs = next.toString();
+    window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
+  };
 
   const gateOf = (code: string) => phases.find((p) => p.code === code)?.gate ?? 0;
   const shown = useMemo(() => {
@@ -370,6 +379,7 @@ export function ProjectCollection({
                 },
                 { label: t("fields.venue"), value: peek.venueName ?? t("values.none") },
                 { label: t("fields.region"), value: peek.regionCode ?? t("values.none") },
+                { label: t("fields.currency"), value: peek.currency },
                 { label: t("fields.timeZone"), value: peek.timeZone },
                 { label: t("fields.dates"), value: dates(peek) },
               ]}

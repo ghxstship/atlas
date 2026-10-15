@@ -1,11 +1,12 @@
 import { listActivity, type ActivityEntry } from "@xos/data/activity";
 import {
+  buildAlerts,
+  type Alert,
   listBlockedRecords,
   listMyOverdueRecords,
   listMyRecordsBetween,
   summarizeReadiness,
   type GateReadiness,
-  type HomeRecord,
 } from "@xos/data/home";
 import {
   listCriterionStatus,
@@ -14,6 +15,9 @@ import {
   listProjects,
 } from "@xos/data/projects";
 import { must } from "@/lib/projects/loaders";
+
+export type { Alert, AlertKind } from "@xos/data/home";
+export { buildAlerts } from "@xos/data/home";
 import type { OrgContext } from "@/lib/shell/context";
 
 /** Readiness of every live project's current gate the viewer may read, with the gate count. */
@@ -46,107 +50,6 @@ export async function loadReadinessBoard(
 /** Readiness of every live project's current gate the viewer may read. */
 export async function loadReadiness(ctx: OrgContext): Promise<GateReadiness[]> {
   return (await loadReadinessBoard(ctx)).readiness;
-}
-
-export type AlertKind =
-  "blockedProject" | "blockedRecord" | "overdue" | "gateGap" | "noJurisdiction";
-
-export interface Alert {
-  readonly id: string;
-  readonly kind: AlertKind;
-  readonly severity: "high" | "medium";
-  readonly values: Readonly<Record<string, string | number>>;
-  /** Project key the alert opens, with the tab. */
-  readonly projectKey: string | null;
-  readonly tab: "overview" | "gates" | "settings";
-  /** Sort time: the instant the alert concerns, newest concern first within a severity. */
-  readonly at: string;
-}
-
-const GAP_WINDOW_DAYS = 30;
-
-/**
- * The alerts Home raises (Section 4.2 Home): blocked projects and records, the person's overdue
- * records, projects whose first production day is within 30 days with blocking criteria open at the
- * current gate, and projects past Scope with no jurisdiction. Derived at read time, never stored.
- */
-export function buildAlerts(input: {
-  readiness: readonly GateReadiness[];
-  blocked: readonly HomeRecord[];
-  overdue: readonly HomeRecord[];
-  today: string;
-}): Alert[] {
-  const alerts: Alert[] = [];
-  const horizon = new Date(Date.parse(`${input.today}T00:00:00Z`) + GAP_WINDOW_DAYS * 86_400_000)
-    .toISOString()
-    .slice(0, 10);
-  for (const r of input.readiness) {
-    const p = r.project;
-    if (p.projectState === "Blocked") {
-      alerts.push({
-        id: `bp:${p.id}`,
-        kind: "blockedProject",
-        severity: "high",
-        values: { key: p.key, name: p.name },
-        projectKey: p.key,
-        tab: "overview",
-        at: p.updatedAt,
-      });
-    }
-    if (
-      r.unmet.length > 0 &&
-      r.phase &&
-      p.startsOn !== null &&
-      p.startsOn >= input.today &&
-      p.startsOn <= horizon
-    ) {
-      alerts.push({
-        id: `gg:${p.id}`,
-        kind: "gateGap",
-        severity: "high",
-        values: { key: p.key, date: p.startsOn, count: r.unmet.length, gate: r.phase.gate },
-        projectKey: p.key,
-        tab: "gates",
-        at: `${p.startsOn}T00:00:00Z`,
-      });
-    }
-    if (p.jurisdictionId === null && r.phase !== null && r.phase.gate > 1) {
-      alerts.push({
-        id: `nj:${p.id}`,
-        kind: "noJurisdiction",
-        severity: "medium",
-        values: { key: p.key },
-        projectKey: p.key,
-        tab: "settings",
-        at: p.updatedAt,
-      });
-    }
-  }
-  for (const rec of input.blocked) {
-    alerts.push({
-      id: `br:${rec.id}`,
-      kind: "blockedRecord",
-      severity: "high",
-      values: { key: rec.key ?? "", title: rec.title, blocker: rec.blocker ?? "" },
-      projectKey: rec.projectKey,
-      tab: "overview",
-      at: rec.updatedAt,
-    });
-  }
-  for (const rec of input.overdue) {
-    alerts.push({
-      id: `od:${rec.id}`,
-      kind: "overdue",
-      severity: "medium",
-      values: { key: rec.key ?? "", title: rec.title, date: rec.dueAt ?? "" },
-      projectKey: rec.projectKey,
-      tab: "overview",
-      at: rec.dueAt ?? rec.updatedAt,
-    });
-  }
-  return alerts.sort((a, b) =>
-    a.severity !== b.severity ? (a.severity === "high" ? -1 : 1) : a.at < b.at ? 1 : -1,
-  );
 }
 
 /** Everything the alert list needs, read for the viewer. */

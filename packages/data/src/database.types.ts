@@ -22611,8 +22611,10 @@ export type Database = {
           client_counterparty_id: string | null;
           created_at: string;
           created_by: string | null;
+          currency: string;
           current_phase_code: string;
           deleted_at: string | null;
+          description: string | null;
           ends_on: string | null;
           id: string;
           jurisdiction_id: string | null;
@@ -22636,8 +22638,10 @@ export type Database = {
           client_counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
+          currency: string;
           current_phase_code?: string;
           deleted_at?: string | null;
+          description?: string | null;
           ends_on?: string | null;
           id?: string;
           jurisdiction_id?: string | null;
@@ -22660,8 +22664,10 @@ export type Database = {
           client_counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
+          currency?: string;
           current_phase_code?: string;
           deleted_at?: string | null;
+          description?: string | null;
           ends_on?: string | null;
           id?: string;
           jurisdiction_id?: string | null;
@@ -22693,6 +22699,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_currency_fkey";
+            columns: ["currency"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
           },
           {
             foreignKeyName: "projects_org_id_fkey";
@@ -37577,11 +37590,18 @@ export type Database = {
       };
       acknowledge_purchase_order: { Args: { p_purchase_order_id: string }; Returns: string };
       activity_feed: {
-        Args: { p_before?: string; p_limit?: number; p_org_id: string; p_project_id?: string };
+        Args: {
+          p_activity_id?: string;
+          p_before?: string;
+          p_limit?: number;
+          p_org_id: string;
+          p_project_id?: string;
+        };
         Returns: {
           actor_name: string;
           actor_person_id: string;
           data: Json;
+          description: string;
           event_type: string;
           id: string;
           occurred_at: string;
@@ -37911,6 +37931,8 @@ export type Database = {
       create_organization: { Args: { p_name: string; p_slug: string }; Returns: string };
       create_project: {
         Args: {
+          p_currency_code?: string;
+          p_description?: string;
           p_ends_on?: string;
           p_jurisdiction_id?: string;
           p_name: string;

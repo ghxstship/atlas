@@ -10,6 +10,7 @@ import {
   getProjectByKey,
   isProjectKey,
   listAllowedTransitions,
+  listCurrencies,
   listAssertionRanks,
   listCriterionStatus,
   listGateCriteria,
@@ -33,13 +34,15 @@ import {
   updateProject,
   updateScopeNode,
   withdrawEvidence,
-} from "../src/projects";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/projects.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const PROJECT_ROW = {
   id: "p1",
   project_key: "NWL",
   name: "Northwind Summer Series",
+  description: null,
+  currency: "USD",
   project_state: "Active",
   production_state: "Proposed",
   current_phase_code: "SCP",
@@ -138,6 +141,8 @@ describe("projects", () => {
           p_venue_id: null,
           p_starts_on: null,
           p_ends_on: null,
+          p_currency_code: null,
+          p_description: null,
         },
       ],
     ]);
@@ -166,6 +171,8 @@ describe("projects", () => {
         venueId: null,
         startsOn: "2026-01-01",
         endsOn: null,
+        currencyCode: "EUR",
+        description: "  ",
       }),
     ).toEqual({ ok: true, data: null });
     expect(calls[0]?.steps[0]).toEqual([
@@ -181,6 +188,8 @@ describe("projects", () => {
           venue_id: null,
           starts_on: "2026-01-01",
           ends_on: null,
+          currency: "EUR",
+          description: null,
         },
       ],
     ]);
@@ -634,5 +643,18 @@ describe("coordinate matrix", () => {
       data: { "1000|SCP": 2, "5000|BLD": 1 },
     });
     expect((await countRecordsByCoordinate(db, "p1")).ok).toBe(false);
+  });
+});
+
+describe("currencies", () => {
+  it("lists currency codes", async () => {
+    const { db } = fakeClient({
+      "from:currencies": [
+        okResponse([{ currency_code: "EUR" }, { currency_code: null }]),
+        errorResponse("XX000", "x"),
+      ],
+    });
+    expect(await listCurrencies(db)).toEqual({ ok: true, data: ["EUR"] });
+    expect((await listCurrencies(db)).ok).toBe(false);
   });
 });

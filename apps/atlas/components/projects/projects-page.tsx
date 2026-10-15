@@ -1,5 +1,6 @@
 import { getNode } from "@xos/ia";
 import {
+  listCurrencies,
   listJurisdictions,
   listPhases,
   listProjects,
@@ -36,13 +37,14 @@ function one(search: Search, name: string): string | undefined {
 export async function projectFormOptions(ctx: OrgContext): Promise<ProjectFormOptions> {
   const db = ctx.viewer.db;
   const t = await getTranslations("projects");
-  const [jurisdictions, tiers, regions, venues] = await Promise.all([
+  const [jurisdictions, tiers, regions, venues, currencies] = await Promise.all([
     listJurisdictions(db),
     listTiers(db),
     listRegions(db),
     listVenues(db, ctx.org.id),
+    listCurrencies(db),
   ]);
-  for (const r of [jurisdictions, tiers, regions, venues]) {
+  for (const r of [jurisdictions, tiers, regions, venues, currencies]) {
     if (!r.ok) throw new Error(`Cannot read project form lists: ${JSON.stringify(r.error)}`);
   }
   return {
@@ -58,6 +60,7 @@ export async function projectFormOptions(ctx: OrgContext): Promise<ProjectFormOp
     regions: regions.ok ? regions.data.map((x) => ({ value: x.code, label: x.label })) : [],
     venues: venues.ok ? venues.data.map((v) => ({ value: v.id, label: v.name })) : [],
     timeZones: Intl.supportedValuesOf("timeZone"),
+    currencies: currencies.ok ? currencies.data : [],
     defaultTimeZone: "America/New_York",
   };
 }

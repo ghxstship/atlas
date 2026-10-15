@@ -1,5 +1,5 @@
-import type { Database, XosClient } from "./client";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Settings repository (Section 4.5.6, Section 12, Section 14.4): resolved settings with their

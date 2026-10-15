@@ -9,8 +9,8 @@ import {
   removeReaction,
   setSubscription,
   setThreadResolved,
-} from "../src/comments";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/comments.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const subject = { table: "app.records", id: "rec-1" };
 const now = new Date("2026-10-14T12:00:00Z");

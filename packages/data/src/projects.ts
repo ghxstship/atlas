@@ -1,6 +1,6 @@
-import type { Database, XosClient } from "./client";
-import { Constants } from "./database.types";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { Constants } from "./database.types.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Projects repository (Section 4.2 Projects, Section 4.5.1, Section 3.4): projects with their
@@ -20,6 +20,9 @@ export interface ProjectSummary {
   readonly id: string;
   readonly key: string;
   readonly name: string;
+  readonly description: string | null;
+  /** ISO 4217 base currency; always set (migration 0950). */
+  readonly currency: string;
   readonly projectState: ProjectState;
   readonly productionState: ProductionState;
   readonly phaseCode: string;
@@ -141,12 +144,14 @@ export interface Venue {
 }
 
 const PROJECT_COLUMNS =
-  "id, project_key, name, project_state, production_state, current_phase_code, jurisdiction_id, region_code, tier_code, time_zone, starts_on, ends_on, venue_id, workspace_id, archived_at, updated_at, venue:venues!projects_venue_id_fkey(name)";
+  "id, project_key, name, description, currency, project_state, production_state, current_phase_code, jurisdiction_id, region_code, tier_code, time_zone, starts_on, ends_on, venue_id, workspace_id, archived_at, updated_at, venue:venues!projects_venue_id_fkey(name)";
 
 interface ProjectRow {
   id: string;
   project_key: string;
   name: string;
+  description: string | null;
+  currency: string;
   project_state: ProjectState;
   production_state: ProductionState;
   current_phase_code: string;
@@ -168,6 +173,8 @@ function toProject(row: ProjectRow): ProjectSummary {
     id: row.id,
     key: row.project_key,
     name: row.name,
+    description: row.description,
+    currency: row.currency,
     projectState: row.project_state,
     productionState: row.production_state,
     phaseCode: row.current_phase_code,
@@ -240,6 +247,9 @@ export interface ProjectInput {
   readonly venueId?: string | null;
   readonly startsOn?: string | null;
   readonly endsOn?: string | null;
+  /** ISO 4217; absent takes the jurisdiction country's, then the org's base currency. */
+  readonly currencyCode?: string | null;
+  readonly description?: string | null;
 }
 
 /**
@@ -280,6 +290,8 @@ export async function createProject(
     p_venue_id: input.venueId ?? null,
     p_starts_on: input.startsOn ?? null,
     p_ends_on: input.endsOn ?? null,
+    p_currency_code: input.currencyCode ?? null,
+    p_description: input.description ?? null,
   });
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "unexpected", message: "create_project returned no id." });
@@ -304,6 +316,12 @@ export async function updateProject(
   if (patch.venueId !== undefined) update.venue_id = patch.venueId;
   if (patch.startsOn !== undefined) update.starts_on = patch.startsOn;
   if (patch.endsOn !== undefined) update.ends_on = patch.endsOn;
+  if (patch.currencyCode) {
+    (update as Record<string, unknown>)["currency"] = patch.currencyCode;
+  }
+  if (patch.description !== undefined) {
+    (update as Record<string, unknown>)["description"] = patch.description?.trim() || null;
+  }
   return writeOne(db.from("projects").update(update).eq("id", projectId).select("id"));
 }
 
@@ -939,4 +957,14 @@ export async function countRecordsByCoordinate(
     cells[key] = (cells[key] ?? 0) + 1;
   }
   return ok(cells);
+}
+
+/** ISO 4217 currencies, by code. */
+export async function listCurrencies(db: XosClient): Promise<Result<string[]>> {
+  const { data, error } = await db
+    .from("currencies")
+    .select("currency_code")
+    .order("currency_code");
+  if (error) return fail(toDataError(error));
+  return ok(data.flatMap((r) => (r.currency_code ? [r.currency_code] : [])));
 }

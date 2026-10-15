@@ -1,6 +1,6 @@
-import type { XosClient } from "./client";
-import type { CriterionStatus, GateCriterion, Phase, ProjectSummary } from "./projects";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import type { CriterionStatus, GateCriterion, Phase, ProjectSummary } from "./projects.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Home repository (Section 4.2 Home, Section 4.5.5): what needs the person today, gate readiness
@@ -195,4 +195,186 @@ export function summarizeReadiness(
       closed,
     };
   });
+}
+
+// Alerts -----------------------------------------------------------------------------------------
+
+export type AlertKind =
+  "blockedProject" | "blockedRecord" | "overdue" | "gateGap" | "noJurisdiction";
+
+export interface Alert {
+  readonly id: string;
+  readonly kind: AlertKind;
+  readonly severity: "high" | "medium";
+  readonly values: Readonly<Record<string, string | number>>;
+  /** Project key the alert opens, with the tab. */
+  readonly projectKey: string | null;
+  readonly tab: "overview" | "gates" | "settings";
+  /** Sort time: the instant the alert concerns, newest concern first within a severity. */
+  readonly at: string;
+}
+
+const GAP_WINDOW_DAYS = 30;
+
+/**
+ * The alerts Home raises (Section 4.2 Home): blocked projects and records, the person's overdue
+ * records, projects whose first production day is within 30 days with blocking criteria open at the
+ * current gate, and projects past Scope with no jurisdiction. Derived at read time, never stored.
+ */
+export function buildAlerts(input: {
+  readiness: readonly GateReadiness[];
+  blocked: readonly HomeRecord[];
+  overdue: readonly HomeRecord[];
+  today: string;
+}): Alert[] {
+  const alerts: Alert[] = [];
+  const horizon = new Date(Date.parse(`${input.today}T00:00:00Z`) + GAP_WINDOW_DAYS * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  for (const r of input.readiness) {
+    const p = r.project;
+    if (p.projectState === "Blocked") {
+      alerts.push({
+        id: `bp:${p.id}`,
+        kind: "blockedProject",
+        severity: "high",
+        values: { key: p.key, name: p.name },
+        projectKey: p.key,
+        tab: "overview",
+        at: p.updatedAt,
+      });
+    }
+    if (
+      r.unmet.length > 0 &&
+      r.phase &&
+      p.startsOn !== null &&
+      p.startsOn >= input.today &&
+      p.startsOn <= horizon
+    ) {
+      alerts.push({
+        id: `gg:${p.id}`,
+        kind: "gateGap",
+        severity: "high",
+        values: { key: p.key, date: p.startsOn, count: r.unmet.length, gate: r.phase.gate },
+        projectKey: p.key,
+        tab: "gates",
+        at: `${p.startsOn}T00:00:00Z`,
+      });
+    }
+    if (p.jurisdictionId === null && r.phase !== null && r.phase.gate > 1) {
+      alerts.push({
+        id: `nj:${p.id}`,
+        kind: "noJurisdiction",
+        severity: "medium",
+        values: { key: p.key },
+        projectKey: p.key,
+        tab: "settings",
+        at: p.updatedAt,
+      });
+    }
+  }
+  for (const rec of input.blocked) {
+    alerts.push({
+      id: `br:${rec.id}`,
+      kind: "blockedRecord",
+      severity: "high",
+      values: { key: rec.key ?? "", title: rec.title, blocker: rec.blocker ?? "" },
+      projectKey: rec.projectKey,
+      tab: "overview",
+      at: rec.updatedAt,
+    });
+  }
+  for (const rec of input.overdue) {
+    alerts.push({
+      id: `od:${rec.id}`,
+      kind: "overdue",
+      severity: "medium",
+      values: { key: rec.key ?? "", title: rec.title, date: rec.dueAt ?? "" },
+      projectKey: rec.projectKey,
+      tab: "overview",
+      at: rec.dueAt ?? rec.updatedAt,
+    });
+  }
+  return alerts.sort((a, b) =>
+    a.severity !== b.severity ? (a.severity === "high" ? -1 : 1) : a.at < b.at ? 1 : -1,
+  );
+}
+
+// Home summary (API home.get) --------------------------------------------------------------------
+
+/** Records the person owns or is accountable for: open (not closed) or Blocked, counted. */
+export async function countMyRecords(
+  db: XosClient,
+  input: { readonly orgId: string; readonly personId: string; readonly which: "open" | "blocked" },
+): Promise<Result<number>> {
+  let q = db
+    .from("records")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", input.orgId)
+    .is("deleted_at", null)
+    .or(`owner_party_id.eq.${input.personId},accountable_party_id.eq.${input.personId}`);
+  q =
+    input.which === "blocked"
+      ? q.eq("record_state", "Blocked")
+      : q.not("record_state", "in", CLOSED_STATES);
+  const { count, error } = await q;
+  if (error) return fail(toDataError(error));
+  return ok(count ?? 0);
+}
+
+/** The org's base currency, as A30's settings registry resolves it for the caller. */
+export async function orgBaseCurrency(db: XosClient, orgId: string): Promise<Result<string>> {
+  const { data, error } = await db.rpc("resolve_settings", { p_org_id: orgId });
+  if (error) return fail(toDataError(error));
+  const value = (data ?? []).find((s) => s.setting_key === "org.base_currency")?.value_text;
+  if (!value) return fail({ kind: "not-found" });
+  return ok(value.toUpperCase());
+}
+
+export interface MoneyTotal {
+  /** Sum in minor units; null when nothing priced was summed (Section 3.7: blanks stay blank). */
+  readonly totalMinor: number | null;
+  readonly currency: string;
+  /** Inputs left out of the sum: unpriced purchase orders, or ones in another currency. */
+  readonly unpricedCount: number;
+}
+
+const COMMITTED_STATES: Database["app"]["Enums"]["po_state"][] = ["Approved", "Sent", "Closed"];
+
+/**
+ * Committed spend: approved, sent and closed purchase orders with their approved change orders, in
+ * the given currency. A purchase order with an unpriced line, or in another currency, is counted as
+ * unpriced rather than converted or zeroed.
+ */
+export async function committedSpend(
+  db: XosClient,
+  orgId: string,
+  currency: string,
+): Promise<Result<MoneyTotal>> {
+  const pos = await db
+    .from("purchase_orders")
+    .select("id")
+    .eq("org_id", orgId)
+    .in("po_state", COMMITTED_STATES)
+    .is("deleted_at", null);
+  if (pos.error) return fail(toDataError(pos.error));
+  const ids = (pos.data ?? []).map((r) => r.id);
+  if (ids.length === 0) return ok({ totalMinor: null, currency, unpricedCount: 0 });
+  const totals = await db
+    .from("purchase_order_totals")
+    .select("purchase_order_id, currency_code, lines_total_minor, approved_changes_minor")
+    .in("purchase_order_id", ids);
+  if (totals.error) return fail(toDataError(totals.error));
+  let sum = 0;
+  let summed = 0;
+  let unpriced = 0;
+  for (const t of totals.data ?? []) {
+    if (t.currency_code !== currency || t.lines_total_minor === null) {
+      unpriced += 1;
+      continue;
+    }
+    sum += t.lines_total_minor + (t.approved_changes_minor ?? 0);
+    summed += 1;
+  }
+  return ok({ totalMinor: summed > 0 ? sum : null, currency, unpricedCount: unpriced });
 }

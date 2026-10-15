@@ -1,6 +1,6 @@
-import type { Database, XosClient } from "./client";
-import type { Subject } from "./comments";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import type { Subject } from "./comments.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Attachments repository (Section 7.3, Section 9 file uploads). Files attach to any subject the caller
