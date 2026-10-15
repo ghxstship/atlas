@@ -36,7 +36,12 @@ export default async function ShellLayout({ children }: { children: ReactNode })
       primary={nav.primary.map(label)}
       bottomBar={nav.bottomBar.map(label)}
       avatar={nav.avatar.map(label)}
-      commands={nav.commands.map(label)}
+      commands={nav.commands.map((c) => ({
+        id: c.id,
+        href: c.href,
+        icon: c.icon,
+        label: [...(c.context ?? []).slice(-1), c.label].map((k) => t(k)).join(" · "),
+      }))}
       personName={ctx.personName ?? ctx.email ?? ""}
       email={ctx.email}
       accounts={ctx.accounts.map((a) => ({
