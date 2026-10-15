@@ -431,5 +431,10 @@
   "favorites": {
     "pin": "Fijar página",
     "unpin": "Quitar página"
+  },
+  "descriptions": {
+    "teams": "Los equipos agrupan a los miembros que comparten trabajo. Cada equipo muestra sus miembros.",
+    "workspaces": "Los espacios de trabajo dividen la organización por oficina o grupo de recintos. Reemplaza aquí los ajustes de cada uno.",
+    "accessReviews": "Cada trimestre, los responsables confirman o quitan el rol de cada miembro. Define qué pasa con el acceso no revisado."
   }
 }

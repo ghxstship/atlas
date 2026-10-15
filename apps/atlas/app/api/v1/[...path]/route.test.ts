@@ -6,7 +6,8 @@ beforeAll(() => {
   process.env["ATLAS_SITE_URL"] = "http://localhost:3000";
 });
 
-describe("/api/v1/[...path]", () => {
+// The first import builds the whole v1 app (1,307 routes), which outlasts the 5 s default on CI runners.
+describe("/api/v1/[...path]", { timeout: 30_000 }, () => {
   it("serves mounted operations and answers 401 without a credential", async () => {
     const { GET } = await import("./route");
     const res = await GET(new Request("http://localhost:3000/api/v1/canon/departments"));

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   addProjectMember,
+  countRecordsByCoordinate,
+  listDepartments,
   attestEvidence,
   createProject,
   createScopeNode,
@@ -602,5 +604,35 @@ describe("members and lookups", () => {
       ],
     });
     expect((await listVenues(db, "o1")).ok).toBe(false);
+  });
+});
+
+describe("coordinate matrix", () => {
+  it("reads departments and counts records by department and phase", async () => {
+    const { db } = canonClient({
+      "from:xpms:dim_department": [
+        okResponse([{ dept_code: "1000", department: "Creative" }]),
+        errorResponse("XX000", "x"),
+      ],
+      "from:records": [
+        okResponse([
+          { urid: "1000.01.01", phase_code: "SCP" },
+          { urid: "1000.02.03", phase_code: "SCP" },
+          { urid: "5000.01.01", phase_code: "BLD" },
+          { urid: null, phase_code: "BLD" },
+        ]),
+        errorResponse("XX000", "x"),
+      ],
+    });
+    expect(await listDepartments(db)).toEqual({
+      ok: true,
+      data: [{ code: "1000", label: "Creative" }],
+    });
+    expect((await listDepartments(db)).ok).toBe(false);
+    expect(await countRecordsByCoordinate(db, "p1")).toEqual({
+      ok: true,
+      data: { "1000|SCP": 2, "5000|BLD": 1 },
+    });
+    expect((await countRecordsByCoordinate(db, "p1")).ok).toBe(false);
   });
 });
