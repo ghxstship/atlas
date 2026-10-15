@@ -274,5 +274,44 @@
       "zone": "Zona",
       "noZone": "Sin zona"
     }
+  },
+  "reconciliation": {
+    "title": "Requisitos y capacidades",
+    "intro": "Enumere lo que requiere la producción y lo que ofrecen los recintos, y luego concilie. Un requisito sin declaración, o solo con una declaración UNKNOWN, se concilia como Desconocido, nunca como Cumplido; una Brecha o un Desconocido en un requisito crítico es una brecha de la compuerta 3.",
+    "latest": "Última conciliación",
+    "ranAt": "Conciliado {when}.",
+    "neverRun": "Aún no se concilió. Agregue requisitos y capacidades y luego ejecute una conciliación.",
+    "gapsTitle": "{count, plural, one {# brecha de la compuerta 3} other {# brechas de la compuerta 3}}",
+    "gapsBody": "Cierre cada brecha con una capacidad que la cubra, o registre una declaración más sólida, y vuelva a conciliar.",
+    "noGaps": "No hay brechas de la compuerta 3 en la última conciliación.",
+    "tableLabel": "Resultados de la conciliación",
+    "run": "Conciliar ahora",
+    "ran": "Conciliado.",
+    "requirements": "Requisitos",
+    "capabilities": "Capacidades",
+    "noRequirements": "Todavía no hay requisitos. Agregue abajo lo que necesita la producción.",
+    "noCapabilities": "Todavía no hay capacidades. Agregue abajo lo que ofrece un recinto.",
+    "critical": "Crítico",
+    "remove": "Quitar: {what}",
+    "addRequirement": "Agregar requisito",
+    "addCapability": "Agregar capacidad",
+    "fields": {
+      "urid": "Categoría",
+      "needed": "Qué se requiere",
+      "provided": "Qué se ofrece",
+      "quantity": "Cantidad",
+      "critical": "Crítico: un Desconocido aquí es una brecha de la compuerta 3",
+      "venue": "Ofrecido por el recinto",
+      "assertion": "Solidez de la declaración",
+      "assertionHelp": "Del canon: certificado es lo más sólido; desconocido significa sin declaración.",
+      "note": "Nota para esta conciliación"
+    },
+    "words": {
+      "CERTIFIED": "Certificado",
+      "DOCUMENTED": "Documentado",
+      "CLAIMED": "Declarado",
+      "INFERRED": "Inferido",
+      "UNKNOWN": "Desconocido"
+    }
   }
 }

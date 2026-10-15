@@ -21,10 +21,24 @@ async function signIn(page: Page, email = "owner@example.com") {
   await page.waitForURL(`**/${ORG}/home`);
 }
 
+/**
+ * Waits until every horizontally scrolling region has hydrated: ScrollRegion measures its content on
+ * the client and only then becomes focusable, so axe runs on the page a keyboard user meets.
+ */
+async function hydrated(page: Page) {
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll<HTMLElement>(".overscroll-x-contain")].every(
+      (e) => e.scrollWidth <= e.clientWidth + 1 || e.tabIndex === 0,
+    ),
+  );
+}
+
 async function expectAccessibleInBothThemes(page: Page) {
+  await hydrated(page);
   await expectAccessible(page);
   await page.context().addCookies([{ name: "xos-theme", value: "light", url: page.url() }]);
   await page.reload();
+  await hydrated(page);
   await expectAccessible(page);
   await page.context().addCookies([{ name: "xos-theme", value: "dark", url: page.url() }]);
   await page.reload();
@@ -182,5 +196,44 @@ test("site plans: add a plan to the demo project and place a pin by keyboard", a
   await page.goto(`/${ORG}/places/site-plans`);
   await expectAccessibleInBothThemes(page);
   await page.getByRole("radio", { name: "Site plan" }).click();
+  await expectAccessible(page);
+});
+
+test("reconciliation: an UNKNOWN claim on a critical requirement is a gate 3 gap, a documented one meets it", async ({
+  page,
+}) => {
+  const id = uniqueId();
+  await signIn(page);
+  await page.goto(`/${ORG}/p/NWS/scope`);
+  const panel = page.getByRole("region", { name: "Requirements and Capability" });
+  await expect(panel).toBeVisible();
+  await expectAccessibleInBothThemes(page);
+
+  const requirements = page.getByRole("region", { name: "Requirements", exact: true });
+  await requirements.getByRole("combobox", { name: "Category" }).fill("Production Leadership");
+  await page.getByRole("option", { name: /Production Leadership 0000\.01\.01/ }).click();
+  await requirements.getByLabel("What is required").fill(`Show caller on headset ${id}`);
+  await requirements.getByLabel("Critical: an Unknown here is a gate 3 gap").check();
+  await requirements.getByRole("button", { name: "Add requirement" }).click();
+  await expect(panel.getByText(`Show caller on headset ${id}`).first()).toBeVisible();
+
+  await panel.getByRole("button", { name: "Reconcile now" }).click();
+  await expect(panel.getByText(/gate 3 gaps?$/).first()).toBeVisible();
+  await hydrated(page);
+  await expectAccessible(page);
+
+  const capabilities = page.getByRole("region", { name: "Capabilities", exact: true });
+  await capabilities.getByRole("combobox", { name: "Category" }).fill("Production Leadership");
+  await page.getByRole("option", { name: /Production Leadership 0000\.01\.01/ }).click();
+  await capabilities.getByLabel("What is provided").fill(`Venue stage manager ${id}`);
+  await capabilities.getByLabel("Claim strength").selectOption("DOCUMENTED");
+  await capabilities.getByRole("button", { name: "Add capability" }).click();
+  await expect(panel.getByText(`Venue stage manager ${id}`).first()).toBeVisible();
+  await panel.getByRole("button", { name: "Reconcile now" }).click();
+  // A documented capability on the same category now meets the requirement.
+  await expect(
+    panel.getByRole("row", { name: new RegExp(`Show caller on headset ${id}`) }),
+  ).toContainText("Met");
+  await hydrated(page);
   await expectAccessible(page);
 });
