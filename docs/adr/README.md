@@ -26,5 +26,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0020](0020-plan-packaging.md)                       | Plan Packaging: Atlas in Every Plan, Aurora AI and Legend by Tier | Accepted |
 | [0021](0021-parallel-wave-conventions.md)            | Conventions for Running Agents in Parallel                        | Accepted |
 | [0022](0022-module-migration-ranges.md)              | Module Migration Ranges and Late Slots                            | Accepted |
+| [0023](0023-v1-contract-corrections.md)              | v1 Contract Corrections                                           | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.
