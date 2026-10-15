@@ -89,6 +89,14 @@ test("journey 1: create a project with jurisdiction US-FL-MIAMI-DADE", async ({ 
     await expect(page.getByText("Northwind Summer Series").first()).toBeVisible();
     await expectAccessible(page);
   }
+  // The peek opens from the URL and from a row, and closes with Escape.
+  await page.goto(`/${slug}/projects/all?peek=NWL`);
+  const peek = page.getByRole("dialog", { name: "NWL Northwind Summer Series" });
+  await expect(peek).toContainText("US-FL-MIAMI-DADE");
+  await expectAccessible(page);
+  await page.keyboard.press("Escape");
+  await expect(peek).toBeHidden();
+  await expect(page).not.toHaveURL(/peek=/);
   await page.goto(`/${slug}/projects/portfolio-timeline`);
   await expect(page.getByRole("figure", { name: "Portfolio timeline" })).toBeVisible();
   await expectAccessible(page);
