@@ -1,0 +1,14 @@
+{
+  "extends": "@xos/config/tsconfig/base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2023", "DOM"],
+    "module": "preserve",
+    "customConditions": ["react-native"],
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
+  },
+  "include": ["app", "src", "test", "scripts", "*.ts", "*.mjs"],
+  "exclude": ["node_modules", "ios", "android"]
+}

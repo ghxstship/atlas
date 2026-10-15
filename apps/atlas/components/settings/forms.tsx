@@ -2,9 +2,8 @@
 
 import { Button, Dialog, InlineAlert, Input, Select } from "@xos/ui";
 import { useFormatter, useTranslations } from "next-intl";
-import { useActionState, useEffect, useState, useTransition, type CSSProperties } from "react";
+import { useActionState, useState, useTransition } from "react";
 import {
-  checkAccentAction,
   inviteMemberAction,
   removeMemberAction,
   renameOrganizationAction,
@@ -12,7 +11,6 @@ import {
   setMemberRoleAction,
   type SettingsState,
 } from "@/app/[org]/settings/actions";
-import type { AccentCheck } from "@/lib/brand/contrast";
 
 /** Client forms for the org settings pages; each keeps typed input after a failed submit. */
 
@@ -269,87 +267,5 @@ export function RevokeInviteButton({ org, inviteId }: { org: string; inviteId: s
       </Button>
       <MemberError state={state} />
     </form>
-  );
-}
-
-// White label ------------------------------------------------------------------------------------
-
-export function BrandEditor({ initialAccent }: { initialAccent: string }) {
-  const t = useCopy("shell.settings.whiteLabel");
-  const [accent, setAccent] = useState(initialAccent);
-  const [check, setCheck] = useState<AccentCheck | null>(null);
-  const valid = /^#[0-9a-fA-F]{6}$/.test(accent);
-
-  useEffect(() => {
-    if (!valid) return undefined;
-    let cancelled = false;
-    const timer = window.setTimeout(async () => {
-      const result = await checkAccentAction(accent);
-      if (!cancelled) setCheck(result);
-    }, 150);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [accent, valid]);
-
-  const current = valid ? check : null;
-  return (
-    <div className="flex flex-col gap-16">
-      <div className="flex items-end gap-12">
-        <Input
-          id="brand-accent"
-          name="accent"
-          spellCheck={false}
-          label={t("accent")}
-          help={t("accentHelp")}
-          value={accent}
-          onChange={(e) => setAccent(e.target.value.trim())}
-          error={valid ? "" : t("invalid")}
-        />
-        <input
-          type="color"
-          aria-label={t("accent")}
-          value={valid ? accent : initialAccent}
-          onChange={(e) => setAccent(e.target.value.toUpperCase())}
-          className="h-control-md w-48 cursor-pointer rounded-control border border-border-control bg-bg-surface"
-        />
-      </div>
-      {current ? (
-        current.passes ? (
-          <InlineAlert tone="success">{t("passes")}</InlineAlert>
-        ) : (
-          <InlineAlert tone="danger" title={t("fails", { count: current.failures.length })}>
-            <ul className="m-0 ps-16">
-              {current.failures.map((f) => (
-                <li key={`${f.theme}-${f.rule}-${f.fg}-${f.bg}`}>
-                  {t("failure", {
-                    rule: f.rule,
-                    theme: f.theme,
-                    ratio: f.ratio.toFixed(2),
-                    min: f.min,
-                  })}
-                </li>
-              ))}
-            </ul>
-          </InlineAlert>
-        )
-      ) : null}
-      <section aria-labelledby="brand-preview" className="flex flex-col gap-8">
-        <h2 id="brand-preview" className="m-0 text-heading-16 font-semibold">
-          {t("preview")}
-        </h2>
-        <div
-          className="flex gap-12 rounded-card border border-border-subtle p-16"
-          style={
-            current?.passes ? ({ "--color-accent-default": accent } as CSSProperties) : undefined
-          }
-        >
-          <Button variant="primary" tabIndex={-1}>
-            {t("previewAction")}
-          </Button>
-        </div>
-      </section>
-    </div>
   );
 }

@@ -159,8 +159,8 @@ select is(pg_temp.n('ivy', 'select 1 from api_external.tax_forms'), 1, 'own tax 
 
 -- Marketplace projections --------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
-insert into app.opportunities (project_id, role_type, role_code, title, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, deadline_at)
-values (pg_temp.id('prj_a'), 'Crew', '5000.51.02', 'Pier Riggers', 'Invited', 'Day', 80000, 90000, 'USD', now() + interval '3 days');
+insert into app.opportunities (project_id, role_type, role_code, title, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, deadline_at, requisition_id)
+values (pg_temp.id('prj_a'), 'Crew', '5000.51.02', 'Pier Riggers', 'Invited', 'Day', 80000, 90000, 'USD', now() + interval '3 days', pg_temp.id('requisition_a'));
 insert into world select 'opp_x', id from app.opportunities where title = 'Pier Riggers';
 insert into app.opportunity_invitations (opportunity_id, person_id) values (pg_temp.id('opp_x'), pg_temp.id('quinn'));
 insert into app.opportunity_questions (opportunity_id, prompt, sort_order) values (pg_temp.id('opp_x'), 'Years rigging?', 1);

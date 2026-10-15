@@ -1,0 +1,23 @@
+appId: pro.ghxstship.compass
+name: Field lead signs in and sees the five tabs
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- assertVisible:
+    id: "today"
+- assertVisible:
+    id: "tab-today"
+- assertVisible:
+    id: "tab-schedule"
+- assertVisible:
+    id: "tab-scan"
+- assertVisible:
+    id: "tab-inbox"
+- assertVisible:
+    id: "tab-more"
+- assertNotVisible:
+    id: "tab-crew"
+- assertVisible:
+    id: "clock-button"

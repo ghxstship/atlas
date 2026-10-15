@@ -475,6 +475,14 @@ export function canonRule(op: string): CapabilityRule | undefined {
  * fails when a capability is neither used nor listed here.
  */
 export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
+  "org.separation_of_duties.write":
+    "The separation of duties rules are the platform's, read through the view app.separation_of_duties_rules (0320); no operation writes them (ADR 0023).",
+  "procurement.bid.unseal":
+    "Sealed bids unseal for the reader through row level security (private.bid_readable_by_org, 0720); no operation unseals a bid (ADR 0023).",
+  "people.offer.write":
+    "Offers are sent, revised and withdrawn through app.send_offer, revise_offer and withdraw_offer, which check opportunities.offer.send (0764, ADR 0023).",
+  "people.offer.approve":
+    "Sending an offer checks opportunities.offer.send in app.send_offer (0764); there is no separate offer approval step (ADR 0023).",
   "home.alerts.read":
     "Alerts are delivered through notifications; a dedicated alerts feed arrives with the Home module.",
   "projects.project.export": "Exports run through export jobs, which require data.export.run.",

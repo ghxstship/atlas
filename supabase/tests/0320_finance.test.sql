@@ -213,8 +213,8 @@ select pg_temp.as_platform();
 
 -- Invoices and payments (invariant 16) --------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
-with x as (insert into app.invoices (project_id, direction, counterparty_id, invoice_number, currency_code) values (pg_temp.id('prj_a'), 'Receivable', pg_temp.id('cp_client'), 'NWL-INV-001', 'USD') returning id) insert into world select 'inv1', id from x;
-insert into app.invoice_lines (invoice_id, line_number, description, quantity) values (pg_temp.id('inv1'), 1, 'Production fee.', 1);
+with x as (insert into app.invoices (project_id, direction, counterparty_id, invoice_number, currency_code, issued_on) values (pg_temp.id('prj_a'), 'Receivable', pg_temp.id('cp_client'), 'NWL-INV-001', 'USD', '2027-07-10') returning id) insert into world select 'inv1', id from x;
+insert into app.invoice_lines (invoice_id, line_number, description, quantity, urid) values (pg_temp.id('inv1'), 1, 'Production fee.', 1, '0000.01.01');
 select throws_ok($$select app.issue_invoice((select id from world where key = 'inv1'), 'Send.')$$,
   'XR001', 'invoice_unpriced: Every line of an invoice needs a price before it is issued.', 'an invoice with an unpriced line cannot be issued');
 update app.invoice_lines set unit_price_minor = 25000 where invoice_id = pg_temp.id('inv1');
@@ -227,8 +227,8 @@ with x as (insert into app.payments (counterparty_id, direction, amount_minor, c
 select lives_ok($$insert into app.payment_applications (payment_id, invoice_id, amount_minor) values ((select id from world where key = 'pay1'), (select id from world where key = 'inv1'), 20000)$$, 'a payment is applied to an invoice');
 select throws_ok($$insert into app.payment_applications (payment_id, invoice_id, amount_minor) values ((select id from world where key = 'pay1'), (select id from world where key = 'inv1'), 1000)$$,
   '23505', null, 'a payment applies to an invoice once (invariant 16)');
-with x as (insert into app.invoices (project_id, direction, counterparty_id, currency_code) values (pg_temp.id('prj_a'), 'Receivable', pg_temp.id('cp_client'), 'USD') returning id) insert into world select 'inv2', id from x;
-insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor) values (pg_temp.id('inv2'), 1, 'Overtime.', 1, 50000);
+with x as (insert into app.invoices (project_id, direction, counterparty_id, currency_code, issued_on) values (pg_temp.id('prj_a'), 'Receivable', pg_temp.id('cp_client'), 'USD', '2027-07-12') returning id) insert into world select 'inv2', id from x;
+insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor, urid) values (pg_temp.id('inv2'), 1, 'Overtime.', 1, 50000, '0000.01.01');
 select app.issue_invoice(pg_temp.id('inv2'), 'Send.');
 select throws_ok($$insert into app.payment_applications (payment_id, invoice_id, amount_minor) values ((select id from world where key = 'pay1'), (select id from world where key = 'inv2'), 15000)$$,
   'XR001', 'payment_overapplied: A payment is never applied beyond its amount.', 'a payment is never applied beyond its amount');
