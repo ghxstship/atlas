@@ -1,0 +1,504 @@
+# Settings registry: A30 (identity, profiles and settings). Section 4.5.6.
+#
+# One file per contributor in packages/schemas/settings/, never a shared list (ADR 0021). Each file
+# declares settings once with their type, the scopes they can be set at, the capability that edits
+# them at a shared scope, whether the org can lock them, their platform default, and the settings
+# page that shows them at each scope (an Atlas sitemap node: settings.* for the org, workspace,
+# team and project scopes, me.* for the personal scope).
+#
+# After editing a file:
+#   1. pnpm --filter @xos/schemas generate:settings   rewrites src/settings/registry.generated.ts
+#   2. pnpm --filter @xos/schemas settings:sql <contributor>
+#      prints the private.define_setting calls; paste them into a new migration in your own range.
+#   The settings test fails while the generated file or the migrations disagree with the YAML.
+#
+# Fields of a setting
+#   key:        dotted lowercase key, unique across every file
+#   type:       text, boolean, integer or choice
+#   scopes:     any of organization, workspace, team, project, personal
+#   capability: capability code that edits the value at a shared scope (personal values are the owner's)
+#   lockable:   true when the org can lock its value (needs the organization scope)
+#   default:    platform default, of the setting's type
+#   choices:    for choice settings, the stored values in display order
+#   min, max:   integer bounds;  max_length: text length limit
+#   input:      how a text setting is edited: text (default), multiline, email, url, time_zone, currency, date, workspace
+#   label, help: message catalog keys (help optional)
+#   pages:      settings page per scope group: org (organization, workspace, team, project) and personal
+contributor: a30
+settings:
+  # General -------------------------------------------------------------------------------------
+  - key: org.legal_name
+    type: text
+    max_length: 200
+    scopes: [organization]
+    capability: org.general.write
+    label: settings.fields.legalName.label
+    help: settings.fields.legalName.help
+    pages: { org: settings.general }
+  - key: org.default_workspace
+    type: text
+    input: workspace
+    max_length: 36
+    scopes: [organization]
+    capability: org.general.write
+    label: settings.fields.defaultWorkspace.label
+    help: settings.fields.defaultWorkspace.help
+    pages: { org: settings.general }
+  - key: shell.start_page
+    type: choice
+    choices: [home, my-work, inbox, projects]
+    default: home
+    scopes: [organization, workspace, personal]
+    lockable: true
+    capability: org.general.write
+    label: settings.fields.startPage.label
+    help: settings.fields.startPage.help
+    pages: { org: settings.general, personal: me.preferences }
+
+  # Legal entities and fiscal ---------------------------------------------------------------------
+  - key: org.fiscal_year_start_month
+    type: integer
+    min: 1
+    max: 12
+    default: 1
+    scopes: [organization]
+    capability: org.legal_entities.write
+    label: settings.fields.fiscalYearStart.label
+    help: settings.fields.fiscalYearStart.help
+    pages: { org: settings.legal-entities-and-fiscal }
+  - key: org.base_currency
+    type: text
+    input: currency
+    max_length: 3
+    default: USD
+    scopes: [organization]
+    capability: org.legal_entities.write
+    label: settings.fields.baseCurrency.label
+    help: settings.fields.baseCurrency.help
+    pages: { org: settings.legal-entities-and-fiscal }
+  - key: org.invoice_number_prefix
+    type: text
+    max_length: 12
+    default: INV-
+    scopes: [organization]
+    capability: org.legal_entities.write
+    label: settings.fields.invoicePrefix.label
+    help: settings.fields.invoicePrefix.help
+    pages: { org: settings.legal-entities-and-fiscal }
+
+  # Security ------------------------------------------------------------------------------------------
+  - key: security.mfa_policy
+    type: choice
+    choices: [optional, admins, everyone]
+    default: optional
+    scopes: [organization]
+    capability: org.security.write
+    label: settings.fields.mfaPolicy.label
+    help: settings.fields.mfaPolicy.help
+    pages: { org: settings.security }
+  - key: security.session_hours
+    type: integer
+    min: 1
+    max: 720
+    default: 336
+    scopes: [organization]
+    capability: org.security.write
+    label: settings.fields.sessionHours.label
+    help: settings.fields.sessionHours.help
+    pages: { org: settings.security }
+  - key: security.idle_timeout_minutes
+    type: integer
+    min: 5
+    max: 1440
+    default: 60
+    scopes: [organization]
+    capability: org.security.write
+    label: settings.fields.idleTimeout.label
+    help: settings.fields.idleTimeout.help
+    pages: { org: settings.security }
+  - key: security.ip_allowlist
+    type: text
+    input: multiline
+    max_length: 2000
+    scopes: [organization]
+    capability: org.security.write
+    label: settings.fields.ipAllowlist.label
+    help: settings.fields.ipAllowlist.help
+    pages: { org: settings.security }
+  - key: security.auto_join_enabled
+    type: boolean
+    default: false
+    scopes: [organization]
+    capability: org.security.write
+    label: settings.fields.autoJoin.label
+    help: settings.fields.autoJoin.help
+    pages: { org: settings.security }
+
+  # Access reviews ---------------------------------------------------------------------------------------
+  - key: access_reviews.remove_unreviewed
+    type: boolean
+    default: false
+    scopes: [organization]
+    capability: org.access_reviews.manage
+    label: settings.fields.removeUnreviewed.label
+    help: settings.fields.removeUnreviewed.help
+    pages: { org: settings.access-reviews }
+  - key: access_reviews.grace_days
+    type: integer
+    min: 1
+    max: 60
+    default: 14
+    scopes: [organization]
+    capability: org.access_reviews.manage
+    label: settings.fields.reviewGraceDays.label
+    help: settings.fields.reviewGraceDays.help
+    pages: { org: settings.access-reviews }
+
+  # Views and numbering -------------------------------------------------------------------------------------
+  - key: shell.density
+    type: choice
+    choices: [comfortable, compact]
+    default: comfortable
+    scopes: [organization, personal]
+    capability: org.views.write
+    label: settings.fields.density.label
+    help: settings.fields.density.help
+    pages: { org: settings.views-and-defaults, personal: me.preferences }
+  - key: numbering.record_key_format
+    type: text
+    max_length: 40
+    default: "{PROJECT}-{SEQ}"
+    scopes: [organization]
+    capability: org.numbering.write
+    label: settings.fields.recordKeyFormat.label
+    help: settings.fields.recordKeyFormat.help
+    pages: { org: settings.numbering }
+  - key: numbering.document_number_padding
+    type: integer
+    min: 1
+    max: 10
+    default: 4
+    scopes: [organization]
+    capability: org.numbering.write
+    label: settings.fields.numberPadding.label
+    help: settings.fields.numberPadding.help
+    pages: { org: settings.numbering }
+
+  # Time and attendance -----------------------------------------------------------------------------------------
+  - key: time.rounding_minutes
+    type: choice
+    choices: ["0", "5", "6", "15"]
+    default: "0"
+    scopes: [organization, workspace, project]
+    lockable: true
+    capability: org.time_attendance.write
+    label: settings.fields.rounding.label
+    help: settings.fields.rounding.help
+    pages: { org: settings.time-and-attendance }
+  - key: time.photo_on_punch
+    type: boolean
+    default: false
+    scopes: [organization, workspace, project]
+    lockable: true
+    capability: org.time_attendance.write
+    label: settings.fields.photoOnPunch.label
+    help: settings.fields.photoOnPunch.help
+    pages: { org: settings.time-and-attendance }
+  - key: time.geofence_required
+    type: boolean
+    default: true
+    scopes: [organization, workspace, project]
+    lockable: true
+    capability: org.time_attendance.write
+    label: settings.fields.geofenceRequired.label
+    help: settings.fields.geofenceRequired.help
+    pages: { org: settings.time-and-attendance }
+  - key: time.kiosk_enabled
+    type: boolean
+    default: false
+    scopes: [organization, workspace]
+    capability: org.time_attendance.write
+    label: settings.fields.kioskEnabled.label
+    help: settings.fields.kioskEnabled.help
+    pages: { org: settings.time-and-attendance }
+
+  # Scheduling --------------------------------------------------------------------------------------------------
+  - key: scheduling.open_shift_claiming
+    type: choice
+    choices: [first-come, approval, seniority]
+    default: approval
+    scopes: [organization, workspace, project]
+    lockable: true
+    capability: org.scheduling.write
+    label: settings.fields.openShiftClaiming.label
+    help: settings.fields.openShiftClaiming.help
+    pages: { org: settings.scheduling }
+  - key: scheduling.allow_swaps
+    type: boolean
+    default: true
+    scopes: [organization, workspace, project]
+    capability: org.scheduling.write
+    label: settings.fields.allowSwaps.label
+    help: settings.fields.allowSwaps.help
+    pages: { org: settings.scheduling }
+  - key: scheduling.swap_requires_approval
+    type: boolean
+    default: true
+    scopes: [organization, workspace, project]
+    lockable: true
+    capability: org.scheduling.write
+    label: settings.fields.swapApproval.label
+    help: settings.fields.swapApproval.help
+    pages: { org: settings.scheduling }
+
+  # Payroll and time off ---------------------------------------------------------------------------------------
+  - key: payroll.pay_period
+    type: choice
+    choices: [weekly, biweekly, semimonthly, monthly]
+    default: biweekly
+    scopes: [organization]
+    capability: org.payroll.write
+    label: settings.fields.payPeriod.label
+    help: settings.fields.payPeriod.help
+    pages: { org: settings.payroll-and-time-off }
+  - key: payroll.week_start
+    type: choice
+    choices: [sunday, monday]
+    default: sunday
+    scopes: [organization, personal]
+    lockable: true
+    capability: org.payroll.write
+    label: settings.fields.weekStart.label
+    help: settings.fields.weekStart.help
+    pages: { org: settings.payroll-and-time-off, personal: me.preferences }
+
+  # Gateway and marketplace -------------------------------------------------------------------------------------
+  - key: gateway.marketplace_visibility
+    type: choice
+    choices: [public, network, private]
+    default: network
+    scopes: [organization]
+    capability: org.gateway.write
+    label: settings.fields.marketplaceVisibility.label
+    help: settings.fields.marketplaceVisibility.help
+    pages: { org: settings.gateway-and-marketplace }
+  - key: gateway.ratings_enabled
+    type: boolean
+    default: true
+    scopes: [organization]
+    capability: org.gateway.write
+    label: settings.fields.ratingsEnabled.label
+    help: settings.fields.ratingsEnabled.help
+    pages: { org: settings.gateway-and-marketplace }
+
+  # Communication ---------------------------------------------------------------------------------------------------
+  - key: communication.message_retention_days
+    type: integer
+    min: 30
+    max: 3650
+    default: 730
+    scopes: [organization]
+    capability: org.communication.write
+    label: settings.fields.messageRetention.label
+    help: settings.fields.messageRetention.help
+    pages: { org: settings.communication }
+  - key: communication.auto_translate
+    type: boolean
+    default: false
+    scopes: [organization, personal]
+    capability: org.communication.write
+    label: settings.fields.autoTranslate.label
+    help: settings.fields.autoTranslate.help
+    pages: { org: settings.communication, personal: me.preferences }
+
+  # Help and support ------------------------------------------------------------------------------------------------
+  - key: help.support_email
+    type: text
+    input: email
+    max_length: 320
+    scopes: [organization]
+    capability: org.help.write
+    label: settings.fields.supportEmail.label
+    help: settings.fields.supportEmail.help
+    pages: { org: settings.help-and-support }
+  - key: help.support_hours
+    type: text
+    max_length: 200
+    scopes: [organization]
+    capability: org.help.write
+    label: settings.fields.supportHours.label
+    help: settings.fields.supportHours.help
+    pages: { org: settings.help-and-support }
+  - key: help.custom_link
+    type: text
+    input: url
+    max_length: 500
+    scopes: [organization]
+    capability: org.help.write
+    label: settings.fields.helpLink.label
+    help: settings.fields.helpLink.help
+    pages: { org: settings.help-and-support }
+
+  # Localization ------------------------------------------------------------------------------------------------------
+  - key: locale.language
+    type: choice
+    choices: [en-US, es-US]
+    default: en-US
+    scopes: [organization, personal]
+    lockable: true
+    capability: org.localization.write
+    label: settings.fields.language.label
+    help: settings.fields.language.help
+    pages: { org: settings.localization, personal: me.preferences }
+  - key: locale.time_zone
+    type: text
+    input: time_zone
+    max_length: 64
+    default: UTC
+    scopes: [organization, workspace, project, personal]
+    lockable: true
+    capability: org.localization.write
+    label: settings.fields.timeZone.label
+    help: settings.fields.timeZone.help
+    pages: { org: settings.localization, personal: me.preferences }
+  - key: locale.date_format
+    type: choice
+    choices: [locale, iso]
+    default: locale
+    scopes: [organization, personal]
+    capability: org.localization.write
+    label: settings.fields.dateFormat.label
+    help: settings.fields.dateFormat.help
+    pages: { org: settings.localization, personal: me.preferences }
+  - key: locale.units
+    type: choice
+    choices: [imperial, metric]
+    default: imperial
+    scopes: [organization, personal]
+    capability: org.localization.write
+    label: settings.fields.units.label
+    help: settings.fields.units.help
+    pages: { org: settings.localization, personal: me.preferences }
+
+  # Personal: preferences ---------------------------------------------------------------------------------------------
+  - key: me.theme
+    type: choice
+    choices: [system, light, dark]
+    default: system
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.theme.label
+    pages: { personal: me.preferences }
+  - key: me.persona
+    type: choice
+    choices:
+      [
+        org-owner,
+        org-admin,
+        producer,
+        department-head,
+        finance-lead,
+        production-coordinator,
+        field-supervisor,
+        field-employee,
+      ]
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.persona.label
+    help: settings.fields.persona.help
+    pages: { personal: me.preferences }
+
+  # Personal: accessibility ---------------------------------------------------------------------------------------------
+  - key: me.text_size
+    type: choice
+    choices: [default, large, larger]
+    default: default
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.textSize.label
+    pages: { personal: me.accessibility }
+  - key: me.high_contrast
+    type: boolean
+    default: false
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.highContrast.label
+    help: settings.fields.highContrast.help
+    pages: { personal: me.accessibility }
+  - key: me.reduced_motion
+    type: choice
+    choices: [system, reduce, full]
+    default: system
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.reducedMotion.label
+    help: settings.fields.reducedMotion.help
+    pages: { personal: me.accessibility }
+  - key: me.haptics
+    type: boolean
+    default: true
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.haptics.label
+    help: settings.fields.haptics.help
+    pages: { personal: me.accessibility }
+  - key: me.sounds
+    type: boolean
+    default: true
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.sounds.label
+    pages: { personal: me.accessibility }
+  - key: me.captions
+    type: boolean
+    default: false
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.captions.label
+    help: settings.fields.captions.help
+    pages: { personal: me.accessibility }
+
+  # Personal: out of office ----------------------------------------------------------------------------------------------
+  - key: me.out_of_office.enabled
+    type: boolean
+    default: false
+    scopes: [personal]
+    capability: me.out_of_office.write
+    label: settings.fields.oooEnabled.label
+    help: settings.fields.oooEnabled.help
+    pages: { personal: me.out-of-office }
+  - key: me.out_of_office.starts_on
+    type: text
+    input: date
+    max_length: 10
+    scopes: [personal]
+    capability: me.out_of_office.write
+    label: settings.fields.oooStarts.label
+    pages: { personal: me.out-of-office }
+  - key: me.out_of_office.ends_on
+    type: text
+    input: date
+    max_length: 10
+    scopes: [personal]
+    capability: me.out_of_office.write
+    label: settings.fields.oooEnds.label
+    pages: { personal: me.out-of-office }
+  - key: me.out_of_office.auto_reply
+    type: text
+    input: multiline
+    max_length: 1000
+    scopes: [personal]
+    capability: me.out_of_office.write
+    label: settings.fields.oooReply.label
+    help: settings.fields.oooReply.help
+    pages: { personal: me.out-of-office }
+
+  # Personal: keyboard shortcuts -------------------------------------------------------------------------------------------
+  - key: me.shortcuts_enabled
+    type: boolean
+    default: true
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.shortcutsEnabled.label
+    help: settings.fields.shortcutsEnabled.help
+    pages: { personal: me.keyboard-shortcuts }

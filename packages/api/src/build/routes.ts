@@ -74,7 +74,7 @@ interface Built {
 
 /** The capability an operation requires (see `catalog/capabilities.ts`). */
 export function capabilityFor(spec: ResourceSpec, verb: string, method: string): string {
-  const rule = RESOURCE_CAPABILITIES[spec.op] ?? canonRule(spec.op);
+  const rule = spec.capabilityRule ?? RESOURCE_CAPABILITIES[spec.op] ?? canonRule(spec.op);
   const pick = (): string | undefined => {
     if (rule === undefined) return undefined;
     const action = rule.actions?.[verb];
