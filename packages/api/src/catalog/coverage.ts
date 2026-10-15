@@ -36,7 +36,12 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Projects",
     entity: "Gate evidence",
-    operations: [...crud("gateEvidence"), "projects.gateReadiness"],
+    operations: [
+      ...read("gateEvidence"),
+      "gateEvidence.create",
+      "gateEvidence.delete",
+      "projects.gateReadiness",
+    ],
   },
   { module: "Activity", entity: "Activity feed", operations: read("activityEvents") },
   { module: "Schedule", entity: "Timeline records", operations: ["records.list"] },
@@ -391,7 +396,7 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Gateway",
     entity: "Sealed bids",
-    operations: [...crud("bids"), ...crud("bidLines"), "bids.unseal"],
+    operations: [...crud("bids"), ...crud("bidLines")],
   },
   { module: "Gateway", entity: "Agency slates", operations: read("agencySlates") },
   {

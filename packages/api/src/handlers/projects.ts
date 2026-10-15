@@ -39,6 +39,11 @@ export const PROJECT_COLUMNS = [
   "currency",
   "starts_on",
   "ends_on",
+  "time_zone",
+  "venue_id",
+  "client_counterparty_id",
+  "production_state",
+  "archived_at",
 ] as const;
 
 const SCOPE_NODE_COLUMNS = [

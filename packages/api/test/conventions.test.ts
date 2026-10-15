@@ -126,7 +126,7 @@ describe("Idempotency-Key", () => {
     return { app, calls: () => calls };
   }
 
-  const body = { name: "Load-In", tier_code: "04", currency: "USD" };
+  const body = { name: "Load-In", project_key: "LDI", time_zone: "America/New_York" };
 
   it("replays the original response for the same key and body", async () => {
     const { store } = memoryStore();

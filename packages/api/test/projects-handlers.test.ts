@@ -44,6 +44,11 @@ function projectRow(over: Row = {}): Row {
     currency: "USD",
     starts_on: "2027-03-12",
     ends_on: "2027-03-15",
+    time_zone: "America/New_York",
+    venue_id: null,
+    client_counterparty_id: null,
+    production_state: "Active",
+    archived_at: null,
     ...over,
   };
 }
