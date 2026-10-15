@@ -7,12 +7,13 @@ import {
   isOrgSlug,
   listMyOrganizations,
 } from "@xos/data";
+import { recordLegalAcceptances } from "@xos/data/settings";
 import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { authErrorKey } from "@/lib/auth/errors";
-import { clientIp, withAcceptances } from "@/lib/auth/legal";
+import { clientIp, signupAcceptances } from "@/lib/auth/legal";
 import { isOAuthProvider } from "@/lib/auth/providers";
 import { safeNext, siteUrl } from "@/lib/auth/redirect";
 import { env } from "@/lib/env";
@@ -169,15 +170,14 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
     return { error: "unexpected", values };
   }
 
-  const acceptances = withAcceptances(auth.user.user_metadata["legal_acceptances"], {
+  const recorded = await recordLegalAcceptances(db, {
     orgId: created.data.orgId,
-    ip: clientIp(await headers()),
-    at: new Date(),
+    documents: signupAcceptances(),
+    clientIp: clientIp(await headers()),
   });
-  const { error: recordError } = await db.auth.updateUser({
-    data: { legal_acceptances: acceptances },
-  });
-  if (recordError) throw new Error(`Legal acceptance was not recorded: ${recordError.message}`);
+  if (!recorded.ok) {
+    throw new Error(`Legal acceptance was not recorded: ${JSON.stringify(recorded.error)}`);
+  }
   redirect(`/${parsed.data.orgSlug}/home`);
 }
 

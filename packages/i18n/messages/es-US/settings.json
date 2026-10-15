@@ -1,0 +1,435 @@
+{
+  "choose": "Elige una opción",
+  "lock": "Bloquear este valor para que espacios de trabajo, proyectos y personas no puedan cambiarlo",
+  "save": "Guardar",
+  "saved": "Guardado.",
+  "inherit": "Usar el valor heredado",
+  "reset": "Restablecer al valor de la plataforma",
+  "loadFailed": "No se pudieron cargar estos ajustes. Recarga la página para intentarlo de nuevo.",
+  "registryHeading": "Ajustes de esta página",
+  "personalSections": "Secciones de ajustes personales",
+  "source": {
+    "organization": "Definido para la organización.",
+    "organizationLocked": "Definido y bloqueado para la organización; los niveles inferiores no pueden cambiarlo.",
+    "default": "Valor de la plataforma. Al guardar se define para la organización.",
+    "lockedForYou": "{org} definió y bloqueó este valor, así que se aplica a ti.",
+    "personalPersonal": "Tu propio ajuste.",
+    "personalOrganization": "Ajuste de tu organización. Al guardar se usa el tuyo.",
+    "personalWorkspace": "Ajuste de tu espacio de trabajo. Al guardar se usa el tuyo.",
+    "personalTeam": "Ajuste de tu equipo. Al guardar se usa el tuyo.",
+    "personalProject": "Ajuste de este proyecto. Al guardar se usa el tuyo.",
+    "personalDefault": "Valor de la plataforma. Al guardar se usa el tuyo.",
+    "workspaceOrganization": "Heredado de la organización. Al guardar se reemplaza para este espacio de trabajo.",
+    "workspaceWorkspace": "Definido para este espacio de trabajo.",
+    "workspaceTeam": "Definido para un equipo.",
+    "workspaceProject": "Definido para un proyecto.",
+    "workspaceDefault": "Valor de la plataforma. Al guardar se reemplaza para este espacio de trabajo."
+  },
+  "errors": {
+    "setting_locked": "Tu organización bloqueó este ajuste. Pide a un administrador que lo desbloquee.",
+    "setting_choice": "Elige una de las opciones de la lista.",
+    "setting_too_long": "Ese valor es demasiado largo. Acórtalo y guarda de nuevo.",
+    "setting_out_of_range": "Escribe un número dentro del rango permitido que indica la ayuda.",
+    "setting_value_type": "Ese valor no tiene el tipo correcto para este ajuste. Revísalo y guarda de nuevo.",
+    "setting_scope_not_allowed": "Este ajuste no se puede definir aquí. Cámbialo en la página que lo gestiona.",
+    "setting_scope_org": "Ese espacio de trabajo, equipo o proyecto pertenece a otra organización. Recarga la página.",
+    "setting_not_lockable": "Este ajuste no se puede bloquear. Guárdalo sin el bloqueo.",
+    "setting_unknown": "Este ajuste ya no existe. Recarga la página.",
+    "not_member": "Ya no perteneces a esta organización. Cambia a otra.",
+    "plan_feature_required": "Tu plan no incluye esto. Compara planes en Facturación y plan.",
+    "favorites_limit": "Favoritos admite 50 elementos. Quita uno y vuelve a fijar esta página.",
+    "favoriteUnsupported": "Esta página no se puede fijar. Fija la lista a la que pertenece.",
+    "module_not_switchable": "Este módulo siempre está activo.",
+    "domain_immutable": "Un dominio conserva su nombre y su uso. Quítalo y añade el nuevo.",
+    "auto_join_role_band": "La unión automática no puede dar el rol de propietario o administrador. Elige gerente o un rol inferior.",
+    "denied": "No tienes permiso para esto o ya no existe. Recarga la página.",
+    "conflict": "Ese valor ya está en uso. Elige otro.",
+    "invalid": "Revisa este valor y guarda de nuevo.",
+    "unexpected": "Algo salió mal por nuestra parte. Inténtalo de nuevo en un momento.",
+    "integer": "Escribe un número entero.",
+    "required": "Escribe un valor o restablece el ajuste para borrarlo.",
+    "email": "Escribe un correo como nombre@empresa.com.",
+    "url": "Escribe una dirección web que empiece por https://.",
+    "date": "Escribe una fecha como 2026-12-24.",
+    "currency": "Elige una moneda de la lista.",
+    "time_zone": "Elige una zona horaria de la lista.",
+    "workspace": "Elige un espacio de trabajo de la lista.",
+    "text": "Revisa este valor y guarda de nuevo.",
+    "multiline": "Revisa este valor y guarda de nuevo.",
+    "contrast": "Este color de acento no cumple el contraste WCAG 2.2 AA. Elige un color más oscuro o saturado.",
+    "fileMissing": "Elige un archivo para subir.",
+    "fileType": "Sube un archivo PNG, SVG, WebP o ICO.",
+    "fileSize": "Sube un archivo de 2 MB o menos.",
+    "uploadFailed": "La subida no terminó. Inténtalo de nuevo en un momento.",
+    "hostname": "Escribe un nombre de host como gateway.example.com, sin https://."
+  },
+  "fields": {
+    "legalName": {
+      "label": "Nombre legal",
+      "help": "El nombre registrado que aparece en contratos, facturas y formularios fiscales."
+    },
+    "defaultWorkspace": {
+      "label": "Espacio de trabajo predeterminado",
+      "help": "Los miembros nuevos empiezan en este espacio de trabajo."
+    },
+    "startPage": {
+      "label": "Página de inicio",
+      "help": "La página que Atlas abre al iniciar sesión."
+    },
+    "fiscalYearStart": {
+      "label": "El año fiscal empieza en el mes",
+      "help": "Escribe un número de mes del 1 (enero) al 12 (diciembre)."
+    },
+    "baseCurrency": {
+      "label": "Moneda base",
+      "help": "Los presupuestos, informes y límites de gasto usan esta moneda salvo que un proyecto indique otra."
+    },
+    "invoicePrefix": {
+      "label": "Prefijo del número de factura",
+      "help": "Hasta 12 caracteres antes de cada número de factura, por ejemplo INV-."
+    },
+    "mfaPolicy": {
+      "label": "Autenticación multifactor",
+      "help": "Quién debe usar un segundo factor para iniciar sesión."
+    },
+    "sessionHours": {
+      "label": "Duración de la sesión en horas",
+      "help": "Cuánto dura un inicio de sesión antes de volver a iniciar sesión, de 1 a 720 horas."
+    },
+    "idleTimeout": {
+      "label": "Tiempo de inactividad en minutos",
+      "help": "Cerrar la sesión tras estos minutos sin actividad, de 5 a 1.440."
+    },
+    "ipAllowlist": {
+      "label": "Lista de IP permitidas",
+      "help": "Una dirección o rango CIDR por línea. Déjalo vacío para permitir el acceso desde cualquier lugar."
+    },
+    "autoJoin": {
+      "label": "Unión automática",
+      "help": "Las personas que confirmen una dirección de un dominio verificado se unen con el rol predeterminado de ese dominio."
+    },
+    "removeUnreviewed": {
+      "label": "Quitar el acceso no revisado",
+      "help": "Quitar los roles que un responsable no haya confirmado al terminar el período de gracia."
+    },
+    "reviewGraceDays": {
+      "label": "Período de gracia de la revisión en días",
+      "help": "Días desde que se abre la revisión trimestral hasta que se marca el acceso no revisado."
+    },
+    "density": {
+      "label": "Densidad",
+      "help": "Cuánto espacio usan las listas y tablas."
+    },
+    "recordKeyFormat": {
+      "label": "Formato de la clave de registro",
+      "help": "Usa {PROJECT} y {SEQ}, por ejemplo {PROJECT}-{SEQ}."
+    },
+    "numberPadding": {
+      "label": "Relleno de números",
+      "help": "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042."
+    },
+    "rounding": {
+      "label": "Redondeo de fichajes",
+      "help": "Redondear las horas de entrada y salida a estos minutos."
+    },
+    "photoOnPunch": {
+      "label": "Foto al fichar",
+      "help": "Pedir una foto en cada entrada y salida."
+    },
+    "geofenceRequired": {
+      "label": "Exigir la geocerca",
+      "help": "Rechazar entradas fuera de la geocerca del proyecto."
+    },
+    "kioskEnabled": {
+      "label": "Fichaje en quiosco",
+      "help": "Permitir que el equipo fiche en un quiosco compartido con un PIN."
+    },
+    "openShiftClaiming": {
+      "label": "Reclamo de turnos abiertos",
+      "help": "Cómo reclama el equipo los turnos abiertos."
+    },
+    "allowSwaps": {
+      "label": "Permitir cambios de turno",
+      "help": "El equipo puede ofrecerse turnos entre sí."
+    },
+    "swapApproval": {
+      "label": "Los cambios necesitan aprobación",
+      "help": "Un supervisor aprueba cada cambio antes de que se aplique."
+    },
+    "payPeriod": {
+      "label": "Período de pago",
+      "help": "Con qué frecuencia se ejecuta la nómina."
+    },
+    "weekStart": {
+      "label": "La semana empieza el",
+      "help": "El primer día de la semana en calendarios y hojas de horas."
+    },
+    "marketplaceVisibility": {
+      "label": "Visibilidad en el mercado",
+      "help": "Quién puede encontrar la organización en el mercado de Gateway."
+    },
+    "ratingsEnabled": {
+      "label": "Calificaciones",
+      "help": "Pedir a ambas partes que se califiquen al completar una contratación."
+    },
+    "messageRetention": {
+      "label": "Retención de mensajes en días",
+      "help": "Conservar los mensajes estos días, de 30 a 3.650."
+    },
+    "autoTranslate": {
+      "label": "Traducir mensajes",
+      "help": "Ofrecer una traducción de los mensajes escritos en otro idioma."
+    },
+    "supportEmail": {
+      "label": "Correo de soporte interno",
+      "help": "Adónde envían los miembros sus preguntas sobre cómo trabaja tu organización."
+    },
+    "supportHours": {
+      "label": "Horario de soporte",
+      "help": "Por ejemplo, de lunes a viernes, de 9 a 18 h, hora del Este."
+    },
+    "helpLink": {
+      "label": "Enlace de ayuda propio",
+      "help": "Una página con tus guías, que aparece en el menú de ayuda."
+    },
+    "language": {
+      "label": "Idioma",
+      "help": "El idioma de menús, correos y documentos."
+    },
+    "timeZone": {
+      "label": "Zona horaria",
+      "help": "Las horas se muestran e introducen en esta zona."
+    },
+    "dateFormat": {
+      "label": "Formato de fecha",
+      "help": "Seguir el idioma o usar año-mes-día en todas partes."
+    },
+    "units": {
+      "label": "Unidades",
+      "help": "Unidades de distancia, peso y superficie."
+    },
+    "theme": {
+      "label": "Tema"
+    },
+    "persona": {
+      "label": "Perfil de trabajo",
+      "help": "Abre los grupos de la barra lateral que este trabajo necesita en esta organización."
+    },
+    "textSize": {
+      "label": "Tamaño del texto"
+    },
+    "highContrast": {
+      "label": "Alto contraste",
+      "help": "Bordes y texto más marcados para leer mejor."
+    },
+    "reducedMotion": {
+      "label": "Movimiento",
+      "help": "Seguir el dispositivo o reducir siempre la animación."
+    },
+    "haptics": {
+      "label": "Respuesta háptica",
+      "help": "Respuesta con vibración en Compass."
+    },
+    "sounds": {
+      "label": "Sonidos"
+    },
+    "captions": {
+      "label": "Subtítulos",
+      "help": "Mostrar subtítulos en videos y notas de voz."
+    },
+    "oooEnabled": {
+      "label": "Fuera de la oficina",
+      "help": "Avisa de que no estás y envía tus aprobaciones a tu delegado."
+    },
+    "oooStarts": {
+      "label": "Ausente desde"
+    },
+    "oooEnds": {
+      "label": "De vuelta el"
+    },
+    "oooReply": {
+      "label": "Respuesta automática",
+      "help": "Se envía una vez a cada persona que te escriba mientras no estás."
+    },
+    "shortcutsEnabled": {
+      "label": "Atajos de teclado",
+      "help": "Atajos de una tecla como J, K y ? en el escritorio."
+    }
+  },
+  "choices": {
+    "shell_start_page": {
+      "home": "Inicio",
+      "my-work": "Mi trabajo",
+      "inbox": "Bandeja de entrada",
+      "projects": "Proyectos"
+    },
+    "security_mfa_policy": {
+      "optional": "Opcional para todos",
+      "admins": "Obligatoria para propietarios y administradores",
+      "everyone": "Obligatoria para todos"
+    },
+    "shell_density": {
+      "comfortable": "Cómoda",
+      "compact": "Compacta"
+    },
+    "time_rounding_minutes": {
+      "0": "Sin redondeo",
+      "5": "5 minutos",
+      "6": "6 minutos",
+      "15": "15 minutos"
+    },
+    "scheduling_open_shift_claiming": {
+      "first-come": "Por orden de llegada",
+      "approval": "Un supervisor aprueba cada reclamo",
+      "seniority": "Por antigüedad"
+    },
+    "payroll_pay_period": {
+      "weekly": "Semanal",
+      "biweekly": "Cada dos semanas",
+      "semimonthly": "Dos veces al mes",
+      "monthly": "Mensual"
+    },
+    "payroll_week_start": {
+      "sunday": "Domingo",
+      "monday": "Lunes"
+    },
+    "gateway_marketplace_visibility": {
+      "public": "Pública",
+      "network": "Red",
+      "private": "Privada"
+    },
+    "locale_language": {
+      "en-US": "Inglés (Estados Unidos)",
+      "es-US": "Español (Estados Unidos)"
+    },
+    "locale_date_format": {
+      "locale": "Seguir el idioma",
+      "iso": "Año-mes-día"
+    },
+    "locale_units": {
+      "imperial": "Imperiales",
+      "metric": "Métricas"
+    },
+    "me_theme": {
+      "system": "Igual que el dispositivo",
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
+    "me_persona": {
+      "org-owner": "Propietario de la organización",
+      "org-admin": "Administrador de la organización",
+      "producer": "Productor",
+      "department-head": "Jefe de departamento",
+      "finance-lead": "Responsable de finanzas",
+      "production-coordinator": "Coordinador de producción",
+      "field-supervisor": "Supervisor de campo",
+      "field-employee": "Empleado de campo"
+    },
+    "me_text_size": {
+      "default": "Predeterminado",
+      "large": "Grande",
+      "larger": "Más grande"
+    },
+    "me_reduced_motion": {
+      "system": "Igual que el dispositivo",
+      "reduce": "Reducir el movimiento",
+      "full": "Movimiento completo"
+    }
+  },
+  "brand": {
+    "title": "Marca",
+    "displayName": "Nombre de marca",
+    "displayNameHelp": "Se muestra en lugar del nombre de la organización en las páginas con marca. Déjalo vacío para usar el nombre de la organización.",
+    "accent": "Color de acento",
+    "accentHelp": "Un color hexadecimal de seis dígitos, por ejemplo #5B63E8.",
+    "invalidColor": "Escribe un color hexadecimal de seis dígitos, por ejemplo #5B63E8.",
+    "passes": "Cumple WCAG 2.2 AA en todos los temas.",
+    "fails": "No cumple WCAG 2.2 AA en {count, plural, one {# par} other {# pares}}. Elige un acento más oscuro o saturado.",
+    "failure": "{rule}, tema {theme}: {ratio}:1, necesita {min}:1",
+    "preview": "Vista previa",
+    "previewAction": "Acción principal",
+    "neutralTint": "Tono neutro",
+    "neutralTintHelp": "Opcional. Un color hexadecimal de seis dígitos que tiñe los grises.",
+    "font": "Fuente",
+    "fontDefault": "Fuente de la plataforma",
+    "radius": "Radio de las esquinas",
+    "radiusCompact": "Compacto",
+    "radiusDefault": "Predeterminado",
+    "radiusRounded": "Redondeado",
+    "senderName": "Nombre del remitente",
+    "senderNameHelp": "El nombre que se ve en los correos enviados en nombre de tu organización.",
+    "supportEmail": "Correo de soporte",
+    "legalEntity": "Nombre de la entidad legal",
+    "legalEntityHelp": "Aparece en órdenes de compra, facturas y otros documentos generados.",
+    "suppressPoweredBy": "Ocultar \"Powered by XOS\"",
+    "suppressHelp": "Quita el crédito de la plataforma de las páginas, correos y documentos con marca.",
+    "suppressNeedsPlan": "Disponible en Pro y planes superiores. Compara planes en Facturación y plan.",
+    "save": "Guardar marca",
+    "assets": "Logotipos e iconos",
+    "logoLight": "Logotipo para fondos claros",
+    "logoDark": "Logotipo para fondos oscuros",
+    "favicon": "Favicon",
+    "appIcon": "Icono de la aplicación",
+    "assetCurrent": "Archivo actual: {name}",
+    "assetNone": "Aún no hay archivo. Se usa la marca de la plataforma.",
+    "assetHelp": "SVG, PNG, WebP o ICO, hasta 2 MB. Logotipos de al menos 256 píxeles de ancho.",
+    "upload": "Subir"
+  },
+  "domains": {
+    "title": "Dominios",
+    "none": "Aún no hay dominios. Añade uno abajo.",
+    "hostname": "Nombre de host",
+    "hostnameHelp": "Por ejemplo gateway.example.com.",
+    "purpose": "Uso",
+    "autoJoinRole": "Rol de unión automática",
+    "autoJoinOff": "Sin unión automática",
+    "add": "Añadir dominio",
+    "remove": "Quitar",
+    "removeNamed": "Quitar {hostname}",
+    "txt": "Añade un registro DNS TXT con el valor {token}. La verificación se hace automáticamente.",
+    "needsPlan": "Los dominios propios y de envío de correo están en Pro y planes superiores. Compara planes en Facturación y plan.",
+    "verifiedTitle": "Dominios verificados",
+    "verifiedHelp": "Un dominio verificado da la insignia de verificación a tu perfil y puede permitir que las personas con ese correo se unan automáticamente.",
+    "purposes": {
+      "Atlas": "Atlas",
+      "Gateway": "Gateway",
+      "EmailSending": "Envío de correo",
+      "VerifiedDomain": "Dominio verificado"
+    },
+    "states": {
+      "Pending": "Esperando la verificación DNS",
+      "Verified": "Verificado",
+      "Failed": "La verificación falló. Revisa el registro TXT."
+    }
+  },
+  "modules": {
+    "legend": "Módulos",
+    "help": "Un módulo desactivado desaparece de la navegación, la búsqueda y el menú de comandos para todos. Sus registros se conservan.",
+    "save": "Guardar módulos"
+  },
+  "legal": {
+    "title": "Términos aceptados",
+    "none": "Aún no hay aceptaciones registradas para esta organización.",
+    "acceptedBy": "Aceptado por {name} el {date}",
+    "unnamed": "un miembro sin nombre",
+    "pendingTitle": "Hay nuevas versiones que debes aceptar",
+    "pendingItem": "{title}, versión {version}",
+    "accept": "Aceptar en nombre de la organización"
+  },
+  "workspaces": {
+    "none": "Aún no hay espacios de trabajo. Crea uno para reemplazar ajustes en él.",
+    "overrides": "Ajustes de {name}"
+  },
+  "teams": {
+    "none": "Aún no hay equipos. Los equipos agrupan a los miembros que trabajan juntos.",
+    "members": "{count, plural, one {# miembro} other {# miembros}}"
+  },
+  "roles": {
+    "system": "Rol de la plataforma, nivel {band}",
+    "custom": "Rol personalizado, nivel {band}"
+  },
+  "favorites": {
+    "pin": "Fijar página",
+    "unpin": "Quitar página"
+  }
+}
