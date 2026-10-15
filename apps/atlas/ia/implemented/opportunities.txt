@@ -1,0 +1,10 @@
+# Hand-written Atlas pages owned by A28 (Engagements and Marketplace, RRR-30). One sitemap node id per line.
+opportunities.requisitions
+opportunities.postings
+opportunities.pipeline
+opportunities.pools
+opportunities.onboarding
+opportunities.engagements
+opportunities.ratings
+opportunities.marketplace-settings
+project.engagements

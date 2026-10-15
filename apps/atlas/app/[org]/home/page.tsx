@@ -7,11 +7,14 @@ import { ButtonLink, PageHeader } from "@/components/ui";
 import { requireNode } from "@/components/shell/sitemap-page";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { HomeTiles } from "@/components/home/home-tiles";
+import { loadHomeTiles } from "@/lib/home/data";
 
 /**
  * Home (Dashboard template, Section 11.6). A new org sees the first-run checklist of Section 11.7
  * (brand, members, first project, jurisdiction, budget, schedule, Compass invite, integration) and
- * its plan. A step shows Done only when the data proves it; module agents add their tiles here.
+ * its plan. A step shows Done only when the data proves it. Below them, A07's tiles: project counts,
+ * gate readiness, alerts and recent activity (Section 4.2 Home).
  */
 const STEPS = [
   { key: "brand", node: "settings.white-label" },
@@ -39,7 +42,13 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
   ]);
   const teamInvited =
     (members.ok && members.data.length > 1) || (invites?.ok === true && invites.data.length > 0);
-  const done: Record<string, boolean> = { members: teamInvited };
+  const projectTiles = isNodeVisible(sitemap, "projects", ctx.nav)
+    ? await loadHomeTiles(ctx)
+    : null;
+  const done: Record<string, boolean> = {
+    members: teamInvited,
+    project: (projectTiles?.projectCount ?? 0) > 0,
+  };
   const steps = STEPS.filter((s) => isNodeVisible(sitemap, s.node, ctx.nav)).flatMap((s) => {
     const href = nodeHref(s.node, routeParams);
     return href === undefined ? [] : [{ ...s, href, done: done[s.key] === true }];
@@ -120,6 +129,20 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
           ) : null}
         </section>
       </div>
+      {projectTiles ? (
+        <HomeTiles
+          org={ctx.org.slug}
+          tiles={projectTiles}
+          now={new Date().toISOString()}
+          links={{
+            readiness: nodeHref("home.gate-readiness", routeParams) ?? "",
+            alerts: nodeHref("home.alerts", routeParams) ?? "",
+            activity: isNodeVisible(sitemap, "activity.feed", ctx.nav)
+              ? (nodeHref("activity.feed", routeParams) ?? null)
+              : null,
+          }}
+        />
+      ) : null}
     </>
   );
 }
