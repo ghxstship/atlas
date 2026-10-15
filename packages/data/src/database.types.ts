@@ -41462,6 +41462,16 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      record_rfq_response: {
+        Args: {
+          p_currency_code: string;
+          p_lines: Json;
+          p_rfq_id: string;
+          p_valid_until: string;
+          p_vendor_id: string;
+        };
+        Returns: string;
+      };
       record_scan: {
         Args: {
           p_credential_id?: string;

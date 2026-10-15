@@ -326,7 +326,8 @@
     "review_decide_rpc": "Apruebe o devuelva entregables con los botones de revisión.",
     "transition_reason_required": "Cada cambio de estado necesita un motivo.",
     "display_number_immutable": "Los números visibles nunca cambian.",
-    "cross_org_reference": "Ese elemento pertenece a otra organización."
+    "cross_org_reference": "Ese elemento pertenece a otra organización.",
+    "rfq_response_lines_required": "Agregue al menos una línea cotizada a la respuesta."
   },
   "kit": {
     "views": "Vista",

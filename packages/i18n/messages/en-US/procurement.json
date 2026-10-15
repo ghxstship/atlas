@@ -326,7 +326,8 @@
     "review_decide_rpc": "Approve or return submittals with the review buttons.",
     "transition_reason_required": "Every state change needs a reason.",
     "display_number_immutable": "Display numbers never change.",
-    "cross_org_reference": "That item belongs to another organization."
+    "cross_org_reference": "That item belongs to another organization.",
+    "rfq_response_lines_required": "Add at least one quoted line to the response."
   },
   "kit": {
     "views": "View",
