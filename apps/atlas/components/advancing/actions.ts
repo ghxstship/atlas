@@ -486,9 +486,7 @@ export async function runReconciliationAction(
     .object({ projectId: id, note: optionalText(1000) })
     .safeParse({ projectId: text(form, "projectId"), note: text(form, "note") });
   if (!parsed.success) return { fieldErrors: { projectId: "projectId" } };
-  return done(
-    ctx.org.slug,
-    await runReconciliation(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data }),
-    (data) => ({ id: data.id }),
-  );
+  return done(ctx.org.slug, await runReconciliation(ctx.viewer.db, parsed.data), (data) => ({
+    id: data.id,
+  }));
 }

@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  addGuest,
   addRecipient,
   addRiderLine,
   addSection,
   archivePacket,
   archiveRider,
+  checkInGuest,
   confirmRiderLineProposals,
   createPacket,
   createRider,
+  decideGuest,
   getAdvancingProject,
   getPacket,
   getReconciliation,
@@ -18,15 +21,17 @@ import {
   listAdvanceParties,
   listAdvancingProjects,
   listCapabilityStatements,
+  listGuests,
   listPackets,
+  listProjectScopes,
   listReconciliations,
   listRiders,
   listSubmissions,
   moveSection,
   packetProgress,
   packetState,
-  reconcile,
   recordSubmission,
+  removeGuest,
   removeRecipient,
   removeRiderLine,
   removeSection,
@@ -35,13 +40,13 @@ import {
   runReconciliation,
   sendPacket,
   setRiderLineFulfilled,
+  updateGuest,
   updatePacket,
   updateRider,
   updateRiderLine,
   updateSection,
-  type CapabilityStatement,
-} from "../src/advancing";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/advancing.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const NOW = new Date("2026-10-14T12:00:00.000Z");
 const down = () => errorResponse("08006", "connection lost");
@@ -966,59 +971,6 @@ describe("riders", () => {
 });
 
 describe("reconciliation", () => {
-  const statement = (over: Partial<CapabilityStatement>): CapabilityStatement => ({
-    id: "x",
-    direction: "Require",
-    urid: "5000.01.01",
-    description: "Stage power",
-    quantity: null,
-    unitBasis: null,
-    isCritical: false,
-    assertionWord: "UNKNOWN",
-    venueId: null,
-    counterpartyId: null,
-    ...over,
-  });
-
-  it("follows the silence rule: no claim or an UNKNOWN claim is Unknown", () => {
-    expect(
-      reconcile([
-        statement({ id: "q1" }),
-        statement({ id: "q2", urid: "5000.01.02" }),
-        statement({ id: "c2", direction: "Provide", urid: "5000.01.02", venueId: "v" }),
-      ]),
-    ).toEqual([
-      { requirementId: "q1", capabilityId: null, result: "Unknown" },
-      { requirementId: "q2", capabilityId: null, result: "Unknown" },
-    ]);
-  });
-
-  it("meets with the strongest known claim and flags a stated shortfall as a Gap", () => {
-    const provide = { direction: "Provide" as const, venueId: "v" };
-    expect(
-      reconcile([
-        statement({ id: "q1", quantity: 400 }),
-        statement({ id: "c1", ...provide, quantity: 200, assertionWord: "CERTIFIED" }),
-        statement({ id: "c2", ...provide, quantity: 600, assertionWord: "CLAIMED" }),
-        statement({ id: "q2", urid: "5000.02.01", quantity: 10 }),
-        statement({
-          id: "c3",
-          ...provide,
-          urid: "5000.02.01",
-          quantity: 4,
-          assertionWord: "DOCUMENTED",
-        }),
-        statement({ id: "q3", urid: "5000.03.01", quantity: 2 }),
-        statement({ id: "c4", ...provide, urid: "5000.03.01", assertionWord: "BOGUS" }),
-        statement({ id: "c5", ...provide, urid: "5000.03.01", assertionWord: "INFERRED" }),
-      ]),
-    ).toEqual([
-      { requirementId: "q1", capabilityId: "c2", result: "Met" },
-      { requirementId: "q2", capabilityId: "c3", result: "Gap" },
-      { requirementId: "q3", capabilityId: "c5", result: "Met" },
-    ]);
-  });
-
   const statementRow = (over: Record<string, unknown>) => ({
     id: "q1",
     direction: "Require",
@@ -1042,77 +994,38 @@ describe("reconciliation", () => {
     expect((await listCapabilityStatements(db, "pr1")).ok).toBe(false);
   });
 
-  it("runs a reconciliation and records one line per requirement", async () => {
+  it("runs a reconciliation through app.reconcile_project", async () => {
     const { db, calls } = fakeClient({
       "from:capability_statements": [
-        okResponse([
-          statementRow({}),
-          statementRow({
-            id: "c1",
-            direction: "Provide",
-            venue_id: "v",
-            quantity: 400,
-            assertion_word: "DOCUMENTED",
-          }),
-        ]),
+        okResponse([statementRow({})]),
+        okResponse([statementRow({})]),
       ],
-      "from:reconciliations": [okResponse({ id: "rc1" })],
-      "from:reconciliation_lines": [okResponse(null)],
+      "rpc:reconcile_project": [okResponse("rc1"), down()],
     });
-    expect(
-      await runReconciliation(db, { orgId: "o1", projectId: "pr1", note: " Venue spec v2 " }, NOW),
-    ).toEqual({ ok: true, data: { id: "rc1" } });
-    expect(calls[1]?.steps[0]?.[1]).toEqual([
-      { org_id: "o1", project_id: "pr1", reconciled_at: NOW.toISOString(), note: "Venue spec v2" },
+    expect(await runReconciliation(db, { projectId: "pr1", note: " Venue spec v2 " })).toEqual({
+      ok: true,
+      data: { id: "rc1" },
+    });
+    expect(calls[1]?.steps[0]).toEqual([
+      "args",
+      [{ p_project_id: "pr1", p_note: "Venue spec v2" }],
     ]);
-    expect(calls[2]?.steps[0]?.[1]).toEqual([
-      [
-        {
-          org_id: "o1",
-          reconciliation_id: "rc1",
-          requirement_id: "q1",
-          capability_id: "c1",
-          result: "Met",
-        },
-      ],
-    ]);
+    expect((await runReconciliation(db, { projectId: "pr1", note: null })).ok).toBe(false);
+    expect(calls[3]?.steps[0]).toEqual(["args", [{ p_project_id: "pr1" }]]);
   });
 
-  it("refuses a run without requirements and withdraws a run whose lines fail", async () => {
-    const none = fakeClient({ "from:capability_statements": [okResponse([])] });
-    const refused = await runReconciliation(none.db, { orgId: "o", projectId: "p", note: null });
+  it("refuses a run without requirements and surfaces statement failures", async () => {
+    const none = fakeClient({
+      "from:capability_statements": [
+        okResponse([statementRow({ direction: "Provide", venue_id: "v" })]),
+        down(),
+      ],
+    });
+    const refused = await runReconciliation(none.db, { projectId: "p", note: null });
     expect(!refused.ok && refused.error.kind === "refusal" && refused.error.rule).toBe(
       "reconciliation_no_requirements",
     );
-    const broken = fakeClient({
-      "from:capability_statements": [
-        okResponse([statementRow({})]),
-        okResponse([statementRow({})]),
-        okResponse([statementRow({})]),
-        down(),
-      ],
-      "from:reconciliations": [
-        okResponse({ id: "rc1" }),
-        okResponse(null),
-        okResponse({ id: "rc2" }),
-        down(),
-        down(),
-      ],
-      "from:reconciliation_lines": [down(), down()],
-    });
-    expect(
-      (await runReconciliation(broken.db, { orgId: "o", projectId: "p", note: null }, NOW)).ok,
-    ).toBe(false);
-    expect(broken.calls[3]?.steps[0]).toEqual(["update", [{ deleted_at: NOW.toISOString() }]]);
-    expect(
-      (await runReconciliation(broken.db, { orgId: "o", projectId: "p", note: null })).ok,
-    ).toBe(false);
-    expect(
-      (await runReconciliation(broken.db, { orgId: "o", projectId: "p", note: null })).ok,
-    ).toBe(false);
-    expect(
-      (await runReconciliation(broken.db, { orgId: "o", projectId: "p", note: null })).ok,
-    ).toBe(false);
+    expect((await runReconciliation(none.db, { projectId: "p", note: null })).ok).toBe(false);
   });
 
   it("lists runs with counts and gate 3 gaps", async () => {
@@ -1209,5 +1122,155 @@ describe("reconciliation", () => {
     expect((await getReconciliation(db, "rc1")).ok).toBe(false);
     expect((await getReconciliation(db, "rc1")).ok).toBe(false);
     expect((await getReconciliation(db, "rc1")).ok).toBe(false);
+  });
+});
+
+describe("guest list", () => {
+  const guestRow = (over: Record<string, unknown>) => ({
+    id: "g1",
+    project_id: "pr1",
+    scope_node_id: null,
+    person_id: null,
+    counterparty_id: null,
+    engagement_id: null,
+    guest_name: "Jordan Pike",
+    plus_ones: 1,
+    note: null,
+    entry_state: "Requested",
+    decided_at: null,
+    checked_in_at: null,
+    created_at: "2026-10-10",
+    created_by: "p1",
+    ...over,
+  });
+
+  it("lists scopes and surfaces failures", async () => {
+    const { db } = fakeClient({
+      "from:scope_nodes": [
+        okResponse([{ id: "s1", scope_code: "NWS-E01", name: "Opening Night" }]),
+        down(),
+      ],
+    });
+    expect(await listProjectScopes(db, "pr1")).toEqual({
+      ok: true,
+      data: [{ id: "s1", code: "NWS-E01", name: "Opening Night" }],
+    });
+    expect((await listProjectScopes(db, "pr1")).ok).toBe(false);
+  });
+
+  it("lists guests with the party whose list they are on", async () => {
+    const { db, calls } = fakeClient({
+      "from:guest_list_entries": [
+        okResponse([
+          guestRow({}),
+          guestRow({ id: "g2", person_id: "p9", engagement_id: "e1" }),
+          guestRow({ id: "g3", counterparty_id: "c1" }),
+        ]),
+      ],
+      "from:people": [okResponse([{ id: "p9", full_name: "Arturo Bell" }])],
+      "from:counterparties": [okResponse([])],
+    });
+    const result = await listGuests(db, { orgId: "o1", projectId: "pr1", state: "Requested" });
+    expect(result.ok && result.data.map((g) => g.party?.name ?? null)).toEqual([
+      null,
+      "Arturo Bell",
+      null,
+    ]);
+    expect(result.ok && result.data[2]?.party?.kind).toBe("counterparty");
+    expect(calls[0]?.steps).toContainEqual(["eq", ["entry_state", "Requested"]]);
+  });
+
+  it("surfaces guest list failures", async () => {
+    expect(
+      (await listGuests(fakeClient({ "from:guest_list_entries": [down()] }).db, { orgId: "o" })).ok,
+    ).toBe(false);
+    const names = fakeClient({
+      "from:guest_list_entries": [okResponse([guestRow({ person_id: "p9" })])],
+      "from:people": [down()],
+    });
+    expect((await listGuests(names.db, { orgId: "o" })).ok).toBe(false);
+  });
+
+  it("adds a requested guest, or an approved comp for a reviewer", async () => {
+    const { db, calls } = fakeClient({
+      "from:guest_list_entries": [okResponse({ id: "g1" }), okResponse({ id: "g2" }), down()],
+    });
+    const input = {
+      orgId: "o1",
+      projectId: "pr1",
+      guestName: " Jordan Pike ",
+      plusOnes: 1,
+      note: " ",
+      scopeNodeId: null,
+    };
+    expect(await addGuest(db, input)).toEqual({ ok: true, data: { id: "g1" } });
+    expect(calls[0]?.steps[0]?.[1]).toEqual([
+      {
+        org_id: "o1",
+        project_id: "pr1",
+        scope_node_id: null,
+        guest_name: "Jordan Pike",
+        plus_ones: 1,
+        note: null,
+        entry_state: "Requested",
+      },
+    ]);
+    expect((await addGuest(db, { ...input, approve: true })).ok).toBe(true);
+    expect((calls[1]?.steps[0]?.[1] as Record<string, unknown>[])[0]?.["entry_state"]).toBe(
+      "Approved",
+    );
+    expect((await addGuest(db, input)).ok).toBe(false);
+    const invalid = { ok: false, error: { kind: "invalid", message: "guest" } };
+    expect(await addGuest(db, { ...input, plusOnes: 21 })).toEqual(invalid);
+    expect(await addGuest(db, { ...input, guestName: " " })).toEqual(invalid);
+    expect(await addGuest(db, { ...input, note: "x".repeat(501) })).toEqual(invalid);
+  });
+
+  it("updates a requested guest", async () => {
+    const { db } = fakeClient({
+      "from:guest_list_entries": [okResponse([{ id: "g1" }]), okResponse([]), down()],
+    });
+    const input = { guestName: "Jordan Pike", plusOnes: 2, note: "Side stage.", scopeNodeId: "s1" };
+    expect((await updateGuest(db, "g1", input)).ok).toBe(true);
+    expect(await updateGuest(db, "g1", input)).toEqual({ ok: false, error: { kind: "not-found" } });
+    expect((await updateGuest(db, "g1", input)).ok).toBe(false);
+    expect(await updateGuest(db, "g1", { ...input, plusOnes: 1.5 })).toEqual({
+      ok: false,
+      error: { kind: "invalid", message: "guest" },
+    });
+  });
+
+  it("decides and checks in with compare-and-set on the state", async () => {
+    const { db, calls } = fakeClient({
+      "from:guest_list_entries": [
+        okResponse([{ id: "g1" }]),
+        okResponse([]),
+        okResponse([{ id: "g1" }]),
+        errorResponse(
+          "XR001",
+          "sod_guest_requester: The person who requested a guest cannot approve or decline the request.",
+          "sod_guest_requester",
+        ),
+      ],
+    });
+    expect(await decideGuest(db, "g1", "Approved")).toEqual({ ok: true, data: null });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["entry_state", "Requested"]]);
+    const moved = await decideGuest(db, "g1", "Declined");
+    expect(!moved.ok && moved.error.kind === "refusal" && moved.error.rule).toBe(
+      "guest_entry_moved",
+    );
+    expect((await checkInGuest(db, "g1")).ok).toBe(true);
+    expect(calls[2]?.steps[0]).toEqual(["update", [{ entry_state: "Checked In" }]]);
+    const own = await decideGuest(db, "g1", "Approved");
+    expect(!own.ok && own.error.kind === "refusal" && own.error.rule).toBe("sod_guest_requester");
+  });
+
+  it("removes a guest", async () => {
+    const { db } = fakeClient({
+      "from:guest_list_entries": [okResponse([{ id: "g1" }]), okResponse([]), down()],
+    });
+    expect((await removeGuest(db, "g1", NOW)).ok).toBe(true);
+    expect((await removeGuest(db, "g1", NOW)).ok).toBe(false);
+    expect((await removeGuest(db, "g1")).ok).toBe(false);
   });
 });

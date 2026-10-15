@@ -61,12 +61,6 @@
     "invalid": "Check the highlighted fields and try again.",
     "unexpected": "Something went wrong on our side. Try again in a moment."
   },
-  "blocked": {
-    "commentsTitle": "Comments are on the way",
-    "comments": "Threaded comments with mentions arrive with the shared comment service. Until then, use the answer review and return reasons to talk with recipients.",
-    "attachmentsTitle": "Attachments are on the way",
-    "attachments": "File attachments arrive with the shared attachment service. Until then, keep files in Knowledge > Documents and name them in a section."
-  },
   "projectTab": {
     "scope": "Advancing for {key} · {name}.",
     "sections": "Advancing sections"
@@ -94,7 +88,7 @@
       "open": "New packet",
       "submit": "Create packet",
       "project": "Project",
-      "projectChoose": "Choose a project",
+      "projectHint": "Choose a project",
       "projectError": "Choose the project this packet advances.",
       "name": "Packet name",
       "nameHelp": "For example, Headliner Advance or Staging Vendor Advance.",
@@ -143,7 +137,7 @@
     "title": "Recipients and links",
     "noParties": "There is nobody to add yet. Add people in People > Directory or vendors in Vendors > Directory.",
     "party": "Add a recipient",
-    "partyChoose": "Choose a person or organization",
+    "partyHint": "Choose a person or organization",
     "partyError": "Choose who receives the packet.",
     "add": "Add recipient",
     "remove": "Remove {name}",
@@ -201,10 +195,10 @@
   "record": {
     "title": "Record an answer given by phone or email",
     "section": "Section",
-    "sectionChoose": "Choose a section",
+    "sectionHint": "Choose a section",
     "sectionError": "Choose the section answered.",
     "recipient": "Recipient",
-    "recipientChoose": "Choose a recipient",
+    "recipientHint": "Choose a recipient",
     "recipientError": "Choose who answered.",
     "body": "Answer",
     "bodyHelp": "Record what the recipient said. Someone else reviews answers you record.",
@@ -252,7 +246,7 @@
       "open": "New rider",
       "submit": "Create rider",
       "project": "Project",
-      "projectChoose": "Choose a project",
+      "projectHint": "Choose a project",
       "projectError": "Choose the project this rider belongs to.",
       "name": "Rider name",
       "nameHelp": "For example, Technical Rider or Hospitality Rider.",
@@ -329,10 +323,32 @@
     },
     "run": {
       "project": "Project",
-      "projectChoose": "Choose a project",
+      "projectHint": "Choose a project",
       "projectError": "Choose the project to reconcile.",
       "note": "Note",
       "action": "Reconcile now"
     }
+  },
+  "collab": {
+    "comments": "Comments",
+    "noComments": "No comments yet. Start the discussion here; everyone who can open this item sees it.",
+    "newComment": "New comment",
+    "bodyError": "Write a comment of up to 10,000 characters.",
+    "post": "Post comment",
+    "deleteComment": "Delete comment",
+    "unknownAuthor": "Former member",
+    "attachments": "Attachments",
+    "noAttachments": "No files yet. Upload a rider, stage plot or document that belongs with this item.",
+    "noAttachmentsReadOnly": "No files attached yet.",
+    "ready": "Ready to download",
+    "scanning": "Being checked for viruses; download opens once the check passes.",
+    "notReady": "That file is not ready yet. Try again once the virus check passes.",
+    "download": "Download {title}",
+    "remove": "Remove",
+    "file": "File",
+    "fileError": "Choose a file to upload.",
+    "fileSize": "Files can be up to 50 MB.",
+    "upload": "Upload file",
+    "uploaded": "File uploaded. It can be downloaded once the virus check passes."
   }
 }

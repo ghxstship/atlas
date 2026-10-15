@@ -6,11 +6,13 @@ import type { Route } from "next";
 import { useFormatter } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
+  startTransition,
   useActionState,
   useEffect,
   useId,
   useState,
   useSyncExternalStore,
+  type FormEvent,
   type ReactNode,
 } from "react";
 import {
@@ -42,6 +44,20 @@ import { useCopy } from "./use-copy";
 import { useQueryHref } from "./views";
 
 /** Client forms of the Advancing pages; each keeps typed input after a failed submit. */
+
+/**
+ * Submits a form to a server action in a transition instead of through the form action, so a
+ * refused submit keeps what the person typed (React resets a form after a form action). The
+ * submitter is included, so a button's name and value reach the action.
+ */
+function submitWith(run: (form: FormData) => void) {
+  return (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    const data = new FormData(event.currentTarget, submitter);
+    startTransition(() => run(data));
+  };
+}
 
 const INITIAL: AdvancingState = {};
 
@@ -138,7 +154,7 @@ function ActButton({
     </Button>
   );
   return (
-    <form id={formId} action={formAction} className="inline-flex flex-col gap-8">
+    <form id={formId} onSubmit={submitWith(formAction)} className="inline-flex flex-col gap-8">
       {hidden}
       {confirm ? (
         <Dialog
@@ -222,7 +238,7 @@ export function CreatePacketDialog({
         </>
       }
     >
-      <form id={formId} action={action} className="flex flex-col gap-12" noValidate>
+      <form id={formId} onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
         <input type="hidden" name="org" value={org} />
         <TzOffset />
         <ErrorNotice state={state} />
@@ -231,7 +247,7 @@ export function CreatePacketDialog({
           name="projectId"
           label={t("project")}
           value={defaultProjectId ?? ""}
-          placeholder={t("projectChoose")}
+          placeholder={t("projectHint")}
           options={[...projects]}
           error={state.fieldErrors?.["projectId"] ? t("projectError") : ""}
         />
@@ -277,7 +293,7 @@ export function PacketDetailsForm({
   const [state, action, pending] = useActionState(updatePacketAction, INITIAL);
   const id = useId();
   return (
-    <form action={action} className="flex flex-col gap-12" noValidate>
+    <form onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <TzOffset />
@@ -367,7 +383,7 @@ export function ArchivePacketButton({
     if (state.ok) router.push(backHref as Route);
   }, [state, router, backHref]);
   return (
-    <form id={formId} action={action}>
+    <form id={formId} onSubmit={submitWith(action)}>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <Dialog
@@ -424,7 +440,7 @@ function SectionEdit({
   }, INITIAL);
   const id = useId();
   return (
-    <form action={action} className="flex flex-col gap-8" noValidate>
+    <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="sectionId" value={section.id} />
       <ErrorNotice state={state} />
@@ -556,7 +572,7 @@ function AddSectionForm({ org, packetId }: { org: string; packetId: string }) {
   const [state, action, pending, key] = useResettingAction(addSectionAction);
   const id = useId();
   return (
-    <form key={key} action={action} className="flex flex-col gap-8" noValidate>
+    <form key={key} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <ErrorNotice state={state} />
@@ -605,14 +621,14 @@ export function AddRecipientForm({
     return <p className="m-0 text-text-13 text-text-secondary">{t("noParties")}</p>;
   }
   return (
-    <form action={action} className="flex flex-wrap items-end gap-8" noValidate>
+    <form onSubmit={submitWith(action)} className="flex flex-wrap items-end gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <Select
         id={`${id}-party`}
         name="party"
         label={t("party")}
-        placeholder={t("partyChoose")}
+        placeholder={t("partyHint")}
         options={[...parties]}
         error={state.fieldErrors?.["party"] ? t("partyError") : ""}
       />
@@ -667,7 +683,7 @@ export function IssueLinkForm({
   const id = useId();
   const path = state.issued ? `/advance/${state.issued.token}` : null;
   return (
-    <form action={action} className="flex flex-col gap-8" noValidate>
+    <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="recipientId" value={recipientId} />
       <ErrorNotice state={state} />
@@ -760,7 +776,7 @@ export function ReviewForm({ org, submissionId }: { org: string; submissionId: s
   const [returning, setReturning] = useState(false);
   const id = useId();
   return (
-    <form action={action} className="flex flex-col gap-8" noValidate>
+    <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="submissionId" value={submissionId} />
       <ErrorNotice state={state} />
@@ -822,7 +838,7 @@ export function RecordAnswerForm({
   const [state, action, pending, key] = useResettingAction(recordSubmissionAction);
   const id = useId();
   return (
-    <form key={key} action={action} className="flex flex-col gap-8" noValidate>
+    <form key={key} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <ErrorNotice state={state} />
       <div className="flex flex-wrap gap-8">
@@ -830,7 +846,7 @@ export function RecordAnswerForm({
           id={`${id}-section`}
           name="sectionId"
           label={t("section")}
-          placeholder={t("sectionChoose")}
+          placeholder={t("sectionHint")}
           options={[...sections]}
           error={state.fieldErrors?.["sectionId"] ? t("sectionError") : ""}
         />
@@ -838,7 +854,7 @@ export function RecordAnswerForm({
           id={`${id}-recipient`}
           name="recipientId"
           label={t("recipient")}
-          placeholder={t("recipientChoose")}
+          placeholder={t("recipientHint")}
           options={[...recipients]}
           error={state.fieldErrors?.["recipientId"] ? t("recipientError") : ""}
         />
@@ -913,7 +929,7 @@ export function CreateRiderDialog({
         </>
       }
     >
-      <form id={formId} action={action} className="flex flex-col gap-12" noValidate>
+      <form id={formId} onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
         <input type="hidden" name="org" value={org} />
         <ErrorNotice state={state} />
         <Select
@@ -921,7 +937,7 @@ export function CreateRiderDialog({
           name="projectId"
           label={t("project")}
           value={defaultProjectId ?? ""}
-          placeholder={t("projectChoose")}
+          placeholder={t("projectHint")}
           options={[...projects]}
           error={state.fieldErrors?.["projectId"] ? t("projectError") : ""}
         />
@@ -967,7 +983,7 @@ export function RiderDetailsForm({
   const [state, action, pending] = useActionState(updateRiderAction, INITIAL);
   const id = useId();
   return (
-    <form action={action} className="flex flex-col gap-12" noValidate>
+    <form onSubmit={submitWith(action)} className="flex flex-col gap-12" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="riderId" value={riderId} />
       <ErrorNotice state={state} />
@@ -1027,7 +1043,7 @@ export function ArchiveRiderButton({
     if (state.ok) router.push(backHref as Route);
   }, [state, router, backHref]);
   return (
-    <form id={formId} action={action}>
+    <form id={formId} onSubmit={submitWith(action)}>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="riderId" value={riderId} />
       <Dialog
@@ -1113,7 +1129,7 @@ export function AddRiderLineForm({ org, riderId }: { org: string; riderId: strin
   const [state, action, pending, key] = useResettingAction(addRiderLineAction);
   const id = useId();
   return (
-    <form key={key} action={action} className="flex flex-col gap-8" noValidate>
+    <form key={key} onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="riderId" value={riderId} />
       <ErrorNotice state={state} />
@@ -1149,7 +1165,7 @@ export function RiderLineRow({
   const id = useId();
   if (editing) {
     return (
-      <form action={action} className="flex flex-col gap-8" noValidate>
+      <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="lineId" value={line.id} />
         <ErrorNotice state={state} />
@@ -1289,7 +1305,7 @@ export function RunReconciliationForm({
     if (state.ok && state.id) router.push(href({ peek: state.id, full: "1" }));
   }, [state, router, href]);
   return (
-    <form action={action} className="flex flex-wrap items-end gap-8" noValidate>
+    <form onSubmit={submitWith(action)} className="flex flex-wrap items-end gap-8" noValidate>
       <input type="hidden" name="org" value={org} />
       {defaultProjectId ? (
         <input type="hidden" name="projectId" value={defaultProjectId} />
@@ -1298,7 +1314,7 @@ export function RunReconciliationForm({
           id={`${id}-project`}
           name="projectId"
           label={t("project")}
-          placeholder={t("projectChoose")}
+          placeholder={t("projectHint")}
           options={[...projects]}
           error={state.fieldErrors?.["projectId"] ? t("projectError") : ""}
         />

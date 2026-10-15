@@ -1,12 +1,5 @@
-import type { XosClient } from "./client";
-import {
-  fail,
-  ok,
-  toDataError,
-  type DatabaseErrorLike,
-  type DataError,
-  type Result,
-} from "./result";
+import type { XosClient } from "./client.ts";
+import { fail, ok, toDataError, type DataError, type Result } from "./result.ts";
 
 /**
  * Advancing repository (Section 4.2): advance packets, their sections and party-bound recipients,
@@ -27,30 +20,6 @@ function refuse<T>(rule: string, message: string): Result<T> {
 }
 
 const NOT_FOUND: DataError = { kind: "not-found" };
-
-/**
- * Queries on the objects migration 0430 adds (the review outcome, recipient tokens and the
- * advancing RPCs) go through this narrow, untyped view of the client until database.types.ts is
- * regenerated with 0430 applied. Each call site states the row shape it reads.
- */
-interface LooseQuery extends PromiseLike<{ data: unknown; error: DatabaseErrorLike | null }> {
-  select(columns: string): LooseQuery;
-  insert(values: object): LooseQuery;
-  update(values: object): LooseQuery;
-  eq(column: string, value: unknown): LooseQuery;
-  is(column: string, value: null): LooseQuery;
-  in(column: string, values: readonly unknown[]): LooseQuery;
-  order(column: string, options?: { ascending: boolean }): LooseQuery;
-}
-
-interface LooseClient {
-  from(table: string): LooseQuery;
-  rpc(fn: string, args: Record<string, unknown>): LooseQuery;
-}
-
-function loose(db: XosClient): LooseClient {
-  return db as unknown as LooseClient;
-}
 
 function byPosition<T extends { position: number }>(a: T, b: T): number {
   return a.position - b.position;
@@ -366,7 +335,7 @@ async function fetchSubmissions(
   sectionIds: readonly string[],
 ): Promise<Result<Omit<AdvanceSubmission, "latest">[]>> {
   if (sectionIds.length === 0) return ok([]);
-  const { data, error } = await loose(db)
+  const { data, error } = await db
     .from("advance_submissions")
     .select(
       "id, advance_section_id, advance_recipient_id, body, submitted_at, reviewed_at, reviewed_by, review_outcome, return_reason, advance_recipient_token_id",
@@ -376,7 +345,7 @@ async function fetchSubmissions(
     .order("submitted_at", { ascending: false });
   if (error) return fail(toDataError(error));
   return ok(
-    ((data ?? []) as SubmissionRow[]).map((s) => ({
+    data.map((s: SubmissionRow) => ({
       id: s.id,
       sectionId: s.advance_section_id,
       recipientId: s.advance_recipient_id,
@@ -555,9 +524,9 @@ export async function sendPacket(
   db: XosClient,
   packetId: string,
 ): Promise<Result<{ sentAt: string }>> {
-  const { data, error } = await loose(db).rpc("send_advance_packet", { p_packet_id: packetId });
+  const { data, error } = await db.rpc("send_advance_packet", { p_packet_id: packetId });
   if (error) return fail(toDataError(error));
-  return ok({ sentAt: data as string });
+  return ok({ sentAt: data });
 }
 
 // Advance links -------------------------------------------------------------------------------------
@@ -604,7 +573,7 @@ export async function listAdvanceLinks(
   recipientIds: readonly string[],
 ): Promise<Result<AdvanceLink[]>> {
   if (recipientIds.length === 0) return ok([]);
-  const { data, error } = await loose(db)
+  const { data, error } = await db
     .from("advance_recipient_tokens")
     .select(
       "id, advance_recipient_id, recipient_email, expires_at, used_at, revoked_at, failed_attempts, claimed_at, created_at",
@@ -614,7 +583,7 @@ export async function listAdvanceLinks(
     .order("created_at", { ascending: false });
   if (error) return fail(toDataError(error));
   return ok(
-    ((data ?? []) as LinkRow[]).map((l) => ({
+    data.map((l: LinkRow) => ({
       id: l.id,
       recipientId: l.advance_recipient_id,
       recipientEmail: l.recipient_email,
@@ -644,15 +613,13 @@ export async function issueAdvanceLink(
   if (!Number.isInteger(input.validDays) || input.validDays < 1 || input.validDays > 90) {
     return fail({ kind: "invalid", message: "validDays" });
   }
-  const { data, error } = await loose(db).rpc("issue_advance_token", {
+  const { data, error } = await db.rpc("issue_advance_token", {
     p_recipient_id: input.recipientId,
     p_recipient_email: input.email.trim(),
     p_valid_for: `${input.validDays} days`,
   });
   if (error) return fail(toDataError(error));
-  const row = (
-    data as { token_id: string; token: string; access_code: string; expires_at: string }[] | null
-  )?.[0];
+  const row = data[0];
   if (!row) return fail({ kind: "unexpected", message: "issue_advance_token returned no row" });
   return ok({
     id: row.token_id,
@@ -664,7 +631,7 @@ export async function issueAdvanceLink(
 
 /** Revokes a link. */
 export async function revokeAdvanceLink(db: XosClient, linkId: string): Promise<Result<null>> {
-  const { error } = await loose(db).rpc("revoke_advance_token", { p_token_id: linkId });
+  const { error } = await db.rpc("revoke_advance_token", { p_token_id: linkId });
   if (error) return fail(toDataError(error));
   return ok(null);
 }
@@ -988,7 +955,7 @@ export async function reviewSubmission(
     return fail({ kind: "invalid", message: "returnReason" });
   }
   const reviewedAt = now.toISOString();
-  const { data, error } = await loose(db)
+  const { data, error } = await db
     .from("advance_submissions")
     .update({
       reviewed_at: reviewedAt,
@@ -1001,7 +968,7 @@ export async function reviewSubmission(
     .is("deleted_at", null)
     .select("id");
   if (error) return fail(toDataError(error));
-  if (((data ?? []) as unknown[]).length === 0) {
+  if (data.length === 0) {
     return refuse("advance_submission_reviewed", "This answer was already reviewed.");
   }
   return ok({ reviewedAt });
@@ -1378,48 +1345,6 @@ export async function listCapabilityStatements(
   );
 }
 
-export interface ProposedReconciliationLine {
-  readonly requirementId: string;
-  readonly capabilityId: string | null;
-  readonly result: ReconciliationResult;
-}
-
-/** Assertion strength (Bible tab 22, capability family): higher is stronger; UNKNOWN is 0. */
-const CAPABILITY_RANK: Readonly<Record<string, number>> = {
-  CERTIFIED: 4,
-  DOCUMENTED: 3,
-  CLAIMED: 2,
-  INFERRED: 1,
-  UNKNOWN: 0,
-};
-
-/**
- * Reconciles each requirement against the capabilities of the same URID (Section 3.7, silence
- * rule): no capability, or only capabilities asserted UNKNOWN, is Unknown, never Met. A known
- * capability meets the requirement when it states no quantity shortfall; the strongest assertion
- * wins. A known capability whose stated quantity falls short is a Gap.
- */
-export function reconcile(
-  statements: readonly CapabilityStatement[],
-): ProposedReconciliationLine[] {
-  const requirements = statements.filter((s) => s.direction === "Require");
-  const capabilities = statements.filter((s) => s.direction === "Provide");
-  return requirements.map((req): ProposedReconciliationLine => {
-    const known = capabilities
-      .filter((c) => c.urid === req.urid && (CAPABILITY_RANK[c.assertionWord] ?? 0) > 0)
-      .sort(
-        (a, b) => (CAPABILITY_RANK[b.assertionWord] ?? 0) - (CAPABILITY_RANK[a.assertionWord] ?? 0),
-      );
-    const meets = known.find(
-      (c) => req.quantity === null || c.quantity === null || c.quantity >= req.quantity,
-    );
-    if (meets) return { requirementId: req.id, capabilityId: meets.id, result: "Met" };
-    const short = known[0];
-    if (short) return { requirementId: req.id, capabilityId: short.id, result: "Gap" };
-    return { requirementId: req.id, capabilityId: null, result: "Unknown" };
-  });
-}
-
 export interface ReconciliationSummary {
   readonly id: string;
   readonly projectId: string;
@@ -1541,50 +1466,252 @@ export async function getReconciliation(
 }
 
 /**
- * Runs a reconciliation of a project: reconciles every live requirement against the project's
- * capabilities and records the run with one line per requirement. A project without requirements
- * is refused, because an empty run would read as nothing missing.
+ * Runs a reconciliation of a project through A09's app.reconcile_project (migration 0420), which
+ * applies the silence rule with the canon assertion ranks: no claim, or an UNKNOWN claim, is
+ * Unknown and never Met. A project without requirements is refused first, because an empty run
+ * would read as nothing missing.
  */
 export async function runReconciliation(
   db: XosClient,
-  input: { readonly orgId: string; readonly projectId: string; readonly note: string | null },
-  now: Date = new Date(),
+  input: { readonly projectId: string; readonly note: string | null },
 ): Promise<Result<{ id: string }>> {
   const statements = await listCapabilityStatements(db, input.projectId);
   if (!statements.ok) return fail(statements.error);
-  const proposed = reconcile(statements.data);
-  if (proposed.length === 0) {
+  if (!statements.data.some((s) => s.direction === "Require")) {
     return refuse("reconciliation_no_requirements", "Add requirements before reconciling.");
   }
   const note = input.note?.trim() ? input.note.trim() : null;
-  const { data: run, error } = await db
-    .from("reconciliations")
+  const { data, error } = await db.rpc("reconcile_project", {
+    p_project_id: input.projectId,
+    ...(note === null ? {} : { p_note: note }),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data });
+}
+
+// Guest list ----------------------------------------------------------------------------------------
+
+/** Guest list states (app.guest_entry_state, migration 0431), in lifecycle order. */
+export const GUEST_STATES = ["Requested", "Approved", "Declined", "Checked In"] as const;
+export type GuestState = (typeof GUEST_STATES)[number];
+
+export interface GuestEntry {
+  readonly id: string;
+  readonly projectId: string;
+  readonly scopeNodeId: string | null;
+  /** The party whose list the guest is on; null for guests the production adds itself. */
+  readonly party: AdvanceParty | null;
+  /** Set when an engaged party requested the guest in Gateway. */
+  readonly engagementId: string | null;
+  readonly guestName: string;
+  readonly plusOnes: number;
+  readonly note: string | null;
+  readonly state: GuestState;
+  readonly decidedAt: string | null;
+  readonly checkedInAt: string | null;
+  readonly createdAt: string;
+  readonly createdBy: string | null;
+}
+
+/** A show or other scope node a guest can attend. */
+export interface ScopeOption {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+}
+
+/** Scope nodes of a project in code order, for the show a guest attends. */
+export async function listProjectScopes(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ScopeOption[]>> {
+  const { data, error } = await db
+    .from("scope_nodes")
+    .select("id, scope_code, name")
+    .eq("project_id", projectId)
+    .is("deleted_at", null)
+    .order("scope_code");
+  if (error) return fail(toDataError(error));
+  return ok(data.map((n) => ({ id: n.id, code: n.scope_code, name: n.name })));
+}
+
+/** The guest list of the org or one project, oldest request first, optionally in one state. */
+export async function listGuests(
+  db: XosClient,
+  filter: { readonly orgId: string; readonly projectId?: string; readonly state?: GuestState },
+): Promise<Result<GuestEntry[]>> {
+  let query = db
+    .from("guest_list_entries")
+    .select(
+      "id, project_id, scope_node_id, person_id, counterparty_id, engagement_id, guest_name, plus_ones, note, entry_state, decided_at, checked_in_at, created_at, created_by",
+    )
+    .eq("org_id", filter.orgId)
+    .is("deleted_at", null);
+  if (filter.projectId !== undefined) query = query.eq("project_id", filter.projectId);
+  if (filter.state !== undefined) query = query.eq("entry_state", filter.state);
+  const { data, error } = await query.order("created_at");
+  if (error) return fail(toDataError(error));
+  const names = await partyNames(
+    db,
+    data.flatMap((g) => (g.person_id ? [g.person_id] : [])),
+    data.flatMap((g) => (g.counterparty_id ? [g.counterparty_id] : [])),
+  );
+  if (!names.ok) return fail(names.error);
+  const party = (personId: string | null, counterpartyId: string | null): AdvanceParty | null => {
+    if (personId) {
+      return {
+        kind: "person",
+        id: personId,
+        name: names.data.get(personId) ?? null,
+        counterpartyType: null,
+      };
+    }
+    if (counterpartyId) {
+      return {
+        kind: "counterparty",
+        id: counterpartyId,
+        name: names.data.get(counterpartyId) ?? null,
+        counterpartyType: null,
+      };
+    }
+    return null;
+  };
+  return ok(
+    data.map((g): GuestEntry => ({
+      id: g.id,
+      projectId: g.project_id,
+      scopeNodeId: g.scope_node_id,
+      party: party(g.person_id, g.counterparty_id),
+      engagementId: g.engagement_id,
+      guestName: g.guest_name,
+      plusOnes: g.plus_ones,
+      note: g.note,
+      state: g.entry_state,
+      decidedAt: g.decided_at,
+      checkedInAt: g.checked_in_at,
+      createdAt: g.created_at,
+      createdBy: g.created_by,
+    })),
+  );
+}
+
+export interface GuestInput {
+  readonly guestName: string;
+  /** Additional guests admitted with this one, 0 to 20. */
+  readonly plusOnes: number;
+  readonly note: string | null;
+  readonly scopeNodeId: string | null;
+}
+
+function cleanGuest(input: GuestInput): GuestInput | null {
+  const guestName = input.guestName.trim();
+  if (guestName.length === 0 || guestName.length > 200) return null;
+  if (!Number.isInteger(input.plusOnes) || input.plusOnes < 0 || input.plusOnes > 20) return null;
+  const note = input.note?.trim() ? input.note.trim() : null;
+  if (note !== null && note.length > 500) return null;
+  return { guestName, plusOnes: input.plusOnes, note, scopeNodeId: input.scopeNodeId };
+}
+
+/**
+ * Adds a guest to a project's list as Requested, or as Approved when `approve` is set (a reviewer
+ * adding a comp; the database checks review authority and stamps the decision).
+ */
+export async function addGuest(
+  db: XosClient,
+  input: GuestInput & {
+    readonly orgId: string;
+    readonly projectId: string;
+    readonly approve?: boolean;
+  },
+): Promise<Result<{ id: string }>> {
+  const guest = cleanGuest(input);
+  if (guest === null) return fail({ kind: "invalid", message: "guest" });
+  const { data, error } = await db
+    .from("guest_list_entries")
     .insert({
       org_id: input.orgId,
       project_id: input.projectId,
-      reconciled_at: now.toISOString(),
-      note,
+      scope_node_id: guest.scopeNodeId,
+      guest_name: guest.guestName,
+      plus_ones: guest.plusOnes,
+      note: guest.note,
+      entry_state: input.approve === true ? "Approved" : "Requested",
     })
     .select("id")
     .single();
   if (error) return fail(toDataError(error));
-  const { error: lineError } = await db.from("reconciliation_lines").insert(
-    proposed.map((l) => ({
-      org_id: input.orgId,
-      reconciliation_id: run.id,
-      requirement_id: l.requirementId,
-      capability_id: l.capabilityId,
-      result: l.result,
-    })),
-  );
-  if (lineError) {
-    // A run without its lines would read as nothing missing, so it is withdrawn before reporting.
-    const undo = await db
-      .from("reconciliations")
-      .update({ deleted_at: now.toISOString() })
-      .eq("id", run.id);
-    if (undo.error) return fail(toDataError(undo.error));
-    return fail(toDataError(lineError));
+  return ok({ id: data.id });
+}
+
+/** Changes a requested guest; a decided guest keeps its guest (0431 guard). */
+export async function updateGuest(
+  db: XosClient,
+  guestId: string,
+  input: GuestInput,
+): Promise<Result<null>> {
+  const guest = cleanGuest(input);
+  if (guest === null) return fail({ kind: "invalid", message: "guest" });
+  const { data, error } = await db
+    .from("guest_list_entries")
+    .update({
+      guest_name: guest.guestName,
+      plus_ones: guest.plusOnes,
+      note: guest.note,
+      scope_node_id: guest.scopeNodeId,
+    })
+    .eq("id", guestId)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 0 ? fail(NOT_FOUND) : ok(null);
+}
+
+async function moveGuest(
+  db: XosClient,
+  guestId: string,
+  from: GuestState,
+  to: GuestState,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("guest_list_entries")
+    .update({ entry_state: to })
+    .eq("id", guestId)
+    .eq("entry_state", from)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  if (data.length === 0) {
+    return refuse("guest_entry_moved", "Someone already changed this guest. Refresh the list.");
   }
-  return ok({ id: run.id });
+  return ok(null);
+}
+
+/** Approves or declines a requested guest; the requester cannot decide (sod_guest_requester). */
+export function decideGuest(
+  db: XosClient,
+  guestId: string,
+  outcome: "Approved" | "Declined",
+): Promise<Result<null>> {
+  return moveGuest(db, guestId, "Requested", outcome);
+}
+
+/** Checks an approved guest in at the door. */
+export function checkInGuest(db: XosClient, guestId: string): Promise<Result<null>> {
+  return moveGuest(db, guestId, "Approved", "Checked In");
+}
+
+/** Removes a guest from the list (soft delete). */
+export async function removeGuest(
+  db: XosClient,
+  guestId: string,
+  now: Date = new Date(),
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("guest_list_entries")
+    .update({ deleted_at: now.toISOString() })
+    .eq("id", guestId)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 0 ? fail(NOT_FOUND) : ok(null);
 }

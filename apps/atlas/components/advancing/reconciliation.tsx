@@ -11,8 +11,9 @@ import { getFormatter } from "next-intl/server";
 import { EmptyStateLink } from "@/components/ui";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
+import { RecordCollab } from "./record-collab";
 import { Panel, RunReconciliationForm } from "./forms";
-import { BlockedPanels, pickView, Property, withQuery, type Search } from "./shared";
+import { pickView, Property, withQuery, type Search } from "./shared";
 import { InlineAlert, PageHeader, ReconciliationTable, StateChip, Tag, TemplateRecord } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
 
@@ -291,7 +292,12 @@ async function RunPage({
           }))}
         />
       </Panel>
-      <BlockedPanels t={t} />
+      <RecordCollab
+        actx={actx}
+        table="app.reconciliations"
+        id={run.id}
+        canUpload={actx.can.reconcile}
+      />
     </TemplateRecord>
   );
 }

@@ -13,6 +13,7 @@ import { getFormatter } from "next-intl/server";
 import { EmptyStateLink } from "@/components/ui";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
+import { RecordCollab } from "./record-collab";
 import {
   AddRiderLineForm,
   ArchiveRiderButton,
@@ -21,7 +22,7 @@ import {
   RiderDetailsForm,
   RiderLineRow,
 } from "./forms";
-import { BlockedPanels, pickView, Property, withQuery, type Search } from "./shared";
+import { pickView, Property, withQuery, type Search } from "./shared";
 import { PageHeader, ProgressBar, StateChip, Tag, TemplateRecord } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
 
@@ -333,7 +334,7 @@ async function RiderPage({
         {can.rider ? <AddRiderLineForm org={org} riderId={rider.id} /> : null}
         <p className="m-0 text-text-12 text-text-tertiary">{t("advancing.extraction.hint")}</p>
       </Panel>
-      <BlockedPanels t={t} />
+      <RecordCollab actx={actx} table="app.riders" id={rider.id} canUpload={can.rider} />
     </TemplateRecord>
   );
 }

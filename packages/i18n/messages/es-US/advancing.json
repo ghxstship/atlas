@@ -61,12 +61,6 @@
     "invalid": "Revisa los campos marcados e inténtalo de nuevo.",
     "unexpected": "Algo salió mal de nuestro lado. Inténtalo de nuevo en un momento."
   },
-  "blocked": {
-    "commentsTitle": "Los comentarios están en camino",
-    "comments": "Los comentarios en hilos con menciones llegan con el servicio compartido de comentarios. Mientras tanto, usa la revisión de respuestas y los motivos de devolución para hablar con los destinatarios.",
-    "attachmentsTitle": "Los adjuntos están en camino",
-    "attachments": "Los archivos adjuntos llegan con el servicio compartido de adjuntos. Mientras tanto, guarda los archivos en Conocimiento > Documentos y nómbralos en una sección."
-  },
   "projectTab": {
     "scope": "Avances de {key} · {name}.",
     "sections": "Secciones de avances"
@@ -94,7 +88,7 @@
       "open": "Nuevo paquete",
       "submit": "Crear paquete",
       "project": "Proyecto",
-      "projectChoose": "Elige un proyecto",
+      "projectHint": "Elige un proyecto",
       "projectError": "Elige el proyecto que avanza este paquete.",
       "name": "Nombre del paquete",
       "nameHelp": "Por ejemplo, Avance del artista principal o Avance del proveedor de escenario.",
@@ -143,7 +137,7 @@
     "title": "Destinatarios y enlaces",
     "noParties": "Aún no hay a quién agregar. Agrega personas en Personas > Directorio o proveedores en Proveedores > Directorio.",
     "party": "Agregar un destinatario",
-    "partyChoose": "Elige una persona u organización",
+    "partyHint": "Elige una persona u organización",
     "partyError": "Elige quién recibe el paquete.",
     "add": "Agregar destinatario",
     "remove": "Quitar a {name}",
@@ -201,10 +195,10 @@
   "record": {
     "title": "Registrar una respuesta dada por teléfono o correo",
     "section": "Sección",
-    "sectionChoose": "Elige una sección",
+    "sectionHint": "Elige una sección",
     "sectionError": "Elige la sección respondida.",
     "recipient": "Destinatario",
-    "recipientChoose": "Elige un destinatario",
+    "recipientHint": "Elige un destinatario",
     "recipientError": "Elige quién respondió.",
     "body": "Respuesta",
     "bodyHelp": "Registra lo que dijo el destinatario. Otra persona revisa las respuestas que registras.",
@@ -252,7 +246,7 @@
       "open": "Nuevo rider",
       "submit": "Crear rider",
       "project": "Proyecto",
-      "projectChoose": "Elige un proyecto",
+      "projectHint": "Elige un proyecto",
       "projectError": "Elige el proyecto al que pertenece este rider.",
       "name": "Nombre del rider",
       "nameHelp": "Por ejemplo, Rider técnico o Rider de hospitalidad.",
@@ -329,10 +323,32 @@
     },
     "run": {
       "project": "Proyecto",
-      "projectChoose": "Elige un proyecto",
+      "projectHint": "Elige un proyecto",
       "projectError": "Elige el proyecto a conciliar.",
       "note": "Nota",
       "action": "Conciliar ahora"
     }
+  },
+  "collab": {
+    "comments": "Comentarios",
+    "noComments": "Aún no hay comentarios. Inicia la conversación aquí; la ve todo el que puede abrir este elemento.",
+    "newComment": "Nuevo comentario",
+    "bodyError": "Escribe un comentario de hasta 10,000 caracteres.",
+    "post": "Publicar comentario",
+    "deleteComment": "Eliminar comentario",
+    "unknownAuthor": "Exmiembro",
+    "attachments": "Adjuntos",
+    "noAttachments": "Aún no hay archivos. Sube un rider, un plano de escenario o un documento que corresponda a este elemento.",
+    "noAttachmentsReadOnly": "Aún no hay archivos adjuntos.",
+    "ready": "Listo para descargar",
+    "scanning": "Se está revisando en busca de virus; la descarga se abre cuando pase la revisión.",
+    "notReady": "Ese archivo aún no está listo. Inténtalo de nuevo cuando pase la revisión de virus.",
+    "download": "Descargar {title}",
+    "remove": "Quitar",
+    "file": "Archivo",
+    "fileError": "Elige un archivo para subir.",
+    "fileSize": "Los archivos pueden pesar hasta 50 MB.",
+    "upload": "Subir archivo",
+    "uploaded": "Archivo subido. Se puede descargar cuando pase la revisión de virus."
   }
 }

@@ -16,6 +16,7 @@ import { getFormatter } from "next-intl/server";
 import { EmptyStateLink } from "@/components/ui";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
+import { RecordCollab } from "./record-collab";
 import {
   AddRecipientForm,
   ArchivePacketButton,
@@ -31,7 +32,6 @@ import {
   SendPacketButton,
 } from "./forms";
 import {
-  BlockedPanels,
   PACKET_RECORD_STATE,
   partyLabel,
   pickView,
@@ -552,7 +552,7 @@ async function PacketPage({
           </details>
         ) : null}
       </Panel>
-      <BlockedPanels t={t} />
+      <RecordCollab actx={actx} table="app.advance_packets" id={packet.id} canUpload={can.write} />
     </TemplateRecord>
   );
 }

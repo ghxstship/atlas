@@ -5,8 +5,9 @@ import { getFormatter } from "next-intl/server";
 import { EmptyStateLink } from "@/components/ui";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
+import { RecordCollab } from "./record-collab";
 import { ReviewForm } from "./forms";
-import { BlockedPanels, partyLabel, withQuery, type Search } from "./shared";
+import { partyLabel, withQuery, type Search } from "./shared";
 import { PageHeader, Tag, TemplateSplitView } from "./ui";
 import { SelectFilter } from "./views";
 
@@ -161,7 +162,12 @@ export async function SubmissionsSplit({
               >
                 {t("advancing.submissions.openPacket", { title: selected.packetTitle })}
               </Link>
-              <BlockedPanels t={t} />
+              <RecordCollab
+                actx={actx}
+                table="app.advance_submissions"
+                id={selected.id}
+                canUpload={can.review}
+              />
             </article>
           }
         />

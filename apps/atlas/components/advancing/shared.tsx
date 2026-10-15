@@ -2,7 +2,6 @@ import type { AdvanceParty, PacketState } from "@xos/data/advancing";
 import type { RecordState } from "@xos/ui";
 import type { ReactNode } from "react";
 import type { Translate } from "@/lib/shell/translate";
-import { InlineAlert } from "./ui";
 
 /** Board columns and chips for the derived packet states, in lifecycle order. */
 export const PACKET_RECORD_STATE: Readonly<Record<PacketState, RecordState>> = {
@@ -47,23 +46,6 @@ export function partyLabel(party: AdvanceParty, t: Translate): string {
   return (
     party.name ??
     t(party.kind === "person" ? "advancing.common.person" : "advancing.common.counterparty")
-  );
-}
-
-/**
- * Comments and attachments arrive with A18's unified comment and attachment service; until then
- * each record page names the feature and why it is not here yet, instead of an empty box.
- */
-export function BlockedPanels({ t }: { t: Translate }) {
-  return (
-    <div className="flex flex-col gap-8">
-      <InlineAlert tone="info" title={t("advancing.blocked.commentsTitle")}>
-        {t("advancing.blocked.comments")}
-      </InlineAlert>
-      <InlineAlert tone="info" title={t("advancing.blocked.attachmentsTitle")}>
-        {t("advancing.blocked.attachments")}
-      </InlineAlert>
-    </div>
   );
 }
 
