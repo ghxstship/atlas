@@ -33,8 +33,11 @@ import {
   updateFulfillment,
   type AccommodationBlockInput,
   type FulfillmentInput,
-} from "../src/hospitality";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+  cancelTravelSegment,
+  createTravelSegment,
+  listTravelSegments,
+} from "../src/hospitality.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const project = {
   project_key: "NWL",
@@ -574,5 +577,89 @@ describe("accommodation blocks", () => {
     expect((await removeRoomAssignment(db, "a9")).ok).toBe(true);
     expect((await removeRoomAssignment(db, "a9")).ok).toBe(false);
     expect((await removeRoomAssignment(db, "a9")).ok).toBe(false);
+  });
+});
+
+describe("travel", () => {
+  const travelRow = {
+    id: "t1",
+    project_id: "p1",
+    person_id: "per1",
+    fulfillment_id: "f1",
+    travel_mode: "Flight",
+    operator_name: "Coastal Air",
+    service_identifier: "CA 214",
+    confirmation_identifier: "QX7P2L",
+    departs_from: "BOS",
+    departs_at: "2027-05-31T12:00:00Z",
+    departs_time_zone: "America/New_York",
+    arrives_at_place: "MIA",
+    arrives_at: "2027-05-31T15:20:00Z",
+    arrives_time_zone: "America/New_York",
+    price_minor: null,
+    currency_code: null,
+    project: { project_key: "NWL" },
+    person: { full_name: "Ivy Marchetti" },
+  };
+  const input = {
+    personId: "per1",
+    fulfillmentId: null,
+    mode: "Ground" as const,
+    operatorName: null,
+    serviceIdentifier: null,
+    confirmationIdentifier: null,
+    departsFrom: "MIA",
+    departsAt: "2027-05-31T16:00:00Z",
+    departsTimeZone: "America/New_York",
+    arrivesAtPlace: "Harborview Hotel",
+    arrivesAt: null,
+    arrivesTimeZone: "America/New_York",
+    priceMinor: 4500,
+    currencyCode: "USD",
+  };
+
+  it("lists segments in departure order with traveler and unpriced fare", async () => {
+    const { db, calls } = fakeClient({
+      "from:travel_segments": [okResponse([travelRow]), errorResponse("XX000", "down")],
+    });
+    const result = await listTravelSegments(db, {
+      orgId: "o1",
+      projectId: "p1",
+      fulfillmentId: "f1",
+    });
+    expect(result.ok && result.data[0]).toMatchObject({
+      projectKey: "NWL",
+      personName: "Ivy Marchetti",
+      mode: "Flight",
+      priceMinor: null,
+    });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["fulfillment_id", "f1"]]);
+    expect((await listTravelSegments(db, { orgId: "" })).ok).toBe(false);
+  });
+
+  it("books and cancels segments, passing refusals on", async () => {
+    const { db } = fakeClient({
+      "from:travel_segments": [
+        okResponse([{ id: "t9" }]),
+        errorResponse(
+          "XR001",
+          "travel_fulfillment_kind: A travel segment belongs to a Travel fulfillment.",
+        ),
+        okResponse([{ id: "t9" }]),
+        okResponse([]),
+        errorResponse("XX000", "down"),
+      ],
+    });
+    expect(await createTravelSegment(db, "p1", input)).toEqual({ ok: true, data: { id: "t9" } });
+    const refused = await createTravelSegment(db, "p1", { ...input, fulfillmentId: "cat" });
+    expect(refused.ok === false && refused.error.kind === "refusal" && refused.error.rule).toBe(
+      "travel_fulfillment_kind",
+    );
+    expect((await cancelTravelSegment(db, "t9")).ok).toBe(true);
+    expect(await cancelTravelSegment(db, "t9")).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
+    expect((await cancelTravelSegment(db, "t9")).ok).toBe(false);
   });
 });

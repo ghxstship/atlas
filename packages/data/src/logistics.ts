@@ -1,5 +1,5 @@
-import type { Database, XosClient } from "./client";
-import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
 /**
  * Logistics repository (Section 4.2, RRR-23): shipments and their lines, dock slots, the gate

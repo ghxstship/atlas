@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { XosClient } from "../src/client";
+import type { XosClient } from "../src/client.ts";
 import {
   addMarshallingEntry,
   addShipmentLine,
@@ -34,8 +34,8 @@ import {
   updateDockSlot,
   updateShipment,
   type ShipmentInput,
-} from "../src/logistics";
-import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client";
+} from "../src/logistics.ts";
+import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client.ts";
 
 /** The shared fake client plus `schema()`, which canon reads switch to. */
 function client(queues: Record<string, Response[]>) {

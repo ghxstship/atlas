@@ -1,6 +1,6 @@
-import type { Database, XosClient } from "./client";
-import { displayKey, type OperationsScope } from "./logistics";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { displayKey, type OperationsScope } from "./logistics.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Hospitality repository (Section 4.2, RRR-23): lodging, catering, travel and amenity
@@ -964,6 +964,163 @@ export async function removeRoomAssignment(db: XosClient, id: string): Promise<R
     .from("accommodation_assignments")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+// Travel ---------------------------------------------------------------------------------------------
+
+export type TravelMode = Database["app"]["Enums"]["travel_mode"];
+export const TRAVEL_MODES: readonly TravelMode[] = ["Flight", "Ground"];
+
+/** One flight or ground transport segment of a traveler (migration 0442). */
+export interface TravelSegment {
+  readonly id: string;
+  readonly projectId: string;
+  readonly projectKey: string;
+  readonly personId: string;
+  readonly personName: string | null;
+  readonly fulfillmentId: string | null;
+  readonly mode: TravelMode;
+  readonly operatorName: string | null;
+  readonly serviceIdentifier: string | null;
+  readonly confirmationIdentifier: string | null;
+  readonly departsFrom: string;
+  readonly departsAt: string;
+  readonly departsTimeZone: string;
+  readonly arrivesAtPlace: string;
+  readonly arrivesAt: string | null;
+  readonly arrivesTimeZone: string;
+  readonly priceMinor: number | null;
+  readonly currencyCode: string | null;
+}
+
+interface TravelRow {
+  id: string;
+  project_id: string;
+  person_id: string;
+  fulfillment_id: string | null;
+  travel_mode: TravelMode;
+  operator_name: string | null;
+  service_identifier: string | null;
+  confirmation_identifier: string | null;
+  departs_from: string;
+  departs_at: string;
+  departs_time_zone: string;
+  arrives_at_place: string;
+  arrives_at: string | null;
+  arrives_time_zone: string;
+  price_minor: number | null;
+  currency_code: string | null;
+  project: { project_key: string } | null;
+  person: { full_name: string | null } | null;
+}
+
+const TRAVEL_COLUMNS =
+  "id, project_id, person_id, fulfillment_id, travel_mode, operator_name, service_identifier, confirmation_identifier, " +
+  "departs_from, departs_at, departs_time_zone, arrives_at_place, arrives_at, arrives_time_zone, price_minor, currency_code, " +
+  "project:projects!travel_segments_project_id_fkey(project_key), person:people!travel_segments_person_id_fkey(full_name)";
+
+function toTravel(row: TravelRow): TravelSegment {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    projectKey: row.project?.project_key ?? "",
+    personId: row.person_id,
+    personName: row.person?.full_name ?? null,
+    fulfillmentId: row.fulfillment_id,
+    mode: row.travel_mode,
+    operatorName: row.operator_name,
+    serviceIdentifier: row.service_identifier,
+    confirmationIdentifier: row.confirmation_identifier,
+    departsFrom: row.departs_from,
+    departsAt: row.departs_at,
+    departsTimeZone: row.departs_time_zone,
+    arrivesAtPlace: row.arrives_at_place,
+    arrivesAt: row.arrives_at,
+    arrivesTimeZone: row.arrives_time_zone,
+    priceMinor: row.price_minor,
+    currencyCode: row.currency_code,
+  };
+}
+
+export interface TravelScope extends OperationsScope {
+  readonly fulfillmentId?: string;
+}
+
+/** Live travel segments in departure order. An empty orgId means the scope is a fulfillment. */
+export async function listTravelSegments(
+  db: XosClient,
+  scope: TravelScope,
+): Promise<Result<TravelSegment[]>> {
+  let query = db.from("travel_segments").select(TRAVEL_COLUMNS).is("deleted_at", null);
+  if (scope.orgId) query = query.eq("org_id", scope.orgId);
+  if (scope.projectId) query = query.eq("project_id", scope.projectId);
+  if (scope.fulfillmentId) query = query.eq("fulfillment_id", scope.fulfillmentId);
+  const { data, error } = await query.order("departs_at");
+  if (error) return fail(toDataError(error));
+  return ok((data as unknown as TravelRow[]).map(toTravel));
+}
+
+export interface TravelInput {
+  readonly personId: string;
+  readonly fulfillmentId: string | null;
+  readonly mode: TravelMode;
+  readonly operatorName: string | null;
+  readonly serviceIdentifier: string | null;
+  readonly confirmationIdentifier: string | null;
+  readonly departsFrom: string;
+  readonly departsAt: string;
+  readonly departsTimeZone: string;
+  readonly arrivesAtPlace: string;
+  readonly arrivesAt: string | null;
+  readonly arrivesTimeZone: string;
+  readonly priceMinor: number | null;
+  readonly currencyCode: string | null;
+}
+
+/**
+ * Books a travel segment. A segment under a fulfillment must use a Travel fulfillment of the same
+ * project (travel_fulfillment_kind); zones must be IANA zones.
+ */
+export async function createTravelSegment(
+  db: XosClient,
+  projectId: string,
+  input: TravelInput,
+): Promise<Result<{ id: string }>> {
+  const row: Derived<Tables["travel_segments"]["Insert"]> = {
+    project_id: projectId,
+    person_id: input.personId,
+    fulfillment_id: input.fulfillmentId,
+    travel_mode: input.mode,
+    operator_name: input.operatorName,
+    service_identifier: input.serviceIdentifier,
+    confirmation_identifier: input.confirmationIdentifier,
+    departs_from: input.departsFrom,
+    departs_at: input.departsAt,
+    departs_time_zone: input.departsTimeZone,
+    arrives_at_place: input.arrivesAtPlace,
+    arrives_at: input.arrivesAt,
+    arrives_time_zone: input.arrivesTimeZone,
+    price_minor: input.priceMinor,
+    currency_code: input.currencyCode,
+  };
+  const { data, error } = await db
+    .from("travel_segments")
+    .insert(row as Tables["travel_segments"]["Insert"])
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return one(data);
+}
+
+/** Cancels a travel segment; it is retained and emits travel_segment.canceled. */
+export async function cancelTravelSegment(db: XosClient, id: string): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("travel_segments")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .is("deleted_at", null)
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
