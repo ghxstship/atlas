@@ -106,7 +106,7 @@ export function registerParameters(registry: Registry): SharedParameters {
   const filter = registry.registerParameter(
     "Filter",
     z
-      .record(z.string(), z.record(z.enum(FILTER_OPERATORS), z.string()))
+      .record(z.string(), z.partialRecord(z.enum(FILTER_OPERATORS), z.string()))
       .optional()
       .meta({
         param: {

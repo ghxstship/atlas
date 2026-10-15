@@ -30,6 +30,7 @@ import { sitemap } from "@/ia/sitemap.generated";
 import type { AtlasLocale } from "@/i18n/negotiate";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
 import { setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
+import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
 import { broadcast, SessionWatcher } from "./session-watcher";
 
@@ -37,6 +38,8 @@ export interface ShellFrameProps {
   readonly org: { readonly name: string; readonly slug: string };
   readonly orgs: readonly { readonly name: string; readonly slug: string; readonly role: string }[];
   readonly nav: ShellNav;
+  /** The person's pinned pages and records in this org (app.favorites). */
+  readonly favorites: readonly NavLinkModel[];
   readonly workspaces: readonly { readonly slug: string; readonly name: string }[];
   readonly workspace: string | null;
   readonly locales: readonly AtlasLocale[];
@@ -62,6 +65,7 @@ export function ShellFrame(props: ShellFrameProps) {
   const t = tRoot as unknown as Translate;
   const [commandOpen, setCommandOpen] = useState(false);
   const [focus, setFocus] = useState(false);
+  const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const signOutForm = useRef<HTMLFormElement>(null);
 
   const go = useCallback((href: string) => router.push(href as Route), [router]);
@@ -187,13 +191,42 @@ export function ShellFrame(props: ShellFrameProps) {
         groups={[{ items: nav.top.map(toItem) }]}
       />
       <section aria-labelledby="favorites-heading" className="px-8">
-        <h2 id="favorites-heading" className="m-0 text-text-11 font-medium text-text-secondary">
-          {t("nav.atlas.actions.favorites")}
-        </h2>
-        <p className="m-0 mt-4 text-text-12 text-text-tertiary">
-          {t("shell.chrome.favoritesEmpty")}
-        </p>
+        <div className="flex items-center justify-between gap-8">
+          <h2 id="favorites-heading" className="m-0 text-text-11 font-medium text-text-secondary">
+            {t("nav.atlas.actions.favorites")}
+          </h2>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={async () => {
+              const peek = new URLSearchParams(window.location.search).get("peek");
+              const result = await toggleFavoriteAction(org.slug, pathname, peek);
+              setFavoriteError(result.error ? t(`settings.errors.${result.error}`) : null);
+            }}
+          >
+            {props.favorites.some((f) => f.href.split("?")[0] === pathname)
+              ? t("settings.favorites.unpin")
+              : t("settings.favorites.pin")}
+          </Button>
+        </div>
+        {favoriteError ? (
+          <p role="alert" className="m-0 mt-4 text-text-12 text-danger-text">
+            {favoriteError}
+          </p>
+        ) : null}
+        {props.favorites.length === 0 ? (
+          <p className="m-0 mt-4 text-text-12 text-text-tertiary">
+            {t("shell.chrome.favoritesEmpty")}
+          </p>
+        ) : null}
       </section>
+      {props.favorites.length > 0 ? (
+        <Sidebar
+          label={t("nav.atlas.actions.favorites")}
+          {...(active ? { active } : {})}
+          groups={[{ items: props.favorites.map(toItem) }]}
+        />
+      ) : null}
       <Sidebar
         label={t("ui.nav.main")}
         {...(active ? { active } : {})}
