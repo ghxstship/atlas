@@ -165,21 +165,31 @@ have, a create body missing a NOT NULL column, a count the schema stores as rows
    ```
 
    `src/catalog/correct.ts` has the edits: `editShape` (`nullable`, `remove`, `rename`, `add`,
-   `serverSet`, `requireOnCreate`, `optionalOnCreate`, `immutable`, `description`),
-   `removeVerbs`, `removeActions`, `putActions` (with capabilities) and `setOrder`; compose them
-   with `all(...)`. Use `orNull` for a nullable field, never `.nullable()` on a shared component.
+   `serverSet`, `requireOnCreate`, `optionalOnCreate`, `immutable`, `description`, `key`),
+   `removeVerbs`, `removeActions`, `putActions` (with capabilities), `setCapabilities`,
+   `setTable` (the table or view that serves the resource) and `setOrder` (with `descending` for a
+   feed); compose them with `all(...)`. An added field takes `create` (`required` or `optional`),
+   `update`, `writeSchema` (when every new row must fill a column that old rows leave NULL) and
+   `read: false` (a write-only input such as a tax identifier). Renaming the key moves the path
+   parameter and the default order with it. Use `orNull` for a nullable field, never `.nullable()`
+   on a shared component: the generator would emit the shared component itself as nullable.
 
-2. Name every resource the entry changes in `resources`, and any other component it changes in
+2. Keep a handled operation's shape unless your correction also updates its handler and contract
+   test in the same branch.
+
+3. Name every resource the entry changes in `resources`, and any other component it changes in
    `components`. The reason names the table, view or migration that makes the frozen shape wrong.
-3. Regenerate (`pnpm --filter @xos/api generate:handlers`) and update the contract tests of your
+4. Regenerate (`pnpm --filter @xos/api generate:handlers`) and update the contract tests of your
    handlers where the shape changed.
-4. List the correction in your completion report. The orchestrator reviews it at merge and records
+5. List the correction in your completion report. The orchestrator reviews it at merge and records
    it in ADR 0023's register.
 
 `test/corrections.test.ts` (Section 18, gate 20) fails when the uncorrected catalog drifts from
 the Wave 1 freeze (`src/catalog/frozen-v1.digest.json`, never regenerated while v1 is a draft),
 when the corrected document changes a frozen operation or component that no entry lists, and when
-an entry changes nothing it lists. `CORRECTIONS` (exported from `@xos/api`) is the resolved,
+an entry changes nothing it lists. `pnpm --filter @xos/api audit:contract` compares the catalog
+with a database (`--sql` prints the read-only query, `--dump <file>` audits its output) and shows
+what remains to correct. `CORRECTIONS` (exported from `@xos/api`) is the resolved,
 machine-readable list.
 
 ## Generated files
