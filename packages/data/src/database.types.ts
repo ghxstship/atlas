@@ -777,6 +777,7 @@ export type Database = {
           name: string | null;
           organization_type: string | null;
           slug: string | null;
+          verified: boolean | null;
         };
         ComputedFields: never;
         Insert: {
@@ -785,6 +786,7 @@ export type Database = {
           name?: string | null;
           organization_type?: string | null;
           slug?: string | null;
+          verified?: never;
         };
         Update: {
           account_id?: string | null;
@@ -792,6 +794,7 @@ export type Database = {
           name?: string | null;
           organization_type?: string | null;
           slug?: string | null;
+          verified?: never;
         };
         Relationships: [];
       };
@@ -1239,6 +1242,7 @@ export type Database = {
           opportunity_state: Database["app"]["Enums"]["opportunity_state"] | null;
           org_id: string | null;
           org_name: string | null;
+          org_verified: boolean | null;
           pay_max_minor: number | null;
           pay_min_minor: number | null;
           position_count: number | null;
@@ -3401,6 +3405,13 @@ export type Database = {
             foreignKeyName: "agency_slates_application_id_fkey";
             columns: ["application_id"];
             isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["application_id"];
+          },
+          {
+            foreignKeyName: "agency_slates_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
             referencedRelation: "applications";
             referencedColumns: ["id"];
           },
@@ -3790,6 +3801,13 @@ export type Database = {
             foreignKeyName: "application_answers_application_id_fkey";
             columns: ["application_id"];
             isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["application_id"];
+          },
+          {
+            foreignKeyName: "application_answers_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
             referencedRelation: "applications";
             referencedColumns: ["id"];
           },
@@ -3865,6 +3883,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "application_state_transitions_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["application_id"];
+          },
           {
             foreignKeyName: "application_state_transitions_application_id_fkey";
             columns: ["application_id"];
@@ -5169,6 +5194,13 @@ export type Database = {
             foreignKeyName: "background_checks_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "background_checks_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -5518,6 +5550,13 @@ export type Database = {
           valid_until?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "bids_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["application_id"];
+          },
           {
             foreignKeyName: "bids_application_id_fkey";
             columns: ["application_id"];
@@ -7237,6 +7276,13 @@ export type Database = {
             foreignKeyName: "client_approval_requests_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -7377,6 +7423,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clock_punches_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
           },
           {
             foreignKeyName: "clock_punches_engagement_id_fkey";
@@ -8492,6 +8545,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "credential_categories";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credentials_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
           },
           {
             foreignKeyName: "credentials_engagement_id_fkey";
@@ -10237,6 +10297,13 @@ export type Database = {
             foreignKeyName: "dock_slots_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "dock_slots_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -10925,6 +10992,13 @@ export type Database = {
             foreignKeyName: "engagement_cues_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_cues_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -11031,6 +11105,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "documents";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_deliverables_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
           },
           {
             foreignKeyName: "engagement_deliverables_engagement_id_fkey";
@@ -11321,6 +11402,13 @@ export type Database = {
             foreignKeyName: "engagement_documents_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_documents_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -11479,6 +11567,13 @@ export type Database = {
             foreignKeyName: "engagement_state_transitions_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_state_transitions_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -11547,6 +11642,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_threads_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
           },
           {
             foreignKeyName: "engagement_threads_engagement_id_fkey";
@@ -11662,6 +11764,13 @@ export type Database = {
           worker_classification?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "engagements_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["application_id"];
+          },
           {
             foreignKeyName: "engagements_application_id_fkey";
             columns: ["application_id"];
@@ -14886,6 +14995,13 @@ export type Database = {
             foreignKeyName: "interviews_application_id_fkey";
             columns: ["application_id"];
             isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["application_id"];
+          },
+          {
+            foreignKeyName: "interviews_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
             referencedRelation: "applications";
             referencedColumns: ["id"];
           },
@@ -17497,6 +17613,13 @@ export type Database = {
             foreignKeyName: "offer_state_transitions_offer_id_fkey";
             columns: ["offer_id"];
             isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["offer_id"];
+          },
+          {
+            foreignKeyName: "offer_state_transitions_offer_id_fkey";
+            columns: ["offer_id"];
+            isOneToOne: false;
             referencedRelation: "offers";
             referencedColumns: ["id"];
           },
@@ -17597,6 +17720,13 @@ export type Database = {
             foreignKeyName: "offer_versions_offer_id_fkey";
             columns: ["offer_id"];
             isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["offer_id"];
+          },
+          {
+            foreignKeyName: "offer_versions_offer_id_fkey";
+            columns: ["offer_id"];
+            isOneToOne: false;
             referencedRelation: "offers";
             referencedColumns: ["id"];
           },
@@ -17659,6 +17789,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "offers_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["application_id"];
+          },
           {
             foreignKeyName: "offers_application_id_fkey";
             columns: ["application_id"];
@@ -17744,6 +17881,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "documents";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "onboarding_items_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
           },
           {
             foreignKeyName: "onboarding_items_engagement_id_fkey";
@@ -22122,6 +22266,13 @@ export type Database = {
             foreignKeyName: "profile_shares_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "profile_shares_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -23373,6 +23524,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ratings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
           },
           {
             foreignKeyName: "ratings_engagement_id_fkey";
@@ -29554,6 +29712,13 @@ export type Database = {
             foreignKeyName: "self_billing_agreements_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "self_billing_agreements_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -30020,6 +30185,13 @@ export type Database = {
             foreignKeyName: "shifts_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "shifts_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -30329,6 +30501,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "shortlists_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["application_id"];
+          },
           {
             foreignKeyName: "shortlists_application_id_fkey";
             columns: ["application_id"];
@@ -32374,6 +32553,13 @@ export type Database = {
             foreignKeyName: "time_entries_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "time_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -33044,6 +33230,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
           },
           {
             foreignKeyName: "timesheets_engagement_id_fkey";
@@ -35098,6 +35291,128 @@ export type Database = {
       };
     };
     Views: {
+      application_board: {
+        Row: {
+          applicant_kind: string | null;
+          applicant_name: string | null;
+          applicant_organization_id: string | null;
+          applicant_person_id: string | null;
+          application_id: string | null;
+          application_state: Database["app"]["Enums"]["application_state"] | null;
+          availability_confirmed: boolean | null;
+          bid_currency_code: string | null;
+          bid_sealed: boolean | null;
+          bid_total_minor: number | null;
+          cover_note: string | null;
+          currency_code: string | null;
+          engagement_id: string | null;
+          has_bid: boolean | null;
+          next_interview_at: string | null;
+          offer_amount_minor: number | null;
+          offer_currency_code: string | null;
+          offer_expires_at: string | null;
+          offer_id: string | null;
+          offer_rate_type: Database["app"]["Enums"]["rate_type"] | null;
+          offer_state: Database["app"]["Enums"]["offer_state"] | null;
+          offer_turn_side: Database["app"]["Enums"]["offer_side"] | null;
+          opportunity_id: string | null;
+          opportunity_title: string | null;
+          org_id: string | null;
+          project_id: string | null;
+          project_key: string | null;
+          proposed_fee_minor: number | null;
+          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          shortlist_rank: number | null;
+          submitted_at: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "applications_applicant_organization_id_fkey";
+            columns: ["applicant_organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "applications_applicant_person_id_fkey";
+            columns: ["applicant_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "applications_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "applications_opportunity_id_fkey";
+            columns: ["opportunity_id"];
+            isOneToOne: false;
+            referencedRelation: "opportunities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "applications_opportunity_id_fkey";
+            columns: ["opportunity_id"];
+            isOneToOne: false;
+            referencedRelation: "opportunity_position_counts";
+            referencedColumns: ["opportunity_id"];
+          },
+          {
+            foreignKeyName: "applications_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bids_currency_code_fkey";
+            columns: ["bid_currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "offer_versions_currency_code_fkey";
+            columns: ["offer_currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "opportunities_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "opportunities_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "opportunities_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "opportunities_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       bid_totals: {
         Row: {
           application_id: string | null;
@@ -35108,6 +35423,13 @@ export type Database = {
         };
         ComputedFields: never;
         Relationships: [
+          {
+            foreignKeyName: "bids_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["application_id"];
+          },
           {
             foreignKeyName: "bids_application_id_fkey";
             columns: ["application_id"];
@@ -35470,6 +35792,100 @@ export type Database = {
           sort_order?: number | null;
         };
         Relationships: [];
+      };
+      engagement_board: {
+        Row: {
+          account_id: string | null;
+          account_name: string | null;
+          application_id: string | null;
+          deliverables_to_review: number | null;
+          documents_in_flight: number | null;
+          end_date: string | null;
+          engagement_id: string | null;
+          engagement_state: Database["app"]["Enums"]["engagement_state"] | null;
+          job_title: string | null;
+          onboarding_item_count: number | null;
+          open_blocking_count: number | null;
+          org_id: string | null;
+          org_rated: boolean | null;
+          party_name: string | null;
+          party_rated: boolean | null;
+          person_id: string | null;
+          project_id: string | null;
+          project_key: string | null;
+          project_name: string | null;
+          ratings_released: boolean | null;
+          role_code: string | null;
+          role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          start_date: string | null;
+          worker_classification: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["application_id"];
+          },
+          {
+            foreignKeyName: "engagements_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
+            referencedRelation: "applications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       engagement_resolved: {
         Row: {
@@ -35962,6 +36378,13 @@ export type Database = {
         };
         ComputedFields: never;
         Relationships: [
+          {
+            foreignKeyName: "onboarding_items_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
           {
             foreignKeyName: "onboarding_items_engagement_id_fkey";
             columns: ["engagement_id"];
@@ -37030,6 +37453,13 @@ export type Database = {
             foreignKeyName: "timesheets_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "timesheets_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -37473,6 +37903,17 @@ export type Database = {
           p_name: string;
           p_org_id: string;
           p_organization_id?: string;
+        };
+        Returns: string;
+      };
+      create_engagement_from_application: {
+        Args: {
+          p_application_id: string;
+          p_arrangement: string;
+          p_end_date: string;
+          p_pay_basis: string;
+          p_start_date: string;
+          p_worker_classification: string;
         };
         Returns: string;
       };
