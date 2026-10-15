@@ -163,7 +163,10 @@
     "gate_evidence_reference": "Evidence must name a document link or a record.",
     "gate_evidence_immutable": "Evidence cannot be edited. Withdraw it and attest new evidence instead.",
     "sod_self_grant": "You cannot add yourself to a project. Ask another manager to add you.",
-    "project_member_immutable": "Remove the member and add them again instead of changing who they are."
+    "project_member_immutable": "Remove the member and add them again instead of changing who they are.",
+    "comment": "Write a comment of up to 10,000 characters.",
+    "file": "Choose a file to attach.",
+    "fileSize": "Files can be up to 50 MB. Choose a smaller file."
   },
   "transition": {
     "projectTitle": "Change project state",
@@ -311,10 +314,23 @@
     "gatewayLead": "Client and sponsor access to this project is managed on the Engagements tab.",
     "gatewayLink": "Open engagements"
   },
-  "blocked": {
-    "comments": "Comments on projects arrive with the shared comment system. Until then, record decisions as gate evidence or in the state change reason.",
-    "attachments": "File attachments arrive with the shared attachment service. Until then, link documents as gate evidence.",
+  "collab": {
     "commentsTitle": "Comments",
-    "attachmentsTitle": "Attachments"
+    "noComments": "No comments yet. Post the first note for the project team.",
+    "addComment": "Add a comment",
+    "post": "Post comment",
+    "delete": "Delete",
+    "deleted": "This comment was deleted.",
+    "edited": "Edited",
+    "unknownAuthor": "Former member",
+    "attachmentsTitle": "Attachments",
+    "noAttachments": "No files yet. Attach contracts, drawings or decks the team needs.",
+    "noAttachmentsReadOnly": "No files are attached to this project yet.",
+    "addFile": "File",
+    "upload": "Attach file",
+    "download": "Download",
+    "remove": "Remove",
+    "scanning": "Checking for viruses",
+    "infected": "Blocked by the virus scan"
   }
 }

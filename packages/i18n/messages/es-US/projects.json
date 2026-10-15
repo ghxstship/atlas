@@ -163,7 +163,10 @@
     "gate_evidence_reference": "La evidencia debe indicar un enlace a un documento o un registro.",
     "gate_evidence_immutable": "La evidencia no se puede editar. Retírala y certifica nueva evidencia.",
     "sod_self_grant": "No puedes agregarte a un proyecto. Pide a otro gerente que te agregue.",
-    "project_member_immutable": "Quita al miembro y agrégalo de nuevo en lugar de cambiar quién es."
+    "project_member_immutable": "Quita al miembro y agrégalo de nuevo en lugar de cambiar quién es.",
+    "comment": "Escribe un comentario de hasta 10,000 caracteres.",
+    "file": "Elige un archivo para adjuntar.",
+    "fileSize": "Los archivos pueden pesar hasta 50 MB. Elige un archivo más pequeño."
   },
   "transition": {
     "projectTitle": "Cambiar el estado del proyecto",
@@ -311,10 +314,23 @@
     "gatewayLead": "El acceso de clientes y patrocinadores a este proyecto se administra en la pestaña Encargos.",
     "gatewayLink": "Abrir encargos"
   },
-  "blocked": {
-    "comments": "Los comentarios en proyectos llegan con el sistema de comentarios compartido. Mientras tanto, registra las decisiones como evidencia de puerta o en el motivo del cambio de estado.",
-    "attachments": "Los archivos adjuntos llegan con el servicio de adjuntos compartido. Mientras tanto, enlaza los documentos como evidencia de puerta.",
+  "collab": {
     "commentsTitle": "Comentarios",
-    "attachmentsTitle": "Archivos adjuntos"
+    "noComments": "Aún no hay comentarios. Publica la primera nota para el equipo del proyecto.",
+    "addComment": "Agregar un comentario",
+    "post": "Publicar comentario",
+    "delete": "Eliminar",
+    "deleted": "Este comentario se eliminó.",
+    "edited": "Editado",
+    "unknownAuthor": "Antiguo miembro",
+    "attachmentsTitle": "Archivos adjuntos",
+    "noAttachments": "Aún no hay archivos. Adjunta contratos, planos o presentaciones que el equipo necesite.",
+    "noAttachmentsReadOnly": "Aún no hay archivos adjuntos en este proyecto.",
+    "addFile": "Archivo",
+    "upload": "Adjuntar archivo",
+    "download": "Descargar",
+    "remove": "Quitar",
+    "scanning": "Revisando si hay virus",
+    "infected": "Bloqueado por la revisión de virus"
   }
 }
