@@ -112,8 +112,15 @@ function drift(specs: readonly ResourceSpec[]): string[] {
   ];
 }
 
+/**
+ * Components whose content changes between two single-resource documents. A shared component that
+ * only appears or disappears there (a field that references it was added or removed) is unchanged
+ * in the full document, which `unlistedChanges` checks.
+ */
 function componentDiff(before: DocumentDigest, after: DocumentDigest): string[] {
-  return changedKeys(before, after).filter((k) => k.startsWith("schemas/") || !k.includes(" "));
+  return Object.entries(before.components)
+    .filter(([k, hash]) => after.components[k] !== undefined && after.components[k] !== hash)
+    .map(([k]) => k);
 }
 
 /**

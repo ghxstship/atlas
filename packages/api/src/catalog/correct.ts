@@ -234,6 +234,18 @@ export function putActions(
   };
 }
 
+/** Changes the capability rule: the fields given replace the rule's, and `actions` merge. */
+export function setCapabilities(rule: CapabilityRule) {
+  return (spec: ResourceSpec): ResourceSpec => {
+    const current: CapabilityRule =
+      spec.capabilityRule ?? RESOURCE_CAPABILITIES[spec.op] ?? canonRule(spec.op) ?? {};
+    return {
+      ...spec,
+      capabilityRule: { ...current, ...rule, actions: { ...current.actions, ...rule.actions } },
+    };
+  };
+}
+
 /** Sets the default list order. */
 export function setOrder(order: OrderSpec) {
   return (spec: ResourceSpec): ResourceSpec => ({ ...spec, order });

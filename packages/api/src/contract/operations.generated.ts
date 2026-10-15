@@ -318,14 +318,15 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     opportunity_id: string;
-    person_id: string | null;
-    organization_id: string | null;
-    profile_share_id: string;
+    profile_share_id: string | null;
     availability_confirmed: boolean;
-    proposed_rate_minor: number | null;
-    currency: string;
     application_state: Components["ApplicationState"];
-    submitted_at: string;
+    applicant_person_id: string | null;
+    applicant_organization_id: string | null;
+    submitted_by: string | null;
+    cover_note: string | null;
+    proposed_fee_minor: number | null;
+    currency_code: string | null;
   };
   ApplicationAnswer: {
     id: string;
@@ -349,12 +350,13 @@ export interface Components {
   };
   ApplicationCreate: {
     opportunity_id: string;
-    person_id?: string | null;
-    organization_id?: string | null;
-    profile_share_id: string;
-    availability_confirmed: boolean;
-    proposed_rate_minor?: number | null;
-    currency: string;
+    profile_share_id?: string | null;
+    availability_confirmed?: boolean;
+    applicant_person_id?: string | null;
+    applicant_organization_id?: string | null;
+    cover_note?: string | null;
+    proposed_fee_minor?: number | null;
+    currency_code?: string | null;
   };
   ApplicationPage: { data: Array<Components["Application"]>; next_cursor: string | null };
   ApplicationState:
@@ -685,9 +687,11 @@ export interface Components {
     application_id: string;
     total: Components["MoneyTotal"];
     sealed: boolean;
-    notes: string | null;
+    currency_code: string;
+    valid_until: string | null;
+    submitted_at: string;
   };
-  BidCreate: { application_id: string; notes?: string | null };
+  BidCreate: { application_id: string; currency_code: string; valid_until?: string | null };
   BidLine: {
     id: string;
     org_id: string;
@@ -716,7 +720,7 @@ export interface Components {
     currency?: string;
   };
   BidPage: { data: Array<Components["Bid"]>; next_cursor: string | null };
-  BidUpdate: { notes?: string | null };
+  BidUpdate: { valid_until?: string | null };
   BillingDraw: {
     id: string;
     org_id: string;
@@ -2024,11 +2028,41 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     engagement_id: string;
-    document_id: string;
+    document_id: string | null;
     title: string;
     engagement_document_state: string;
+    document_kind:
+      | "Offer"
+      | "Agreement"
+      | "Statement of Work"
+      | "Non-Disclosure Agreement"
+      | "Rider"
+      | "Advance Packet"
+      | "Insurance Certificate"
+      | "Lien Waiver"
+      | "Settlement"
+      | "Proof of Performance"
+      | "Content Consent";
+    expires_on: string | null;
   };
-  EngagementDocumentCreate: { engagement_id: string; document_id: string; title: string };
+  EngagementDocumentCreate: {
+    engagement_id: string;
+    document_id?: string | null;
+    title: string;
+    document_kind:
+      | "Offer"
+      | "Agreement"
+      | "Statement of Work"
+      | "Non-Disclosure Agreement"
+      | "Rider"
+      | "Advance Packet"
+      | "Insurance Certificate"
+      | "Lien Waiver"
+      | "Settlement"
+      | "Proof of Performance"
+      | "Content Consent";
+    expires_on?: string | null;
+  };
   EngagementDocumentPage: {
     data: Array<Components["EngagementDocument"]>;
     next_cursor: string | null;
@@ -2622,20 +2656,26 @@ export interface Components {
     updated_by: string | null;
     application_id: string;
     scheduled_at: string;
-    meeting_url: string | null;
-    outcome_notes: string | null;
+    interview_kind: "Interview" | "Audition";
+    duration_minutes: number;
+    location_text: string | null;
+    internal_note: string | null;
   };
   InterviewCreate: {
     application_id: string;
     scheduled_at: string;
-    meeting_url?: string | null;
-    outcome_notes?: string | null;
+    interview_kind: "Interview" | "Audition";
+    duration_minutes: number;
+    location_text?: string | null;
+    internal_note?: string | null;
   };
   InterviewPage: { data: Array<Components["Interview"]>; next_cursor: string | null };
   InterviewUpdate: {
     scheduled_at?: string;
-    meeting_url?: string | null;
-    outcome_notes?: string | null;
+    interview_kind?: "Interview" | "Audition";
+    duration_minutes?: number;
+    location_text?: string | null;
+    internal_note?: string | null;
   };
   InvitationLink: {
     id: string;
@@ -3062,34 +3102,51 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    application_id: string | null;
+    application_id: string;
     person_id: string | null;
     organization_id: string | null;
-    rate_type: Components["RateType"];
-    rate_minor: number | Components["Masked"] | null;
-    currency: string;
-    expires_at: string;
+    rate_type: Components["RateType"] | null;
+    expires_at: string | null;
     offer_state: string;
     responded_at: string | null;
+    version_number: number;
+    proposed_side: "Organization" | "Party";
+    amount_minor: number | null;
+    currency_code: string | null;
+    starts_on: string | null;
+    ends_on: string | null;
+    message: string | null;
+  };
+  OfferCounterRequest: {
+    rate_type?: Components["RateType"] | null;
+    amount_minor?: number | null;
+    currency_code?: string | null;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    message?: string | null;
   };
   OfferCreate: {
-    application_id?: string | null;
-    person_id?: string | null;
-    organization_id?: string | null;
-    rate_type: Components["RateType"];
-    rate_minor?: number | null;
-    currency: string;
-    expires_at: string;
+    application_id: string;
+    rate_type?: Components["RateType"] | null;
+    expires_at?: string | null;
+    amount_minor?: number | null;
+    currency_code?: string | null;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    message?: string | null;
   };
+  OfferDeclineRequest: { reason: string };
   OfferPage: { data: Array<Components["Offer"]>; next_cursor: string | null };
   OfferUpdate: {
-    person_id?: string | null;
-    organization_id?: string | null;
-    rate_type?: Components["RateType"];
-    rate_minor?: number | null;
-    currency?: string;
-    expires_at?: string;
+    rate_type?: Components["RateType"] | null;
+    expires_at?: string | null;
+    amount_minor?: number | null;
+    currency_code?: string | null;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    message?: string | null;
   };
+  OfferWithdrawRequest: { reason: string };
   OnboardingItem: {
     id: string;
     org_id: string;
@@ -3119,35 +3176,65 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    role_type: Components["ExternalRoleType"];
+    role_type: Components["ExternalRoleType"] | null;
     jurisdiction_id: Components["JurisdictionId"];
-    item_type: string;
-    title: string;
-    blocking: boolean;
     verification_method: string;
-    validity_months: number | null;
+    name: string;
+    item_kind:
+      | "Document Upload"
+      | "Electronic Signature"
+      | "Form"
+      | "Certification"
+      | "Training"
+      | "Acknowledgment"
+      | "Background Check"
+      | "Tax Form"
+      | "Payout Details";
+    is_blocking: boolean;
+    valid_for_days: number | null;
+    remind_days_before: number | null;
   };
   OnboardingRequirementCreate: {
-    role_type: Components["ExternalRoleType"];
+    role_type?: Components["ExternalRoleType"] | null;
     jurisdiction_id?: Components["JurisdictionId"];
-    item_type: string;
-    title: string;
-    blocking: boolean;
     verification_method: string;
-    validity_months?: number | null;
+    name: string;
+    item_kind:
+      | "Document Upload"
+      | "Electronic Signature"
+      | "Form"
+      | "Certification"
+      | "Training"
+      | "Acknowledgment"
+      | "Background Check"
+      | "Tax Form"
+      | "Payout Details";
+    is_blocking?: boolean;
+    valid_for_days?: number | null;
+    remind_days_before?: number | null;
   };
   OnboardingRequirementPage: {
     data: Array<Components["OnboardingRequirement"]>;
     next_cursor: string | null;
   };
   OnboardingRequirementUpdate: {
-    role_type?: Components["ExternalRoleType"];
+    role_type?: Components["ExternalRoleType"] | null;
     jurisdiction_id?: Components["JurisdictionId"];
-    item_type?: string;
-    title?: string;
-    blocking?: boolean;
     verification_method?: string;
-    validity_months?: number | null;
+    name?: string;
+    item_kind?:
+      | "Document Upload"
+      | "Electronic Signature"
+      | "Form"
+      | "Certification"
+      | "Training"
+      | "Acknowledgment"
+      | "Background Check"
+      | "Tax Form"
+      | "Payout Details";
+    is_blocking?: boolean;
+    valid_for_days?: number | null;
+    remind_days_before?: number | null;
   };
   OnboardingVerification: {
     id: string;
@@ -3158,7 +3245,7 @@ export interface Components {
     updated_by: string | null;
     onboarding_item_id: string;
     passed: boolean;
-    verified_by: string;
+    verified_by: string | null;
     verified_at: string;
     notes: string | null;
   };
@@ -3178,26 +3265,26 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    requisition_id: string;
+    requisition_id: string | null;
     project_id: string;
     scope_node_id: string | null;
     title: string;
     role_type: Components["ExternalRoleType"];
     role_code: Components["RoleCode"] & (string | null);
-    urid: Components["UridAtAnyGrain"];
-    description: string;
+    cat_urid: Components["UridAtAnyGrain"];
+    description: string | null;
     venue_id: string | null;
-    starts_at: string | null;
-    ends_at: string | null;
-    positions: number;
     rate_type: Components["RateType"] & (string | null);
-    rate_min_minor: number | null;
-    rate_max_minor: number | null;
-    currency: string;
     visibility: Components["OpportunityVisibility"];
-    application_deadline_at: string | null;
     opportunity_state: Components["OpportunityState"];
-    published_at: string | null;
+    jurisdiction_id: Components["JurisdictionId"] | null;
+    starts_on: string | null;
+    ends_on: string | null;
+    pay_min_minor: number | null;
+    pay_max_minor: number | null;
+    currency_code: string | null;
+    deadline_at: string | null;
+    minimum_age: number | null;
   };
   OpportunityAlert: {
     id: string;
@@ -3209,24 +3296,25 @@ export interface Components {
   };
   OpportunityAlertPage: { data: Array<Components["OpportunityAlert"]>; next_cursor: string | null };
   OpportunityCreate: {
-    requisition_id: string;
+    requisition_id?: string | null;
     project_id: string;
     scope_node_id?: string | null;
     title: string;
     role_type: Components["ExternalRoleType"];
     role_code?: Components["RoleCode"] & (string | null);
-    urid?: Components["UridAtAnyGrain"];
-    description: string;
+    cat_urid?: Components["UridAtAnyGrain"];
+    description?: string | null;
     venue_id?: string | null;
-    starts_at?: string | null;
-    ends_at?: string | null;
-    positions: number;
     rate_type?: Components["RateType"] & (string | null);
-    rate_min_minor?: number | null;
-    rate_max_minor?: number | null;
-    currency: string;
-    visibility: Components["OpportunityVisibility"];
-    application_deadline_at?: string | null;
+    visibility?: Components["OpportunityVisibility"];
+    jurisdiction_id?: Components["JurisdictionId"] | null;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    pay_min_minor?: number | null;
+    pay_max_minor?: number | null;
+    currency_code?: string | null;
+    deadline_at?: string | null;
+    minimum_age?: number | null;
   };
   OpportunityPage: { data: Array<Components["Opportunity"]>; next_cursor: string | null };
   OpportunityPosition: {
@@ -3237,25 +3325,21 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     opportunity_id: string;
-    title: string;
-    role_code: Components["RoleCode"] & (string | null);
-    count: number;
+    label: string;
+    call_at: string | null;
+    ends_at: string | null;
   };
   OpportunityPositionCreate: {
     opportunity_id: string;
-    title: string;
-    role_code?: Components["RoleCode"] & (string | null);
-    count: number;
+    label: string;
+    call_at?: string | null;
+    ends_at?: string | null;
   };
   OpportunityPositionPage: {
     data: Array<Components["OpportunityPosition"]>;
     next_cursor: string | null;
   };
-  OpportunityPositionUpdate: {
-    title?: string;
-    role_code?: Components["RoleCode"] & (string | null);
-    count?: number;
-  };
+  OpportunityPositionUpdate: { label?: string; call_at?: string | null; ends_at?: string | null };
   OpportunityQuestion: {
     id: string;
     org_id: string;
@@ -3287,30 +3371,30 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     opportunity_id: string;
-    tag_id: Components["TagId"];
     certification_id: string | null;
-    statement: string;
     insurance_minimum_minor: number | null;
-    currency: string;
+    requirement_kind: "Certification" | "Insurance" | "Equipment";
+    description: string;
+    currency_code: string | null;
   };
   OpportunityRequirementCreate: {
     opportunity_id: string;
-    tag_id?: Components["TagId"];
     certification_id?: string | null;
-    statement: string;
     insurance_minimum_minor?: number | null;
-    currency: string;
+    requirement_kind: "Certification" | "Insurance" | "Equipment";
+    description: string;
+    currency_code?: string | null;
   };
   OpportunityRequirementPage: {
     data: Array<Components["OpportunityRequirement"]>;
     next_cursor: string | null;
   };
   OpportunityRequirementUpdate: {
-    tag_id?: Components["TagId"];
     certification_id?: string | null;
-    statement?: string;
     insurance_minimum_minor?: number | null;
-    currency?: string;
+    requirement_kind?: "Certification" | "Insurance" | "Equipment";
+    description?: string;
+    currency_code?: string | null;
   };
   OpportunityState:
     "Draft" | "Pending Approval" | "Published" | "Paused" | "Filled" | "Closed" | "Canceled";
@@ -3327,18 +3411,20 @@ export interface Components {
     title?: string;
     role_type?: Components["ExternalRoleType"];
     role_code?: Components["RoleCode"] & (string | null);
-    urid?: Components["UridAtAnyGrain"];
-    description?: string;
+    cat_urid?: Components["UridAtAnyGrain"];
+    description?: string | null;
     venue_id?: string | null;
-    starts_at?: string | null;
-    ends_at?: string | null;
-    positions?: number;
     rate_type?: Components["RateType"] & (string | null);
-    rate_min_minor?: number | null;
-    rate_max_minor?: number | null;
-    currency?: string;
     visibility?: Components["OpportunityVisibility"];
-    application_deadline_at?: string | null;
+    requisition_id?: string | null;
+    jurisdiction_id?: Components["JurisdictionId"] | null;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    pay_min_minor?: number | null;
+    pay_max_minor?: number | null;
+    currency_code?: string | null;
+    deadline_at?: string | null;
+    minimum_age?: number | null;
   };
   OpportunityVisibility: "Invited" | "Pool" | "Network" | "Public";
   OrgBranding: {
@@ -5415,11 +5501,11 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    role_type: Components["ExternalRoleType"];
+    pool_kind: "Talent" | "Vendor";
   };
-  TalentPoolCreate: { name: string; role_type: Components["ExternalRoleType"] };
+  TalentPoolCreate: { name: string; pool_kind: "Talent" | "Vendor" };
   TalentPoolPage: { data: Array<Components["TalentPool"]>; next_cursor: string | null };
-  TalentPoolUpdate: { name?: string; role_type?: Components["ExternalRoleType"] };
+  TalentPoolUpdate: { name?: string };
   TaxForm: {
     id: string;
     org_id: string;
@@ -9096,15 +9182,6 @@ export interface Operations {
     body: Components["OfferUpdate"];
     responses: { 200: Components["Offer"] };
   };
-  "offers.send": {
-    module: "People";
-    method: "post";
-    path: "/offers/{id}/send";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["Offer"] };
-  };
   "offers.accept": {
     module: "People";
     method: "post";
@@ -9120,7 +9197,7 @@ export interface Operations {
     path: "/offers/{id}/decline";
     params: { id: string };
     query: Record<string, never>;
-    body: undefined;
+    body: Components["OfferDeclineRequest"];
     responses: { 200: Components["Offer"] };
   };
   "offers.counter": {
@@ -9129,7 +9206,16 @@ export interface Operations {
     path: "/offers/{id}/counter";
     params: { id: string };
     query: Record<string, never>;
-    body: Components["OfferUpdate"];
+    body: Components["OfferCounterRequest"];
+    responses: { 200: Components["Offer"] };
+  };
+  "offers.withdraw": {
+    module: "People";
+    method: "post";
+    path: "/offers/{id}/withdraw";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["OfferWithdrawRequest"];
     responses: { 200: Components["Offer"] };
   };
   "agreements.list": {
@@ -13303,15 +13389,6 @@ export interface Operations {
     params: { id: string };
     query: Record<string, never>;
     body: Components["BidUpdate"];
-    responses: { 200: Components["Bid"] };
-  };
-  "bids.unseal": {
-    module: "Opportunities";
-    method: "post";
-    path: "/bids/{id}/unseal";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
     responses: { 200: Components["Bid"] };
   };
   "bidLines.list": {
@@ -20131,7 +20208,6 @@ export interface ModuleOperations {
     | "bids.create"
     | "bids.get"
     | "bids.update"
-    | "bids.unseal"
     | "bidLines.list"
     | "bidLines.create"
     | "bidLines.get"
@@ -20204,10 +20280,10 @@ export interface ModuleOperations {
     | "offers.create"
     | "offers.get"
     | "offers.update"
-    | "offers.send"
     | "offers.accept"
     | "offers.decline"
     | "offers.counter"
+    | "offers.withdraw"
     | "agreements.list"
     | "agreements.create"
     | "agreements.get"
