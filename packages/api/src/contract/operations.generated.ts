@@ -5486,7 +5486,7 @@ export interface Components {
     person_id: string;
     membership_id: string;
   };
-  ServiceAccountCreate: { name: string; owner_person_id: string; expires_at?: string | null };
+  ServiceAccountCreate: { name: string; expires_at?: string | null; role_id: string };
   ServiceAccountPage: { data: Array<Components["ServiceAccount"]>; next_cursor: string | null };
   ServiceAccountUpdate: { name?: string; owner_person_id?: string; expires_at?: string | null };
   SettingDefinition: {
@@ -6506,6 +6506,7 @@ export interface Components {
   };
   WebhookEndpointCreate: { url: string; events: Array<string>; description?: string | null };
   WebhookEndpointPage: { data: Array<Components["WebhookEndpoint"]>; next_cursor: string | null };
+  WebhookEndpointSecret: { webhook_endpoint_id: string; signing_secret: string };
   WebhookEndpointUpdate: {
     url?: string;
     events?: Array<string>;
@@ -18311,7 +18312,7 @@ export interface Operations {
     params: Record<string, never>;
     query: Record<string, never>;
     body: Components["ApiKeyCreate"];
-    responses: { 201: Components["ApiKey"] };
+    responses: { 201: Components["ApiKeySecret"] };
   };
   "apiKeys.get": {
     module: "Settings";
@@ -18557,7 +18558,7 @@ export interface Operations {
     params: Record<string, never>;
     query: Record<string, never>;
     body: Components["WebhookEndpointCreate"];
-    responses: { 201: Components["WebhookEndpoint"] };
+    responses: { 201: Components["WebhookEndpointSecret"] };
   };
   "webhookEndpoints.get": {
     module: "Settings";

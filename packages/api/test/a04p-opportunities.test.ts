@@ -147,9 +147,10 @@ function world() {
       withdraw_offer: (args, self) => respond(self.tables, args, "Withdrawn"),
     },
     {
-      opportunities: { opportunity_state: "Draft" },
-      applications: { application_state: "Submitted" },
-      bids: { submitted_at: "2026-10-02T09:00:00.000Z" },
+      // The database derives org_id (derive_org_id).
+      opportunities: { org_id: ORG, opportunity_state: "Draft" },
+      applications: { org_id: ORG, application_state: "Submitted" },
+      bids: { org_id: ORG, submitted_at: "2026-10-02T09:00:00.000Z" },
       engagement_documents: { engagement_document_state: "Draft" },
     },
   );
@@ -204,6 +205,8 @@ describe("opportunities", () => {
     await expectContract(await success(made), "opportunities.create");
     const edited = await http.patch(`/opportunities/${OPP}`, { title: "Riggers For Load-In" });
     await expectContract(await success(edited), "opportunities.update");
+    const moved2 = await http.patch(`/opportunities/${OPP}`, { project_id: id(7999) });
+    expect(moved2.status).toBe(422);
     const moved = await http.post(`/opportunities/${OPP}/transitions`, {
       expected_state: "Draft",
       to_state: "Pending Approval",
