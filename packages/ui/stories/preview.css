@@ -1,0 +1,32 @@
+/* Story frame and the reference layout helpers the design previews wrap components in. Storybook
+   only; product screens lay out with the page templates and utilities. */
+.xos-story .xos-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.xos-story .xos-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.xos-story .xos-muted {
+  color: var(--color-text-secondary);
+}
+
+.xos-story .xos-label {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.xos-story .xos-code {
+  font-family: var(--font-family-mono);
+}
+
+.xos-story .xos-block {
+  inline-size: 100%;
+  justify-content: center;
+}
