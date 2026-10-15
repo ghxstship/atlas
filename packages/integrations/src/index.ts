@@ -9,3 +9,4 @@ export * from "./framework/store.ts";
 export * from "./framework/support.ts";
 export * from "./connectors/accounting/index.ts";
 export * from "./connectors/calendar/index.ts";
+export * from "./connectors/storage/index.ts";

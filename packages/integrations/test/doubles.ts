@@ -80,6 +80,7 @@ export function scriptedHttp(routes: Route[]) {
       status: result.status ?? 200,
       headers: result.headers ?? {},
       body: result.json !== undefined ? JSON.stringify(result.json) : (result.body ?? ""),
+      ...(result.bytes !== undefined ? { bytes: result.bytes } : {}),
     };
   };
   return { http, requests };

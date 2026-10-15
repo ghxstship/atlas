@@ -9,12 +9,16 @@ export interface HttpRequest {
   readonly url: string;
   readonly headers?: Readonly<Record<string, string>>;
   readonly body?: string | Uint8Array;
+  /** "bytes" asks for the response body as bytes too (file downloads). */
+  readonly responseType?: "text" | "bytes";
 }
 
 export interface HttpResponse {
   readonly status: number;
   readonly headers: Readonly<Record<string, string>>;
   readonly body: string;
+  /** The raw body, present when the request asked for bytes. */
+  readonly bytes?: Uint8Array;
 }
 
 export type HttpClient = (request: HttpRequest) => Promise<HttpResponse>;
@@ -36,6 +40,14 @@ export function httpFromFetch(fetchImpl: FetchLike, timeoutMs = 20000): HttpClie
     response.headers.forEach((value, key) => {
       headers[key.toLowerCase()] = value;
     });
+    if (request.responseType === "bytes" && response.status >= 200 && response.status < 300) {
+      return {
+        status: response.status,
+        headers,
+        body: "",
+        bytes: new Uint8Array(await response.arrayBuffer()),
+      };
+    }
     return { status: response.status, headers, body: await response.text() };
   };
 }
