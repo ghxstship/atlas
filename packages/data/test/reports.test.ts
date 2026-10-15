@@ -80,6 +80,7 @@ describe("budget versus actual", () => {
       expect.objectContaining({
         key: "5500",
         budgetMinor: null,
+        pricedRevisedMinor: 1000,
         unpricedCount: 1,
         actualMinor: 400,
         varianceMinor: null,
@@ -90,6 +91,7 @@ describe("budget versus actual", () => {
         budgetMinor: 1000,
         approvedChangeMinor: 250,
         revisedMinor: 1250,
+        pricedRevisedMinor: 1250,
         varianceMinor: 850,
       }),
     ]);
@@ -201,10 +203,12 @@ describe("final cost report", () => {
     expect(result.data.rows[1]).toMatchObject({
       accountCode: "5600",
       baselineMinor: null,
+      pricedRevisedMinor: null,
       varianceMinor: null,
     });
     expect(result.data.totals[0]).toMatchObject({
       baselineMinor: null,
+      pricedRevisedMinor: 12500,
       baselineUnpricedCount: 1,
       actualMinor: 9000,
     });

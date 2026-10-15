@@ -89,6 +89,11 @@ export interface VarianceRow {
   readonly approvedChangeMinor: number;
   /** Original plus approved change orders; null while the original is null. */
   readonly revisedMinor: number | null;
+  /**
+   * The priced lines plus approved change orders, leaving unpriced lines out (the API's MoneyTotal);
+   * null only when the group has inputs and every one is unpriced.
+   */
+  readonly pricedRevisedMinor: number | null;
   readonly actualMinor: number;
   /** Revised minus actual; null while the revised budget is null. */
   readonly varianceMinor: number | null;
@@ -201,6 +206,13 @@ export function workingBudgetIds(
   return ids;
 }
 
+/** Priced amounts plus approved changes; zero for no inputs, null when every input is unpriced. */
+function pricedPlus(amounts: readonly (number | null)[], change: number, changeCount: number) {
+  const priced = amounts.filter((a): a is number => a !== null);
+  if (priced.length + changeCount === 0) return amounts.length === 0 ? 0 : null;
+  return priced.reduce((s, a) => s + a, 0) + change;
+}
+
 function groupVariance(
   lines: readonly LineFact[],
   changes: readonly ChangeFact[],
@@ -216,12 +228,21 @@ function groupVariance(
       amounts: (number | null)[];
       actual: number;
       change: number;
+      changeCount: number;
       ids: string[];
     }
   >();
   const groupFor = (key: string, currency: string) => {
     const id = `${key}|${currency}`;
-    const g = groups.get(id) ?? { key, currency, amounts: [], actual: 0, change: 0, ids: [] };
+    const g = groups.get(id) ?? {
+      key,
+      currency,
+      amounts: [],
+      actual: 0,
+      change: 0,
+      changeCount: 0,
+      ids: [],
+    };
     groups.set(id, g);
     return g;
   };
@@ -234,6 +255,7 @@ function groupVariance(
   for (const c of changes) {
     const g = groupFor(keyOfChange(c), currencyOfBudget.get(c.budgetId) ?? "");
     g.change += c.extendedMinor ?? 0;
+    if (c.extendedMinor !== null) g.changeCount += 1;
   }
   return [...groups.values()]
     .map((g) => {
@@ -247,6 +269,7 @@ function groupVariance(
         unpricedCount: sum.unpricedCount,
         approvedChangeMinor: g.change,
         revisedMinor: revised,
+        pricedRevisedMinor: pricedPlus(g.amounts, g.change, g.changeCount),
         actualMinor: g.actual,
         varianceMinor: revised === null ? null : revised - g.actual,
         budgetLineIds: g.ids,
@@ -334,6 +357,8 @@ export interface FinalCostRow {
   readonly baselineUnpricedCount: number;
   readonly approvedChangeMinor: number;
   readonly revisedMinor: number | null;
+  /** Priced baseline lines plus approved changes; null only when every input is unpriced. */
+  readonly pricedRevisedMinor: number | null;
   /** Posted ledger actual: every posted debit less credit on the account for the project. */
   readonly actualMinor: number;
   readonly varianceMinor: number | null;
@@ -383,6 +408,7 @@ export async function finalCostReport(
       currency: string;
       amounts: (number | null)[];
       change: number;
+      changeCount: number;
       actual: number;
       ids: string[];
     }
@@ -394,6 +420,7 @@ export async function finalCostReport(
       currency: cur,
       amounts: [],
       change: 0,
+      changeCount: 0,
       actual: 0,
       ids: [],
     };
@@ -405,8 +432,11 @@ export async function finalCostReport(
     g.amounts.push(l.extendedMinor);
     g.ids.push(l.budgetLineId);
   }
-  for (const c of changes.data)
-    groupFor(c.accountCode ?? "", currency).change += c.extendedMinor ?? 0;
+  for (const c of changes.data) {
+    const g = groupFor(c.accountCode ?? "", currency);
+    g.change += c.extendedMinor ?? 0;
+    if (c.extendedMinor !== null) g.changeCount += 1;
+  }
   for (const p of postings.data) {
     const account = str(p["account_code"]);
     if (!account.startsWith("5")) continue;
@@ -417,6 +447,7 @@ export async function finalCostReport(
     currency: string;
     amounts: (number | null)[];
     change: number;
+    changeCount: number;
     actual: number;
     ids: string[];
   }): FinalCostRow => {
@@ -430,6 +461,7 @@ export async function finalCostReport(
       baselineUnpricedCount: sum.unpricedCount,
       approvedChangeMinor: g.change,
       revisedMinor: revised,
+      pricedRevisedMinor: pricedPlus(g.amounts, g.change, g.changeCount),
       actualMinor: g.actual,
       varianceMinor: revised === null ? null : revised - g.actual,
       budgetLineIds: g.ids,
@@ -455,6 +487,7 @@ export async function finalCostReport(
         baselineUnpricedCount: rs.reduce((s, r) => s + r.baselineUnpricedCount, 0),
         approvedChangeMinor: rs.reduce((s, r) => s + r.approvedChangeMinor, 0),
         revisedMinor: revised.total,
+        pricedRevisedMinor: nullAwareSum(rs.map((r) => r.pricedRevisedMinor)).priced,
         actualMinor: actual,
         varianceMinor: revised.total === null ? null : revised.total - actual,
         budgetLineIds: rs.flatMap((r) => r.budgetLineIds),
