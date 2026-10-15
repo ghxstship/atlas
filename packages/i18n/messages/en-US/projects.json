@@ -51,7 +51,9 @@
     "calendar": "Calendar",
     "tree": "Tree",
     "feed": "Feed",
-    "matrix": "Matrix"
+    "matrix": "Matrix",
+    "chart": "Chart",
+    "inbox": "Inbox"
   },
   "fields": {
     "key": "Key",
@@ -339,5 +341,16 @@
     "remove": "Remove",
     "scanning": "Checking for viruses",
     "infected": "Blocked by the virus scan"
+  },
+  "recordStates": {
+    "proposed": "Proposed",
+    "ready": "Ready",
+    "scheduled": "Scheduled",
+    "active": "Active",
+    "blocked": "Blocked",
+    "inReview": "In Review",
+    "complete": "Complete",
+    "deferred": "Deferred",
+    "canceled": "Canceled"
   }
 }

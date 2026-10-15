@@ -51,7 +51,9 @@
     "calendar": "Calendario",
     "tree": "Árbol",
     "feed": "Actividad",
-    "matrix": "Matriz"
+    "matrix": "Matriz",
+    "chart": "Gráfico",
+    "inbox": "Bandeja"
   },
   "fields": {
     "key": "Clave",
@@ -339,5 +341,16 @@
     "remove": "Quitar",
     "scanning": "Revisando si hay virus",
     "infected": "Bloqueado por la revisión de virus"
+  },
+  "recordStates": {
+    "proposed": "Propuesto",
+    "ready": "Listo",
+    "scheduled": "Programado",
+    "active": "Activo",
+    "blocked": "Bloqueado",
+    "inReview": "En revisión",
+    "complete": "Completo",
+    "deferred": "Aplazado",
+    "canceled": "Cancelado"
   }
 }

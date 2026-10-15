@@ -12,3 +12,8 @@ project.activity
 activity.feed
 activity.audit-log
 project.settings
+home
+home.today
+home.gate-readiness
+home.alerts
+home.recent
