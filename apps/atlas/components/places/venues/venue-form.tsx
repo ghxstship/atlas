@@ -93,8 +93,12 @@ export function VenueForm({
             />
           </div>
           <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
-            <legend className="mb-4 text-label-13 font-medium">{t("venues.fields.location")}</legend>
-            <p className="m-0 text-text-12 text-text-secondary">{t("venues.fields.locationHelp")}</p>
+            <legend className="mb-4 text-label-13 font-medium">
+              {t("venues.fields.location")}
+            </legend>
+            <p className="m-0 text-text-12 text-text-secondary">
+              {t("venues.fields.locationHelp")}
+            </p>
             <div className="flex flex-wrap gap-12">
               <Input
                 id="venue-latitude"

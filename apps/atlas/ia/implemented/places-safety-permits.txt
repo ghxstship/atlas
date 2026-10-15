@@ -1,3 +1,6 @@
 # Hand-written Atlas pages owned by A09 (Places, requirements and capability reconciliation, and
 # Safety: permit engine and inspections). One sitemap node id per line.
 places.venues
+places.spaces-and-zones
+places.capability-documents
+places.site-plans

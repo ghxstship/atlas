@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import type { Translate } from "@/lib/shell/translate";
 import { ViewSwitcher } from "./client";
-import { InlineAlert, PageHeader, TemplateCollection } from "./ui";
+import { PageHeader, TemplateCollection } from "./ui";
 import { withQuery, type ViewChoice } from "./views";
 
 /**
@@ -53,7 +53,15 @@ export function Collection({
 }
 
 /** The one primary action of a collection: opens the create drawer through `?create=1`. */
-export function CreateLink({ path, search, label }: { path: string; search: Search; label: string }) {
+export function CreateLink({
+  path,
+  search,
+  label,
+}: {
+  path: string;
+  search: Search;
+  label: string;
+}) {
   return (
     <ButtonLink href={withQuery(path, search, { create: "1", peek: undefined })} variant="primary">
       {label}
@@ -189,13 +197,17 @@ export function EntityList({
       {rows.map((row) => (
         <li key={row.id}>
           <Link
-            href={withQuery(path, search, { peek: row.id, full: undefined, create: undefined }) as Route}
+            href={
+              withQuery(path, search, { peek: row.id, full: undefined, create: undefined }) as Route
+            }
             scroll={false}
             className="flex min-h-row-comfortable flex-wrap items-center justify-between gap-8 px-16 py-8 hover:bg-bg-hover focus-visible:bg-bg-hover"
           >
             <span className="flex min-w-0 flex-col gap-2">
               <span className="text-text-14 font-medium text-text-primary">{row.title}</span>
-              {row.meta ? <span className="text-text-12 text-text-secondary">{row.meta}</span> : null}
+              {row.meta ? (
+                <span className="text-text-12 text-text-secondary">{row.meta}</span>
+              ) : null}
             </span>
             <span className="flex flex-wrap items-center gap-6">
               {row.chips}
@@ -221,23 +233,6 @@ export function CollectionEmpty({
   icon?: string;
 }) {
   return <EmptyStateLink icon={icon} sentence={sentence} actionLabel={actionLabel} href={href} />;
-}
-
-/**
- * Comments and attachments are blocked until A18 ships the unified comment and attachment system
- * (orchestrator broadcast 1, item 3). The panel names the feature and says what happens next.
- */
-export function BlockedCollaboration({ t }: { t: Translate }) {
-  return (
-    <section aria-labelledby="collaboration-heading" className="flex flex-col gap-8">
-      <h2 id="collaboration-heading" className="m-0 text-text-14 font-semibold">
-        {t("places.kit.collaboration.title")}
-      </h2>
-      <InlineAlert tone="info" title={t("places.kit.collaboration.blockedTitle")}>
-        {t("places.kit.collaboration.blockedBody")}
-      </InlineAlert>
-    </section>
-  );
 }
 
 /** A link back from a full record page to the collection, keeping its filters. */

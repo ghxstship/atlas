@@ -112,10 +112,7 @@ const ARCHIVABLE: readonly PlacesTable[] = [
   "site_plan_pins",
 ];
 
-export async function setPlaceArchivedAction(
-  _: ActionState,
-  form: FormData,
-): Promise<ActionState> {
+export async function setPlaceArchivedAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const table = text(form, "table") as PlacesTable | null;
   const id = uuid.safeParse(form.get("id"));
@@ -143,7 +140,11 @@ export async function saveSpaceAction(_: ActionState, form: FormData): Promise<A
   if (!name || name.length > 200) fieldErrors["name"] = "name";
   if (!venueId.success) fieldErrors["venueId"] = "venue";
   if (area === "invalid" || area === 0) fieldErrors["areaSqFt"] = "positive";
-  if (capacity === "invalid" || capacity === 0 || (capacity !== null && !Number.isInteger(capacity))) {
+  if (
+    capacity === "invalid" ||
+    capacity === 0 ||
+    (capacity !== null && !Number.isInteger(capacity))
+  ) {
     fieldErrors["capacity"] = "wholePositive";
   }
   if (Object.keys(fieldErrors).length > 0 || !name || !venueId.success) return { fieldErrors };
@@ -205,12 +206,7 @@ export async function saveCapabilityDocumentAction(
   if (!venueId.success) fieldErrors["venueId"] = "venue";
   if (!validFrom.success) fieldErrors["validFrom"] = "date";
   if (validTo !== null && !validTo.success) fieldErrors["validTo"] = "date";
-  if (
-    validFrom.success &&
-    validTo !== null &&
-    validTo.success &&
-    validTo.data < validFrom.data
-  ) {
+  if (validFrom.success && validTo !== null && validTo.success && validTo.data < validFrom.data) {
     fieldErrors["validTo"] = "validity";
   }
   if (
@@ -292,7 +288,13 @@ export async function addPinAction(_: ActionState, form: FormData): Promise<Acti
   if (!label || label.length > 200) fieldErrors["label"] = "label";
   if (x === null) fieldErrors["x"] = "percent";
   if (y === null) fieldErrors["y"] = "percent";
-  if (Object.keys(fieldErrors).length > 0 || !sitePlanId.success || !label || x === null || y === null) {
+  if (
+    Object.keys(fieldErrors).length > 0 ||
+    !sitePlanId.success ||
+    !label ||
+    x === null ||
+    y === null
+  ) {
     return { fieldErrors };
   }
   const result = await addSitePlanPin(ctx.viewer.db, {
@@ -386,10 +388,7 @@ export async function archiveCapabilityStatementAction(
   return { ok: true };
 }
 
-export async function reconcileProjectAction(
-  _: ActionState,
-  form: FormData,
-): Promise<ActionState> {
+export async function reconcileProjectAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const projectId = uuid.safeParse(form.get("projectId"));
   if (!projectId.success) return { error: "notFound" };

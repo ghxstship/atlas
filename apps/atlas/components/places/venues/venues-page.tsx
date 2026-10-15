@@ -16,12 +16,12 @@ import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { setPlaceArchivedAction } from "@/app/[org]/places/actions";
 import { heldCapabilities } from "../kit/access";
+import { Collaboration } from "../kit/collaboration";
 import { ActionButton } from "../kit/buttons";
 import { PeekTable, QueryDrawer } from "../kit/client";
 import {
   ArchiveFilter as ArchiveFilterLinks,
   BackLink,
-  BlockedCollaboration,
   Collection,
   CollectionEmpty,
   CreateLink,
@@ -64,8 +64,12 @@ export function projectVenues(venues: readonly Venue[]) {
   return located.map((v) => ({
     id: v.id,
     label: v.name,
-    x: MAP.margin + (located.length === 1 ? innerW / 2 : ((v.longitude - west) / span(west, east)) * innerW),
-    y: MAP.margin + (located.length === 1 ? innerH / 2 : ((north - v.latitude) / span(south, north)) * innerH),
+    x:
+      MAP.margin +
+      (located.length === 1 ? innerW / 2 : ((v.longitude - west) / span(west, east)) * innerW),
+    y:
+      MAP.margin +
+      (located.length === 1 ? innerH / 2 : ((north - v.latitude) / span(south, north)) * innerH),
   }));
 }
 
@@ -103,6 +107,7 @@ export async function VenuesPage({
     return (
       <VenueRecord
         db={db}
+        me={ctx.viewer.person?.id ?? null}
         org={ctx.org.slug}
         id={peekId}
         backHref={withQuery(path, search, { peek: undefined, full: undefined })}
@@ -131,6 +136,7 @@ export async function VenuesPage({
       <QueryDrawer title={t("places.venues.peekTitle")} closeKeys={["peek"]}>
         <VenueDetail
           db={db}
+          me={ctx.viewer.person?.id ?? null}
           org={ctx.org.slug}
           id={peekId}
           openFullHref={withQuery(path, search, { full: "1" })}
@@ -231,7 +237,11 @@ export async function VenuesPage({
       title={t("places.venues.title")}
       count={rows.length}
       views={views}
-      primary={canWrite ? <CreateLink path={path} search={search} label={t("places.venues.create")} /> : null}
+      primary={
+        canWrite ? (
+          <CreateLink path={path} search={search} label={t("places.venues.create")} />
+        ) : null
+      }
       filters={
         <>
           <SearchBox path={path} search={search} label={t("places.venues.search")} />
@@ -247,6 +257,7 @@ export async function VenuesPage({
 
 interface DetailProps {
   db: XosClient;
+  me: string | null;
   org: string;
   id: string;
   jurisdictions: readonly Jurisdiction[];
@@ -274,7 +285,10 @@ async function VenueProperties({ venue, t }: { venue: Venue; t: Translate }) {
       items={[
         { label: t("places.venues.fields.jurisdiction"), value: <Tag>{venue.jurisdictionId}</Tag> },
         { label: t("places.venues.fields.timeZone"), value: venue.timeZone },
-        { label: t("places.venues.fields.address"), value: address(venue) ?? t("places.kit.notRecorded") },
+        {
+          label: t("places.venues.fields.address"),
+          value: address(venue) ?? t("places.kit.notRecorded"),
+        },
         {
           label: t("places.venues.fields.location"),
           value:
@@ -287,21 +301,35 @@ async function VenueProperties({ venue, t }: { venue: Venue; t: Translate }) {
         },
         {
           label: t("places.kit.updated"),
-          value: format.dateTime(new Date(venue.updatedAt), { dateStyle: "medium", timeStyle: "short" }),
+          value: format.dateTime(new Date(venue.updatedAt), {
+            dateStyle: "medium",
+            timeStyle: "short",
+          }),
         },
       ]}
     />
   );
 }
 
-function VenueLinks({ venue, t, params }: { venue: Venue; t: Translate; params: Readonly<Record<string, string>> }) {
+function VenueLinks({
+  venue,
+  t,
+  params,
+}: {
+  venue: Venue;
+  t: Translate;
+  params: Readonly<Record<string, string>>;
+}) {
   const spaces = nodeHref("places.spaces-and-zones", params);
   const docs = nodeHref("places.capability-documents", params);
   return (
     <ul className="m-0 flex list-none flex-wrap gap-12 p-0 text-text-13">
       {spaces ? (
         <li>
-          <Link className="text-accent-text underline" href={`${spaces}?venue=${venue.id}` as Route}>
+          <Link
+            className="text-accent-text underline"
+            href={`${spaces}?venue=${venue.id}` as Route}
+          >
             {t("places.venues.spacesLink", { spaces: venue.spaceCount, zones: venue.zoneCount })}
           </Link>
         </li>
@@ -334,7 +362,9 @@ function ProvidedCapabilities({
             <li key={s.id} className="flex flex-wrap items-center gap-6 text-text-13">
               <span className="font-mono text-text-12">{s.urid}</span>
               <span>{s.description}</span>
-              <Tag tone={s.assertionWord === "UNKNOWN" ? "warning" : "neutral"}>{s.assertionWord}</Tag>
+              <Tag tone={s.assertionWord === "UNKNOWN" ? "warning" : "neutral"}>
+                {s.assertionWord}
+              </Tag>
             </li>
           ))}
         </ul>
@@ -360,18 +390,27 @@ async function VenueDetail(props: DetailProps & { openFullHref: string }) {
   const { org, id, jurisdictions, canWrite, t, params } = props;
   const loaded = await loadVenue(props.db, id);
   if (!loaded) {
-    return <InlineAlert tone="warning" title={t("places.kit.peekMissingTitle")}>{t("places.kit.peekMissing")}</InlineAlert>;
+    return (
+      <InlineAlert tone="warning" title={t("places.kit.peekMissingTitle")}>
+        {t("places.kit.peekMissing")}
+      </InlineAlert>
+    );
   }
   const { venue, statements } = loaded;
   return (
     <div className="flex flex-col gap-16">
       <div className="flex flex-wrap items-center justify-between gap-8">
         <h3 className="m-0 text-heading-20 font-semibold">{venue.name}</h3>
-        <Link href={props.openFullHref as Route} className="text-text-13 text-accent-text underline">
+        <Link
+          href={props.openFullHref as Route}
+          className="text-text-13 text-accent-text underline"
+        >
           {t("places.kit.openFull")}
         </Link>
       </div>
-      {venue.archivedAt ? <InlineAlert tone="warning">{t("places.venues.archivedNotice")}</InlineAlert> : null}
+      {venue.archivedAt ? (
+        <InlineAlert tone="warning">{t("places.venues.archivedNotice")}</InlineAlert>
+      ) : null}
       <VenueProperties venue={venue} t={t} />
       <VenueLinks venue={venue} t={t} params={params} />
       <ProvidedCapabilities statements={statements} t={t} />
@@ -381,7 +420,13 @@ async function VenueDetail(props: DetailProps & { openFullHref: string }) {
           <ArchiveControl org={org} venue={venue} t={t} />
         </RecordSection>
       ) : null}
-      <BlockedCollaboration t={t} />
+      <Collaboration
+        db={props.db}
+        org={org}
+        subject={{ table: "app.venues", id: venue.id }}
+        me={props.me}
+        canPost
+      />
     </div>
   );
 }
@@ -394,7 +439,9 @@ async function VenueRecord(props: DetailProps & { backHref: string }) {
     return (
       <div className="flex flex-col gap-12">
         <BackLink href={props.backHref} label={t("places.venues.back")} />
-        <InlineAlert tone="warning" title={t("places.kit.peekMissingTitle")}>{t("places.kit.peekMissing")}</InlineAlert>
+        <InlineAlert tone="warning" title={t("places.kit.peekMissingTitle")}>
+          {t("places.kit.peekMissing")}
+        </InlineAlert>
       </div>
     );
   }
@@ -425,7 +472,13 @@ async function VenueRecord(props: DetailProps & { backHref: string }) {
             <VenueForm org={org} venue={venue} jurisdictions={jurisdictions} />
           </RecordSection>
         ) : null}
-        <BlockedCollaboration t={t} />
+        <Collaboration
+          db={props.db}
+          org={org}
+          subject={{ table: "app.venues", id: venue.id }}
+          me={props.me}
+          canPost
+        />
       </TemplateRecord>
     </div>
   );

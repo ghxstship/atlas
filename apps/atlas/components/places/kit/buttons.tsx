@@ -98,7 +98,7 @@ export function ConfirmButton({
         trigger={<Button variant="secondary">{label}</Button>}
         actions={
           <>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
               {t("kit.cancel")}
             </Button>
             <Button type="submit" form={formId} variant="primary" loading={pending}>

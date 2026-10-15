@@ -11,14 +11,7 @@ import { sitemap } from "@/lib/shell/sitemap";
  */
 
 export type ViewType =
-  | "list"
-  | "table"
-  | "map"
-  | "gallery"
-  | "tree"
-  | "site-plan"
-  | "board"
-  | "calendar";
+  "list" | "table" | "map" | "gallery" | "tree" | "site-plan" | "board" | "calendar";
 
 export interface ViewChoice {
   readonly offered: readonly ViewType[];
