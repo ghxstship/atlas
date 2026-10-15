@@ -147,7 +147,7 @@ describe("request conventions", () => {
       if (ifMatch !== '"W/1"') throw refused("REFUSE", "Stale.", "test.rule");
       return ok(project as never);
     },
-    "projects.delete": async () => {
+    "scopeNodes.delete": async () => {
       throw {
         code: "XR001",
         message: "sod.po.creator_cannot_approve: The creator cannot approve.",
@@ -237,7 +237,7 @@ describe("request conventions", () => {
 
   it("maps SQLSTATE XR001 to a refusal carrying its rule", async () => {
     const { instance } = app([projects]);
-    const res = await instance.request(`/projects/${project.id}`, {
+    const res = await instance.request(`/scope-nodes/${project.id}`, {
       method: "DELETE",
       headers: auth,
     });

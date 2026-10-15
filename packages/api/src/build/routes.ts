@@ -24,13 +24,16 @@ function article(label: string): string {
   return /^[aeiou]/i.test(label) && !/^(one|use)/i.test(label) ? "an" : "a";
 }
 
-const pageCache = new Map<string, z.ZodType>();
+/** One page schema per item schema, so every operation listing it references one component. */
+const pageCache = new WeakMap<z.ZodType, Map<string, z.ZodType>>();
 
 function pageOf(schema: z.ZodType, id: string): z.ZodType {
-  const cached = pageCache.get(id);
+  const byId = pageCache.get(schema) ?? new Map<string, z.ZodType>();
+  pageCache.set(schema, byId);
+  const cached = byId.get(id);
   if (cached !== undefined) return cached;
   const p = page(schema, id);
-  pageCache.set(id, p);
+  byId.set(id, p);
   return p;
 }
 
@@ -61,11 +64,14 @@ function orderDescription(spec: ResourceSpec): string {
   const by = spec.order.by.map((f) => `\`${f}\``).join(", then ");
   return spec.order.numeric
     ? `Coded list: the default order is numeric code order by ${by}.`
-    : `The default order is ${by} ascending.`;
+    : `The default order is ${by} ${spec.order.descending === true ? "descending, newest first" : "ascending"}.`;
 }
 
 function orderExtension(spec: ResourceSpec) {
-  return { "x-xos-order": { by: [...spec.order.by], numeric: spec.order.numeric } };
+  const { by, numeric, descending } = spec.order;
+  return {
+    "x-xos-order": { by: [...by], numeric, ...(descending === true ? { descending } : {}) },
+  };
 }
 
 interface Built {
