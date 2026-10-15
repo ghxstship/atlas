@@ -1,6 +1,5 @@
-import type { XosClient } from "./client";
-import { isReplay } from "./credentials";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Safety incidents repository (Section 4.2 Safety, Section 7.4, invariant 22): incidents with their
@@ -228,54 +227,40 @@ export interface ReportedIncident {
 }
 
 /**
- * Reports an incident. The database sets the reporter from the session, numbers it from the
- * project sequence, checks the canon severity and refuses a closed production.
+ * Reports an incident through app.report_incident (migration 0471). The database sets the reporter
+ * from the session, numbers it from the project sequence, checks the canon severity and refuses a
+ * closed production. A client id makes a replay return the stored incident with `replayed`.
  */
 export async function reportIncident(
   db: XosClient,
   input: ReportIncidentInput,
 ): Promise<Result<ReportedIncident>> {
-  const row: Record<string, unknown> = {
-    org_id: input.orgId,
-    project_id: input.projectId,
-    title: input.title.trim(),
-    severity_enum_id: input.severityId,
-    occurred_at: input.occurredAt,
-    zone_id: input.zoneId ?? null,
-  };
-  if (input.id) row["id"] = input.id;
-  if (input.latitude !== undefined && input.longitude !== undefined) {
-    row["latitude"] = input.latitude;
-    row["longitude"] = input.longitude;
-    if (input.accuracyM !== undefined) row["accuracy_m"] = input.accuracyM;
-  }
-  if (input.deviceAt) row["device_reported_at"] = input.deviceAt;
-  const { data, error } = await db
-    .from("incidents")
-    .insert(row as never)
-    .select("id, incident_number, incident_state")
-    .single();
-  if (error) {
-    if (!isReplay(error, input.id)) return fail(toDataError(error));
-    const stored = await db
-      .from("incidents")
-      .select("id, incident_number, incident_state, reported_by")
-      .eq("id", input.id as string)
-      .maybeSingle();
-    if (stored.error) return fail(toDataError(stored.error));
-    if (!stored.data) return fail({ kind: "not-found" });
-    return ok({
-      id: stored.data.id,
-      incidentNumber: stored.data.incident_number,
-      incidentState: stored.data.incident_state,
-      replayed: true,
-    });
-  }
+  const located = input.latitude !== undefined && input.longitude !== undefined;
+  const { data, error } = await db.rpc("report_incident", {
+    p_project_id: input.projectId,
+    p_title: input.title.trim(),
+    p_severity_enum_id: input.severityId,
+    p_occurred_at: input.occurredAt,
+    ...(input.zoneId ? { p_zone_id: input.zoneId } : {}),
+    ...(located
+      ? { p_latitude: input.latitude as number, p_longitude: input.longitude as number }
+      : {}),
+    ...(located && input.accuracyM !== undefined ? { p_accuracy_m: input.accuracyM } : {}),
+    ...(input.deviceAt ? { p_device_reported_at: input.deviceAt } : {}),
+    ...(input.id ? { p_id: input.id } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  const row = (
+    data as
+      | { id: string; incident_number: number; incident_state: IncidentState; replayed: boolean }[]
+      | null
+  )?.[0];
+  if (!row) return fail({ kind: "not-found" });
   return ok({
-    id: data.id,
-    incidentNumber: data.incident_number,
-    incidentState: data.incident_state,
-    replayed: false,
+    id: row.id,
+    incidentNumber: row.incident_number,
+    incidentState: row.incident_state,
+    replayed: row.replayed,
   });
 }
 
@@ -427,7 +412,7 @@ export async function listIncidentParties(
   );
 }
 
-/** Adds a party. Idempotent on a client id for Compass replays (A17). */
+/** Adds a party through app.add_incident_party. Idempotent on a client id for Compass replays (A17). */
 export async function addIncidentParty(
   db: XosClient,
   input: {
@@ -438,22 +423,14 @@ export async function addIncidentParty(
     readonly id?: string;
   },
 ): Promise<Result<{ id: string; replayed: boolean }>> {
-  const { data, error } = await db
-    .from("incident_parties")
-    .insert({
-      ...(input.id ? { id: input.id } : {}),
-      org_id: input.orgId,
-      incident_id: input.incidentId,
-      person_id: input.personId ?? null,
-      description: input.description.trim(),
-    })
-    .select("id")
-    .single();
-  if (error) {
-    if (isReplay(error, input.id)) return ok({ id: input.id as string, replayed: true });
-    return fail(toDataError(error));
-  }
-  return ok({ id: data.id, replayed: false });
+  const { data, error } = await db.rpc("add_incident_party", {
+    p_incident_id: input.incidentId,
+    p_description: input.description.trim(),
+    ...(input.personId ? { p_person_id: input.personId } : {}),
+    ...(input.id ? { p_id: input.id } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data, replayed: false });
 }
 
 export async function removeIncidentParty(db: XosClient, id: string): Promise<Result<null>> {
@@ -490,7 +467,7 @@ export async function listIncidentMedia(
   );
 }
 
-/** Attaches a photo or video already stored in the incident bucket. Idempotent on a client id. */
+/** Attaches a photo or video already stored, through app.add_incident_media. Idempotent on a client id. */
 export async function addIncidentMedia(
   db: XosClient,
   input: {
@@ -501,22 +478,14 @@ export async function addIncidentMedia(
     readonly id?: string;
   },
 ): Promise<Result<{ id: string; replayed: boolean }>> {
-  const { data, error } = await db
-    .from("incident_media")
-    .insert({
-      ...(input.id ? { id: input.id } : {}),
-      org_id: input.orgId,
-      incident_id: input.incidentId,
-      media_uri: input.mediaUri,
-      captured_at: input.capturedAt ?? null,
-    } as never)
-    .select("id")
-    .single();
-  if (error) {
-    if (isReplay(error, input.id)) return ok({ id: input.id as string, replayed: true });
-    return fail(toDataError(error));
-  }
-  return ok({ id: (data as { id: string }).id, replayed: false });
+  const { data, error } = await db.rpc("add_incident_media", {
+    p_incident_id: input.incidentId,
+    p_media_uri: input.mediaUri,
+    ...(input.capturedAt ? { p_captured_at: input.capturedAt } : {}),
+    ...(input.id ? { p_id: input.id } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data, replayed: false });
 }
 
 export async function removeIncidentMedia(db: XosClient, id: string): Promise<Result<null>> {
@@ -590,7 +559,7 @@ export async function listMyDispatches(
   return ok((data as unknown as DispatchRow[]).map(toDispatch));
 }
 
-/** Dispatches a responder (safety.incident.dispatch). Idempotent on a client id. */
+/** Dispatches a responder through app.dispatch_responder (safety.incident.dispatch). Idempotent on a client id. */
 export async function dispatchResponder(
   db: XosClient,
   input: {
@@ -600,46 +569,26 @@ export async function dispatchResponder(
     readonly id?: string;
   },
 ): Promise<Result<{ id: string; replayed: boolean }>> {
-  const { data, error } = await db
-    .from("dispatch_assignments")
-    .insert({
-      ...(input.id ? { id: input.id } : {}),
-      org_id: input.orgId,
-      incident_id: input.incidentId,
-      membership_id: input.membershipId,
-    })
-    .select("id")
-    .single();
-  if (error) {
-    if (isReplay(error, input.id)) return ok({ id: input.id as string, replayed: true });
-    return fail(toDataError(error));
-  }
-  return ok({ id: data.id, replayed: false });
+  const { data, error } = await db.rpc("dispatch_responder", {
+    p_incident_id: input.incidentId,
+    p_membership_id: input.membershipId,
+    ...(input.id ? { p_id: input.id } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: data, replayed: false });
 }
 
-/** Records the responder's arrival; a second call keeps the first arrival time. */
+/**
+ * Records the responder's arrival through app.mark_dispatch_arrived, by the responder or a
+ * dispatcher. A second call keeps the first arrival time and returns it.
+ */
 export async function markArrived(
   db: XosClient,
   id: string,
-  at: Date = new Date(),
-): Promise<Result<null>> {
-  const { data, error } = await db
-    .from("dispatch_assignments")
-    .update({ arrived_at: at.toISOString() })
-    .eq("id", id)
-    .is("deleted_at", null)
-    .is("arrived_at", null)
-    .select("id");
+): Promise<Result<{ arrivedAt: string }>> {
+  const { data, error } = await db.rpc("mark_dispatch_arrived", { p_dispatch_assignment_id: id });
   if (error) return fail(toDataError(error));
-  if (data.length > 0) return ok(null);
-  const existing = await db
-    .from("dispatch_assignments")
-    .select("id")
-    .eq("id", id)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (existing.error) return fail(toDataError(existing.error));
-  return existing.data ? ok(null) : fail({ kind: "not-found" });
+  return ok({ arrivedAt: data });
 }
 
 export async function withdrawResponder(db: XosClient, id: string): Promise<Result<null>> {
@@ -681,8 +630,9 @@ export async function listMedicalEncounters(
 }
 
 /**
- * Records a medical encounter. Only the id comes back, so the Restricted notes never travel back
- * to the caller. The Atlas action requires data.restricted.read.medical before calling this.
+ * Records a medical encounter through app.record_medical_encounter (A03F 0363), which encrypts the
+ * treatment notes before they reach the table. Only the id comes back, so the notes never travel
+ * back to the caller. The Atlas action requires data.restricted.read.medical before calling this.
  */
 export async function addMedicalEncounter(
   db: XosClient,
@@ -694,19 +644,38 @@ export async function addMedicalEncounter(
     readonly disposition: string | null;
   },
 ): Promise<Result<{ id: string }>> {
-  const { data, error } = await db
-    .from("medical_encounters")
-    .insert({
-      org_id: input.orgId,
-      incident_id: input.incidentId,
-      patient_description: input.patientDescription.trim(),
-      treatment_notes: input.treatmentNotes?.trim() || null,
-      disposition: input.disposition?.trim() || null,
-    })
-    .select("id")
-    .single();
+  const notes = input.treatmentNotes?.trim();
+  const disposition = input.disposition?.trim();
+  const { data, error } = await db.rpc("record_medical_encounter", {
+    p_incident_id: input.incidentId,
+    p_patient_description: input.patientDescription.trim(),
+    ...(notes ? { p_treatment_notes: notes } : {}),
+    ...(disposition ? { p_disposition: disposition } : {}),
+  });
   if (error) return fail(toDataError(error));
-  return ok({ id: data.id });
+  return ok({ id: data });
+}
+
+/** Updates a medical encounter through app.update_medical_encounter; an omitted value is kept. */
+export async function updateMedicalEncounter(
+  db: XosClient,
+  id: string,
+  input: {
+    readonly patientDescription?: string;
+    readonly treatmentNotes?: string;
+    readonly disposition?: string;
+  },
+): Promise<Result<null>> {
+  const { error } = await db.rpc("update_medical_encounter", {
+    p_medical_encounter_id: id,
+    ...(input.patientDescription?.trim()
+      ? { p_patient_description: input.patientDescription.trim() }
+      : {}),
+    ...(input.treatmentNotes?.trim() ? { p_treatment_notes: input.treatmentNotes.trim() } : {}),
+    ...(input.disposition?.trim() ? { p_disposition: input.disposition.trim() } : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
 }
 
 // Crisis alerts and emergency codes --------------------------------------------------------------

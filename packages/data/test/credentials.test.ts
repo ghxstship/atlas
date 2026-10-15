@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { XosClient } from "../src/client";
+import type { XosClient } from "../src/client.ts";
 import {
   archiveCredentialCategory,
   createCredentialCategory,
@@ -27,8 +27,8 @@ import {
   updateCredentialWindow,
   updateZoneAccess,
   withdrawZoneAccess,
-} from "../src/credentials";
-import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client";
+} from "../src/credentials.ts";
+import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client.ts";
 
 /** The fake client with `schema()` returning itself, for canon reads. */
 function client(queues: Record<string, Response[]>) {
@@ -59,13 +59,21 @@ const credentialRow = {
 
 describe("projects and zones", () => {
   it("lists projects and finds one by key", async () => {
-    const row = { id: "j1", project_key: "NWL", name: "Northwind", venue_id: "v1" };
+    const row = {
+      id: "j1",
+      project_key: "NWL",
+      name: "Northwind",
+      venue_id: "v1",
+      time_zone: "America/New_York",
+    };
     const { db, calls } = client({
       "from:projects": [okResponse([row]), okResponse(row), okResponse(null), denied],
     });
     expect(await operationsProjects(db, "o1")).toEqual({
       ok: true,
-      data: [{ id: "j1", key: "NWL", name: "Northwind", venueId: "v1" }],
+      data: [
+        { id: "j1", key: "NWL", name: "Northwind", venueId: "v1", timeZone: "America/New_York" },
+      ],
     });
     expect((await operationsProjectByKey(db, "o1", "NWL")).ok).toBe(true);
     expect(await operationsProjectByKey(db, "o1", "ZZZ")).toEqual({
@@ -271,6 +279,7 @@ describe("issued credentials", () => {
     expect(
       await issueCredential(db, {
         orgId: "o1",
+        projectId: "j1",
         categoryId: "k1",
         holderPersonId: "p2",
         validFrom: "2026-10-14T00:00:00Z",
@@ -279,14 +288,17 @@ describe("issued credentials", () => {
     expect(calls[0]?.steps[0]?.[1]).toEqual([
       {
         org_id: "o1",
+        project_id: "j1",
         credential_category_id: "k1",
         holder_person_id: "p2",
+        engagement_id: null,
         valid_from: "2026-10-14T00:00:00Z",
         valid_to: null,
       },
     ]);
     const refused = await issueCredential(db, {
       orgId: "o1",
+      projectId: "j1",
       categoryId: "k1",
       holderPersonId: "p1",
     });
@@ -366,6 +378,7 @@ describe("access grid", () => {
     expect(listed.ok && listed.data.map((g) => g.zoneCode)).toEqual(["FOH", ""]);
     const input = {
       orgId: "o1",
+      projectId: "j1",
       categoryId: "k1",
       zoneId: "z1",
       accessLevelId: "ENM-036",
@@ -475,7 +488,6 @@ describe("scans", () => {
       [
         {
           p_zone_id: "z1",
-          p_credential_id: null,
           p_credential_number: "CR-000001",
           p_id: "01920000-0000-7000-8000-00000000a001",
           p_device_scanned_at: "2026-10-14T11:00:00Z",

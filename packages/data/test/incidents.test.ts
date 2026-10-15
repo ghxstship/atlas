@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { XosClient } from "../src/client";
+import type { XosClient } from "../src/client.ts";
 import {
   addIncidentMedia,
   addIncidentParty,
@@ -33,10 +33,11 @@ import {
   reportIncident,
   transitionIncident,
   updateIncident,
+  updateMedicalEncounter,
   updateRadioChannel,
   withdrawResponder,
-} from "../src/incidents";
-import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client";
+} from "../src/incidents.ts";
+import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client.ts";
 
 function client(queues: Record<string, Response[]>) {
   const fake = fakeClient(queues);
@@ -45,7 +46,6 @@ function client(queues: Record<string, Response[]>) {
 }
 
 const down = errorResponse("08006", "down");
-const replay = errorResponse("23505", 'duplicate key value violates unique constraint "x_pkey"');
 const ID = "01920000-0000-7000-8000-00000000b001";
 
 const incidentRow = {
@@ -143,16 +143,11 @@ describe("incidents", () => {
     expect((await getIncident(db, "i1")).ok).toBe(false);
   });
 
-  it("reports with location and device time, and replays a client id", async () => {
+  it("reports through app.report_incident with the offline contract", async () => {
     const { db, calls } = client({
-      "from:incidents": [
-        okResponse({ id: ID, incident_number: 7, incident_state: "Reported" }),
-        replay,
-        okResponse({ id: ID, incident_number: 7, incident_state: "Dispatched", reported_by: "p4" }),
-        replay,
-        okResponse(null),
-        replay,
-        down,
+      "rpc:report_incident": [
+        okResponse([{ id: ID, incident_number: 7, incident_state: "Reported", replayed: true }]),
+        okResponse([]),
         down,
       ],
     });
@@ -162,6 +157,7 @@ describe("incidents", () => {
       title: " Guest Fall ",
       severityId: "ENM-099",
       occurredAt: "2026-10-14T11:50:00Z",
+      zoneId: "z1",
       id: ID,
       latitude: 25.8,
       longitude: -80.2,
@@ -170,30 +166,31 @@ describe("incidents", () => {
     };
     expect(await reportIncident(db, input)).toEqual({
       ok: true,
-      data: { id: ID, incidentNumber: 7, incidentState: "Reported", replayed: false },
+      data: { id: ID, incidentNumber: 7, incidentState: "Reported", replayed: true },
     });
-    expect(calls[0]?.steps[0]?.[1]).toEqual([
-      {
-        org_id: "o1",
-        project_id: "j1",
-        title: "Guest Fall",
-        severity_enum_id: "ENM-099",
-        occurred_at: "2026-10-14T11:50:00Z",
-        zone_id: null,
-        id: ID,
-        latitude: 25.8,
-        longitude: -80.2,
-        accuracy_m: 12,
-        device_reported_at: "2026-10-14T11:51:00Z",
-      },
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_project_id: "j1",
+          p_title: "Guest Fall",
+          p_severity_enum_id: "ENM-099",
+          p_occurred_at: "2026-10-14T11:50:00Z",
+          p_zone_id: "z1",
+          p_latitude: 25.8,
+          p_longitude: -80.2,
+          p_accuracy_m: 12,
+          p_device_reported_at: "2026-10-14T11:51:00Z",
+          p_id: ID,
+        },
+      ],
     ]);
-    expect(await reportIncident(db, input)).toEqual({
-      ok: true,
-      data: { id: ID, incidentNumber: 7, incidentState: "Dispatched", replayed: true },
-    });
-    expect(await reportIncident(db, input)).toEqual({ ok: false, error: { kind: "not-found" } });
-    expect((await reportIncident(db, input)).ok).toBe(false);
     const plain = { orgId: "o1", projectId: "j1", title: "T", severityId: "E", occurredAt: "x" };
+    expect(await reportIncident(db, plain)).toEqual({ ok: false, error: { kind: "not-found" } });
+    expect(calls[1]?.steps[0]).toEqual([
+      "args",
+      [{ p_project_id: "j1", p_title: "T", p_severity_enum_id: "E", p_occurred_at: "x" }],
+    ]);
     expect((await reportIncident(db, plain)).ok).toBe(false);
   });
 
@@ -273,27 +270,22 @@ describe("incidents", () => {
 });
 
 describe("parties and media", () => {
-  it("lists, adds idempotently and removes parties", async () => {
-    const { db } = client({
+  it("lists, adds and removes parties", async () => {
+    const { db, calls } = client({
       "from:incident_parties": [
         okResponse([{ id: "pa", person_id: null, description: "Witness", person: null }]),
-        okResponse({ id: "pb" }),
-        replay,
-        down,
         okResponse([{ id: "pa" }]),
         okResponse([]),
         down,
         down,
       ],
+      "rpc:add_incident_party": [okResponse("pb"), okResponse(ID), down],
     });
     const listed = await listIncidentParties(db, "i1");
     expect(listed.ok && listed.data[0]?.personName).toBeNull();
     expect(
       await addIncidentParty(db, { orgId: "o1", incidentId: "i1", description: " Witness " }),
-    ).toEqual({
-      ok: true,
-      data: { id: "pb", replayed: false },
-    });
+    ).toEqual({ ok: true, data: { id: "pb", replayed: false } });
     expect(
       await addIncidentParty(db, {
         orgId: "o1",
@@ -302,7 +294,11 @@ describe("parties and media", () => {
         id: ID,
         personId: "p2",
       }),
-    ).toEqual({ ok: true, data: { id: ID, replayed: true } });
+    ).toEqual({ ok: true, data: { id: ID, replayed: false } });
+    expect(calls.filter((c) => c.target === "rpc:add_incident_party")[1]?.steps[0]).toEqual([
+      "args",
+      [{ p_incident_id: "i1", p_description: "W", p_person_id: "p2", p_id: ID }],
+    ]);
     expect(
       (await addIncidentParty(db, { orgId: "o1", incidentId: "i1", description: "W" })).ok,
     ).toBe(false);
@@ -312,18 +308,16 @@ describe("parties and media", () => {
     expect((await listIncidentParties(db, "i1")).ok).toBe(false);
   });
 
-  it("lists, adds idempotently and removes media", async () => {
-    const { db } = client({
+  it("lists, adds and removes media", async () => {
+    const { db, calls } = client({
       "from:incident_media": [
         okResponse([
           { id: "m1", media_uri: "incidents/a.jpg", captured_at: null, created_at: "x" },
         ]),
-        okResponse({ id: "m2" }),
-        replay,
-        down,
         okResponse([{ id: "m1" }]),
         down,
       ],
+      "rpc:add_incident_media": [okResponse("m2"), okResponse(ID), down],
     });
     expect((await listIncidentMedia(db, "i1")).ok).toBe(true);
     const media = { orgId: "o1", incidentId: "i1", mediaUri: "incidents/b.jpg" };
@@ -331,10 +325,11 @@ describe("parties and media", () => {
       ok: true,
       data: { id: "m2", replayed: false },
     });
-    expect(await addIncidentMedia(db, { ...media, id: ID, capturedAt: "y" })).toEqual({
-      ok: true,
-      data: { id: ID, replayed: true },
-    });
+    expect((await addIncidentMedia(db, { ...media, id: ID, capturedAt: "y" })).ok).toBe(true);
+    expect(calls.filter((c) => c.target === "rpc:add_incident_media")[1]?.steps[0]).toEqual([
+      "args",
+      [{ p_incident_id: "i1", p_media_uri: "incidents/b.jpg", p_captured_at: "y", p_id: ID }],
+    ]);
     expect((await addIncidentMedia(db, media)).ok).toBe(false);
     expect((await removeIncidentMedia(db, "m1")).ok).toBe(true);
     expect((await listIncidentMedia(db, "i1")).ok).toBe(false);
@@ -369,37 +364,27 @@ describe("dispatch", () => {
     expect((await listMyDispatches(db, ["m4"])).ok).toBe(false);
   });
 
-  it("dispatches idempotently, records arrival once and withdraws", async () => {
-    const { db } = client({
-      "from:dispatch_assignments": [
-        okResponse({ id: "d3" }),
-        replay,
-        down,
-        okResponse([{ id: "d3" }]),
-        okResponse([]),
-        okResponse({ id: "d3" }),
-        okResponse([]),
-        okResponse(null),
-        down,
-        okResponse([]),
-        down,
-        okResponse([{ id: "d3" }]),
-      ],
+  it("dispatches, records arrival and withdraws", async () => {
+    const { db, calls } = client({
+      "rpc:dispatch_responder": [okResponse("d3"), okResponse(ID), down],
+      "rpc:mark_dispatch_arrived": [okResponse("2026-10-14T12:05:00Z"), down],
+      "from:dispatch_assignments": [okResponse([{ id: "d3" }])],
     });
     const input = { orgId: "o1", incidentId: "i1", membershipId: "m4" };
     expect(await dispatchResponder(db, input)).toEqual({
       ok: true,
       data: { id: "d3", replayed: false },
     });
-    expect(await dispatchResponder(db, { ...input, id: ID })).toEqual({
-      ok: true,
-      data: { id: ID, replayed: true },
-    });
+    expect((await dispatchResponder(db, { ...input, id: ID })).ok).toBe(true);
+    expect(calls.filter((c) => c.target === "rpc:dispatch_responder")[1]?.steps[0]).toEqual([
+      "args",
+      [{ p_incident_id: "i1", p_membership_id: "m4", p_id: ID }],
+    ]);
     expect((await dispatchResponder(db, input)).ok).toBe(false);
-    expect((await markArrived(db, "d3")).ok).toBe(true);
-    expect((await markArrived(db, "d3")).ok).toBe(true);
-    expect(await markArrived(db, "dx")).toEqual({ ok: false, error: { kind: "not-found" } });
-    expect((await markArrived(db, "d3")).ok).toBe(false);
+    expect(await markArrived(db, "d3")).toEqual({
+      ok: true,
+      data: { arrivedAt: "2026-10-14T12:05:00Z" },
+    });
     expect((await markArrived(db, "d3")).ok).toBe(false);
     expect((await withdrawResponder(db, "d3")).ok).toBe(true);
   });
@@ -437,9 +422,10 @@ describe("medical encounters", () => {
     expect((await listMedicalEncounters(db, "i1")).ok).toBe(false);
   });
 
-  it("records an encounter and asks back only for the id", async () => {
+  it("records and updates encounters through the encrypting RPCs", async () => {
     const { db, calls } = client({
-      "from:medical_encounters": [okResponse({ id: "e2" }), down],
+      "rpc:record_medical_encounter": [okResponse("e2"), down],
+      "rpc:update_medical_encounter": [okResponse(null), down],
     });
     const input = {
       orgId: "o1",
@@ -449,17 +435,23 @@ describe("medical encounters", () => {
       disposition: null,
     };
     expect(await addMedicalEncounter(db, input)).toEqual({ ok: true, data: { id: "e2" } });
-    expect(calls[0]?.steps).toContainEqual(["select", ["id"]]);
-    expect(calls[0]?.steps[0]?.[1]).toEqual([
-      {
-        org_id: "o1",
-        incident_id: "i1",
-        patient_description: "Guest",
-        treatment_notes: null,
-        disposition: null,
-      },
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_incident_id: "i1", p_patient_description: "Guest" }],
     ]);
-    expect((await addMedicalEncounter(db, input)).ok).toBe(false);
+    expect(
+      (await addMedicalEncounter(db, { ...input, treatmentNotes: "x", disposition: "y" })).ok,
+    ).toBe(false);
+    expect(
+      await updateMedicalEncounter(db, "e2", { treatmentNotes: " Dressed. ", disposition: "" }),
+    ).toEqual({ ok: true, data: null });
+    expect(calls[2]?.steps[0]).toEqual([
+      "args",
+      [{ p_medical_encounter_id: "e2", p_treatment_notes: "Dressed." }],
+    ]);
+    expect((await updateMedicalEncounter(db, "e2", { patientDescription: "Guest" })).ok).toBe(
+      false,
+    );
   });
 });
 

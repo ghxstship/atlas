@@ -1356,6 +1356,221 @@ var compass_default$1 = {
     failed: "That did not unlock Compass. Try again.",
   },
 };
+var credentials_default$1 = {
+  categories: {
+    active: "Live credentials",
+    archive: "Archive category",
+    archiveHeading: "Archive",
+    archiveHelp:
+      "Archiving hides the category from new issues and the grid. Issued credentials and their scans stay on record.",
+    archived: "Category archived. Its credentials and scan history stay.",
+    code: "Code",
+    codeHelp: "Capitals, digits and hyphens, up to 16 characters, such as ALL-ACCESS.",
+    create: "Create category",
+    created: "Category {code} created.",
+    empty:
+      "No credential categories yet. Define who goes where, starting with a category such as CREW.",
+    issuedHeading: "Issued credentials",
+    issuedSummary:
+      "{count, plural, =0 {No live credentials in this category.} one {# live credential in this category.} other {# live credentials in this category.}}",
+    kind: "Credential category",
+    meta: "{project} · {count, plural, =0 {no live credentials} one {# live credential} other {# live credentials}}",
+    name: "Name",
+    new: "New category",
+    viewIssued: "View issued",
+  },
+  collab: {
+    attachments: "Attachments",
+    comments: "Comments",
+    deleteComment: "Delete comment",
+    download: "Download",
+    file: "File",
+    newComment: "New comment",
+    noAttachments:
+      "No files attached yet. Upload a photo or document that belongs with this record.",
+    noComments: "No comments yet. Start the discussion about this record here.",
+    post: "Post comment",
+    posted: "Comment posted.",
+    ready: "Ready to download",
+    remove: "Remove",
+    scanning: "Being checked for viruses; download opens once the check passes.",
+    unknownAuthor: "Former member",
+    upload: "Upload file",
+    uploaded: "File uploaded. It can be downloaded once the virus check passes.",
+  },
+  common: {
+    allProjects: "All projects",
+    apply: "Apply",
+    backToList: "Back to the list",
+    chooseProject:
+      "Choose a project first. Credentials, zones and the access grid belong to one project.",
+    close: "Close",
+    edit: "Edit",
+    errorSentence:
+      "This page could not load. Try again; if it keeps failing, send the reference to your administrator.",
+    errorTitle: "Something went wrong",
+    filters: "Filters",
+    goToProjects: "Go to projects",
+    loading: "Loading",
+    noProjects:
+      "There are no projects you can open yet. Create a project, then come back to set up credentials.",
+    openFull: "Open full page",
+    openProject: "Open {key}",
+    project: "Project",
+    properties: "Properties",
+    recordMissing:
+      "This record does not exist or you cannot open it. Return to the list to pick another.",
+    retry: "Try again",
+    save: "Save",
+    saved: "Saved.",
+    sections: "Credentials sections",
+    timeZoneHelp: "Times are in {zone}, the project's time zone.",
+    unnamed: "Unnamed person",
+    views: {
+      board: "Board",
+      list: "List",
+      map: "Map",
+      matrix: "Matrix",
+      spreadsheet: "Spreadsheet",
+      table: "Table",
+    },
+    viewsLabel: "{section} views",
+  },
+  errors: {
+    categoryInput: "Enter a code of capitals, digits and hyphens and a name, then try again.",
+    commentInput: "Write a comment of up to 10,000 characters, then post it.",
+    confirmRevoke: "Tick the box to confirm the revocation, then try again.",
+    conflict: "That value is already used. Choose another and try again.",
+    fileInput: "Choose a file to upload, then try again.",
+    fileNotReady: "This file is not ready yet. Try again once its virus check passes.",
+    fileSize: "Files can be up to 50 MB. Choose a smaller file.",
+    gridInput: "Choose a category, a zone and an access level, then try again.",
+    invalid: "Some values are out of range. Check the fields and try again.",
+    issueInput: "Choose a category and a holder, then try again.",
+    notFound: "This record no longer exists or you cannot change it. Reload the page.",
+    refused: "The system refused this change. Check the record's state and try again.",
+    rules: {
+      credential_engagement_project:
+        "The engagement belongs to another project. Choose an engagement on this project.",
+      credential_immutable:
+        "A credential keeps its holder, issuer, number and category. Revoke it and issue a new one instead.",
+      credential_revoked: "This credential is revoked and stays revoked. Issue a new one.",
+      credential_self_issue: "You cannot issue a credential to yourself. Ask another issuer.",
+      credential_unknown: "No credential matches that number. Check the badge and try again.",
+      dispatch_id_taken: "Another dispatch already uses this id.",
+      enumeration_domain: "Choose a value from the list; it must come from the canon.",
+      incident_close_rpc: "Close an incident with sign-off: use Close with sign-off.",
+      incident_closed: "This incident is closed and cannot be relabeled.",
+      incident_device_time_future: "The report time is later than now. Check the device clock.",
+      incident_id_taken: "Another incident already uses this id.",
+      incident_media_id_taken: "Another photo or video already uses this id.",
+      incident_party_id_taken: "Another party already uses this id.",
+      incident_relabel_and_close:
+        "A critical incident cannot be relabeled and closed at once. Change the severity first, then close it.",
+      incident_reporter_immutable: "An incident keeps its reporter.",
+      incident_signoff_rpc: "Sign-off is recorded only when closing with sign-off.",
+      incident_state_conflict:
+        "Someone moved this incident first. Reload to see its current state.",
+      incident_transition_not_allowed:
+        "That move is not allowed from the incident's current state.",
+      medical_capability_required:
+        "Recording medical encounters needs the medical records permission. Ask an Owner.",
+      production_closed:
+        "This project's production is closed. New incidents cannot be filed on it.",
+      project_copy_immutable: "This row keeps its project.",
+      scan_device_time_future: "The scan time is later than now. Check the device clock.",
+      scan_id_taken: "Another scan already uses this id.",
+      scan_offline_needs_time: "An offline decision needs the time it was made.",
+      sod_approval_requester:
+        "The reporter of a critical incident cannot sign off its closure. Ask another eligible person.",
+      transition_reason_required: "Give a reason for the change, then try again.",
+    },
+    scanInput: "Choose a zone and type a credential number, then try again.",
+    unexpected: "The change could not be saved. Try again in a moment.",
+    window: "Check the dates: the end must come after the start.",
+  },
+  grid: {
+    addHeading: "Grant zone access",
+    closes: "Closes",
+    empty: "No zone access granted yet. Grant a category entry to a zone to start the grid.",
+    explain:
+      "Each row lets one category enter one zone at a canon access level during a window. Scans are decided from this grid by the database.",
+    grant: "Grant access",
+    granted: "Access granted.",
+    level: "Access level",
+    matrixHelp:
+      "Toggling a cell grants {level} for the next 30 days or withdraws the pair. Change levels and windows in the Spreadsheet view.",
+    matrixLabel: "Access grid for {project}",
+    needsCategories:
+      "The access grid needs credential categories. Create one for this project first.",
+    needsZones: "The access grid needs zones. Add zones to the project's venue in Places.",
+    openPlaces: "Open Places",
+    opens: "Opens",
+    tableAlternative: "Show the grid as a table",
+    tableCaption: "Access grid rows for {project}",
+    withdraw: "Withdraw",
+    withdrawn: "Access withdrawn.",
+    zone: "Zone",
+  },
+  issued: {
+    anyStatus: "Any status",
+    badge: "Badge",
+    boardEmpty: "None",
+    category: "Category",
+    empty: "No credentials issued yet. Issue badges to crew, vendors and guests.",
+    emptyFiltered: "No credentials match these filters. Clear a filter or issue a new credential.",
+    holder: "Holder",
+    holderHelp: "You cannot issue a credential to yourself; another issuer does that.",
+    issue: "Issue credential",
+    issuedAs: "Issued as {number}.",
+    issuedBy: "Issued by",
+    kind: "Credential",
+    needsCategory:
+      "This project has no credential categories yet. Create one, then issue credentials in it.",
+    new: "Issue credential",
+    noScans: "Not scanned yet.",
+    number: "Number",
+    openEnded: "Until revoked",
+    recentScans: "Recent scans",
+    revoke: "Revoke credential",
+    revokeConfirm:
+      "Revoke {number}. A revoked credential is denied at every zone and cannot be restored.",
+    revokeHeading: "Revoke",
+    revoked: "Credential revoked.",
+    revokedAt: "Revoked",
+    scansHidden: "You cannot read this project's scan log.",
+    status: {
+      active: "Active",
+      expired: "Expired",
+      revoked: "Revoked",
+      scheduled: "Scheduled",
+    },
+    statusLabel: "Status",
+    validFrom: "Valid from",
+    validTo: "Valid until",
+    validToHelp: "Leave empty to keep it valid until revoked.",
+    windowHeading: "Validity",
+  },
+  scans: {
+    anyResult: "Any result",
+    check: "Check credential",
+    decided:
+      "{number}{holder, select, none {} other { · {holder}}} at {zone}: {decision, select, Granted {access granted} other {access denied}}.",
+    denied: "Denied",
+    deskHeading: "Scan desk",
+    deskHelp:
+      "Type the number printed on a badge to check it at a zone. The scan is logged and decided by the database.",
+    empty:
+      "No scans yet. Scans appear here as credentials are checked at zones in Compass or at the scan desk.",
+    emptyFiltered: "No scans match these filters. Clear a filter to see every scan.",
+    granted: "Granted",
+    number: "Credential number",
+    numberHelp: "For example CR-000123.",
+    result: "Result",
+    toIssued: "View issued credentials",
+    when: "Scanned",
+  },
+};
 var crew_default$1 = {
   frame: {
     views: "Views",
@@ -8544,6 +8759,231 @@ var compass_default = {
     failed: "No se desbloqueó Compass. Vuelve a intentarlo.",
   },
 };
+var credentials_default = {
+  categories: {
+    active: "Credenciales vigentes",
+    archive: "Archivar categoría",
+    archiveHeading: "Archivar",
+    archiveHelp:
+      "Al archivarla, la categoría deja de ofrecerse para nuevas emisiones y en la matriz de acceso. Las credenciales emitidas y sus lecturas quedan registradas.",
+    archived: "Categoría archivada. Sus credenciales y su historial de lecturas se conservan.",
+    code: "Código",
+    codeHelp: "Mayúsculas, dígitos y guiones, hasta 16 caracteres, como ALL-ACCESS.",
+    create: "Crear categoría",
+    created: "Categoría {code} creada.",
+    empty:
+      "Aún no hay categorías de credenciales. Define quién entra dónde, empezando por una categoría como CREW.",
+    issuedHeading: "Credenciales emitidas",
+    issuedSummary:
+      "{count, plural, =0 {No hay credenciales vigentes en esta categoría.} one {# credencial vigente en esta categoría.} other {# credenciales vigentes en esta categoría.}}",
+    kind: "Categoría de credencial",
+    meta: "{project} · {count, plural, =0 {sin credenciales vigentes} one {# credencial vigente} other {# credenciales vigentes}}",
+    name: "Nombre",
+    new: "Nueva categoría",
+    viewIssued: "Ver emitidas",
+  },
+  collab: {
+    attachments: "Archivos adjuntos",
+    comments: "Comentarios",
+    deleteComment: "Eliminar comentario",
+    download: "Descargar",
+    file: "Archivo",
+    newComment: "Nuevo comentario",
+    noAttachments:
+      "Aún no hay archivos adjuntos. Sube una foto o un documento que corresponda a este registro.",
+    noComments: "Aún no hay comentarios. Empieza aquí la conversación sobre este registro.",
+    post: "Publicar comentario",
+    posted: "Comentario publicado.",
+    ready: "Listo para descargar",
+    remove: "Quitar",
+    scanning: "En revisión antivirus; la descarga se habilita cuando la revisión termina.",
+    unknownAuthor: "Antiguo miembro",
+    upload: "Subir archivo",
+    uploaded: "Archivo subido. Podrás descargarlo cuando pase la revisión antivirus.",
+  },
+  common: {
+    allProjects: "Todos los proyectos",
+    apply: "Aplicar",
+    backToList: "Volver a la lista",
+    chooseProject:
+      "Elige primero un proyecto. Las credenciales, las zonas y la matriz de acceso pertenecen a un proyecto.",
+    close: "Cerrar",
+    edit: "Editar",
+    errorSentence:
+      "Esta página no se pudo cargar. Inténtalo de nuevo; si sigue fallando, envía la referencia a tu administrador.",
+    errorTitle: "Algo salió mal",
+    filters: "Filtros",
+    goToProjects: "Ir a proyectos",
+    loading: "Cargando",
+    noProjects:
+      "Todavía no hay proyectos que puedas abrir. Crea un proyecto y vuelve para configurar las credenciales.",
+    openFull: "Abrir página completa",
+    openProject: "Abrir {key}",
+    project: "Proyecto",
+    properties: "Propiedades",
+    recordMissing:
+      "Este registro no existe o no puedes abrirlo. Vuelve a la lista para elegir otro.",
+    retry: "Reintentar",
+    save: "Guardar",
+    saved: "Guardado.",
+    sections: "Secciones de credenciales",
+    timeZoneHelp: "Las horas están en {zone}, la zona horaria del proyecto.",
+    unnamed: "Persona sin nombre",
+    views: {
+      board: "Tablero",
+      list: "Lista",
+      map: "Mapa",
+      matrix: "Matriz",
+      spreadsheet: "Hoja de cálculo",
+      table: "Tabla",
+    },
+    viewsLabel: "Vistas de {section}",
+  },
+  errors: {
+    categoryInput:
+      "Escribe un código de mayúsculas, dígitos y guiones y un nombre, y vuelve a intentarlo.",
+    commentInput: "Escribe un comentario de hasta 10.000 caracteres y publícalo.",
+    confirmRevoke: "Marca la casilla para confirmar la revocación y vuelve a intentarlo.",
+    conflict: "Ese valor ya está en uso. Elige otro y vuelve a intentarlo.",
+    fileInput: "Elige un archivo para subir y vuelve a intentarlo.",
+    fileNotReady:
+      "Este archivo aún no está listo. Vuelve a intentarlo cuando pase la revisión antivirus.",
+    fileSize: "Los archivos pueden pesar hasta 50 MB. Elige un archivo más pequeño.",
+    gridInput: "Elige una categoría, una zona y un nivel de acceso, y vuelve a intentarlo.",
+    invalid: "Algunos valores están fuera de rango. Revisa los campos y vuelve a intentarlo.",
+    issueInput: "Elige una categoría y un titular, y vuelve a intentarlo.",
+    notFound: "Este registro ya no existe o no puedes modificarlo. Vuelve a cargar la página.",
+    refused: "El sistema rechazó este cambio. Revisa el estado del registro y vuelve a intentarlo.",
+    rules: {
+      credential_engagement_project:
+        "La contratación pertenece a otro proyecto. Elige una contratación de este proyecto.",
+      credential_immutable:
+        "Una credencial conserva su titular, emisor, número y categoría. Revócala y emite una nueva.",
+      credential_revoked: "Esta credencial está revocada y así se queda. Emite una nueva.",
+      credential_self_issue:
+        "No puedes emitirte una credencial a ti mismo. Pídeselo a otro emisor.",
+      credential_unknown:
+        "Ninguna credencial coincide con ese número. Revisa la credencial y vuelve a intentarlo.",
+      dispatch_id_taken: "Otro despacho ya usa este identificador.",
+      enumeration_domain: "Elige un valor de la lista; debe provenir del canon.",
+      incident_close_rpc: "Cierra un incidente con aprobación: usa Cerrar con aprobación.",
+      incident_closed: "Este incidente está cerrado y no se puede reclasificar.",
+      incident_device_time_future:
+        "La hora del reporte es posterior a la actual. Revisa el reloj del dispositivo.",
+      incident_id_taken: "Otro incidente ya usa este identificador.",
+      incident_media_id_taken: "Otra foto o video ya usa este identificador.",
+      incident_party_id_taken: "Otra persona involucrada ya usa este identificador.",
+      incident_relabel_and_close:
+        "Un incidente crítico no se puede reclasificar y cerrar a la vez. Cambia primero la gravedad y luego ciérralo.",
+      incident_reporter_immutable: "Un incidente conserva a quien lo reportó.",
+      incident_signoff_rpc: "La aprobación solo se registra al cerrar con aprobación.",
+      incident_state_conflict:
+        "Alguien movió este incidente antes. Vuelve a cargar para ver su estado actual.",
+      incident_transition_not_allowed:
+        "Ese cambio no está permitido desde el estado actual del incidente.",
+      medical_capability_required:
+        "Registrar atenciones médicas requiere el permiso de registros médicos. Pídeselo a un Propietario.",
+      production_closed:
+        "La producción de este proyecto está cerrada. No se pueden registrar nuevos incidentes.",
+      project_copy_immutable: "Esta fila conserva su proyecto.",
+      scan_device_time_future:
+        "La hora de la lectura es posterior a la actual. Revisa el reloj del dispositivo.",
+      scan_id_taken: "Otra lectura ya usa este identificador.",
+      scan_offline_needs_time: "Una decisión sin conexión necesita la hora en que se tomó.",
+      sod_approval_requester:
+        "Quien reportó un incidente crítico no puede aprobar su cierre. Pídeselo a otra persona autorizada.",
+      transition_reason_required: "Indica un motivo para el cambio y vuelve a intentarlo.",
+    },
+    scanInput: "Elige una zona y escribe un número de credencial, y vuelve a intentarlo.",
+    unexpected: "No se pudo guardar el cambio. Vuelve a intentarlo en un momento.",
+    window: "Revisa las fechas: el final debe ser posterior al inicio.",
+  },
+  grid: {
+    addHeading: "Otorgar acceso a una zona",
+    closes: "Cierra",
+    empty:
+      "Aún no se ha otorgado acceso a zonas. Otorga a una categoría la entrada a una zona para empezar la matriz.",
+    explain:
+      "Cada fila permite que una categoría entre a una zona con un nivel de acceso del canon durante un periodo. La base de datos decide cada lectura a partir de esta matriz.",
+    grant: "Otorgar acceso",
+    granted: "Acceso otorgado.",
+    level: "Nivel de acceso",
+    matrixHelp:
+      "Al activar una celda se otorga {level} durante los próximos 30 días; al desactivarla se retira el par. Cambia niveles y periodos en la vista Hoja de cálculo.",
+    matrixLabel: "Matriz de acceso de {project}",
+    needsCategories:
+      "La matriz de acceso necesita categorías de credenciales. Crea primero una para este proyecto.",
+    needsZones:
+      "La matriz de acceso necesita zonas. Agrega zonas al recinto del proyecto en Lugares.",
+    openPlaces: "Abrir Lugares",
+    opens: "Abre",
+    tableAlternative: "Mostrar la matriz como tabla",
+    tableCaption: "Filas de la matriz de acceso de {project}",
+    withdraw: "Retirar",
+    withdrawn: "Acceso retirado.",
+    zone: "Zona",
+  },
+  issued: {
+    anyStatus: "Cualquier estado",
+    badge: "Credencial",
+    boardEmpty: "Ninguna",
+    category: "Categoría",
+    empty:
+      "Aún no se han emitido credenciales. Emite credenciales para el equipo, proveedores e invitados.",
+    emptyFiltered:
+      "Ninguna credencial coincide con estos filtros. Quita un filtro o emite una credencial nueva.",
+    holder: "Titular",
+    holderHelp: "No puedes emitirte una credencial a ti mismo; otro emisor lo hace.",
+    issue: "Emitir credencial",
+    issuedAs: "Emitida como {number}.",
+    issuedBy: "Emitida por",
+    kind: "Credencial",
+    needsCategory:
+      "Este proyecto aún no tiene categorías de credenciales. Crea una y luego emite credenciales en ella.",
+    new: "Emitir credencial",
+    noScans: "Aún no se ha leído.",
+    number: "Número",
+    openEnded: "Hasta que se revoque",
+    recentScans: "Lecturas recientes",
+    revoke: "Revocar credencial",
+    revokeConfirm:
+      "Revocar {number}. Una credencial revocada se rechaza en todas las zonas y no se puede restaurar.",
+    revokeHeading: "Revocar",
+    revoked: "Credencial revocada.",
+    revokedAt: "Revocada",
+    scansHidden: "No puedes ver el registro de lecturas de este proyecto.",
+    status: {
+      active: "Activa",
+      expired: "Vencida",
+      revoked: "Revocada",
+      scheduled: "Programada",
+    },
+    statusLabel: "Estado",
+    validFrom: "Válida desde",
+    validTo: "Válida hasta",
+    validToHelp: "Déjalo vacío para que siga vigente hasta que se revoque.",
+    windowHeading: "Vigencia",
+  },
+  scans: {
+    anyResult: "Cualquier resultado",
+    check: "Verificar credencial",
+    decided:
+      "{number}{holder, select, none {} other { · {holder}}} en {zone}: {decision, select, Granted {acceso permitido} other {acceso denegado}}.",
+    denied: "Denegado",
+    deskHeading: "Mesa de lectura",
+    deskHelp:
+      "Escribe el número impreso en una credencial para verificarla en una zona. La lectura queda registrada y la decide la base de datos.",
+    empty:
+      "Aún no hay lecturas. Aparecen aquí a medida que se verifican credenciales en zonas desde Compass o en la mesa de lectura.",
+    emptyFiltered: "Ninguna lectura coincide con estos filtros. Quita un filtro para ver todas.",
+    granted: "Permitido",
+    number: "Número de credencial",
+    numberHelp: "Por ejemplo CR-000123.",
+    result: "Resultado",
+    toIssued: "Ver credenciales emitidas",
+    when: "Leída",
+  },
+};
 var crew_default = {
   frame: {
     views: "Vistas",
@@ -14974,6 +15414,7 @@ var work_default = {
 var enUS = {
   activity: activity_default$1,
   compass: compass_default$1,
+  credentials: credentials_default$1,
   crew: crew_default$1,
   email: email_default$1,
   gateway: gateway_default$1,
@@ -14993,6 +15434,7 @@ var enUS = {
 var esUS = {
   activity: activity_default,
   compass: compass_default,
+  credentials: credentials_default,
   crew: crew_default,
   email: email_default,
   gateway: gateway_default,

@@ -1,5 +1,5 @@
-import type { XosClient } from "./client";
-import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result";
+import type { XosClient } from "./client.ts";
+import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
 /**
  * Credentials repository (Section 4.2 Credentials, Section 7.4, invariant 21): credential
@@ -19,6 +19,8 @@ export interface OperationsProject {
   readonly key: string;
   readonly name: string;
   readonly venueId: string | null;
+  /** IANA time zone the project's local times are typed in. */
+  readonly timeZone: string;
 }
 
 interface ProjectRow {
@@ -26,12 +28,19 @@ interface ProjectRow {
   project_key: string;
   name: string;
   venue_id: string | null;
+  time_zone: string;
 }
 
-const PROJECT_COLUMNS = "id, project_key, name, venue_id";
+const PROJECT_COLUMNS = "id, project_key, name, venue_id, time_zone";
 
 function toProject(row: ProjectRow): OperationsProject {
-  return { id: row.id, key: row.project_key, name: row.name, venueId: row.venue_id };
+  return {
+    id: row.id,
+    key: row.project_key,
+    name: row.name,
+    venueId: row.venue_id,
+    timeZone: row.time_zone,
+  };
 }
 
 /** Projects of an org the viewer may read, in key order, for project filters and pickers. */
@@ -404,7 +413,11 @@ export async function lookupCredentialByNumber(
 
 export interface IssueCredentialInput {
   readonly orgId: string;
+  /** Project of the category; the database copies it from the category whatever is sent. */
+  readonly projectId: string;
   readonly categoryId: string;
+  /** Engagement the badge is issued under, such as an artist's party badge. */
+  readonly engagementId?: string | null;
   readonly holderPersonId: string;
   readonly validFrom?: string;
   readonly validTo?: string | null;
@@ -422,8 +435,10 @@ export async function issueCredential(
     .from("credentials")
     .insert({
       org_id: input.orgId,
+      project_id: input.projectId,
       credential_category_id: input.categoryId,
       holder_person_id: input.holderPersonId,
+      engagement_id: input.engagementId ?? null,
       ...(input.validFrom ? { valid_from: input.validFrom } : {}),
       valid_to: input.validTo ?? null,
     })
@@ -554,6 +569,8 @@ export async function listAccessGrid(
 
 export interface AccessGridInput {
   readonly orgId: string;
+  /** Project of the category; the database copies it from the category whatever is sent. */
+  readonly projectId: string;
   readonly categoryId: string;
   readonly zoneId: string;
   readonly accessLevelId: string;
@@ -570,6 +587,7 @@ export async function grantZoneAccess(
     .from("access_grid")
     .insert({
       org_id: input.orgId,
+      project_id: input.projectId,
       credential_category_id: input.categoryId,
       zone_id: input.zoneId,
       access_level_enum_id: input.accessLevelId,
@@ -731,16 +749,6 @@ interface ScanDecisionRow {
   replayed: boolean;
 }
 
-/** An RPC of migration 0470, typed here until the generated database types carry it. */
-type LocalRpc<Args, Row> = (
-  fn: string,
-  args: Args,
-) => PromiseLike<{ data: Row | null; error: DatabaseErrorLike | null }>;
-
-export function localRpc<Args, Row>(db: XosClient): LocalRpc<Args, Row> {
-  return db.rpc.bind(db) as unknown as LocalRpc<Args, Row>;
-}
-
 /**
  * Records a scan at a zone through app.record_scan. The database sets the time and decides the
  * result from the credential's validity, revocation and the access grid; the scanner never sends a
@@ -751,17 +759,16 @@ export async function recordScan(
   db: XosClient,
   input: RecordScanInput,
 ): Promise<Result<ScanDecision>> {
-  const rpc = localRpc<Record<string, string | null>, ScanDecisionRow[]>(db);
-  const { data, error } = await rpc("record_scan", {
+  const { data, error } = await db.rpc("record_scan", {
     p_zone_id: input.zoneId,
-    p_credential_id: input.credentialId ?? null,
-    p_credential_number: input.credentialNumber ?? null,
-    p_id: input.id ?? null,
-    p_device_scanned_at: input.deviceAt ?? null,
-    p_offline_result: input.offlineResult ?? null,
+    ...(input.credentialId ? { p_credential_id: input.credentialId } : {}),
+    ...(input.credentialNumber ? { p_credential_number: input.credentialNumber } : {}),
+    ...(input.id ? { p_id: input.id } : {}),
+    ...(input.deviceAt ? { p_device_scanned_at: input.deviceAt } : {}),
+    ...(input.offlineResult ? { p_offline_result: input.offlineResult } : {}),
   });
   if (error) return fail(toDataError(error));
-  const row = data?.[0];
+  const row = (data as ScanDecisionRow[] | null)?.[0];
   if (!row) return fail({ kind: "not-found" });
   return ok({
     id: row.id,
@@ -806,8 +813,7 @@ export async function myModuleCapabilities(
   db: XosClient,
   projectId: string,
 ): Promise<Result<ReadonlySet<ModuleCapability>>> {
-  const rpc = localRpc<{ p_project_id: string; p_capabilities: string[] }, string[]>(db);
-  const { data, error } = await rpc("my_capabilities_on_project", {
+  const { data, error } = await db.rpc("my_capabilities_on_project", {
     p_project_id: projectId,
     p_capabilities: [...MODULE_CAPABILITIES],
   });
