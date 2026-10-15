@@ -1,0 +1,20 @@
+# Icons the Gateway app draws by name that no other registry lists: destinations, engagement
+# tabs, empty states and actions (A27). One lucide-react name per line.
+ArrowLeftRight
+BedDouble
+BellPlus
+BookmarkCheck
+BriefcaseBusiness
+CircleUser
+FileBarChart
+FileCheck
+FileDiff
+Flag
+FolderLock
+Gavel
+Gift
+ListMusic
+ListOrdered
+MailCheck
+MessagesSquare
+Receipt

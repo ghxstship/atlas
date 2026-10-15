@@ -1,0 +1,33 @@
+appId: pro.ghxstship.compass
+name: Check badges at the Main Gate and look up an asset
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- tapOn:
+    id: "tab-scan"
+- tapOn:
+    id: "scan-mode-credential"
+- tapOn: "Main Gate"
+# The simulator camera cannot see a badge, so the badge number is typed, as at a worn label.
+- tapOn:
+    id: "scan-manual"
+- inputText: "CR-999999"
+- tapOn:
+    id: "scan-manual-submit"
+- assertVisible: ".*Access denied.*"
+- tapOn:
+    id: "scan-mode-asset"
+- tapOn:
+    id: "scan-manual"
+- inputText: "09501101530003"
+- tapOn:
+    id: "scan-manual-submit"
+- assertVisible: "AUD-0042 found"
+- tapOn:
+    id: "scan-manual"
+- inputText: "4006381333932"
+- tapOn:
+    id: "scan-manual-submit"
+- assertVisible: "That barcode did not read correctly. Scan it again."

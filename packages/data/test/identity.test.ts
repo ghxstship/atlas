@@ -23,8 +23,8 @@ import {
   slugFromName,
   systemRoleForBand,
   updateMyName,
-} from "../src/identity";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/identity.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const NOW = new Date("2026-10-09T12:00:00.000Z");
 const owner = { id: "r1", code: "owner", name: null, band: 1, org_id: null };

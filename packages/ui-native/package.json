@@ -21,7 +21,7 @@
     "@xos/tokens": "workspace:*"
   },
   "peerDependencies": {
-    "react": "19.3.0"
+    "react": "19.2.3 || 19.3.0"
   },
   "devDependencies": {
     "@types/node": "22.20.5",
