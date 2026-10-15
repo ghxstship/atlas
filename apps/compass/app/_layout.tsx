@@ -56,7 +56,10 @@ function Themed(): ReactElement {
   const scheme = useColorScheme();
   const { settings } = useCompass();
   return (
-    <ThemeProvider preference={settings.theme} systemColorScheme={scheme}>
+    <ThemeProvider
+      preference={settings.theme}
+      systemColorScheme={scheme === "light" || scheme === "dark" ? scheme : null}
+    >
       <Gatekeeper />
     </ThemeProvider>
   );

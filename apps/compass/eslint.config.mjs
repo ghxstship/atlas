@@ -9,4 +9,13 @@ export default [
     files: ["scripts/**/*.ts"],
     languageOptions: { globals: { process: "readonly", console: "readonly" } },
   },
+  {
+    // Metro loads its config as CommonJS.
+    files: ["metro.config.js"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: { require: "readonly", module: "writable", __dirname: "readonly" },
+    },
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
 ];
