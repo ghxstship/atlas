@@ -248,6 +248,102 @@ export type Database = {
           },
         ];
       };
+      change_order_lines: {
+        Row: {
+          amount_minor: number | null;
+          change_order_id: string | null;
+          description: string | null;
+          id: string | null;
+          is_no_cost: boolean | null;
+          quantity: number | null;
+          unit_price_minor: number | null;
+          urid: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_minor?: never;
+          change_order_id?: string | null;
+          description?: string | null;
+          id?: string | null;
+          is_no_cost?: boolean | null;
+          quantity?: number | null;
+          unit_price_minor?: number | null;
+          urid?: string | null;
+        };
+        Update: {
+          amount_minor?: never;
+          change_order_id?: string | null;
+          description?: string | null;
+          id?: string | null;
+          is_no_cost?: boolean | null;
+          quantity?: number | null;
+          unit_price_minor?: number | null;
+          urid?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "change_order_lines_change_order_id_fkey";
+            columns: ["change_order_id"];
+            isOneToOne: false;
+            referencedRelation: "change_orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      change_orders: {
+        Row: {
+          change_order_key: string | null;
+          change_order_state: Database["app"]["Enums"]["change_order_state"] | null;
+          change_purpose: string | null;
+          currency_code: string | null;
+          id: string | null;
+          project_id: string | null;
+          title: string | null;
+          total_minor: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      client_approvals: {
+        Row: {
+          change_order_id: string | null;
+          decided_at: string | null;
+          decision: Database["app"]["Enums"]["approval_decision"] | null;
+          engagement_id: string | null;
+          id: string | null;
+          message: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          record_id: string | null;
+          requested_at: string | null;
+          response: string | null;
+          subject_kind: Database["app"]["Enums"]["client_approval_subject"] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "client_approval_requests_change_order_id_fkey";
+            columns: ["change_order_id"];
+            isOneToOne: false;
+            referencedRelation: "change_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       credentials: {
         Row: {
           category_code: string | null;
@@ -6780,6 +6876,138 @@ export type Database = {
           },
           {
             foreignKeyName: "change_orders_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      client_approval_requests: {
+        Row: {
+          change_order_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          decision: Database["app"]["Enums"]["approval_decision"] | null;
+          deleted_at: string | null;
+          engagement_id: string;
+          id: string;
+          message: string | null;
+          org_id: string;
+          record_id: string | null;
+          requested_by: string | null;
+          response: string | null;
+          subject_kind: Database["app"]["Enums"]["client_approval_subject"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          change_order_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision?: Database["app"]["Enums"]["approval_decision"] | null;
+          deleted_at?: string | null;
+          engagement_id: string;
+          id?: string;
+          message?: string | null;
+          org_id: string;
+          record_id?: string | null;
+          requested_by?: string | null;
+          response?: string | null;
+          subject_kind: Database["app"]["Enums"]["client_approval_subject"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          change_order_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision?: Database["app"]["Enums"]["approval_decision"] | null;
+          deleted_at?: string | null;
+          engagement_id?: string;
+          id?: string;
+          message?: string | null;
+          org_id?: string;
+          record_id?: string | null;
+          requested_by?: string | null;
+          response?: string | null;
+          subject_kind?: Database["app"]["Enums"]["client_approval_subject"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "client_approval_requests_change_order_id_fkey";
+            columns: ["change_order_id"];
+            isOneToOne: false;
+            referencedRelation: "change_order_totals";
+            referencedColumns: ["change_order_id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_change_order_id_fkey";
+            columns: ["change_order_id"];
+            isOneToOne: false;
+            referencedRelation: "change_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -34411,6 +34639,24 @@ export type Database = {
         Returns: string;
       };
       acknowledge_purchase_order: { Args: { p_purchase_order_id: string }; Returns: string };
+      activity_feed: {
+        Args: { p_before?: string; p_limit?: number; p_org_id: string; p_project_id?: string };
+        Returns: {
+          actor_name: string;
+          actor_person_id: string;
+          data: Json;
+          event_type: string;
+          id: string;
+          occurred_at: string;
+          project_id: string;
+          project_key: string;
+          project_name: string;
+          record_key: string;
+          record_title: string;
+          subject_id: string;
+          subject_table: string;
+        }[];
+      };
       add_account_member: {
         Args: {
           p_account_id: string;
@@ -34689,6 +34935,21 @@ export type Database = {
         Returns: string;
       };
       create_organization: { Args: { p_name: string; p_slug: string }; Returns: string };
+      create_project: {
+        Args: {
+          p_ends_on?: string;
+          p_jurisdiction_id?: string;
+          p_name: string;
+          p_org_id: string;
+          p_project_key: string;
+          p_region_code?: string;
+          p_starts_on?: string;
+          p_tier_code?: string;
+          p_time_zone: string;
+          p_venue_id?: string;
+        };
+        Returns: string;
+      };
       create_project_inbox: { Args: { p_project_id: string }; Returns: string };
       create_punch_item: {
         Args: {
@@ -34713,6 +34974,14 @@ export type Database = {
           signing_secret: string;
           webhook_endpoint_id: string;
         }[];
+      };
+      decide_client_approval: {
+        Args: {
+          p_decision: Database["app"]["Enums"]["approval_decision"];
+          p_request_id: string;
+          p_response: string;
+        };
+        Returns: undefined;
       };
       decide_po_change_order: {
         Args: {
@@ -35130,6 +35399,15 @@ export type Database = {
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
       reply_address_local_part: {
         Args: { p_person_id: string; p_subject_id: string };
+        Returns: string;
+      };
+      request_client_approval: {
+        Args: {
+          p_change_order_id: string;
+          p_engagement_id: string;
+          p_message: string;
+          p_record_id: string;
+        };
         Returns: string;
       };
       request_export: {
@@ -35625,6 +35903,7 @@ export type Database = {
       capability_direction: "Require" | "Provide";
       capability_reach: "own" | "assigned" | "organization";
       change_order_state: "Proposed" | "Priced" | "Approved" | "Rejected" | "Canceled";
+      client_approval_subject: "Change Order" | "Record";
       comment_source: "App" | "Email" | "API";
       consent_source: "Web" | "Mobile" | "Email" | "SMS" | "Import" | "Support";
       correction_state: "Proposed" | "Approved" | "Rejected";
@@ -41751,6 +42030,7 @@ export const Constants = {
       capability_direction: ["Require", "Provide"],
       capability_reach: ["own", "assigned", "organization"],
       change_order_state: ["Proposed", "Priced", "Approved", "Rejected", "Canceled"],
+      client_approval_subject: ["Change Order", "Record"],
       comment_source: ["App", "Email", "API"],
       consent_source: ["Web", "Mobile", "Email", "SMS", "Import", "Support"],
       correction_state: ["Proposed", "Approved", "Rejected"],

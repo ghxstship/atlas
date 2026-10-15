@@ -79,7 +79,7 @@
   },
   "list": {
     "search": "Search projects",
-    "searchPlaceholder": "Key or name",
+    "searchHint": "Key or name",
     "showArchived": "Show archived projects",
     "count": "{count, plural, one {# project} other {# projects}}",
     "noMatch": "No projects match {query}. Clear the search to see every project.",
