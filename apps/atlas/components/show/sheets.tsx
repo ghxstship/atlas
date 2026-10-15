@@ -12,7 +12,6 @@ import {
   PageHeader,
   RecordList,
   RecordRow,
-  SegmentedControl,
   Select,
   Tag,
   TemplateCollection,
@@ -31,6 +30,7 @@ import {
   publishSheetAction,
   saveDaySheetAction,
 } from "./actions";
+import { CollectionViews } from "@/components/views/collection-views";
 
 type Sheet = (DaySheet | CallSheet) & { readonly id: string };
 type Kind = "daySheets" | "callSheets";
@@ -89,7 +89,7 @@ export function SheetCollection({
       count={sheets.length}
       views={
         views.length > 1 ? (
-          <SegmentedControl
+          <CollectionViews
             label={t(`${kind}.views`)}
             value={view}
             options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}

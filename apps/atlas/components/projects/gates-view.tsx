@@ -15,7 +15,6 @@ import {
   Input,
   InlineAlert,
   PhaseChip,
-  SegmentedControl,
   Select,
   Tag,
   Textarea,
@@ -32,6 +31,7 @@ import {
 } from "@/lib/projects/actions";
 import { phaseCode } from "@/lib/projects/format";
 import { ActionError, echoed, fieldError, useClosingAction } from "./action-error";
+import { CollectionViews } from "@/components/views/collection-views";
 
 type GateView = "list" | "board";
 
@@ -99,7 +99,7 @@ export function GatesView({
   return (
     <div className="flex flex-col gap-16">
       {views.length > 1 ? (
-        <SegmentedControl
+        <CollectionViews
           label={t("views.label")}
           value={view}
           options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}

@@ -1,0 +1,180 @@
+{
+  "button": "Ayuda",
+  "title": "Ayuda",
+  "search": "Buscar en la ayuda",
+  "searchHint": "Buscar artículos",
+  "searchEmpty": "Ningún artículo coincide con {query}. Pruebe otra palabra o contacte a soporte más abajo.",
+  "searchResults": "Artículos que coinciden con {query}",
+  "forThisPage": "Para esta página",
+  "noArticles": "Esta página todavía no tiene un artículo propio. Los artículos generales siguen aplicando.",
+  "general": "En todo Atlas",
+  "back": "Volver a la ayuda",
+  "related": "Relacionado",
+  "loadFailed": "No se pudieron cargar sus recorridos y consejos. Los artículos funcionan; vuelva a abrir la Ayuda para intentarlo de nuevo.",
+  "kinds": {
+    "guide": "Guía",
+    "page": "Página",
+    "workflow": "Flujo de trabajo",
+    "glossary": "Glosario"
+  },
+  "shortcuts": {
+    "title": "Atajos de teclado",
+    "command": "Abrir el menú de comandos",
+    "help": "Abrir la ayuda de esta página",
+    "focus": "Activar o desactivar el modo de enfoque",
+    "close": "Cerrar un menú, diálogo o panel",
+    "move": "Moverse entre filas",
+    "open": "Abrir el registro enfocado",
+    "select": "Seleccionar la fila enfocada",
+    "all": "Todos los atajos"
+  },
+  "whatsNew": {
+    "title": "Novedades",
+    "saved-views": {
+      "title": "Vistas guardadas en cada colección",
+      "body": "Guarde la vista, los filtros y el orden que usa, compártalos con su equipo y ábralos de forma predeterminada."
+    },
+    "contextual-help": {
+      "title": "Ayuda para cada página",
+      "body": "Pulse ? en cualquier página para ver sus artículos, atajos y recorridos."
+    },
+    "support-requests": {
+      "title": "Solicitudes de soporte con diagnósticos",
+      "body": "Contacte a sus administradores desde la Ayuda y siga la respuesta en Yo, Cuenta."
+    }
+  },
+  "tours": {
+    "title": "Recorridos guiados",
+    "none": "Ningún recorrido cubre esta página. Los recorridos de otras páginas se ofrecen al abrirlas.",
+    "replay": "Repetir {title}",
+    "start": "Iniciar {title}",
+    "offerTitle": "¿Hacer un recorrido rápido?",
+    "offerBody": "{title}: {summary}",
+    "offerStart": "Iniciar recorrido",
+    "offerLater": "Ahora no",
+    "step": "Paso {current} de {total}",
+    "next": "Siguiente",
+    "previous": "Atrás",
+    "finish": "Terminar",
+    "skip": "Terminar recorrido",
+    "label": "Recorrido guiado",
+    "atlas_getting-started": {
+      "title": "Primeros pasos",
+      "summary": "Cuatro pasos por la navegación, la ayuda y el menú de comandos.",
+      "steps": {
+        "1": {
+          "title": "Bienvenido a Atlas",
+          "body": "Este recorrido muestra dónde está cada cosa. Puede terminarlo en cualquier momento y repetirlo desde la Ayuda."
+        },
+        "2": {
+          "title": "Navegación",
+          "body": "Todo lo que puede abrir está en la barra lateral. Los grupos de su rol aparecen expandidos."
+        },
+        "3": {
+          "title": "Ayuda en cada página",
+          "body": "Pulse ? o elija Ayuda para ver los artículos, atajos y soporte de la página actual."
+        },
+        "4": {
+          "title": "El menú de comandos",
+          "body": "Pulse Mod+K o / y escriba el nombre de cualquier página para ir a ella."
+        }
+      }
+    },
+    "module_collections": {
+      "title": "Trabajar con colecciones",
+      "summary": "Vistas, filtros y vistas guardadas en tres pasos.",
+      "steps": {
+        "1": {
+          "title": "Una colección, muchas vistas",
+          "body": "Cada colección ofrece solo las vistas que corresponden a sus datos: lista, tabla, tablero, calendario o mapa."
+        },
+        "2": {
+          "title": "Cambie de vista",
+          "body": "Use el selector de vistas. Sus filtros, orden y búsqueda se mantienen."
+        },
+        "3": {
+          "title": "Guarde una vista",
+          "body": "Abra Vistas guardadas para guardar lo que ve, compartirlo con un equipo o abrirlo de forma predeterminada."
+        }
+      }
+    },
+    "module_crew": {
+      "title": "Equipo y tiempo",
+      "summary": "Turnos, hojas de horas y nómina en tres pasos.",
+      "steps": {
+        "1": {
+          "title": "El programa de recursos",
+          "body": "Los turnos muestran personas a un lado y el tiempo a lo largo. Publique turnos para que el equipo los acepte en Compass."
+        },
+        "2": {
+          "title": "Tiempo desde Compass",
+          "body": "El equipo marca entrada dentro de la geocerca. Los supervisores aprueban hojas de horas; los cambios posteriores anulan la aprobación."
+        },
+        "3": {
+          "title": "Nómina",
+          "body": "Exporte la nómina de un período y publíquela. Un período publicado permanece cerrado."
+        }
+      }
+    }
+  },
+  "tips": {
+    "label": "Consejo",
+    "learnMore": "Más información",
+    "dismiss": "Descartar consejo",
+    "gates": {
+      "title": "Las puertas protegen cada fase",
+      "body": "Una puerta pasa solo cuando se cumplen sus criterios bloqueantes. Pase el puntero sobre un chip de puerta para ver su definición."
+    },
+    "access-grid": {
+      "title": "Cambie el acceso celda por celda",
+      "body": "Muévase con las flechas y pulse Espacio para permitir o denegar una categoría en una zona."
+    },
+    "resource-schedule": {
+      "title": "Lea el programa de recursos",
+      "body": "Las personas van a un lado y el tiempo a lo largo. Cambie a la vista de tabla para ver los mismos turnos como filas."
+    },
+    "saved-views": {
+      "title": "Guarde la vista que necesita",
+      "body": "Defina sus filtros y abra Vistas guardadas para conservarlos, compartirlos o abrirlos de forma predeterminada."
+    },
+    "reconciliation": {
+      "title": "Las brechas alimentan la próxima puerta",
+      "body": "Un requisito del rider que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como brecha."
+    }
+  },
+  "contact": {
+    "title": "Contactar a soporte",
+    "description": "Su solicitud llega a los administradores de su organización, que responden en la solicitud.",
+    "open": "Contactar a soporte",
+    "queue": "Enviar a",
+    "queues": {
+      "Organization": "Los administradores de mi organización",
+      "Platform": "El equipo de soporte de la plataforma"
+    },
+    "platformTerms": "Soporte de la plataforma para su plan: {terms}",
+    "category": "Categoría",
+    "severity": "Severidad",
+    "subject": "Asunto",
+    "subjectHint": "El escáner muestra una zona desconocida",
+    "body": "¿Qué ocurrió y qué necesita?",
+    "bodyHint": "Los pasos que siguió, lo que esperaba y lo que vio",
+    "diagnostics": "Adjuntar diagnósticos",
+    "diagnosticsHelp": "Solo se envían los datos indicados abajo, y solo si marca la casilla.",
+    "diagnosticsRoute": "Página",
+    "diagnosticsVersion": "Versión de la aplicación",
+    "diagnosticsDevice": "Navegador y dispositivo",
+    "diagnosticsErrors": "Errores recientes",
+    "diagnosticsNoErrors": "No se registraron errores en esta visita",
+    "send": "Enviar solicitud",
+    "cancel": "Cancelar",
+    "sent": "Se envió la solicitud {number}. Sígala en Yo, Cuenta.",
+    "followUp": "Abrir mis solicitudes",
+    "required": "Complete el asunto y la descripción para enviar la solicitud.",
+    "errors": {
+      "denied": "No puede enviar esta solicitud. Solo los administradores contactan al soporte de la plataforma; envíela a sus administradores.",
+      "noChannel": "Su plan incluye el centro de ayuda y el foro de la comunidad. Cambie de plan para contactar al soporte de la plataforma.",
+      "invalid": "Falta información en la solicitud. Revise el asunto y la descripción.",
+      "unexpected": "No se pudo enviar la solicitud. Inténtelo de nuevo en un momento."
+    }
+  }
+}

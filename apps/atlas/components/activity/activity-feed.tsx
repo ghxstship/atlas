@@ -6,6 +6,7 @@ import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { CollectionViews } from "@/components/views/collection-views";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -122,7 +123,7 @@ export function ActivityFeed({
     <section aria-label={label} className="flex flex-col gap-12">
       <div className="flex flex-wrap items-end gap-12">
         {views.length > 1 ? (
-          <SegmentedControl
+          <CollectionViews
             label={t("title")}
             value={view}
             options={views.map((v) => ({
