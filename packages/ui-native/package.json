@@ -12,27 +12,40 @@
   },
   "scripts": {
     "generate:theme": "node scripts/generate-theme.mjs",
+    "generate:icons": "node scripts/generate-icons.mjs",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/generate-theme.mjs --check && vitest run --coverage"
+    "test": "node scripts/generate-theme.mjs --check && node scripts/generate-icons.mjs --check && vitest run --coverage"
   },
   "dependencies": {
     "@xos/icons": "workspace:*",
     "@xos/tokens": "workspace:*"
   },
   "peerDependencies": {
-    "react": "19.2.3 || 19.3.0"
+    "lucide-react-native": "1.53.0",
+    "react": "19.2.3 || 19.3.0",
+    "react-native": "0.87.1",
+    "react-native-svg": "15.15.5"
   },
   "devDependencies": {
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
     "@types/node": "22.20.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitest/coverage-v8": "5.0.3",
     "@xos/config": "workspace:*",
+    "axe-core": "4.14.0",
     "eslint": "10.12.0",
+    "jsdom": "29.1.1",
+    "lucide-react": "1.53.0",
+    "lucide-react-native": "1.53.0",
     "prettier": "3.9.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "react-native": "0.87.1",
+    "react-native-svg": "15.15.5",
     "typescript": "6.0.3",
     "vite": "8.3.3",
     "vitest": "5.0.3"

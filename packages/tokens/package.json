@@ -9,6 +9,7 @@
     "./tokens.json": "./xos.tokens.json",
     "./name-map.json": "./tokens/name-map.json",
     "./contrast": "./scripts/check-contrast.js",
+    "./ratio": "./scripts/ratio.js",
     "./contrast-pairs.json": "./scripts/contrast-pairs.json",
     "./css/base.css": "./dist/css/base.css",
     "./css/theme.dark.css": "./dist/css/theme.dark.css",

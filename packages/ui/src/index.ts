@@ -277,6 +277,34 @@ export {
 } from "./XOS/XOS.tsx";
 export type { EmergencyAuthority, GLAccount, GridColumn, BudgetLine } from "./types/reference";
 
+/* Compass components on the web */
+export {
+  ClockButton,
+  ScanSheet,
+  OfflineBanner,
+  QuickIncidentSheet,
+  ChecklistRunner,
+  ShiftCard,
+  DaySheetView,
+  SignaturePad,
+  PhotoCapture,
+  LiveActivity,
+  ForceUpdateScreen,
+  SyncConflictSheet,
+  type ClockButtonProps,
+  type ScanSheetProps,
+  type OfflineBannerProps,
+  type QuickIncidentSheetProps,
+  type ChecklistRunnerProps,
+  type ShiftCardProps,
+  type DaySheetViewProps,
+  type SignaturePadProps,
+  type PhotoCaptureProps,
+  type LiveActivityProps,
+  type ForceUpdateScreenProps,
+  type SyncConflictSheetProps,
+} from "./Compass/Compass.tsx";
+
 /* Gateway components */
 export {
   ProgressBar,
