@@ -1,6 +1,6 @@
 "use server";
 
-import { listMyAccounts } from "@xos/data";
+import { listMyAccounts } from "@xos/data/gateway";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";

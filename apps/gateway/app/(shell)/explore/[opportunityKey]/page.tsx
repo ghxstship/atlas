@@ -6,18 +6,38 @@ import {
   getOpportunity,
   listAccountMembers,
   listMyApplications,
-} from "@xos/data";
+  listSavedOpportunities,
+} from "@xos/data/gateway";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { ApplyForm, ReportListing } from "@/components/explore/forms";
 import { PageTitle, Section } from "@/components/page/page";
-import { BrandMark, ButtonLink, Card, InlineAlert, PropertyList, RefusalLink, Tag } from "@/components/ui";
-import { formatDate, formatDateRange, formatDateTime, formatMoney, formatPayRange } from "@/lib/format";
+import { ActionButton } from "@/components/actions/action-button";
+import {
+  BrandMark,
+  ButtonLink,
+  Card,
+  Icon,
+  InlineAlert,
+  PropertyList,
+  RefusalLink,
+  Tag,
+} from "@/components/ui";
+import { saveOpportunityAction, unsaveOpportunityAction } from "@/lib/actions/marketplace";
+import {
+  formatDate,
+  formatDateRange,
+  formatDateTime,
+  formatMoney,
+  formatPayRange,
+} from "@/lib/format";
 import { requireNode } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 
-export async function generateMetadata({ params }: PageProps<"/explore/[opportunityKey]">): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/explore/[opportunityKey]">): Promise<Metadata> {
   const t = await getTranslate();
   const { opportunityKey } = await params;
   return { title: `${t("nav.gateway.explore.opportunity")} ${opportunityKey}` };
@@ -33,27 +53,34 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
   const ctx = await requireNode("explore.opportunity", { opportunityKey });
   const id = fromDisplayKey("opportunity", opportunityKey);
   if (!id) notFound();
-  const [t, locale, detail, applications] = await Promise.all([
+  const [t, locale, detail, applications, savedList] = await Promise.all([
     getTranslate(),
     getLocale(),
     getOpportunity(ctx.db, id),
     listMyApplications(ctx.db),
+    listSavedOpportunities(ctx.db),
   ]);
   if (!detail.ok) {
     if (detail.error.kind === "not-found") notFound();
     throw new Error(`Opportunity ${opportunityKey} did not load: ${detail.error.kind}`);
   }
   const o = detail.data;
-  const applied = applications.ok ? applications.data.find((a) => a.opportunityId === o.id) : undefined;
+  const applied = applications.ok
+    ? applications.data.find((a) => a.opportunityId === o.id)
+    : undefined;
   const mode = applicationMode(o.roleType, o.rateType, ctx.acting !== null);
   const roster =
-    mode === "slate" && ctx.acting
-      ? await listAccountMembers(ctx.db, ctx.acting.id)
-      : null;
+    mode === "slate" && ctx.acting ? await listAccountMembers(ctx.db, ctx.acting.id) : null;
   const pay = o.rateOnRequest
     ? t("gateway.common.rateOnRequest")
-    : (formatPayRange(locale, o.payMinMinor, o.payMaxMinor, o.currency) ?? t("gateway.common.rateOnRequest"));
+    : (formatPayRange(locale, o.payMinMinor, o.payMaxMinor, o.currency) ??
+      t("gateway.common.rateOnRequest"));
   const open = acceptsApplications(o);
+  const missing = o.requirements
+    .filter((r) => r.callerHolds === false)
+    .map((r) => r.certificationName ?? "");
+  const checkable = o.requirements.some((r) => r.callerHolds !== null);
+  const saved = savedList.ok ? savedList.data.find((x) => x.opportunityId === o.id) : undefined;
 
   return (
     <>
@@ -68,11 +95,32 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
         lead={
           <span className="flex flex-wrap gap-x-12 gap-y-4">
             <strong className="text-text-primary tabular-nums">{pay}</strong>
-            <span>{formatDateRange(locale, o.startsOn, o.endsOn) || t("gateway.common.noDate")}</span>
-            {o.venueName ? <span>{o.venueName}</span> : null}
+            <span>
+              {formatDateRange(locale, o.startsOn, o.endsOn) || t("gateway.common.noDate")}
+            </span>
+            {(o.venueName ?? o.venueLocality) ? (
+              <span>{o.venueName ?? o.venueLocality}</span>
+            ) : null}
           </span>
         }
-        action={<Tag>{t(enumLabelKey("externalRoleType", o.roleType))}</Tag>}
+        action={
+          <>
+            <Tag>{t(enumLabelKey("externalRoleType", o.roleType))}</Tag>
+            {saved ? (
+              <ActionButton
+                action={unsaveOpportunityAction.bind(null, saved.id)}
+                label={t("gateway.explore.detail.unsave")}
+                icon="BookmarkCheck"
+              />
+            ) : (
+              <ActionButton
+                action={saveOpportunityAction.bind(null, o.id)}
+                label={t("gateway.explore.detail.save")}
+                icon="Bookmark"
+              />
+            )}
+          </>
+        }
       />
 
       <div className="grid grid-cols-[minmax(0,1fr)_var(--layout-property-column)] gap-24 max-lg:grid-cols-[minmax(0,1fr)]">
@@ -85,25 +133,53 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
 
           <Section title={t("gateway.explore.detail.requirements")}>
             {o.requirements.length === 0 ? (
-              <p className="m-0 text-text-14 text-text-secondary">{t("gateway.explore.detail.requirementsNone")}</p>
+              <p className="m-0 text-text-14 text-text-secondary">
+                {t("gateway.explore.detail.requirementsNone")}
+              </p>
             ) : (
               <>
+                {missing.length === 0 && checkable ? (
+                  <InlineAlert tone="success">{t("gateway.explore.detail.qualified")}</InlineAlert>
+                ) : missing.length > 0 ? (
+                  <InlineAlert tone="warning">
+                    {t("gateway.explore.detail.missing", { list: missing.join(", ") })}{" "}
+                    <a href="/profile" className="text-accent-text underline">
+                      {t("gateway.explore.detail.missingAction")}
+                    </a>
+                  </InlineAlert>
+                ) : null}
                 <ul className="m-0 flex list-none flex-col gap-8 p-0">
                   {o.requirements.map((r) => (
                     <li key={r.id} className="flex flex-wrap items-center gap-8">
+                      {r.callerHolds === null ? null : (
+                        <span className={r.callerHolds ? "text-success" : "text-warning"}>
+                          <Icon
+                            name={r.callerHolds ? "CircleCheck" : "CircleAlert"}
+                            size={16}
+                            label={
+                              r.callerHolds
+                                ? t("gateway.explore.detail.holds")
+                                : t("gateway.explore.detail.lacks")
+                            }
+                          />
+                        </span>
+                      )}
                       <Tag>{t(enumLabelKey("opportunityRequirementKind", r.kind))}</Tag>
                       <span>
                         {r.certificationName ??
                           (r.insuranceMinimumMinor !== null
                             ? t("gateway.explore.detail.insuranceMinimum", {
-                                amount: formatMoney(locale, r.insuranceMinimumMinor, r.currency) ?? "",
+                                amount:
+                                  formatMoney(locale, r.insuranceMinimumMinor, r.currency) ?? "",
                               })
                             : (r.description ?? ""))}
                       </span>
                     </li>
                   ))}
                 </ul>
-                <p className="m-0 text-text-13 text-text-secondary">{t("gateway.explore.detail.requirementsCheck")}</p>
+                <p className="m-0 text-text-13 text-text-secondary">
+                  {t("gateway.explore.detail.requirementsCheck")}
+                </p>
               </>
             )}
           </Section>
@@ -114,7 +190,11 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
                 {o.positions.map((p) => (
                   <li key={p.id} className="flex flex-wrap gap-8">
                     <span className="font-medium">{p.label}</span>
-                    {p.callAt ? <span className="text-text-secondary">{formatDateTime(locale, p.callAt)}</span> : null}
+                    {p.callAt ? (
+                      <span className="text-text-secondary">
+                        {formatDateTime(locale, p.callAt)}
+                      </span>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -127,7 +207,9 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
             </h2>
             {applied ? (
               <InlineAlert tone="success">
-                {t("gateway.explore.detail.applied", { date: formatDate(locale, applied.submittedAt) })}{" "}
+                {t("gateway.explore.detail.applied", {
+                  date: formatDate(locale, applied.submittedAt),
+                })}{" "}
                 <a href="/work/applications" className="text-accent-text underline">
                   {t("gateway.explore.detail.appliedAction")}
                 </a>
@@ -147,7 +229,10 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
                 href="/settings/company"
               />
             ) : (
-              <Card title={t("gateway.explore.applyForm.title", { role: o.title })} meta={o.orgName}>
+              <Card
+                title={t("gateway.explore.applyForm.title", { role: o.title })}
+                meta={o.orgName}
+              >
                 <ApplyForm
                   opportunityId={o.id}
                   role={o.title}
@@ -177,17 +262,42 @@ export default async function OpportunityPage({ params }: PageProps<"/explore/[o
             <PropertyList
               items={[
                 { label: t("gateway.explore.detail.pay"), value: pay },
-                ...(o.rateType ? [{ label: t("gateway.explore.detail.rateType"), value: t(enumLabelKey("rateType", o.rateType)) }] : []),
+                ...(o.rateType
+                  ? [
+                      {
+                        label: t("gateway.explore.detail.rateType"),
+                        value: t(enumLabelKey("rateType", o.rateType)),
+                      },
+                    ]
+                  : []),
                 {
                   label: t("gateway.explore.detail.dates"),
-                  value: formatDateRange(locale, o.startsOn, o.endsOn) || t("gateway.common.noDate"),
+                  value:
+                    formatDateRange(locale, o.startsOn, o.endsOn) || t("gateway.common.noDate"),
                 },
-                ...(o.venueName ? [{ label: t("gateway.explore.detail.place"), value: o.venueName }] : []),
+                ...(o.venueName
+                  ? [{ label: t("gateway.explore.detail.place"), value: o.venueName }]
+                  : []),
                 { label: t("gateway.explore.detail.positions"), value: String(o.positionCount) },
-                ...(o.deadlineAt ? [{ label: t("gateway.explore.detail.deadline"), value: formatDateTime(locale, o.deadlineAt) }] : []),
-                { label: t("gateway.explore.detail.visibility"), value: t(enumLabelKey("opportunityVisibility", o.visibility)) },
+                ...(o.deadlineAt
+                  ? [
+                      {
+                        label: t("gateway.explore.detail.deadline"),
+                        value: formatDateTime(locale, o.deadlineAt),
+                      },
+                    ]
+                  : []),
+                {
+                  label: t("gateway.explore.detail.visibility"),
+                  value: t(enumLabelKey("opportunityVisibility", o.visibility)),
+                },
                 ...(o.minimumAge
-                  ? [{ label: t("gateway.explore.detail.minimumAge"), value: t("gateway.explore.detail.minimumAgeValue", { n: o.minimumAge }) }]
+                  ? [
+                      {
+                        label: t("gateway.explore.detail.minimumAge"),
+                        value: t("gateway.explore.detail.minimumAgeValue", { n: o.minimumAge }),
+                      },
+                    ]
                   : []),
               ]}
             />

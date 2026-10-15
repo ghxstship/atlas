@@ -2,12 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState, type ReactNode } from "react";
-import {
-  sendMagicLink,
-  signInWithPassword,
-  signUp,
-  type FormState,
-} from "@/app/auth/actions";
+import { sendMagicLink, signInWithPassword, signUp, type FormState } from "@/app/auth/actions";
 import { Button, InlineAlert, Input } from "@xos/ui";
 
 /** Auth forms (Auth template). Each keeps typed input after a failed submit (Section 11.7). */

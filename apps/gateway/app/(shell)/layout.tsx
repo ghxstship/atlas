@@ -1,4 +1,4 @@
-import { listMyEngagements } from "@xos/data";
+import { listMyEngagements } from "@xos/data/gateway";
 import { cookies, headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -45,7 +45,9 @@ export default async function ShellLayout({ children }: { children: ReactNode })
         role: a.roles[0] ? t(enumLabelKey("accountRole", a.roles[0])) : "",
       }))}
       actingId={ctx.acting?.id ?? null}
-      orgs={[...orgs].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name))}
+      orgs={[...orgs]
+        .map(([id, name]) => ({ id, name }))
+        .sort((a, b) => a.name.localeCompare(b.name))}
       theme={preferenceFromCookie(cookieStore.get(THEME_COOKIE)?.value)}
       locale={locale}
       locales={selectableLocales(process.env.NODE_ENV === "production")}

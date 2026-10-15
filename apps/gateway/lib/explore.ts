@@ -1,4 +1,4 @@
-import { APP_ENUMS, type ExternalRoleType, type OpportunityFilter } from "@xos/data";
+import { APP_ENUMS, type ExternalRoleType, type OpportunityFilter } from "@xos/data/gateway";
 import { parseMoneyInput } from "./format";
 
 /**
@@ -48,7 +48,13 @@ export function parseExploreQuery(query: ExploreQuery): {
 
 /** Whether any filter narrows the marketplace. */
 export function hasFilters(parsed: ReturnType<typeof parseExploreQuery>): boolean {
-  return parsed.q !== "" || parsed.roles.length > 0 || parsed.from !== "" || parsed.to !== "" || parsed.minPay !== "";
+  return (
+    parsed.q !== "" ||
+    parsed.roles.length > 0 ||
+    parsed.from !== "" ||
+    parsed.to !== "" ||
+    parsed.minPay !== ""
+  );
 }
 
 /**

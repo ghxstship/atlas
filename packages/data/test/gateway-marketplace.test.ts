@@ -17,9 +17,9 @@ import {
   submitSlate,
   toDisplayKey,
   type ApplyInput,
-} from "../src/gateway";
-import { errorResponse, okResponse } from "./fake-client";
-import { gatewayClient } from "./gateway-client";
+} from "../src/gateway.ts";
+import { errorResponse, okResponse } from "./fake-client.ts";
+import { gatewayClient } from "./gateway-client.ts";
 
 const OPP = "0192f3a4-b5c6-7d8e-9f0a-1b2c3d4e5f61";
 
@@ -60,6 +60,7 @@ describe("search", () => {
       endsBefore: "2026-12-31",
       minPayMinor: 30000,
       orgId: "o1",
+      orgName: "Northwind Live",
       limit: 10,
     });
     expect(result.ok && result.data[0]).toMatchObject({
@@ -376,11 +377,20 @@ describe("saved searches and reports", () => {
 describe("saved search management", () => {
   it("lists, toggles and removes saved searches", async () => {
     const { db } = gatewayClient({
-      "from:saved_searches": [
+      "from:api_external.my_saved_searches": [
         okResponse([
-          { id: "s1", name: "Audio", role_type: "Crew", starts_after: null, ends_before: null, alerts_enabled: true },
+          {
+            id: "s1",
+            name: "Audio",
+            role_type: "Crew",
+            starts_after: null,
+            ends_before: null,
+            alerts_enabled: true,
+          },
         ]),
         errorResponse("08000", "down"),
+      ],
+      "from:saved_searches": [
         okResponse(null),
         errorResponse("42501", "no"),
         okResponse(null),

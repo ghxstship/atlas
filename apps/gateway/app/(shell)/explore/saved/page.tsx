@@ -1,6 +1,19 @@
+import { listOpportunitiesById, listSavedOpportunities } from "@xos/data/gateway";
+import { getNode } from "@xos/ia";
 import type { Metadata } from "next";
-import { childTabLinks, PageTitle, SectionTabs } from "@/components/page/page";
-import { RefusalLink } from "@/components/ui";
+import { getLocale } from "next-intl/server";
+import { ActionButton } from "@/components/actions/action-button";
+import { OpportunityLinkCard } from "@/components/page/opportunity-card";
+import {
+  childTabLinks,
+  PageTitle,
+  pickView,
+  RegionError,
+  SectionTabs,
+  ViewSwitcher,
+} from "@/components/page/page";
+import { EmptyStateLink, Tag } from "@/components/ui";
+import { unsaveOpportunityAction } from "@/lib/actions/marketplace";
 import { childTabs } from "@/lib/shell/nav-model";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -10,29 +23,71 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("gateway.explore.saved.title") };
 }
 
-/**
- * Explore Saved (Section 4.5.8). Saving one opportunity needs a person-owned saved-opportunity
- * table and its api_external view, which A28b is adding (requested by A27). Until then the page
- * says so and points to saved searches, which do work, rather than offering a save that cannot
- * be kept.
- */
-export default async function SavedPage() {
+/** Explore Saved (Section 4.5.8): opportunities the person saved, closed ones marked. */
+export default async function SavedPage({ searchParams }: PageProps<"/explore/saved">) {
   const ctx = await requireNode("explore.saved");
-  const t = await getTranslate();
+  const query = await searchParams;
+  const [t, locale, saved] = await Promise.all([
+    getTranslate(),
+    getLocale(),
+    listSavedOpportunities(ctx.db),
+  ]);
+  const views = getNode(sitemap, "explore.saved").node.list?.views ?? ["gallery"];
+  const view = pickView(query["view"], views, "gallery");
+  const opportunities = saved.ok
+    ? await listOpportunitiesById(
+        ctx.db,
+        saved.data.map((s) => s.opportunityId),
+      )
+    : null;
   const tabs = [
     { id: "explore", label: t("nav.gateway.primary.explore"), href: "/explore" },
     ...childTabLinks(childTabs(sitemap, "explore", ctx.nav), t),
   ];
+  const byId = new Map((opportunities?.ok ? opportunities.data : []).map((o) => [o.id, o]));
   return (
     <>
-      <PageTitle title={t("gateway.explore.saved.title")} lead={t("gateway.explore.saved.lead")} />
-      <SectionTabs label={t("gateway.shell.pageTabs")} tabs={tabs} active="explore.saved" />
-      <RefusalLink
+      <PageTitle
         title={t("gateway.explore.saved.title")}
-        reason={t("gateway.explore.saved.unavailable")}
-        actionLabel={t("gateway.explore.saved.action")}
-        href="/explore/alerts"
+        lead={t("gateway.explore.saved.lead")}
+        action={<ViewSwitcher views={views} current={view} path="/explore/saved" query={query} />}
       />
+      <SectionTabs label={t("gateway.shell.pageTabs")} tabs={tabs} active="explore.saved" />
+      {!saved.ok || (opportunities && !opportunities.ok) ? (
+        <RegionError />
+      ) : saved.data.length === 0 ? (
+        <EmptyStateLink
+          icon="Bookmark"
+          sentence={t("gateway.explore.saved.empty")}
+          actionLabel={t("gateway.explore.saved.emptyAction")}
+          href="/explore"
+        />
+      ) : (
+        <ul
+          className={
+            view === "list"
+              ? "m-0 flex list-none flex-col gap-8 p-0"
+              : "m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,var(--ui-gateway-aside)),1fr))] gap-12 p-0"
+          }
+        >
+          {saved.data.map((s) => {
+            const o = byId.get(s.opportunityId);
+            return (
+              <li key={s.id} className="flex flex-col gap-8">
+                {o ? <OpportunityLinkCard opportunity={o} locale={locale} t={t} /> : null}
+                <div className="flex items-center gap-8">
+                  {!s.open ? <Tag tone="warning">{t("gateway.explore.saved.closed")}</Tag> : null}
+                  <ActionButton
+                    action={unsaveOpportunityAction.bind(null, s.id)}
+                    label={t("gateway.explore.detail.unsave")}
+                    variant="ghost"
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }

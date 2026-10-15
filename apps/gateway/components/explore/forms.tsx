@@ -46,7 +46,14 @@ export function SaveSearchForm({
       <input type="hidden" name="roleType" value={roleType} />
       <input type="hidden" name="startsAfter" value={startsAfter} />
       <input type="hidden" name="endsBefore" value={endsBefore} />
-      <Input id="save-search-name" name="name" label={t("name")} help={t("nameHelp")} defaultValue={defaultName} required />
+      <Input
+        id="save-search-name"
+        name="name"
+        label={t("name")}
+        help={t("nameHelp")}
+        defaultValue={defaultName}
+        required
+      />
       <Button type="submit" disabled={pending} aria-busy={pending}>
         {t("submit")}
       </Button>
@@ -62,7 +69,11 @@ export interface ApplyFormProps {
   readonly personName: string | null;
   readonly email: string | null;
   readonly accountName: string | null;
-  readonly questions: readonly { readonly id: string; readonly prompt: string; readonly required: boolean }[];
+  readonly questions: readonly {
+    readonly id: string;
+    readonly prompt: string;
+    readonly required: boolean;
+  }[];
   readonly feePosted: boolean;
   readonly currency: string;
   readonly roster: readonly { readonly personId: string; readonly name: string }[];
@@ -90,17 +101,34 @@ export function ApplyForm(props: ApplyFormProps) {
     );
   }
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate aria-label={t("title", { role: props.role })}>
+    <form
+      action={action}
+      className="flex flex-col gap-16"
+      noValidate
+      aria-label={t("title", { role: props.role })}
+    >
       <input type="hidden" name="opportunityId" value={props.opportunityId} />
-      {state.fieldError ? <InlineAlert tone="danger">{t(`errors.${state.fieldError}`)}</InlineAlert> : null}
+      {state.fieldError ? (
+        <InlineAlert tone="danger">{t(`errors.${state.fieldError}`)}</InlineAlert>
+      ) : null}
       <OutcomeAlert outcome={state.outcome} />
 
       <fieldset className="m-0 flex flex-col gap-8 rounded-control border border-border-subtle p-12">
         <legend className="px-4 text-text-13 font-medium">{t("shared", { org: props.org })}</legend>
         {props.personName ? (
-          <Checkbox name="share_full_name" defaultChecked label={`${t("fieldName")}: ${props.personName}`} />
+          <Checkbox
+            name="share_full_name"
+            defaultChecked
+            label={`${t("fieldName")}: ${props.personName}`}
+          />
         ) : null}
-        {props.email ? <Checkbox name="share_email" defaultChecked label={`${t("fieldEmail")}: ${props.email}`} /> : null}
+        {props.email ? (
+          <Checkbox
+            name="share_email"
+            defaultChecked
+            label={`${t("fieldEmail")}: ${props.email}`}
+          />
+        ) : null}
         {props.accountName && (props.mode === "bid" || props.mode === "slate") ? (
           <Checkbox name="share_company_name" defaultChecked label={props.accountName} />
         ) : null}
@@ -109,7 +137,9 @@ export function ApplyForm(props: ApplyFormProps) {
 
       {props.questions.length > 0 ? (
         <fieldset className="m-0 flex flex-col gap-12 border-0 p-0">
-          <legend className="mb-8 text-text-13 font-medium">{t("questions", { org: props.org })}</legend>
+          <legend className="mb-8 text-text-13 font-medium">
+            {t("questions", { org: props.org })}
+          </legend>
           {props.questions.map((q) => (
             <Textarea
               key={q.id}
@@ -133,7 +163,9 @@ export function ApplyForm(props: ApplyFormProps) {
           help={props.feePosted ? t("feeHelp") : t("feeRequestHelp")}
         />
       ) : null}
-      {props.mode === "artist" ? <p className="m-0 text-text-13 text-text-secondary">{t("epkHelp")}</p> : null}
+      {props.mode === "artist" ? (
+        <p className="m-0 text-text-13 text-text-secondary">{t("epkHelp")}</p>
+      ) : null}
 
       {props.mode === "bid" ? (
         <fieldset className="m-0 flex flex-col gap-12 border-0 p-0">
@@ -142,15 +174,30 @@ export function ApplyForm(props: ApplyFormProps) {
             {t("bidHelp")} {t("bidCurrency", { currency: props.currency })}
           </p>
           {lines.map((line, i) => (
-            <div key={line} className="flex flex-wrap items-end gap-8 rounded-control bg-bg-surface p-8">
-              <Input id={`line-${line}-description`} name="lineDescription" label={t("bidDescription")} width="100%" />
-              <Input id={`line-${line}-quantity`} name="lineQuantity" inputMode="decimal" label={t("bidQuantity")} width={120} defaultValue="1" />
+            <div
+              key={line}
+              className="flex flex-wrap items-end gap-8 rounded-control bg-bg-surface p-8"
+            >
+              <Input
+                id={`line-${line}-description`}
+                name="lineDescription"
+                label={t("bidDescription")}
+                width="100%"
+              />
+              <Input
+                id={`line-${line}-quantity`}
+                name="lineQuantity"
+                inputMode="decimal"
+                label={t("bidQuantity")}
+                width={120}
+                defaultValue="1"
+              />
               <Input
                 id={`line-${line}-price`}
                 name="linePrice"
                 inputMode="decimal"
                 label={t("bidUnitPrice")}
-                help={i === 0 ? t("bidUnitPriceHelp") : undefined}
+                {...(i === 0 ? { help: t("bidUnitPriceHelp") } : {})}
                 width={160}
               />
               {lines.length > 1 ? (
@@ -188,7 +235,9 @@ export function ApplyForm(props: ApplyFormProps) {
           {props.roster.length === 0 ? (
             <InlineAlert tone="info">{t("slateEmpty")}</InlineAlert>
           ) : (
-            props.roster.map((m) => <Checkbox key={m.personId} name="slate" value={m.personId} label={m.name} />)
+            props.roster.map((m) => (
+              <Checkbox key={m.personId} name="slate" value={m.personId} label={m.name} />
+            ))
           )}
         </fieldset>
       ) : null}
@@ -216,7 +265,12 @@ export function ReportListing({
   const tr = useTranslations("gateway.explore.detail") as unknown as Translate;
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useActionState<SimpleState, FormData>(reportListingAction, {});
-  if (state.done) return <p role="status" className="m-0 text-text-13 text-success-text">{t("sent")}</p>;
+  if (state.done)
+    return (
+      <p role="status" className="m-0 text-text-13 text-success-text">
+        {t("sent")}
+      </p>
+    );
   return (
     <>
       <Button variant="ghost" size="sm" icon="Flag" onClick={() => setOpen(true)}>
@@ -232,7 +286,13 @@ export function ReportListing({
             <Button variant="ghost" onClick={() => setOpen(false)}>
               {t("cancel")}
             </Button>
-            <Button type="submit" form="report-listing" variant="danger" disabled={pending} aria-busy={pending}>
+            <Button
+              type="submit"
+              form="report-listing"
+              variant="danger"
+              disabled={pending}
+              aria-busy={pending}
+            >
               {t("submit")}
             </Button>
           </>

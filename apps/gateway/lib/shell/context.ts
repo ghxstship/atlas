@@ -3,7 +3,7 @@ import {
   listMyAccounts,
   type ExternalAccount,
   type XosClient,
-} from "@xos/data";
+} from "@xos/data/gateway";
 import type { NavContext } from "@xos/ia";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -55,7 +55,7 @@ export const getRequestFacts = cache(async (): Promise<RequestFacts> => {
     host,
     platformDomain,
     desktop: isDesktopAgent(headerStore.get("user-agent")),
-    brand: await resolveBrand(host, platformDomain),
+    brand: await resolveBrand(await createServerSupabase(), host, platformDomain),
   };
 });
 

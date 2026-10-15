@@ -1,4 +1,4 @@
-import { listMySavedSearches } from "@xos/data";
+import { listMySavedSearches } from "@xos/data/gateway";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
@@ -19,14 +19,21 @@ export async function generateMetadata(): Promise<Metadata> {
 /** Explore Alerts (Section 4.4.3): saved searches, each alerting by email and push when on. */
 export default async function AlertsPage() {
   const ctx = await requireNode("explore.alerts");
-  const [t, locale, searches] = await Promise.all([getTranslate(), getLocale(), listMySavedSearches(ctx.db)]);
+  const [t, locale, searches] = await Promise.all([
+    getTranslate(),
+    getLocale(),
+    listMySavedSearches(ctx.db),
+  ]);
   const tabs = [
     { id: "explore", label: t("nav.gateway.primary.explore"), href: "/explore" },
     ...childTabLinks(childTabs(sitemap, "explore", ctx.nav), t),
   ];
   return (
     <>
-      <PageTitle title={t("gateway.explore.alerts.title")} lead={t("gateway.explore.alerts.lead")} />
+      <PageTitle
+        title={t("gateway.explore.alerts.title")}
+        lead={t("gateway.explore.alerts.lead")}
+      />
       <SectionTabs label={t("gateway.shell.pageTabs")} tabs={tabs} active="explore.alerts" />
       {!searches.ok ? (
         <RegionError />
@@ -47,20 +54,33 @@ export default async function AlertsPage() {
             return (
               <li key={s.id} className="flex flex-wrap items-center gap-12 px-16 py-12">
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  <Link href={`/explore?${params.toString()}` as Route} className="font-medium text-text-primary">
+                  <Link
+                    href={`/explore?${params.toString()}` as Route}
+                    className="font-medium text-text-primary"
+                  >
                     {s.name}
                   </Link>
                   <span className="text-text-13 text-text-secondary">
-                    {s.roleType ? t(enumLabelKey("externalRoleType", s.roleType)) : t("gateway.explore.alerts.any")}
-                    {s.startsAfter || s.endsBefore ? ` · ${formatDateRange(locale, s.startsAfter, s.endsBefore)}` : ""}
+                    {s.roleType
+                      ? t(enumLabelKey("externalRoleType", s.roleType))
+                      : t("gateway.explore.alerts.any")}
+                    {s.startsAfter || s.endsBefore
+                      ? ` · ${formatDateRange(locale, s.startsAfter, s.endsBefore)}`
+                      : ""}
                   </span>
                 </div>
                 <Tag tone={s.alertsEnabled ? "success" : "neutral"}>
-                  {s.alertsEnabled ? t("gateway.explore.alerts.on") : t("gateway.explore.alerts.off")}
+                  {s.alertsEnabled
+                    ? t("gateway.explore.alerts.on")
+                    : t("gateway.explore.alerts.off")}
                 </Tag>
                 <ActionButton
                   action={setAlertsAction.bind(null, s.id, !s.alertsEnabled)}
-                  label={s.alertsEnabled ? t("gateway.explore.alerts.turnOff") : t("gateway.explore.alerts.turnOn")}
+                  label={
+                    s.alertsEnabled
+                      ? t("gateway.explore.alerts.turnOff")
+                      : t("gateway.explore.alerts.turnOn")
+                  }
                 />
                 <ActionButton
                   action={removeSavedSearchAction.bind(null, s.id)}

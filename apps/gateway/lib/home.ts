@@ -10,7 +10,7 @@ import {
   type OnboardingItem,
   type Representation,
   type SharedRecord,
-} from "@xos/data";
+} from "@xos/data/gateway";
 
 /**
  * Gateway Home (Section 4.5.8): the Up Next card for the person's next shift, set time, delivery
@@ -33,7 +33,11 @@ export const UP_NEXT_KINDS = [
 ] as const;
 
 export type UpNext =
-  | { readonly kind: "record"; readonly record: SharedRecord; readonly engagement: Engagement | null }
+  | {
+      readonly kind: "record";
+      readonly record: SharedRecord;
+      readonly engagement: Engagement | null;
+    }
   | { readonly kind: "engagement"; readonly engagement: Engagement };
 
 /** The soonest dated record ahead, else the next engagement to start. */
@@ -64,7 +68,11 @@ export function pickUpNext(
 }
 
 export type FeedItem =
-  | { readonly kind: "sign"; readonly document: EngagementDocument; readonly engagement: Engagement }
+  | {
+      readonly kind: "sign";
+      readonly document: EngagementDocument;
+      readonly engagement: Engagement;
+    }
   | { readonly kind: "offer"; readonly application: ApplicationWithOpportunity }
   | {
       readonly kind: "onboarding";
@@ -73,7 +81,11 @@ export type FeedItem =
       readonly blocking: number;
     }
   | { readonly kind: "representation"; readonly representation: Representation }
-  | { readonly kind: "interview"; readonly application: ApplicationWithOpportunity; readonly at: string }
+  | {
+      readonly kind: "interview";
+      readonly application: ApplicationWithOpportunity;
+      readonly at: string;
+    }
   | { readonly kind: "rate"; readonly engagement: Engagement };
 
 /**
@@ -127,7 +139,10 @@ export function needsYou(input: {
     if (upcoming) items.push({ kind: "interview", application, at: upcoming.scheduledAt });
   }
   for (const engagement of input.engagements) {
-    if (engagement.state === "Complete" && (engagement.endDate ?? engagement.startDate) >= isoDaysAgo(input.now, 14)) {
+    if (
+      engagement.state === "Complete" &&
+      (engagement.endDate ?? engagement.startDate) >= isoDaysAgo(input.now, 14)
+    ) {
       items.push({ kind: "rate", engagement });
     }
   }

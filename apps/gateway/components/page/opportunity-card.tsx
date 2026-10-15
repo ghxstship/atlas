@@ -1,7 +1,7 @@
-import type { Opportunity } from "@xos/data";
+import type { Opportunity } from "@xos/data/gateway";
 import type { Route } from "next";
 import Link from "next/link";
-import { BrandMark, Tag } from "@/components/ui";
+import { BrandMark, Icon, Tag } from "@/components/ui";
 import { formatDate, formatDateRange, formatPayRange } from "@/lib/format";
 import { enumLabelKey, type Translate } from "@/lib/shell/translate";
 
@@ -21,7 +21,8 @@ export function OpportunityLinkCard({
 }) {
   const pay = o.rateOnRequest
     ? t("gateway.common.rateOnRequest")
-    : (formatPayRange(locale, o.payMinMinor, o.payMaxMinor, o.currency) ?? t("gateway.common.rateOnRequest"));
+    : (formatPayRange(locale, o.payMinMinor, o.payMaxMinor, o.currency) ??
+      t("gateway.common.rateOnRequest"));
   const rate = o.rateType ? t(enumLabelKey("rateType", o.rateType)) : null;
   const dates = formatDateRange(locale, o.startsOn, o.endsOn) || t("gateway.common.noDate");
   return (
@@ -29,9 +30,17 @@ export function OpportunityLinkCard({
       <div className="flex items-center gap-6 text-text-12 text-text-secondary">
         <BrandMark name={o.orgName} size="sm" iconOnly />
         <span className="truncate">{o.orgName}</span>
+        {o.orgVerified ? (
+          <span className="text-state-scheduled">
+            <Icon name="BadgeCheck" size={14} label={t("gateway.explore.verified")} />
+          </span>
+        ) : null}
       </div>
       <h3 className="m-0 text-heading-16 font-semibold">
-        <Link href={`/explore/${o.key}` as Route} className="text-text-primary no-underline after:absolute after:inset-0">
+        <Link
+          href={`/explore/${o.key}` as Route}
+          className="text-text-primary no-underline after:absolute after:inset-0"
+        >
           {o.title}
         </Link>
       </h3>
@@ -41,7 +50,7 @@ export function OpportunityLinkCard({
           {rate && !o.rateOnRequest ? ` · ${rate}` : ""}
         </strong>
         <span>{dates}</span>
-        {o.venueName ? <span>{o.venueName}</span> : null}
+        {(o.venueName ?? o.venueLocality) ? <span>{o.venueName ?? o.venueLocality}</span> : null}
       </p>
       <div className="mt-auto flex flex-wrap items-center gap-6 pt-4">
         <Tag>{t(enumLabelKey("externalRoleType", o.roleType))}</Tag>

@@ -1,4 +1,4 @@
-import type { XosClient } from "./client";
+import type { XosClient } from "./client.ts";
 import {
   derivedRow,
   external,
@@ -21,13 +21,19 @@ import {
   type TaxFormKind,
   type VerificationMethod,
   type VerificationOutcome,
-} from "./gateway-external";
-import { toDisplayKey } from "./gateway-keys";
-import { fail, ok, toDataError, type Result } from "./result";
+} from "./gateway-external.ts";
+import { toDisplayKey } from "./gateway-keys.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
-export * from "./gateway-external";
-export * from "./gateway-keys";
-export * from "./gateway-marketplace";
+export type { Database, XosClient } from "./client.ts";
+export { getCurrentPerson } from "./identity.ts";
+export type { DataError, Result } from "./result.ts";
+export * from "./gateway-external.ts";
+export * from "./gateway-keys.ts";
+export * from "./gateway-marketplace.ts";
+export * from "./gateway-operations.ts";
+export * from "./gateway-conversations.ts";
+export * from "./gateway-public.ts";
 
 /**
  * Gateway repository (Section 4.4, Section 4.5.8): the external party's engagements, documents,
@@ -375,14 +381,12 @@ export async function sendMessage(
   db: XosClient,
   input: { readonly threadId: string; readonly body: string },
 ): Promise<Result<null>> {
-  const { error } = await db
-    .from("engagement_messages")
-    .insert(
-      derivedRow<"engagement_messages">({
-        engagement_thread_id: input.threadId,
-        body: input.body.trim(),
-      }),
-    );
+  const { error } = await db.from("engagement_messages").insert(
+    derivedRow<"engagement_messages">({
+      engagement_thread_id: input.threadId,
+      body: input.body.trim(),
+    }),
+  );
   return error ? fail(toDataError(error)) : ok(null);
 }
 

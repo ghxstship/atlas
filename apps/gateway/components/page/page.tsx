@@ -27,7 +27,9 @@ export function PageTitle({
       <div className="flex min-w-0 flex-col gap-4">
         {eyebrow ? <div className="text-text-12 text-text-secondary">{eyebrow}</div> : null}
         <h1 className="m-0 text-heading-20 font-semibold">{title}</h1>
-        {lead ? <p className="m-0 max-w-layout-reading text-text-14 text-text-secondary">{lead}</p> : null}
+        {lead ? (
+          <p className="m-0 max-w-layout-reading text-text-14 text-text-secondary">{lead}</p>
+        ) : null}
       </div>
       {action ? <div className="flex flex-none items-center gap-8">{action}</div> : null}
     </header>
@@ -45,7 +47,10 @@ export function SectionTabs({
   active: string;
 }) {
   return (
-    <nav aria-label={label} className="-mx-16 overflow-x-auto px-16 [scrollbar-width:none] md:mx-0 md:px-0">
+    <nav
+      aria-label={label}
+      className="-mx-16 overflow-x-auto px-16 [scrollbar-width:none] md:mx-0 md:px-0"
+    >
       <ul className="m-0 flex list-none gap-16 border-b border-border-subtle p-0">
         {tabs.map((tab) => {
           const current = tab.id === active;
@@ -94,10 +99,15 @@ export async function ViewSwitcher({
   const t = await getTranslations("gateway.common");
   const tr = t as unknown as (key: string, values?: Record<string, string>) => string;
   return (
-    <div role="group" aria-label={tr("viewAs", { view: tr(`views.${current}`) })} className="inline-flex gap-4">
+    <div
+      role="group"
+      aria-label={tr("viewAs", { view: tr(`views.${current}`) })}
+      className="inline-flex gap-4"
+    >
       {views.map((view) => {
         const params = new URLSearchParams();
-        for (const [k, v] of Object.entries(query)) if (typeof v === "string" && k !== "view") params.set(k, v);
+        for (const [k, v] of Object.entries(query))
+          if (typeof v === "string" && k !== "view") params.set(k, v);
         params.set("view", view);
         const selected = view === current;
         return (

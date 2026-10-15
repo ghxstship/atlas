@@ -28,7 +28,10 @@ export default async function PublicLayout({ children }: { children: ReactNode }
           {ctx ? t("nav.gateway.primary.home") : t("gateway.auth.signUp.toSignIn")}
         </Link>
       </header>
-      <main id="content" className="mx-auto flex w-full max-w-layout-reading flex-1 flex-col gap-16 p-16 md:p-24">
+      <main
+        id="content"
+        className="mx-auto flex w-full max-w-layout-reading flex-1 flex-col gap-16 p-16 md:p-24"
+      >
         {children}
       </main>
     </div>

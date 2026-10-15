@@ -6,8 +6,10 @@
 
 /** The number of minor units in one major unit of a currency (100 for USD, 1 for JPY). */
 export function minorDigits(currency: string): number {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).resolvedOptions()
-    .maximumFractionDigits ?? 2;
+  return (
+    new Intl.NumberFormat("en-US", { style: "currency", currency }).resolvedOptions()
+      .maximumFractionDigits ?? 2
+  );
 }
 
 /** A money amount in minor units, or null when the amount or currency is missing. */
@@ -71,7 +73,10 @@ export function formatDateRange(locale: string, start: string | null, end: strin
     day: "numeric",
     year: "numeric",
     timeZone: "UTC",
-  }).formatRange(new Date(`${start.slice(0, 10)}T00:00:00Z`), new Date(`${end.slice(0, 10)}T00:00:00Z`));
+  }).formatRange(
+    new Date(`${start.slice(0, 10)}T00:00:00Z`),
+    new Date(`${end.slice(0, 10)}T00:00:00Z`),
+  );
 }
 
 /** A timestamp with time, in the record's own zone when it has one. */

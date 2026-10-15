@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import type { Database, XosClient } from "@xos/data";
+import type { Database, XosClient } from "@xos/data/gateway";
 import type { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { authCookieOptions } from "./cookies";

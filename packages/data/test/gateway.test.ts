@@ -49,9 +49,9 @@ import {
   uuidToBase32,
   type OnboardingItem,
   type Representation,
-} from "../src/gateway";
-import { errorResponse, okResponse } from "./fake-client";
-import { gatewayClient } from "./gateway-client";
+} from "../src/gateway.ts";
+import { errorResponse, okResponse } from "./fake-client.ts";
+import { gatewayClient } from "./gateway-client.ts";
 
 const ID = "0192f3a4-b5c6-7d8e-9f0a-1b2c3d4e5f60";
 

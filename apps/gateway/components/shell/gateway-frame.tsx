@@ -17,7 +17,15 @@ import type { Route } from "next";
 import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { setActing, setLocale, setTheme } from "@/lib/shell/actions";
 import type { ThemePreference } from "@/lib/theme";
 import { broadcast, SessionWatcher } from "./session-watcher";
@@ -46,7 +54,11 @@ export interface GatewayFrameProps {
   readonly commands: readonly FrameLink[];
   readonly personName: string;
   readonly email: string | null;
-  readonly accounts: readonly { readonly id: string; readonly name: string; readonly role: string }[];
+  readonly accounts: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly role: string;
+  }[];
   readonly actingId: string | null;
   readonly orgs: readonly { readonly id: string; readonly name: string }[];
   readonly theme: ThemePreference;
@@ -103,7 +115,8 @@ export function GatewayFrame(props: GatewayFrameProps) {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       const typing =
-        target?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "");
+        target?.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "");
       if (event.key === "?" && !typing && !event.metaKey && !event.ctrlKey) {
         event.preventDefault();
         setHelpOpen(true);
@@ -155,7 +168,11 @@ export function GatewayFrame(props: GatewayFrameProps) {
     <header className="hidden max-md:flex items-center justify-between gap-8 h-(--ui-topnav) px-16 bg-bg-surface border-b border-border-subtle">
       {brand}
       <div className="flex items-center gap-4">
-        <IconButton icon="Search" label={t("gateway.shell.search")} onClick={() => setCommandOpen(true)} />
+        <IconButton
+          icon="Search"
+          label={t("gateway.shell.search")}
+          onClick={() => setCommandOpen(true)}
+        />
         <button
           type="button"
           aria-haspopup="dialog"
@@ -183,14 +200,20 @@ export function GatewayFrame(props: GatewayFrameProps) {
       <TemplateGatewayShell
         topNav={topNav}
         tabBar={
-          <TabBar label={t("gateway.shell.primaryNav")} active={active} items={props.bottomBar.map(toItem)} />
+          <TabBar
+            label={t("gateway.shell.primaryNav")}
+            active={active}
+            items={props.bottomBar.map(toItem)}
+          />
         }
       >
         <div id="content" className="flex flex-col gap-16 min-w-0">
           {props.children}
         </div>
         {props.showPoweredBy ? (
-          <p className="m-0 pt-24 text-center text-text-12 text-text-tertiary">{t("gateway.shell.poweredBy")}</p>
+          <p className="m-0 pt-24 text-center text-text-12 text-text-tertiary">
+            {t("gateway.shell.poweredBy")}
+          </p>
         ) : null}
       </TemplateGatewayShell>
 
@@ -220,7 +243,9 @@ export function GatewayFrame(props: GatewayFrameProps) {
         onClose={() => setAccountOpen(false)}
       >
         <div className="flex flex-col gap-16">
-          {props.email ? <p className="m-0 text-text-13 text-text-secondary">{props.email}</p> : null}
+          {props.email ? (
+            <p className="m-0 text-text-13 text-text-secondary">{props.email}</p>
+          ) : null}
           <ul className="m-0 flex list-none flex-col p-0">
             {props.avatar.map((entry) => (
               <li key={entry.id}>
@@ -237,33 +262,42 @@ export function GatewayFrame(props: GatewayFrameProps) {
           </ul>
           {props.accounts.length > 0 ? (
             <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
-              <legend className="mb-4 text-text-12 font-medium text-text-secondary">{t("gateway.shell.actingAs")}</legend>
-              {[{ id: "self", name: t("gateway.shell.actSelf"), role: t("gateway.shell.actSelfHint") }, ...props.accounts].map(
-                (a) => {
-                  const current = (props.actingId ?? "self") === a.id;
-                  return (
-                    <Button
-                      key={a.id}
-                      variant={current ? "secondary" : "ghost"}
-                      aria-pressed={current}
-                      className="w-full justify-between"
-                      onClick={async () => {
-                        await setActing(a.id);
-                        setAccountOpen(false);
-                        refresh();
-                        go("/home");
-                      }}
-                    >
-                      <span>{a.name}</span>
-                      <span className="text-text-12 text-text-secondary">{a.role}</span>
-                    </Button>
-                  );
+              <legend className="mb-4 text-text-12 font-medium text-text-secondary">
+                {t("gateway.shell.actingAs")}
+              </legend>
+              {[
+                {
+                  id: "self",
+                  name: t("gateway.shell.actSelf"),
+                  role: t("gateway.shell.actSelfHint"),
                 },
-              )}
+                ...props.accounts,
+              ].map((a) => {
+                const current = (props.actingId ?? "self") === a.id;
+                return (
+                  <Button
+                    key={a.id}
+                    variant={current ? "secondary" : "ghost"}
+                    aria-pressed={current}
+                    className="w-full justify-between"
+                    onClick={async () => {
+                      await setActing(a.id);
+                      setAccountOpen(false);
+                      refresh();
+                      go("/home");
+                    }}
+                  >
+                    <span>{a.name}</span>
+                    <span className="text-text-12 text-text-secondary">{a.role}</span>
+                  </Button>
+                );
+              })}
             </fieldset>
           ) : null}
           <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
-            <legend className="mb-4 text-text-12 font-medium text-text-secondary">{t("gateway.shell.theme")}</legend>
+            <legend className="mb-4 text-text-12 font-medium text-text-secondary">
+              {t("gateway.shell.theme")}
+            </legend>
             <div className="flex flex-wrap gap-4">
               {(["system", "dark", "light"] as const).map((pref) => (
                 <Button
@@ -282,7 +316,9 @@ export function GatewayFrame(props: GatewayFrameProps) {
             </div>
           </fieldset>
           <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
-            <legend className="mb-4 text-text-12 font-medium text-text-secondary">{t("gateway.shell.language")}</legend>
+            <legend className="mb-4 text-text-12 font-medium text-text-secondary">
+              {t("gateway.shell.language")}
+            </legend>
             <div className="flex flex-wrap gap-4">
               {props.locales.map((l) => (
                 <Button
@@ -327,7 +363,11 @@ export function GatewayFrame(props: GatewayFrameProps) {
       >
         <div className="flex flex-col gap-8 text-text-13 text-text-secondary">
           <p className="m-0">{t("gateway.shell.help.account")}</p>
-          <NextLink href={"/explore/how-ranking-works" as Route} className="text-accent-text underline" onClick={() => setHelpOpen(false)}>
+          <NextLink
+            href={"/explore/how-ranking-works" as Route}
+            className="text-accent-text underline"
+            onClick={() => setHelpOpen(false)}
+          >
             {t("gateway.shell.help.ranking")}
           </NextLink>
         </div>
@@ -337,7 +377,11 @@ export function GatewayFrame(props: GatewayFrameProps) {
         open={switchOpen}
         onOpenChange={setSwitchOpen}
         title={t("gateway.shell.switchOrg.title")}
-        description={props.orgs.length > 0 ? t("gateway.shell.switchOrg.body") : t("gateway.shell.switchOrg.empty")}
+        description={
+          props.orgs.length > 0
+            ? t("gateway.shell.switchOrg.body")
+            : t("gateway.shell.switchOrg.empty")
+        }
         actions={
           <Button
             variant="primary"

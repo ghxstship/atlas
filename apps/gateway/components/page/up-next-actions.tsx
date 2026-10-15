@@ -12,9 +12,14 @@ export function icsFor(input: {
   readonly location: string | null;
   readonly uid: string;
 }): string {
-  const stamp = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const stamp = (iso: string) =>
+    new Date(iso)
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}/, "");
   const escape = (text: string) => text.replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\n/g, "\\n");
-  const end = input.endsAt ?? new Date(new Date(input.startsAt).getTime() + 3_600_000).toISOString();
+  const end =
+    input.endsAt ?? new Date(new Date(input.startsAt).getTime() + 3_600_000).toISOString();
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",

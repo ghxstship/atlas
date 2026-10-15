@@ -1,4 +1,4 @@
-import type { XosClient } from "./client";
+import type { XosClient } from "./client.ts";
 import {
   derivedRow,
   external,
@@ -12,9 +12,9 @@ import {
   type OpportunityState,
   type OpportunityVisibility,
   type RateType,
-} from "./gateway-external";
-import { toDisplayKey } from "./gateway-keys";
-import { fail, ok, toDataError, type Result } from "./result";
+} from "./gateway-external.ts";
+import { toDisplayKey } from "./gateway-keys.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Gateway marketplace repository (Section 4.4.3): opportunities open to the caller, applications,
@@ -28,12 +28,16 @@ export interface Opportunity {
   readonly key: string;
   readonly orgId: string;
   readonly orgName: string;
+  /** The org's identity is verified (A28b 1001): a trust signal shown on every card. */
+  readonly orgVerified: boolean;
   readonly title: string;
   readonly description: string | null;
   readonly roleType: ExternalRoleType;
   readonly roleCode: string | null;
   readonly catUrid: string | null;
   readonly venueName: string | null;
+  /** The venue's city or locality, the place shown when there is no venue name. */
+  readonly venueLocality: string | null;
   readonly jurisdictionId: string | null;
   readonly startsOn: string | null;
   readonly endsOn: string | null;
@@ -51,7 +55,7 @@ export interface Opportunity {
 }
 
 const OPPORTUNITY_COLUMNS =
-  "id, org_id, org_name, title, description, role_type, role_code, cat_urid, venue_name, jurisdiction_id, starts_on, ends_on, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, rate_on_request, deadline_at, minimum_age, opportunity_state, position_count";
+  "id, org_id, org_name, title, description, role_type, role_code, cat_urid, venue_name, jurisdiction_id, starts_on, ends_on, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, rate_on_request, deadline_at, minimum_age, opportunity_state, position_count, org_verified, venue_locality";
 
 function toOpportunity(row: ExternalRow<"opportunities">): Opportunity {
   const id = req(row.id, "opportunities.id");
@@ -60,12 +64,14 @@ function toOpportunity(row: ExternalRow<"opportunities">): Opportunity {
     key: toDisplayKey("opportunity", id),
     orgId: req(row.org_id, "opportunities.org_id"),
     orgName: req(row.org_name, "opportunities.org_name"),
+    orgVerified: row.org_verified ?? false,
     title: req(row.title, "opportunities.title"),
     description: row.description,
     roleType: req(row.role_type, "opportunities.role_type"),
     roleCode: row.role_code,
     catUrid: row.cat_urid,
     venueName: row.venue_name,
+    venueLocality: row.venue_locality,
     jurisdictionId: row.jurisdiction_id,
     startsOn: row.starts_on,
     endsOn: row.ends_on,
@@ -92,6 +98,8 @@ export interface OpportunityFilter {
   readonly minPayMinor?: number;
   /** Only this org (a white-label Gateway, Section 4.4.7). */
   readonly orgId?: string;
+  /** Only the org of this name, when a white-label host names the org but not its id. */
+  readonly orgName?: string;
   readonly limit?: number;
 }
 
@@ -124,6 +132,7 @@ export async function searchOpportunities(
     );
   }
   if (filter.orgId) query = query.eq("org_id", filter.orgId);
+  if (filter.orgName) query = query.eq("org_name", filter.orgName);
   const { data, error } = await query
     .order("deadline_at", { ascending: true, nullsFirst: false })
     .order("starts_on", { ascending: true, nullsFirst: false })
@@ -150,6 +159,8 @@ export interface OpportunityRequirement {
   readonly kind: OpportunityRequirementKind;
   readonly description: string | null;
   readonly certificationName: string | null;
+  /** True when the caller holds a current certification that meets it; null when not checkable. */
+  readonly callerHolds: boolean | null;
   readonly insuranceMinimumMinor: number | null;
   readonly currency: string | null;
 }
@@ -181,7 +192,7 @@ export async function getOpportunity(
     x
       .from("opportunity_requirements")
       .select(
-        "id, opportunity_id, requirement_kind, description, certification_name, insurance_minimum_minor, currency_code",
+        "id, opportunity_id, requirement_kind, description, certification_name, caller_holds, insurance_minimum_minor, currency_code",
       )
       .eq("opportunity_id", id),
   ]);
@@ -206,6 +217,7 @@ export async function getOpportunity(
       kind: req(r.requirement_kind, "opportunity_requirements.requirement_kind"),
       description: r.description,
       certificationName: r.certification_name,
+      callerHolds: r.requirement_kind === "Certification" ? (r.caller_holds ?? false) : null,
       insuranceMinimumMinor: r.insurance_minimum_minor,
       currency: r.currency_code,
     })),
@@ -583,27 +595,85 @@ export interface SavedSearch {
   readonly alertsEnabled: boolean;
 }
 
-/**
- * The caller's saved searches. `app.saved_searches` holds only the person's own columns and its
- * policy is owner-only (0720), so it is read directly until A28b publishes the api_external view.
- */
+/** The caller's saved searches (api_external.my_saved_searches), by name. */
 export async function listMySavedSearches(db: XosClient): Promise<Result<SavedSearch[]>> {
-  const { data, error } = await db
-    .from("saved_searches")
+  const { data, error } = await external(db)
+    .from("my_saved_searches")
     .select("id, name, role_type, starts_after, ends_before, alerts_enabled")
-    .is("deleted_at", null)
     .order("name", { ascending: true });
   if (error) return fail(toDataError(error));
   return ok(
     data.map((row) => ({
-      id: row.id,
-      name: row.name,
+      id: req(row.id, "my_saved_searches.id"),
+      name: req(row.name, "my_saved_searches.name"),
       roleType: row.role_type,
       startsAfter: row.starts_after,
       endsBefore: row.ends_before,
-      alertsEnabled: row.alerts_enabled,
+      alertsEnabled: row.alerts_enabled ?? false,
     })),
   );
+}
+
+export interface SavedOpportunity {
+  readonly id: string;
+  readonly opportunityId: string;
+  readonly savedAt: string;
+  /** False once the opportunity stops taking applications. */
+  readonly open: boolean;
+}
+
+/** Opportunities the caller saved (api_external.my_saved_opportunities), newest first. */
+export async function listSavedOpportunities(db: XosClient): Promise<Result<SavedOpportunity[]>> {
+  const { data, error } = await external(db)
+    .from("my_saved_opportunities")
+    .select("id, opportunity_id, saved_at, is_open")
+    .order("saved_at", { ascending: false });
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((row) => ({
+      id: req(row.id, "my_saved_opportunities.id"),
+      opportunityId: req(row.opportunity_id, "my_saved_opportunities.opportunity_id"),
+      savedAt: req(row.saved_at, "my_saved_opportunities.saved_at"),
+      open: row.is_open ?? false,
+    })),
+  );
+}
+
+/** Saves an opportunity to come back to (Section 11.12: swipe right to save). */
+export async function saveOpportunity(
+  db: XosClient,
+  input: { readonly personId: string; readonly opportunityId: string },
+): Promise<Result<null>> {
+  const { error } = await db.from("saved_opportunities").insert(
+    derivedRow<"saved_opportunities">({
+      person_id: input.personId,
+      opportunity_id: input.opportunityId,
+    }),
+  );
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/** Removes a saved opportunity (soft delete). */
+export async function unsaveOpportunity(db: XosClient, savedId: string): Promise<Result<null>> {
+  const { error } = await db
+    .from("saved_opportunities")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", savedId);
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/** Opportunities by id, for the saved list and offers. */
+export async function listOpportunitiesById(
+  db: XosClient,
+  ids: readonly string[],
+): Promise<Result<Opportunity[]>> {
+  if (ids.length === 0) return ok([]);
+  const { data, error } = await external(db)
+    .from("opportunities")
+    .select(OPPORTUNITY_COLUMNS)
+    .in("id", ids);
+  if (error) return fail(toDataError(error));
+  return ok(data.map(toOpportunity));
 }
 
 /** Turns a saved search's alerts on or off. */

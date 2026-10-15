@@ -1,4 +1,4 @@
-import type { DataError, Result } from "@xos/data";
+import type { DataError, Result } from "@xos/data/gateway";
 
 /**
  * What a Gateway server action returns to the page: success, or a catalog key under

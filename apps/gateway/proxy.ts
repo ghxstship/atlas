@@ -1,4 +1,4 @@
-import { listMyAccounts } from "@xos/data";
+import { listMyAccounts } from "@xos/data/gateway";
 import { findRoute, getNode, isNodeVisible } from "@xos/ia";
 import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
@@ -94,7 +94,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         return secure(carryCookies(NextResponse.redirect(to), response()));
       }
       const accounts = await listMyAccounts(db);
-      if (!accounts.ok) throw new Error(`Gateway proxy could not read accounts: ${accounts.error.kind}`);
+      if (!accounts.ok)
+        throw new Error(`Gateway proxy could not read accounts: ${accounts.error.kind}`);
       const acting = resolveActing(accounts.data, request.cookies.get(ACTING_COOKIE)?.value);
       const ctx = navContext({
         standing: acting.standing,

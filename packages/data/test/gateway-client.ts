@@ -1,4 +1,4 @@
-import { fakeClient, type Response } from "./fake-client";
+import { fakeClient, type Response } from "./fake-client.ts";
 
 /** The shared recording client, with `schema(name)` routing view reads to `from:<schema>.<view>`. */
 export function gatewayClient(queues: Record<string, Response[]>) {

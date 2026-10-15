@@ -1,4 +1,4 @@
-import { strongestAccountRole, type AccountRole, type ExternalAccount } from "@xos/data";
+import { strongestAccountRole, type AccountRole, type ExternalAccount } from "@xos/data/gateway";
 import type { Condition, NavContext } from "@xos/ia";
 
 /**

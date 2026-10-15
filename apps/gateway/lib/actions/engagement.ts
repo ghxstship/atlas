@@ -11,7 +11,7 @@ import {
   signEngagementDocument,
   submitOnboardingItem,
   type ApplicationState,
-} from "@xos/data";
+} from "@xos/data/gateway";
 import { z } from "zod";
 import { toAction, type ActionResult } from "@/lib/action-result";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -32,18 +32,26 @@ export async function submitOnboardingItemAction(itemId: string): Promise<Action
 }
 
 export async function acceptRepresentationAction(representationId: string): Promise<ActionResult> {
-  return toAction(await acceptRepresentation(await createServerSupabase(), id.parse(representationId)));
+  return toAction(
+    await acceptRepresentation(await createServerSupabase(), id.parse(representationId)),
+  );
 }
 
 export async function revokeRepresentationAction(representationId: string): Promise<ActionResult> {
-  return toAction(await revokeRepresentation(await createServerSupabase(), id.parse(representationId)));
+  return toAction(
+    await revokeRepresentation(await createServerSupabase(), id.parse(representationId)),
+  );
 }
 
 export async function revokeProfileShareAction(shareId: string): Promise<ActionResult> {
   return toAction(await revokeProfileShare(await createServerSupabase(), id.parse(shareId)));
 }
 
-const DECISIONS = { Withdrawn: "Withdrawn.", Accepted: "Offer accepted.", Declined: "Offer declined." } as const;
+const DECISIONS = {
+  Withdrawn: "Withdrawn.",
+  Accepted: "Offer accepted.",
+  Declined: "Offer declined.",
+} as const;
 
 export async function decideApplicationAction(
   applicationId: string,

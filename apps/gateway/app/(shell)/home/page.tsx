@@ -8,7 +8,7 @@ import {
   listSharedRecords,
   searchOpportunities,
   type Engagement,
-} from "@xos/data";
+} from "@xos/data/gateway";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -57,20 +57,21 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   }
   const engagements = engagementsResult.data;
   const current = engagements.filter(isCurrentEngagement);
-  const [records, documents, onboarding, applications, representations, recommended] = await Promise.all([
-    listSharedRecords(ctx.db, {
-      projectIds: [...new Set(current.map((e) => e.projectId))],
-      kinds: [...UP_NEXT_KINDS],
-    }),
-    listEngagementDocuments(ctx.db),
-    listOnboardingItems(ctx.db),
-    listMyApplications(ctx.db),
-    listRepresentations(ctx.db),
-    searchOpportunities(ctx.db, {
-      limit: 6,
-      ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
-    }),
-  ]);
+  const [records, documents, onboarding, applications, representations, recommended] =
+    await Promise.all([
+      listSharedRecords(ctx.db, {
+        projectIds: [...new Set(current.map((e) => e.projectId))],
+        kinds: [...UP_NEXT_KINDS],
+      }),
+      listEngagementDocuments(ctx.db),
+      listOnboardingItems(ctx.db),
+      listMyApplications(ctx.db),
+      listRepresentations(ctx.db),
+      searchOpportunities(ctx.db, {
+        limit: 6,
+        ...(ctx.brand.kind === "org" ? { orgName: ctx.brand.org.name } : {}),
+      }),
+    ]);
   const upNext = records.ok ? pickUpNext(records.data, current, now) : null;
   const feed = needsYou({
     engagements,
@@ -81,13 +82,18 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     personId: ctx.personId,
     now,
   });
-  const failed = !records.ok || !documents.ok || !onboarding.ok || !applications.ok || !representations.ok;
+  const failed =
+    !records.ok || !documents.ok || !onboarding.ok || !applications.ok || !representations.ok;
   const firstName = (ctx.personName ?? "").split(" ")[0] ?? "";
 
   return (
     <>
       <PageTitle
-        title={firstName ? t("gateway.home.greeting", { name: firstName }) : t("nav.gateway.primary.home")}
+        title={
+          firstName
+            ? t("gateway.home.greeting", { name: firstName })
+            : t("nav.gateway.primary.home")
+        }
         action={<ViewSwitcher views={views} current={view} path="/home" query={query} />}
       />
       <form action="/explore" method="get" role="search" className="flex">
@@ -107,7 +113,9 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
 
       {view === "feed" ? (
         <Section title={t("gateway.home.upNext.title")}>
-          {upNext ? <UpNextCardView upNext={upNext} locale={locale} t={t} now={now} /> : (
+          {upNext ? (
+            <UpNextCardView upNext={upNext} locale={locale} t={t} now={now} />
+          ) : (
             <EmptyStateLink
               icon="CalendarClock"
               sentence={t("gateway.home.upNext.empty")}
@@ -202,7 +210,11 @@ function UpNextCardView({
     return (
       <Card
         title={e.jobTitle}
-        meta={<span className="font-semibold text-accent-text">{formatCountdown(locale, `${e.startDate}T00:00:00Z`, now)}</span>}
+        meta={
+          <span className="font-semibold text-accent-text">
+            {formatCountdown(locale, `${e.startDate}T00:00:00Z`, now)}
+          </span>
+        }
         footer={
           <ButtonLink href={engagementHref(e)} variant="primary">
             {t("gateway.home.upNext.open")}
@@ -213,8 +225,14 @@ function UpNextCardView({
           items={[
             { label: t("gateway.home.upNext.org"), value: e.orgName },
             { label: t("gateway.home.upNext.project"), value: e.projectName },
-            { label: t("gateway.home.upNext.when"), value: formatDateRange(locale, e.startDate, e.endDate) },
-            { label: t("gateway.home.upNext.state"), value: t(enumLabelKey("engagementState", e.state)) },
+            {
+              label: t("gateway.home.upNext.when"),
+              value: formatDateRange(locale, e.startDate, e.endDate),
+            },
+            {
+              label: t("gateway.home.upNext.state"),
+              value: t(enumLabelKey("engagementState", e.state)),
+            },
           ]}
         />
       </Card>
@@ -225,7 +243,13 @@ function UpNextCardView({
   return (
     <Card
       title={r.title}
-      meta={start ? <span className="font-semibold text-accent-text">{formatCountdown(locale, start, now)}</span> : undefined}
+      meta={
+        start ? (
+          <span className="font-semibold text-accent-text">
+            {formatCountdown(locale, start, now)}
+          </span>
+        ) : undefined
+      }
       footer={
         <UpNextActions
           title={r.title}
@@ -243,7 +267,14 @@ function UpNextCardView({
       <PropertyList
         items={[
           { label: t("gateway.home.upNext.kind"), value: t(enumLabelKey("recordKind", r.kind)) },
-          ...(start ? [{ label: t("gateway.home.upNext.when"), value: formatDateTime(locale, start, r.timeZone) }] : []),
+          ...(start
+            ? [
+                {
+                  label: t("gateway.home.upNext.when"),
+                  value: formatDateTime(locale, start, r.timeZone),
+                },
+              ]
+            : []),
           ...(upNext.engagement
             ? [
                 { label: t("gateway.home.upNext.org"), value: upNext.engagement.orgName },
@@ -300,7 +331,11 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
         item.blocking > 0
           ? t("gateway.home.needsYou.onboardingBlocking", { n: item.blocking })
           : item.engagement.jobTitle,
-        <ButtonLink href={engagementHref(item.engagement, "onboarding")} variant="primary" size="sm">
+        <ButtonLink
+          href={engagementHref(item.engagement, "onboarding")}
+          variant="primary"
+          size="sm"
+        >
           {t("gateway.home.needsYou.onboardingAction")}
         </ButtonLink>,
       );

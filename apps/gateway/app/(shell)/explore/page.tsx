@@ -1,4 +1,4 @@
-import { APP_ENUMS, searchOpportunities } from "@xos/data";
+import { APP_ENUMS, searchOpportunities } from "@xos/data/gateway";
 import { getNode } from "@xos/ia";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
@@ -40,7 +40,7 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
   const parsed = parseExploreQuery(query);
   const results = await searchOpportunities(ctx.db, {
     ...parsed.filter,
-    ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
+    ...(ctx.brand.kind === "org" ? { orgName: ctx.brand.org.name } : {}),
   });
   const tabs = [
     { id: "explore", label: t("nav.gateway.primary.explore"), href: "/explore" },
@@ -76,7 +76,9 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
           </summary>
           <div className="flex flex-col gap-12 pt-12">
             <fieldset className="m-0 flex flex-wrap gap-8 border-0 p-0">
-              <legend className="mb-8 text-text-12 font-medium text-text-secondary">{t("gateway.explore.roleTypes")}</legend>
+              <legend className="mb-8 text-text-12 font-medium text-text-secondary">
+                {t("gateway.explore.roleTypes")}
+              </legend>
               {APP_ENUMS.external_role_type
                 .filter((r) => r !== "Client" && r !== "Artist Representative")
                 .map((role) => (
@@ -84,14 +86,31 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
                     key={role}
                     className="inline-flex min-h-touch-min cursor-pointer items-center gap-6 rounded-pill border border-border-control px-12 text-text-13 has-checked:bg-bg-hover has-checked:text-text-primary"
                   >
-                    <input type="checkbox" name="role" value={role} defaultChecked={parsed.roles.includes(role)} />
+                    <input
+                      type="checkbox"
+                      name="role"
+                      value={role}
+                      defaultChecked={parsed.roles.includes(role)}
+                    />
                     {t(enumLabelKey("externalRoleType", role))}
                   </label>
                 ))}
             </fieldset>
             <div className="flex flex-wrap gap-8">
-              <Input id="explore-from" name="from" type="date" label={t("gateway.explore.startsAfter")} defaultValue={parsed.from} />
-              <Input id="explore-to" name="to" type="date" label={t("gateway.explore.endsBefore")} defaultValue={parsed.to} />
+              <Input
+                id="explore-from"
+                name="from"
+                type="date"
+                label={t("gateway.explore.startsAfter")}
+                defaultValue={parsed.from}
+              />
+              <Input
+                id="explore-to"
+                name="to"
+                type="date"
+                label={t("gateway.explore.endsBefore")}
+                defaultValue={parsed.to}
+              />
               <Input
                 id="explore-min-pay"
                 name="minPay"
@@ -108,19 +127,30 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
             {t("gateway.explore.search")}
           </Button>
           {filtered ? (
-            <Link href={`/explore?view=${view}` as Route} className="text-text-13 text-accent-text underline">
+            <Link
+              href={`/explore?view=${view}` as Route}
+              className="text-text-13 text-accent-text underline"
+            >
               {t("gateway.explore.clear")}
             </Link>
           ) : null}
-          <Link href="/explore/how-ranking-works" className="ms-auto text-text-13 text-text-secondary underline">
-            {t("gateway.explore.ranking")}
+          <Link
+            href="/explore/how-ranking-works"
+            className="ms-auto text-text-13 text-text-secondary underline"
+          >
+            {t("gateway.explore.rankingLink")}
           </Link>
         </div>
       </form>
 
       {filtered ? (
         <SaveSearchForm
-          defaultName={parsed.q || (parsed.roles[0] ? t(enumLabelKey("externalRoleType", parsed.roles[0])) : t("gateway.explore.title"))}
+          defaultName={
+            parsed.q ||
+            (parsed.roles[0]
+              ? t(enumLabelKey("externalRoleType", parsed.roles[0]))
+              : t("gateway.explore.title"))
+          }
           roleType={parsed.roles.length === 1 ? (parsed.roles[0] ?? "") : ""}
           startsAfter={parsed.from}
           endsBefore={parsed.to}
@@ -146,18 +176,23 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
               {results.data.map((o) => (
                 <li key={o.id} className="flex flex-wrap items-center gap-x-16 gap-y-4 px-16 py-12">
                   <div className="flex min-w-0 flex-1 flex-col">
-                    <Link href={`/explore/${o.key}` as Route} className="font-medium text-text-primary">
+                    <Link
+                      href={`/explore/${o.key}` as Route}
+                      className="font-medium text-text-primary"
+                    >
                       {o.title}
                     </Link>
                     <span className="text-text-13 text-text-secondary">
-                      {o.orgName} · {formatDateRange(locale, o.startsOn, o.endsOn) || t("gateway.common.noDate")}
+                      {o.orgName} ·{" "}
+                      {formatDateRange(locale, o.startsOn, o.endsOn) || t("gateway.common.noDate")}
                       {o.venueName ? ` · ${o.venueName}` : ""}
                     </span>
                   </div>
                   <strong className="tabular-nums">
                     {o.rateOnRequest
                       ? t("gateway.common.rateOnRequest")
-                      : (formatPayRange(locale, o.payMinMinor, o.payMaxMinor, o.currency) ?? t("gateway.common.rateOnRequest"))}
+                      : (formatPayRange(locale, o.payMinMinor, o.payMaxMinor, o.currency) ??
+                        t("gateway.common.rateOnRequest"))}
                   </strong>
                   {o.deadlineAt ? (
                     <span className="text-text-12 text-text-secondary">

@@ -5,6 +5,8 @@ import {
   applyToOpportunity,
   getOpportunity,
   removeSavedSearch,
+  saveOpportunity,
+  unsaveOpportunity,
   reportListing,
   saveSearch,
   setSavedSearchAlerts,
@@ -12,7 +14,7 @@ import {
   submitBid,
   submitSlate,
   APP_ENUMS,
-} from "@xos/data";
+} from "@xos/data/gateway";
 import { z } from "zod";
 import { outcomeFor, toAction, type ActionResult } from "@/lib/action-result";
 import { parseMoneyInput } from "@/lib/format";
@@ -77,14 +79,16 @@ export async function applyAction(_: ApplyState, form: FormData): Promise<ApplyS
   if (mode === "bid" && (lines.length === 0 || lines.some((l) => !(l.quantity > 0)))) {
     return { fieldError: "bidLines" };
   }
-  const slate = mode === "slate" ? strings(form, "slate").filter((s) => z.uuid().safeParse(s).success) : [];
+  const slate =
+    mode === "slate" ? strings(form, "slate").filter((s) => z.uuid().safeParse(s).success) : [];
   if (mode === "slate" && slate.length === 0) return { fieldError: "slate" };
 
   const fields: { key: string; value: string }[] = [];
   if (form.get("share_full_name") === "on" && ctx.personName) {
     fields.push({ key: "full_name", value: ctx.personName });
   }
-  if (form.get("share_email") === "on" && ctx.email) fields.push({ key: "email", value: ctx.email });
+  if (form.get("share_email") === "on" && ctx.email)
+    fields.push({ key: "email", value: ctx.email });
   if (account && form.get("share_company_name") === "on") {
     fields.push({ key: "company.name", value: account.name });
   }
@@ -124,7 +128,10 @@ export async function applyAction(_: ApplyState, form: FormData): Promise<ApplyS
     if (!bid.ok) return { outcome: outcomeFor(bid.error) };
   }
   if (mode === "slate") {
-    const sent = await submitSlate(ctx.db, { applicationId: applied.data.applicationId, personIds: slate });
+    const sent = await submitSlate(ctx.db, {
+      applicationId: applied.data.applicationId,
+      personIds: slate,
+    });
     if (!sent.ok) return { outcome: outcomeFor(sent.error) };
   }
   return { sent: true };
@@ -159,7 +166,7 @@ export async function saveSearchAction(_: SimpleState, form: FormData): Promise<
     roleType: roleType.success ? roleType.data : null,
     startsAfter: parsed.data.startsAfter ?? null,
     endsBefore: parsed.data.endsBefore ?? null,
-    orgId: ctx.brand.kind === "org" ? ctx.brand.org.orgId : null,
+    orgId: null,
   });
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
@@ -181,7 +188,10 @@ export async function reportListingAction(_: SimpleState, form: FormData): Promi
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 
-export async function setAlertsAction(savedSearchId: string, enabled: boolean): Promise<ActionResult> {
+export async function setAlertsAction(
+  savedSearchId: string,
+  enabled: boolean,
+): Promise<ActionResult> {
   return toAction(
     await setSavedSearchAlerts(await createServerSupabase(), {
       id: z.uuid().parse(savedSearchId),
@@ -191,5 +201,22 @@ export async function setAlertsAction(savedSearchId: string, enabled: boolean): 
 }
 
 export async function removeSavedSearchAction(savedSearchId: string): Promise<ActionResult> {
-  return toAction(await removeSavedSearch(await createServerSupabase(), z.uuid().parse(savedSearchId)));
+  return toAction(
+    await removeSavedSearch(await createServerSupabase(), z.uuid().parse(savedSearchId)),
+  );
+}
+
+export async function saveOpportunityAction(opportunityId: string): Promise<ActionResult> {
+  const ctx = await getGatewayContext();
+  if (!ctx) return { ok: false, outcome: "notFound" };
+  return toAction(
+    await saveOpportunity(ctx.db, {
+      personId: ctx.personId,
+      opportunityId: z.uuid().parse(opportunityId),
+    }),
+  );
+}
+
+export async function unsaveOpportunityAction(savedId: string): Promise<ActionResult> {
+  return toAction(await unsaveOpportunity(await createServerSupabase(), z.uuid().parse(savedId)));
 }
