@@ -447,7 +447,10 @@ async function bidContract(row: Row, context: { db: XosClient }): Promise<Row> {
       .is("deleted_at", null),
   );
   const application = await run<{ opportunity_id: string } | null>(
-    from(context.db, "applications").select("opportunity_id").eq("id", row["application_id"]).maybeSingle(),
+    from(context.db, "applications")
+      .select("opportunity_id")
+      .eq("id", row["application_id"])
+      .maybeSingle(),
   );
   const opportunity =
     application === null
@@ -481,7 +484,11 @@ const bids = tableResource("bids", {
 const verifications = tableResource("onboardingVerifications", {
   derived: ["passed", "notes"],
   extraColumns: ["outcome", "note"],
-  toContract: (row) => ({ ...row, passed: row["outcome"] === "Passed", notes: row["note"] ?? null }),
+  toContract: (row) => ({
+    ...row,
+    passed: row["outcome"] === "Passed",
+    notes: row["note"] ?? null,
+  }),
 });
 
 /** Runs a transition RPC and returns the row read again in the contract shape. */
@@ -494,12 +501,15 @@ async function transitioned(
   body: { expected_state: string; to_state: string; reason?: string },
 ) {
   await resource.read(context, id, [resource.key]);
-  const { error } = await context.db.rpc(rpcName as "transition_opportunity", {
-    [idArg]: id,
-    p_expected: body.expected_state,
-    p_next: body.to_state,
-    p_reason: body.reason ?? `Moved to ${body.to_state}.`,
-  } as never);
+  const { error } = await context.db.rpc(
+    rpcName as "transition_opportunity",
+    {
+      [idArg]: id,
+      p_expected: body.expected_state,
+      p_next: body.to_state,
+      p_reason: body.reason ?? `Moved to ${body.to_state}.`,
+    } as never,
+  );
   if (error !== null) throw error;
   return resource.read(context, id);
 }
