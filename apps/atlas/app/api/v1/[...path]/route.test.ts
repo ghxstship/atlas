@@ -16,10 +16,10 @@ describe("/api/v1/[...path]", { timeout: 30_000 }, () => {
     expect(((await res.json()) as { instance: string }).instance).toBe("/api/v1/canon/departments");
   });
 
-  it("answers 404 for an operation without a handler", async () => {
+  it("answers 404 for a path no operation serves", async () => {
     const { POST } = await import("./route");
     const res = await POST(
-      new Request("http://localhost:3000/api/v1/projects", { method: "POST" }),
+      new Request("http://localhost:3000/api/v1/no-such-resource", { method: "POST" }),
     );
     expect(res.status).toBe(404);
     expect(((await res.json()) as { type: string }).type).toBe("/problems/not-found");
