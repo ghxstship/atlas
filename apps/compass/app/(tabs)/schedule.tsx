@@ -1,0 +1,108 @@
+import type { Row } from "@xos/sync";
+import type { ReactElement } from "react";
+import { useTranslation } from "react-i18next";
+import { operationalEngagements } from "../../src/domain/access";
+import {
+  actionFor,
+  buildShiftAction,
+  groupByDay,
+  isOpenShift,
+  startsIn,
+  type ShiftRow,
+} from "../../src/domain/shifts";
+import { useCompass, useRows } from "../../src/runtime/CompassProvider";
+import { formatDay, formatTime, ProjectPicker, SyncBanner } from "../../src/screens/common";
+import { Button, EmptyState, Screen, ShiftCard, Text } from "../../src/ui";
+
+export default function ScheduleScreen(): ReactElement {
+  const { t } = useTranslation();
+  const { resolved, projectId, enqueue, refresh } = useCompass();
+  const identity = resolved?.identity;
+  const { rows } = useRows<ShiftRow & Row>("shifts", (s) => s.project_id === projectId);
+  const now = Date.now();
+  const me = {
+    membershipId: identity?.membershipId ?? null,
+    engagementIds: identity ? operationalEngagements(identity, null).map((e) => e.id) : [],
+  };
+  const mine = rows.filter((s) => !isOpenShift(s));
+  const open = rows.filter(isOpenShift);
+  const card = (s: ShiftRow) => {
+    const action = actionFor(s, me);
+    const state =
+      s.shift_state === "Accepted"
+        ? "accepted"
+        : s.shift_state === "Canceled"
+          ? "canceled"
+          : "published";
+    const countdown = startsIn(s.starts_at, now);
+    return (
+      <ShiftCard
+        key={s.id}
+        testID={`schedule-shift-${s.id}`}
+        state={
+          s.shift_state === "Accepted"
+            ? "active"
+            : s.shift_state === "Canceled"
+              ? "canceled"
+              : "scheduled"
+        }
+        stateLabel={t(`compass.schedule.${state}`)}
+        {...(countdown ? { countdown: t("compass.schedule.startsIn", { time: countdown }) } : {})}
+        role={s.job_title ?? s.role_code ?? ""}
+        date={formatDay(s.starts_at, s.time_zone)}
+        time={t("compass.schedule.timeRange", {
+          start: formatTime(s.starts_at, s.time_zone),
+          end: formatTime(s.ends_at, s.time_zone),
+        })}
+        place={t("compass.schedule.noPlace")}
+        actions={
+          action ? (
+            <Button
+              testID={`shift-${action}-${s.id}`}
+              label={t(`compass.schedule.${action}`)}
+              onPress={() =>
+                void enqueue(buildShiftAction(s, action, identity?.membershipId === null))
+              }
+            />
+          ) : undefined
+        }
+      />
+    );
+  };
+  const days = groupByDay(mine, now, (iso, tz) => formatDay(iso, tz));
+  return (
+    <Screen testID="schedule" title={t("compass.schedule.title")} onRefresh={() => void refresh()}>
+      <ProjectPicker />
+      <SyncBanner />
+      <Text variant="heading20" heading>
+        {t("compass.schedule.myShifts")}
+      </Text>
+      {days.length === 0 ? (
+        <EmptyState
+          icon="calendar"
+          sentence={t("compass.schedule.empty")}
+          actionLabel={t("compass.common.refresh")}
+          onAction={() => void refresh()}
+        />
+      ) : null}
+      {days.map((d) => [
+        <Text key={d.day} variant="label13" tone="secondary">
+          {d.day}
+        </Text>,
+        ...d.shifts.map(card),
+      ])}
+      {me.membershipId ? (
+        <>
+          <Text variant="heading20" heading>
+            {t("compass.schedule.openShifts")}
+          </Text>
+          {open.length === 0 ? (
+            <Text tone="secondary">{t("compass.schedule.openEmpty")}</Text>
+          ) : (
+            open.map(card)
+          )}
+        </>
+      ) : null}
+    </Screen>
+  );
+}
