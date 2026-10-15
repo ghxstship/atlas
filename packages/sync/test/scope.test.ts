@@ -150,6 +150,21 @@ describe("SyncSession", () => {
     expect(session.scope.audience).toBe("crew");
   });
 
+  it("replaces a table from a full snapshot, keeping rows with queued writes", async () => {
+    const store = new MemoryStore();
+    const session = new SyncSession(store, internal);
+    await session.ingest("shifts", [
+      { id: "s1", membership_id: "mem-me" },
+      { id: "s2", membership_id: "mem-me" },
+      { id: "s3", membership_id: "mem-me" },
+    ]);
+    const outbox = new Outbox(store, { newId: sequentialIds() });
+    await outbox.enqueue({ op: "update", table: "shifts", rowId: "s3", payload: { note: "x" } });
+    const report = await session.replace("shifts", [{ id: "s1", membership_id: "mem-me" }]);
+    expect(report).toMatchObject({ written: 1, removed: 1 });
+    expect((await store.list("shifts")).map((r) => r.id).sort()).toEqual(["s1", "s3"]);
+  });
+
   it("applies server deletions except for rows with queued writes", async () => {
     const store = new MemoryStore();
     const session = new SyncSession(store, internal);

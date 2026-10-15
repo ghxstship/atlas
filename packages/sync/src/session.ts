@@ -78,6 +78,16 @@ export class SyncSession {
   }
 
   /**
+   * Applies a full snapshot of a table: upserts every row and removes local rows the snapshot no longer
+   * holds, except rows with queued writes. Used by full pulls, which carry no deletion log.
+   */
+  async replace(table: string, rows: readonly Row[]): Promise<IngestReport> {
+    const present = new Set(rows.map((r) => r.id));
+    const gone = (await this.#store.list(table)).map((r) => r.id).filter((id) => !present.has(id));
+    return this.ingest(table, rows, gone);
+  }
+
+  /**
    * Replaces the scope, such as when an engagement reaches Complete and Compass access ends (Section 8.7),
    * and removes every stored row the new scope no longer admits. Returns the number of rows removed.
    */
