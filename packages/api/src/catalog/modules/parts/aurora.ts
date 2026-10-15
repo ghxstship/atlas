@@ -481,8 +481,27 @@ export const auroraResources: readonly ResourceSpec[] = [
       itemAction("confirm", {
         summary: "Confirm an AI suggestion",
         description:
-          "Records the confirmation of the person who asked. The caller then performs the named operation with its own credential and reports the result with `apply` or `reopen`. Refused after expiry.",
-        body: reasonBody("AiSuggestionConfirmRequest", "Confirmation of an AI suggestion."),
+          "Records the confirmation of the person who asked, then performs the named public operation as the caller with the proposed values and any `values` the caller changed or added. On success the suggestion is Applied with the record written. When the operation refuses, the suggestion returns to Proposed and the answer is that 422 refusal. Refused after expiry.",
+        body: z
+          .object({
+            reason: text(
+              "Why, recorded in the suggestion ledger.",
+              "Checked against the certificate.",
+              500,
+            ),
+            values: z
+              .record(z.string(), z.unknown())
+              .optional()
+              .meta({
+                description:
+                  "Field values to send instead of, or in addition to, the proposed ones: corrections the person made and context ids such as `document_id`.",
+                example: { document_id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              }),
+          })
+          .meta({
+            id: "AiSuggestionConfirmRequest",
+            description: "Confirmation of an AI suggestion.",
+          }),
       }),
       itemAction("reject", {
         summary: "Reject an AI suggestion",

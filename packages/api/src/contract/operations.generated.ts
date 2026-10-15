@@ -376,7 +376,7 @@ export interface Components {
     proposed_fields: Array<Components["AiSuggestionField"]>;
   };
   AiSuggestionApplyRequest: { applied_id: string; reason: string };
-  AiSuggestionConfirmRequest: { reason: string };
+  AiSuggestionConfirmRequest: { reason: string; values?: Record<string, unknown> };
   AiSuggestionField: {
     field_path: string;
     proposed_value?: unknown;

@@ -285,7 +285,6 @@ type Transition = {
   expected: "Proposed" | "Confirmed";
 };
 const TRANSITIONS: Readonly<Record<string, Transition>> = {
-  confirm: { expected: "Proposed", next: "Confirmed" },
   reject: { expected: "Proposed", next: "Rejected" },
   apply: { expected: "Confirmed", next: "Applied" },
   reopen: { expected: "Confirmed", next: "Proposed" },
@@ -501,5 +500,126 @@ export function auroraHandlers(
       return ok(await suggestions.read(context, id));
     };
   }
+  handlers["aiSuggestions.confirm"] = async (request, context) => {
+    const id = String(request.params["id"]);
+    const body = request.body as { reason: string; values?: Record<string, unknown> };
+    const current = await suggestions.read(context, id);
+    unwrap(
+      await transitionAiSuggestion(context.db, {
+        id,
+        expected: "Proposed",
+        next: "Confirmed",
+        reason: body.reason,
+      }),
+    );
+    const written = await performSuggestion(context, current, body.values ?? {});
+    if (written.ok) {
+      unwrap(
+        await transitionAiSuggestion(context.db, {
+          id,
+          expected: "Confirmed",
+          next: "Applied",
+          reason: "Written by " + String(current["operation_id"]) + ".",
+          appliedId: written.id,
+        }),
+      );
+      return ok(await suggestions.read(context, id));
+    }
+    unwrap(
+      await transitionAiSuggestion(context.db, {
+        id,
+        expected: "Confirmed",
+        next: "Proposed",
+        reason: ("The API refused the write: " + written.detail).slice(0, 500),
+      }),
+    );
+    throw refused("REFUSE", written.detail, written.rule);
+  };
   return handlers;
+}
+
+/** Turns proposed fields into a request body; dotted paths become nested objects. */
+export function bodyFromFields(
+  fields: readonly { field_path: unknown; proposed_value: unknown; refusal: unknown }[],
+  values: Readonly<Record<string, unknown>>,
+): Record<string, unknown> {
+  const body: Record<string, unknown> = {};
+  const put = (path: string, value: unknown) => {
+    const parts = path.split(".");
+    let node = body;
+    for (const part of parts.slice(0, -1)) {
+      const next = node[part];
+      node[part] = typeof next === "object" && next !== null ? next : {};
+      node = node[part] as Record<string, unknown>;
+    }
+    node[parts[parts.length - 1] as string] = value;
+  };
+  for (const f of fields) {
+    if (f.refusal === null && typeof f.field_path === "string") put(f.field_path, f.proposed_value);
+  }
+  for (const [path, value] of Object.entries(values)) put(path, value);
+  return body;
+}
+
+/** Performs a confirmed suggestion's operation in process as the caller. */
+async function performSuggestion(
+  context: RequestContext,
+  suggestion: Row,
+  values: Readonly<Record<string, unknown>>,
+): Promise<{ ok: true; id: string } | { ok: false; detail: string; rule: string }> {
+  const operationId = String(suggestion["operation_id"]);
+  const { MODULE_HANDLERS } = await import("../index.generated.ts");
+  const handler = MODULE_HANDLERS.map((m) => m.handlers[operationId]).find(
+    (h): h is ErasedHandler => h !== undefined,
+  );
+  if (!handler) {
+    return {
+      ok: false,
+      detail: operationId + " is not available in this API yet, so nothing was written.",
+      rule: "ai_suggestion_operation_unavailable",
+    };
+  }
+  const target = suggestion["target_id"];
+  const fields = (suggestion["proposed_fields"] ?? []) as {
+    field_path: unknown;
+    proposed_value: unknown;
+    refusal: unknown;
+  }[];
+  try {
+    const result = await handler(
+      {
+        operationId,
+        params: typeof target === "string" ? { id: target } : {},
+        query: {},
+        body: bodyFromFields(fields, values),
+        idempotencyKey: "aurora-" + String(suggestion["id"]),
+        ifMatch: typeof target === "string" ? "*" : undefined,
+      },
+      context,
+    );
+    const written = (result.body as { id?: unknown } | null)?.id;
+    const id = typeof written === "string" ? written : typeof target === "string" ? target : null;
+    if (id === null) {
+      return {
+        ok: false,
+        detail: operationId + " returned no record id.",
+        rule: "ai_suggestion_no_record",
+      };
+    }
+    return { ok: true, id };
+  } catch (error) {
+    const problem =
+      error instanceof ApiProblem
+        ? error
+        : isDatabaseError(error)
+          ? fromDatabaseError(error)
+          : undefined;
+    if (!problem || problem.body.status >= 500) throw error;
+    const rule = (problem.body as { rule?: unknown }).rule;
+    return {
+      ok: false,
+      detail: problem.body.detail ?? problem.body.title,
+      rule: typeof rule === "string" ? rule : "ai_suggestion_write_refused",
+    };
+  }
 }
