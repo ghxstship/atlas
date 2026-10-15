@@ -15,6 +15,7 @@
 -- Engagements: eng_ivy_a (Crew, prj_a), eng_ivy_b (Crew, prj_b), eng_vendor_a (Vendor-supplied sam via acct_v,
 --   prj_a), eng_art_a (Artist, prj_a), eng_quinn_b (Crew, prj_b), eng_mia_b (mia, a member of org_a, booked
 --   externally by org_b as an Artist).
+-- Requisitions: requisition_a, requisition_a2 and requisition_b, Approved, role 5000.51.02 on prj_a, prj_a2 and prj_b (0774).
 \ir 0300_domain_world.psql
 
 create function pg_temp.build_engagement_world() returns void
@@ -76,6 +77,22 @@ begin
   values (pg_temp.id('prj_b'), pg_temp.id('mia'), 'Artist', '2000.50.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement',
     '2027-07-02') returning id into v_id;
   insert into world values ('eng_mia_b', v_id);
+
+  -- Approved staffing requisitions for role 5000.51.02, so Crew and Staff postings can publish (0774).
+  insert into app.requisitions (project_id, role_code, headcount, currency_code, justification)
+  values (pg_temp.id('prj_b'), '5000.51.02', 4, 'USD', 'Riggers for Pier Nights.') returning id into v_id;
+  insert into world values ('requisition_b', v_id);
+  perform pg_temp.as_user('alice');
+  insert into app.requisitions (project_id, role_code, headcount, currency_code, justification)
+  values (pg_temp.id('prj_a'), '5000.51.02', 4, 'USD', 'Riggers for the Summer Series.') returning id into v_id;
+  insert into world values ('requisition_a', v_id);
+  insert into app.requisitions (project_id, role_code, headcount, currency_code, justification)
+  values (pg_temp.id('prj_a2'), '5000.51.02', 2, 'USD', 'Riggers for the Winter Gala.') returning id into v_id;
+  insert into world values ('requisition_a2', v_id);
+  perform pg_temp.as_platform();
+  perform private.transition_lifecycle('requisition', 'app.requisitions', 'requisition_state', 'app.requisition_state_transitions',
+    'requisition_id', r, 'Proposed', 'Approved', 'Fixture approval.')
+  from unnest(array[pg_temp.id('requisition_a'), pg_temp.id('requisition_a2'), pg_temp.id('requisition_b')]) r;
 
   perform pg_temp.as_platform();
 end $$;

@@ -93,8 +93,8 @@ export const NAV_ICONS: Readonly<Record<string, string>> = {
 };
 
 /**
- * Personas whose default expanded groups Section 4.5.2 names, by platform role. A person's persona
- * is not stored yet (person profiles, A30), so the platform role stands in for it.
+ * Personas whose default expanded groups Section 4.5.2 names, by platform role: the default when
+ * the person has not chosen a persona for the org in Preferences (setting me.persona).
  */
 export const ROLE_PERSONA: Readonly<Record<SystemRoleCode, string | null>> = {
   owner: "org-owner",
@@ -125,6 +125,8 @@ export function buildShellNav(
   input: {
     readonly nav: NavContext;
     readonly role: SystemRoleCode | null;
+    /** The persona the person chose; null or absent follows the role. */
+    readonly persona?: string | null;
     readonly params: Record<string, string>;
     readonly t: Translate;
   },
@@ -141,7 +143,7 @@ export function buildShellNav(
     link(getNode(sitemap, id).node, params, t),
   );
   const shownAbove = new Set([...top, ...pinned].map((l) => l.id));
-  const persona = input.role ? ROLE_PERSONA[input.role] : null;
+  const persona = input.persona ?? (input.role ? ROLE_PERSONA[input.role] : null);
   const expanded = new Set(persona ? expandedGroups(sitemap, persona) : []);
 
   const groups = sitemap.nodes

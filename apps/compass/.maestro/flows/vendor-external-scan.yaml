@@ -1,0 +1,21 @@
+appId: pro.ghxstship.compass
+name: Vendor sees purchase orders and deliveries, never internal tools
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: vendor@example.com
+- tapOn:
+    id: "tab-more"
+- assertVisible:
+    id: "more-purchase-orders"
+- assertVisible:
+    id: "more-deliveries"
+- assertVisible:
+    id: "more-submittals"
+- assertNotVisible:
+    id: "more-inspections"
+- tapOn:
+    id: "more-purchase-orders"
+- assertVisible:
+    id: "pending-open"

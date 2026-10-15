@@ -87,7 +87,7 @@ export function Calendar({ month, today, events, onEventSelect }: CalendarProps)
       key={`${e.label}-${i}`}
       type="button"
       onClick={() => onEventSelect?.(e)}
-      className="flex items-center gap-4 w-full px-4 py-2 rounded-chip border-0 bg-bg-hover text-start text-text-12 truncate cursor-pointer"
+      className="flex items-center gap-4 w-full min-h-(--space-24) px-4 py-2 rounded-chip border-0 bg-bg-hover text-start text-text-12 truncate cursor-pointer"
     >
       <StateIcon state={e.state} size={12} />
       <span className="truncate">{e.label}</span>
@@ -149,7 +149,7 @@ export function Calendar({ month, today, events, onEventSelect }: CalendarProps)
                     <td
                       key={di}
                       className={cx(
-                        "h-(--space-64) p-4 align-top border-e border-b border-border-subtle text-text-12",
+                        "min-h-(--space-64) p-4 align-top border-e border-b border-border-subtle text-text-12",
                         d === null && "bg-bg-surface",
                       )}
                     >
@@ -159,7 +159,8 @@ export function Calendar({ month, today, events, onEventSelect }: CalendarProps)
                             aria-current={iso === today ? "date" : undefined}
                             className={cx(
                               "self-start px-4 py-2 rounded-chip text-text-11 text-text-secondary tabular-nums",
-                              iso === today && "bg-accent text-accent-text-on font-semibold",
+                              iso === today &&
+                                "text-text-primary font-semibold ring-(length:--stroke-width-focus) ring-inset ring-accent",
                             )}
                           >
                             {d}
