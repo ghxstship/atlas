@@ -764,6 +764,50 @@ interface ProtocolStepRow {
   body: string;
 }
 
+/** The services an emergency protocol names; a responding agency provides one of them. */
+export type EmergencyService = "fire" | "ems" | "lawEnforcement" | "bombSquad" | "federal";
+const SERVICES: ReadonlySet<string> = new Set([
+  "fire",
+  "ems",
+  "lawEnforcement",
+  "bombSquad",
+  "federal",
+]);
+
+export interface ProjectAuthority {
+  readonly service: EmergencyService;
+  readonly agency: string;
+  readonly contact?: string;
+}
+
+/**
+ * The responding agencies of a project, from its venue's jurisdiction (app.project_authority). A
+ * project without a venue or jurisdiction answers none, and the protocol shows the generic service.
+ */
+export async function listProjectAuthorities(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ProjectAuthority[]>> {
+  const { data, error } = await db
+    .from("project_authority")
+    .select("service, agency, contact")
+    .eq("project_id", projectId);
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.flatMap((r) =>
+      r.service && r.agency && SERVICES.has(r.service)
+        ? [
+            {
+              service: r.service as EmergencyService,
+              agency: r.agency,
+              ...(r.contact ? { contact: r.contact } : {}),
+            },
+          ]
+        : [],
+    ),
+  );
+}
+
 export interface CrisisAlert {
   readonly id: string;
   readonly projectId: string;
