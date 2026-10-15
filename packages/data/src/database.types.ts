@@ -7449,6 +7449,13 @@ export type Database = {
             foreignKeyName: "clock_punches_geofence_id_fkey";
             columns: ["geofence_id"];
             isOneToOne: false;
+            referencedRelation: "geofence_shapes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clock_punches_geofence_id_fkey";
+            columns: ["geofence_id"];
+            isOneToOne: false;
             referencedRelation: "geofences";
             referencedColumns: ["id"];
           },
@@ -14587,6 +14594,7 @@ export type Database = {
           inspection_item_id: string;
           note: string | null;
           org_id: string;
+          photo_uri: string | null;
           result_enum_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -14601,6 +14609,7 @@ export type Database = {
           inspection_item_id: string;
           note?: string | null;
           org_id: string;
+          photo_uri?: string | null;
           result_enum_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -14614,6 +14623,7 @@ export type Database = {
           inspection_item_id?: string;
           note?: string | null;
           org_id?: string;
+          photo_uri?: string | null;
           result_enum_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -29281,6 +29291,137 @@ export type Database = {
           },
         ];
       };
+      scan_intake: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          device_scanned_at: string;
+          id: string;
+          org_id: string;
+          project_id: string;
+          resolution: Database["app"]["Enums"]["scan_resolution"] | null;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          resolved_subject_id: string | null;
+          resolved_subject_table: string | null;
+          scan_mode: Database["app"]["Enums"]["scan_mode"];
+          scanned_by: string | null;
+          scanned_value: string;
+          symbology: Database["app"]["Enums"]["scan_symbology"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          device_scanned_at: string;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          resolution?: Database["app"]["Enums"]["scan_resolution"] | null;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolved_subject_id?: string | null;
+          resolved_subject_table?: string | null;
+          scan_mode: Database["app"]["Enums"]["scan_mode"];
+          scanned_by?: string | null;
+          scanned_value: string;
+          symbology: Database["app"]["Enums"]["scan_symbology"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          device_scanned_at?: string;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          resolution?: Database["app"]["Enums"]["scan_resolution"] | null;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolved_subject_id?: string | null;
+          resolved_subject_table?: string | null;
+          scan_mode?: Database["app"]["Enums"]["scan_mode"];
+          scanned_by?: string | null;
+          scanned_value?: string;
+          symbology?: Database["app"]["Enums"]["scan_symbology"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "scan_intake_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scan_intake_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scan_intake_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "scan_intake_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "scan_intake_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "scan_intake_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scan_intake_resolved_by_fkey";
+            columns: ["resolved_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scan_intake_scanned_by_fkey";
+            columns: ["scanned_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scan_intake_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       schedule_actuals: {
         Row: {
           actual_ends_at: string | null;
@@ -34920,8 +35061,10 @@ export type Database = {
         Row: {
           awarded_bid_id: string | null;
           bid_due_at: string | null;
+          budget_minor: number | null;
           created_at: string;
           created_by: string | null;
+          currency_code: string;
           deleted_at: string | null;
           estimated_hours: number | null;
           id: string;
@@ -34946,8 +35089,10 @@ export type Database = {
         Insert: {
           awarded_bid_id?: string | null;
           bid_due_at?: string | null;
+          budget_minor?: number | null;
           created_at?: string;
           created_by?: string | null;
+          currency_code: string;
           deleted_at?: string | null;
           estimated_hours?: number | null;
           id?: string;
@@ -34970,8 +35115,10 @@ export type Database = {
         Update: {
           awarded_bid_id?: string | null;
           bid_due_at?: string | null;
+          budget_minor?: number | null;
           created_at?: string;
           created_by?: string | null;
+          currency_code?: string;
           deleted_at?: string | null;
           estimated_hours?: number | null;
           id?: string;
@@ -35005,6 +35152,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_orders_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
           },
           {
             foreignKeyName: "work_orders_org_id_fkey";
@@ -36041,6 +36195,46 @@ export type Database = {
         };
         ComputedFields: never;
         Relationships: [];
+      };
+      geofence_shapes: {
+        Row: {
+          boundary_geojson: Json | null;
+          id: string | null;
+          name: string | null;
+          venue_id: string | null;
+          zone_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          boundary_geojson?: never;
+          id?: string | null;
+          name?: string | null;
+          venue_id?: string | null;
+          zone_id?: string | null;
+        };
+        Update: {
+          boundary_geojson?: never;
+          id?: string | null;
+          name?: string | null;
+          venue_id?: string | null;
+          zone_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "geofences_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "geofences_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "zones";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       import_target_fields: {
         Row: {
@@ -38449,6 +38643,16 @@ export type Database = {
         Returns: string;
       };
       request_to_join: { Args: { p_message?: string; p_org_id: string }; Returns: string };
+      resolve_scan_intake: {
+        Args: {
+          p_note?: string;
+          p_resolution: Database["app"]["Enums"]["scan_resolution"];
+          p_scan_intake_id: string;
+          p_subject_id?: string;
+          p_subject_table?: string;
+        };
+        Returns: string;
+      };
       resolve_settings: {
         Args: {
           p_org_id: string;
@@ -39180,8 +39384,12 @@ export type Database = {
       rfq_state: "Proposed" | "Issued" | "Closed" | "Awarded" | "Canceled";
       role_assignment_state: "Proposed" | "Active" | "Complete" | "Canceled";
       run_status: "Queued" | "Running" | "Succeeded" | "Failed";
+      scan_mode: "Asset" | "Credential" | "Shipment" | "Inventory" | "Lookup";
+      scan_resolution: "Matched" | "Created" | "Dismissed";
       scan_result: "Granted" | "Denied";
       scan_status: "Pending Upload" | "Scanning" | "Clean" | "Infected" | "Scan Failed";
+      scan_symbology:
+        "QR Code" | "Code 128" | "Code 39" | "EAN-13" | "UPC-A" | "Data Matrix" | "PDF417" | "NFC";
       schedule_cadence: "Daily" | "Weekly" | "Monthly";
       scope_kind: "Engagement Root" | "Standing Venue" | "Show";
       setting_scope: "Organization" | "Workspace" | "Team" | "Project";
@@ -45358,8 +45566,20 @@ export const Constants = {
       rfq_state: ["Proposed", "Issued", "Closed", "Awarded", "Canceled"],
       role_assignment_state: ["Proposed", "Active", "Complete", "Canceled"],
       run_status: ["Queued", "Running", "Succeeded", "Failed"],
+      scan_mode: ["Asset", "Credential", "Shipment", "Inventory", "Lookup"],
+      scan_resolution: ["Matched", "Created", "Dismissed"],
       scan_result: ["Granted", "Denied"],
       scan_status: ["Pending Upload", "Scanning", "Clean", "Infected", "Scan Failed"],
+      scan_symbology: [
+        "QR Code",
+        "Code 128",
+        "Code 39",
+        "EAN-13",
+        "UPC-A",
+        "Data Matrix",
+        "PDF417",
+        "NFC",
+      ],
       schedule_cadence: ["Daily", "Weekly", "Monthly"],
       scope_kind: ["Engagement Root", "Standing Venue", "Show"],
       setting_scope: ["Organization", "Workspace", "Team", "Project"],

@@ -1,0 +1,66 @@
+{
+  "dependencies": {
+    "title": "Dependencies",
+    "before": "Waits on",
+    "after": "Holds up",
+    "noneBefore": "Nothing has to happen first.",
+    "noneAfter": "Nothing waits on this record.",
+    "hidden": "A record outside your view",
+    "remove": "Remove the dependency on {name}",
+    "predecessor": "Add a predecessor",
+    "choose": "Choose a record",
+    "type": "Type",
+    "lag": "Lag (hours)",
+    "add": "Add dependency",
+    "types": {
+      "Finish to Start": "Finish to start",
+      "Start to Start": "Start to start",
+      "Finish to Finish": "Finish to finish",
+      "Start to Finish": "Start to finish"
+    }
+  },
+  "actuals": {
+    "title": "Actuals",
+    "started": "Actually started",
+    "finished": "Actually finished",
+    "save": "Save actuals"
+  },
+  "baselines": {
+    "capture": "Capture baseline",
+    "captureTitle": "Capture a baseline",
+    "captureHelp": "Every dated record of the project is copied into the baseline and the baseline is locked, so later slips show against it.",
+    "captureButton": "Capture and lock",
+    "cancel": "Cancel",
+    "project": "Project",
+    "name": "Baseline name",
+    "nameExample": "Gate 3 Baseline",
+    "empty": "No baselines yet. Capture one to measure schedule drift.",
+    "emptyReadOnly": "No baselines yet. A producer captures them at each gate.",
+    "emptyAction": "Capture baseline",
+    "readOnlyAction": "Open the timeline",
+    "label": "Schedule baselines",
+    "columns": {
+      "name": "Baseline",
+      "project": "Project",
+      "captured": "Captured",
+      "records": "Records",
+      "state": "State"
+    },
+    "locked": "Locked",
+    "unlocked": "Not locked",
+    "count": "{count, plural, one {# record} other {# records}}",
+    "open": "Open",
+    "peekTitle": "{name} · {project}",
+    "variance": "Variance against current dates",
+    "varianceLabel": "Planned and current dates of the baseline's records",
+    "planned": "Planned finish",
+    "current": "Current finish",
+    "slip": "Slip",
+    "onPlan": "On plan",
+    "late": "{days} days late",
+    "early": "{days} days early",
+    "noDate": "No date",
+    "lateCount": "{count, plural, =0 {Every record is on plan or early.} one {# record finishes after the plan.} other {# records finish after the plan.}}",
+    "close": "Close"
+  }
+}
