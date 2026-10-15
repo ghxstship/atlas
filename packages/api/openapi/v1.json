@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "XOS Public API",
-    "version": "1.0.0-draft.1",
+    "version": "1.0.0-draft.2",
     "summary": "One API for Atlas, Gateway, Compass, SDKs and third parties.",
     "description": "Versioned REST API for XOS 4.0 (Section 10.1, ADR 0003). Cursor pagination with `limit` and `cursor`; sparse fieldsets with `fields`; filters with `filter[field][op]=value`; `Idempotency-Key` on every POST; `ETag` and `If-Match` on updates; RFC 9457 problem details; refusals as 422 with `refusal` set to NO_ANSWER, UNRATIFIED or REFUSE. Money is integer minor units with a currency; null is unpriced, never zero. Restricted fields the caller may not read stay present as `{ \"masked\": true, \"reason\": \"...\" }`. The active organization is bound to the credential.",
     "license": { "name": "AGPL-3.0-only", "identifier": "AGPL-3.0-only" }

@@ -9,6 +9,7 @@
  */
 import type { CapabilityRule } from "./capabilities.ts";
 import { RESOURCE_CAPABILITIES, canonRule } from "./capabilities.ts";
+import type { Correction, CorrectionInput } from "./corrections.ts";
 import type { ActionSpec, Module, ResourceSpec } from "./types.ts";
 
 export interface ModuleAdditionsInput {
@@ -21,17 +22,24 @@ export interface ModuleAdditionsInput {
    * resource, or only `actions` capabilities for actions added to an existing resource.
    */
   readonly capabilities?: Readonly<Record<string, CapabilityRule>>;
+  /**
+   * Corrections to this module's frozen resources while v1 is a draft (ADR 0023; README
+   * "Correcting the frozen contract"). Each entry needs a reason; the orchestrator reviews it.
+   */
+  readonly corrections?: readonly CorrectionInput[];
 }
 
-export interface ModuleAdditions extends ModuleAdditionsInput {
+export interface ModuleAdditions extends Omit<ModuleAdditionsInput, "corrections"> {
   readonly module: Module;
+  readonly corrections: readonly Correction[];
 }
 
 export function defineAdditions<M extends Module>(
   module: M,
   additions: ModuleAdditionsInput = {},
 ): ModuleAdditions {
-  return { module, ...additions };
+  const corrections = (additions.corrections ?? []).map((c) => ({ ...c, module }));
+  return { module, ...additions, corrections };
 }
 
 function operationIds(spec: ResourceSpec): string[] {

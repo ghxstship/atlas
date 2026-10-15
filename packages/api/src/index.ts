@@ -1,5 +1,6 @@
 export {
   API_VERSION,
+  CORRECTIONS,
   DOCUMENT_INFO,
   buildOpenApiDocument,
   catalog,
@@ -7,7 +8,9 @@ export {
   createApiApp,
   frozenCatalog,
   handledOperations,
+  uncorrectedFrozenCatalog,
 } from "./app.ts";
+export type { Correction, CorrectionInput, ResolvedCorrection } from "./catalog/corrections.ts";
 export type { ApiDeps } from "./app.ts";
 export { MODULES } from "./catalog/types.ts";
 export type { ActionSpec, Module, OrderSpec, ResourceSpec, Verb } from "./catalog/types.ts";

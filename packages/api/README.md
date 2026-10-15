@@ -95,7 +95,8 @@ lists the missing ones).
 
 ## Adding operations
 
-The v1 catalog is frozen (ADR 0014), and changes within `/v1` are additive only. To add an
+The v1 catalog is frozen (ADR 0014), and changes within `/v1` are additive only, apart from the
+draft corrections below. To add an
 operation beyond it, such as `aurora.ask` or `assetScans.resolve`, edit only your module's file
 in `src/catalog/modules/<module>.ts`:
 
@@ -126,6 +127,60 @@ export const additions = defineAdditions("Assets", {
 touches another module's resource. The contract tests confirm that every frozen operation and
 component is unchanged in the regenerated document (Section 18, gate 20). Capabilities must name
 codes in `packages/schemas/capabilities.yaml`.
+
+## Correcting the frozen contract
+
+While v1 is a draft (`API_VERSION` is `1.0.0-draft.N`), a frozen operation or component may be
+corrected to match the implemented schema (ADR 0023). Once 1.0.0 is released, no correction is
+possible and `/v1` changes are additive only. Propose a correction when your table cannot fill a
+frozen shape faithfully: a required field whose column is nullable, a field the schema does not
+have, a create body missing a NOT NULL column, a count the schema stores as rows, and so on.
+
+1. In your branch, add an entry to `corrections` in your module file,
+   `src/catalog/modules/<module>.ts`. Edit only your module's resources.
+
+   ```ts
+   import { fields } from "@xos/schemas";
+   import { defineAdditions } from "../additions.ts";
+   import { editShape, orNull } from "../correct.ts";
+
+   export const additions = defineAdditions("Projects", {
+     corrections: [
+       {
+         id: "gate-evidence-uri",
+         since: "1.0.0-draft.2", // the current API_VERSION, or the next draft if you bump it
+         resources: ["gateEvidence"],
+         change: "Replaces evidence_document_id with evidence_uri and adds note.",
+         reason: "app.gate_evidence (0301) stores an evidence URI and a note, not a document id.",
+         apply: editShape({
+           remove: ["evidence_document_id"],
+           add: {
+             evidence_uri: { schema: fields.url("Where the evidence lives."), create: "required" },
+             note: { schema: orNull(fields.longText("Note.", "Signed copy.")), create: "optional" },
+           },
+         }),
+       },
+     ],
+   });
+   ```
+
+   `src/catalog/correct.ts` has the edits: `editShape` (`nullable`, `remove`, `rename`, `add`,
+   `serverSet`, `requireOnCreate`, `optionalOnCreate`, `immutable`, `description`),
+   `removeVerbs`, `removeActions`, `putActions` (with capabilities) and `setOrder`; compose them
+   with `all(...)`. Use `orNull` for a nullable field, never `.nullable()` on a shared component.
+
+2. Name every resource the entry changes in `resources`, and any other component it changes in
+   `components`. The reason names the table, view or migration that makes the frozen shape wrong.
+3. Regenerate (`pnpm --filter @xos/api generate:handlers`) and update the contract tests of your
+   handlers where the shape changed.
+4. List the correction in your completion report. The orchestrator reviews it at merge and records
+   it in ADR 0023's register.
+
+`test/corrections.test.ts` (Section 18, gate 20) fails when the uncorrected catalog drifts from
+the Wave 1 freeze (`src/catalog/frozen-v1.digest.json`, never regenerated while v1 is a draft),
+when the corrected document changes a frozen operation or component that no entry lists, and when
+an entry changes nothing it lists. `CORRECTIONS` (exported from `@xos/api`) is the resolved,
+machine-readable list.
 
 ## Generated files
 
