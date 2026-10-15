@@ -121,6 +121,8 @@ export function ProjectSettings({
               venueId: project.venueId,
               startsOn: project.startsOn,
               endsOn: project.endsOn,
+              currencyCode: project.currency,
+              description: project.description,
             }}
           />
           {editable ? (

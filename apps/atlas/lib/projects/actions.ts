@@ -48,6 +48,7 @@ export interface ActionState {
 
 const KNOWN_REFUSALS = new Set([
   "plan_limit_exceeded",
+  "project_currency_required",
   "time_zone_unknown",
   "gate_criteria_unmet",
   "gate_phase_conflict",
@@ -138,6 +139,17 @@ const projectFields = z
     venueId: optional.pipe(z.uuid().nullable()),
     startsOn: optionalDate,
     endsOn: optionalDate,
+    currencyCode: optional.pipe(
+      z
+        .string()
+        .regex(/^[A-Z]{3}$/)
+        .nullable(),
+    ),
+    description: z
+      .string()
+      .trim()
+      .max(20000)
+      .transform((v) => (v === "" ? null : v)),
   })
   .refine((v) => v.startsOn === null || v.endsOn === null || v.endsOn >= v.startsOn, {
     path: ["endsOn"],
@@ -150,6 +162,8 @@ const FIELD_ERRORS: Record<string, string> = {
   endsOn: "dates",
   startsOn: "dates",
   venueId: "invalid",
+  currencyCode: "currency",
+  description: "description",
 };
 
 function parseProject(form: FormData) {
@@ -163,6 +177,8 @@ function parseProject(form: FormData) {
     venueId: field(form, "venueId"),
     startsOn: field(form, "startsOn"),
     endsOn: field(form, "endsOn"),
+    currencyCode: field(form, "currencyCode"),
+    description: field(form, "description"),
   });
 }
 

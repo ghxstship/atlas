@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { listActivity, listAuditEvents } from "../src/activity.ts";
+import { getActivityEntry, listActivity, listAuditEvents } from "../src/activity.ts";
 import {
   listBlockedRecords,
   listMyOverdueRecords,
@@ -227,5 +227,32 @@ describe("gate readiness", () => {
     );
     expect(closed).toMatchObject({ closed: true, unmet: [] });
     expect(unknown).toMatchObject({ phase: null, blockingTotal: 0, closed: false });
+  });
+});
+
+describe("activity entry", () => {
+  it("reads one entry by id or answers not-found", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:activity_feed": [
+        okResponse([{ ...FEED_ROW, description: "A project moved to another project state." }]),
+        okResponse([]),
+        errorResponse("42501", "no"),
+      ],
+    });
+    const entry = await getActivityEntry(db, "o1", "a1");
+    expect(entry.ok && entry.data).toMatchObject({
+      id: "a1",
+      actorPersonId: "x",
+      description: "A project moved to another project state.",
+    });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_org_id: "o1", p_project_id: null, p_before: null, p_limit: 1, p_activity_id: "a1" }],
+    ]);
+    expect(await getActivityEntry(db, "o1", "a2")).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
+    expect((await getActivityEntry(db, "o1", "a3")).ok).toBe(false);
   });
 });

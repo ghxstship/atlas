@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
-import type { GateReadiness, HomeRecord } from "@xos/data/home";
-import type { ProjectSummary } from "@xos/data/projects";
-import { buildAlerts } from "@/lib/home/data";
+import type { GateReadiness, HomeRecord } from "../src/home";
+import type { ProjectSummary } from "../src/projects";
+import { buildAlerts } from "../src/home";
 
 const project = (over: Partial<ProjectSummary>): ProjectSummary => ({
   id: "p1",
   key: "NWS",
   name: "Northwind Summer Series",
+  description: null,
+  currency: "USD",
   projectState: "Active",
   productionState: "Active",
   phaseCode: "ENG",

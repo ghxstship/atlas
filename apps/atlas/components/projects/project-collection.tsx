@@ -370,6 +370,7 @@ export function ProjectCollection({
                 },
                 { label: t("fields.venue"), value: peek.venueName ?? t("values.none") },
                 { label: t("fields.region"), value: peek.regionCode ?? t("values.none") },
+                { label: t("fields.currency"), value: peek.currency },
                 { label: t("fields.timeZone"), value: peek.timeZone },
                 { label: t("fields.dates"), value: dates(peek) },
               ]}

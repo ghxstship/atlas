@@ -23,6 +23,9 @@ export interface ActivityEntry {
   readonly recordTitle: string | null;
   /** The event's outbound payload: the named, non-restricted subject fields. */
   readonly data: Readonly<Record<string, unknown>>;
+  /** The catalog description of the event type (migration 0951). */
+  readonly description: string | null;
+  readonly actorPersonId: string | null;
 }
 
 export interface ActivityPage<T> {
@@ -45,6 +48,7 @@ interface FeedRow {
   record_key: string | null;
   record_title: string | null;
   data: Record<string, unknown> | null;
+  description?: string | null;
 }
 
 /** The activity feed of an org, or of one project, newest first. */
@@ -66,7 +70,14 @@ export async function listActivity(
   });
   if (error) return fail(toDataError(error));
   const rows = data ?? [];
-  const entries = rows.map((r): ActivityEntry => ({
+  return ok({
+    entries: rows.map(toEntry),
+    next: rows.length === limit ? (rows[rows.length - 1]?.occurred_at ?? null) : null,
+  });
+}
+
+function toEntry(r: FeedRow): ActivityEntry {
+  return {
     id: r.id,
     at: r.occurred_at,
     type: r.event_type,
@@ -77,14 +88,30 @@ export async function listActivity(
         ? { id: r.project_id, key: r.project_key, name: r.project_name }
         : null,
     actor: r.actor_name,
+    actorPersonId: r.actor_person_id,
     recordKey: r.record_key,
     recordTitle: r.record_title,
     data: r.data ?? {},
-  }));
-  return ok({
-    entries,
-    next: rows.length === limit ? (rows[rows.length - 1]?.occurred_at ?? null) : null,
+    description: r.description ?? null,
+  };
+}
+
+/** One feed entry by id under the feed rule (migration 0951), or not-found. */
+export async function getActivityEntry(
+  db: XosClient,
+  orgId: string,
+  activityId: string,
+): Promise<Result<ActivityEntry>> {
+  const { data, error } = await untypedRpc<FeedRow[]>(db, "activity_feed", {
+    p_org_id: orgId,
+    p_project_id: null,
+    p_before: null,
+    p_limit: 1,
+    p_activity_id: activityId,
   });
+  if (error) return fail(toDataError(error));
+  const row = data?.[0];
+  return row ? ok(toEntry(row)) : fail({ kind: "not-found" });
 }
 
 export interface AuditEntry {
