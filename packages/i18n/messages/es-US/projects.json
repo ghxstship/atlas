@@ -79,7 +79,7 @@
   },
   "list": {
     "search": "Buscar proyectos",
-    "searchPlaceholder": "Clave o nombre",
+    "searchHint": "Clave o nombre",
     "showArchived": "Mostrar proyectos archivados",
     "count": "{count, plural, one {# proyecto} other {# proyectos}}",
     "noMatch": "Ningún proyecto coincide con {query}. Borra la búsqueda para ver todos los proyectos.",

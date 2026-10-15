@@ -142,7 +142,7 @@ export function ProjectCollection({
         id="projects-search"
         type="search"
         label={t("list.search")}
-        placeholder={t("list.searchPlaceholder")}
+        placeholder={t("list.searchHint")}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
