@@ -1,0 +1,8 @@
+{
+  "settings": {
+    "selfBilling": {
+      "label": "Autofacturación",
+      "help": "Permite que finanzas genere facturas por pagar a partir de hojas de horas aprobadas para las partes que aceptan la autofacturación en Gateway."
+    }
+  }
+}

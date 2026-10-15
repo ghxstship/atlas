@@ -1,4 +1,4 @@
--- pgTAP: A15 finance and reports (0480). Audit trail on finance tables, the finance domain events,
+-- pgTAP: A15 finance and reports (0480). The finance domain events,
 -- and the NULL-aware report views: budget line facts, change order line facts and budget totals
 -- revised by approved change orders. Same-tenant allow, cross-tenant deny, anon deny, role bands.
 begin;
@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(30);
+select plan(27);
 
 -- World ------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -18,22 +18,16 @@ with x as (insert into app.budget_lines (budget_id, line_number, description, ur
   values (pg_temp.id('bud_a'), 2, 'Sound package.', '5000.01.01', 1, 'X', 'Declared') returning id) insert into world select 'line_sound', id from x;
 select pg_temp.as_platform();
 
--- Domain events and audit trail ---------------------------------------------------------------------------------
+-- Domain events ---------------------------------------------------------------------------------
 select is((select count(*)::int from app.domain_events where event_type = 'budget.created' and subject_id = pg_temp.id('bud_a')), 1,
   'creating a budget emits budget.created');
 select is((select project_id from app.domain_events where event_type = 'budget.created' and subject_id = pg_temp.id('bud_a')), pg_temp.id('prj_a'),
   'and carries its project for per-project subscriptions');
 select is((select count(*)::int from app.domain_events where event_type = 'cost_center.created' and subject_id = pg_temp.id('cc_venue')), 1,
   'creating a cost center emits cost_center.created');
-select ok(exists (select 1 from app.audit_events where subject_table = 'app.budget_lines' and subject_id = pg_temp.id('line_stage')),
-  'a budget line insert lands in the audit ledger');
 select pg_temp.as_user('carol');
 update app.budget_lines set unit_price_minor = 16000 where id = pg_temp.id('line_stage');
 select pg_temp.as_platform();
-select ok(exists (select 1 from app.audit_events where subject_table = 'app.budget_lines' and subject_id = pg_temp.id('line_stage') and diff -> 'new' ? 'unit_price_minor' and action like '%update'),
-  'a price change lands in the audit ledger with its diff');
-select is((select actor_person_id from app.audit_events where subject_table = 'app.budget_lines' and subject_id = pg_temp.id('line_stage') and action like '%update' limit 1), pg_temp.id('carol'),
-  'and names the person who changed it');
 
 -- Budget line facts --------------------------------------------------------------------------------------------
 select is((select account_code from app.budget_line_facts where budget_line_id = pg_temp.id('line_stage')), '5500',

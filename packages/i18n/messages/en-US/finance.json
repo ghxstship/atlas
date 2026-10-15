@@ -1,0 +1,8 @@
+{
+  "settings": {
+    "selfBilling": {
+      "label": "Self-billing",
+      "help": "Lets finance generate payable invoices from approved timesheets for parties who agree to self-billing in Gateway."
+    }
+  }
+}

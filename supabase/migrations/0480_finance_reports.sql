@@ -1,36 +1,14 @@
 -- 0480_finance_reports.sql
 -- A15 Finance and Reports (Section 3.11, Section 4.2 Finance and Reports, Section 7.4 Analytics,
 -- Section 19.6 audit events). Builds on A03's finance schema (0320, 0321) without changing it:
---   * the audit trail (A18, 0501) on every finance table, so every change lands in app.audit_events
 --   * domain event types and triggers for the finance transitions A03 did not emit, so the activity
 --     feed and webhooks see every lifecycle step
 --   * derived, NULL-aware views the Finance pages and the built-in reports read: budget line facts
 --     with their dimensions, change order line facts, and budget totals revised by approved change
 --     orders (Section 20.2 journey 6: approving a priced change order updates the budget).
+-- The audit trail on the finance tables needs A18's 0501 and lives in the late slot (0990).
 -- Every view is security_invoker, so row level security of the underlying tables decides each row.
 -- No totals are stored (Section 3.15).
-
--- Audit trail (Section 19.6) ------------------------------------------------------------------------------
-
-call private.install_audit_trail('app.cost_centers');
-call private.install_audit_trail('app.accounting_periods');
-call private.install_audit_trail('app.budgets');
-call private.install_audit_trail('app.budget_lines');
-call private.install_audit_trail('app.spend_authorities');
-call private.install_audit_trail('app.journal_entries');
-call private.install_audit_trail('app.journal_lines');
-call private.install_audit_trail('app.tax_jurisdictions');
-call private.install_audit_trail('app.tax_rates');
-call private.install_audit_trail('app.fx_rates');
-call private.install_audit_trail('app.expenses');
-call private.install_audit_trail('app.contingency_draws');
-call private.install_audit_trail('app.change_orders');
-call private.install_audit_trail('app.change_order_lines');
-call private.install_audit_trail('app.invoices');
-call private.install_audit_trail('app.invoice_lines');
-call private.install_audit_trail('app.payments');
-call private.install_audit_trail('app.payment_applications');
-call private.install_audit_trail('app.billing_draws');
 
 -- Domain events (activity feed and webhooks) ----------------------------------------------------------------
 
@@ -77,7 +55,7 @@ create trigger t91_emit_change_order_state after insert on app.change_order_stat
   for each row when (new.from_state is not null and new.to_state not in ('Approved'))
   execute function private.emit_subject_event('change_order.state_changed', 'change_orders', 'change_order_id', 'from_state', 'to_state', 'reason');
 create trigger t91_emit_invoice_state after insert on app.invoice_state_transitions
-  for each row when (new.from_state is not null and new.to_state not in ('Issued', 'Approved'))
+  for each row when (new.from_state is not null and new.to_state not in ('Issued', 'Approved', 'Canceled'))
   execute function private.emit_subject_event('invoice.state_changed', 'invoices', 'invoice_id', 'from_state', 'to_state', 'reason');
 create trigger t91_emit_payment_state after insert on app.payment_state_transitions
   for each row when (new.from_state is not null and new.to_state not in ('Approved'))
