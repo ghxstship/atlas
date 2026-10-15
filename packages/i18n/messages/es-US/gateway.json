@@ -246,6 +246,108 @@
       "deferred": "Diferido",
       "canceled": "Cancelado"
     },
+    "offerState": {
+      "sent": "Enviada",
+      "countered": "Contraofertada",
+      "accepted": "Aceptada",
+      "declined": "Rechazada",
+      "withdrawn": "Retirada",
+      "expired": "Vencida"
+    },
+    "offerSide": {
+      "organization": "La organización",
+      "party": "Tú"
+    },
+    "shiftState": {
+      "draft": "Borrador",
+      "published": "Publicado",
+      "accepted": "Aceptado",
+      "canceled": "Cancelado"
+    },
+    "shipmentDirection": {
+      "inbound": "Entrada",
+      "outbound": "Salida"
+    },
+    "invoiceState": {
+      "proposed": "Borrador",
+      "issued": "Enviada",
+      "approved": "Aprobada",
+      "disputed": "En disputa",
+      "canceled": "Cancelada"
+    },
+    "poState": {
+      "proposed": "Borrador",
+      "approved": "Aprobada",
+      "sent": "Enviada",
+      "closed": "Cerrada",
+      "canceled": "Cancelada"
+    },
+    "deliverableState": {
+      "open": "Abierto",
+      "submitted": "Entregado",
+      "accepted": "Aceptado",
+      "returned": "Devuelto"
+    },
+    "timesheetState": {
+      "proposed": "Borrador",
+      "submitted": "Enviada",
+      "approved": "Aprobada",
+      "rejected": "Rechazada"
+    },
+    "clientApprovalSubject": {
+      "changeOrder": "Orden de cambio",
+      "record": "Registro"
+    },
+    "approvalDecision": {
+      "approved": "Aprobado",
+      "rejected": "Rechazado"
+    },
+    "changeOrderState": {
+      "proposed": "Propuesta",
+      "priced": "Cotizada",
+      "approved": "Aprobada",
+      "rejected": "Rechazada",
+      "canceled": "Cancelada"
+    },
+    "fulfillmentKind": {
+      "lodging": "Hospedaje",
+      "catering": "Catering",
+      "travel": "Viaje",
+      "amenity": "Comodidad"
+    },
+    "advanceReviewOutcome": {
+      "accepted": "Aceptada",
+      "returned": "Devuelta"
+    },
+    "timeEntrySource": {
+      "web": "Web",
+      "mobile": "Móvil",
+      "kiosk": "Kiosco"
+    },
+    "profileVisibility": {
+      "private": "Privado",
+      "network": "Red",
+      "public": "Público"
+    },
+    "rateUnit": {
+      "hour": "por hora",
+      "day": "por día",
+      "week": "por semana",
+      "project": "por proyecto"
+    },
+    "languageProficiency": {
+      "basic": "Básico",
+      "conversational": "Conversacional",
+      "fluent": "Fluido",
+      "native": "Nativo"
+    },
+    "portfolioKind": {
+      "image": "Imagen",
+      "video": "Video",
+      "audio": "Audio",
+      "document": "Documento",
+      "link": "Enlace"
+    },
     "ratingSide": {
       "organization": "Organización",
       "party": "Contraparte"
@@ -560,6 +662,74 @@
       "fullName": "Escribe tu nombre completo.",
       "email": "Escribe un correo como nombre@empresa.com.",
       "password": "Escribe una contraseña de al menos 8 caracteres."
+    }
+  },
+  "work": {
+    "upcoming": {
+      "empty": "No tienes nada próximo. Postula a una oportunidad para llenar tu calendario.",
+      "emptyAction": "Explorar oportunidades",
+      "download": "Agregar todo al calendario",
+      "previousMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente",
+      "kinds": {
+        "shift": "Turno",
+        "record": "Elemento programado",
+        "dock": "Turno de muelle",
+        "lodging": "Registro de hospedaje",
+        "interview": "Entrevista",
+        "start": "Primer día"
+      }
+    },
+    "engagements": {
+      "empty": "Aún no tienes contrataciones. Cuando una organización te contrate, aparecerá aquí.",
+      "emptyAction": "Explorar oportunidades",
+      "current": "Actuales",
+      "past": "Anteriores",
+      "role": "Rol",
+      "org": "Organización",
+      "project": "Proyecto",
+      "dates": "Fechas",
+      "state": "Estado"
+    },
+    "applications": {
+      "empty": "Aún no tienes postulaciones. Postula desde Explorar y sigue cada paso aquí.",
+      "emptyAction": "Explorar oportunidades",
+      "opportunity": "Oportunidad",
+      "submitted": "Enviada",
+      "fee": "Tu tarifa propuesta",
+      "bid": "Tu oferta sellada",
+      "bidSummary": "{n, plural, one {# línea} other {# líneas}}, total {total}",
+      "viewOpportunity": "Ver oportunidad",
+      "withdraw": "Retirar",
+      "withdrawn": "Postulación retirada.",
+      "offer": {
+        "title": "Oferta",
+        "version": "Versión {n}",
+        "amount": "Monto",
+        "rateType": "Tipo de tarifa",
+        "dates": "Fechas",
+        "expires": "Responde antes del",
+        "from": "Propuesta por",
+        "accept": "Aceptar oferta",
+        "decline": "Rechazar",
+        "waiting": "Tu contraoferta está con la organización. Recibirás una notificación cuando respondan."
+      },
+      "counter": {
+        "open": "Contraofertar",
+        "title": "Contraofertar",
+        "amount": "Monto en {currency}, {rate}",
+        "startsOn": "Primer día",
+        "endsOn": "Último día",
+        "message": "Mensaje para la organización",
+        "submit": "Enviar contraoferta",
+        "cancel": "Cancelar",
+        "sent": "Contraoferta enviada. La organización responde en Postulaciones.",
+        "errors": {
+          "counter": "Completa el monto, ambas fechas y un mensaje.",
+          "amount": "Escribe el monto como número, por ejemplo 950 o 950.50.",
+          "dates": "El último día debe ser igual o posterior al primero."
+        }
+      }
     }
   }
 }

@@ -246,6 +246,108 @@
       "deferred": "Deferred",
       "canceled": "Canceled"
     },
+    "offerState": {
+      "sent": "Sent",
+      "countered": "Countered",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "withdrawn": "Withdrawn",
+      "expired": "Expired"
+    },
+    "offerSide": {
+      "organization": "Organization",
+      "party": "Party"
+    },
+    "shiftState": {
+      "draft": "Draft",
+      "published": "Published",
+      "accepted": "Accepted",
+      "canceled": "Canceled"
+    },
+    "shipmentDirection": {
+      "inbound": "Inbound",
+      "outbound": "Outbound"
+    },
+    "invoiceState": {
+      "proposed": "Proposed",
+      "issued": "Issued",
+      "approved": "Approved",
+      "disputed": "Disputed",
+      "canceled": "Canceled"
+    },
+    "poState": {
+      "proposed": "Proposed",
+      "approved": "Approved",
+      "sent": "Sent",
+      "closed": "Closed",
+      "canceled": "Canceled"
+    },
+    "deliverableState": {
+      "open": "Open",
+      "submitted": "Submitted",
+      "accepted": "Accepted",
+      "returned": "Returned"
+    },
+    "timesheetState": {
+      "proposed": "Proposed",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "clientApprovalSubject": {
+      "changeOrder": "Change Order",
+      "record": "Record"
+    },
+    "approvalDecision": {
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "changeOrderState": {
+      "proposed": "Proposed",
+      "priced": "Priced",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "canceled": "Canceled"
+    },
+    "fulfillmentKind": {
+      "lodging": "Lodging",
+      "catering": "Catering",
+      "travel": "Travel",
+      "amenity": "Amenity"
+    },
+    "advanceReviewOutcome": {
+      "accepted": "Accepted",
+      "returned": "Returned"
+    },
+    "timeEntrySource": {
+      "web": "Web",
+      "mobile": "Mobile",
+      "kiosk": "Kiosk"
+    },
+    "profileVisibility": {
+      "private": "Private",
+      "network": "Network",
+      "public": "Public"
+    },
+    "rateUnit": {
+      "hour": "Hour",
+      "day": "Day",
+      "week": "Week",
+      "project": "Project"
+    },
+    "languageProficiency": {
+      "basic": "Basic",
+      "conversational": "Conversational",
+      "fluent": "Fluent",
+      "native": "Native"
+    },
+    "portfolioKind": {
+      "image": "Image",
+      "video": "Video",
+      "audio": "Audio",
+      "document": "Document",
+      "link": "Link"
+    },
     "ratingSide": {
       "organization": "Organization",
       "party": "Party"
@@ -560,6 +662,74 @@
       "fullName": "Enter your full name.",
       "email": "Enter an email address like name@company.com.",
       "password": "Enter a password of at least 8 characters."
+    }
+  },
+  "work": {
+    "upcoming": {
+      "empty": "Nothing is coming up. Apply for an opportunity to fill your calendar.",
+      "emptyAction": "Explore opportunities",
+      "download": "Add all to calendar",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "kinds": {
+        "shift": "Shift",
+        "record": "Scheduled item",
+        "dock": "Dock slot",
+        "lodging": "Check-in",
+        "interview": "Interview",
+        "start": "First day"
+      }
+    },
+    "engagements": {
+      "empty": "No engagements yet. When an organization engages you, it shows up here.",
+      "emptyAction": "Explore opportunities",
+      "current": "Current",
+      "past": "Past",
+      "role": "Role",
+      "org": "Organization",
+      "project": "Project",
+      "dates": "Dates",
+      "state": "State"
+    },
+    "applications": {
+      "empty": "No applications yet. Apply from Explore and follow every step here.",
+      "emptyAction": "Explore opportunities",
+      "opportunity": "Opportunity",
+      "submitted": "Submitted",
+      "fee": "Your proposed fee",
+      "bid": "Your sealed bid",
+      "bidSummary": "{n, plural, one {# line} other {# lines}}, total {total}",
+      "viewOpportunity": "View opportunity",
+      "withdraw": "Withdraw",
+      "withdrawn": "Application withdrawn.",
+      "offer": {
+        "title": "Offer",
+        "version": "Version {n}",
+        "amount": "Amount",
+        "rateType": "Rate type",
+        "dates": "Dates",
+        "expires": "Answer by",
+        "from": "Proposed by",
+        "accept": "Accept offer",
+        "decline": "Decline",
+        "waiting": "Your counter is with the organization. You will get a notification when they answer."
+      },
+      "counter": {
+        "open": "Counter",
+        "title": "Counter the offer",
+        "amount": "Amount in {currency}, {rate}",
+        "startsOn": "First day",
+        "endsOn": "Last day",
+        "message": "Message to the organization",
+        "submit": "Send counter",
+        "cancel": "Cancel",
+        "sent": "Counter sent. The organization answers in Applications.",
+        "errors": {
+          "counter": "Fill in the amount, both dates and a message.",
+          "amount": "Enter the amount as a number, like 950 or 950.50.",
+          "dates": "The last day must be on or after the first day."
+        }
+      }
     }
   }
 }

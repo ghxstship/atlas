@@ -37,6 +37,47 @@ export function icsFor(input: {
   ].join("\r\n");
 }
 
+/** Downloads every listed item as one calendar file (Section 4.5.8, Upcoming with a calendar feed). */
+export function CalendarDownload(props: {
+  label: string;
+  fileName: string;
+  events: readonly {
+    uid: string;
+    title: string;
+    startsAt: string;
+    endsAt: string | null;
+    location: string | null;
+  }[];
+}) {
+  return (
+    <Button
+      icon="CalendarPlus"
+      disabled={props.events.length === 0}
+      onClick={() => {
+        const body = props.events
+          .map((e) => icsFor(e).split("\r\n").slice(3, -2).join("\r\n"))
+          .join("\r\n");
+        const ics = [
+          "BEGIN:VCALENDAR",
+          "VERSION:2.0",
+          "PRODID:-//XOS//Gateway//EN",
+          body,
+          "END:VCALENDAR",
+          "",
+        ].join("\r\n");
+        const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = props.fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+      }}
+    >
+      {props.label}
+    </Button>
+  );
+}
+
 /** The Up Next card's actions: open the engagement, and add the item to the calendar. */
 export function UpNextActions(props: {
   title: string;
