@@ -211,7 +211,7 @@ call private.describe('api_external.client_approvals', 'Approval requests to the
   'response', 'The client''s comment.', 'decided_at', 'When decided.']);
 
 create view api_external.change_orders as
-select c.id, c.project_id, pj.project_key || '-CO-' || c.change_order_number::text as change_order_key, c.title, c.reason,
+select c.id, c.project_id, pj.project_key || '-CO-' || c.change_order_number::text as change_order_key, c.title, c.reason as change_purpose,
   c.change_order_state,
   (select case when count(l.id) = 0 or count(l.id) filter (where l.unit_price_minor is null) > 0 then null
                else sum(private.extended_minor(l.quantity, l.unit_price_minor))::bigint end
@@ -222,7 +222,7 @@ join app.projects pj on pj.id = c.project_id
 where c.deleted_at is null and c.id in (select x.change_order_id from api_external.client_approvals x where x.change_order_id is not null);
 
 call private.describe('api_external.change_orders', 'Change orders the org shared with the caller for approval. The total is NULL while any line is unpriced; budget coding never appears.', array[
-  'id', 'Change order.', 'project_id', 'Project.', 'change_order_key', 'Display key.', 'title', 'Title.', 'reason', 'Why the change is needed.',
+  'id', 'Change order.', 'project_id', 'Project.', 'change_order_key', 'Display key.', 'title', 'Title.', 'change_purpose', 'Why the change is needed.',
   'change_order_state', 'Internal state: Proposed, Priced, Approved, Rejected or Canceled.', 'total_minor', 'Total in minor units; NULL while unpriced.',
   'currency_code', 'Currency.']);
 
