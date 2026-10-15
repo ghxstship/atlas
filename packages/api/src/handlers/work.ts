@@ -14,7 +14,7 @@ import type { XosClient } from "@xos/data";
 import { duplicateRecord, transitionRecord } from "@xos/data/work";
 import { awardWorkOrder, transitionWorkOrder } from "@xos/data/work-orders";
 import type { Components } from "../contract/operations.generated.ts";
-import { badRequest, conflict, notFound, preconditionFailed } from "../problem.ts";
+import { badRequest, conflict, notFound, preconditionFailed, refused } from "../problem.ts";
 import { versionFromIfMatch } from "../runtime/etag.ts";
 import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import { listPage } from "../runtime/listing.ts";
@@ -352,8 +352,13 @@ export const handlers = defineHandlers("Work", {
       .is("deleted_at", null)
       .maybeSingle();
     if (nodeError !== null) throw nodeError;
-    if (node === null)
-      throw notFound(`No scope node with id ${body.scope_node_id} is visible to you.`);
+    if (node === null) {
+      throw refused(
+        "REFUSE",
+        `No scope node with id ${body.scope_node_id} is visible to you.`,
+        "record_scope_node_unknown",
+      );
+    }
     const { data, error } = await db
       .from("records")
       .insert({
@@ -452,7 +457,13 @@ export const handlers = defineHandlers("Work", {
   "recordStateTransitions.list": async ({ query }, { db }) =>
     ok(
       await listPage<StateTransition>(
-        aliasedSource(() => db.from("record_state_transitions"), TRANSITION_ALIASES),
+        aliasedSource(
+          () => ({
+            select: (c: string) =>
+              db.from("record_state_transitions").select(c).not("from_state", "is", null),
+          }),
+          TRANSITION_ALIASES,
+        ),
         query,
         { columns: TRANSITION_COLUMNS, key: "id", defaultOrder: ["transitioned_at"] },
       ),
@@ -464,6 +475,7 @@ export const handlers = defineHandlers("Work", {
       .from("record_state_transitions")
       .select(aliasSelect(columns, TRANSITION_ALIASES))
       .eq("id", params.id)
+      .not("from_state", "is", null)
       .maybeSingle();
     if (error !== null) throw error;
     if (data === null)

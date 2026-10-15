@@ -5,6 +5,7 @@ import {
   buildRrule,
   clearRecurrence,
   createRecord,
+  duplicateRecord,
   extensionTable,
   formatRecordKey,
   getProjectRef,
@@ -963,5 +964,67 @@ describe("recurrence", () => {
     expect(
       occurrences("2027-06-07T09:00:00Z", "FREQ=DAILY", 10, "2027-06-08T10:00:00Z"),
     ).toHaveLength(2);
+  });
+});
+
+describe("duplicate", () => {
+  it("copies a record, its attributes and, with children, its checklist", async () => {
+    const { db, calls } = moduleClient({
+      "from:records": [
+        okResponse(recordRow({ urid: "5000.01.01", xyz: "X" })),
+        okResponse({ id: "r9", record_number: 8 }),
+      ],
+      "xpms:from:dim_category": [okResponse({ xyz: "X" })],
+      "from:record_task": [
+        okResponse(null),
+        okResponse(null),
+        okResponse({ record_id: "r1", org_id: "o1", record_kind: "Task", progress_pct: 40 }),
+        okResponse({ record_id: "r9" }),
+        okResponse(null),
+      ],
+      "from:record_checklist_items": [
+        okResponse([{ id: "i1", position: 1, label: "Safeties", checked_at: "t", checker: null }]),
+        okResponse([]),
+        okResponse({ id: "i9" }),
+      ],
+    });
+    expect(await duplicateRecord(db, { orgId: "o1", recordId: "r1", withChildren: true })).toEqual({
+      ok: true,
+      data: { id: "r9", number: 8 },
+    });
+    const copied = calls.find(
+      (c) => c.target === "from:record_checklist_items" && stepsOf(c, "insert").length > 0,
+    );
+    expect(stepsOf(copied, "insert")[0]?.[0]).toMatchObject({ label: "Safeties", record_id: "r9" });
+  });
+
+  it("stops at the first failure", async () => {
+    const missing = moduleClient({ "from:records": [okResponse(null)] });
+    expect((await duplicateRecord(missing.db, { orgId: "o1", recordId: "r1" })).ok).toBe(false);
+    const refused = moduleClient({
+      "from:records": [okResponse(recordRow()), errorResponse("42501", "denied")],
+    });
+    expect((await duplicateRecord(refused.db, { orgId: "o1", recordId: "r1" })).ok).toBe(false);
+    const extensionFails = moduleClient({
+      "from:records": [okResponse(recordRow()), okResponse({ id: "r9", record_number: 8 })],
+      "from:record_task": [okResponse(null), okResponse(null), errorResponse("XX000", "boom")],
+    });
+    expect((await duplicateRecord(extensionFails.db, { orgId: "o1", recordId: "r1" })).ok).toBe(
+      false,
+    );
+    const checklistFails = moduleClient({
+      "from:records": [okResponse(recordRow()), okResponse({ id: "r9", record_number: 8 })],
+      "from:record_task": [okResponse(null), okResponse(null), okResponse(null)],
+      "from:record_checklist_items": [errorResponse("XX000", "boom")],
+    });
+    expect(
+      (
+        await duplicateRecord(checklistFails.db, {
+          orgId: "o1",
+          recordId: "r1",
+          withChildren: true,
+        })
+      ).ok,
+    ).toBe(false);
   });
 });
