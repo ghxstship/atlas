@@ -57,17 +57,24 @@ test("journey 1, permit step: generate permits from canon for Miami-Dade and see
   await expect(page.getByRole("heading", { name: "Permit engine for MIA" })).toBeVisible();
   await expectAccessibleInBothThemes(page);
   await page.getByRole("button", { name: "Generate permit requirements" }).click();
-  await expect(page.getByRole("status").filter({ hasText: /Added \d+ requirements\./ })).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: /Added \d+ requirements\./ }),
+  ).toBeVisible();
   await expect(page.getByText("Special Events Permit")).toBeVisible();
   await expect(page.getByText("Lead time 4-6 wks").first()).toBeVisible();
   await expectAccessible(page);
 
   // Running it again adds nothing.
   await page.getByRole("button", { name: "Generate permit requirements" }).click();
-  await expect(page.getByText("Nothing new: every applicable rule is already listed.")).toBeVisible();
+  await expect(
+    page.getByText("Nothing new: every applicable rule is already listed."),
+  ).toBeVisible();
 
   // Track one with a Permit record and move it along the record lifecycle.
-  await page.getByRole("link", { name: /Special Events Permit/ }).first().click();
+  await page
+    .getByRole("link", { name: /Special Events Permit/ })
+    .first()
+    .click();
   const peek = page.getByRole("dialog", { name: "Permit requirement" });
   await expect(peek.getByText("City of Miami Special Events Office")).toBeVisible();
   await peek.getByRole("button", { name: "Track with a Permit record" }).click();
@@ -87,7 +94,6 @@ test("journey 1, permit step: generate permits from canon for Miami-Dade and see
   await page.goto(`/${slug}/p/MIA/safety?view=board`);
   await expect(page.getByText("Special Events Permit").first()).toBeVisible();
   await expectAccessible(page);
-
 });
 
 test("permit engine: a project without a jurisdiction answers NO_ANSWER and never passes", async ({
@@ -142,14 +148,19 @@ test("journey 17: run an inspection template, fail an item, see the punch record
   await page.getByLabel("Result for item 1").selectOption({ label: "Failed" });
   await page.getByLabel("Finding for item 1").fill("Rail missing at stage left.");
   await page.getByRole("button", { name: "Save item 1" }).click();
-  await expect(page.getByText(/A punch item, [A-Z]{2,5}-\d+, was opened to correct this\./)).toBeVisible();
+  await expect(
+    page.getByText(/A punch item, [A-Z]{2,5}-\d+, was opened to correct this\./),
+  ).toBeVisible();
   await page.getByLabel("Result for item 2").selectOption({ label: "Passed" });
   await page.getByRole("button", { name: "Save item 2" }).click();
   await expect(page.getByText("Items answered: 2 of 2")).toBeVisible();
 
   // The inspector cannot sign off their own inspection.
   await page.getByRole("button", { name: "Sign off" }).click();
-  await page.getByRole("dialog", { name: `Sign off ${template}?` }).getByRole("button", { name: "Sign off" }).click();
+  await page
+    .getByRole("dialog", { name: `Sign off ${template}?` })
+    .getByRole("button", { name: "Sign off" })
+    .click();
   await expect(page.getByText("The inspector cannot sign off their own inspection.")).toBeVisible();
   const runnerUrl = page.url();
 
@@ -158,7 +169,10 @@ test("journey 17: run an inspection template, fail an item, see the punch record
   await signIn(admin, "admin@example.com");
   await admin.goto(runnerUrl);
   await admin.getByRole("button", { name: "Sign off" }).click();
-  await admin.getByRole("dialog", { name: `Sign off ${template}?` }).getByRole("button", { name: "Sign off" }).click();
+  await admin
+    .getByRole("dialog", { name: `Sign off ${template}?` })
+    .getByRole("button", { name: "Sign off" })
+    .click();
   await expect(admin.getByText("Signed off. The results are frozen")).toBeVisible();
   await expect(admin.getByRole("button", { name: "Save item 1" })).toHaveCount(0);
   await expectAccessible(admin);

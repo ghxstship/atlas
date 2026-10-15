@@ -274,5 +274,44 @@
       "zone": "Zone",
       "noZone": "No zone"
     }
+  },
+  "reconciliation": {
+    "title": "Requirements and Capability",
+    "intro": "List what the production requires and what venues provide, then reconcile. A requirement with no claim, or only an UNKNOWN claim, reconciles as Unknown, never Met; a Gap or an Unknown on a critical requirement is a gate 3 gap.",
+    "latest": "Latest reconciliation",
+    "ranAt": "Reconciled {when}.",
+    "neverRun": "Not reconciled yet. Add requirements and capabilities, then run a reconciliation.",
+    "gapsTitle": "{count, plural, one {# gate 3 gap} other {# gate 3 gaps}}",
+    "gapsBody": "Close each gap with a capability that covers it, or record a stronger claim, then reconcile again.",
+    "noGaps": "No gate 3 gaps in the latest reconciliation.",
+    "tableLabel": "Reconciliation results",
+    "run": "Reconcile now",
+    "ran": "Reconciled.",
+    "requirements": "Requirements",
+    "capabilities": "Capabilities",
+    "noRequirements": "No requirements yet. Add what the production needs below.",
+    "noCapabilities": "No capabilities yet. Add what a venue provides below.",
+    "critical": "Critical",
+    "remove": "Remove: {what}",
+    "addRequirement": "Add requirement",
+    "addCapability": "Add capability",
+    "fields": {
+      "urid": "Category",
+      "needed": "What is required",
+      "provided": "What is provided",
+      "quantity": "Quantity",
+      "critical": "Critical: an Unknown here is a gate 3 gap",
+      "venue": "Provided by venue",
+      "assertion": "Claim strength",
+      "assertionHelp": "From canon: certified is strongest, unknown means no claim.",
+      "note": "Note for this run"
+    },
+    "words": {
+      "CERTIFIED": "Certified",
+      "DOCUMENTED": "Documented",
+      "CLAIMED": "Claimed",
+      "INFERRED": "Inferred",
+      "UNKNOWN": "Unknown"
+    }
   }
 }

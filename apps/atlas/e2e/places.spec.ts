@@ -184,3 +184,39 @@ test("site plans: add a plan to the demo project and place a pin by keyboard", a
   await page.getByRole("radio", { name: "Site plan" }).click();
   await expectAccessible(page);
 });
+
+test("reconciliation: an UNKNOWN claim on a critical requirement is a gate 3 gap, a documented one meets it", async ({
+  page,
+}) => {
+  const id = uniqueId();
+  await signIn(page);
+  await page.goto(`/${ORG}/p/NWS/scope`);
+  const panel = page.getByRole("region", { name: "Requirements and Capability" });
+  await expect(panel).toBeVisible();
+  await expectAccessibleInBothThemes(page);
+
+  const requirements = page.getByRole("region", { name: "Requirements", exact: true });
+  await requirements.getByRole("combobox", { name: "Category" }).fill("Production Leadership");
+  await page.getByRole("option", { name: /Production Leadership 0000\.01\.01/ }).click();
+  await requirements.getByLabel("What is required").fill(`Show caller on headset ${id}`);
+  await requirements.getByLabel("Critical: an Unknown here is a gate 3 gap").check();
+  await requirements.getByRole("button", { name: "Add requirement" }).click();
+  await expect(panel.getByText(`Show caller on headset ${id}`).first()).toBeVisible();
+
+  await panel.getByRole("button", { name: "Reconcile now" }).click();
+  await expect(panel.getByText(/gate 3 gaps?$/).first()).toBeVisible();
+  await expectAccessible(page);
+
+  const capabilities = page.getByRole("region", { name: "Capabilities", exact: true });
+  await capabilities.getByRole("combobox", { name: "Category" }).fill("Production Leadership");
+  await page.getByRole("option", { name: /Production Leadership 0000\.01\.01/ }).click();
+  await capabilities.getByLabel("What is provided").fill(`Venue stage manager ${id}`);
+  await capabilities.getByLabel("Claim strength").selectOption("DOCUMENTED");
+  await capabilities.getByRole("button", { name: "Add capability" }).click();
+  await expect(panel.getByText(`Venue stage manager ${id}`).first()).toBeVisible();
+  await panel.getByRole("button", { name: "Reconcile now" }).click();
+  await expect(
+    panel.getByRole("cell", { name: new RegExp(`Venue stage manager ${id}`) }).first(),
+  ).toBeVisible();
+  await expectAccessible(page);
+});
