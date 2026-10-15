@@ -5408,20 +5408,34 @@ function inboundStore(db) {
     },
   };
 }
-/** The kiosk PIN service (A03 carry-over): one punch through app.kiosk_punch. */
+/** Punch kinds of app.punch_kind (A03F, migration 0365). */
+var PUNCH_KINDS = ["In", "Break Start", "Break End", "Out"];
+function isPunchKind(value) {
+  return value !== null && PUNCH_KINDS.includes(value);
+}
+/** The kiosk PIN service for A17 Compass: one punch through app.kiosk_punch, which calls app.record_punch. */
 async function kioskPunch(db, input) {
   const row = rows(
     await db.rpc("kiosk_punch", {
       p_device_key: input.deviceKey,
       p_membership_id: input.membershipId,
       p_pin: input.pin,
+      p_punch_id: input.punchId,
+      p_punch_kind: input.punchKind,
+      p_device_time: input.deviceAt.toISOString(),
+      p_monotonic_offset_ms: input.monotonicOffsetMs ?? null,
+      p_photo_uri: input.photoUri ?? null,
       p_project_id: input.projectId ?? null,
     }),
   )[0];
-  const punch = optionalText(row, "punch");
+  const kind = optionalText(row, "punch_kind");
+  const skew = row?.["skew_flagged"];
   return {
+    punchId: optionalText(row, "punch_id"),
     timeEntryId: optionalText(row, "time_entry_id"),
-    punch: punch === "Clock In" || punch === "Clock Out" ? punch : null,
+    punchKind: isPunchKind(kind) ? kind : null,
+    effectiveAt: optionalText(row, "effective_at"),
+    skewFlagged: typeof skew === "boolean" ? skew : null,
     refusal: optionalText(row, "refusal"),
   };
 }
@@ -5438,6 +5452,7 @@ var planRegistry = parsePlanRegistry(plans_default);
 //#endregion
 export {
   BillingNotConfiguredError,
+  PUNCH_KINDS,
   PlatformDbError,
   PriceNotFoundError,
   StripeSignatureError,
