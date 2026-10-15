@@ -11,7 +11,9 @@
     "./capabilities.yaml": "./capabilities.yaml",
     "./plans": "./src/plans/index.ts",
     "./plans.yaml": "./plans.yaml",
-    "./settings": "./src/settings/index.ts"
+    "./settings": "./src/settings/index.ts",
+    "./views": "./src/views/index.ts",
+    "./views.yaml": "./views.yaml"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -23,7 +25,9 @@
     "check:plans": "node --experimental-strip-types --no-warnings src/plans/generate-cli.ts --check",
     "generate:settings": "node --experimental-strip-types --no-warnings src/settings/generate-cli.ts",
     "check:settings": "node --experimental-strip-types --no-warnings src/settings/generate-cli.ts --check",
-    "settings:sql": "node --experimental-strip-types --no-warnings src/settings/generate-cli.ts sql"
+    "settings:sql": "node --experimental-strip-types --no-warnings src/settings/generate-cli.ts sql",
+    "generate:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts",
+    "check:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts --check"
   },
   "dependencies": {
     "yaml": "2.9.1",

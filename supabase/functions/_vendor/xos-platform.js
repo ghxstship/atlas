@@ -9382,6 +9382,88 @@ var ui_default$1 = {
     nextShift: "Next shift",
   },
 };
+var views_default$1 = {
+  types: {
+    list: "List",
+    table: "Table",
+    spreadsheet: "Spreadsheet",
+    gallery: "Gallery",
+    board: "Board",
+    calendar: "Calendar",
+    "resource-schedule": "Resource schedule",
+    timeline: "Timeline",
+    map: "Map",
+    "site-plan": "Site plan",
+    tree: "Tree",
+    matrix: "Matrix",
+    "org-chart": "Org chart",
+    chart: "Chart",
+    feed: "Feed",
+    inbox: "Inbox",
+    split: "Split view",
+  },
+  menu: {
+    label: "Saved views",
+    heading: "Saved views",
+    loading: "Loading saved views",
+    empty: "No saved views yet",
+    default: "{name} (default)",
+    save: "Save current view",
+    update: "Update {name} to match",
+    setDefault: "Open {name} by default",
+    clearDefault: "Stop opening {name} by default",
+    share: "Share {name}",
+    delete: "Delete {name}",
+    pageDefault: "Page default",
+  },
+  save: {
+    title: "Save current view",
+    description:
+      "Saves the view type, filters, sort, grouping and search on screen. Each person who opens a shared view sees only what their own access allows.",
+    name: "Name",
+    nameHint: "Inbound this week",
+    nameHelp: "Up to 100 characters.",
+    nameRequired: "Name the view to save it.",
+    submit: "Save view",
+    cancel: "Cancel",
+  },
+  share: {
+    title: "Share {name}",
+    description:
+      "People you share with can open the view, never edit it, and see only the records their own access allows.",
+    everyone: "Everyone in the organization",
+    teams: "Teams",
+    noTeams: "This organization has no teams yet. Create teams in Settings to share with them.",
+    submit: "Save sharing",
+    cancel: "Cancel",
+  },
+  delete: {
+    title: "Delete {name}?",
+    description:
+      "The view is removed for you and for everyone it is shared with. The records it showed are not affected.",
+    submit: "Delete view",
+    cancel: "Keep view",
+  },
+  status: {
+    saved: "Saved {name}.",
+    updated: "Updated {name}.",
+    deleted: "Deleted {name}.",
+    shared: "Sharing saved for {name}.",
+    defaultSet: "{name} now opens by default.",
+    defaultCleared: "This page now opens on its own default view.",
+    applied: "Showing {name}.",
+  },
+  errors: {
+    denied: "You cannot change this view. Only its owner edits, shares or deletes it.",
+    invalid: "This view cannot be saved as it stands. Check the name and try again.",
+    conflict: "A view with these settings already exists. Pick another name.",
+    notFound:
+      "The view no longer exists or is no longer shared with you. Reload to see current views.",
+    unexpected: "Saved views could not be reached. Try again in a moment.",
+    loadFailed:
+      "Saved views could not be loaded. The page still works; try the menu again shortly.",
+  },
+};
 var work_default$1 = {
   kinds: {
     Approval: "Approval",
@@ -18649,6 +18731,89 @@ var ui_default = {
     nextShift: "Próximo turno",
   },
 };
+var views_default = {
+  types: {
+    list: "Lista",
+    table: "Tabla",
+    spreadsheet: "Hoja de cálculo",
+    gallery: "Galería",
+    board: "Tablero",
+    calendar: "Calendario",
+    "resource-schedule": "Programa de recursos",
+    timeline: "Cronograma",
+    map: "Mapa",
+    "site-plan": "Plano del sitio",
+    tree: "Árbol",
+    matrix: "Matriz",
+    "org-chart": "Organigrama",
+    chart: "Gráfico",
+    feed: "Actividad",
+    inbox: "Bandeja de entrada",
+    split: "Vista dividida",
+  },
+  menu: {
+    label: "Vistas guardadas",
+    heading: "Vistas guardadas",
+    loading: "Cargando vistas guardadas",
+    empty: "Todavía no hay vistas guardadas",
+    default: "{name} (predeterminada)",
+    save: "Guardar la vista actual",
+    update: "Actualizar {name} para que coincida",
+    setDefault: "Abrir {name} de forma predeterminada",
+    clearDefault: "Dejar de abrir {name} de forma predeterminada",
+    share: "Compartir {name}",
+    delete: "Eliminar {name}",
+    pageDefault: "Vista predeterminada de la página",
+  },
+  save: {
+    title: "Guardar la vista actual",
+    description:
+      "Guarda el tipo de vista, los filtros, el orden, la agrupación y la búsqueda en pantalla. Cada persona que abre una vista compartida ve solo lo que su propio acceso permite.",
+    name: "Nombre",
+    nameHint: "Entradas de esta semana",
+    nameHelp: "Hasta 100 caracteres.",
+    nameRequired: "Ponga un nombre a la vista para guardarla.",
+    submit: "Guardar vista",
+    cancel: "Cancelar",
+  },
+  share: {
+    title: "Compartir {name}",
+    description:
+      "Las personas con quienes la comparte pueden abrir la vista, nunca editarla, y ven solo los registros que su propio acceso permite.",
+    everyone: "Todos en la organización",
+    teams: "Equipos",
+    noTeams:
+      "Esta organización todavía no tiene equipos. Cree equipos en Configuración para compartir con ellos.",
+    submit: "Guardar uso compartido",
+    cancel: "Cancelar",
+  },
+  delete: {
+    title: "¿Eliminar {name}?",
+    description:
+      "La vista se elimina para usted y para todas las personas con quienes se comparte. Los registros que mostraba no cambian.",
+    submit: "Eliminar vista",
+    cancel: "Conservar vista",
+  },
+  status: {
+    saved: "Se guardó {name}.",
+    updated: "Se actualizó {name}.",
+    deleted: "Se eliminó {name}.",
+    shared: "Se guardó el uso compartido de {name}.",
+    defaultSet: "{name} ahora se abre de forma predeterminada.",
+    defaultCleared: "Esta página ahora se abre en su propia vista predeterminada.",
+    applied: "Mostrando {name}.",
+  },
+  errors: {
+    denied: "No puede cambiar esta vista. Solo su propietario la edita, la comparte o la elimina.",
+    invalid: "Esta vista no se puede guardar así. Revise el nombre e inténtelo de nuevo.",
+    conflict: "Ya existe una vista con esta configuración. Elija otro nombre.",
+    notFound:
+      "La vista ya no existe o ya no se comparte con usted. Vuelva a cargar para ver las vistas actuales.",
+    unexpected: "No se pudo acceder a las vistas guardadas. Inténtelo de nuevo en un momento.",
+    loadFailed:
+      "No se pudieron cargar las vistas guardadas. La página sigue funcionando; vuelva a abrir el menú en breve.",
+  },
+};
 var work_default = {
   kinds: {
     Approval: "Aprobación",
@@ -19424,6 +19589,7 @@ var enUS = {
   shell: shell_default$1,
   show: show_default$1,
   ui: ui_default$1,
+  views: views_default$1,
   work: work_default$1,
 };
 var esUS = {
@@ -19451,6 +19617,7 @@ var esUS = {
   shell: shell_default,
   show: show_default,
   ui: ui_default,
+  views: views_default,
   work: work_default,
 };
 //#endregion

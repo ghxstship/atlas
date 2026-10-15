@@ -9,7 +9,6 @@ import {
   InlineAlert,
   Input,
   PropertyList,
-  SegmentedControl,
   Select,
   TreeView,
   type DepartmentCode,
@@ -27,6 +26,7 @@ import {
 } from "@/lib/projects/actions";
 import { enumKey, phaseCode } from "@/lib/projects/format";
 import { ActionError, echoed, fieldError, useClosingAction } from "./action-error";
+import { CollectionViews } from "@/components/views/collection-views";
 
 type ScopeViewType = "tree" | "list" | "matrix";
 
@@ -98,7 +98,7 @@ export function ScopeView({
   return (
     <div className="flex flex-col gap-16">
       {views.length > 1 ? (
-        <SegmentedControl
+        <CollectionViews
           label={t("views.label")}
           value={view}
           options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}

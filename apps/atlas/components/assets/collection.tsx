@@ -14,7 +14,6 @@ import {
   RecordList,
   RecordRow,
   ResourceSchedule,
-  SegmentedControl,
   Select,
   TemplateCollection,
   type DataTableColumn,
@@ -27,6 +26,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useAssetsCopy } from "./copy";
 import { CreateDialogContext } from "./dialog";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /** One row of an assets collection, already shaped for every view the page offers. */
 export interface CollectionRow {
@@ -111,7 +111,7 @@ export function AssetsCollection(props: CollectionProps) {
       count={props.total}
       views={
         props.views.length > 1 ? (
-          <SegmentedControl
+          <CollectionViews
             label={t("collection.view")}
             value={props.view}
             options={props.views.map((v) => ({ value: v.value, label: v.label }))}

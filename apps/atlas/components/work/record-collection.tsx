@@ -13,7 +13,6 @@ import {
   RecordKindChip,
   RecordList,
   RecordRow,
-  SegmentedControl,
   Select,
   TemplateCollection,
   Timeline,
@@ -27,6 +26,7 @@ import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { transitionRecordAction } from "./actions";
 import { formatWhen, stateToken, withQuery } from "./format";
 import { TransitionDialog } from "./record-panels";
+import { CollectionViews } from "@/components/views/collection-views";
 
 export type RecordView = "list" | "table" | "board" | "calendar" | "timeline";
 
@@ -127,7 +127,7 @@ export function RecordCollection({
       count={records.length}
       views={
         views.length > 1 ? (
-          <SegmentedControl
+          <CollectionViews
             label={t("collection.views")}
             value={view}
             options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}

@@ -39,7 +39,6 @@ export function sectionHref(page: ModulePage, changes: Record<string, string | u
 
 export function Header({
   page,
-  section,
   title,
   count,
   views,
@@ -47,6 +46,7 @@ export function Header({
   action,
 }: {
   page: ModulePage;
+  /** The section the header belongs to; the view switcher keeps it in the query string. */
   section: string;
   title: string;
   count?: number;
@@ -64,7 +64,6 @@ export function Header({
           label={t("credentials.common.viewsLabel", { section: title })}
           views={views.map((v) => ({ value: v, label: t(`credentials.common.views.${v}`) }))}
           current={view}
-          hrefFor={(v) => sectionHref(page, { view: v, section })}
         />
       }
       actions={action}

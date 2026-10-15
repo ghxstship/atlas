@@ -1,0 +1,27 @@
+# Icons A31 (Views, Help and Support) draws by name: the saved views menu, the view registry's view
+# types (packages/schemas/views.yaml), the help panel, tours, tips and support. One lucide-react name
+# per line.
+Bookmark
+BookmarkPlus
+CalendarRange
+ChartColumn
+ChartGantt
+Columns3
+Grid3x3
+Inbox
+LayoutGrid
+List
+ListTree
+Map
+MapPinned
+Network
+PanelLeft
+Pin
+PinOff
+RefreshCw
+Rss
+Share2
+Sheet
+Table
+Trash2
+Users

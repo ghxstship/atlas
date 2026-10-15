@@ -25,6 +25,7 @@ import enUS_settings from "../messages/en-US/settings.json" with { type: "json" 
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
 import enUS_show from "../messages/en-US/show.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
+import enUS_views from "../messages/en-US/views.json" with { type: "json" };
 import enUS_work from "../messages/en-US/work.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json" };
@@ -50,6 +51,7 @@ import esUS_settings from "../messages/es-US/settings.json" with { type: "json" 
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
 import esUS_show from "../messages/es-US/show.json" with { type: "json" };
 import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
+import esUS_views from "../messages/es-US/views.json" with { type: "json" };
 import esUS_work from "../messages/es-US/work.json" with { type: "json" };
 
 export const enUS = {
@@ -77,6 +79,7 @@ export const enUS = {
   shell: enUS_shell,
   show: enUS_show,
   ui: enUS_ui,
+  views: enUS_views,
   work: enUS_work,
 };
 
@@ -105,5 +108,6 @@ export const esUS = {
   shell: esUS_shell,
   show: esUS_show,
   ui: esUS_ui,
+  views: esUS_views,
   work: esUS_work,
 };

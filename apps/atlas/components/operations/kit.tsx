@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /**
  * Server-rendered building blocks shared by the Credentials and Safety incident pages (A14): the
@@ -11,36 +12,21 @@ import type { ReactNode } from "react";
 
 export { hrefWith, joined, param, type SearchParams } from "./query";
 
-/** The view switcher (Section 11.15): only the views the sitemap declares for the page. */
+/**
+ * The view switcher (Section 11.15): only the views the sitemap declares for the page, with the
+ * person's saved views of the page (A31's shared CollectionViews). Switching keeps the section and
+ * every filter in the query string.
+ */
 export function ViewSwitcher({
   label,
   views,
   current,
-  hrefFor,
 }: {
   label: string;
   views: readonly { value: string; label: string }[];
   current: string;
-  hrefFor: (view: string) => Route;
 }) {
-  if (views.length < 2) return null;
-  return (
-    <nav aria-label={label}>
-      <ul className="m-0 flex list-none gap-2 rounded-control border border-border-subtle p-2">
-        {views.map((v) => (
-          <li key={v.value}>
-            <Link
-              href={hrefFor(v.value)}
-              aria-current={v.value === current ? "page" : undefined}
-              className="flex min-h-control-sm items-center rounded-control px-8 text-label-13 text-text-secondary hover:bg-bg-hover aria-[current=page]:bg-bg-raised aria-[current=page]:text-text-primary"
-            >
-              {v.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
+  return <CollectionViews label={label} value={current} options={views} />;
 }
 
 export interface FilterField {

@@ -14,7 +14,6 @@ import {
   RecordList,
   RecordRow,
   RunOfShowLive,
-  SegmentedControl,
   Select,
   Tag,
   TemplateCollection,
@@ -35,6 +34,7 @@ import {
   removeCueAction,
   updateRunAction,
 } from "./actions";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
@@ -88,7 +88,7 @@ export function RunCollection({
       count={runs.length}
       views={
         views.length > 1 ? (
-          <SegmentedControl
+          <CollectionViews
             label={t("runs.views")}
             value={view}
             options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}

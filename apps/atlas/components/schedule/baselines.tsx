@@ -9,7 +9,6 @@ import {
   PageHeader,
   RecordList,
   RecordRow,
-  SegmentedControl,
   StateChip,
   Tag,
   TemplateCollection,
@@ -20,6 +19,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useCopy } from "@/components/work/action-ui";
 import { formatWhen, slipAmount, stateToken, withQuery } from "@/components/work/format";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /**
  * Schedule > Baselines (Section 4.5.5): captured baselines as a list or table. Capturing copies
@@ -66,7 +66,7 @@ export function BaselineCollection({
       count={baselines.length}
       views={
         views.length > 1 ? (
-          <SegmentedControl
+          <CollectionViews
             label={t("baselines.label")}
             value={view}
             options={views.map((v) => ({ value: v, label: w(`views.${v}`) }))}

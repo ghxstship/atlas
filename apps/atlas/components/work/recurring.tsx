@@ -9,7 +9,6 @@ import {
   PageHeader,
   RecordList,
   RecordRow,
-  SegmentedControl,
   Tag,
   TemplateCollection,
   type RecordKind,
@@ -20,6 +19,7 @@ import type { ReactNode } from "react";
 import { useCopy } from "./action-ui";
 import { formatWhen, stateToken, withQuery } from "./format";
 import { shiftMonth } from "./record-collection";
+import { CollectionViews } from "@/components/views/collection-views";
 
 export interface RecurringItem {
   readonly record: RecordSummary;
@@ -72,7 +72,7 @@ export function RecurringCollection({
       count={items.length}
       views={
         views.length > 1 ? (
-          <SegmentedControl
+          <CollectionViews
             label={t("collection.views")}
             value={view}
             options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}
