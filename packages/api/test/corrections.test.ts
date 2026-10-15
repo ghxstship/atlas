@@ -132,7 +132,7 @@ function attribute(corrections: readonly ResolvedCorrection[]) {
   const state = new Map(uncorrectedFrozenCatalog.map((s) => [s.op, s]));
   const inert: string[] = [];
   const unlisted: string[] = [];
-  const changedComponents = new Set<string>();
+  const changedComponents = new Set<string>(changedKeys(baseline, corrected));
   for (const c of corrections) {
     for (const op of c.resources) {
       const before = state.get(op) as ResourceSpec;

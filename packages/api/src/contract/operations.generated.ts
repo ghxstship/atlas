@@ -885,26 +885,13 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    scope_node_id: string;
-    sheet_date: string;
-    general_call_at: string;
-    body: Record<string, unknown>;
-    published: boolean;
+    day: string;
+    project_id: string;
+    published_at: string | null;
   };
-  CallSheetCreate: {
-    scope_node_id: string;
-    sheet_date: string;
-    general_call_at: string;
-    body: Record<string, unknown>;
-    published: boolean;
-  };
+  CallSheetCreate: { day: string; project_id: string };
   CallSheetPage: { data: Array<Components["CallSheet"]>; next_cursor: string | null };
-  CallSheetUpdate: {
-    sheet_date?: string;
-    general_call_at?: string;
-    body?: Record<string, unknown>;
-    published?: boolean;
-  };
+  CallSheetUpdate: { day?: string };
   CanonAct: { ordinal: number; act: Components["ActCode"]; gates: string; definition: string };
   CanonActPage: { data: Array<Components["CanonAct"]>; next_cursor: string | null };
   CanonAssertionRank: {
@@ -1609,30 +1596,26 @@ export interface Components {
     updated_by: string | null;
     run_of_show_id: string;
     position: number;
-    cue_code: string;
-    title: string;
-    planned_at: string;
-    duration_seconds: number;
-    department_dept_code: Components["DeptCode"];
-    fired_at: string | null;
+    label: string;
+    planned_at: string | null;
+    called_at: string | null;
+    duration: string | null;
+    called_by: string | null;
+    project_id: string;
   };
   CueCreate: {
     run_of_show_id: string;
     position: number;
-    cue_code: string;
-    title: string;
-    planned_at: string;
-    duration_seconds: number;
-    department_dept_code?: Components["DeptCode"];
+    label: string;
+    planned_at?: string | null;
+    duration?: string | null;
   };
   CuePage: { data: Array<Components["Cue"]>; next_cursor: string | null };
   CueUpdate: {
     position?: number;
-    cue_code?: string;
-    title?: string;
-    planned_at?: string;
-    duration_seconds?: number;
-    department_dept_code?: Components["DeptCode"];
+    label?: string;
+    planned_at?: string | null;
+    duration?: string | null;
   };
   Cursor: string;
   CustomFieldDefinition: {
@@ -1800,19 +1783,14 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    scope_node_id: string;
-    sheet_date: string;
-    body: Record<string, unknown>;
-    published: boolean;
+    day: string;
+    body: string;
+    project_id: string;
+    published_at: string | null;
   };
-  DaySheetCreate: {
-    scope_node_id: string;
-    sheet_date: string;
-    body: Record<string, unknown>;
-    published: boolean;
-  };
+  DaySheetCreate: { day: string; body: string; project_id: string };
   DaySheetPage: { data: Array<Components["DaySheet"]>; next_cursor: string | null };
-  DaySheetUpdate: { sheet_date?: string; body?: Record<string, unknown>; published?: boolean };
+  DaySheetUpdate: { day?: string; body?: string };
   Delegation: {
     id: string;
     org_id: string;
@@ -1838,7 +1816,7 @@ export interface Components {
     valid_from?: string;
     valid_to?: string;
   };
-  DeptCode: string | null;
+  DeptCode: string;
   Direction: "require" | "provide";
   DiscCode: string;
   DispatchAssignment: {
@@ -4551,11 +4529,16 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     record_id: string;
-    field: string;
-    from_value: string | null;
-    to_value: string | null;
     reason: string | null;
     replanned_at: string;
+    from_state: string;
+    to_state: string;
+    old_starts_at: string | null;
+    new_starts_at: string | null;
+    old_ends_at: string | null;
+    new_ends_at: string | null;
+    old_due_at: string | null;
+    new_due_at: string | null;
   };
   RecordReplanPage: { data: Array<Components["RecordReplan"]>; next_cursor: string | null };
   RecordState:
@@ -4978,21 +4961,19 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    scope_node_id: string;
-    title: string;
+    scope_node_id: string | null;
+    name: string;
     show_date: string;
-    time_zone: string;
-    published: boolean;
+    project_id: string;
   };
   RunOfShowCreate: {
-    scope_node_id: string;
-    title: string;
+    scope_node_id?: string | null;
+    name: string;
     show_date: string;
-    time_zone: string;
-    published: boolean;
+    project_id: string;
   };
   RunOfShowPage: { data: Array<Components["RunOfShow"]>; next_cursor: string | null };
-  RunOfShowUpdate: { title?: string; show_date?: string; time_zone?: string; published?: boolean };
+  RunOfShowUpdate: { name?: string; show_date?: string };
   SavedSearch: {
     id: string;
     created_at: string;
@@ -6697,15 +6678,6 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 201: Components["Record"] };
-  };
-  "records.archive": {
-    module: "Work";
-    method: "post";
-    path: "/records/{id}/archive";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["Record"] };
   };
   "recordStateTransitions.list": {
     module: "Work";
@@ -19941,7 +19913,6 @@ export interface ModuleOperations {
     | "records.delete"
     | "records.transition"
     | "records.duplicate"
-    | "records.archive"
     | "recordStateTransitions.list"
     | "recordStateTransitions.get"
     | "recordReplans.list"

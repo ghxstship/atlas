@@ -2757,26 +2757,6 @@
             "description": "Identifier of the record.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "field": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Changed field.",
-            "example": "starts_at"
-          },
-          "from_value": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Previous value.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "to_value": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "New value.",
-            "example": "2026-10-15T14:30:00Z"
-          },
           "reason": {
             "type": ["string", "null"],
             "minLength": 1,
@@ -2789,6 +2769,54 @@
             "format": "date-time",
             "description": "When the replan was logged.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "from_state": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Record state before the change. A Title Case value from the lifecycle's database enum.",
+            "example": "Scheduled"
+          },
+          "to_state": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Record state after the change. A Title Case value from the lifecycle's database enum.",
+            "example": "Deferred"
+          },
+          "old_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Start before the change.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "new_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Start after the change.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "old_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "End before the change.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "new_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "End after the change.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "old_due_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Due time before the change.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "new_due_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Due time after the change.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -2799,11 +2827,16 @@
           "updated_at",
           "updated_by",
           "record_id",
-          "field",
-          "from_value",
-          "to_value",
           "reason",
-          "replanned_at"
+          "replanned_at",
+          "from_state",
+          "to_state",
+          "old_starts_at",
+          "new_starts_at",
+          "old_ends_at",
+          "new_ends_at",
+          "old_due_at",
+          "new_due_at"
         ],
         "description": "An append-only replan entry, logged from Scheduled onward for every date or state change."
       },
@@ -3547,12 +3580,12 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "scope_node_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the show scope node.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "title": {
+          "name": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
@@ -3565,16 +3598,11 @@
             "description": "Show date.",
             "example": "2026-10-08"
           },
-          "time_zone": {
+          "project_id": {
             "type": "string",
-            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
-            "description": "IANA time zone the local time was entered in.",
-            "example": "America/New_York"
-          },
-          "published": {
-            "type": "boolean",
-            "description": "Whether the run of show is published to crew and clients.",
-            "example": false
+            "format": "uuid",
+            "description": "Identifier of the project of the running order.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -3585,10 +3613,9 @@
           "updated_at",
           "updated_by",
           "scope_node_id",
-          "title",
+          "name",
           "show_date",
-          "time_zone",
-          "published"
+          "project_id"
         ],
         "description": "A run of show for one show scope node."
       },
@@ -3596,12 +3623,12 @@
         "type": "object",
         "properties": {
           "scope_node_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the show scope node.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "title": {
+          "name": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
@@ -3614,25 +3641,20 @@
             "description": "Show date.",
             "example": "2026-10-08"
           },
-          "time_zone": {
+          "project_id": {
             "type": "string",
-            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
-            "description": "IANA time zone the local time was entered in.",
-            "example": "America/New_York"
-          },
-          "published": {
-            "type": "boolean",
-            "description": "Whether the run of show is published to crew and clients.",
-            "example": false
+            "format": "uuid",
+            "description": "Identifier of the project of the running order.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["scope_node_id", "title", "show_date", "time_zone", "published"],
+        "required": ["name", "show_date", "project_id"],
         "description": "Fields accepted when creating a RunOfShow."
       },
       "RunOfShowUpdate": {
         "type": "object",
         "properties": {
-          "title": {
+          "name": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
@@ -3644,17 +3666,6 @@
             "format": "date",
             "description": "Show date.",
             "example": "2026-10-08"
-          },
-          "time_zone": {
-            "type": "string",
-            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
-            "description": "IANA time zone the local time was entered in.",
-            "example": "America/New_York"
-          },
-          "published": {
-            "type": "boolean",
-            "description": "Whether the run of show is published to crew and clients.",
-            "example": false
           }
         },
         "description": "Fields accepted when updating a RunOfShow. Omitted fields are unchanged."
@@ -3727,13 +3738,7 @@
             "description": "Cue order.",
             "example": 10
           },
-          "cue_code": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Cue number.",
-            "example": "LX-12"
-          },
-          "title": {
+          "label": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
@@ -3741,23 +3746,34 @@
             "example": "Headliner Walk-On"
           },
           "planned_at": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "Planned cue time.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "duration_seconds": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Planned duration in seconds.",
-            "example": 90
-          },
-          "department_dept_code": { "$ref": "#/components/schemas/DeptCode" },
-          "fired_at": {
+          "called_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When the cue was called.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "duration": {
+            "type": ["string", "null"],
+            "pattern": "^\\d{2,}:\\d{2}:\\d{2}(\\.\\d+)?$",
+            "description": "Planned length as hours:minutes:seconds.",
+            "example": "00:05:00"
+          },
+          "called_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who called the cue, set by app.call_cue.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the running order, stamped by the database.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -3769,20 +3785,14 @@
           "updated_by",
           "run_of_show_id",
           "position",
-          "cue_code",
-          "title",
+          "label",
           "planned_at",
-          "duration_seconds",
-          "department_dept_code",
-          "fired_at"
+          "called_at",
+          "duration",
+          "called_by",
+          "project_id"
         ],
         "description": "A cue in a run of show."
-      },
-      "DeptCode": {
-        "type": ["string", "null"],
-        "pattern": "^[0-9]000$",
-        "description": "Department class code from `xpms.dim_department` (Section 3.2).",
-        "example": "4000"
       },
       "CueCreate": {
         "type": "object",
@@ -3799,13 +3809,7 @@
             "description": "Cue order.",
             "example": 10
           },
-          "cue_code": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Cue number.",
-            "example": "LX-12"
-          },
-          "title": {
+          "label": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
@@ -3813,27 +3817,19 @@
             "example": "Headliner Walk-On"
           },
           "planned_at": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "Planned cue time.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "duration_seconds": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Planned duration in seconds.",
-            "example": 90
-          },
-          "department_dept_code": { "$ref": "#/components/schemas/DeptCode" }
+          "duration": {
+            "type": ["string", "null"],
+            "pattern": "^\\d{2,}:\\d{2}:\\d{2}(\\.\\d+)?$",
+            "description": "Planned length as hours:minutes:seconds.",
+            "example": "00:05:00"
+          }
         },
-        "required": [
-          "run_of_show_id",
-          "position",
-          "cue_code",
-          "title",
-          "planned_at",
-          "duration_seconds"
-        ],
+        "required": ["run_of_show_id", "position", "label"],
         "description": "Fields accepted when creating a Cue."
       },
       "CueUpdate": {
@@ -3845,13 +3841,7 @@
             "description": "Cue order.",
             "example": 10
           },
-          "cue_code": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Cue number.",
-            "example": "LX-12"
-          },
-          "title": {
+          "label": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
@@ -3859,18 +3849,17 @@
             "example": "Headliner Walk-On"
           },
           "planned_at": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "Planned cue time.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "duration_seconds": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Planned duration in seconds.",
-            "example": 90
-          },
-          "department_dept_code": { "$ref": "#/components/schemas/DeptCode" }
+          "duration": {
+            "type": ["string", "null"],
+            "pattern": "^\\d{2,}:\\d{2}:\\d{2}(\\.\\d+)?$",
+            "description": "Planned length as hours:minutes:seconds.",
+            "example": "00:05:00"
+          }
         },
         "description": "Fields accepted when updating a Cue. Omitted fields are unchanged."
       },
@@ -3930,28 +3919,30 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "scope_node_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the scope node.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "sheet_date": {
+          "day": {
             "type": "string",
             "format": "date",
-            "description": "Day the sheet covers.",
+            "description": "Day the sheet covers; one sheet per project and day.",
             "example": "2026-10-08"
           },
           "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "Day sheet body as a rich text document.",
-            "example": { "type": "doc" }
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Day sheet content as rich text.",
+            "example": "Doors at 18:00. Load-out after the encore."
           },
-          "published": {
-            "type": "boolean",
-            "description": "Whether the sheet is published.",
-            "example": false
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the day sheet.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "published_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the day sheet was published, stamped by the database; set once by the publish action.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -3961,62 +3952,54 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "scope_node_id",
-          "sheet_date",
+          "day",
           "body",
-          "published"
+          "project_id",
+          "published_at"
         ],
         "description": "A day sheet for one scope node and date."
       },
       "DaySheetCreate": {
         "type": "object",
         "properties": {
-          "scope_node_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the scope node.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "sheet_date": {
+          "day": {
             "type": "string",
             "format": "date",
-            "description": "Day the sheet covers.",
+            "description": "Day the sheet covers; one sheet per project and day.",
             "example": "2026-10-08"
           },
           "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "Day sheet body as a rich text document.",
-            "example": { "type": "doc" }
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Day sheet content as rich text.",
+            "example": "Doors at 18:00. Load-out after the encore."
           },
-          "published": {
-            "type": "boolean",
-            "description": "Whether the sheet is published.",
-            "example": false
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the day sheet.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["scope_node_id", "sheet_date", "body", "published"],
+        "required": ["day", "body", "project_id"],
         "description": "Fields accepted when creating a DaySheet."
       },
       "DaySheetUpdate": {
         "type": "object",
         "properties": {
-          "sheet_date": {
+          "day": {
             "type": "string",
             "format": "date",
-            "description": "Day the sheet covers.",
+            "description": "Day the sheet covers; one sheet per project and day.",
             "example": "2026-10-08"
           },
           "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "Day sheet body as a rich text document.",
-            "example": { "type": "doc" }
-          },
-          "published": {
-            "type": "boolean",
-            "description": "Whether the sheet is published.",
-            "example": false
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Day sheet content as rich text.",
+            "example": "Doors at 18:00. Load-out after the encore."
           }
         },
         "description": "Fields accepted when updating a DaySheet. Omitted fields are unchanged."
@@ -4077,34 +4060,23 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "scope_node_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the scope node.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "sheet_date": {
+          "day": {
             "type": "string",
             "format": "date",
-            "description": "Day the sheet covers.",
+            "description": "Day the sheet covers; one sheet per project and day.",
             "example": "2026-10-08"
           },
-          "general_call_at": {
+          "project_id": {
             "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the call sheet.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "published_at": {
+            "type": ["string", "null"],
             "format": "date-time",
-            "description": "General crew call.",
+            "description": "When the call sheet was published, stamped by the database; set once by the publish action.",
             "example": "2026-10-08T14:30:00Z"
-          },
-          "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "Call sheet body as a rich text document.",
-            "example": { "type": "doc" }
-          },
-          "published": {
-            "type": "boolean",
-            "description": "Whether the sheet is published.",
-            "example": false
           }
         },
         "required": [
@@ -4114,75 +4086,39 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "scope_node_id",
-          "sheet_date",
-          "general_call_at",
-          "body",
-          "published"
+          "day",
+          "project_id",
+          "published_at"
         ],
         "description": "A call sheet listing call times for one scope node and date."
       },
       "CallSheetCreate": {
         "type": "object",
         "properties": {
-          "scope_node_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the scope node.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "sheet_date": {
+          "day": {
             "type": "string",
             "format": "date",
-            "description": "Day the sheet covers.",
+            "description": "Day the sheet covers; one sheet per project and day.",
             "example": "2026-10-08"
           },
-          "general_call_at": {
+          "project_id": {
             "type": "string",
-            "format": "date-time",
-            "description": "General crew call.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "Call sheet body as a rich text document.",
-            "example": { "type": "doc" }
-          },
-          "published": {
-            "type": "boolean",
-            "description": "Whether the sheet is published.",
-            "example": false
+            "format": "uuid",
+            "description": "Identifier of the project of the call sheet.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["scope_node_id", "sheet_date", "general_call_at", "body", "published"],
+        "required": ["day", "project_id"],
         "description": "Fields accepted when creating a CallSheet."
       },
       "CallSheetUpdate": {
         "type": "object",
         "properties": {
-          "sheet_date": {
+          "day": {
             "type": "string",
             "format": "date",
-            "description": "Day the sheet covers.",
+            "description": "Day the sheet covers; one sheet per project and day.",
             "example": "2026-10-08"
-          },
-          "general_call_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "General crew call.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "Call sheet body as a rich text document.",
-            "example": { "type": "doc" }
-          },
-          "published": {
-            "type": "boolean",
-            "description": "Whether the sheet is published.",
-            "example": false
           }
         },
         "description": "Fields accepted when updating a CallSheet. Omitted fields are unchanged."
@@ -27697,6 +27633,12 @@
         "required": ["dept_code", "department", "source", "note"],
         "description": "A department class. Ten classes, always in numeric order."
       },
+      "DeptCode": {
+        "type": "string",
+        "pattern": "^[0-9]000$",
+        "description": "Department class code from `xpms.dim_department` (Section 3.2).",
+        "example": "4000"
+      },
       "CanonDisciplinePage": {
         "type": "object",
         "properties": {
@@ -44725,80 +44667,6 @@
         }
       }
     },
-    "/records/{id}/archive": {
-      "post": {
-        "operationId": "records.archive",
-        "tags": ["Work"],
-        "x-xos-table": "app.records",
-        "x-xos-capability": "work.record.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["work"] }],
-        "summary": "Archive a record",
-        "description": "Hides the record from default views while keeping it searchable with a filter. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the record.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the record.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "record_key": "NWL-24-118",
-                  "record_kind": "Task",
-                  "record_subtype": "Design",
-                  "record_class": "Work",
-                  "record_state": "Scheduled",
-                  "title": "Install Main Stage Truss",
-                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "phase_code": "SCP",
-                  "urid": "4000.01",
-                  "xyz": "X",
-                  "owner_party_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "accountable_party_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "starts_at": "2026-10-08T14:30:00Z",
-                  "ends_at": "2026-10-08T14:30:00Z",
-                  "due_at": "2026-10-08T14:30:00Z",
-                  "blocker_text": "Waiting on the rigging plot.",
-                  "replan_reason": "Moved to the second weekend.",
-                  "external_visibility": ["Vendor"]
-                },
-                "schema": { "$ref": "#/components/schemas/Record" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
     "/record-state-transitions": {
       "get": {
         "operationId": "recordStateTransitions.list",
@@ -44950,11 +44818,16 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "field": "starts_at",
-                      "from_value": "2026-10-08T14:30:00Z",
-                      "to_value": "2026-10-15T14:30:00Z",
                       "reason": "Moved to the second weekend.",
-                      "replanned_at": "2026-10-08T14:30:00Z"
+                      "replanned_at": "2026-10-08T14:30:00Z",
+                      "from_state": "Scheduled",
+                      "to_state": "Deferred",
+                      "old_starts_at": "2026-10-08T14:30:00Z",
+                      "new_starts_at": "2026-10-08T14:30:00Z",
+                      "old_ends_at": "2026-10-08T14:30:00Z",
+                      "new_ends_at": "2026-10-08T14:30:00Z",
+                      "old_due_at": "2026-10-08T14:30:00Z",
+                      "new_due_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -45012,11 +44885,16 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "field": "starts_at",
-                  "from_value": "2026-10-08T14:30:00Z",
-                  "to_value": "2026-10-15T14:30:00Z",
                   "reason": "Moved to the second weekend.",
-                  "replanned_at": "2026-10-08T14:30:00Z"
+                  "replanned_at": "2026-10-08T14:30:00Z",
+                  "from_state": "Scheduled",
+                  "to_state": "Deferred",
+                  "old_starts_at": "2026-10-08T14:30:00Z",
+                  "new_starts_at": "2026-10-08T14:30:00Z",
+                  "old_ends_at": "2026-10-08T14:30:00Z",
+                  "new_ends_at": "2026-10-08T14:30:00Z",
+                  "old_due_at": "2026-10-08T14:30:00Z",
+                  "new_due_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/RecordReplan" }
               }
@@ -46170,10 +46048,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "title": "Saturday Main Stage",
+                      "name": "Saturday Main Stage",
                       "show_date": "2026-10-08",
-                      "time_zone": "America/New_York",
-                      "published": false
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -46202,10 +46079,9 @@
             "application/json": {
               "example": {
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "title": "Saturday Main Stage",
+                "name": "Saturday Main Stage",
                 "show_date": "2026-10-08",
-                "time_zone": "America/New_York",
-                "published": false
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/RunOfShowCreate" }
             }
@@ -46230,10 +46106,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "title": "Saturday Main Stage",
+                  "name": "Saturday Main Stage",
                   "show_date": "2026-10-08",
-                  "time_zone": "America/New_York",
-                  "published": false
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RunOfShow" }
               }
@@ -46290,10 +46165,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "title": "Saturday Main Stage",
+                  "name": "Saturday Main Stage",
                   "show_date": "2026-10-08",
-                  "time_zone": "America/New_York",
-                  "published": false
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RunOfShow" }
               }
@@ -46332,12 +46206,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "title": "Saturday Main Stage",
-                "show_date": "2026-10-08",
-                "time_zone": "America/New_York",
-                "published": false
-              },
+              "example": { "name": "Saturday Main Stage", "show_date": "2026-10-08" },
               "schema": { "$ref": "#/components/schemas/RunOfShowUpdate" }
             }
           }
@@ -46361,10 +46230,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "title": "Saturday Main Stage",
+                  "name": "Saturday Main Stage",
                   "show_date": "2026-10-08",
-                  "time_zone": "America/New_York",
-                  "published": false
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RunOfShow" }
               }
@@ -46448,12 +46316,12 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "position": 10,
-                      "cue_code": "LX-12",
-                      "title": "Headliner Walk-On",
+                      "label": "Headliner Walk-On",
                       "planned_at": "2026-10-08T14:30:00Z",
-                      "duration_seconds": 90,
-                      "department_dept_code": "4000",
-                      "fired_at": "2026-10-08T14:30:00Z"
+                      "called_at": "2026-10-08T14:30:00Z",
+                      "duration": "00:05:00",
+                      "called_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -46483,11 +46351,9 @@
               "example": {
                 "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "position": 10,
-                "cue_code": "LX-12",
-                "title": "Headliner Walk-On",
+                "label": "Headliner Walk-On",
                 "planned_at": "2026-10-08T14:30:00Z",
-                "duration_seconds": 90,
-                "department_dept_code": "4000"
+                "duration": "00:05:00"
               },
               "schema": { "$ref": "#/components/schemas/CueCreate" }
             }
@@ -46513,12 +46379,12 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 10,
-                  "cue_code": "LX-12",
-                  "title": "Headliner Walk-On",
+                  "label": "Headliner Walk-On",
                   "planned_at": "2026-10-08T14:30:00Z",
-                  "duration_seconds": 90,
-                  "department_dept_code": "4000",
-                  "fired_at": "2026-10-08T14:30:00Z"
+                  "called_at": "2026-10-08T14:30:00Z",
+                  "duration": "00:05:00",
+                  "called_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Cue" }
               }
@@ -46576,12 +46442,12 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 10,
-                  "cue_code": "LX-12",
-                  "title": "Headliner Walk-On",
+                  "label": "Headliner Walk-On",
                   "planned_at": "2026-10-08T14:30:00Z",
-                  "duration_seconds": 90,
-                  "department_dept_code": "4000",
-                  "fired_at": "2026-10-08T14:30:00Z"
+                  "called_at": "2026-10-08T14:30:00Z",
+                  "duration": "00:05:00",
+                  "called_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Cue" }
               }
@@ -46622,11 +46488,9 @@
             "application/json": {
               "example": {
                 "position": 10,
-                "cue_code": "LX-12",
-                "title": "Headliner Walk-On",
+                "label": "Headliner Walk-On",
                 "planned_at": "2026-10-08T14:30:00Z",
-                "duration_seconds": 90,
-                "department_dept_code": "4000"
+                "duration": "00:05:00"
               },
               "schema": { "$ref": "#/components/schemas/CueUpdate" }
             }
@@ -46652,12 +46516,12 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 10,
-                  "cue_code": "LX-12",
-                  "title": "Headliner Walk-On",
+                  "label": "Headliner Walk-On",
                   "planned_at": "2026-10-08T14:30:00Z",
-                  "duration_seconds": 90,
-                  "department_dept_code": "4000",
-                  "fired_at": "2026-10-08T14:30:00Z"
+                  "called_at": "2026-10-08T14:30:00Z",
+                  "duration": "00:05:00",
+                  "called_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Cue" }
               }
@@ -46747,12 +46611,12 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "run_of_show_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 10,
-                  "cue_code": "LX-12",
-                  "title": "Headliner Walk-On",
+                  "label": "Headliner Walk-On",
                   "planned_at": "2026-10-08T14:30:00Z",
-                  "duration_seconds": 90,
-                  "department_dept_code": "4000",
-                  "fired_at": "2026-10-08T14:30:00Z"
+                  "called_at": "2026-10-08T14:30:00Z",
+                  "duration": "00:05:00",
+                  "called_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Cue" }
               }
@@ -46803,10 +46667,10 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "sheet_date": "2026-10-08",
-                      "body": { "type": "doc" },
-                      "published": false
+                      "day": "2026-10-08",
+                      "body": "Doors at 18:00. Load-out after the encore.",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "published_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -46834,10 +46698,9 @@
           "content": {
             "application/json": {
               "example": {
-                "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "sheet_date": "2026-10-08",
-                "body": { "type": "doc" },
-                "published": false
+                "day": "2026-10-08",
+                "body": "Doors at 18:00. Load-out after the encore.",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/DaySheetCreate" }
             }
@@ -46861,10 +46724,10 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "sheet_date": "2026-10-08",
-                  "body": { "type": "doc" },
-                  "published": false
+                  "day": "2026-10-08",
+                  "body": "Doors at 18:00. Load-out after the encore.",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/DaySheet" }
               }
@@ -46920,10 +46783,10 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "sheet_date": "2026-10-08",
-                  "body": { "type": "doc" },
-                  "published": false
+                  "day": "2026-10-08",
+                  "body": "Doors at 18:00. Load-out after the encore.",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/DaySheet" }
               }
@@ -46963,9 +46826,8 @@
           "content": {
             "application/json": {
               "example": {
-                "sheet_date": "2026-10-08",
-                "body": { "type": "doc" },
-                "published": false
+                "day": "2026-10-08",
+                "body": "Doors at 18:00. Load-out after the encore."
               },
               "schema": { "$ref": "#/components/schemas/DaySheetUpdate" }
             }
@@ -46989,10 +46851,10 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "sheet_date": "2026-10-08",
-                  "body": { "type": "doc" },
-                  "published": false
+                  "day": "2026-10-08",
+                  "body": "Doors at 18:00. Load-out after the encore.",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/DaySheet" }
               }
@@ -47080,10 +46942,10 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "sheet_date": "2026-10-08",
-                  "body": { "type": "doc" },
-                  "published": false
+                  "day": "2026-10-08",
+                  "body": "Doors at 18:00. Load-out after the encore.",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/DaySheet" }
               }
@@ -47134,11 +46996,9 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "sheet_date": "2026-10-08",
-                      "general_call_at": "2026-10-08T14:30:00Z",
-                      "body": { "type": "doc" },
-                      "published": false
+                      "day": "2026-10-08",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "published_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -47166,11 +47026,8 @@
           "content": {
             "application/json": {
               "example": {
-                "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "sheet_date": "2026-10-08",
-                "general_call_at": "2026-10-08T14:30:00Z",
-                "body": { "type": "doc" },
-                "published": false
+                "day": "2026-10-08",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/CallSheetCreate" }
             }
@@ -47194,11 +47051,9 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "sheet_date": "2026-10-08",
-                  "general_call_at": "2026-10-08T14:30:00Z",
-                  "body": { "type": "doc" },
-                  "published": false
+                  "day": "2026-10-08",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/CallSheet" }
               }
@@ -47254,11 +47109,9 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "sheet_date": "2026-10-08",
-                  "general_call_at": "2026-10-08T14:30:00Z",
-                  "body": { "type": "doc" },
-                  "published": false
+                  "day": "2026-10-08",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/CallSheet" }
               }
@@ -47297,12 +47150,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "sheet_date": "2026-10-08",
-                "general_call_at": "2026-10-08T14:30:00Z",
-                "body": { "type": "doc" },
-                "published": false
-              },
+              "example": { "day": "2026-10-08" },
               "schema": { "$ref": "#/components/schemas/CallSheetUpdate" }
             }
           }
@@ -47325,11 +47173,9 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "sheet_date": "2026-10-08",
-                  "general_call_at": "2026-10-08T14:30:00Z",
-                  "body": { "type": "doc" },
-                  "published": false
+                  "day": "2026-10-08",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/CallSheet" }
               }
@@ -47417,11 +47263,9 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "sheet_date": "2026-10-08",
-                  "general_call_at": "2026-10-08T14:30:00Z",
-                  "body": { "type": "doc" },
-                  "published": false
+                  "day": "2026-10-08",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/CallSheet" }
               }
