@@ -15,6 +15,7 @@ import {
   Button,
   Combobox,
   Dialog,
+  Drawer,
   Input,
   Select,
   SpreadsheetGrid,
@@ -495,11 +496,11 @@ function AddLineDialog(props: Props & { onClose: () => void }) {
   const [problem, setProblem] = useState<string | null>(null);
   const option = props.urids.find((u) => u.urid === urid);
   return (
-    <Dialog
+    <Drawer
       open
-      onOpenChange={(open) => (open ? null : props.onClose())}
+      onClose={props.onClose}
       title={t("budgets.addLine")}
-      actions={
+      footer={
         <>
           <Button onClick={props.onClose}>{t("common.cancel")}</Button>
           <Button type="submit" form="add-line" variant="primary" loading={pending}>
@@ -618,7 +619,7 @@ function AddLineDialog(props: Props & { onClose: () => void }) {
         </div>
         <ActionFeedback state={state} />
       </form>
-    </Dialog>
+    </Drawer>
   );
 }
 
@@ -633,12 +634,11 @@ function CatalogDialog(props: Props & { onClose: () => void }) {
     e.currency === props.currency ? (e.prices[grade] ?? null) : null;
   const chosen = elements.filter((e) => (picked[e.elementId] ?? 0) > 0);
   return (
-    <Dialog
+    <Drawer
       open
-      onOpenChange={(open) => (open ? null : props.onClose())}
+      onClose={props.onClose}
       title={t("budgets.addFromCatalog")}
-      description={t("budgets.catalogSentence")}
-      actions={
+      footer={
         <>
           <Button onClick={props.onClose}>{t("common.cancel")}</Button>
           <Button
@@ -674,6 +674,7 @@ function CatalogDialog(props: Props & { onClose: () => void }) {
         </>
       }
     >
+      <p className="m-0 text-text-13 text-text-secondary">{t("budgets.catalogSentence")}</p>
       <div className="flex flex-col gap-12">
         <form action={run} className="flex flex-wrap items-end gap-8">
           <input type="hidden" name="org" value={props.org} />
@@ -738,7 +739,7 @@ function CatalogDialog(props: Props & { onClose: () => void }) {
         ) : null}
         <ActionFeedback state={state} />
       </div>
-    </Dialog>
+    </Drawer>
   );
 }
 
@@ -758,12 +759,11 @@ function PasteDialog(props: Props & { onClose: () => void; onPasted: (ids: strin
     [text, props.exponent, props.urids, props.costCenters],
   );
   return (
-    <Dialog
+    <Drawer
       open
-      onOpenChange={(open) => (open ? null : props.onClose())}
+      onClose={props.onClose}
       title={t("budgets.pasteRows")}
-      description={t("budgets.pasteSentence")}
-      actions={
+      footer={
         <>
           <Button onClick={props.onClose}>{t("common.cancel")}</Button>
           <Button
@@ -777,6 +777,7 @@ function PasteDialog(props: Props & { onClose: () => void; onPasted: (ids: strin
         </>
       }
     >
+      <p className="m-0 text-text-13 text-text-secondary">{t("budgets.pasteSentence")}</p>
       <div className="flex flex-col gap-12">
         <Textarea
           id="paste-rows"
@@ -810,7 +811,7 @@ function PasteDialog(props: Props & { onClose: () => void; onPasted: (ids: strin
         ) : null}
         <ActionFeedback state={state} />
       </div>
-    </Dialog>
+    </Drawer>
   );
 }
 
@@ -827,12 +828,11 @@ function DeleteLinesDialog(
   const [state, setState] = useState<ActionState>({});
   const [pending, start] = useTransition();
   return (
-    <Dialog
+    <Drawer
       open
-      onOpenChange={(open) => (open ? null : props.onClose())}
+      onClose={props.onClose}
       title={t("budgets.deleteLines")}
-      description={t("budgets.deleteSentence")}
-      actions={
+      footer={
         <>
           <Button onClick={props.onClose}>{t("common.cancel")}</Button>
           <Button
@@ -858,6 +858,7 @@ function DeleteLinesDialog(
         </>
       }
     >
+      <p className="m-0 text-text-13 text-text-secondary">{t("budgets.deleteSentence")}</p>
       <fieldset className="m-0 flex max-h-(--ui-list-max) flex-col gap-6 overflow-y-auto border-0 p-0">
         <legend className="sr-only">{t("budgets.deleteLines")}</legend>
         {props.lines.map((l) => (
@@ -875,7 +876,7 @@ function DeleteLinesDialog(
         ))}
       </fieldset>
       <ActionFeedback state={state} />
-    </Dialog>
+    </Drawer>
   );
 }
 
@@ -889,12 +890,11 @@ function DrawDialog(props: Props & { lines: readonly BudgetLine[]; onClose: () =
     if (state.ok) onClose();
   }, [state.ok, state.at, onClose]);
   return (
-    <Dialog
+    <Drawer
       open
-      onOpenChange={(open) => (open ? null : props.onClose())}
+      onClose={props.onClose}
       title={t("budgets.drawContingency")}
-      description={t("budgets.drawSentence")}
-      actions={
+      footer={
         <>
           <Button onClick={props.onClose}>{t("common.cancel")}</Button>
           <Button type="submit" form="draw-contingency" variant="primary" loading={pending}>
@@ -903,6 +903,7 @@ function DrawDialog(props: Props & { lines: readonly BudgetLine[]; onClose: () =
         </>
       }
     >
+      <p className="m-0 text-text-13 text-text-secondary">{t("budgets.drawSentence")}</p>
       <form id="draw-contingency" action={action} className="flex flex-col gap-12">
         <input type="hidden" name="org" value={props.org} />
         <input type="hidden" name="currency" value={props.currency} />
@@ -945,6 +946,6 @@ function DrawDialog(props: Props & { lines: readonly BudgetLine[]; onClose: () =
         />
         <ActionFeedback state={state} />
       </form>
-    </Dialog>
+    </Drawer>
   );
 }
