@@ -119,7 +119,8 @@
     "required": "Fill in this field to continue.",
     "invalid": "Check this value: it is not in the expected format.",
     "dneReason": "Give the reason for Do Not Engage; it stays internal.",
-    "dneReview": "Set a review date for Do Not Engage."
+    "dneReview": "Set a review date for Do Not Engage.",
+    "payNeedsRate": "Choose Hourly, Day, Flat or Milestone to post a pay range."
   },
   "errors": {
     "notFound": "This record is gone or you can no longer see it. Reload the page.",

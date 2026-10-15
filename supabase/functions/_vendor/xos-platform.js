@@ -1798,6 +1798,7 @@ var opportunities_default$1 = {
     invalid: "Check this value: it is not in the expected format.",
     dneReason: "Give the reason for Do Not Engage; it stays internal.",
     dneReview: "Set a review date for Do Not Engage.",
+    payNeedsRate: "Choose Hourly, Day, Flat or Milestone to post a pay range.",
   },
   errors: {
     notFound: "This record is gone or you can no longer see it. Reload the page.",
@@ -5239,6 +5240,7 @@ var opportunities_default = {
     invalid: "Revisa este valor: no tiene el formato esperado.",
     dneReason: "Indica el motivo de No contratar; queda interno.",
     dneReview: "Fija una fecha de revisión para No contratar.",
+    payNeedsRate: "Elige Por hora, Por día, Tarifa fija o Por hito para publicar un rango de pago.",
   },
   errors: {
     notFound: "Este registro ya no existe o ya no puedes verlo. Vuelve a cargar la página.",
