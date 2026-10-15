@@ -6,8 +6,7 @@ import type { DataError } from "@xos/data";
  * refusals that carry a correction, such as title grammar). No error path is silent.
  */
 export type ActionResult<T = null> =
-  | { readonly ok: true; readonly data: T }
-  | { readonly ok: false; readonly error: ActionError };
+  { readonly ok: true; readonly data: T } | { readonly ok: false; readonly error: ActionError };
 
 export interface ActionError {
   /** Key under `work.errors`. */

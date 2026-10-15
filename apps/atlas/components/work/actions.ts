@@ -25,6 +25,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
 import { done, failed, invalid, type ActionResult } from "./action-result";
+import { initialExtension } from "./kind-fields";
 
 /**
  * Record actions (A08): create, edit, move through states, Trash and restore, checklists,
@@ -53,8 +54,16 @@ const createSchema = z.object({
   subtype: z.string().min(1).max(80).nullable().optional(),
   title: z.string().trim().min(1).max(200),
   scopeNodeId: optionalId,
-  phaseCode: z.string().regex(/^[A-Z]{3}$/).nullable().optional(),
-  urid: z.string().regex(/^\d{4}\.\d{2}\.\d{2}$/).nullable().optional(),
+  phaseCode: z
+    .string()
+    .regex(/^[A-Z]{3}$/)
+    .nullable()
+    .optional(),
+  urid: z
+    .string()
+    .regex(/^\d{4}\.\d{2}\.\d{2}$/)
+    .nullable()
+    .optional(),
   xyz: z.string().length(1).nullable().optional(),
   ownerId: optionalId,
   startsAt: instant,
@@ -71,7 +80,11 @@ export async function createRecordAction(
   const ctx = await context(org);
   const parsed = createSchema.safeParse(input);
   if (!parsed.success) return invalid();
-  const created = await createRecord(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
+  const created = await createRecord(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    ...parsed.data,
+    extension: initialExtension(parsed.data.kind, ctx.viewer.person?.id ?? null),
+  });
   if (!created.ok) return failed(created.error);
   const record = await getRecord(ctx.viewer.db, created.data.id);
   refresh(org);
@@ -82,7 +95,11 @@ const patchSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   subtype: z.string().min(1).max(80).nullable().optional(),
   scopeNodeId: optionalId,
-  phaseCode: z.string().regex(/^[A-Z]{3}$/).nullable().optional(),
+  phaseCode: z
+    .string()
+    .regex(/^[A-Z]{3}$/)
+    .nullable()
+    .optional(),
   ownerId: optionalId,
   accountableId: optionalId,
   startsAt: instant,
@@ -199,7 +216,10 @@ export async function checkItemAction(
   return done(null);
 }
 
-export async function removeChecklistItemAction(org: string, itemId: string): Promise<ActionResult> {
+export async function removeChecklistItemAction(
+  org: string,
+  itemId: string,
+): Promise<ActionResult> {
   const ctx = await context(org);
   if (!id.safeParse(itemId).success) return invalid();
   const result = await removeChecklistItem(ctx.viewer.db, itemId);
@@ -248,7 +268,10 @@ export async function watchAction(
 
 const recurrenceSchema = z.object({
   recordId: z.uuid(),
-  rrule: z.string().regex(/^FREQ=(DAILY|WEEKLY|MONTHLY)(;[A-Z]+=[A-Za-z0-9,+-]+)*$/).nullable(),
+  rrule: z
+    .string()
+    .regex(/^FREQ=(DAILY|WEEKLY|MONTHLY)(;[A-Z]+=[A-Za-z0-9,+-]+)*$/)
+    .nullable(),
   timeZone: z.string().min(1).max(64),
   untilAt: instant,
 });

@@ -17,6 +17,7 @@ import {
   listAssignments,
   listChecklist,
   listCounterpartyOptions,
+  listCurrencyOptions,
   listEnumerationOptions,
   listPeopleRefs,
   listPermitRuleOptions,
@@ -976,10 +977,8 @@ describe("duplicate", () => {
       ],
       "xpms:from:dim_category": [okResponse({ xyz: "X" })],
       "from:record_task": [
-        okResponse(null),
-        okResponse(null),
         okResponse({ record_id: "r1", org_id: "o1", record_kind: "Task", progress_pct: 40 }),
-        okResponse({ record_id: "r9" }),
+        okResponse(null),
         okResponse(null),
       ],
       "from:record_checklist_items": [
@@ -1003,11 +1002,12 @@ describe("duplicate", () => {
     expect((await duplicateRecord(missing.db, { orgId: "o1", recordId: "r1" })).ok).toBe(false);
     const refused = moduleClient({
       "from:records": [okResponse(recordRow()), errorResponse("42501", "denied")],
+      "from:record_task": [okResponse(null)],
     });
     expect((await duplicateRecord(refused.db, { orgId: "o1", recordId: "r1" })).ok).toBe(false);
     const extensionFails = moduleClient({
-      "from:records": [okResponse(recordRow()), okResponse({ id: "r9", record_number: 8 })],
-      "from:record_task": [okResponse(null), okResponse(null), errorResponse("XX000", "boom")],
+      "from:records": [okResponse(recordRow())],
+      "from:record_task": [errorResponse("XX000", "boom")],
     });
     expect((await duplicateRecord(extensionFails.db, { orgId: "o1", recordId: "r1" })).ok).toBe(
       false,
@@ -1026,5 +1026,30 @@ describe("duplicate", () => {
         })
       ).ok,
     ).toBe(false);
+  });
+});
+
+describe("currencies", () => {
+  it("lists currencies with exponents in code order", async () => {
+    const { db } = moduleClient({
+      "from:currencies": [
+        okResponse([
+          { currency_code: "USD", minor_unit_exponent: 2 },
+          { currency_code: "JPY", minor_unit_exponent: 0 },
+          { currency_code: null, minor_unit_exponent: null },
+          { currency_code: "XTS", minor_unit_exponent: null },
+        ]),
+        errorResponse("XX000", "boom"),
+      ],
+    });
+    expect(await listCurrencyOptions(db)).toEqual({
+      ok: true,
+      data: [
+        { code: "JPY", exponent: 0 },
+        { code: "USD", exponent: 2 },
+        { code: "XTS", exponent: 2 },
+      ],
+    });
+    expect((await listCurrencyOptions(db)).ok).toBe(false);
   });
 });
