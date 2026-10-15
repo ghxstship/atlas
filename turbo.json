@@ -19,6 +19,14 @@
     "test": {
       "dependsOn": ["^build"],
       "outputs": []
+    },
+    "storybook:build": {
+      "dependsOn": ["^build"],
+      "outputs": ["storybook-static/**"]
+    },
+    "test:visual": {
+      "dependsOn": ["storybook:build"],
+      "cache": false
     }
   }
 }

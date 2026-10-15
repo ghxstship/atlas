@@ -1,0 +1,43 @@
+appId: pro.ghxstship.compass
+name: Clock in at the venue, take a break, clock out
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+# The simulator stands inside the Northwind Pier geofence from seed 0217.
+- setLocation:
+    latitude: 25.7795
+    longitude: -80.1860
+- extendedWaitUntil:
+    visible:
+      id: "clock-button-geofence"
+    timeout: 15000
+- assertVisible: "You're at Northwind Pier Site"
+- tapOn:
+    id: "clock-button"
+- extendedWaitUntil:
+    visible:
+      id: "clock-button-timer"
+    timeout: 5000
+- tapOn:
+    id: "punch-break-start"
+- assertVisible: ".*On Break.*"
+- tapOn:
+    id: "clock-button"
+- assertVisible: ".*On Shift.*"
+- tapOn:
+    id: "clock-button"
+- extendedWaitUntil:
+    notVisible:
+      id: "clock-button-timer"
+    timeout: 5000
+# Every punch uploaded: nothing waits in the queue.
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-offline-queue"
+- extendedWaitUntil:
+    visible:
+      id: "queue-empty"
+    timeout: 15000

@@ -1,0 +1,27 @@
+appId: pro.ghxstship.compass
+name: External crew sees their own role's Compass and the engagement gate
+---
+# The demo crew person's engagement is in Onboarding (seed 0228), so clock-in and scanning stay closed
+# with the refusal that names the next step (Section 8.7: operational access opens at Active).
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: crew@example.com
+- assertVisible:
+    id: "today"
+- assertNotVisible:
+    id: "clock-button"
+- assertNotVisible:
+    id: "tab-crew"
+- tapOn:
+    id: "tab-more"
+- assertVisible:
+    id: "more-timesheets"
+- assertVisible:
+    id: "more-onboarding"
+- assertNotVisible:
+    id: "more-incidents"
+- tapOn:
+    id: "tab-scan"
+- assertVisible:
+    id: "scan-mode"

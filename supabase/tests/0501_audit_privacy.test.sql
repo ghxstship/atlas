@@ -20,7 +20,7 @@ select ok(
   (select bool_and(not (diff -> 'new' ? 'token_hash')) from app.audit_events where action = 'invites.insert'),
   'audit diffs never carry token hashes');
 select ok(
-  (select bool_and(actor_kind = 'Person') from app.audit_events where action = 'membership_roles.insert'),
+  (select bool_and(actor_kind = 'Person') from app.audit_events where action = 'membership_roles.insert' and org_id = pg_temp.id('org_a')),
   'person actions are recorded as Person');
 select pg_temp.as_user('alice');
 select ok((select count(*) from app.audit_events where org_id = pg_temp.id('org_a')) > 0, 'an owner reads the audit log');

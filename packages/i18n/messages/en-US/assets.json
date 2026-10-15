@@ -1,0 +1,336 @@
+{
+  "states": {
+    "proposed": "Proposed",
+    "received": "Received",
+    "available": "Available",
+    "reserved": "Reserved",
+    "deployed": "Deployed",
+    "inMaintenance": "In Maintenance",
+    "damaged": "Damaged",
+    "lost": "Lost",
+    "retired": "Retired"
+  },
+  "actions": {
+    "checkOut": "Check out",
+    "checkIn": "Check in",
+    "transfer": "Transfer"
+  },
+  "views": {
+    "table": "Table",
+    "list": "List",
+    "board": "Board",
+    "gallery": "Gallery",
+    "calendar": "Calendar",
+    "resource-schedule": "Schedule"
+  },
+  "collection": {
+    "view": "View",
+    "filters": "Filter this list",
+    "search": "Search",
+    "state": "State",
+    "allStates": "All states",
+    "apply": "Apply",
+    "clear": "Clear filters",
+    "noMatches": "Nothing here matches these filters. Clear the filters to see everything again.",
+    "open": "Open",
+    "openFull": "Open full page"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "notRecorded": "Not recorded",
+    "noVenue": "No home venue",
+    "noProject": "No project",
+    "homeVenue": "Its home venue",
+    "keepProject": "Keep the current project",
+    "costUnknown": "Cost unknown",
+    "unnamed": "Unnamed member"
+  },
+  "fields": {
+    "name": "Name",
+    "elementId": "Canon element",
+    "element": "Element",
+    "urid": "URID",
+    "units": "Units",
+    "lots": "Lots",
+    "classId": "Asset class",
+    "assetTag": "Asset tag",
+    "state": "State",
+    "conditionEnumId": "Condition",
+    "homeVenueId": "Home venue",
+    "custodian": "Held by",
+    "projectId": "Project",
+    "since": "Held since",
+    "createdAt": "Registered",
+    "venueId": "Venue",
+    "quantity": "Quantity",
+    "onHand": "On hand",
+    "opening": "Opening count",
+    "lotCode": "Label code",
+    "counted": "Counted quantity",
+    "note": "Note",
+    "membershipId": "Member who takes it",
+    "checkInVenue": "Returned to",
+    "next": "Move to",
+    "reason": "Reason",
+    "scheme": "Scheme",
+    "value": "Identifier",
+    "unitId": "Asset unit",
+    "performedOn": "Done on",
+    "description": "Description",
+    "cost": "Cost in {currency}",
+    "costColumn": "Cost",
+    "currencyCode": "Currency",
+    "reportedAt": "Reported",
+    "at": "When",
+    "code": "Code",
+    "eventId": "Scan event",
+    "action": "Action",
+    "comment": "Comment",
+    "file": "File"
+  },
+  "errors": {
+    "field": "Check {field}.",
+    "unexpected": "That did not save because of a problem on our side. Try again; if it keeps failing, contact support.",
+    "notFound": "That item is gone or you no longer have access to it. Refresh the page to see the current list.",
+    "conflict": "That value is already taken in this organization. Choose another one.",
+    "invalid": "Some of what you entered is not valid.",
+    "refused": "The database refused that change. Refresh the page and try again.",
+    "fileTooLarge": "That file is larger than 50 MB. Upload a smaller file.",
+    "scanning": "That file is still being scanned for viruses. Try the download again in a minute.",
+    "asset_class_in_use": "This class still has units or lots. Move or archive them before you archive the class.",
+    "asset_lot_count_negative": "A count is zero or more. Enter the quantity you counted.",
+    "asset_lot_insufficient": "There is not that much on hand in this lot. Check the quantity and try again.",
+    "asset_lot_quantity_ledger": "A lot quantity changes through a count or a check-out, not an edit. Record a count instead.",
+    "asset_state_conflict": "Someone moved this asset a moment ago. Refresh the page to see its current state.",
+    "asset_tag_immutable": "An asset keeps its tag. Register a new unit if the tag must change.",
+    "asset_transition_not_allowed": "An asset cannot make that move from its current state. Choose one of the moves offered.",
+    "cross_org_reference": "That choice belongs to another organization. Choose one from this organization.",
+    "enumeration_domain": "That condition is not in the canon Asset Condition list. Choose one of the conditions offered.",
+    "transition_reason_required": "Every state change carries a reason. Say why the asset moves.",
+    "asset_code_unknown": "No asset or lot in this organization carries that code. Check the label and scan again.",
+    "asset_code_ambiguous": "More than one asset carries that identifier, so it cannot be told apart. Scan the asset tag instead.",
+    "asset_scan_custodian_required": "Choose the one member who takes the asset.",
+    "asset_scan_lot_transfer": "A lot quantity is not passed hand to hand. Check it in, then out to the next person.",
+    "asset_scan_place_required": "This asset has no home venue. Choose the place it comes back to.",
+    "asset_scan_quantity_required": "Enter how many of the lot move.",
+    "asset_scan_state_conflict": "Someone moved this asset since you looked it up. Look it up again to see where it is now.",
+    "asset_scan_unavailable": "This asset is not in service, so it cannot be checked out or in. Move it back to Available first.",
+    "asset_scan_event_reused": "That scan was already used for another item. Close this window and scan again."
+  },
+  "load": {
+    "loading": "Loading assets",
+    "title": "Assets did not load",
+    "sentence": "We could not read this page just now. Try again; if it keeps failing, contact support with the reference below.",
+    "retry": "Try again"
+  },
+  "collab": {
+    "comments": "Comments",
+    "noComments": "No comments yet. Add context the next person will need.",
+    "unknownAuthor": "Former member",
+    "deleted": "This comment was deleted.",
+    "delete": "Delete",
+    "write": "Write a comment",
+    "post": "Post comment",
+    "attachments": "Attachments",
+    "noAttachments": "No files yet. Upload photos, manuals or service records.",
+    "download": "Download",
+    "remove": "Remove",
+    "file": "File",
+    "upload": "Upload",
+    "scan": {
+      "PendingUpload": "Uploading",
+      "Scanning": "Scanning",
+      "Clean": "Ready",
+      "Infected": "Blocked",
+      "ScanFailed": "Scan failed"
+    }
+  },
+  "classes": {
+    "counts": "{units, plural, one {# unit} other {# units}} · {lots, plural, one {# lot} other {# lots}}",
+    "empty": "No asset classes yet. Define the kinds of gear you own, each bound to its canon element.",
+    "emptyReadOnly": "No asset classes yet. Browse the canon elements while an asset manager sets them up.",
+    "emptyReadOnlyAction": "Browse canon elements",
+    "notFound": "No asset class matches that link. It may have been archived; pick one from the list.",
+    "units": "Units",
+    "lots": "Lots",
+    "noUnits": "No units of this class yet. Register one from Units.",
+    "noLots": "No lots of this class yet. Count one from Lots.",
+    "lotLine": "{venue}: {onHand} on hand",
+    "create": {
+      "open": "New asset class",
+      "title": "New asset class",
+      "description": "Find the canon element this gear is, then name it the way your crew does.",
+      "search": "Find a canon element",
+      "searchHelp": "Search by item name or element ID, for example moving head or 5000.02.",
+      "find": "Find",
+      "noElements": "No canon element matches. Try a shorter word.",
+      "nameHelp": "The name your crew uses, such as Spot Fixture.",
+      "submit": "Create class"
+    },
+    "rename": {
+      "open": "Rename",
+      "title": "Rename {name}"
+    },
+    "archive": {
+      "open": "Archive",
+      "title": "Archive {name}",
+      "description": "The class leaves the catalog. It has no units or lots, so nothing else changes.",
+      "submit": "Archive class"
+    }
+  },
+  "units": {
+    "empty": "No units yet. Register each serialized piece of gear to track who holds it.",
+    "emptyReadOnly": "No units yet. Check the custody ledger for gear moves once units are registered.",
+    "emptyReadOnlyAction": "Open the custody ledger",
+    "emptyNoClasses": "Register units after you define an asset class for them.",
+    "emptyNoClassesAction": "Define an asset class",
+    "notFound": "No unit carries the tag {tag}. It may have been retired from the register; search the list.",
+    "backToUnits": "Back to units",
+    "heldBy": "Held by {custodian}",
+    "noCustody": "Not checked out yet",
+    "out": "Out",
+    "properties": "Unit properties",
+    "moved": "{from} to {to}",
+    "registered": "Registered as {state}",
+    "none": {
+      "custody": "This unit has not changed hands yet. Check it out to start its custody record.",
+      "maintenance": "No maintenance recorded. Record service when it is done.",
+      "damage": "No damage reported. Report damage as soon as it comes back hurt.",
+      "identifiers": "No serial or GTIN recorded. Add the manufacturer's serial so a scan finds this unit."
+    },
+    "sections": {
+      "custody": "Custody",
+      "history": "State history",
+      "maintenance": "Maintenance",
+      "damage": "Damage",
+      "identifiers": "Identifiers"
+    },
+    "create": {
+      "open": "Register unit",
+      "title": "Register unit",
+      "description": "The unit starts Proposed. Move it to Received, then Available, as it arrives.",
+      "tagHelp": "Letters, digits and hyphens, as printed on the label, for example NWL-RAD-014.",
+      "submit": "Register unit"
+    },
+    "edit": {
+      "open": "Edit",
+      "title": "Edit {tag}"
+    },
+    "transition": {
+      "open": "Change state",
+      "title": "Change the state of {tag}",
+      "description": "It is {state} now. Only the moves the asset lifecycle allows are offered.",
+      "reasonHelp": "Say why, for example Back from the shop or Written off after the storm.",
+      "submit": "Change state"
+    },
+    "identifiers": {
+      "add": "Add identifier",
+      "title": "Add identifier",
+      "description": "Record a value the manufacturer or another authority issued, exactly as printed.",
+      "schemeHelp": "Lowercase, such as serial, gtin14 or mpn.",
+      "submit": "Add identifier",
+      "remove": "Remove {identifier}",
+      "removeTitle": "Remove {identifier}?",
+      "removeSubmit": "Remove identifier"
+    }
+  },
+  "lots": {
+    "line": "{venue}: {onHand} on hand",
+    "empty": "No lots yet. Count bulk gear you track by quantity, such as cable or sandbags.",
+    "emptyReadOnly": "No lots yet. Check the custody ledger for gear moves meanwhile.",
+    "emptyNoClasses": "Count lots after you define an asset class for them.",
+    "emptyNoVenues": "A lot sits at a venue. Add a venue first.",
+    "emptyNoVenuesAction": "Add a venue",
+    "notFound": "No lot matches that link. It may have been archived; pick one from the list.",
+    "ledger": "Lot ledger",
+    "noMovements": "Nothing has moved yet. Check a quantity out or record a count.",
+    "kinds": {
+      "Count": "Counted, {delta} difference",
+      "CheckOut": "{delta} checked out to {custodian}",
+      "CheckIn": "{delta} checked in"
+    },
+    "create": {
+      "open": "New lot",
+      "title": "New lot",
+      "description": "Count what is on the shelf now. Later changes are counts and check-outs in the lot ledger.",
+      "quantityHelp": "The quantity on hand today.",
+      "submit": "Create lot"
+    },
+    "count": {
+      "open": "Record count",
+      "title": "Record a count",
+      "description": "The ledger shows {onHand} on hand. Enter what you counted; the difference is recorded.",
+      "submit": "Record count"
+    }
+  },
+  "custody": {
+    "line": "{tag} to {holder}",
+    "empty": "No custody moves yet. Scan or type an asset tag above to check gear out.",
+    "emptyReadOnly": "No custody moves yet. Gear moves appear here as they happen.",
+    "emptyAction": "Open units",
+    "notFound": "No custody entry matches that link. Pick one from the ledger.",
+    "openUnit": "Open {tag}",
+    "projectHelp": "The project the gear is out for, if any.",
+    "desk": {
+      "title": "Scan or type a code",
+      "code": "Asset tag, serial or lot label",
+      "help": "A handheld scanner types the code and presses Enter for you.",
+      "find": "Look up",
+      "noAnswer": "Nothing found for {code}",
+      "again": "Scan again",
+      "unitState": "It is {state} now.",
+      "cannotMove": "It is not in service, so it cannot be checked out or in from here. Open the unit to change its state.",
+      "lotOnHand": "{onHand} on hand"
+    },
+    "checkOut": {
+      "title": "Check out {code}",
+      "description": "Hand it to a member. It moves to Deployed.",
+      "submit": "Check out"
+    },
+    "checkIn": {
+      "title": "Check in {code}",
+      "description": "Bring it back to a place. It moves to Available.",
+      "submit": "Check in",
+      "venueHelp": "Leave as is to return it to its home venue."
+    },
+    "transfer": {
+      "title": "Transfer {code}",
+      "description": "Pass it from the current holder to another member. It stays Deployed.",
+      "submit": "Transfer"
+    }
+  },
+  "maintenance": {
+    "empty": "No maintenance recorded yet. Record service as it is done so the history follows the gear.",
+    "emptyReadOnly": "No maintenance recorded yet. Service records appear here as they are added.",
+    "emptyNoUnits": "Record maintenance once units are registered.",
+    "emptyNoUnitsAction": "Open units",
+    "notFound": "No maintenance record matches that link. Pick one from the list.",
+    "create": {
+      "open": "Record maintenance",
+      "title": "Record maintenance",
+      "description": "Say what was done and when. Leave the cost blank when you do not know it yet.",
+      "costHelp": "Leave blank when unknown. A blank cost stays unknown, never zero.",
+      "submit": "Record maintenance"
+    }
+  },
+  "damage": {
+    "empty": "No damage reported. Report damage as soon as gear comes back hurt.",
+    "emptyReadOnly": "No damage reported. Reports appear here as they are filed.",
+    "emptyNoUnits": "Report damage once units are registered.",
+    "notFound": "No damage report matches that link. Pick one from the list.",
+    "openUnit": "Open {tag} to repair or write it off",
+    "create": {
+      "open": "Report damage",
+      "title": "Report damage",
+      "description": "Describe what happened and when. Move the unit to Damaged from its page if it is out of service.",
+      "descriptionHelp": "What is broken and how it happened.",
+      "submit": "Report damage"
+    }
+  },
+  "project": {
+    "unitsTitle": "Assets on {project}",
+    "empty": "No gear is checked out to {project} yet. Check units out to this project from the custody ledger.",
+    "emptyAction": "Open the custody ledger"
+  }
+}

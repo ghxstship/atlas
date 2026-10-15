@@ -1,0 +1,20 @@
+# Maestro flows for the Compass field journeys (Wave 4 exit).
+# Run against a local stack seeded with supabase/seeds (0010 identity, 0107 project, 0217 Compass data):
+#   maestro test -e XOS_DEMO_PASSWORD=<the demo password from 0010_demo_identity.sql> apps/compass/.maestro
+# The app build must point EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY at that local stack.
+flows:
+  - "flows/*.yaml"
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - field-sign-in
+    - field-clock-in-out
+    - field-clock-offline
+    - field-incident-report
+    - field-inspection-walk
+    - field-gate-scan
+    - field-run-of-show
+    - supervisor-kiosk
+    - crew-external-today
+    - vendor-external-scan
+    - settings-sunlight-sign-out
