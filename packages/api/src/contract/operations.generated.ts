@@ -139,7 +139,7 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    actor_id: string;
+    actor_id: string | null;
     verb: string;
     subject_urn: string;
     project_id: string | null;
@@ -2232,28 +2232,21 @@ export interface Components {
     project_id: string;
     criterion_id: Components["CriterionId"];
     record_id: string | null;
-    evidence_document_id: string | null;
-    attested_by: string;
+    attested_by: string | null;
     attested_at: string;
     assertion_rank: number;
+    evidence_uri: string | null;
+    note: string | null;
   };
   GateEvidenceCreate: {
     project_id: string;
     criterion_id: Components["CriterionId"];
     record_id?: string | null;
-    evidence_document_id?: string | null;
-    attested_by: string;
-    attested_at: string;
     assertion_rank: number;
+    evidence_uri: string;
+    note?: string | null;
   };
   GateEvidencePage: { data: Array<Components["GateEvidence"]>; next_cursor: string | null };
-  GateEvidenceUpdate: {
-    record_id?: string | null;
-    evidence_document_id?: string | null;
-    attested_by?: string;
-    attested_at?: string;
-    assertion_rank?: number;
-  };
   GateQueueEntry: {
     id: string;
     org_id: string;
@@ -4023,12 +4016,17 @@ export interface Components {
     workspace_id: string | null;
     jurisdiction_id: Components["JurisdictionId"];
     region_code: Components["RegionCode"];
-    tier_code: Components["TierCode"];
+    tier_code: Components["TierCode"] | null;
     current_phase_code: Components["PhaseCode"];
     project_state: string;
     currency: string;
     starts_on: string | null;
     ends_on: string | null;
+    time_zone: string;
+    venue_id: string | null;
+    client_counterparty_id: string | null;
+    production_state: string;
+    archived_at: string | null;
   };
   ProjectAssignment: {
     id: string;
@@ -4074,10 +4072,13 @@ export interface Components {
     workspace_id?: string | null;
     jurisdiction_id?: Components["JurisdictionId"];
     region_code?: Components["RegionCode"];
-    tier_code: Components["TierCode"];
-    currency: string;
+    tier_code?: Components["TierCode"] | null;
+    currency?: string;
     starts_on?: string | null;
     ends_on?: string | null;
+    project_key: string;
+    time_zone: string;
+    venue_id?: string | null;
   };
   ProjectPage: { data: Array<Components["Project"]>; next_cursor: string | null };
   ProjectPhaseTransition: {
@@ -4089,7 +4090,7 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     from_phase_code: Components["PhaseCode"];
-    to_phase_code: Components["PhaseCode"];
+    to_phase_code: Components["PhaseCode"] | null;
     transitioned_at: string;
     transitioned_by: string;
   };
@@ -4123,10 +4124,14 @@ export interface Components {
     workspace_id?: string | null;
     jurisdiction_id?: Components["JurisdictionId"];
     region_code?: Components["RegionCode"];
-    tier_code?: Components["TierCode"];
+    tier_code?: Components["TierCode"] | null;
     currency?: string;
     starts_on?: string | null;
     ends_on?: string | null;
+    project_key?: string;
+    time_zone?: string;
+    venue_id?: string | null;
+    client_counterparty_id?: string | null;
   };
   Provenance: string;
   PurchaseOrder: {
@@ -6124,15 +6129,6 @@ export interface Operations {
     body: Components["ProjectUpdate"];
     responses: { 200: Components["Project"] };
   };
-  "projects.delete": {
-    module: "Projects";
-    method: "delete";
-    path: "/projects/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
   "projects.transition": {
     module: "Projects";
     method: "post";
@@ -6160,14 +6156,23 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GateReadinessPage"] };
   };
-  "projects.duplicate": {
+  "projects.archive": {
     module: "Projects";
     method: "post";
-    path: "/projects/{id}/duplicate";
+    path: "/projects/{id}/archive";
     params: { id: string };
     query: Record<string, never>;
     body: undefined;
-    responses: { 201: Components["Project"] };
+    responses: { 200: Components["Project"] };
+  };
+  "projects.unarchive": {
+    module: "Projects";
+    method: "post";
+    path: "/projects/{id}/unarchive";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["Project"] };
   };
   "scopeNodes.list": {
     module: "Projects";
@@ -6275,15 +6280,6 @@ export interface Operations {
     params: { id: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
-    responses: { 200: Components["GateEvidence"] };
-  };
-  "gateEvidence.update": {
-    module: "Projects";
-    method: "patch";
-    path: "/gate-evidence/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["GateEvidenceUpdate"];
     responses: { 200: Components["GateEvidence"] };
   };
   "gateEvidence.delete": {
@@ -19820,11 +19816,11 @@ export interface ModuleOperations {
     | "projects.create"
     | "projects.get"
     | "projects.update"
-    | "projects.delete"
     | "projects.transition"
     | "projects.passGate"
     | "projects.gateReadiness"
-    | "projects.duplicate"
+    | "projects.archive"
+    | "projects.unarchive"
     | "scopeNodes.list"
     | "scopeNodes.create"
     | "scopeNodes.get"
@@ -19835,7 +19831,6 @@ export interface ModuleOperations {
     | "gateEvidence.list"
     | "gateEvidence.create"
     | "gateEvidence.get"
-    | "gateEvidence.update"
     | "gateEvidence.delete";
   Activity: "activityEvents.list" | "activityEvents.get";
   Schedule:

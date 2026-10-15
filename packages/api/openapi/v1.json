@@ -630,7 +630,7 @@
           "project_key": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Display key issued by `next_sequence`.",
+            "description": "Project key, chosen by the caller and unique in the organization; it addresses the project in Atlas URLs.",
             "example": "NWL-24"
           },
           "name": {
@@ -655,7 +655,9 @@
           },
           "jurisdiction_id": { "$ref": "#/components/schemas/JurisdictionId" },
           "region_code": { "$ref": "#/components/schemas/RegionCode" },
-          "tier_code": { "$ref": "#/components/schemas/TierCode" },
+          "tier_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/TierCode" }, { "type": "null" }]
+          },
           "current_phase_code": { "$ref": "#/components/schemas/PhaseCode" },
           "project_state": {
             "type": "string",
@@ -680,6 +682,36 @@
             "format": "date",
             "description": "Last show day.",
             "example": "2026-10-08"
+          },
+          "time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the project; local times are entered in it.",
+            "example": "America/New_York"
+          },
+          "venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the primary venue of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "client_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the client counterparty the project is produced for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "production_state": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Production lifecycle state, which runs beside the project state; changes only through its transition RPC. A Title Case value from the lifecycle's database enum.",
+            "example": "Proposed"
+          },
+          "archived_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the project was archived; archived projects leave the default lists.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -700,7 +732,12 @@
           "project_state",
           "currency",
           "starts_on",
-          "ends_on"
+          "ends_on",
+          "time_zone",
+          "venue_id",
+          "client_counterparty_id",
+          "production_state",
+          "archived_at"
         ],
         "description": "A production project. Jurisdiction is resolved at gate 1."
       },
@@ -753,7 +790,9 @@
           },
           "jurisdiction_id": { "$ref": "#/components/schemas/JurisdictionId" },
           "region_code": { "$ref": "#/components/schemas/RegionCode" },
-          "tier_code": { "$ref": "#/components/schemas/TierCode" },
+          "tier_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/TierCode" }, { "type": "null" }]
+          },
           "currency": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
@@ -771,9 +810,27 @@
             "format": "date",
             "description": "Last show day.",
             "example": "2026-10-08"
+          },
+          "project_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Project key, chosen by the caller and unique in the organization; it addresses the project in Atlas URLs.",
+            "example": "NWL-24"
+          },
+          "time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the project; local times are entered in it.",
+            "example": "America/New_York"
+          },
+          "venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the primary venue of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["name", "tier_code", "currency"],
+        "required": ["name", "project_key", "time_zone"],
         "description": "Fields accepted when creating a Project."
       },
       "ProjectUpdate": {
@@ -801,7 +858,9 @@
           },
           "jurisdiction_id": { "$ref": "#/components/schemas/JurisdictionId" },
           "region_code": { "$ref": "#/components/schemas/RegionCode" },
-          "tier_code": { "$ref": "#/components/schemas/TierCode" },
+          "tier_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/TierCode" }, { "type": "null" }]
+          },
           "currency": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
@@ -819,6 +878,30 @@
             "format": "date",
             "description": "Last show day.",
             "example": "2026-10-08"
+          },
+          "project_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Project key, chosen by the caller and unique in the organization; it addresses the project in Atlas URLs.",
+            "example": "NWL-24"
+          },
+          "time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the project; local times are entered in it.",
+            "example": "America/New_York"
+          },
+          "venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the primary venue of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "client_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the client counterparty the project is produced for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a Project. Omitted fields are unchanged."
@@ -1146,7 +1229,9 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "from_phase_code": { "$ref": "#/components/schemas/PhaseCode" },
-          "to_phase_code": { "$ref": "#/components/schemas/PhaseCode" },
+          "to_phase_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/PhaseCode" }, { "type": "null" }]
+          },
           "transitioned_at": {
             "type": "string",
             "format": "date-time",
@@ -1244,14 +1329,8 @@
             "description": "Identifier of the record that evidences the criterion.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "evidence_document_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the evidence document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "attested_by": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the person who attested the evidence.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -1267,6 +1346,20 @@
             "minimum": 0,
             "description": "Assertion rank of the evidence, 0 to 4.",
             "example": 4
+          },
+          "evidence_uri": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Where the evidence lives: a document or record URI.",
+            "example": "urn:xpms:documents:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note on the evidence.",
+            "example": "Signed by the venue manager."
           }
         },
         "required": [
@@ -1279,10 +1372,11 @@
           "project_id",
           "criterion_id",
           "record_id",
-          "evidence_document_id",
           "attested_by",
           "attested_at",
-          "assertion_rank"
+          "assertion_rank",
+          "evidence_uri",
+          "note"
         ],
         "description": "Evidence for a gate criterion. One evidence spine serves every criterion."
       },
@@ -1302,69 +1396,29 @@
             "description": "Identifier of the record that evidences the criterion.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "evidence_document_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the evidence document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "attested_by": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the person who attested the evidence.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "attested_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the evidence was attested.",
-            "example": "2026-10-08T14:30:00Z"
-          },
           "assertion_rank": {
             "type": "integer",
             "minimum": 0,
             "description": "Assertion rank of the evidence, 0 to 4.",
             "example": 4
+          },
+          "evidence_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Where the evidence lives: a document or record URI.",
+            "example": "urn:xpms:documents:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note on the evidence.",
+            "example": "Signed by the venue manager."
           }
         },
-        "required": ["project_id", "criterion_id", "attested_by", "attested_at", "assertion_rank"],
+        "required": ["project_id", "criterion_id", "assertion_rank", "evidence_uri"],
         "description": "Fields accepted when creating a GateEvidence."
-      },
-      "GateEvidenceUpdate": {
-        "type": "object",
-        "properties": {
-          "record_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the record that evidences the criterion.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "evidence_document_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the evidence document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "attested_by": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the person who attested the evidence.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "attested_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the evidence was attested.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "assertion_rank": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Assertion rank of the evidence, 0 to 4.",
-            "example": 4
-          }
-        },
-        "description": "Fields accepted when updating a GateEvidence. Omitted fields are unchanged."
       },
       "ActivityEventPage": {
         "type": "object",
@@ -1423,7 +1477,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "actor_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the person who acted.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -41292,7 +41346,12 @@
                       "project_state": "Active",
                       "currency": "USD",
                       "starts_on": "2026-10-08",
-                      "ends_on": "2026-10-08"
+                      "ends_on": "2026-10-08",
+                      "time_zone": "America/New_York",
+                      "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "production_state": "Proposed",
+                      "archived_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -41328,7 +41387,10 @@
                 "tier_code": "04",
                 "currency": "USD",
                 "starts_on": "2026-10-08",
-                "ends_on": "2026-10-08"
+                "ends_on": "2026-10-08",
+                "project_key": "NWL-24",
+                "time_zone": "America/New_York",
+                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/ProjectCreate" }
             }
@@ -41363,7 +41425,12 @@
                   "project_state": "Active",
                   "currency": "USD",
                   "starts_on": "2026-10-08",
-                  "ends_on": "2026-10-08"
+                  "ends_on": "2026-10-08",
+                  "time_zone": "America/New_York",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "production_state": "Proposed",
+                  "archived_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -41430,7 +41497,12 @@
                   "project_state": "Active",
                   "currency": "USD",
                   "starts_on": "2026-10-08",
-                  "ends_on": "2026-10-08"
+                  "ends_on": "2026-10-08",
+                  "time_zone": "America/New_York",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "production_state": "Proposed",
+                  "archived_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -41478,7 +41550,11 @@
                 "tier_code": "04",
                 "currency": "USD",
                 "starts_on": "2026-10-08",
-                "ends_on": "2026-10-08"
+                "ends_on": "2026-10-08",
+                "project_key": "NWL-24",
+                "time_zone": "America/New_York",
+                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/ProjectUpdate" }
             }
@@ -41513,7 +41589,12 @@
                   "project_state": "Active",
                   "currency": "USD",
                   "starts_on": "2026-10-08",
-                  "ends_on": "2026-10-08"
+                  "ends_on": "2026-10-08",
+                  "time_zone": "America/New_York",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "production_state": "Proposed",
+                  "archived_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -41525,36 +41606,6 @@
           "412": { "$ref": "#/components/responses/PreconditionFailed" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "428": { "$ref": "#/components/responses/PreconditionRequired" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "delete": {
-        "operationId": "projects.delete",
-        "tags": ["Projects"],
-        "x-xos-table": "app.projects",
-        "x-xos-capability": "projects.project.archive",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
-        "summary": "Delete a project",
-        "description": "A production project. Jurisdiction is resolved at gate 1. Soft-deletes the project: it moves to Trash and can be restored for its table's retention period.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the project.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the project.",
-            "name": "id",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "204": { "description": "The project moved to Trash." },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -41625,7 +41676,12 @@
                   "project_state": "Active",
                   "currency": "USD",
                   "starts_on": "2026-10-08",
-                  "ends_on": "2026-10-08"
+                  "ends_on": "2026-10-08",
+                  "time_zone": "America/New_York",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "production_state": "Proposed",
+                  "archived_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -41702,7 +41758,12 @@
                   "project_state": "Active",
                   "currency": "USD",
                   "starts_on": "2026-10-08",
-                  "ends_on": "2026-10-08"
+                  "ends_on": "2026-10-08",
+                  "time_zone": "America/New_York",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "production_state": "Proposed",
+                  "archived_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -41774,15 +41835,15 @@
         }
       }
     },
-    "/projects/{id}/duplicate": {
+    "/projects/{id}/archive": {
       "post": {
-        "operationId": "projects.duplicate",
+        "operationId": "projects.archive",
         "tags": ["Projects"],
         "x-xos-table": "app.projects",
-        "x-xos-capability": "projects.project.create",
+        "x-xos-capability": "projects.project.archive",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
-        "summary": "Duplicate a project",
-        "description": "Creates a copy of the project with its scope tree, optionally with its records. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "summary": "Archive a project",
+        "description": "Sets `archived_at`, so the project leaves the default lists and stays readable and restorable. Archiving an archived project leaves it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -41799,7 +41860,7 @@
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "The result.",
             "headers": {
               "ETag": { "$ref": "#/components/headers/ETag" },
@@ -41827,7 +41888,85 @@
                   "project_state": "Active",
                   "currency": "USD",
                   "starts_on": "2026-10-08",
-                  "ends_on": "2026-10-08"
+                  "ends_on": "2026-10-08",
+                  "time_zone": "America/New_York",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "production_state": "Proposed",
+                  "archived_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/Project" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/projects/{id}/unarchive": {
+      "post": {
+        "operationId": "projects.unarchive",
+        "tags": ["Projects"],
+        "x-xos-table": "app.projects",
+        "x-xos-capability": "projects.project.archive",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Restore an archived project",
+        "description": "Clears `archived_at`, so the project returns to the default lists. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_key": "NWL-24",
+                  "name": "Harborfront Summer Series",
+                  "description": "Six weekend shows on the harbor lawn.",
+                  "workspace_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "jurisdiction_id": "US-FL",
+                  "region_code": "NA-SE-MIA",
+                  "tier_code": "04",
+                  "current_phase_code": "SCP",
+                  "project_state": "Active",
+                  "currency": "USD",
+                  "starts_on": "2026-10-08",
+                  "ends_on": "2026-10-08",
+                  "time_zone": "America/New_York",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "production_state": "Proposed",
+                  "archived_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -42271,10 +42410,11 @@
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "criterion_id": "G1.BUDGET_ENVELOPE",
                       "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "attested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "attested_at": "2026-10-08T14:30:00Z",
-                      "assertion_rank": 4
+                      "assertion_rank": 4,
+                      "evidence_uri": "urn:xpms:documents:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "note": "Signed by the venue manager."
                     }
                   ],
                   "next_cursor": null
@@ -42305,10 +42445,9 @@
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "criterion_id": "G1.BUDGET_ENVELOPE",
                 "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "attested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "attested_at": "2026-10-08T14:30:00Z",
-                "assertion_rank": 4
+                "assertion_rank": 4,
+                "evidence_uri": "urn:xpms:documents:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "note": "Signed by the venue manager."
               },
               "schema": { "$ref": "#/components/schemas/GateEvidenceCreate" }
             }
@@ -42335,10 +42474,11 @@
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "criterion_id": "G1.BUDGET_ENVELOPE",
                   "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "attested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "attested_at": "2026-10-08T14:30:00Z",
-                  "assertion_rank": 4
+                  "assertion_rank": 4,
+                  "evidence_uri": "urn:xpms:documents:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "note": "Signed by the venue manager."
                 },
                 "schema": { "$ref": "#/components/schemas/GateEvidence" }
               }
@@ -42397,10 +42537,11 @@
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "criterion_id": "G1.BUDGET_ENVELOPE",
                   "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "attested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "attested_at": "2026-10-08T14:30:00Z",
-                  "assertion_rank": 4
+                  "assertion_rank": 4,
+                  "evidence_uri": "urn:xpms:documents:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "note": "Signed by the venue manager."
                 },
                 "schema": { "$ref": "#/components/schemas/GateEvidence" }
               }
@@ -42409,83 +42550,6 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "patch": {
-        "operationId": "gateEvidence.update",
-        "tags": ["Projects"],
-        "x-xos-table": "app.gate_evidence",
-        "x-xos-capability": "projects.gate.evidence.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
-        "summary": "Update a gate evidence",
-        "description": "Evidence for a gate criterion. One evidence spine serves every criterion. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the gate evidence.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the gate evidence.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IfMatch" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "attested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "attested_at": "2026-10-08T14:30:00Z",
-                "assertion_rank": 4
-              },
-              "schema": { "$ref": "#/components/schemas/GateEvidenceUpdate" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The updated gate evidence.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "criterion_id": "G1.BUDGET_ENVELOPE",
-                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "attested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "attested_at": "2026-10-08T14:30:00Z",
-                  "assertion_rank": 4
-                },
-                "schema": { "$ref": "#/components/schemas/GateEvidence" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "412": { "$ref": "#/components/responses/PreconditionFailed" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "428": { "$ref": "#/components/responses/PreconditionRequired" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       },
@@ -42527,9 +42591,9 @@
         "x-xos-table": "app.activity_events",
         "x-xos-capability": "activity.feed.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["activity"] }],
-        "x-xos-order": { "by": ["occurred_at"], "numeric": false },
+        "x-xos-order": { "by": ["occurred_at"], "numeric": false, "descending": true },
         "summary": "List activity event rows",
-        "description": "A user-facing activity feed entry, separate from the compliance audit ledger. Returns a cursor page of activity event rows the caller may see. The default order is `occurred_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A user-facing activity feed entry, separate from the compliance audit ledger. Returns a cursor page of activity event rows the caller may see. The default order is `occurred_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },

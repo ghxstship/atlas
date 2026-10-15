@@ -24,6 +24,11 @@ export interface FieldPlacement {
 
 export interface AddedField extends FieldPlacement {
   readonly schema: z.ZodType;
+  /**
+   * The schema the create and update bodies accept, when it differs from the read shape: a
+   * column that is nullable for old rows but that every new row must fill.
+   */
+  readonly writeSchema?: z.ZodType;
 }
 
 export interface ShapeEdit {
@@ -135,17 +140,18 @@ export function editDefinition(def: ResourceDefinition, edit: ShapeEdit): Resour
   }
   for (const [f, added] of Object.entries(edit.add ?? {})) {
     r = { ...r, [f]: added.schema };
+    const write = added.writeSchema ?? added.schema;
     if (added.create !== undefined) {
       if (c === undefined) {
         throw new Error(`${def.name} is read-only; ${f} cannot be accepted on create.`);
       }
-      const optional = added.create === "optional" || isNullOrNullable(added.schema);
-      c = { ...c, [f]: optional ? added.schema.optional() : added.schema };
+      const optional = added.create === "optional" || isNullOrNullable(write);
+      c = { ...c, [f]: optional ? write.optional() : write };
     } else if (c !== undefined) {
       c = without(c, [f]);
     }
     if (added.update ?? added.create !== undefined) {
-      u = { ...(u ?? {}), [f]: added.schema.optional() };
+      u = { ...(u ?? {}), [f]: write.optional() };
     } else if (u !== undefined) {
       u = without(u, [f]);
     }
