@@ -33,6 +33,7 @@ const SUBJECT_TABLES = [
   "app.requisitions",
   "app.agreements",
   "app.role_assignments",
+  "app.offers",
 ] as const;
 
 const subject = z.object({ table: z.enum(SUBJECT_TABLES), id: z.uuid() });
