@@ -104,10 +104,13 @@ export function Dialog({
         <RDialog.Overlay className={scrimClass} />
         <div className="pointer-events-none fixed inset-0 z-dialog grid place-items-center p-16">
           <RDialog.Content
-            className={cx(panelClass, "xos-anim-dialog pointer-events-auto w-(--ui-dialog)")}
+            className={cx(
+              panelClass,
+              "xos-anim-dialog pointer-events-auto w-(--ui-dialog) flex flex-col max-h-full",
+            )}
             {...(description ? {} : { "aria-describedby": undefined })}
           >
-            <header className="px-20 pt-20">
+            <header className="shrink-0 px-20 pt-20">
               <RDialog.Title className="m-0 text-heading-16 font-semibold">{title}</RDialog.Title>
               {description ? (
                 <RDialog.Description className="mt-4 mb-0 text-text-secondary">
@@ -115,8 +118,11 @@ export function Dialog({
                 </RDialog.Description>
               ) : null}
             </header>
-            <div className="px-20 pt-8 pb-20 text-text-secondary">{children}</div>
-            <footer className="flex flex-wrap justify-end gap-8 px-20 py-12 border-t border-border-subtle">
+            {/* The body scrolls so a long body never pushes the actions out of the viewport. */}
+            <div className="min-h-0 overflow-y-auto overscroll-contain px-20 pt-8 pb-20 text-text-secondary">
+              {children}
+            </div>
+            <footer className="shrink-0 flex flex-wrap justify-end gap-8 px-20 py-12 border-t border-border-subtle">
               {actions}
             </footer>
           </RDialog.Content>
