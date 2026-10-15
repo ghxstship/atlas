@@ -1328,6 +1328,8 @@ var compass_default$1 = {
     deleteAccountHelp: "Deletes your account and the data you own. Opens Gateway to confirm.",
     version: "Version {version}",
     personal: "Personal settings",
+    biometric: "Biometric Unlock",
+    biometricHelp: "Ask for Face ID, Touch ID or your passcode when Compass opens.",
   },
   photo: {
     take: "Take Photo",
@@ -1345,6 +1347,13 @@ var compass_default$1 = {
     artist: "Artist",
     "artist-representative": "Artist Representative",
     sponsor: "Sponsor",
+  },
+  lock: {
+    title: "Compass is locked",
+    sentence: "Unlock with Face ID, Touch ID or your passcode to see your work.",
+    prompt: "Unlock Compass",
+    unlock: "Unlock",
+    failed: "That did not unlock Compass. Try again.",
   },
 };
 var crew_default$1 = {
@@ -8143,6 +8152,8 @@ var compass_default = {
     deleteAccountHelp: "Elimina tu cuenta y tus datos. Abre Gateway para confirmar.",
     version: "Versión {version}",
     personal: "Ajustes personales",
+    biometric: "Desbloqueo biométrico",
+    biometricHelp: "Pide Face ID, Touch ID o tu código al abrir Compass.",
   },
   photo: {
     take: "Tomar foto",
@@ -8160,6 +8171,13 @@ var compass_default = {
     artist: "Artista",
     "artist-representative": "Representante de artista",
     sponsor: "Patrocinador",
+  },
+  lock: {
+    title: "Compass está bloqueado",
+    sentence: "Desbloquea con Face ID, Touch ID o tu código para ver tu trabajo.",
+    prompt: "Desbloquear Compass",
+    unlock: "Desbloquear",
+    failed: "No se desbloqueó Compass. Vuelve a intentarlo.",
   },
 };
 var crew_default = {

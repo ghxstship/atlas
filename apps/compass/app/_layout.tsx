@@ -6,6 +6,7 @@ import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CompassProvider, useCompass } from "../src/runtime/CompassProvider";
 import { initI18n } from "../src/runtime/i18n";
+import { BiometricLock } from "../src/screens/BiometricLock";
 import { SignIn } from "../src/screens/SignIn";
 import { ErrorState, Screen, Skeleton, ThemeProvider, useTheme } from "../src/ui";
 
@@ -39,15 +40,20 @@ function Gatekeeper(): ReactElement {
   return (
     <View style={{ flex: 1, backgroundColor: theme.color.bgCanvas }}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: theme.color.bgCanvas },
-        }}
-      >
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="kiosk" options={{ gestureEnabled: settings.kioskDeviceKey === null }} />
-      </Stack>
+      <BiometricLock enabled={settings.biometric}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: theme.color.bgCanvas },
+          }}
+        >
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="kiosk"
+            options={{ gestureEnabled: settings.kioskDeviceKey === null }}
+          />
+        </Stack>
+      </BiometricLock>
     </View>
   );
 }

@@ -359,7 +359,9 @@
     "deleteAccount": "Eliminar cuenta",
     "deleteAccountHelp": "Elimina tu cuenta y tus datos. Abre Gateway para confirmar.",
     "version": "Versión {version}",
-    "personal": "Ajustes personales"
+    "personal": "Ajustes personales",
+    "biometric": "Desbloqueo biométrico",
+    "biometricHelp": "Pide Face ID, Touch ID o tu código al abrir Compass."
   },
   "photo": {
     "take": "Tomar foto",
@@ -379,5 +381,12 @@
     "artist": "Artista",
     "artist-representative": "Representante de artista",
     "sponsor": "Patrocinador"
+  },
+  "lock": {
+    "title": "Compass está bloqueado",
+    "sentence": "Desbloquea con Face ID, Touch ID o tu código para ver tu trabajo.",
+    "prompt": "Desbloquear Compass",
+    "unlock": "Desbloquear",
+    "failed": "No se desbloqueó Compass. Vuelve a intentarlo."
   }
 }

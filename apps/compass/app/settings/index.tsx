@@ -83,6 +83,13 @@ export default function SettingsScreen(): ReactElement {
           value={settings.lowData}
           onChange={(lowData) => updateSettings({ lowData })}
         />
+        <Switch
+          testID="settings-biometric"
+          label={t("compass.settings.biometric")}
+          help={t("compass.settings.biometricHelp")}
+          value={settings.biometric}
+          onChange={(biometric) => updateSettings({ biometric })}
+        />
       </Card>
       <Card>
         {canKiosk ? (

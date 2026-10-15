@@ -47,6 +47,7 @@ export interface CompassSettings {
   readonly lowData: boolean;
   /** Present while this device runs as a kiosk. Held in secure storage only. */
   readonly kioskDeviceKey: string | null;
+  readonly biometric: boolean;
 }
 
 const DEFAULT_SETTINGS: CompassSettings = {
@@ -55,6 +56,7 @@ const DEFAULT_SETTINGS: CompassSettings = {
   batterySaver: false,
   lowData: false,
   kioskDeviceKey: null,
+  biometric: false,
 };
 const SETTINGS_KEY = "xos.compass.settings";
 const PROJECT_KEY = "xos.compass.project";

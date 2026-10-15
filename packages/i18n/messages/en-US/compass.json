@@ -359,7 +359,9 @@
     "deleteAccount": "Delete Account",
     "deleteAccountHelp": "Deletes your account and the data you own. Opens Gateway to confirm.",
     "version": "Version {version}",
-    "personal": "Personal settings"
+    "personal": "Personal settings",
+    "biometric": "Biometric Unlock",
+    "biometricHelp": "Ask for Face ID, Touch ID or your passcode when Compass opens."
   },
   "photo": {
     "take": "Take Photo",
@@ -379,5 +381,12 @@
     "artist": "Artist",
     "artist-representative": "Artist Representative",
     "sponsor": "Sponsor"
+  },
+  "lock": {
+    "title": "Compass is locked",
+    "sentence": "Unlock with Face ID, Touch ID or your passcode to see your work.",
+    "prompt": "Unlock Compass",
+    "unlock": "Unlock",
+    "failed": "That did not unlock Compass. Try again."
   }
 }
