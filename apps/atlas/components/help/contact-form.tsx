@@ -27,17 +27,19 @@ export function ContactForm({
   platformChannel,
   diagnostics,
   onCancel,
+  initialQueue = "Organization",
 }: {
   org: string;
   canContactPlatform: boolean;
   platformChannel: SupportChannel | null;
   diagnostics: CollectedDiagnostics;
   onCancel: () => void;
+  initialQueue?: SupportQueue;
 }) {
   const t = useTranslations("help.contact") as unknown as Translate;
   const s = useTranslations("support") as unknown as Translate;
   const id = useId();
-  const [queue, setQueue] = useState<SupportQueue>("Organization");
+  const [queue, setQueue] = useState<SupportQueue>(initialQueue);
   const [category, setCategory] = useState<string>("Problem");
   const [severity, setSeverity] = useState<string>("Severity 3");
   const [subject, setSubject] = useState("");

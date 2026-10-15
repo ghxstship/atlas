@@ -32,6 +32,7 @@ import {
 import { phaseCode } from "@/lib/projects/format";
 import { ActionError, echoed, fieldError, useClosingAction } from "./action-error";
 import { CollectionViews } from "@/components/views/collection-views";
+import { CanonTerm } from "@/components/help/canon-term";
 
 type GateView = "list" | "board";
 
@@ -155,11 +156,17 @@ export function GatesView({
                       id={`gate-${ph.gate}`}
                       className="m-0 flex items-center gap-8 text-heading-16 font-semibold"
                     >
-                      <PhaseChip
-                        gate={ph.gate}
-                        code={phaseCode(ph.code)}
-                        name={phaseName(ph.code)}
-                      />
+                      <CanonTerm
+                        term={phaseName(ph.code)}
+                        definition={ph.definition}
+                        detail={ph.gateExit}
+                      >
+                        <PhaseChip
+                          gate={ph.gate}
+                          code={phaseCode(ph.code)}
+                          name={phaseName(ph.code)}
+                        />
+                      </CanonTerm>
                       <Tag
                         tone={s === "passed" ? "success" : s === "current" ? "accent" : "neutral"}
                       >

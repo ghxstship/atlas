@@ -3,7 +3,7 @@
 import { findRoute } from "@xos/ia";
 import { Button, Drawer, IconButton, Input, Keys } from "@xos/ui";
 import { useLocale, useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HELP_CONTENT } from "@/help/content.generated";
 import {
@@ -74,6 +74,7 @@ export function HelpCenter({ org }: { org: string }) {
   const t = useTranslations("help") as unknown as Translate;
   const locale = useLocale();
   const pathname = usePathname();
+  const search = useSearchParams();
   const lang: HelpLocale = (HELP_LOCALES as readonly string[]).includes(locale)
     ? (locale as HelpLocale)
     : "en-US";
@@ -168,6 +169,20 @@ export function HelpCenter({ org }: { org: string }) {
     },
     [org],
   );
+
+  // A replay link from Me, Preferences (`?tour=<key>`) starts that tour on its page.
+  const requestedTour = search.get("tour");
+  useEffect(() => {
+    const tour = pageTours.find((x) => x.key === requestedTour);
+    if (!tour) return;
+    let live = true;
+    void Promise.resolve().then(() => {
+      if (live) startTour(tour);
+    });
+    return () => {
+      live = false;
+    };
+  }, [requestedTour, pageTours, startTour]);
 
   const openArticle = (slug: string) => {
     setView({ kind: "article", slug });
@@ -397,9 +412,10 @@ export function HelpCenter({ org }: { org: string }) {
           tour={running.tour}
           step={running.step}
           t={t}
-          onMove={(step) => {
+          onMove={async (step) => {
             if (step >= running.tour.steps.length) {
-              void recordTourAction(org, running.tour.key, "Completed", running.tour.steps.length);
+              // Finishing waits for the save, so leaving the page right after never loses it.
+              await recordTourAction(org, running.tour.key, "Completed", running.tour.steps.length);
               setRunning(null);
             } else {
               void recordTourAction(org, running.tour.key, "Started", step);
@@ -441,7 +457,7 @@ function TourStep({
   tour: Tour;
   step: number;
   t: Translate;
-  onMove: (step: number) => void;
+  onMove: (step: number) => void | Promise<void>;
   onEnd: () => void;
 }) {
   const ref = useRef<HTMLElement>(null);
@@ -486,8 +502,10 @@ function TourStep({
         <Button variant="ghost" onClick={onEnd}>
           {t("tours.skip")}
         </Button>
-        {step > 0 ? <Button onClick={() => onMove(step - 1)}>{t("tours.previous")}</Button> : null}
-        <Button variant="primary" onClick={() => onMove(step + 1)}>
+        {step > 0 ? (
+          <Button onClick={() => void onMove(step - 1)}>{t("tours.previous")}</Button>
+        ) : null}
+        <Button variant="primary" onClick={() => void onMove(step + 1)}>
           {last ? t("tours.finish") : t("tours.next")}
         </Button>
       </div>
