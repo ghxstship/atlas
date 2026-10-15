@@ -403,10 +403,19 @@
     "bold": "Bold",
     "bullets": "Bulleted list",
     "checklist": "Checklist",
+    "divider": "Divider",
+    "heading": "Heading",
     "hint": "Type / for blocks, @ to mention, # to link a record.",
     "italic": "Italic",
     "link": "Link",
     "mention": "Mention",
+    "menu": {
+      "mention": "People to mention",
+      "record": "Records to link",
+      "slash": "Blocks to insert"
+    },
+    "noMatches": "No matches. Keep typing, or press Escape to close.",
+    "quote": "Quote",
     "table": "Table",
     "toolbar": "Formatting"
   },

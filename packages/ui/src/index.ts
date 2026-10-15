@@ -443,6 +443,8 @@ export {
   MapView,
   toLngLat,
   type RichTextEditorProps,
+  type SuggestionItem,
+  type SuggestionSource,
   type FilePreviewerProps,
   type MapViewProps,
   type MapGeo,
