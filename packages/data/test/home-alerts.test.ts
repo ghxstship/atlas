@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { GateReadiness, HomeRecord } from "../src/home";
-import type { ProjectSummary } from "../src/projects";
-import { buildAlerts } from "../src/home";
+import type { GateReadiness, HomeRecord } from "../src/home.ts";
+import type { ProjectSummary } from "../src/projects.ts";
+import { buildAlerts } from "../src/home.ts";
 
 const project = (over: Partial<ProjectSummary>): ProjectSummary => ({
   id: "p1",
