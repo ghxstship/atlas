@@ -15,6 +15,8 @@
  * (`test/corrections.test.ts`) fails on any change to a frozen operation or component that no entry
  * lists, and on an entry that changes nothing it lists.
  */
+import { fields } from "@xos/schemas";
+import { editShape, orNull } from "./correct.ts";
 import type { Module, ResourceSpec } from "./types.ts";
 
 /** The draft that introduced a correction. Released versions never take corrections. */
@@ -63,7 +65,40 @@ export interface ResolvedCorrection extends Correction {
 }
 
 /** Contract-wide corrections, applied before the module corrections. */
-export const CONTRACT_CORRECTIONS: readonly Correction[] = [];
+export const CONTRACT_CORRECTIONS: readonly Correction[] = [
+  {
+    id: "audit-columns-nullable",
+    since: "1.0.0-draft.2",
+    module: "Platform",
+    contractWide: true,
+    resources: {
+      where: "every tenant resource (ADR 0002 audit columns)",
+      select: (spec) => spec.def.base === "tenant",
+    },
+    change:
+      "`created_by` and `updated_by` become nullable in every tenant read shape; null means a seed, platform or system process wrote the row.",
+    reason:
+      "The audit columns of every app table are nullable and stamped by `t90_stamp_audit_columns` (0200) from the session person, which seed, platform and system writes do not have.",
+    apply: editShape({
+      add: {
+        created_by: {
+          schema: orNull(
+            fields.uuid(
+              "Identifier of the person who created the row; null when a seed, platform or system process created it.",
+            ),
+          ),
+        },
+        updated_by: {
+          schema: orNull(
+            fields.uuid(
+              "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
+            ),
+          ),
+        },
+      },
+    }),
+  },
+];
 
 /**
  * Resolves selectors to resource lists and checks every entry: unique ids, resources that exist in
