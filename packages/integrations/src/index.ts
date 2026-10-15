@@ -12,3 +12,4 @@ export * from "./connectors/calendar/index.ts";
 export * from "./connectors/storage/index.ts";
 export * from "./framework/messages.ts";
 export * from "./connectors/communication/index.ts";
+export * from "./connectors/payroll/index.ts";
