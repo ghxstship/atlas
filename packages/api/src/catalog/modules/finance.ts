@@ -180,7 +180,7 @@ export const additions = defineAdditions("Finance", {
               schema: fields.int("Change order number within the project.", 3, 1),
             },
             order_type_enum_id: {
-              schema: orNull(fields.code("Canon change order type.", "ScopeAddition")),
+              schema: orNull(fields.code("Canon change order type.", "ENM-092")),
               create: "optional",
             },
             priced_by: { schema: orNull(fields.ref("person who priced the change order")) },

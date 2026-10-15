@@ -16311,7 +16311,7 @@
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Canon change order type.",
-            "example": "ScopeAddition"
+            "example": "ENM-092"
           },
           "priced_by": {
             "type": ["string", "null"],
@@ -16373,7 +16373,7 @@
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Canon change order type.",
-            "example": "ScopeAddition"
+            "example": "ENM-092"
           }
         },
         "required": ["project_id", "title", "budget_id"],
@@ -16400,7 +16400,7 @@
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Canon change order type.",
-            "example": "ScopeAddition"
+            "example": "ENM-092"
           }
         },
         "description": "Fields accepted when updating a ChangeOrder. Omitted fields are unchanged."
@@ -70260,7 +70260,7 @@
                       "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                       "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "change_order_number": 3,
-                      "order_type_enum_id": "ScopeAddition",
+                      "order_type_enum_id": "ENM-092",
                       "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
@@ -70293,7 +70293,7 @@
                 "title": "Add Second Bar",
                 "reason": "Client added a second bar at the north lawn.",
                 "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "order_type_enum_id": "ScopeAddition"
+                "order_type_enum_id": "ENM-092"
               },
               "schema": { "$ref": "#/components/schemas/ChangeOrderCreate" }
             }
@@ -70325,7 +70325,7 @@
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "change_order_number": 3,
-                  "order_type_enum_id": "ScopeAddition",
+                  "order_type_enum_id": "ENM-092",
                   "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
@@ -70390,7 +70390,7 @@
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "change_order_number": 3,
-                  "order_type_enum_id": "ScopeAddition",
+                  "order_type_enum_id": "ENM-092",
                   "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
@@ -70433,7 +70433,7 @@
               "example": {
                 "title": "Add Second Bar",
                 "reason": "Client added a second bar at the north lawn.",
-                "order_type_enum_id": "ScopeAddition"
+                "order_type_enum_id": "ENM-092"
               },
               "schema": { "$ref": "#/components/schemas/ChangeOrderUpdate" }
             }
@@ -70465,7 +70465,7 @@
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "change_order_number": 3,
-                  "order_type_enum_id": "ScopeAddition",
+                  "order_type_enum_id": "ENM-092",
                   "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
@@ -70545,7 +70545,7 @@
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "change_order_number": 3,
-                  "order_type_enum_id": "ScopeAddition",
+                  "order_type_enum_id": "ENM-092",
                   "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
@@ -70611,7 +70611,7 @@
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
                   "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "change_order_number": 3,
-                  "order_type_enum_id": "ScopeAddition",
+                  "order_type_enum_id": "ENM-092",
                   "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
