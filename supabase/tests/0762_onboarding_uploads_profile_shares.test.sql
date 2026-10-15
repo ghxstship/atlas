@@ -26,7 +26,7 @@ values (pg_temp.id('org_a'), 'Certificate of Insurance', 'Document Upload', 'Cre
 select pg_temp.as_platform();
 with i as (
   insert into app.onboarding_items (engagement_id, onboarding_requirement_id)
-  select pg_temp.id('eng_ivy_a'), r.id from app.onboarding_requirements r where r.name = 'Certificate of Insurance'
+  select pg_temp.id('eng_ivy_a'), r.id from app.onboarding_requirements r where r.name = 'Certificate of Insurance' and r.org_id = pg_temp.id('org_a')
   returning id)
 insert into world select 'item_ivy', id from i;
 create function pg_temp.path(p_file text) returns text language sql as $$
