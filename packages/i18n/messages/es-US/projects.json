@@ -50,7 +50,10 @@
     "timeline": "Cronograma",
     "calendar": "Calendario",
     "tree": "Árbol",
-    "feed": "Actividad"
+    "feed": "Actividad",
+    "matrix": "Matriz",
+    "chart": "Gráfico",
+    "inbox": "Bandeja"
   },
   "fields": {
     "key": "Clave",
@@ -163,7 +166,10 @@
     "gate_evidence_reference": "La evidencia debe indicar un enlace a un documento o un registro.",
     "gate_evidence_immutable": "La evidencia no se puede editar. Retírala y certifica nueva evidencia.",
     "sod_self_grant": "No puedes agregarte a un proyecto. Pide a otro gerente que te agregue.",
-    "project_member_immutable": "Quita al miembro y agrégalo de nuevo en lugar de cambiar quién es."
+    "project_member_immutable": "Quita al miembro y agrégalo de nuevo en lugar de cambiar quién es.",
+    "comment": "Escribe un comentario de hasta 10,000 caracteres.",
+    "file": "Elige un archivo para adjuntar.",
+    "fileSize": "Los archivos pueden pesar hasta 50 MB. Elige un archivo más pequeño."
   },
   "transition": {
     "projectTitle": "Cambiar el estado del proyecto",
@@ -231,7 +237,13 @@
     "selected": "Nodo seleccionado",
     "selectHint": "Selecciona un nodo del árbol para cambiarle el nombre, agregar debajo o eliminarlo.",
     "emptyChildren": "Aún no hay nada debajo de este nodo. Agrega un recinto permanente o una función.",
-    "readOnly": "Puedes leer el árbol de alcance. Pide a un gerente del proyecto que lo cambie."
+    "readOnly": "Puedes leer el árbol de alcance. Pide a un gerente del proyecto que lo cambie.",
+    "matrixLabel": "Registros de {key} por departamento y fase",
+    "matrixCorner": "Departamento",
+    "matrixNote": "Cuenta los registros con una categoría y una fase. Los registros sin alguna de ellas no tienen coordenada.",
+    "addSubmit": "Agregar nodo",
+    "renameSubmit": "Guardar nombre",
+    "kindHelp": "Los recintos permanentes contienen funciones; una función puede estar bajo la raíz o bajo un recinto permanente."
   },
   "gates": {
     "title": "Puertas",
@@ -311,10 +323,34 @@
     "gatewayLead": "El acceso de clientes y patrocinadores a este proyecto se administra en la pestaña Encargos.",
     "gatewayLink": "Abrir encargos"
   },
-  "blocked": {
-    "comments": "Los comentarios en proyectos llegan con el sistema de comentarios compartido. Mientras tanto, registra las decisiones como evidencia de puerta o en el motivo del cambio de estado.",
-    "attachments": "Los archivos adjuntos llegan con el servicio de adjuntos compartido. Mientras tanto, enlaza los documentos como evidencia de puerta.",
+  "collab": {
     "commentsTitle": "Comentarios",
-    "attachmentsTitle": "Archivos adjuntos"
+    "noComments": "Aún no hay comentarios. Publica la primera nota para el equipo del proyecto.",
+    "addComment": "Agregar un comentario",
+    "post": "Publicar comentario",
+    "delete": "Eliminar",
+    "deleted": "Este comentario se eliminó.",
+    "edited": "Editado",
+    "unknownAuthor": "Antiguo miembro",
+    "attachmentsTitle": "Archivos adjuntos",
+    "noAttachments": "Aún no hay archivos. Adjunta contratos, planos o presentaciones que el equipo necesite.",
+    "noAttachmentsReadOnly": "Aún no hay archivos adjuntos en este proyecto.",
+    "addFile": "Archivo",
+    "upload": "Adjuntar archivo",
+    "download": "Descargar",
+    "remove": "Quitar",
+    "scanning": "Revisando si hay virus",
+    "infected": "Bloqueado por la revisión de virus"
+  },
+  "recordStates": {
+    "proposed": "Propuesto",
+    "ready": "Listo",
+    "scheduled": "Programado",
+    "active": "Activo",
+    "blocked": "Bloqueado",
+    "inReview": "En revisión",
+    "complete": "Completo",
+    "deferred": "Aplazado",
+    "canceled": "Cancelado"
   }
 }

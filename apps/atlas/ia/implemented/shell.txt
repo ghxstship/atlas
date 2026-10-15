@@ -1,3 +1,2 @@
 # Hand-written Atlas pages owned by the shell (A06). One sitemap node id per line.
-home
 legal

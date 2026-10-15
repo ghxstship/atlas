@@ -4,7 +4,7 @@ import { Button, Dialog, Input, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { createProjectAction, type ActionState } from "@/lib/projects/actions";
-import { ActionError, fieldError } from "./action-error";
+import { ActionError, echoed, fieldError } from "./action-error";
 
 export interface ProjectFormOptions {
   readonly jurisdictions: readonly { readonly value: string; readonly label: string }[];
@@ -58,7 +58,7 @@ export function ProjectFields({
           maxLength={5}
           width={120}
           label={t("create.key")}
-          defaultValue={values?.key ?? ""}
+          defaultValue={echoed(state, "key", values?.key ?? "")}
           disabled={disabled}
           error={err("key")}
         />
@@ -70,7 +70,7 @@ export function ProjectFields({
             width="100%"
             maxLength={200}
             label={t("create.name")}
-            defaultValue={values?.name ?? ""}
+            defaultValue={echoed(state, "name", values?.name ?? "")}
             disabled={disabled}
             error={err("name")}
           />
@@ -82,7 +82,7 @@ export function ProjectFields({
         name="timeZone"
         label={t("create.timeZone")}
         help={t("create.timeZoneHelp")}
-        value={values?.timeZone ?? options.defaultTimeZone}
+        value={echoed(state, "timeZone", values?.timeZone ?? options.defaultTimeZone)}
         options={options.timeZones.map((z) => ({ value: z, label: z }))}
         disabled={disabled}
         error={err("timeZone")}
@@ -92,7 +92,7 @@ export function ProjectFields({
         name="jurisdictionId"
         label={t("create.jurisdiction")}
         help={t("create.jurisdictionHelp")}
-        value={values?.jurisdictionId ?? ""}
+        value={echoed(state, "jurisdictionId", values?.jurisdictionId ?? "")}
         options={[choose, ...options.jurisdictions]}
         disabled={disabled}
       />
@@ -101,7 +101,7 @@ export function ProjectFields({
           id={`${idPrefix}-tier`}
           name="tierCode"
           label={t("create.tier")}
-          value={values?.tierCode ?? ""}
+          value={echoed(state, "tierCode", values?.tierCode ?? "")}
           options={[choose, ...options.tiers]}
           disabled={disabled}
         />
@@ -109,7 +109,7 @@ export function ProjectFields({
           id={`${idPrefix}-region`}
           name="regionCode"
           label={t("create.region")}
-          value={values?.regionCode ?? ""}
+          value={echoed(state, "regionCode", values?.regionCode ?? "")}
           options={[choose, ...options.regions]}
           disabled={disabled}
         />
@@ -119,7 +119,7 @@ export function ProjectFields({
           id={`${idPrefix}-venue`}
           name="venueId"
           label={t("create.venue")}
-          value={values?.venueId ?? ""}
+          value={echoed(state, "venueId", values?.venueId ?? "")}
           options={[choose, ...options.venues]}
           disabled={disabled}
         />
@@ -133,7 +133,7 @@ export function ProjectFields({
           type="date"
           width={200}
           label={t("create.startsOn")}
-          defaultValue={values?.startsOn ?? ""}
+          defaultValue={echoed(state, "startsOn", values?.startsOn ?? "")}
           disabled={disabled}
           error={err("startsOn")}
         />
@@ -143,7 +143,7 @@ export function ProjectFields({
           type="date"
           width={200}
           label={t("create.endsOn")}
-          defaultValue={values?.endsOn ?? ""}
+          defaultValue={echoed(state, "endsOn", values?.endsOn ?? "")}
           disabled={disabled}
           error={err("endsOn")}
         />
