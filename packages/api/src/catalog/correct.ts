@@ -52,6 +52,11 @@ export interface ShapeEdit {
   readonly immutable?: readonly string[];
   /** A new resource description, when the frozen one states something the schema does not do. */
   readonly description?: string;
+  /**
+   * The identifying field, when it changes. A renamed key follows its rename without this; set it
+   * when the frozen key is removed. The path parameter and default order follow the key.
+   */
+  readonly key?: string;
 }
 
 function metaOf(schema: z.ZodType): Record<string, unknown> {
@@ -183,8 +188,14 @@ export function editDefinition(def: ResourceDefinition, edit: ShapeEdit): Resour
           description: `Fields accepted when updating a ${def.name}. Omitted fields are unchanged.`,
         }
       : metaOf(def.update);
+  const key = edit.key ?? rename[def.key] ?? def.key;
+  if (def.key !== "" && !(key in r)) {
+    throw new Error(`Correction leaves ${def.name} without its key ${key}; set \`key\`.`);
+  }
   return {
     ...def,
+    key,
+    keySchema: key === def.key ? def.keySchema : (r[key] as z.ZodType),
     description: edit.description ?? def.description,
     read: rebuild(def.read, r, edit.description),
     create: def.create === undefined || c === undefined ? undefined : rebuild(def.create, c),
@@ -196,7 +207,35 @@ export function editDefinition(def: ResourceDefinition, edit: ShapeEdit): Resour
 
 /** Edits the definition of a resource. */
 export function editShape(edit: ShapeEdit) {
-  return (spec: ResourceSpec): ResourceSpec => ({ ...spec, def: editDefinition(spec.def, edit) });
+  return (spec: ResourceSpec): ResourceSpec => {
+    const def = editDefinition(spec.def, edit);
+    const fields = Object.keys(def.read.shape as Shape);
+    const by = spec.order.by.map((f) => edit.rename?.[f] ?? f).filter((f) => fields.includes(f));
+    const keyMoved = def.key !== spec.def.key;
+    return {
+      ...spec,
+      def,
+      keyParam: keyMoved && spec.keyParam === spec.def.key ? def.key : spec.keyParam,
+      order:
+        by.length === spec.order.by.length
+          ? {
+              ...spec.order,
+              by,
+              ...(spec.order.examples === undefined
+                ? {}
+                : {
+                    examples: spec.order.examples.map((row) =>
+                      Object.fromEntries(
+                        Object.entries(row)
+                          .map(([k, v]) => [edit.rename?.[k] ?? k, v] as const)
+                          .filter(([k]) => fields.includes(k)),
+                      ),
+                    ),
+                  }),
+            }
+          : { by: [def.key === "" ? (fields[0] as string) : def.key], numeric: false },
+    };
+  };
 }
 
 /** Removes standard verbs the schema cannot serve. */

@@ -912,16 +912,9 @@ export interface Components {
   CallSheetCreate: { day: string; project_id: string };
   CallSheetPage: { data: Array<Components["CallSheet"]>; next_cursor: string | null };
   CallSheetUpdate: { day?: string };
-  CanonAct: { ordinal: number; act: Components["ActCode"]; gates: string; definition: string };
+  CanonAct: { ordinal: number; act_code: Components["ActCode"]; definition: string };
   CanonActPage: { data: Array<Components["CanonAct"]>; next_cursor: string | null };
-  CanonAssertionRank: {
-    rank: number;
-    meaning: string;
-    economics: Components["AssertionLabel"] & (string | null);
-    compliance: Components["AssertionLabel"] & (string | null);
-    capability: Components["AssertionLabel"] & (string | null);
-    note: string | null;
-  };
+  CanonAssertionRank: { rank: number; meaning: string; note: string | null };
   CanonAssertionRankPage: {
     data: Array<Components["CanonAssertionRank"]>;
     next_cursor: string | null;
@@ -932,12 +925,7 @@ export interface Components {
     category: string;
     source: string;
   };
-  CanonCategoryGl: {
-    cat_urid: Components["Urid"];
-    disc_code: Components["DiscCode"];
-    dept_code: Components["DeptCode"];
-    account_code: Components["GlAccountCode"];
-  };
+  CanonCategoryGl: { cat_urid: Components["Urid"]; default_cost_center: string };
   CanonCategoryGlPage: { data: Array<Components["CanonCategoryGl"]>; next_cursor: string | null };
   CanonCategoryPage: { data: Array<Components["CanonCategory"]>; next_cursor: string | null };
   CanonCostCenterTemplate: {
@@ -982,9 +970,16 @@ export interface Components {
     common_name: string | null;
     kind: string;
     unit_basis: Components["UnitCode"];
-    grain: Components["GrainCode"];
     xyz: Components["Xyz"];
     xyz_basis: string;
+    grade: string;
+    description: string | null;
+    specification: string | null;
+    tier_code: Components["TierCode"];
+    lead_time_hours: number | null;
+    crew: string | null;
+    unspsc: string | null;
+    lifecycle_state: string;
   };
   CanonElementGtin: { gtin: string; element_id: Components["ItemId"]; confirmed_by: string };
   CanonElementGtinPage: { data: Array<Components["CanonElementGtin"]>; next_cursor: string | null };
@@ -1006,14 +1001,12 @@ export interface Components {
   };
   CanonElementPriceBand: {
     element_id: Components["ItemId"];
-    grade: Components["Grade"];
-    unit_price_minor: number | null;
-    currency: string;
-    assertion_rank: number;
-    effective_confidence: Components["AssertionLabel"] & (string | null);
-    valid_from: string;
+    valid_from: string | null;
     valid_to: string | null;
-    region_code: Components["RegionCode"];
+    grade_code: string;
+    amount_minor: number | null;
+    currency_code: string;
+    assertion_word: string | null;
   };
   CanonElementPriceBandPage: {
     data: Array<Components["CanonElementPriceBand"]>;
@@ -1033,7 +1026,7 @@ export interface Components {
   };
   CanonFacet: {
     facet: string;
-    form: string;
+    form: string | null;
     rolls_up_to: string | null;
     since: string | null;
     note: string | null;
@@ -1043,7 +1036,7 @@ export interface Components {
     gate: number;
     criterion_id: Components["CriterionId"];
     statement: string;
-    blocking: boolean;
+    is_blocking: boolean;
   };
   CanonGateCriterionPage: {
     data: Array<Components["CanonGateCriterion"]>;
@@ -1069,7 +1062,7 @@ export interface Components {
     class: string;
     issued_by: string;
     scope: string;
-    mutable: boolean;
+    is_mutable: boolean;
     rule: string;
     examples: string;
   };
@@ -1099,9 +1092,8 @@ export interface Components {
     level: string;
     country: string;
     parent: Components["JurisdictionId"];
-    unit_system: string;
-    currency: string;
-    primary_code_sets: string;
+    unit_system: string | null;
+    currency: string | null;
     status: string;
     note: string | null;
   };
@@ -1109,18 +1101,24 @@ export interface Components {
     data: Array<Components["CanonJurisdiction"]>;
     next_cursor: string | null;
   };
-  CanonLocale: { locale: string; name: string };
+  CanonLocale: {
+    locale_code: string;
+    name: string;
+    is_source: boolean;
+    release_stage: "general" | "beta";
+  };
   CanonLocalePage: { data: Array<Components["CanonLocale"]>; next_cursor: string | null };
   CanonMetric: {
     domain: string;
     item: string;
-    value: number;
+    value_numeric: number | null;
     qualifier: string | null;
-    source: string;
-    code_derived: boolean;
+    source: string | null;
+    is_code_derived: boolean;
     jurisdiction_id: Components["JurisdictionId"];
-    jurisdiction_neutral: boolean;
+    is_jurisdiction_neutral: boolean;
     provenance: Components["Provenance"];
+    value_text: string | null;
   };
   CanonMetricPage: { data: Array<Components["CanonMetric"]>; next_cursor: string | null };
   CanonPermitRule: {
@@ -1139,9 +1137,10 @@ export interface Components {
     gate: number;
     phase_code: Components["PhaseCode"];
     phase: string;
-    act: Components["ActCode"];
+    act_code: Components["ActCode"];
     definition: string;
     gate_exit: string;
+    is_redefined: boolean;
   };
   CanonPhasePage: { data: Array<Components["CanonPhase"]>; next_cursor: string | null };
   CanonProductionTemplate: { template_id: string; title: string; sheet_count: number };
@@ -1181,8 +1180,6 @@ export interface Components {
     record_kind: Components["RecordKind"];
     record_subtype: Components["RecordSubtype"];
     unspsc_segment: string | null;
-    gate: number | null;
-    phase_code: Components["PhaseCode"] & (string | null);
   };
   CanonRecordSubtypePage: {
     data: Array<Components["CanonRecordSubtype"]>;
@@ -1192,15 +1189,13 @@ export interface Components {
     region_code: Components["RegionCode"];
     name: string;
     jurisdiction_id: Components["JurisdictionId"];
-    currency: string;
-    cost_multiplier: number | null;
-    basis: boolean;
+    currency_code: string;
     note: string | null;
   };
   CanonRegionMultiplier: {
     region_code: Components["RegionCode"];
-    multiplier: number;
-    ratified: boolean;
+    cost_multiplier: number;
+    is_basis: boolean;
   };
   CanonRegionMultiplierPage: {
     data: Array<Components["CanonRegionMultiplier"]>;
@@ -1217,7 +1212,7 @@ export interface Components {
     job_title: string | null;
   };
   CanonRolePage: { data: Array<Components["CanonRole"]>; next_cursor: string | null };
-  CanonStalenessPolicy: { age_months_gte: number; action: string; detail: string };
+  CanonStalenessPolicy: { age_months_gte: number; action: string; detail: string | null };
   CanonStalenessPolicyPage: {
     data: Array<Components["CanonStalenessPolicy"]>;
     next_cursor: string | null;
@@ -1232,7 +1227,10 @@ export interface Components {
   CanonTeam: {
     team_id: Components["TeamId"];
     team: string;
-    rolls_to_dept_code: Components["DeptCode"];
+    dept_code: Components["DeptCode"];
+    workgroup_tag: string | null;
+    lead_role: string | null;
+    responsibilities: string | null;
   };
   CanonTeamPage: { data: Array<Components["CanonTeam"]>; next_cursor: string | null };
   CanonTier: { tier_code: Components["TierCode"]; tier: string };
@@ -1257,19 +1255,23 @@ export interface Components {
     next_cursor: string | null;
   };
   CanonTouchpointPage: { data: Array<Components["CanonTouchpoint"]>; next_cursor: string | null };
-  CanonUnitAlias: { alias: string; unit: Components["UnitCode"] };
+  CanonUnitAlias: {
+    alias: string;
+    unit_code: Components["UnitCode"];
+    dimension_code: string | null;
+  };
   CanonUnitAliasPage: { data: Array<Components["CanonUnitAlias"]>; next_cursor: string | null };
-  CanonUnitDimension: { unit: Components["UnitCode"]; dimension: string };
+  CanonUnitDimension: { dimension_code: string; name: string };
   CanonUnitDimensionPage: {
     data: Array<Components["CanonUnitDimension"]>;
     next_cursor: string | null;
   };
-  CanonUrnNamespace: { kind: string; resolves_to: string };
+  CanonUrnNamespace: { kind: string; table_name: string; key_column: string; label_column: string };
   CanonUrnNamespacePage: {
     data: Array<Components["CanonUrnNamespace"]>;
     next_cursor: string | null;
   };
-  CanonVersion: { version: string; generation: number; imported_at: string };
+  CanonVersion: { version_code: string; generation: number; bible_generated_at: string };
   CanonVersionPage: { data: Array<Components["CanonVersion"]>; next_cursor: string | null };
   Capability: {
     code: string;
@@ -1621,7 +1623,14 @@ export interface Components {
   };
   CrisisAlertPage: { data: Array<Components["CrisisAlert"]>; next_cursor: string | null };
   CriterionId: string;
-  CrosswalkCoverage: { urid: Components["Urid"]; element_count: number; gtin_mapped_count: number };
+  CrosswalkCoverage: {
+    cat_urid: Components["Urid"] | null;
+    element_count: number;
+    category: string | null;
+    unspsc_element_count: number | null;
+    gtin_element_count: number | null;
+    gtin_count: number | null;
+  };
   CrosswalkCoveragePage: {
     data: Array<Components["CrosswalkCoverage"]>;
     next_cursor: string | null;
@@ -2073,10 +2082,17 @@ export interface Components {
   EarningCodeUpdate: { earning_code?: string; name?: string; overtime?: boolean };
   ElementEconomics: {
     element_id: Components["ItemId"];
-    grade: Components["Grade"];
-    unit_price_minor: number | null;
-    currency: string;
+    currency_code: string;
     effective_confidence: Components["AssertionLabel"] & (string | null);
+    item: string | null;
+    urid: Components["Urid"] | null;
+    unit_basis: string | null;
+    grade_code: string | null;
+    amount_minor: number | null;
+    assertion_word: string | null;
+    valid_from: string | null;
+    valid_to: string | null;
+    is_unpriced: boolean | null;
   };
   ElementEconomicsPage: { data: Array<Components["ElementEconomics"]>; next_cursor: string | null };
   ElementResolution: {
@@ -4040,7 +4056,11 @@ export interface Components {
   PhaseCoverage: {
     phase_code: Components["PhaseCode"];
     active_element_count: number;
-    declared_gap: boolean;
+    gate: number | null;
+    phase: string | null;
+    element_count: number | null;
+    category_count: number | null;
+    has_active_element: boolean | null;
   };
   PhaseCoveragePage: { data: Array<Components["PhaseCoverage"]>; next_cursor: string | null };
   Plan: { code: string; sort_order: number };
@@ -5732,7 +5752,13 @@ export interface Components {
   StdCode: string;
   StdDocument: { code: Components["StdCode"]; title: string; urid: Components["UridAtAnyGrain"] };
   StdDocumentPage: { data: Array<Components["StdDocument"]>; next_cursor: string | null };
-  StdEmergencyCode: { code: Components["StdCode"]; name: string; response: string };
+  StdEmergencyCode: {
+    code: Components["StdCode"];
+    label: string;
+    emergency: string;
+    swatch: string;
+    sort_order: number;
+  };
   StdEmergencyCodePage: { data: Array<Components["StdEmergencyCode"]>; next_cursor: string | null };
   StdEnumeration: { code: Components["StdCode"]; enumeration: string; value: string };
   StdEnumerationPage: { data: Array<Components["StdEnumeration"]>; next_cursor: string | null };
@@ -14837,8 +14863,8 @@ export interface Operations {
   "canonActs.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/acts/{act}";
-    params: { act: Components["ActCode"] };
+    path: "/canon/acts/{act_code}";
+    params: { act_code: Components["ActCode"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["CanonAct"] };
@@ -15509,8 +15535,8 @@ export interface Operations {
   "canonUnitDimensions.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/unit-dimensions/{unit}";
-    params: { unit: Components["UnitCode"] };
+    path: "/canon/unit-dimensions/{dimension_code}";
+    params: { dimension_code: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["CanonUnitDimension"] };
@@ -15557,8 +15583,8 @@ export interface Operations {
   "canonLocales.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/locales/{locale}";
-    params: { locale: string };
+    path: "/canon/locales/{locale_code}";
+    params: { locale_code: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["CanonLocale"] };

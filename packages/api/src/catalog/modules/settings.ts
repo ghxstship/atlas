@@ -410,6 +410,7 @@ export const additions = defineAdditions("Settings", {
       apply: all(
         removeVerbs("get", "create", "update", "delete"),
         editShape({
+          key: "code",
           rename: { rule: "code" },
           remove: [
             "id",

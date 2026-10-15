@@ -28058,13 +28058,7 @@
             "description": "Act ordinal.",
             "example": 1
           },
-          "act": { "$ref": "#/components/schemas/ActCode" },
-          "gates": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Gate range the act groups.",
-            "example": "1-3"
-          },
+          "act_code": { "$ref": "#/components/schemas/ActCode" },
           "definition": {
             "type": "string",
             "minLength": 1,
@@ -28073,7 +28067,7 @@
             "example": "Everything before money is committed."
           }
         },
-        "required": ["ordinal", "act", "gates", "definition"],
+        "required": ["ordinal", "act_code", "definition"],
         "description": "An act: a presentation grouping of gates, never a control point."
       },
       "ActCode": {
@@ -28111,7 +28105,7 @@
             "description": "Phase name.",
             "example": "Scope"
           },
-          "act": { "$ref": "#/components/schemas/ActCode" },
+          "act_code": { "$ref": "#/components/schemas/ActCode" },
           "definition": {
             "type": "string",
             "minLength": 1,
@@ -28125,9 +28119,22 @@
             "maxLength": 20000,
             "description": "What must be true to pass the gate.",
             "example": "Go or no-go ratified."
+          },
+          "is_redefined": {
+            "type": "boolean",
+            "description": "True when 4.0 kept the code but redefined the phase (Advance).",
+            "example": false
           }
         },
-        "required": ["gate", "phase_code", "phase", "act", "definition", "gate_exit"],
+        "required": [
+          "gate",
+          "phase_code",
+          "phase",
+          "act_code",
+          "definition",
+          "gate_exit",
+          "is_redefined"
+        ],
         "description": "A gated phase. Nine phases with fixed, append-only ordinals."
       },
       "CanonGateCriterionPage": {
@@ -28159,13 +28166,13 @@
             "description": "Criterion statement.",
             "example": "A budget envelope exists and is approved."
           },
-          "blocking": {
+          "is_blocking": {
             "type": "boolean",
             "description": "Whether the criterion blocks the gate.",
             "example": true
           }
         },
-        "required": ["gate", "criterion_id", "statement", "blocking"],
+        "required": ["gate", "criterion_id", "statement", "is_blocking"],
         "description": "A gate criterion. Blocking criteria stop the gate transition in the database."
       },
       "CanonTierPage": {
@@ -28228,9 +28235,37 @@
             "description": "Team name.",
             "example": "Executive Leadership"
           },
-          "rolls_to_dept_code": { "$ref": "#/components/schemas/DeptCode" }
+          "dept_code": { "$ref": "#/components/schemas/DeptCode" },
+          "workgroup_tag": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Workgroup tag.",
+            "example": "FOH"
+          },
+          "lead_role": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Lead role of the team.",
+            "example": "Production Manager"
+          },
+          "responsibilities": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "What the team is responsible for.",
+            "example": "Front of house operations."
+          }
         },
-        "required": ["team_id", "team", "rolls_to_dept_code"],
+        "required": [
+          "team_id",
+          "team",
+          "dept_code",
+          "workgroup_tag",
+          "lead_role",
+          "responsibilities"
+        ],
         "description": "A canon team: a tag that rolls up to a department, never a tree level."
       },
       "TeamId": {
@@ -28409,23 +28444,16 @@
           },
           "parent": { "$ref": "#/components/schemas/JurisdictionId" },
           "unit_system": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Unit system.",
             "example": "imperial"
           },
           "currency": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
             "description": "Default currency of the jurisdiction.",
             "example": "USD"
-          },
-          "primary_code_sets": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Primary code sets in force.",
-            "example": "FBC, Florida Fire Prevention Code"
           },
           "status": {
             "type": "string",
@@ -28448,7 +28476,6 @@
           "parent",
           "unit_system",
           "currency",
-          "primary_code_sets",
           "status",
           "note"
         ],
@@ -28483,21 +28510,11 @@
             "example": "Miami and South Florida"
           },
           "jurisdiction_id": { "$ref": "#/components/schemas/JurisdictionId" },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "Currency of the region.",
             "example": "USD"
-          },
-          "cost_multiplier": {
-            "type": ["number", "null"],
-            "description": "Ratified cost multiplier; null when unratified.",
-            "example": 1
-          },
-          "basis": {
-            "type": "boolean",
-            "description": "Whether the region is the basis region.",
-            "example": true
           },
           "note": {
             "type": ["string", "null"],
@@ -28507,15 +28524,7 @@
             "example": "Basis region."
           }
         },
-        "required": [
-          "region_code",
-          "name",
-          "jurisdiction_id",
-          "currency",
-          "cost_multiplier",
-          "basis",
-          "note"
-        ],
+        "required": ["region_code", "name", "jurisdiction_id", "currency_code", "note"],
         "description": "A cost region. Only ratified multipliers answer; others refuse."
       },
       "CanonRegionMultiplierPage": {
@@ -28539,14 +28548,14 @@
         "type": "object",
         "properties": {
           "region_code": { "$ref": "#/components/schemas/RegionCode" },
-          "multiplier": { "type": "number", "description": "Cost multiplier.", "example": 1 },
-          "ratified": {
+          "cost_multiplier": { "type": "number", "description": "Cost multiplier.", "example": 1 },
+          "is_basis": {
             "type": "boolean",
-            "description": "Whether the multiplier is ratified.",
-            "example": true
+            "description": "True for the basis region the price bands were sourced in.",
+            "example": false
           }
         },
-        "required": ["region_code", "multiplier", "ratified"],
+        "required": ["region_code", "cost_multiplier", "is_basis"],
         "description": "A cost multiplier for a region, with its ratification."
       },
       "CanonEscalationIndexPage": {
@@ -28627,7 +28636,7 @@
             "example": "degrade"
           },
           "detail": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
             "description": "Detail of the action.",
@@ -28760,7 +28769,11 @@
             "description": "Metric item.",
             "example": "Stage or performance area"
           },
-          "value": { "type": "number", "description": "Metric value.", "example": 15 },
+          "value_numeric": {
+            "type": ["number", "null"],
+            "description": "Metric value.",
+            "example": 15
+          },
           "qualifier": {
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
@@ -28768,35 +28781,43 @@
             "example": "net"
           },
           "source": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Source of the value.",
             "example": "IBC 1004.5"
           },
-          "code_derived": {
+          "is_code_derived": {
             "type": "boolean",
             "description": "Whether the value comes from a code.",
             "example": true
           },
           "jurisdiction_id": { "$ref": "#/components/schemas/JurisdictionId" },
-          "jurisdiction_neutral": {
+          "is_jurisdiction_neutral": {
             "type": "boolean",
             "description": "Whether the value holds in every jurisdiction.",
             "example": false
           },
-          "provenance": { "$ref": "#/components/schemas/Provenance" }
+          "provenance": { "$ref": "#/components/schemas/Provenance" },
+          "value_text": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Value as text, when canon states it in words.",
+            "example": "Per show day"
+          }
         },
         "required": [
           "domain",
           "item",
-          "value",
+          "value_numeric",
           "qualifier",
           "source",
-          "code_derived",
+          "is_code_derived",
           "jurisdiction_id",
-          "jurisdiction_neutral",
-          "provenance"
+          "is_jurisdiction_neutral",
+          "provenance",
+          "value_text"
         ],
         "description": "A metric, often code-derived and jurisdiction-bound."
       },
@@ -28840,7 +28861,7 @@
             "description": "Where it is unique.",
             "example": "Global"
           },
-          "mutable": {
+          "is_mutable": {
             "type": "boolean",
             "description": "Whether it may change.",
             "example": false
@@ -28860,7 +28881,7 @@
             "example": "GTIN, MPN, UNSPSC"
           }
         },
-        "required": ["class", "issued_by", "scope", "mutable", "rule", "examples"],
+        "required": ["class", "issued_by", "scope", "is_mutable", "rule", "examples"],
         "description": "Identifier grammar: identifier, code or token (Section 3.6)."
       },
       "CanonGrainPage": {
@@ -29002,7 +29023,7 @@
             "example": "Phase"
           },
           "form": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Form of the facet.",
@@ -29065,24 +29086,6 @@
             "description": "Meaning of the rank.",
             "example": "Attested by a named accountable party."
           },
-          "economics": {
-            "allOf": [
-              { "$ref": "#/components/schemas/AssertionLabel" },
-              { "type": ["string", "null"] }
-            ]
-          },
-          "compliance": {
-            "allOf": [
-              { "$ref": "#/components/schemas/AssertionLabel" },
-              { "type": ["string", "null"] }
-            ]
-          },
-          "capability": {
-            "allOf": [
-              { "$ref": "#/components/schemas/AssertionLabel" },
-              { "type": ["string", "null"] }
-            ]
-          },
           "note": {
             "type": ["string", "null"],
             "minLength": 1,
@@ -29091,7 +29094,7 @@
             "example": "A vendor quote."
           }
         },
-        "required": ["rank", "meaning", "economics", "compliance", "capability", "note"],
+        "required": ["rank", "meaning", "note"],
         "description": "An assertion rank, 4 down to 0, across economics, compliance and capability."
       },
       "CanonRecordKindPage": {
@@ -29174,18 +29177,9 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "UNSPSC segment.",
             "example": "80"
-          },
-          "gate": {
-            "type": ["integer", "null"],
-            "minimum": 1,
-            "description": "Gate the subtype belongs to.",
-            "example": 1
-          },
-          "phase_code": {
-            "allOf": [{ "$ref": "#/components/schemas/PhaseCode" }, { "type": ["string", "null"] }]
           }
         },
-        "required": ["record_kind", "record_subtype", "unspsc_segment", "gate", "phase_code"],
+        "required": ["record_kind", "record_subtype", "unspsc_segment"],
         "description": "A kind-scoped record subtype."
       },
       "CanonRecordStatePage": {
@@ -29441,11 +29435,15 @@
         "type": "object",
         "properties": {
           "cat_urid": { "$ref": "#/components/schemas/Urid" },
-          "disc_code": { "$ref": "#/components/schemas/DiscCode" },
-          "dept_code": { "$ref": "#/components/schemas/DeptCode" },
-          "account_code": { "$ref": "#/components/schemas/GlAccountCode" }
+          "default_cost_center": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Default cost center (dimension 1) of the category.",
+            "example": "Production"
+          }
         },
-        "required": ["cat_urid", "disc_code", "dept_code", "account_code"],
+        "required": ["cat_urid", "default_cost_center"],
         "description": "The GL account each category posts to."
       },
       "CanonUnitAliasPage": {
@@ -29474,9 +29472,15 @@
             "description": "Alias as written.",
             "example": "ea"
           },
-          "unit": { "$ref": "#/components/schemas/UnitCode" }
+          "unit_code": { "$ref": "#/components/schemas/UnitCode" },
+          "dimension_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Dimension of the unit, once ratified.",
+            "example": "length"
+          }
         },
-        "required": ["alias", "unit"],
+        "required": ["alias", "unit_code", "dimension_code"],
         "description": "An alias of a controlled unit."
       },
       "CanonUnitDimensionPage": {
@@ -29499,15 +29503,20 @@
       "CanonUnitDimension": {
         "type": "object",
         "properties": {
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
-          "dimension": {
+          "dimension_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Dimension measured.",
-            "example": "count"
+            "description": "Dimension code.",
+            "example": "length"
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Dimension name.",
+            "example": "Length"
           }
         },
-        "required": ["unit", "dimension"],
+        "required": ["dimension_code", "name"],
         "description": "A controlled unit and the dimension it measures."
       },
       "CanonUrnNamespacePage": {
@@ -29536,15 +29545,26 @@
             "description": "URN kind.",
             "example": "category"
           },
-          "resolves_to": {
+          "table_name": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Table the kind resolves to.",
-            "example": "xpms.dim_category"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "xpms table holding the kind.",
+            "example": "elements"
+          },
+          "key_column": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Natural key column of that table.",
+            "example": "element_id"
+          },
+          "label_column": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Column holding the display label.",
+            "example": "item"
           }
         },
-        "required": ["kind", "resolves_to"],
+        "required": ["kind", "table_name", "key_column", "label_column"],
         "description": "A URN kind under `urn:xpms`."
       },
       "CanonLocalePage": {
@@ -29567,7 +29587,7 @@
       "CanonLocale": {
         "type": "object",
         "properties": {
-          "locale": {
+          "locale_code": {
             "type": "string",
             "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$",
             "description": "BCP 47 locale tag.",
@@ -29579,9 +29599,20 @@
             "maxLength": 200,
             "description": "Locale name.",
             "example": "English (United States)"
+          },
+          "is_source": {
+            "type": "boolean",
+            "description": "True for the source locale, en-US.",
+            "example": true
+          },
+          "release_stage": {
+            "type": "string",
+            "enum": ["general", "beta"],
+            "description": "Release stage.",
+            "example": "general"
           }
         },
-        "required": ["locale", "name"],
+        "required": ["locale_code", "name", "is_source", "release_stage"],
         "description": "A supported locale."
       },
       "CanonElementPage": {
@@ -29627,7 +29658,6 @@
             "example": "rental"
           },
           "unit_basis": { "$ref": "#/components/schemas/UnitCode" },
-          "grain": { "$ref": "#/components/schemas/GrainCode" },
           "xyz": { "$ref": "#/components/schemas/Xyz" },
           "xyz_basis": {
             "type": "string",
@@ -29635,6 +29665,51 @@
             "maxLength": 300,
             "description": "Basis for the XYZ tag.",
             "example": "Physical inventory"
+          },
+          "grade": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Experience grade of the element: Standard, Base, Elevated or Premium.",
+            "example": "Standard"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "Description, sentence case.",
+            "example": "Line array for outdoor stages."
+          },
+          "specification": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "Specification.",
+            "example": "12 cabinets per side."
+          },
+          "tier_code": { "$ref": "#/components/schemas/TierCode" },
+          "lead_time_hours": {
+            "type": ["number", "null"],
+            "description": "Lead time in hours.",
+            "example": 48
+          },
+          "crew": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Crew the element needs.",
+            "example": "2 audio technicians"
+          },
+          "unspsc": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "UNSPSC identifier; recorded, never minted.",
+            "example": "52161512"
+          },
+          "lifecycle_state": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Lifecycle state from the shared vocabulary.",
+            "example": "Active"
           }
         },
         "required": [
@@ -29644,9 +29719,16 @@
           "common_name",
           "kind",
           "unit_basis",
-          "grain",
           "xyz",
-          "xyz_basis"
+          "xyz_basis",
+          "grade",
+          "description",
+          "specification",
+          "tier_code",
+          "lead_time_hours",
+          "crew",
+          "unspsc",
+          "lifecycle_state"
         ],
         "description": "A catalog element, the unit of the catalog."
       },
@@ -29693,33 +29775,8 @@
         "type": "object",
         "properties": {
           "element_id": { "$ref": "#/components/schemas/ItemId" },
-          "grade": { "$ref": "#/components/schemas/Grade" },
-          "unit_price_minor": {
-            "type": ["integer", "null"],
-            "description": "Band unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
-            "example": 45000,
-            "format": "int64"
-          },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
-          },
-          "assertion_rank": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Assertion rank of the price.",
-            "example": 3
-          },
-          "effective_confidence": {
-            "allOf": [
-              { "$ref": "#/components/schemas/AssertionLabel" },
-              { "type": ["string", "null"] }
-            ]
-          },
           "valid_from": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "date",
             "description": "First day the band is valid.",
             "example": "2026-10-08"
@@ -29730,18 +29787,40 @@
             "description": "Last day the band is valid.",
             "example": "2026-10-08"
           },
-          "region_code": { "$ref": "#/components/schemas/RegionCode" }
+          "grade_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Price grade.",
+            "example": "standard"
+          },
+          "amount_minor": {
+            "type": ["integer", "null"],
+            "description": "Amount per unit in the basis region. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 125000,
+            "format": "int64"
+          },
+          "currency_code": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of the amount.",
+            "example": "USD"
+          },
+          "assertion_word": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Economics assertion word; null means canon states none and confidence resolves as no answer.",
+            "example": "Quoted"
+          }
         },
         "required": [
           "element_id",
-          "grade",
-          "unit_price_minor",
-          "currency",
-          "assertion_rank",
-          "effective_confidence",
           "valid_from",
           "valid_to",
-          "region_code"
+          "grade_code",
+          "amount_minor",
+          "currency_code",
+          "assertion_word"
         ],
         "description": "A price band for an element at one grade. Effective confidence is computed at read time from the staleness policy."
       },
@@ -30011,22 +30090,34 @@
         "type": "object",
         "properties": {
           "code": { "$ref": "#/components/schemas/StdCode" },
-          "name": {
+          "label": {
             "type": "string",
             "minLength": 1,
             "maxLength": 200,
             "description": "Code name.",
             "example": "Medical Assist"
           },
-          "response": {
+          "emergency": {
             "type": "string",
             "minLength": 1,
             "maxLength": 20000,
             "description": "Response procedure.",
             "example": "Dispatch the medical team to the location."
+          },
+          "swatch": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Design token of the swatch.",
+            "example": "ecode-red"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Order of first appearance in the Playbook.",
+            "example": 1
           }
         },
-        "required": ["code", "name", "response"],
+        "required": ["code", "label", "emergency", "swatch", "sort_order"],
         "description": "An emergency code. Standard Library row, copied into each new org as editable org data."
       },
       "StdEnumerationPage": {
@@ -30482,7 +30573,7 @@
       "CanonVersion": {
         "type": "object",
         "properties": {
-          "version": {
+          "version_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Canon version.",
@@ -30494,14 +30585,15 @@
             "description": "Canon generation, incremented by every canon data migration.",
             "example": 1
           },
-          "imported_at": {
+          "bible_generated_at": {
             "type": "string",
-            "format": "date-time",
-            "description": "When the generation was imported.",
-            "example": "2026-10-08T14:30:00Z"
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Generation time stated in the Bible _generated tab: a wall-clock time without a zone.",
+            "example": "2026-10-01 09:00:00"
           }
         },
-        "required": ["version", "generation", "imported_at"],
+        "required": ["version_code", "generation", "bible_generated_at"],
         "description": "The current canon version and generation. Canon responses are cached by generation."
       },
       "CanonIntakePage": {
@@ -30679,13 +30771,45 @@
             "description": "Active elements in the phase.",
             "example": 120
           },
-          "declared_gap": {
-            "type": "boolean",
-            "description": "Whether the phase carries a declared gap.",
-            "example": false
+          "gate": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Gate ordinal.",
+            "example": 3
+          },
+          "phase": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Phase label.",
+            "example": "Advance"
+          },
+          "element_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Elements participating in the phase.",
+            "example": 42
+          },
+          "category_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Distinct categories among participating elements.",
+            "example": 7
+          },
+          "has_active_element": {
+            "type": ["boolean", "null"],
+            "description": "True when at least one participating element is Active.",
+            "example": true
           }
         },
-        "required": ["phase_code", "active_element_count", "declared_gap"],
+        "required": [
+          "phase_code",
+          "active_element_count",
+          "gate",
+          "phase",
+          "element_count",
+          "category_count",
+          "has_active_element"
+        ],
         "description": "Coverage of a phase: Active elements or a declared gap."
       },
       "ElementEconomicsPage": {
@@ -30709,14 +30833,7 @@
         "type": "object",
         "properties": {
           "element_id": { "$ref": "#/components/schemas/ItemId" },
-          "grade": { "$ref": "#/components/schemas/Grade" },
-          "unit_price_minor": {
-            "type": ["integer", "null"],
-            "description": "Effective unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
-            "example": 45000,
-            "format": "int64"
-          },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
@@ -30727,9 +30844,72 @@
               { "$ref": "#/components/schemas/AssertionLabel" },
               { "type": ["string", "null"] }
             ]
+          },
+          "item": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Item name.",
+            "example": "Line Array"
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] },
+          "unit_basis": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Unit basis of the amount.",
+            "example": "day"
+          },
+          "grade_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Price grade.",
+            "example": "standard"
+          },
+          "amount_minor": {
+            "type": ["integer", "null"],
+            "description": "Amount per unit. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 125000,
+            "format": "int64"
+          },
+          "assertion_word": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Stated economics assertion of the band.",
+            "example": "Quoted"
+          },
+          "valid_from": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Date the band was sourced.",
+            "example": "2026-10-08"
+          },
+          "valid_to": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Date the band stops applying.",
+            "example": "2026-10-08"
+          },
+          "is_unpriced": {
+            "type": ["boolean", "null"],
+            "description": "True when the element has no band at this grade.",
+            "example": false
           }
         },
-        "required": ["element_id", "grade", "unit_price_minor", "currency", "effective_confidence"],
+        "required": [
+          "element_id",
+          "currency_code",
+          "effective_confidence",
+          "item",
+          "urid",
+          "unit_basis",
+          "grade_code",
+          "amount_minor",
+          "assertion_word",
+          "valid_from",
+          "valid_to",
+          "is_unpriced"
+        ],
         "description": "Element economics with effective confidence at read time."
       },
       "CrosswalkCoveragePage": {
@@ -30752,21 +30932,46 @@
       "CrosswalkCoverage": {
         "type": "object",
         "properties": {
-          "urid": { "$ref": "#/components/schemas/Urid" },
+          "cat_urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] },
           "element_count": {
             "type": "integer",
             "minimum": 0,
             "description": "Elements under the URID.",
             "example": 12
           },
-          "gtin_mapped_count": {
-            "type": "integer",
+          "category": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Category label.",
+            "example": "Audio"
+          },
+          "unspsc_element_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Elements carrying an UNSPSC identifier.",
+            "example": 12
+          },
+          "gtin_element_count": {
+            "type": ["integer", "null"],
             "minimum": 0,
             "description": "Elements with at least one confirmed GTIN.",
             "example": 4
+          },
+          "gtin_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Confirmed GTINs bound to elements of the category.",
+            "example": 9
           }
         },
-        "required": ["urid", "element_count", "gtin_mapped_count"],
+        "required": [
+          "cat_urid",
+          "element_count",
+          "category",
+          "unspsc_element_count",
+          "gtin_element_count",
+          "gtin_count"
+        ],
         "description": "Crosswalk coverage from GTIN to GPC brick to UNSPSC to URID."
       },
       "UrnResolution": {
@@ -89445,14 +89650,12 @@
                   "data": [
                     {
                       "ordinal": 1,
-                      "act": "PLAN",
-                      "gates": "1-3",
+                      "act_code": "PLAN",
                       "definition": "Everything before money is committed."
                     },
                     {
                       "ordinal": 2,
-                      "act": "BUILD",
-                      "gates": "4-6",
+                      "act_code": "BUILD",
                       "definition": "Everything before money is committed."
                     }
                   ],
@@ -89468,7 +89671,7 @@
         }
       }
     },
-    "/canon/acts/{act}": {
+    "/canon/acts/{act_code}": {
       "get": {
         "operationId": "canonActs.get",
         "tags": ["Canon"],
@@ -89482,7 +89685,7 @@
             "schema": { "$ref": "#/components/schemas/ActCode" },
             "required": true,
             "description": "Act from `xpms.dim_act`.",
-            "name": "act",
+            "name": "act_code",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -89500,8 +89703,7 @@
               "application/json": {
                 "example": {
                   "ordinal": 1,
-                  "act": "PLAN",
-                  "gates": "1-3",
+                  "act_code": "PLAN",
                   "definition": "Everything before money is committed."
                 },
                 "schema": { "$ref": "#/components/schemas/CanonAct" }
@@ -89548,17 +89750,19 @@
                       "gate": 1,
                       "phase_code": "SCP",
                       "phase": "Scope",
-                      "act": "PLAN",
+                      "act_code": "PLAN",
                       "definition": "What needs to happen.",
-                      "gate_exit": "Go or no-go ratified."
+                      "gate_exit": "Go or no-go ratified.",
+                      "is_redefined": false
                     },
                     {
                       "gate": 2,
                       "phase_code": "ENG",
                       "phase": "Engage",
-                      "act": "PLAN",
+                      "act_code": "PLAN",
                       "definition": "What needs to happen.",
-                      "gate_exit": "Go or no-go ratified."
+                      "gate_exit": "Go or no-go ratified.",
+                      "is_redefined": false
                     }
                   ],
                   "next_cursor": null
@@ -89607,9 +89811,10 @@
                   "gate": 1,
                   "phase_code": "SCP",
                   "phase": "Scope",
-                  "act": "PLAN",
+                  "act_code": "PLAN",
                   "definition": "What needs to happen.",
-                  "gate_exit": "Go or no-go ratified."
+                  "gate_exit": "Go or no-go ratified.",
+                  "is_redefined": false
                 },
                 "schema": { "$ref": "#/components/schemas/CanonPhase" }
               }
@@ -89655,13 +89860,13 @@
                       "gate": 1,
                       "criterion_id": "G1.BUDGET_ENVELOPE",
                       "statement": "A budget envelope exists and is approved.",
-                      "blocking": true
+                      "is_blocking": true
                     },
                     {
                       "gate": 2,
                       "criterion_id": "G2.CONTRACTS",
                       "statement": "A budget envelope exists and is approved.",
-                      "blocking": true
+                      "is_blocking": true
                     }
                   ],
                   "next_cursor": null
@@ -89710,7 +89915,7 @@
                   "gate": 1,
                   "criterion_id": "G1.BUDGET_ENVELOPE",
                   "statement": "A budget envelope exists and is approved.",
-                  "blocking": true
+                  "is_blocking": true
                 },
                 "schema": { "$ref": "#/components/schemas/CanonGateCriterion" }
               }
@@ -89841,12 +90046,18 @@
                     {
                       "team_id": "0000-T01",
                       "team": "Executive Leadership",
-                      "rolls_to_dept_code": "0000"
+                      "dept_code": "0000",
+                      "workgroup_tag": "FOH",
+                      "lead_role": "Production Manager",
+                      "responsibilities": "Front of house operations."
                     },
                     {
                       "team_id": "0000-T02",
                       "team": "Finance & Accounting",
-                      "rolls_to_dept_code": "0000"
+                      "dept_code": "0000",
+                      "workgroup_tag": "FOH",
+                      "lead_role": "Production Manager",
+                      "responsibilities": "Front of house operations."
                     }
                   ],
                   "next_cursor": null
@@ -89894,7 +90105,10 @@
                 "example": {
                   "team_id": "4000-T01",
                   "team": "Executive Leadership",
-                  "rolls_to_dept_code": "4000"
+                  "dept_code": "4000",
+                  "workgroup_tag": "FOH",
+                  "lead_role": "Production Manager",
+                  "responsibilities": "Front of house operations."
                 },
                 "schema": { "$ref": "#/components/schemas/CanonTeam" }
               }
@@ -90113,7 +90327,7 @@
       "get": {
         "operationId": "canonJurisdictions.list",
         "tags": ["Canon"],
-        "x-xos-table": "xpms.dim_jurisdiction",
+        "x-xos-table": "xpms.jurisdiction",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
         "x-xos-order": { "by": ["jurisdiction_id"], "numeric": false },
@@ -90145,7 +90359,6 @@
                       "parent": "US-FL",
                       "unit_system": "imperial",
                       "currency": "USD",
-                      "primary_code_sets": "FBC, Florida Fire Prevention Code",
                       "status": "populated",
                       "note": "Florida amendments to the model codes."
                     }
@@ -90166,7 +90379,7 @@
       "get": {
         "operationId": "canonJurisdictions.get",
         "tags": ["Canon"],
-        "x-xos-table": "xpms.dim_jurisdiction",
+        "x-xos-table": "xpms.jurisdiction",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
         "summary": "Get a canon jurisdiction",
@@ -90199,7 +90412,6 @@
                   "parent": "US-FL",
                   "unit_system": "imperial",
                   "currency": "USD",
-                  "primary_code_sets": "FBC, Florida Fire Prevention Code",
                   "status": "populated",
                   "note": "Florida amendments to the model codes."
                 },
@@ -90247,9 +90459,7 @@
                       "region_code": "NA-SE-MIA",
                       "name": "Miami and South Florida",
                       "jurisdiction_id": "US-FL",
-                      "currency": "USD",
-                      "cost_multiplier": 1,
-                      "basis": true,
+                      "currency_code": "USD",
                       "note": "Basis region."
                     }
                   ],
@@ -90299,9 +90509,7 @@
                   "region_code": "NA-SE-MIA",
                   "name": "Miami and South Florida",
                   "jurisdiction_id": "US-FL",
-                  "currency": "USD",
-                  "cost_multiplier": 1,
-                  "basis": true,
+                  "currency_code": "USD",
                   "note": "Basis region."
                 },
                 "schema": { "$ref": "#/components/schemas/CanonRegion" }
@@ -90343,7 +90551,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "data": [{ "region_code": "NA-SE-MIA", "multiplier": 1, "ratified": true }],
+                  "data": [{ "region_code": "NA-SE-MIA", "cost_multiplier": 1, "is_basis": false }],
                   "next_cursor": null
                 },
                 "schema": { "$ref": "#/components/schemas/CanonRegionMultiplierPage" }
@@ -90386,7 +90594,7 @@
             },
             "content": {
               "application/json": {
-                "example": { "region_code": "NA-SE-MIA", "multiplier": 1, "ratified": true },
+                "example": { "region_code": "NA-SE-MIA", "cost_multiplier": 1, "is_basis": false },
                 "schema": { "$ref": "#/components/schemas/CanonRegionMultiplier" }
               }
             }
@@ -90736,13 +90944,14 @@
                     {
                       "domain": "capacity",
                       "item": "Stage or performance area",
-                      "value": 15,
+                      "value_numeric": 15,
                       "qualifier": "net",
                       "source": "IBC 1004.5",
-                      "code_derived": true,
+                      "is_code_derived": true,
                       "jurisdiction_id": "US-FL",
-                      "jurisdiction_neutral": false,
-                      "provenance": "operator"
+                      "is_jurisdiction_neutral": false,
+                      "provenance": "operator",
+                      "value_text": "Per show day"
                     }
                   ],
                   "next_cursor": null
@@ -90796,13 +91005,14 @@
                 "example": {
                   "domain": "capacity",
                   "item": "Stage or performance area",
-                  "value": 15,
+                  "value_numeric": 15,
                   "qualifier": "net",
                   "source": "IBC 1004.5",
-                  "code_derived": true,
+                  "is_code_derived": true,
                   "jurisdiction_id": "US-FL",
-                  "jurisdiction_neutral": false,
-                  "provenance": "operator"
+                  "is_jurisdiction_neutral": false,
+                  "provenance": "operator",
+                  "value_text": "Per show day"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonMetric" }
               }
@@ -90848,7 +91058,7 @@
                       "class": "identifier",
                       "issued_by": "An external authority",
                       "scope": "Global",
-                      "mutable": false,
+                      "is_mutable": false,
                       "rule": "Recorded and validated, never minted.",
                       "examples": "GTIN, MPN, UNSPSC"
                     }
@@ -90904,7 +91114,7 @@
                   "class": "identifier",
                   "issued_by": "An external authority",
                   "scope": "Global",
-                  "mutable": false,
+                  "is_mutable": false,
                   "rule": "Recorded and validated, never minted.",
                   "examples": "GTIN, MPN, UNSPSC"
                 },
@@ -91248,9 +91458,6 @@
                     {
                       "rank": 4,
                       "meaning": "Attested by a named accountable party.",
-                      "economics": "QUOTED",
-                      "compliance": "QUOTED",
-                      "capability": "QUOTED",
                       "note": "A vendor quote."
                     }
                   ],
@@ -91304,9 +91511,6 @@
                 "example": {
                   "rank": 4,
                   "meaning": "Attested by a named accountable party.",
-                  "economics": "QUOTED",
-                  "compliance": "QUOTED",
-                  "capability": "QUOTED",
                   "note": "A vendor quote."
                 },
                 "schema": { "$ref": "#/components/schemas/CanonAssertionRank" }
@@ -91446,13 +91650,7 @@
               "application/json": {
                 "example": {
                   "data": [
-                    {
-                      "record_kind": "Task",
-                      "record_subtype": "Design",
-                      "unspsc_segment": "80",
-                      "gate": 1,
-                      "phase_code": "SCP"
-                    }
+                    { "record_kind": "Task", "record_subtype": "Design", "unspsc_segment": "80" }
                   ],
                   "next_cursor": null
                 },
@@ -91499,9 +91697,7 @@
                 "example": {
                   "record_kind": "Task",
                   "record_subtype": "Design",
-                  "unspsc_segment": "80",
-                  "gate": 1,
-                  "phase_code": "SCP"
+                  "unspsc_segment": "80"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonRecordSubtype" }
               }
@@ -92028,18 +92224,8 @@
               "application/json": {
                 "example": {
                   "data": [
-                    {
-                      "cat_urid": "0000.01.01",
-                      "disc_code": "4000.01",
-                      "dept_code": "4000",
-                      "account_code": "5400"
-                    },
-                    {
-                      "cat_urid": "0000.02.01",
-                      "disc_code": "4000.01",
-                      "dept_code": "4000",
-                      "account_code": "5400"
-                    }
+                    { "cat_urid": "0000.01.01", "default_cost_center": "Production" },
+                    { "cat_urid": "0000.02.01", "default_cost_center": "Production" }
                   ],
                   "next_cursor": null
                 },
@@ -92083,12 +92269,7 @@
             },
             "content": {
               "application/json": {
-                "example": {
-                  "cat_urid": "4000.01.01",
-                  "disc_code": "4000.01",
-                  "dept_code": "4000",
-                  "account_code": "5400"
-                },
+                "example": { "cat_urid": "4000.01.01", "default_cost_center": "Production" },
                 "schema": { "$ref": "#/components/schemas/CanonCategoryGl" }
               }
             }
@@ -92127,7 +92308,10 @@
             },
             "content": {
               "application/json": {
-                "example": { "data": [{ "alias": "ea", "unit": "each" }], "next_cursor": null },
+                "example": {
+                  "data": [{ "alias": "ea", "unit_code": "each", "dimension_code": "length" }],
+                  "next_cursor": null
+                },
                 "schema": { "$ref": "#/components/schemas/CanonUnitAliasPage" }
               }
             }
@@ -92173,7 +92357,7 @@
             },
             "content": {
               "application/json": {
-                "example": { "alias": "ea", "unit": "each" },
+                "example": { "alias": "ea", "unit_code": "each", "dimension_code": "length" },
                 "schema": { "$ref": "#/components/schemas/CanonUnitAlias" }
               }
             }
@@ -92192,9 +92376,9 @@
         "x-xos-table": "xpms.dim_unit_dimension",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["unit"], "numeric": false },
+        "x-xos-order": { "by": ["dimension_code"], "numeric": false },
         "summary": "List canon unit dimension rows",
-        "description": "A controlled unit and the dimension it measures. Returns a cursor page of canon unit dimension rows the caller may see. The default order is `unit` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A controlled unit and the dimension it measures. Returns a cursor page of canon unit dimension rows the caller may see. The default order is `dimension_code` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -92213,7 +92397,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "data": [{ "unit": "each", "dimension": "count" }],
+                  "data": [{ "dimension_code": "length", "name": "Length" }],
                   "next_cursor": null
                 },
                 "schema": { "$ref": "#/components/schemas/CanonUnitDimensionPage" }
@@ -92226,7 +92410,7 @@
         }
       }
     },
-    "/canon/unit-dimensions/{unit}": {
+    "/canon/unit-dimensions/{dimension_code}": {
       "get": {
         "operationId": "canonUnitDimensions.get",
         "tags": ["Canon"],
@@ -92237,10 +92421,15 @@
         "description": "A controlled unit and the dimension it measures. Returns one canon unit dimension with its `ETag`. A canon unit dimension the caller may not see returns 404.",
         "parameters": [
           {
-            "schema": { "$ref": "#/components/schemas/UnitCode" },
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+              "description": "Dimension code.",
+              "example": "length"
+            },
             "required": true,
-            "description": "Unit basis from the controlled unit list in `xpms.dim_unit_alias`.",
-            "name": "unit",
+            "description": "Dimension code.",
+            "name": "dimension_code",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -92256,7 +92445,7 @@
             },
             "content": {
               "application/json": {
-                "example": { "unit": "each", "dimension": "count" },
+                "example": { "dimension_code": "length", "name": "Length" },
                 "schema": { "$ref": "#/components/schemas/CanonUnitDimension" }
               }
             }
@@ -92296,7 +92485,14 @@
             "content": {
               "application/json": {
                 "example": {
-                  "data": [{ "kind": "category", "resolves_to": "xpms.dim_category" }],
+                  "data": [
+                    {
+                      "kind": "category",
+                      "table_name": "elements",
+                      "key_column": "element_id",
+                      "label_column": "item"
+                    }
+                  ],
                   "next_cursor": null
                 },
                 "schema": { "$ref": "#/components/schemas/CanonUrnNamespacePage" }
@@ -92344,7 +92540,12 @@
             },
             "content": {
               "application/json": {
-                "example": { "kind": "category", "resolves_to": "xpms.dim_category" },
+                "example": {
+                  "kind": "category",
+                  "table_name": "elements",
+                  "key_column": "element_id",
+                  "label_column": "item"
+                },
                 "schema": { "$ref": "#/components/schemas/CanonUrnNamespace" }
               }
             }
@@ -92363,9 +92564,9 @@
         "x-xos-table": "xpms.dim_locale",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["locale"], "numeric": false },
+        "x-xos-order": { "by": ["locale_code"], "numeric": false },
         "summary": "List canon locale rows",
-        "description": "A supported locale. Returns a cursor page of canon locale rows the caller may see. The default order is `locale` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A supported locale. Returns a cursor page of canon locale rows the caller may see. The default order is `locale_code` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -92384,7 +92585,14 @@
             "content": {
               "application/json": {
                 "example": {
-                  "data": [{ "locale": "en-US", "name": "English (United States)" }],
+                  "data": [
+                    {
+                      "locale_code": "en-US",
+                      "name": "English (United States)",
+                      "is_source": true,
+                      "release_stage": "general"
+                    }
+                  ],
                   "next_cursor": null
                 },
                 "schema": { "$ref": "#/components/schemas/CanonLocalePage" }
@@ -92397,7 +92605,7 @@
         }
       }
     },
-    "/canon/locales/{locale}": {
+    "/canon/locales/{locale_code}": {
       "get": {
         "operationId": "canonLocales.get",
         "tags": ["Canon"],
@@ -92416,7 +92624,7 @@
             },
             "required": true,
             "description": "BCP 47 locale tag.",
-            "name": "locale",
+            "name": "locale_code",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -92432,7 +92640,12 @@
             },
             "content": {
               "application/json": {
-                "example": { "locale": "en-US", "name": "English (United States)" },
+                "example": {
+                  "locale_code": "en-US",
+                  "name": "English (United States)",
+                  "is_source": true,
+                  "release_stage": "general"
+                },
                 "schema": { "$ref": "#/components/schemas/CanonLocale" }
               }
             }
@@ -92480,9 +92693,16 @@
                       "common_name": "Stage deck",
                       "kind": "rental",
                       "unit_basis": "each",
-                      "grain": "unit",
                       "xyz": "X",
-                      "xyz_basis": "Physical inventory"
+                      "xyz_basis": "Physical inventory",
+                      "grade": "Standard",
+                      "description": "Line array for outdoor stages.",
+                      "specification": "12 cabinets per side.",
+                      "tier_code": "04",
+                      "lead_time_hours": 48,
+                      "crew": "2 audio technicians",
+                      "unspsc": "52161512",
+                      "lifecycle_state": "Active"
                     },
                     {
                       "element_id": "4000.01.01-XPMS-001",
@@ -92491,9 +92711,16 @@
                       "common_name": "Stage deck",
                       "kind": "rental",
                       "unit_basis": "each",
-                      "grain": "unit",
                       "xyz": "X",
-                      "xyz_basis": "Physical inventory"
+                      "xyz_basis": "Physical inventory",
+                      "grade": "Standard",
+                      "description": "Line array for outdoor stages.",
+                      "specification": "12 cabinets per side.",
+                      "tier_code": "04",
+                      "lead_time_hours": 48,
+                      "crew": "2 audio technicians",
+                      "unspsc": "52161512",
+                      "lifecycle_state": "Active"
                     }
                   ],
                   "next_cursor": null
@@ -92545,9 +92772,16 @@
                   "common_name": "Stage deck",
                   "kind": "rental",
                   "unit_basis": "each",
-                  "grain": "unit",
                   "xyz": "X",
-                  "xyz_basis": "Physical inventory"
+                  "xyz_basis": "Physical inventory",
+                  "grade": "Standard",
+                  "description": "Line array for outdoor stages.",
+                  "specification": "12 cabinets per side.",
+                  "tier_code": "04",
+                  "lead_time_hours": 48,
+                  "crew": "2 audio technicians",
+                  "unspsc": "52161512",
+                  "lifecycle_state": "Active"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonElement" }
               }
@@ -92636,25 +92870,21 @@
                   "data": [
                     {
                       "element_id": "4000.01.01-XPMS-001",
-                      "grade": "Elevated",
-                      "unit_price_minor": 45000,
-                      "currency": "USD",
-                      "assertion_rank": 3,
-                      "effective_confidence": "QUOTED",
                       "valid_from": "2026-10-08",
                       "valid_to": "2026-10-08",
-                      "region_code": "NA-SE-MIA"
+                      "grade_code": "standard",
+                      "amount_minor": 125000,
+                      "currency_code": "USD",
+                      "assertion_word": "Quoted"
                     },
                     {
                       "element_id": "4000.01.01-XPMS-002",
-                      "grade": "Elevated",
-                      "unit_price_minor": 45000,
-                      "currency": "USD",
-                      "assertion_rank": 3,
-                      "effective_confidence": "QUOTED",
                       "valid_from": "2026-10-08",
                       "valid_to": "2026-10-08",
-                      "region_code": "NA-SE-MIA"
+                      "grade_code": "standard",
+                      "amount_minor": 125000,
+                      "currency_code": "USD",
+                      "assertion_word": "Quoted"
                     }
                   ],
                   "next_cursor": null
@@ -93149,7 +93379,7 @@
       "get": {
         "operationId": "canonStdEmergencyCodes.list",
         "tags": ["Canon"],
-        "x-xos-table": "xpms.std_emergency_code",
+        "x-xos-table": "xpms.emergency_code",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
         "x-xos-order": { "by": ["code"], "numeric": true },
@@ -93176,13 +93406,17 @@
                   "data": [
                     {
                       "code": "10",
-                      "name": "Medical Assist",
-                      "response": "Dispatch the medical team to the location."
+                      "label": "Medical Assist",
+                      "emergency": "Dispatch the medical team to the location.",
+                      "swatch": "ecode-red",
+                      "sort_order": 1
                     },
                     {
                       "code": "20",
-                      "name": "Medical Assist",
-                      "response": "Dispatch the medical team to the location."
+                      "label": "Medical Assist",
+                      "emergency": "Dispatch the medical team to the location.",
+                      "swatch": "ecode-red",
+                      "sort_order": 1
                     }
                   ],
                   "next_cursor": null
@@ -93201,7 +93435,7 @@
       "get": {
         "operationId": "canonStdEmergencyCodes.get",
         "tags": ["Canon"],
-        "x-xos-table": "xpms.std_emergency_code",
+        "x-xos-table": "xpms.emergency_code",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
         "summary": "Get a std emergency code",
@@ -93229,8 +93463,10 @@
               "application/json": {
                 "example": {
                   "code": "SOP-001",
-                  "name": "Medical Assist",
-                  "response": "Dispatch the medical team to the location."
+                  "label": "Medical Assist",
+                  "emergency": "Dispatch the medical team to the location.",
+                  "swatch": "ecode-red",
+                  "sort_order": 1
                 },
                 "schema": { "$ref": "#/components/schemas/StdEmergencyCode" }
               }
@@ -94293,7 +94529,11 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "version": "4.0", "generation": 1, "imported_at": "2026-10-08T14:30:00Z" }
+                    {
+                      "version_code": "4.0",
+                      "generation": 1,
+                      "bible_generated_at": "2026-10-01 09:00:00"
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -94343,9 +94583,9 @@
             "content": {
               "application/json": {
                 "example": {
-                  "version": "4.0",
+                  "version_code": "4.0",
                   "generation": 1,
-                  "imported_at": "2026-10-08T14:30:00Z"
+                  "bible_generated_at": "2026-10-01 09:00:00"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonVersion" }
               }
@@ -94594,7 +94834,15 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "phase_code": "SCP", "active_element_count": 120, "declared_gap": false }
+                    {
+                      "phase_code": "SCP",
+                      "active_element_count": 120,
+                      "gate": 3,
+                      "phase": "Advance",
+                      "element_count": 42,
+                      "category_count": 7,
+                      "has_active_element": true
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -94639,10 +94887,17 @@
                   "data": [
                     {
                       "element_id": "4000.01.01-XPMS-001",
-                      "grade": "Elevated",
-                      "unit_price_minor": 45000,
-                      "currency": "USD",
-                      "effective_confidence": "QUOTED"
+                      "currency_code": "USD",
+                      "effective_confidence": "QUOTED",
+                      "item": "Line Array",
+                      "urid": "4000.01.01",
+                      "unit_basis": "day",
+                      "grade_code": "standard",
+                      "amount_minor": 125000,
+                      "assertion_word": "Quoted",
+                      "valid_from": "2026-10-08",
+                      "valid_to": "2026-10-08",
+                      "is_unpriced": false
                     }
                   ],
                   "next_cursor": null
@@ -94664,9 +94919,9 @@
         "x-xos-table": "xpms.v_crosswalk_coverage",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["urid"], "numeric": true },
+        "x-xos-order": { "by": ["cat_urid"], "numeric": true },
         "summary": "List crosswalk coverage rows",
-        "description": "Crosswalk coverage from GTIN to GPC brick to UNSPSC to URID. Returns a cursor page of crosswalk coverage rows the caller may see. Coded list: the default order is numeric code order by `urid`. Supports sparse fieldsets and the filter grammar.",
+        "description": "Crosswalk coverage from GTIN to GPC brick to UNSPSC to URID. Returns a cursor page of crosswalk coverage rows the caller may see. Coded list: the default order is numeric code order by `cat_urid`. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -94686,8 +94941,22 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "urid": "4000.01.01", "element_count": 12, "gtin_mapped_count": 4 },
-                    { "urid": "4000.01.02", "element_count": 12, "gtin_mapped_count": 4 }
+                    {
+                      "cat_urid": "4000.01.01",
+                      "element_count": 12,
+                      "category": "Audio",
+                      "unspsc_element_count": 12,
+                      "gtin_element_count": 4,
+                      "gtin_count": 9
+                    },
+                    {
+                      "cat_urid": "4000.01.02",
+                      "element_count": 12,
+                      "category": "Audio",
+                      "unspsc_element_count": 12,
+                      "gtin_element_count": 4,
+                      "gtin_count": 9
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -100377,9 +100646,9 @@
         "x-xos-table": "app.plans",
         "x-xos-capability": "org.billing.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "x-xos-order": { "by": ["plan_code"], "numeric": false },
+        "x-xos-order": { "by": ["code"], "numeric": false },
         "summary": "List plan rows",
-        "description": "A plan generated from `plans.yaml`. Returns a cursor page of plan rows the caller may see. The default order is `plan_code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A plan generated from `plans.yaml`. Returns a cursor page of plan rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -102430,9 +102699,9 @@
         "x-xos-table": "app.capabilities",
         "x-xos-capability": "org.members.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "x-xos-order": { "by": ["capability"], "numeric": false },
+        "x-xos-order": { "by": ["code"], "numeric": false },
         "summary": "List capability rows",
-        "description": "A capability from `packages/schemas/capabilities.yaml`. Read-only. Returns a cursor page of capability rows the caller may see. The default order is `capability` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A capability from `packages/schemas/capabilities.yaml`. Read-only. Returns a cursor page of capability rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -103854,9 +104123,9 @@
         "x-xos-table": "app.separation_of_duties_rules",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "x-xos-order": { "by": ["code"], "numeric": false },
         "summary": "List separation of duties rule rows",
-        "description": "A separation of duties rule. Orgs may tighten defaults but never remove them. Returns a cursor page of separation of duties rule rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A separation of duties rule. Orgs may tighten defaults but never remove them. Returns a cursor page of separation of duties rule rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -106868,9 +107137,9 @@
         "x-xos-table": "app.domain_event_catalog",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "x-xos-order": { "by": ["event"], "numeric": false },
+        "x-xos-order": { "by": ["code"], "numeric": false },
         "summary": "List webhook event type rows",
-        "description": "A webhook event from the domain event table. Returns a cursor page of webhook event type rows the caller may see. The default order is `event` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A webhook event from the domain event table. Returns a cursor page of webhook event type rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -107416,9 +107685,9 @@
         "x-xos-table": "app.audit_events",
         "x-xos-capability": "audit.log.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["audit"] }],
-        "x-xos-order": { "by": ["occurred_at"], "numeric": false },
+        "x-xos-order": { "by": ["id"], "numeric": false },
         "summary": "List audit event rows",
-        "description": "An append-only compliance audit event, retained 7 years. Returns a cursor page of audit event rows the caller may see. The default order is `occurred_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "An append-only compliance audit event, retained 7 years. Returns a cursor page of audit event rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -112176,9 +112445,9 @@
         "x-xos-table": "app.import_row_results",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "x-xos-order": { "by": ["source_row"], "numeric": false },
+        "x-xos-order": { "by": ["id"], "numeric": false },
         "summary": "List import row result rows",
-        "description": "The validation result of one imported row, with a reason per cell. Returns a cursor page of import row result rows the caller may see. The default order is `source_row` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "The validation result of one imported row, with a reason per cell. Returns a cursor page of import row result rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
