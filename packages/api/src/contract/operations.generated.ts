@@ -480,12 +480,11 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    element_id: Components["ItemId"];
-    urid: Components["Urid"];
+    element_id: string;
   };
-  AssetClassCreate: { name: string; element_id?: Components["ItemId"]; urid: Components["Urid"] };
+  AssetClassCreate: { name: string; element_id: string };
   AssetClassPage: { data: Array<Components["AssetClass"]>; next_cursor: string | null };
-  AssetClassUpdate: { name?: string; element_id?: Components["ItemId"]; urid?: Components["Urid"] };
+  AssetClassUpdate: { name?: string; element_id?: string };
   AssetCustody: {
     id: string;
     org_id: string;
@@ -494,16 +493,19 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     asset_unit_id: string;
-    custodian_person_id: string | null;
-    custodian_organization_id: string | null;
-    location_venue_id: string | null;
-    recorded_at: string;
+    custodian_membership_id: string | null;
+    custodian_engagement_id: string | null;
+    venue_id: string | null;
+    project_id: string | null;
+    note: string | null;
   };
   AssetCustodyCreate: {
     asset_unit_id: string;
-    custodian_person_id?: string | null;
-    custodian_organization_id?: string | null;
-    location_venue_id?: string | null;
+    custodian_membership_id?: string | null;
+    custodian_engagement_id?: string | null;
+    venue_id?: string | null;
+    project_id?: string | null;
+    note?: string | null;
   };
   AssetCustodyPage: { data: Array<Components["AssetCustody"]>; next_cursor: string | null };
   AssetDamage: {
@@ -516,16 +518,23 @@ export interface Components {
     asset_unit_id: string;
     reported_at: string;
     description: string;
-    engagement_id: string | null;
+    project_id: string | null;
+    responsible_counterparty_id: string | null;
   };
   AssetDamageCreate: {
     asset_unit_id: string;
-    reported_at: string;
+    reported_at?: string;
     description: string;
-    engagement_id?: string | null;
+    project_id?: string | null;
+    responsible_counterparty_id?: string | null;
   };
   AssetDamagePage: { data: Array<Components["AssetDamage"]>; next_cursor: string | null };
-  AssetDamageUpdate: { reported_at?: string; description?: string; engagement_id?: string | null };
+  AssetDamageUpdate: {
+    reported_at?: string;
+    description?: string;
+    project_id?: string | null;
+    responsible_counterparty_id?: string | null;
+  };
   AssetIdentifier: {
     id: string;
     org_id: string;
@@ -536,8 +545,9 @@ export interface Components {
     asset_unit_id: string;
     identifier_class: string;
     value: string;
+    scheme: string;
   };
-  AssetIdentifierCreate: { asset_unit_id: string; identifier_class: string; value: string };
+  AssetIdentifierCreate: { asset_unit_id: string; value: string; scheme: string };
   AssetIdentifierPage: { data: Array<Components["AssetIdentifier"]>; next_cursor: string | null };
   AssetLot: {
     id: string;
@@ -547,12 +557,13 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     asset_class_id: string;
-    venue_id: string | null;
+    venue_id: string;
     quantity: number;
+    on_hand: number;
   };
-  AssetLotCreate: { asset_class_id: string; venue_id?: string | null; quantity: number };
+  AssetLotCreate: { asset_class_id: string; venue_id: string; quantity: number };
   AssetLotPage: { data: Array<Components["AssetLot"]>; next_cursor: string | null };
-  AssetLotUpdate: { venue_id?: string | null; quantity?: number };
+  AssetLotUpdate: { venue_id?: string };
   AssetMaintenance: {
     id: string;
     org_id: string;
@@ -564,21 +575,50 @@ export interface Components {
     performed_on: string;
     description: string;
     cost_minor: number | null;
-    currency: string;
+    currency_code: string | null;
   };
   AssetMaintenanceCreate: {
     asset_unit_id: string;
     performed_on: string;
     description: string;
     cost_minor?: number | null;
-    currency: string;
+    currency_code?: string | null;
   };
   AssetMaintenancePage: { data: Array<Components["AssetMaintenance"]>; next_cursor: string | null };
   AssetMaintenanceUpdate: {
     performed_on?: string;
     description?: string;
     cost_minor?: number | null;
-    currency?: string;
+    currency_code?: string | null;
+  };
+  AssetScanEvent: {
+    event_id: string;
+    code: string;
+    action: "check-out" | "check-in" | "transfer";
+    custodian_membership_id?: string | null;
+    custodian_engagement_id?: string | null;
+    venue_id?: string | null;
+    project_id?: string | null;
+    note?: string | null;
+    quantity?: number | null;
+  };
+  AssetScanResult: {
+    outcome: "applied" | "duplicate";
+    subject_kind: "unit" | "lot";
+    subject_id: string;
+    ledger_id: string;
+    asset_state:
+      | "Proposed"
+      | "Received"
+      | "Available"
+      | "Reserved"
+      | "Deployed"
+      | "In Maintenance"
+      | "Damaged"
+      | "Lost"
+      | "Retired"
+      | null;
+    on_hand: number | null;
   };
   AssetTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   AssetUnit: {
@@ -590,12 +630,27 @@ export interface Components {
     updated_by: string | null;
     asset_class_id: string;
     asset_tag: string;
-    serial_number: string | null;
-    asset_state: string;
+    asset_state:
+      | "Proposed"
+      | "Received"
+      | "Available"
+      | "Reserved"
+      | "Deployed"
+      | "In Maintenance"
+      | "Damaged"
+      | "Lost"
+      | "Retired";
+    condition_enum_id: string | null;
+    home_venue_id: string | null;
   };
-  AssetUnitCreate: { asset_class_id: string; asset_tag: string; serial_number?: string | null };
+  AssetUnitCreate: {
+    asset_class_id: string;
+    asset_tag: string;
+    condition_enum_id?: string | null;
+    home_venue_id?: string | null;
+  };
   AssetUnitPage: { data: Array<Components["AssetUnit"]>; next_cursor: string | null };
-  AssetUnitUpdate: { asset_tag?: string; serial_number?: string | null };
+  AssetUnitUpdate: { condition_enum_id?: string | null; home_venue_id?: string | null };
   AuditEvent: {
     id: string;
     org_id: string;
@@ -9304,6 +9359,15 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["ScanRequest"];
     responses: { 200: Components["AssetUnit"] };
+  };
+  "assetUnits.applyScan": {
+    module: "Assets";
+    method: "post";
+    path: "/asset-units/scans";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AssetScanEvent"];
+    responses: { 200: Components["AssetScanResult"] };
   };
   "assetLots.list": {
     module: "Assets";
@@ -20695,6 +20759,7 @@ export interface ModuleOperations {
     | "assetUnits.delete"
     | "assetUnits.transition"
     | "assetUnits.scan"
+    | "assetUnits.applyScan"
     | "assetLots.list"
     | "assetLots.create"
     | "assetLots.get"
