@@ -10,6 +10,7 @@ import enUS_home from "../messages/en-US/home.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
 import enUS_people from "../messages/en-US/people.json" with { type: "json" };
+import enUS_permits from "../messages/en-US/permits.json" with { type: "json" };
 import enUS_places from "../messages/en-US/places.json" with { type: "json" };
 import enUS_profiles from "../messages/en-US/profiles.json" with { type: "json" };
 import enUS_projects from "../messages/en-US/projects.json" with { type: "json" };
@@ -28,6 +29,7 @@ import esUS_home from "../messages/es-US/home.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
 import esUS_people from "../messages/es-US/people.json" with { type: "json" };
+import esUS_permits from "../messages/es-US/permits.json" with { type: "json" };
 import esUS_places from "../messages/es-US/places.json" with { type: "json" };
 import esUS_profiles from "../messages/es-US/profiles.json" with { type: "json" };
 import esUS_projects from "../messages/es-US/projects.json" with { type: "json" };
@@ -48,6 +50,7 @@ export const enUS = {
   nav: enUS_nav,
   opportunities: enUS_opportunities,
   people: enUS_people,
+  permits: enUS_permits,
   places: enUS_places,
   profiles: enUS_profiles,
   projects: enUS_projects,
@@ -69,6 +72,7 @@ export const esUS = {
   nav: esUS_nav,
   opportunities: esUS_opportunities,
   people: esUS_people,
+  permits: esUS_permits,
   places: esUS_places,
   profiles: esUS_profiles,
   projects: esUS_projects,

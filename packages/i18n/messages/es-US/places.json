@@ -90,7 +90,14 @@
     "direction": "Elija si se requiere o se ofrece.",
     "urid": "Elija una categoría URID.",
     "description": "Descríbalo en 1 a 500 caracteres.",
-    "provider": "Elija el recinto que lo ofrece."
+    "provider": "Elija el recinto que lo ofrece.",
+    "state": "Elija el nuevo estado.",
+    "reason": "Indique un motivo para el cambio.",
+    "blocker": "Indique qué bloquea el permiso.",
+    "replanReason": "Indique el motivo de replanificación.",
+    "template": "Elija una plantilla.",
+    "result": "Elija un resultado.",
+    "prompt": "Describa qué se revisa en 1 a 500 caracteres."
   },
   "venues": {
     "title": "Recintos",
