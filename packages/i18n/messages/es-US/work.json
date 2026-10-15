@@ -583,6 +583,7 @@
     "fileTooLarge": "Los archivos pueden tener hasta 50 MB.",
     "fileScanning": "El archivo aún se está revisando. Inténtelo de nuevo en un momento.",
     "baselineName": "Nombre la línea base, por ejemplo Línea Base de la Compuerta 3.",
+    "cueLabel": "Nombre el cue, por ejemplo Sala a Media Luz.",
     "punchWhat": "Indique en pocas palabras qué debe corregirse.",
     "rules": {
       "record_title_grammar": "Corrija el título.",

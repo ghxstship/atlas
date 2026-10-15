@@ -583,6 +583,7 @@
     "fileTooLarge": "Files can be up to 50 MB.",
     "fileScanning": "The file is still being checked. Try again in a moment.",
     "baselineName": "Name the baseline, for example Gate 3 Baseline.",
+    "cueLabel": "Name the cue, for example House to Half.",
     "punchWhat": "Say what must be corrected, in a few words.",
     "rules": {
       "record_title_grammar": "Fix the title.",

@@ -11,3 +11,7 @@ work.recurring
 schedule.baselines
 project.schedule
 project.work
+show.run-of-show
+show.day-sheets
+show.call-sheets
+project.show
