@@ -124,7 +124,7 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
           />
         </Section>
         {e.state === "Complete" ? (
-          <Section title={t("gateway.engagement.overview.rate", { org: e.orgName })}>
+          <Section title={t("gateway.engagement.forms.rating.title", { org: e.orgName })}>
             {rated ? (
               <InlineAlert tone="success">{t("gateway.engagement.overview.rated")}</InlineAlert>
             ) : (
