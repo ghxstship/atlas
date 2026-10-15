@@ -82,11 +82,19 @@ export const themes: Readonly<Record<ThemeName, XosNativeTheme>> = {
 
 const ThemeContext = createContext<XosNativeTheme>(themes[DEFAULT_THEME]);
 
+/** Haptic feedback kinds components request; the app maps them to expo-haptics. */
+export type HapticKind = "impact" | "selection" | "success" | "warning";
+export type HapticHandler = (kind: HapticKind) => void;
+
+const HapticContext = createContext<HapticHandler | undefined>(undefined);
+
 export interface ThemeProviderProps {
   /** The person's preference; "system" by default. */
   preference?: ThemePreference;
   /** Pass React Native's useColorScheme() result so "system" can follow the device. */
   systemColorScheme?: SystemColorScheme;
+  /** Plays haptic feedback, for example with expo-haptics. Omit it, or pass nothing when the person turns haptics off. */
+  onHaptic?: HapticHandler;
   children: ReactNode;
 }
 
@@ -94,14 +102,25 @@ export interface ThemeProviderProps {
 export function ThemeProvider({
   preference = "system",
   systemColorScheme,
+  onHaptic,
   children,
 }: ThemeProviderProps): ReactElement {
   const name = resolveThemeName(preference, systemColorScheme);
   const value = useMemo(() => themes[name], [name]);
-  return createElement(ThemeContext.Provider, { value }, children);
+  return createElement(
+    ThemeContext.Provider,
+    { value },
+    createElement(HapticContext.Provider, { value: onHaptic }, children),
+  );
 }
 
 /** The active XOS theme. Outside a ThemeProvider this is Dark. */
 export function useTheme(): XosNativeTheme {
   return useContext(ThemeContext);
+}
+
+/** A function that plays a haptic of the given kind when the app supplied a handler, and does nothing otherwise. */
+export function useHaptic(): HapticHandler {
+  const handler = useContext(HapticContext);
+  return (kind) => handler?.(kind);
 }

@@ -64,8 +64,32 @@ export const nativeComponentNames: readonly NativeComponentName[] =
 
 export type NativeComponentStatus = "published" | "shipped";
 
+const SHIPPED: ReadonlySet<NativeComponentName> = new Set<NativeComponentName>([
+  "ThemeProvider",
+  "Text",
+  "Icon",
+  "StateIcon",
+  "Button",
+  "IconButton",
+  "SegmentedControl",
+  "Card",
+  "ListRow",
+  "StateChip",
+  "Tag",
+  "Badge",
+  "Sheet",
+  "TabBar",
+  "ClockButton",
+  "ShiftCard",
+  "OfflineBanner",
+  "ScanSheet",
+  "SyncConflictSheet",
+  "QuickIncidentSheet",
+  "ChecklistRunner",
+]);
+
 /** Delivery status per component: "published" means the name and props are fixed; "shipped" means implemented. */
 export const nativeComponentStatus: Readonly<Record<NativeComponentName, NativeComponentStatus>> =
   Object.fromEntries(
-    nativeComponentNames.map((name) => [name, name === "ThemeProvider" ? "shipped" : "published"]),
+    nativeComponentNames.map((name) => [name, SHIPPED.has(name) ? "shipped" : "published"]),
   ) as Record<NativeComponentName, NativeComponentStatus>;
