@@ -174,7 +174,10 @@ test("journey 14: dependencies, a baseline, a slip and the logged replan", async
   await page.goto(`/${slug}/r/${second}`);
   await page.getByLabel("Due", { exact: true }).fill("2027-03-15T10:00");
   await page.getByLabel("Replan reason").fill("Lift delivery moved to Monday.");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await page
+    .getByRole("form", { name: "Edit record" })
+    .getByRole("button", { name: "Save" })
+    .click();
   await expect(page.getByText("Slipped 2 days")).toBeVisible();
   await expect(page.getByText("Lift delivery moved to Monday.")).toBeVisible();
 

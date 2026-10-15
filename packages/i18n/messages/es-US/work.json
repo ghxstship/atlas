@@ -448,8 +448,10 @@
     "title": "Registro de replanificaciones",
     "none": "Aún no hay replanificaciones. Los cambios de fecha y estado desde ahora se registran aquí.",
     "notYet": "Las replanificaciones se registran cuando el registro está Programado.",
-    "slipped": "Se retrasó {days} días",
-    "pulledIn": "Se adelantó {days} días",
+    "slipped": "Se retrasó {n, plural, one {# día} other {# días}}",
+    "slippedHours": "Se retrasó {n, plural, one {# hora} other {# horas}}",
+    "pulledIn": "Se adelantó {n, plural, one {# día} other {# días}}",
+    "pulledInHours": "Se adelantó {n, plural, one {# hora} other {# horas}}",
     "datesChanged": "Cambiaron las fechas",
     "stateChanged": "{from} a {to}",
     "window": "{before} a {after}"

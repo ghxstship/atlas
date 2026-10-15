@@ -8,3 +8,6 @@ schedule.milestones
 work.work-orders
 work.punch-lists
 work.recurring
+schedule.baselines
+project.schedule
+project.work

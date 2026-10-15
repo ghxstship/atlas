@@ -448,8 +448,10 @@
     "title": "Replan log",
     "none": "No replans yet. Date and state changes from now on are logged here.",
     "notYet": "Replans are logged once the record is Scheduled.",
-    "slipped": "Slipped {days} days",
-    "pulledIn": "Pulled in {days} days",
+    "slipped": "Slipped {n, plural, one {# day} other {# days}}",
+    "slippedHours": "Slipped {n, plural, one {# hour} other {# hours}}",
+    "pulledIn": "Pulled in {n, plural, one {# day} other {# days}}",
+    "pulledInHours": "Pulled in {n, plural, one {# hour} other {# hours}}",
     "datesChanged": "Dates changed",
     "stateChanged": "{from} to {to}",
     "window": "{before} to {after}"
