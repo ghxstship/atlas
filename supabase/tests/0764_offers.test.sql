@@ -28,8 +28,8 @@ $$;
 
 -- Fixture: one Invited listing with applications from ivy, quinn and dave ---------------------------------------------------
 select pg_temp.as_user('carol');
-with o as (insert into app.opportunities (project_id, role_type, role_code, title, visibility, starts_on, ends_on)
-  values (pg_temp.id('prj_a'), 'Crew', '5000.51.02', 'Summer Series Riggers', 'Invited', '2027-06-01', '2027-06-03')
+with o as (insert into app.opportunities (project_id, role_type, role_code, title, visibility, starts_on, ends_on, requisition_id)
+  values (pg_temp.id('prj_a'), 'Crew', '5000.51.02', 'Summer Series Riggers', 'Invited', '2027-06-01', '2027-06-03', pg_temp.id('requisition_a'))
   returning id) insert into world select 'opp', id from o;
 insert into app.opportunity_invitations (opportunity_id, person_id)
 values (pg_temp.id('opp'), pg_temp.id('ivy')), (pg_temp.id('opp'), pg_temp.id('quinn')), (pg_temp.id('opp'), pg_temp.id('carol'));
