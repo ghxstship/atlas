@@ -68,7 +68,9 @@
       "accommodation_block_deleted": "This block is in Trash. Restore it before assigning rooms.",
       "accommodation_assignment_outside_block": "The stay must fall within the block's check-in and check-out dates.",
       "accommodation_assignment_duplicate": "This guest already has a room in the block on those nights.",
-      "fileScanning": "The file is still being scanned. Try again in a minute."
+      "fileScanning": "The file is still being scanned. Try again in a minute.",
+      "travel_fulfillment_kind": "A travel segment belongs to a Travel fulfillment. Pick one of those.",
+      "time_zone_unknown": "That time zone is not recognized. Pick a zone from the list."
     },
     "fieldErrors": {
       "required": "Fill in this field.",

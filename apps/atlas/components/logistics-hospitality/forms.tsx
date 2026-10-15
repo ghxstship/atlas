@@ -315,12 +315,15 @@ export function ActionButton({
 
 /** A state move with its required reason, offering only the moves the lifecycle allows. */
 export function TransitionForm({
+  formLabel,
   label,
   moves,
   reasonLabel,
   submitLabel,
   run,
 }: {
+  /** Names the form for assistive technology, apart from the state field's label. */
+  formLabel: string;
   label: string;
   moves: readonly { value: string; label: string }[];
   reasonLabel: string;
@@ -336,7 +339,7 @@ export function TransitionForm({
   if (moves.length === 0) return null;
   return (
     <form
-      aria-label={label}
+      aria-label={formLabel}
       className="flex flex-col gap-8"
       noValidate
       onSubmit={(e) => {

@@ -1,5 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { expectAccessible } from "./support";
+import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations-support";
 
 /**
  * A11 Logistics journeys (Section 20.2, RRR-57): journey 20, log a shipment, check it into a dock
@@ -12,42 +13,17 @@ test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
 expect.configure({ timeout: 20_000 });
 
-const ORG = "demo-productions";
-const DEMO_PASSWORD = `xos-demo-${"2026"}`;
-
-async function signIn(page: Page, email: string) {
-  await page.goto(`/auth/sign-in?next=${encodeURIComponent(`/${ORG}/home`)}`);
-  await page.locator("#signin-email").fill(email);
-  await page.locator("#signin-password").fill(DEMO_PASSWORD);
-  await page.getByRole("button", { name: "Sign in with password" }).click();
-  await page.waitForURL(`**/${ORG}/home`);
-}
-
-async function settled(page: Page) {
-  await page.waitForTimeout(400);
-  await expectAccessible(page);
-}
-
-async function expectAccessibleInBothThemes(page: Page) {
-  await settled(page);
-  await page.context().addCookies([{ name: "xos-theme", value: "light", url: page.url() }]);
-  await page.reload();
-  await settled(page);
-  await page.context().addCookies([{ name: "xos-theme", value: "dark", url: page.url() }]);
-  await page.reload();
-}
-
 test("shipments, dock schedule and yard log render in every view", async ({ page }) => {
   await signIn(page, "producer@example.com");
   for (const view of ["list", "table", "board", "calendar"]) {
     await page.goto(`/${ORG}/logistics/shipments?view=${view}&month=2027-03`);
     await expect(page.getByRole("heading", { level: 1, name: "Shipments" })).toBeVisible();
-    await expectAccessibleInBothThemes(page);
+    await expectAccessibleInBothThemes(page, view === "calendar");
   }
   for (const view of ["resource-schedule", "list", "calendar"]) {
     await page.goto(`/${ORG}/logistics/dock-schedule?view=${view}&week=2027-03-08&month=2027-03`);
     await expect(page.getByRole("heading", { level: 1, name: "Dock schedule" })).toBeVisible();
-    await expectAccessibleInBothThemes(page);
+    await expectAccessibleInBothThemes(page, view === "calendar");
   }
   for (const view of ["list", "table", "board"]) {
     await page.goto(`/${ORG}/logistics/marshalling-yard-log?view=${view}`);

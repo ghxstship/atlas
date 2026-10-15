@@ -644,14 +644,45 @@ export function removeBeoLine(db: XosClient, id: string): Promise<Result<null>> 
   return softDelete(db, "beo_lines", id, true);
 }
 
+/** An ISO 4217 currency and its minor unit exponent, from the one currency reference (ADR 0002). */
+export interface CurrencyInfo {
+  readonly code: string;
+  readonly exponent: number;
+}
+
 /** Currencies a price may use, in code order (private.currencies through app.currencies). */
-export async function listCurrencyCodes(db: XosClient): Promise<Result<string[]>> {
+export async function listCurrencies(db: XosClient): Promise<Result<CurrencyInfo[]>> {
   const { data, error } = await db
     .from("currencies")
-    .select("currency_code")
+    .select("currency_code, minor_unit_exponent")
     .order("currency_code");
   if (error) return fail(toDataError(error));
-  return ok(data.map((c) => c.currency_code as string));
+  return ok(
+    data.map((c) => ({ code: c.currency_code as string, exponent: c.minor_unit_exponent ?? 2 })),
+  );
+}
+
+/** Minor units as a major amount for display: 18900 USD is 189, 500 JPY is 500. */
+export function toMajor(minor: number, exponent: number): number {
+  return minor / 10 ** exponent;
+}
+
+/**
+ * A typed major amount ("189.00") as integer minor units in a currency's exponent: null when blank
+ * (unpriced, never zero), undefined when it is not an amount with at most `exponent` decimals.
+ */
+export function parseMinor(raw: string, exponent: number): number | null | undefined {
+  const text = raw.trim().replace(/,/g, "");
+  if (text === "") return null;
+  const pattern = exponent === 0 ? /^\d+$/ : new RegExp(`^\\d+(\\.\\d{1,${exponent}})?$`);
+  if (!pattern.test(text)) return undefined;
+  const [whole = "0", fraction = ""] = text.split(".");
+  return Number(whole) * 10 ** exponent + Number(fraction.padEnd(exponent, "0") || "0");
+}
+
+/** A minor amount as the major text an edit field shows, or blank when unpriced. */
+export function formatMajorInput(minor: number | null, exponent: number): string {
+  return minor === null ? "" : toMajor(minor, exponent).toFixed(exponent);
 }
 
 // Accommodation blocks ------------------------------------------------------------------------------
