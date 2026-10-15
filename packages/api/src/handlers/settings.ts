@@ -9,6 +9,7 @@ import type { XosClient } from "@xos/data";
 import type { Components } from "../contract/operations.generated.ts";
 import { badRequest, notFound, refused } from "../problem.ts";
 import { requireOrg } from "../runtime/context.ts";
+import { assertIfMatch } from "../runtime/etag.ts";
 import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import { decodeCursor, pageSize, toPage } from "../runtime/pagination.ts";
 
@@ -150,8 +151,9 @@ export const handlers = defineHandlers("Settings", {
     return created(toSettingValue(await readValue(context.db, data)));
   },
 
-  "settingValues.update": async ({ params, body }, context) => {
+  "settingValues.update": async ({ params, body, ifMatch }, context) => {
     const row = await readValue(context.db, params.id);
+    assertIfMatch(ifMatch ?? "*", toSettingValue(row));
     if (body.value === undefined) return ok(toSettingValue(row));
     const { error } = await context.db.rpc("set_setting", {
       p_org_id: row.org_id,
