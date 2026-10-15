@@ -648,7 +648,7 @@
     "title": "Explore",
     "lead": "Opportunities open to you, soonest deadline first. Pay is always shown before you apply.",
     "searchLabel": "Search opportunities",
-    "searchPlaceholder": "Search roles, skills or organizations",
+    "searchHint": "Search roles, skills or organizations",
     "search": "Search",
     "filters": "Filters",
     "roleTypes": "Role types",
@@ -796,7 +796,7 @@
   "home": {
     "greeting": "Hi, {name}",
     "searchLabel": "Search opportunities",
-    "searchPlaceholder": "Search roles, skills or organizations",
+    "searchHint": "Search roles, skills or organizations",
     "upNext": {
       "title": "Up next",
       "empty": "Nothing is scheduled for you yet. Find an opportunity to fill your calendar.",
@@ -830,6 +830,25 @@
       "all": "See all",
       "empty": "No open opportunities match you right now. Set an alert and we will tell you when one does.",
       "emptyAction": "Set an alert"
+    }
+  },
+  "messages": {
+    "empty": "No conversations yet. Message an organization from an engagement, or start one below.",
+    "emptyAction": "See engagements",
+    "pick": "Choose a conversation to read it here.",
+    "withOrg": "With the organization",
+    "unread": "{n, plural, one {# unread message} other {# unread messages}}",
+    "history": "Messages",
+    "you": "You",
+    "readBy": "Read by {list}",
+    "start": {
+      "title": "Message an organization",
+      "org": "Organization",
+      "subject": "Subject",
+      "body": "Message",
+      "submit": "Send",
+      "error": "Choose the organization and write a subject and a message.",
+      "noOrgs": "You can message organizations you work with. Once one engages you, start a conversation here."
     }
   },
   "money": {
@@ -893,10 +912,314 @@
       "noPayouts": "No payout destinations yet. Add one under Settings, Payout and tax."
     }
   },
+  "profile": {
+    "noHeadline": "Add a headline so organizations know what you do.",
+    "publicLink": "Public profile at /u/{handle}",
+    "edit": "Edit profile",
+    "preview": "See it as others do",
+    "previewNote": "Your public profile shows only what your privacy settings allow.",
+    "strength": {
+      "title": "Profile strength",
+      "complete": "Your profile is complete.",
+      "action": "Improve it now",
+      "next": {
+        "headline": "Next: add a headline",
+        "skills": "Next: add your skills",
+        "city": "Next: add your city",
+        "certifications": "Next: add a certification",
+        "rate": "Next: set your rate",
+        "availability": "Next: mark your availability",
+        "bio": "Next: write a short bio",
+        "languages": "Next: add the languages you speak",
+        "links": "Next: add a link to your work"
+      }
+    },
+    "certifications": {
+      "title": "Certifications",
+      "empty": "No certifications yet. Add yours in Settings, Profile.",
+      "verified": "Verified",
+      "selfReported": "Self-reported",
+      "carry": "Recorded by organizations",
+      "recordedBy": "Recorded by {org}",
+      "add": "Add to profile"
+    },
+    "availability": {
+      "title": "Availability",
+      "add": "Add dates",
+      "added": "Dates added.",
+      "start": "From",
+      "end": "To",
+      "kind": "Status",
+      "remove": "Remove"
+    },
+    "ratings": {
+      "title": "Ratings",
+      "empty": "No ratings yet. Ratings appear after completed engagements, once both sides rate."
+    },
+    "representation": {
+      "title": "Representation",
+      "expires": "Until {date}",
+      "accept": "Accept",
+      "decline": "Decline",
+      "revoke": "Revoke",
+      "standing": {
+        "pending": "Waiting for the artist",
+        "active": "Active",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      }
+    },
+    "shares": {
+      "title": "Profile shares",
+      "empty": "You have not shared your profile with any organization yet. Applying shares the fields you choose.",
+      "shared": "Shared {date}",
+      "revoked": "Revoked {date}",
+      "revoke": "Revoke"
+    },
+    "company": {
+      "settings": "Company settings",
+      "team": "Team",
+      "since": "Since {date}",
+      "verified": "Verified",
+      "verifiedDomain": "Verified domain",
+      "capabilities": "Capabilities",
+      "regions": "Service regions",
+      "opportunities": "Open opportunities"
+    },
+    "public": {
+      "certifications": "Certifications",
+      "verified": "Verified by {org}",
+      "skills": "Skills",
+      "portfolio": "Portfolio",
+      "epk": "Press kit",
+      "languages": "Languages",
+      "references": "References",
+      "ratings": "Ratings",
+      "score": "{n} of 5",
+      "reply": "Reply: {reply}",
+      "organizations": "Worked with",
+      "links": "Links",
+      "ownerNote": "This is your profile as others see it. Visibility: {visibility}.",
+      "ownerAction": "Privacy settings"
+    },
+    "errors": {
+      "handle": "Use 1 to 40 lowercase letters, numbers and hyphens for your handle.",
+      "rate": "Enter your rate as a number, like 450, or leave it blank.",
+      "country": "Use the two-letter country code, like US or MX.",
+      "visibility": "Choose Private, Network or Public.",
+      "urid": "Choose a skill from the list.",
+      "language": "Use a language code like en, es or pt-BR.",
+      "link": "Give the link a label and a full web address starting with https://.",
+      "certification": "Enter the certification, who issued it and the issue date.",
+      "availability": "Choose a start date and an end date on or after it.",
+      "name": "Enter your name, up to 200 characters.",
+      "account": "Enter the company name and a web address of 2 to 48 lowercase letters, numbers and hyphens.",
+      "company": "Check the handle and visibility.",
+      "website": "Enter a full web address starting with https://.",
+      "email": "Enter an email address like team@company.com."
+    }
+  },
+  "documents": {
+    "lead": "Contracts, onboarding and compliance documents from every organization, with expiry.",
+    "expiring": "{n, plural, one {# document expires} other {# documents expire}} within 30 days. Renew before then to stay eligible.",
+    "empty": "No documents yet. Contracts and forms appear here as organizations share them.",
+    "emptyAction": "See engagements",
+    "title": "Document",
+    "kind": "Kind",
+    "expires": "Expires",
+    "signedByLink": "Signed by link",
+    "signedOn": "Signed {date} by {name}",
+    "tax": "Tax forms"
+  },
+  "tokens": {
+    "code": "Access code",
+    "codeHelp": "The six-digit code from the message that brought you here.",
+    "open": "Open",
+    "claimBody": "Create a free Gateway account with the same email to keep this in one place and get paid faster next time.",
+    "claimCreate": "Create account",
+    "claimSignIn": "I have an account",
+    "advance": {
+      "eyebrow": "Advance form",
+      "title": "Answer your advance",
+      "remaining": "{n, plural, =0 {Every section is answered} one {# section left} other {# sections left}}",
+      "answer": "Your answer",
+      "submit": "Send answer",
+      "sent": "Answer sent. The organization reviews it next.",
+      "done": "Your advance is complete"
+    },
+    "sign": {
+      "eyebrow": "Signing link",
+      "title": "Review and sign",
+      "state": "Status: {state}",
+      "read": "Read the document the organization sent with this link before you sign.",
+      "name": "Type your full name to sign",
+      "nameHelp": "Typing your name is your electronic signature. A signed document cannot be withdrawn.",
+      "submit": "Sign",
+      "signed": "Signed by {name}. The organization countersigns next.",
+      "done": "You signed the document"
+    },
+    "refusals": {
+      "advance_access_code": "That access code does not match. Check the six digits in your message and try again.",
+      "advance_token_expired": "This advance link expired. Ask the organization to send a new one.",
+      "advance_token_invalid": "This advance link is not valid. Use the latest link the organization sent.",
+      "advance_token_locked": "Too many wrong codes. The link is locked; ask the organization for a new one.",
+      "advance_section_open": "This section no longer takes answers. Message the organization if something changed.",
+      "advance_answer_length": "Write an answer of up to 20,000 characters.",
+      "document_access_code": "That access code does not match. Check the six digits in your message and try again.",
+      "document_token_expired": "This signing link expired. Ask the organization to send a new one.",
+      "document_token_invalid": "This signing link is not valid. Use the latest link the organization sent.",
+      "document_token_locked": "Too many wrong codes. The link is locked; ask the organization for a new one.",
+      "document_token_state": "This document is not waiting for a signature anymore.",
+      "document_token_email": "This link was sent to a different email address. Open it from that inbox.",
+      "document_token_validity": "This signing link is no longer valid. Ask the organization for a new one.",
+      "document_not_awaiting_signature": "This document is not waiting for a signature anymore.",
+      "document_signer_name": "Type your full name, at least two characters.",
+      "token_invalid": "This link is not valid. Use the latest link the organization sent."
+    }
+  },
+  "settings": {
+    "remove": "Remove",
+    "leads": {
+      "profile": "What organizations see when you apply or share your profile.",
+      "profilePrivacy": "Who sees your profile and each section, and the shares you gave.",
+      "account": "Your name and sign-in email.",
+      "security": "How you sign in and how to end sessions.",
+      "organizations": "Company accounts you belong to, and creating one.",
+      "preferences": "Language, time zone, start page and other personal defaults.",
+      "accessibility": "Motion, contrast and reading preferences.",
+      "notifications": "How organizations reach you.",
+      "outOfOffice": "When you are away and what organizations see then.",
+      "workDetails": "Facts about how you work.",
+      "payoutAndTax": "Where organizations pay you and the tax forms you gave them.",
+      "calendarFeeds": "Your work in your own calendar.",
+      "connectedApps": "Apps connected to your account.",
+      "keyboardShortcuts": "Shortcuts on a keyboard.",
+      "developer": "Personal access for your own tools.",
+      "companyCompanyProfileAndPrivacy": "Your company's public profile and who sees it.",
+      "companyTeamAndAccountRoles": "Who is in your company account and their roles.",
+      "companyServiceRegionsAndCapabilities": "Where your company works and what it does.",
+      "companyInsuranceAndComplianceDocuments": "Insurance certificates and prequalification on file.",
+      "companyPayoutAndTax": "Where organizations pay your company and its tax forms.",
+      "companyRepresentation": "Artists your agency represents.",
+      "companyNotifications": "How organizations reach your company.",
+      "companyDangerZone": "Ownership and closing the company account."
+    },
+    "profile": {
+      "facts": "Profile facts",
+      "handle": "Handle",
+      "handleHelp": "Your profile address. Old handles keep working for 90 days after a change.",
+      "preferredName": "Preferred name",
+      "pronouns": "Pronouns",
+      "headline": "Headline",
+      "city": "City",
+      "country": "Country code",
+      "rate": "Your rate in {currency}",
+      "rateHelp": "Leave blank to show no rate. A blank rate is never shown as zero.",
+      "about": "About you",
+      "bio": "Bio",
+      "skills": "Skills",
+      "skill": "Skill",
+      "addSkill": "Add skill",
+      "certifications": "Certifications",
+      "addCertification": "Add certification",
+      "certName": "Certification",
+      "certBody": "Issued by",
+      "certIssued": "Issued on",
+      "certExpires": "Expires on",
+      "languages": "Languages",
+      "addLanguage": "Add language",
+      "languageTag": "Language code",
+      "languageHelp": "Such as en, es or pt-BR.",
+      "proficiency": "Proficiency",
+      "links": "Links",
+      "addLink": "Add link",
+      "linkLabel": "Label",
+      "linkUrl": "Web address"
+    },
+    "privacy": {
+      "title": "Profile privacy",
+      "visibility": "Who sees your profile",
+      "visibilityHelp": "Private: only you. Network: people and organizations you have worked with. Public: everyone.",
+      "discoverable": "Let organizations find me in the marketplace",
+      "indexing": "Let search engines index my public profile",
+      "inherit": "Same as profile",
+      "sharesBody": "Each share sent the fields you chose to one organization. Revoking stops future updates; the organization keeps what the law requires.",
+      "sections": {
+        "photo": "Photo",
+        "pronouns": "Pronouns",
+        "headline": "Headline",
+        "bio": "About",
+        "location": "Location",
+        "skills": "Skills",
+        "certifications": "Certifications",
+        "portfolio": "Portfolio",
+        "rates": "Rates",
+        "availability": "Availability",
+        "languages": "Languages",
+        "references": "References",
+        "links": "Links",
+        "organizations": "Organizations"
+      }
+    },
+    "account": {
+      "name": "Full name",
+      "email": "Sign-in email: {email}",
+      "oneAccount": "This one account works in Gateway, Atlas and Compass for every organization."
+    },
+    "security": {
+      "passwordless": "Gateway signs you in with an email link or your connected provider first; a password is optional. Each device keeps its own session.",
+      "signOut": "Sign out on this device"
+    },
+    "organizations": {
+      "accounts": "Company accounts",
+      "none": "You do not belong to a company account. Create one below if you work as a company.",
+      "leave": "Leave",
+      "create": "Create a company account",
+      "createBody": "Vendors, agencies, contractor firms and sponsors bid and invoice as a company. You become its Account Owner.",
+      "name": "Company name",
+      "slug": "Web address",
+      "slugHelp": "2 to 48 lowercase letters, numbers and hyphens.",
+      "createSubmit": "Create account",
+      "created": "Company account created. Act as it from the account menu."
+    },
+    "payout": {
+      "body": "Payout details are entered through each organization's payment provider; only the last four digits are ever shown here."
+    },
+    "company": {
+      "profile": "Company profile",
+      "publicLink": "Public profile at /c/{handle}",
+      "about": "About",
+      "website": "Website",
+      "email": "Contact email",
+      "profileUnavailable": "The company profile is managed by the organization's Atlas administrators. Ask an Account Owner to set it up.",
+      "remove": "Remove",
+      "inviteNote": "To add a team member, ask them to create a Gateway account; an Account Owner or Admin then adds them by their account.",
+      "noInsurance": "No insurance certificates on file. Organizations request them during onboarding; upload them there.",
+      "toEngagements": "See engagements",
+      "noRepresentation": "Your agency represents no artists yet.",
+      "proposeNote": "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway."
+    },
+    "notes": {
+      "workDetails": "Your work details come from your profile: skills, certifications, rates and availability.",
+      "toProfile": "Edit profile",
+      "calendarFeeds": "Add every shift, set time and deadline to your calendar from Upcoming.",
+      "toUpcoming": "Open Upcoming",
+      "connectedApps": "No apps are connected to your account. Organizations connect their own tools in Atlas.",
+      "toOrganizations": "See your accounts",
+      "notifications": "Organizations reach you by email and push for offers, documents to sign, payments and messages. Quiet hours and language follow your preferences.",
+      "toPreferences": "Open preferences",
+      "developer": "Personal access tokens are available only where an organization allows them.",
+      "toSecurity": "Open security",
+      "regions": "Service regions and capabilities are part of your company profile.",
+      "toCompanyProfile": "Open company profile",
+      "dangerZone": "Transferring ownership or closing a company account is done with platform support so records the law requires are kept. The last Account Owner cannot leave.",
+      "toTeam": "Open team"
+    }
+  },
   "shell": {
     "skip": "Skip to content",
     "search": "Search",
-    "searchPlaceholder": "Search pages, engagements and opportunities",
+    "searchHint": "Search pages, engagements and opportunities",
     "commandGroup": "Go to",
     "openAccount": "Open the account menu for {name}",
     "account": "Account",
@@ -996,9 +1319,8 @@
       "title": "Claim your submissions",
       "body": "Forms and signatures you completed with a link sent to {email} can join this account, so you find them under Work and Documents.",
       "submit": "Claim submissions",
-      "done": "Your submissions are now in your account.",
+      "done": "Done: {advance, plural, one {# advance answer} other {# advance answers}} and {documents, plural, one {# signed document} other {# signed documents}} are now in your account.",
       "nothing": "No submissions were waiting for {email}. Anything you complete from now on is saved to this account.",
-      "unavailable": "Claiming is not open yet: the organization's token service has not connected to Gateway. Your completed forms are safe with the organization; ask them to resend the link if you need it.",
       "home": "Go to Home"
     },
     "errors": {

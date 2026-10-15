@@ -648,7 +648,7 @@
     "title": "Explorar",
     "lead": "Oportunidades abiertas para ti, con la fecha límite más cercana primero. El pago siempre se muestra antes de postular.",
     "searchLabel": "Buscar oportunidades",
-    "searchPlaceholder": "Busca roles, habilidades u organizaciones",
+    "searchHint": "Busca roles, habilidades u organizaciones",
     "search": "Buscar",
     "filters": "Filtros",
     "roleTypes": "Tipos de rol",
@@ -796,7 +796,7 @@
   "home": {
     "greeting": "Hola, {name}",
     "searchLabel": "Buscar oportunidades",
-    "searchPlaceholder": "Busca roles, habilidades u organizaciones",
+    "searchHint": "Busca roles, habilidades u organizaciones",
     "upNext": {
       "title": "A continuación",
       "empty": "Aún no tienes nada programado. Encuentra una oportunidad para llenar tu calendario.",
@@ -830,6 +830,25 @@
       "all": "Ver todas",
       "empty": "Ahora no hay oportunidades abiertas para ti. Crea una alerta y te avisaremos cuando haya una.",
       "emptyAction": "Crear alerta"
+    }
+  },
+  "messages": {
+    "empty": "Aún no hay conversaciones. Escribe a una organización desde una contratación o empieza una abajo.",
+    "emptyAction": "Ver contrataciones",
+    "pick": "Elige una conversación para leerla aquí.",
+    "withOrg": "Con la organización",
+    "unread": "{n, plural, one {# mensaje sin leer} other {# mensajes sin leer}}",
+    "history": "Mensajes",
+    "you": "Tú",
+    "readBy": "Leído por {list}",
+    "start": {
+      "title": "Escribir a una organización",
+      "org": "Organización",
+      "subject": "Asunto",
+      "body": "Mensaje",
+      "submit": "Enviar",
+      "error": "Elige la organización y escribe un asunto y un mensaje.",
+      "noOrgs": "Puedes escribir a las organizaciones con las que trabajas. Cuando una te contrate, empieza una conversación aquí."
     }
   },
   "money": {
@@ -893,10 +912,314 @@
       "noPayouts": "Aún no hay destinos de pago. Agrega uno en Configuración, Pagos e impuestos."
     }
   },
+  "profile": {
+    "noHeadline": "Agrega un titular para que las organizaciones sepan a qué te dedicas.",
+    "publicLink": "Perfil público en /u/{handle}",
+    "edit": "Editar perfil",
+    "preview": "Verlo como lo ven otros",
+    "previewNote": "Tu perfil público muestra solo lo que permite tu configuración de privacidad.",
+    "strength": {
+      "title": "Fuerza del perfil",
+      "complete": "Tu perfil está completo.",
+      "action": "Mejorarlo ahora",
+      "next": {
+        "headline": "Siguiente: agrega un titular",
+        "skills": "Siguiente: agrega tus habilidades",
+        "city": "Siguiente: agrega tu ciudad",
+        "certifications": "Siguiente: agrega una certificación",
+        "rate": "Siguiente: define tu tarifa",
+        "availability": "Siguiente: marca tu disponibilidad",
+        "bio": "Siguiente: escribe una biografía breve",
+        "languages": "Siguiente: agrega los idiomas que hablas",
+        "links": "Siguiente: agrega un enlace a tu trabajo"
+      }
+    },
+    "certifications": {
+      "title": "Certificaciones",
+      "empty": "Aún no hay certificaciones. Agrega las tuyas en Configuración, Perfil.",
+      "verified": "Verificada",
+      "selfReported": "Declarada por ti",
+      "carry": "Registradas por organizaciones",
+      "recordedBy": "Registrada por {org}",
+      "add": "Agregar al perfil"
+    },
+    "availability": {
+      "title": "Disponibilidad",
+      "add": "Agregar fechas",
+      "added": "Fechas agregadas.",
+      "start": "Desde",
+      "end": "Hasta",
+      "kind": "Estado",
+      "remove": "Quitar"
+    },
+    "ratings": {
+      "title": "Calificaciones",
+      "empty": "Aún no hay calificaciones. Aparecen tras contrataciones completas, cuando ambas partes califican."
+    },
+    "representation": {
+      "title": "Representación",
+      "expires": "Hasta el {date}",
+      "accept": "Aceptar",
+      "decline": "Rechazar",
+      "revoke": "Revocar",
+      "standing": {
+        "pending": "Esperando al artista",
+        "active": "Activa",
+        "expired": "Vencida",
+        "revoked": "Revocada"
+      }
+    },
+    "shares": {
+      "title": "Perfiles compartidos",
+      "empty": "Aún no compartes tu perfil con ninguna organización. Al postular compartes los campos que elijas.",
+      "shared": "Compartido el {date}",
+      "revoked": "Revocado el {date}",
+      "revoke": "Revocar"
+    },
+    "company": {
+      "settings": "Configuración de empresa",
+      "team": "Equipo",
+      "since": "Desde el {date}",
+      "verified": "Verificada",
+      "verifiedDomain": "Dominio verificado",
+      "capabilities": "Capacidades",
+      "regions": "Regiones de servicio",
+      "opportunities": "Oportunidades abiertas"
+    },
+    "public": {
+      "certifications": "Certificaciones",
+      "verified": "Verificada por {org}",
+      "skills": "Habilidades",
+      "portfolio": "Portafolio",
+      "epk": "Kit de prensa",
+      "languages": "Idiomas",
+      "references": "Referencias",
+      "ratings": "Calificaciones",
+      "score": "{n} de 5",
+      "reply": "Respuesta: {reply}",
+      "organizations": "Ha trabajado con",
+      "links": "Enlaces",
+      "ownerNote": "Así ven otros tu perfil. Visibilidad: {visibility}.",
+      "ownerAction": "Configuración de privacidad"
+    },
+    "errors": {
+      "handle": "Usa de 1 a 40 letras minúsculas, números y guiones en tu usuario.",
+      "rate": "Escribe tu tarifa como número, por ejemplo 450, o déjala en blanco.",
+      "country": "Usa el código de país de dos letras, como US o MX.",
+      "visibility": "Elige Privado, Red o Público.",
+      "urid": "Elige una habilidad de la lista.",
+      "language": "Usa un código de idioma como en, es o pt-BR.",
+      "link": "Ponle una etiqueta al enlace y una dirección completa que empiece con https://.",
+      "certification": "Escribe la certificación, quién la emitió y la fecha de emisión.",
+      "availability": "Elige una fecha de inicio y una de fin igual o posterior.",
+      "name": "Escribe tu nombre, hasta 200 caracteres.",
+      "account": "Escribe el nombre de la empresa y una dirección web de 2 a 48 letras minúsculas, números y guiones.",
+      "company": "Revisa el usuario y la visibilidad.",
+      "website": "Escribe una dirección web completa que empiece con https://.",
+      "email": "Escribe un correo como equipo@empresa.com."
+    }
+  },
+  "documents": {
+    "lead": "Contratos, documentos de incorporación y de cumplimiento de todas las organizaciones, con vencimiento.",
+    "expiring": "{n, plural, one {# documento vence} other {# documentos vencen}} en los próximos 30 días. Renuévalos antes para seguir habilitado.",
+    "empty": "Aún no hay documentos. Los contratos y formularios aparecen aquí cuando las organizaciones los comparten.",
+    "emptyAction": "Ver contrataciones",
+    "title": "Documento",
+    "kind": "Tipo",
+    "expires": "Vence",
+    "signedByLink": "Firmados por enlace",
+    "signedOn": "Firmado el {date} por {name}",
+    "tax": "Formularios fiscales"
+  },
+  "tokens": {
+    "code": "Código de acceso",
+    "codeHelp": "El código de seis dígitos del mensaje que te trajo aquí.",
+    "open": "Abrir",
+    "claimBody": "Crea una cuenta gratuita de Gateway con el mismo correo para tener todo en un lugar y cobrar más rápido la próxima vez.",
+    "claimCreate": "Crear cuenta",
+    "claimSignIn": "Ya tengo cuenta",
+    "advance": {
+      "eyebrow": "Formulario de avance",
+      "title": "Responde tu avance",
+      "remaining": "{n, plural, =0 {Todas las secciones respondidas} one {Falta # sección} other {Faltan # secciones}}",
+      "answer": "Tu respuesta",
+      "submit": "Enviar respuesta",
+      "sent": "Respuesta enviada. La organización la revisa después.",
+      "done": "Tu avance está completo"
+    },
+    "sign": {
+      "eyebrow": "Enlace de firma",
+      "title": "Revisa y firma",
+      "state": "Estado: {state}",
+      "read": "Lee el documento que la organización envió con este enlace antes de firmar.",
+      "name": "Escribe tu nombre completo para firmar",
+      "nameHelp": "Escribir tu nombre es tu firma electrónica. Un documento firmado no se puede retirar.",
+      "submit": "Firmar",
+      "signed": "Firmado por {name}. La organización firma después.",
+      "done": "Firmaste el documento"
+    },
+    "refusals": {
+      "advance_access_code": "Ese código de acceso no coincide. Revisa los seis dígitos de tu mensaje e inténtalo de nuevo.",
+      "advance_token_expired": "Este enlace de avance venció. Pide a la organización que envíe uno nuevo.",
+      "advance_token_invalid": "Este enlace de avance no es válido. Usa el enlace más reciente que envió la organización.",
+      "advance_token_locked": "Demasiados códigos incorrectos. El enlace está bloqueado; pide uno nuevo a la organización.",
+      "advance_section_open": "Esta sección ya no recibe respuestas. Escribe a la organización si algo cambió.",
+      "advance_answer_length": "Escribe una respuesta de hasta 20.000 caracteres.",
+      "document_access_code": "Ese código de acceso no coincide. Revisa los seis dígitos de tu mensaje e inténtalo de nuevo.",
+      "document_token_expired": "Este enlace de firma venció. Pide a la organización que envíe uno nuevo.",
+      "document_token_invalid": "Este enlace de firma no es válido. Usa el enlace más reciente que envió la organización.",
+      "document_token_locked": "Demasiados códigos incorrectos. El enlace está bloqueado; pide uno nuevo a la organización.",
+      "document_token_state": "Este documento ya no espera una firma.",
+      "document_token_email": "Este enlace se envió a otro correo. Ábrelo desde esa bandeja.",
+      "document_token_validity": "Este enlace de firma ya no es válido. Pide uno nuevo a la organización.",
+      "document_not_awaiting_signature": "Este documento ya no espera una firma.",
+      "document_signer_name": "Escribe tu nombre completo, de al menos dos caracteres.",
+      "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización."
+    }
+  },
+  "settings": {
+    "remove": "Quitar",
+    "leads": {
+      "profile": "Lo que ven las organizaciones cuando postulas o compartes tu perfil.",
+      "profilePrivacy": "Quién ve tu perfil y cada sección, y los perfiles que compartiste.",
+      "account": "Tu nombre y el correo con el que inicias sesión.",
+      "security": "Cómo inicias sesión y cómo cerrar sesiones.",
+      "organizations": "Las cuentas de empresa a las que perteneces, y cómo crear una.",
+      "preferences": "Idioma, zona horaria, página de inicio y otras preferencias personales.",
+      "accessibility": "Preferencias de movimiento, contraste y lectura.",
+      "notifications": "Cómo te contactan las organizaciones.",
+      "outOfOffice": "Cuándo no estás y qué ven las organizaciones en ese tiempo.",
+      "workDetails": "Datos sobre cómo trabajas.",
+      "payoutAndTax": "Dónde te pagan las organizaciones y los formularios fiscales que les diste.",
+      "calendarFeeds": "Tu trabajo en tu propio calendario.",
+      "connectedApps": "Aplicaciones conectadas a tu cuenta.",
+      "keyboardShortcuts": "Atajos de teclado.",
+      "developer": "Acceso personal para tus propias herramientas.",
+      "companyCompanyProfileAndPrivacy": "El perfil público de tu empresa y quién lo ve.",
+      "companyTeamAndAccountRoles": "Quién está en la cuenta de tu empresa y sus roles.",
+      "companyServiceRegionsAndCapabilities": "Dónde trabaja tu empresa y qué hace.",
+      "companyInsuranceAndComplianceDocuments": "Certificados de seguro y precalificación registrados.",
+      "companyPayoutAndTax": "Dónde pagan las organizaciones a tu empresa y sus formularios fiscales.",
+      "companyRepresentation": "Artistas que representa tu agencia.",
+      "companyNotifications": "Cómo contactan las organizaciones a tu empresa.",
+      "companyDangerZone": "Propiedad y cierre de la cuenta de empresa."
+    },
+    "profile": {
+      "facts": "Datos del perfil",
+      "handle": "Usuario",
+      "handleHelp": "La dirección de tu perfil. Los usuarios anteriores siguen funcionando 90 días tras un cambio.",
+      "preferredName": "Nombre preferido",
+      "pronouns": "Pronombres",
+      "headline": "Titular",
+      "city": "Ciudad",
+      "country": "Código de país",
+      "rate": "Tu tarifa en {currency}",
+      "rateHelp": "Déjala en blanco para no mostrar tarifa. Una tarifa en blanco nunca aparece como cero.",
+      "about": "Acerca de ti",
+      "bio": "Biografía",
+      "skills": "Habilidades",
+      "skill": "Habilidad",
+      "addSkill": "Agregar habilidad",
+      "certifications": "Certificaciones",
+      "addCertification": "Agregar certificación",
+      "certName": "Certificación",
+      "certBody": "Emitida por",
+      "certIssued": "Emitida el",
+      "certExpires": "Vence el",
+      "languages": "Idiomas",
+      "addLanguage": "Agregar idioma",
+      "languageTag": "Código de idioma",
+      "languageHelp": "Por ejemplo en, es o pt-BR.",
+      "proficiency": "Nivel",
+      "links": "Enlaces",
+      "addLink": "Agregar enlace",
+      "linkLabel": "Etiqueta",
+      "linkUrl": "Dirección web"
+    },
+    "privacy": {
+      "title": "Privacidad del perfil",
+      "visibility": "Quién ve tu perfil",
+      "visibilityHelp": "Privado: solo tú. Red: personas y organizaciones con las que has trabajado. Público: todos.",
+      "discoverable": "Permitir que las organizaciones me encuentren en el mercado",
+      "indexing": "Permitir que los buscadores indexen mi perfil público",
+      "inherit": "Igual que el perfil",
+      "sharesBody": "Cada perfil compartido envió los campos que elegiste a una organización. Revocar detiene las actualizaciones futuras; la organización conserva lo que exige la ley.",
+      "sections": {
+        "photo": "Foto",
+        "pronouns": "Pronombres",
+        "headline": "Titular",
+        "bio": "Acerca de",
+        "location": "Ubicación",
+        "skills": "Habilidades",
+        "certifications": "Certificaciones",
+        "portfolio": "Portafolio",
+        "rates": "Tarifas",
+        "availability": "Disponibilidad",
+        "languages": "Idiomas",
+        "references": "Referencias",
+        "links": "Enlaces",
+        "organizations": "Organizaciones"
+      }
+    },
+    "account": {
+      "name": "Nombre completo",
+      "email": "Correo de acceso: {email}",
+      "oneAccount": "Esta única cuenta sirve en Gateway, Atlas y Compass para todas las organizaciones."
+    },
+    "security": {
+      "passwordless": "Gateway te da acceso primero con un enlace por correo o tu proveedor conectado; la contraseña es opcional. Cada dispositivo tiene su propia sesión.",
+      "signOut": "Cerrar sesión en este dispositivo"
+    },
+    "organizations": {
+      "accounts": "Cuentas de empresa",
+      "none": "No perteneces a ninguna cuenta de empresa. Crea una abajo si trabajas como empresa.",
+      "leave": "Salir",
+      "create": "Crear una cuenta de empresa",
+      "createBody": "Proveedores, agencias, firmas contratistas y patrocinadores ofertan y facturan como empresa. Serás su propietario.",
+      "name": "Nombre de la empresa",
+      "slug": "Dirección web",
+      "slugHelp": "De 2 a 48 letras minúsculas, números y guiones.",
+      "createSubmit": "Crear cuenta",
+      "created": "Cuenta de empresa creada. Actúa como ella desde el menú de cuenta."
+    },
+    "payout": {
+      "body": "Los datos de pago se ingresan mediante el proveedor de pagos de cada organización; aquí solo se muestran los últimos cuatro dígitos."
+    },
+    "company": {
+      "profile": "Perfil de la empresa",
+      "publicLink": "Perfil público en /c/{handle}",
+      "about": "Acerca de",
+      "website": "Sitio web",
+      "email": "Correo de contacto",
+      "profileUnavailable": "El perfil de la empresa lo administran los administradores de Atlas de la organización. Pide a un propietario de la cuenta que lo configure.",
+      "remove": "Quitar",
+      "inviteNote": "Para agregar a alguien al equipo, pídele que cree una cuenta de Gateway; luego un propietario o administrador lo agrega por su cuenta.",
+      "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden durante la incorporación; súbelos ahí.",
+      "toEngagements": "Ver contrataciones",
+      "noRepresentation": "Tu agencia aún no representa a ningún artista.",
+      "proposeNote": "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway."
+    },
+    "notes": {
+      "workDetails": "Tus datos de trabajo salen de tu perfil: habilidades, certificaciones, tarifas y disponibilidad.",
+      "toProfile": "Editar perfil",
+      "calendarFeeds": "Agrega cada turno, horario y fecha límite a tu calendario desde Próximos.",
+      "toUpcoming": "Abrir Próximos",
+      "connectedApps": "No hay aplicaciones conectadas a tu cuenta. Las organizaciones conectan sus herramientas en Atlas.",
+      "toOrganizations": "Ver tus cuentas",
+      "notifications": "Las organizaciones te contactan por correo y notificaciones para ofertas, documentos por firmar, pagos y mensajes. Las horas de silencio y el idioma siguen tus preferencias.",
+      "toPreferences": "Abrir preferencias",
+      "developer": "Los tokens de acceso personal solo están disponibles donde una organización los permite.",
+      "toSecurity": "Abrir seguridad",
+      "regions": "Las regiones de servicio y capacidades forman parte del perfil de tu empresa.",
+      "toCompanyProfile": "Abrir perfil de empresa",
+      "dangerZone": "Transferir la propiedad o cerrar una cuenta de empresa se hace con el soporte de la plataforma para conservar los registros que exige la ley. El último propietario no puede salir.",
+      "toTeam": "Abrir equipo"
+    }
+  },
   "shell": {
     "skip": "Saltar al contenido",
     "search": "Buscar",
-    "searchPlaceholder": "Busca páginas, contrataciones y oportunidades",
+    "searchHint": "Busca páginas, contrataciones y oportunidades",
     "commandGroup": "Ir a",
     "openAccount": "Abrir el menú de la cuenta de {name}",
     "account": "Cuenta",
@@ -996,9 +1319,8 @@
       "title": "Reclama tus envíos",
       "body": "Los formularios y firmas que completaste con un enlace enviado a {email} pueden unirse a esta cuenta para que los encuentres en Trabajo y Documentos.",
       "submit": "Reclamar envíos",
-      "done": "Tus envíos ya están en tu cuenta.",
+      "done": "Listo: {advance, plural, one {# respuesta de avance} other {# respuestas de avance}} y {documents, plural, one {# documento firmado} other {# documentos firmados}} ya están en tu cuenta.",
       "nothing": "No había envíos pendientes para {email}. Todo lo que completes desde ahora se guarda en esta cuenta.",
-      "unavailable": "Aún no se pueden reclamar envíos: el servicio de enlaces de la organización todavía no está conectado con Gateway. Tus formularios completados están a salvo con la organización; pídeles que reenvíen el enlace si lo necesitas.",
       "home": "Ir al inicio"
     },
     "errors": {

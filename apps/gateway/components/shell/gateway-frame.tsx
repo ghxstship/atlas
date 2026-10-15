@@ -220,7 +220,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
       <CommandMenu
         open={commandOpen}
         onOpenChange={setCommandOpen}
-        placeholder={t("gateway.shell.searchPlaceholder")}
+        placeholder={t("gateway.shell.searchHint")}
         groups={[
           {
             label: t("gateway.shell.commandGroup"),

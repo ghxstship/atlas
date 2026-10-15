@@ -105,7 +105,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           <input
             name="q"
             type="search"
-            placeholder={t("gateway.home.searchPlaceholder")}
+            placeholder={t("gateway.home.searchHint")}
             className="min-w-0 flex-1 border-0 bg-transparent text-text-14 text-text-primary outline-none placeholder:text-text-tertiary"
           />
         </label>

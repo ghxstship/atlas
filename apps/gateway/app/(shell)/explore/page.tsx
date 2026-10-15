@@ -65,7 +65,7 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
             name="q"
             type="search"
             label={t("gateway.explore.searchLabel")}
-            placeholder={t("gateway.explore.searchPlaceholder")}
+            placeholder={t("gateway.explore.searchHint")}
             defaultValue={parsed.q}
             width="100%"
           />
