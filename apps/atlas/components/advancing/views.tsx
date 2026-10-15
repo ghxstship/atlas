@@ -131,12 +131,15 @@ export function PeekPanel({
   stateLabel,
   properties,
   children,
+  full = true,
 }: {
   title: string;
   state: RecordState;
   stateLabel: string;
   properties: { label: string; value: ReactNode }[];
   children?: ReactNode;
+  /** False for rows without a full page, such as guests. */
+  full?: boolean;
 }) {
   const t = useCopy("advancing.common");
   const router = useRouter();
@@ -148,11 +151,15 @@ export function PeekPanel({
       onOpenChange={(open) => {
         if (!open) router.replace(href({ peek: null, full: null }));
       }}
-      footer={
-        <Button variant="primary" onClick={() => router.push(href({ full: "1" }))}>
-          {t("openFull")}
-        </Button>
-      }
+      {...(full
+        ? {
+            footer: (
+              <Button variant="primary" onClick={() => router.push(href({ full: "1" }))}>
+                {t("openFull")}
+              </Button>
+            ),
+          }
+        : {})}
     >
       <div>
         <StateChip state={state} label={stateLabel} />

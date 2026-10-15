@@ -59,7 +59,14 @@
     "not-found": "This item is gone or you no longer have access to it. Refresh the page.",
     "conflict": "Something with the same details already exists.",
     "invalid": "Check the highlighted fields and try again.",
-    "unexpected": "Something went wrong on our side. Try again in a moment."
+    "unexpected": "Something went wrong on our side. Try again in a moment.",
+    "guest_entry_moved": "Someone already changed this guest. Refresh the list.",
+    "guest_entry_authority": "Approving or declining guests needs review authority on this project.",
+    "guest_entry_decided": "A decided guest keeps its name, plus-ones and show. Decline it and add the guest again.",
+    "guest_entry_transition": "That move is not allowed. Approve a guest before checking them in.",
+    "guest_entry_state": "Add a guest as requested, or as approved if you review guests.",
+    "guest_entry_stamped": "Decision and check-in times are set automatically.",
+    "sod_guest_requester": "You requested this guest, so someone else must approve or decline them."
   },
   "projectTab": {
     "scope": "Advancing for {key} · {name}.",
@@ -350,5 +357,52 @@
     "fileSize": "Files can be up to 50 MB.",
     "upload": "Upload file",
     "uploaded": "File uploaded. It can be downloaded once the virus check passes."
+  },
+  "guests": {
+    "title": "Guest list",
+    "admitted": "{count, plural, one {# person admitted, including plus-ones} other {# people admitted, including plus-ones}}",
+    "empty": "No guests yet. Add a guest, or wait for artists to request theirs from Gateway.",
+    "emptyReadOnly": "No guests yet. They appear here when someone requests one.",
+    "emptyFiltered": "No guests are {state}. Clear the filter to see the whole list.",
+    "wholeProject": "Whole project",
+    "production": "Production",
+    "viaGateway": "Requested in Gateway",
+    "requested": "Requested",
+    "plusOnes": "{count, plural, =0 {No plus-ones} one {Plus one} other {Plus #}}",
+    "columns": {
+      "guest": "Guest",
+      "plusOnes": "Plus-ones",
+      "show": "Show",
+      "from": "List of"
+    },
+    "states": {
+      "Requested": "Requested",
+      "Approved": "Approved",
+      "Declined": "Declined",
+      "CheckedIn": "Checked in"
+    },
+    "form": {
+      "add": "Add guest",
+      "addTitle": "Add a guest",
+      "addDescription": "The guest is requested until someone with review authority approves them.",
+      "addSubmit": "Add guest",
+      "name": "Guest name",
+      "nameHelp": "The name the guest gives at the door.",
+      "nameError": "Enter a name of 1 to 200 characters.",
+      "plusOnes": "Plus-ones",
+      "plusOnesError": "Enter 0 to 20.",
+      "show": "Show",
+      "wholeProject": "Whole project",
+      "note": "Note for the door",
+      "noteHelp": "Optional. For example, side stage or press.",
+      "approveNow": "Approve now as a production comp"
+    },
+    "actions": {
+      "approve": "Approve {name}",
+      "decline": "Decline {name}",
+      "checkIn": "Check in {name}",
+      "edit": "Edit {name}",
+      "remove": "Remove {name}"
+    }
   }
 }

@@ -21,4 +21,11 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "advance_token_email",
   "advance_token_validity",
   "reconciliation_no_requirements",
+  "guest_entry_moved",
+  "guest_entry_authority",
+  "guest_entry_decided",
+  "guest_entry_transition",
+  "guest_entry_state",
+  "guest_entry_stamped",
+  "sod_guest_requester",
 ]);

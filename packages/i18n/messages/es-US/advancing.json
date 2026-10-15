@@ -59,7 +59,14 @@
     "not-found": "Este elemento ya no existe o ya no tienes acceso. Actualiza la página.",
     "conflict": "Ya existe algo con los mismos datos.",
     "invalid": "Revisa los campos marcados e inténtalo de nuevo.",
-    "unexpected": "Algo salió mal de nuestro lado. Inténtalo de nuevo en un momento."
+    "unexpected": "Algo salió mal de nuestro lado. Inténtalo de nuevo en un momento.",
+    "guest_entry_moved": "Alguien ya cambió este invitado. Actualiza la lista.",
+    "guest_entry_authority": "Aprobar o rechazar invitados requiere autoridad de revisión en este proyecto.",
+    "guest_entry_decided": "Un invitado decidido conserva su nombre, acompañantes y show. Recházalo y agrégalo de nuevo.",
+    "guest_entry_transition": "Ese cambio no está permitido. Aprueba al invitado antes de registrar su llegada.",
+    "guest_entry_state": "Agrega un invitado como solicitado, o como aprobado si revisas invitados.",
+    "guest_entry_stamped": "Las horas de decisión y de llegada se registran automáticamente.",
+    "sod_guest_requester": "Tú solicitaste este invitado, así que otra persona debe aprobarlo o rechazarlo."
   },
   "projectTab": {
     "scope": "Avances de {key} · {name}.",
@@ -350,5 +357,52 @@
     "fileSize": "Los archivos pueden pesar hasta 50 MB.",
     "upload": "Subir archivo",
     "uploaded": "Archivo subido. Se puede descargar cuando pase la revisión de virus."
+  },
+  "guests": {
+    "title": "Lista de invitados",
+    "admitted": "{count, plural, one {# persona admitida, con acompañantes} other {# personas admitidas, con acompañantes}}",
+    "empty": "Aún no hay invitados. Agrega uno o espera a que los artistas soliciten los suyos desde Gateway.",
+    "emptyReadOnly": "Aún no hay invitados. Aparecen aquí cuando alguien solicita uno.",
+    "emptyFiltered": "Ningún invitado está en {state}. Quita el filtro para ver toda la lista.",
+    "wholeProject": "Todo el proyecto",
+    "production": "Producción",
+    "viaGateway": "Solicitado en Gateway",
+    "requested": "Solicitado",
+    "plusOnes": "{count, plural, =0 {Sin acompañantes} one {Un acompañante} other {# acompañantes}}",
+    "columns": {
+      "guest": "Invitado",
+      "plusOnes": "Acompañantes",
+      "show": "Show",
+      "from": "Lista de"
+    },
+    "states": {
+      "Requested": "Solicitado",
+      "Approved": "Aprobado",
+      "Declined": "Rechazado",
+      "CheckedIn": "Llegada registrada"
+    },
+    "form": {
+      "add": "Agregar invitado",
+      "addTitle": "Agregar un invitado",
+      "addDescription": "El invitado queda solicitado hasta que alguien con autoridad de revisión lo apruebe.",
+      "addSubmit": "Agregar invitado",
+      "name": "Nombre del invitado",
+      "nameHelp": "El nombre que el invitado da en la puerta.",
+      "nameError": "Ingresa un nombre de 1 a 200 caracteres.",
+      "plusOnes": "Acompañantes",
+      "plusOnesError": "Ingresa de 0 a 20.",
+      "show": "Show",
+      "wholeProject": "Todo el proyecto",
+      "note": "Nota para la puerta",
+      "noteHelp": "Opcional. Por ejemplo, lateral del escenario o prensa.",
+      "approveNow": "Aprobar ahora como cortesía de producción"
+    },
+    "actions": {
+      "approve": "Aprobar a {name}",
+      "decline": "Rechazar a {name}",
+      "checkIn": "Registrar llegada de {name}",
+      "edit": "Editar a {name}",
+      "remove": "Quitar a {name}"
+    }
   }
 }

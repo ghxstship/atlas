@@ -4,11 +4,12 @@ import { advancingProjectTab } from "@/components/advancing/context";
 import { PacketsCollection } from "@/components/advancing/packets";
 import { ReconciliationCollection } from "@/components/advancing/reconciliation";
 import { RidersCollection } from "@/components/advancing/riders";
+import { GuestList } from "@/components/advancing/guests";
 import { flatSearch } from "@/components/advancing/shared";
 import { SubmissionsSplit } from "@/components/advancing/submissions";
 import { getTranslate } from "@/lib/shell/translate";
 
-const SECTIONS = ["packets", "submissions", "riders", "reconciliation"] as const;
+const SECTIONS = ["packets", "submissions", "riders", "reconciliation", "guests"] as const;
 
 /**
  * The project's Advancing tab (Section 4.5.4): packets, submissions, riders and reconciliation of
@@ -25,7 +26,9 @@ export default async function ProjectAdvancingPage({
   const section = SECTIONS.find((s) => s === search["section"]) ?? "packets";
   const path = `/${routeParams.org}/p/${routeParams.projectKey}/advancing`;
   const sectionHref = (s: string) => `${path}?section=${s}`;
-  const title = t(`nav.atlas.pages.advancing.${section}`);
+  const sectionLabel = (s: string) =>
+    s === "guests" ? t("advancing.guests.title") : t(`nav.atlas.pages.advancing.${s}`);
+  const title = sectionLabel(section);
   return (
     <div className="flex flex-col gap-16 min-w-0">
       <p className="m-0 text-text-13 text-text-secondary">
@@ -40,13 +43,15 @@ export default async function ProjectAdvancingPage({
                 aria-current={s === section ? "page" : undefined}
                 className="inline-flex min-h-target-coarse items-center border-b-2 border-transparent px-12 text-text-13 text-text-secondary hover:text-text-primary aria-[current=page]:border-accent aria-[current=page]:text-text-primary"
               >
-                {t(`nav.atlas.pages.advancing.${s}`)}
+                {sectionLabel(s)}
               </Link>
             </li>
           ))}
         </ul>
       </nav>
-      {section === "submissions" ? (
+      {section === "guests" ? (
+        <GuestList actx={actx} project={actx.project} path={path} search={search} title={title} />
+      ) : section === "submissions" ? (
         <SubmissionsSplit
           actx={actx}
           path={path}
