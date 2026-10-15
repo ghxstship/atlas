@@ -2,9 +2,9 @@
  * Crew handlers (A13). Served here are the operations whose v1 contract matches the Crew schema:
  * pay periods with their compare-and-set transitions (a posted period never reopens, invariant 14),
  * rate cards, earning codes and time off policies. Reads and writes run as the caller, so row level
- * security decides every row. Operations whose frozen v1 shape differs from the schema (shifts,
- * swaps, time entries, timesheets, rate card lines, pay rates, payroll runs, lines and exports, per
- * diems, time off requests) stay document-only until A04C's contract corrections land (ADR 0007).
+ * security decides every row. Rate cards and earning codes use their column names, as corrected in
+ * catalog/modules/crew.ts (ADR 0023). The other Crew operations stay document-only until their
+ * corrected shapes have handlers.
  */
 import type { XosClient } from "@xos/data";
 import { transitionPayPeriod, type PayPeriodState } from "@xos/data/crew";
@@ -15,22 +15,16 @@ import { versionFromIfMatch } from "../runtime/etag.ts";
 import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
-import { aliasedSource, problemFor } from "./projects.ts";
+import { problemFor } from "./projects.ts";
 
 type Row = Record<string, unknown>;
 type Table = "pay_periods" | "rate_cards" | "earning_codes" | "time_off_policies";
 
 const BASE = ["id", "org_id", "created_at", "created_by", "updated_at", "updated_by"] as const;
 const PERIOD_COLUMNS = [...BASE, "starts_on", "ends_on", "pay_period_state"] as const;
-const CARD_COLUMNS = [...BASE, "name", "currency", "effective_from", "effective_to"] as const;
-const CARD_ALIASES = { currency: "currency_code" } as const;
-const CODE_COLUMNS = [...BASE, "earning_code", "name", "overtime"] as const;
-const CODE_ALIASES = { earning_code: "code", overtime: "is_overtime" } as const;
+const CARD_COLUMNS = [...BASE, "name", "currency_code", "effective_from", "effective_to"] as const;
+const CODE_COLUMNS = [...BASE, "code", "name", "is_overtime"] as const;
 const POLICY_COLUMNS = [...BASE, "name", "accrual_hours_per_period"] as const;
-
-function aliasSelect(columns: readonly string[], aliases: Readonly<Record<string, string>> = {}) {
-  return columns.map((c) => (aliases[c] ? `${c}:${aliases[c]}` : c)).join(",");
-}
 
 function live(db: XosClient, table: Table) {
   return { select: (c: string) => db.from(table).select(c).is("deleted_at", null) };
@@ -177,11 +171,11 @@ export const handlers = defineHandlers("Crew", {
   // Rate cards -----------------------------------------------------------------------------------------
   "rateCards.list": async ({ query }, { db }) =>
     ok(
-      await listPage<Components["RateCard"]>(
-        aliasedSource(() => live(db, "rate_cards"), CARD_ALIASES),
-        query,
-        { columns: CARD_COLUMNS, key: "id", defaultOrder: ["effective_from"] },
-      ),
+      await listPage<Components["RateCard"]>(live(db, "rate_cards"), query, {
+        columns: CARD_COLUMNS,
+        key: "id",
+        defaultOrder: ["effective_from"],
+      }),
     ),
 
   "rateCards.get": async ({ params, query }, { db }) =>
@@ -190,7 +184,7 @@ export const handlers = defineHandlers("Crew", {
         db,
         "rate_cards",
         params.id,
-        aliasSelect(selectColumns(query.fields, CARD_COLUMNS, "id"), CARD_ALIASES),
+        selectColumns(query.fields, CARD_COLUMNS, "id").join(","),
         "rate card",
       )) as unknown as Components["RateCard"],
     ),
@@ -201,11 +195,11 @@ export const handlers = defineHandlers("Crew", {
       .insert({
         org_id: requireOrg(context).id,
         name: body.name,
-        currency_code: body.currency,
+        currency_code: body.currency_code,
         effective_from: body.effective_from,
         effective_to: body.effective_to ?? null,
       })
-      .select(aliasSelect(CARD_COLUMNS, CARD_ALIASES))
+      .select(CARD_COLUMNS.join(","))
       .single();
     if (error !== null) throw error;
     return created(data as unknown as Components["RateCard"]);
@@ -218,7 +212,7 @@ export const handlers = defineHandlers("Crew", {
       params.id,
       defined({
         name: body.name,
-        currency_code: body.currency,
+        currency_code: body.currency_code,
         effective_from: body.effective_from,
         effective_to: body.effective_to,
       }),
@@ -230,7 +224,7 @@ export const handlers = defineHandlers("Crew", {
         db,
         "rate_cards",
         params.id,
-        aliasSelect(CARD_COLUMNS, CARD_ALIASES),
+        CARD_COLUMNS.join(","),
         "rate card",
       )) as unknown as Components["RateCard"],
     );
@@ -242,11 +236,11 @@ export const handlers = defineHandlers("Crew", {
   // Earning codes (code order, Section 3.6) ----------------------------------------------------------------
   "earningCodes.list": async ({ query }, { db }) =>
     ok(
-      await listPage<Components["EarningCode"]>(
-        aliasedSource(() => live(db, "earning_codes"), CODE_ALIASES),
-        query,
-        { columns: CODE_COLUMNS, key: "id", defaultOrder: ["earning_code"] },
-      ),
+      await listPage<Components["EarningCode"]>(live(db, "earning_codes"), query, {
+        columns: CODE_COLUMNS,
+        key: "id",
+        defaultOrder: ["code"],
+      }),
     ),
 
   "earningCodes.get": async ({ params, query }, { db }) =>
@@ -255,7 +249,7 @@ export const handlers = defineHandlers("Crew", {
         db,
         "earning_codes",
         params.id,
-        aliasSelect(selectColumns(query.fields, CODE_COLUMNS, "id"), CODE_ALIASES),
+        selectColumns(query.fields, CODE_COLUMNS, "id").join(","),
         "earning code",
       )) as unknown as Components["EarningCode"],
     ),
@@ -265,11 +259,11 @@ export const handlers = defineHandlers("Crew", {
       .from("earning_codes")
       .insert({
         org_id: requireOrg(context).id,
-        code: body.earning_code,
+        code: body.code,
         name: body.name,
-        is_overtime: body.overtime,
+        is_overtime: body.is_overtime ?? false,
       })
-      .select(aliasSelect(CODE_COLUMNS, CODE_ALIASES))
+      .select(CODE_COLUMNS.join(","))
       .single();
     if (error !== null) throw error;
     return created(data as unknown as Components["EarningCode"]);
@@ -280,7 +274,7 @@ export const handlers = defineHandlers("Crew", {
       db,
       "earning_codes",
       params.id,
-      defined({ code: body.earning_code, name: body.name, is_overtime: body.overtime }),
+      defined({ code: body.code, name: body.name, is_overtime: body.is_overtime }),
       ifMatch,
       "earning code",
     );
@@ -289,7 +283,7 @@ export const handlers = defineHandlers("Crew", {
         db,
         "earning_codes",
         params.id,
-        aliasSelect(CODE_COLUMNS, CODE_ALIASES),
+        CODE_COLUMNS.join(","),
         "earning code",
       )) as unknown as Components["EarningCode"],
     );
@@ -325,7 +319,7 @@ export const handlers = defineHandlers("Crew", {
       .insert({
         org_id: requireOrg(context).id,
         name: body.name,
-        accrual_hours_per_period: body.accrual_hours_per_period,
+        accrual_hours_per_period: body.accrual_hours_per_period ?? null,
       })
       .select(POLICY_COLUMNS.join(","))
       .single();

@@ -170,11 +170,11 @@ describe("Crew contract: pay periods", () => {
 });
 
 describe("Crew contract: rate cards, earning codes and time off policies", () => {
-  it("serves rate cards with the contract's currency field", async () => {
+  it("serves rate cards with currency_code", async () => {
     const card = {
       ...audit(3),
       name: "2027 Crew Rates",
-      currency: "USD",
+      currency_code: "USD",
       effective_from: "2027-01-01",
       effective_to: null,
     };
@@ -197,7 +197,7 @@ describe("Crew contract: rate cards, earning codes and time off policies", () =>
     await expectContract(r4, "rateCards.get");
     const made = await api.request(
       "/rate-cards",
-      post({ name: "2027 Crew Rates", currency: "USD", effective_from: "2027-01-01" }),
+      post({ name: "2027 Crew Rates", currency_code: "USD", effective_from: "2027-01-01" }),
     );
     await expectContract(made, "rateCards.create");
     expect(calls[2]?.steps[0]?.[1]).toEqual([
@@ -219,7 +219,7 @@ describe("Crew contract: rate cards, earning codes and time off policies", () =>
   });
 
   it("serves earning codes in code order and time off policies", async () => {
-    const code = { ...audit(6), earning_code: "REG", name: "Regular Hours", overtime: false };
+    const code = { ...audit(6), code: "REG", name: "Regular Hours", is_overtime: false };
     const policy = { ...audit(7), name: "Paid Time Off", accrual_hours_per_period: 4 };
     const { api, calls } = app({
       "from:earning_codes": [
@@ -242,17 +242,18 @@ describe("Crew contract: rate cards, earning codes and time off policies", () =>
     const r6 = await api.request("/earning-codes");
 
     await expectContract(r6, "earningCodes.list");
-    // Code order: the list sorts on the stored code column behind the contract's earning_code.
+    // Code order: the list sorts on the code column.
     expect(JSON.stringify(calls[0]?.steps)).toContain('["order",["code"');
     const r7 = await api.request(`/earning-codes/${id(6)}`);
 
     await expectContract(r7, "earningCodes.get");
-    const r8 = await api.request(
-      "/earning-codes",
-      post({ earning_code: "REG", name: "Regular Hours", overtime: false }),
-    );
+    const r8 = await api.request("/earning-codes", post({ code: "REG", name: "Regular Hours" }));
 
     await expectContract(r8, "earningCodes.create");
+    // is_overtime is optional on create and defaults to false, as the column does.
+    expect(calls[2]?.steps[0]?.[1]).toEqual([
+      { org_id: ORG, code: "REG", name: "Regular Hours", is_overtime: false },
+    ]);
     const r9 = await api.request(`/earning-codes/${id(6)}`, patch({ name: "Regular" }));
 
     await expectContract(r9, "earningCodes.update");

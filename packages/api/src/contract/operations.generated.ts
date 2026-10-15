@@ -253,15 +253,50 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    engagement_id: string | null;
     title: string;
-    document_id: string;
-    agreement_state: string;
+    agreement_state: "Proposed" | "Sent" | "Signed" | "Superseded" | "Expired" | "Canceled";
     signed_at: string | null;
+    agreement_kind:
+      | "Offer Letter"
+      | "Contractor Agreement"
+      | "Master Services Agreement"
+      | "Non-Disclosure Agreement";
+    body: string;
+    project_id: string | null;
+    offer_id: string | null;
+    person_id: string | null;
+    counterparty_id: string | null;
+    token_expires_at: string | null;
+    signed_name: string | null;
+    signed_body_sha256: string | null;
   };
-  AgreementCreate: { engagement_id?: string | null; title: string; document_id: string };
+  AgreementCreate: {
+    title: string;
+    agreement_kind:
+      | "Offer Letter"
+      | "Contractor Agreement"
+      | "Master Services Agreement"
+      | "Non-Disclosure Agreement";
+    body: string;
+    project_id?: string | null;
+    offer_id?: string | null;
+    person_id?: string | null;
+    counterparty_id?: string | null;
+  };
   AgreementPage: { data: Array<Components["Agreement"]>; next_cursor: string | null };
-  AgreementUpdate: { engagement_id?: string | null; title?: string; document_id?: string };
+  AgreementUpdate: {
+    title?: string;
+    agreement_kind?:
+      | "Offer Letter"
+      | "Contractor Agreement"
+      | "Master Services Agreement"
+      | "Non-Disclosure Agreement";
+    body?: string;
+    project_id?: string | null;
+    offer_id?: string | null;
+    person_id?: string | null;
+    counterparty_id?: string | null;
+  };
   AiSettings: {
     id: string;
     org_id: string;
@@ -2073,13 +2108,13 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    earning_code: string;
+    code: string;
     name: string;
-    overtime: boolean;
+    is_overtime: boolean;
   };
-  EarningCodeCreate: { earning_code: string; name: string; overtime: boolean };
+  EarningCodeCreate: { code: string; name: string; is_overtime?: boolean };
   EarningCodePage: { data: Array<Components["EarningCode"]>; next_cursor: string | null };
-  EarningCodeUpdate: { earning_code?: string; name?: string; overtime?: boolean };
+  EarningCodeUpdate: { code?: string; name?: string; is_overtime?: boolean };
   ElementEconomics: {
     element_id: Components["ItemId"];
     currency_code: string;
@@ -3018,12 +3053,13 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    venue_id: string | null;
-    active: boolean;
+    project_id: string | null;
+    last_seen_at: string | null;
+    revoked_at: string | null;
   };
-  KioskDeviceCreate: { name: string; venue_id?: string | null; active: boolean };
+  KioskDeviceCreate: { name: string; project_id?: string | null };
   KioskDevicePage: { data: Array<Components["KioskDevice"]>; next_cursor: string | null };
-  KioskDeviceUpdate: { name?: string; venue_id?: string | null; active?: boolean };
+  KioskDeviceUpdate: { name?: string; project_id?: string | null };
   Limit: number;
   LineType: string;
   ListingReport: {
@@ -3805,33 +3841,15 @@ export interface Components {
     organization_type?: string;
   };
   OvertimeRule: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    name: string;
     jurisdiction_id: Components["JurisdictionId"];
-    threshold_hours: number;
-    multiplier: number;
-    period: string;
-  };
-  OvertimeRuleCreate: {
-    name: string;
-    jurisdiction_id: Components["JurisdictionId"];
-    threshold_hours: number;
-    multiplier: number;
-    period: string;
+    source: string;
+    weekly_ot_after_hours: number | null;
+    daily_ot_after_hours: number | null;
+    daily_dt_after_hours: number | null;
+    min_ot_multiplier: number | null;
+    min_dt_multiplier: number | null;
   };
   OvertimeRulePage: { data: Array<Components["OvertimeRule"]>; next_cursor: string | null };
-  OvertimeRuleUpdate: {
-    name?: string;
-    jurisdiction_id?: Components["JurisdictionId"];
-    threshold_hours?: number;
-    multiplier?: number;
-    period?: string;
-  };
   PayPeriod: {
     id: string;
     org_id: string;
@@ -3854,20 +3872,18 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    person_id: string;
-    role_code: Components["RoleCode"] & (string | null);
-    rate_type: Components["RateType"];
+    role_code: Components["RoleCode"];
     rate_minor: number | Components["Masked"] | null;
-    currency: string;
     effective_from: string;
+    membership_id: string;
+    currency_code: string;
   };
   PayRateCreate: {
-    person_id: string;
-    role_code?: Components["RoleCode"] & (string | null);
-    rate_type: Components["RateType"];
-    rate_minor?: number | null;
-    currency: string;
+    role_code: Components["RoleCode"];
+    rate_minor: number;
     effective_from: string;
+    membership_id: string;
+    currency_code: string;
   };
   PayRatePage: { data: Array<Components["PayRate"]>; next_cursor: string | null };
   PayTransparencyRule: {
@@ -3932,24 +3948,22 @@ export interface Components {
     updated_by: string | null;
     payroll_run_id: string;
     provider: string;
-    export_state: string;
-    document_id: string | null;
+    file_uri: string;
+    checksum_sha256: string;
   };
   PayrollExportCreate: { payroll_run_id: string; provider: string };
   PayrollExportPage: { data: Array<Components["PayrollExport"]>; next_cursor: string | null };
   PayrollLine: {
     id: string;
     org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
     payroll_run_id: string;
-    person_id: string;
     earning_code_id: string;
     hours: number;
     amount_minor: number | Components["Masked"] | null;
-    currency: string;
+    membership_id: string;
+    rate_minor: number | Components["Masked"] | null;
+    role_code: Components["RoleCode"] | null;
+    cost_center_id: string | null;
   };
   PayrollLinePage: { data: Array<Components["PayrollLine"]>; next_cursor: string | null };
   PayrollRun: {
@@ -3960,11 +3974,10 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     pay_period_id: string;
-    payroll_run_state: string;
-    gross_total: number | null;
-    currency: string;
+    payroll_run_state: "Draft" | "Calculated" | "Approved" | "Exported" | "Accepted" | "Canceled";
+    currency_code: string;
   };
-  PayrollRunCreate: { pay_period_id: string; currency: string };
+  PayrollRunCreate: { pay_period_id: string; currency_code: string };
   PayrollRunPage: { data: Array<Components["PayrollRun"]>; next_cursor: string | null };
   PayrollRunTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   PerDiem: {
@@ -3974,26 +3987,29 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    engagement_id: string;
-    daily_amount_minor: number | Components["Masked"] | null;
-    currency: string;
-    starts_on: string;
-    ends_on: string;
+    engagement_id: string | null;
+    project_id: string;
+    membership_id: string | null;
+    day: string;
+    amount_minor: number | null;
+    currency_code: string;
   };
   PerDiemCreate: {
-    engagement_id: string;
-    daily_amount_minor?: number | null;
-    currency: string;
-    starts_on: string;
-    ends_on: string;
+    engagement_id?: string | null;
+    project_id: string;
+    membership_id?: string | null;
+    day: string;
+    amount_minor: number;
+    currency_code: string;
   };
   PerDiemPage: { data: Array<Components["PerDiem"]>; next_cursor: string | null };
   PerDiemUpdate: {
-    engagement_id?: string;
-    daily_amount_minor?: number | null;
-    currency?: string;
-    starts_on?: string;
-    ends_on?: string;
+    engagement_id?: string | null;
+    project_id?: string;
+    membership_id?: string | null;
+    day?: string;
+    amount_minor?: number;
+    currency_code?: string;
   };
   PermitEngineRequest: { project_id: string };
   PermitRequirement: {
@@ -4505,13 +4521,13 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    currency: string;
+    currency_code: string;
     effective_from: string;
     effective_to: string | null;
   };
   RateCardCreate: {
     name: string;
-    currency: string;
+    currency_code: string;
     effective_from: string;
     effective_to?: string | null;
   };
@@ -4524,28 +4540,37 @@ export interface Components {
     updated_by: string | null;
     rate_card_id: string;
     role_code: Components["RoleCode"];
-    rate_type: Components["RateType"];
     rate_minor: number | Components["Masked"] | null;
-    currency: string;
+    worker_classification: string;
+    pay_basis: string;
+    arrangement: string;
+    overtime_rule_id: string;
+    canon_rate_card_id: string | null;
   };
   RateCardLineCreate: {
     rate_card_id: string;
     role_code: Components["RoleCode"];
-    rate_type: Components["RateType"];
     rate_minor?: number | null;
-    currency: string;
+    worker_classification: string;
+    pay_basis: string;
+    arrangement: string;
+    overtime_rule_id: string;
+    canon_rate_card_id?: string | null;
   };
   RateCardLinePage: { data: Array<Components["RateCardLine"]>; next_cursor: string | null };
   RateCardLineUpdate: {
     role_code?: Components["RoleCode"];
-    rate_type?: Components["RateType"];
     rate_minor?: number | null;
-    currency?: string;
+    worker_classification?: string;
+    pay_basis?: string;
+    arrangement?: string;
+    overtime_rule_id?: string;
+    canon_rate_card_id?: string | null;
   };
   RateCardPage: { data: Array<Components["RateCard"]>; next_cursor: string | null };
   RateCardUpdate: {
     name?: string;
-    currency?: string;
+    currency_code?: string;
     effective_from?: string;
     effective_to?: string | null;
   };
@@ -5007,32 +5032,84 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     project_id: string;
-    title: string;
-    role_code: Components["RoleCode"] & (string | null);
-    urid: Components["UridAtAnyGrain"];
-    positions: number;
-    requisition_state: string;
-    budget_minor: number | null;
-    currency: string;
+    role_code: Components["RoleCode"];
+    requisition_state: "Proposed" | "Approved" | "Rejected" | "Filled" | "Canceled";
+    scope_node_id: string | null;
+    budget_line_id: string | null;
+    role_type:
+      | "Crew"
+      | "Contractor"
+      | "Staff"
+      | "Vendor"
+      | "Artist"
+      | "Artist Representative"
+      | "Client"
+      | "Sponsor"
+      | null;
+    worker_classification: string | null;
+    pay_basis: string | null;
+    arrangement: string | null;
+    headcount: number;
+    units_per_head: number | null;
+    rate_minor: number | null;
+    currency_code: string;
+    starts_on: string | null;
+    ends_on: string | null;
+    justification: string;
+    requested_by: string | null;
   };
   RequisitionCreate: {
     project_id: string;
-    title: string;
-    role_code?: Components["RoleCode"] & (string | null);
-    urid?: Components["UridAtAnyGrain"];
-    positions: number;
-    budget_minor?: number | null;
-    currency: string;
+    role_code: Components["RoleCode"];
+    scope_node_id?: string | null;
+    budget_line_id?: string | null;
+    role_type?:
+      | "Crew"
+      | "Contractor"
+      | "Staff"
+      | "Vendor"
+      | "Artist"
+      | "Artist Representative"
+      | "Client"
+      | "Sponsor"
+      | null;
+    worker_classification?: string | null;
+    pay_basis?: string | null;
+    arrangement?: string | null;
+    headcount?: number;
+    units_per_head?: number | null;
+    rate_minor?: number | null;
+    currency_code: string;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    justification: string;
   };
   RequisitionPage: { data: Array<Components["Requisition"]>; next_cursor: string | null };
   RequisitionTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   RequisitionUpdate: {
-    title?: string;
-    role_code?: Components["RoleCode"] & (string | null);
-    urid?: Components["UridAtAnyGrain"];
-    positions?: number;
-    budget_minor?: number | null;
-    currency?: string;
+    role_code?: Components["RoleCode"];
+    scope_node_id?: string | null;
+    budget_line_id?: string | null;
+    role_type?:
+      | "Crew"
+      | "Contractor"
+      | "Staff"
+      | "Vendor"
+      | "Artist"
+      | "Artist Representative"
+      | "Client"
+      | "Sponsor"
+      | null;
+    worker_classification?: string | null;
+    pay_basis?: string | null;
+    arrangement?: string | null;
+    headcount?: number;
+    units_per_head?: number | null;
+    rate_minor?: number | null;
+    currency_code?: string;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    justification?: string;
   };
   RestoreRequest: { subject_urn: string };
   RetentionPolicy: {
@@ -5182,25 +5259,32 @@ export interface Components {
     project_id: string;
     role_code: Components["RoleCode"];
     scope_node_id: string | null;
-    person_id: string | null;
-    headcount: number;
-    ratio_basis: string | null;
+    person_id: string;
+    requisition_id: string | null;
+    staffing_basis: "Declared" | "Ratio" | "Fixed";
+    starts_on: string | null;
+    ends_on: string | null;
+    assignment_state: "Proposed" | "Active" | "Complete" | "Canceled";
   };
   RoleAssignmentCreate: {
     project_id: string;
     role_code: Components["RoleCode"];
     scope_node_id?: string | null;
-    person_id?: string | null;
-    headcount: number;
-    ratio_basis?: string | null;
+    person_id: string;
+    requisition_id?: string | null;
+    staffing_basis?: "Declared" | "Ratio" | "Fixed";
+    starts_on?: string | null;
+    ends_on?: string | null;
   };
   RoleAssignmentPage: { data: Array<Components["RoleAssignment"]>; next_cursor: string | null };
   RoleAssignmentUpdate: {
     role_code?: Components["RoleCode"];
     scope_node_id?: string | null;
-    person_id?: string | null;
-    headcount?: number;
-    ratio_basis?: string | null;
+    person_id?: string;
+    requisition_id?: string | null;
+    staffing_basis?: "Declared" | "Ratio" | "Fixed";
+    starts_on?: string | null;
+    ends_on?: string | null;
   };
   RoleCapability: {
     id: string;
@@ -5458,23 +5542,25 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     record_id: string | null;
-    role_code: Components["RoleCode"];
-    person_id: string | null;
+    role_code: Components["RoleCode"] | null;
     engagement_id: string | null;
     starts_at: string;
     ends_at: string;
-    geofence_id: string | null;
-    shift_state: string;
+    shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
+    membership_id: string | null;
+    scope_node_id: string | null;
+    time_zone: string;
   };
   ShiftCreate: {
     project_id: string;
     record_id?: string | null;
-    role_code: Components["RoleCode"];
-    person_id?: string | null;
+    role_code?: Components["RoleCode"] | null;
     engagement_id?: string | null;
     starts_at: string;
     ends_at: string;
-    geofence_id?: string | null;
+    membership_id?: string | null;
+    scope_node_id?: string | null;
+    time_zone: string;
   };
   ShiftPage: { data: Array<Components["Shift"]>; next_cursor: string | null };
   ShiftSwap: {
@@ -5485,23 +5571,23 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     shift_id: string;
-    requested_by: string;
-    proposed_person_id: string | null;
-    swap_state: string;
-    decided_by: string | null;
-    decided_at: string | null;
+    swap_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
+    project_id: string;
+    requested_by_membership_id: string;
+    proposed_membership_id: string;
   };
-  ShiftSwapCreate: { shift_id: string; proposed_person_id?: string | null };
+  ShiftSwapCreate: { shift_id: string; proposed_membership_id: string };
   ShiftSwapPage: { data: Array<Components["ShiftSwap"]>; next_cursor: string | null };
   ShiftTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   ShiftUpdate: {
     record_id?: string | null;
-    role_code?: Components["RoleCode"];
-    person_id?: string | null;
+    role_code?: Components["RoleCode"] | null;
     engagement_id?: string | null;
     starts_at?: string;
     ends_at?: string;
-    geofence_id?: string | null;
+    membership_id?: string | null;
+    scope_node_id?: string | null;
+    time_zone?: string;
   };
   Shipment: {
     id: string;
@@ -5931,15 +6017,17 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    person_id: string;
     shift_id: string | null;
-    clock_in_at: string;
-    clock_out_at: string | null;
+    clock_in: string;
+    clock_out: string | null;
     break_minutes: number;
-    latitude: number | null;
-    longitude: number | null;
-    auto_closed: boolean;
     kiosk_device_id: string | null;
+    project_id: string;
+    membership_id: string | null;
+    engagement_id: string | null;
+    source: "Web" | "Mobile" | "Kiosk";
+    auto_closed_at: string | null;
+    needs_review: boolean;
   };
   TimeEntryAudit: {
     id: string;
@@ -5949,10 +6037,8 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     time_entry_id: string;
-    field: string;
-    from_value: string | null;
-    to_value: string | null;
-    changed_at: string;
+    old_values: Record<string, unknown> | null;
+    new_values: Record<string, unknown>;
   };
   TimeEntryAuditPage: { data: Array<Components["TimeEntryAudit"]>; next_cursor: string | null };
   TimeEntryCorrection: {
@@ -5963,16 +6049,19 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     time_entry_id: string;
-    clock_in_at: string | null;
-    clock_out_at: string | null;
     reason: string;
-    correction_state: string;
+    correction_state: "Proposed" | "Approved" | "Rejected";
+    proposed_clock_in: string;
+    proposed_clock_out: string | null;
+    proposed_break_minutes: number;
+    requested_by: string | null;
   };
   TimeEntryCorrectionCreate: {
     time_entry_id: string;
-    clock_in_at?: string | null;
-    clock_out_at?: string | null;
     reason: string;
+    proposed_clock_in: string;
+    proposed_clock_out?: string | null;
+    proposed_break_minutes?: number;
   };
   TimeEntryCorrectionPage: {
     data: Array<Components["TimeEntryCorrection"]>;
@@ -5997,11 +6086,11 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    accrual_hours_per_period: number;
+    accrual_hours_per_period: number | null;
   };
-  TimeOffPolicyCreate: { name: string; accrual_hours_per_period: number };
+  TimeOffPolicyCreate: { name: string; accrual_hours_per_period?: number | null };
   TimeOffPolicyPage: { data: Array<Components["TimeOffPolicy"]>; next_cursor: string | null };
-  TimeOffPolicyUpdate: { name?: string; accrual_hours_per_period?: number };
+  TimeOffPolicyUpdate: { name?: string; accrual_hours_per_period?: number | null };
   TimeOffRequest: {
     id: string;
     org_id: string;
@@ -6009,17 +6098,19 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    person_id: string;
     time_off_policy_id: string;
     starts_on: string;
     ends_on: string;
-    time_off_state: string;
+    time_off_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
+    membership_id: string;
+    hours: number;
   };
   TimeOffRequestCreate: {
-    person_id: string;
     time_off_policy_id: string;
     starts_on: string;
     ends_on: string;
+    membership_id: string;
+    hours: number;
   };
   TimeOffRequestPage: { data: Array<Components["TimeOffRequest"]>; next_cursor: string | null };
   Timesheet: {
@@ -6029,10 +6120,13 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    person_id: string;
-    pay_period_id: string;
-    timesheet_state: string;
-    total_hours: number;
+    timesheet_state: "Proposed" | "Submitted" | "Approved" | "Rejected";
+    project_id: string;
+    membership_id: string | null;
+    engagement_id: string | null;
+    period_start: string;
+    period_end: string;
+    submitted_by: string | null;
   };
   TimesheetApproval: {
     id: string;
@@ -6042,16 +6136,21 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     timesheet_id: string;
-    approver_id: string;
-    decision: string;
-    decided_at: string;
-    voided: boolean;
+    approved_by: string;
+    approved_minutes: number;
+    voided_at: string | null;
   };
   TimesheetApprovalPage: {
     data: Array<Components["TimesheetApproval"]>;
     next_cursor: string | null;
   };
-  TimesheetCreate: { person_id: string; pay_period_id: string };
+  TimesheetCreate: {
+    project_id: string;
+    membership_id?: string | null;
+    engagement_id?: string | null;
+    period_start: string;
+    period_end: string;
+  };
   TimesheetPage: { data: Array<Components["Timesheet"]>; next_cursor: string | null };
   TouchpointId: string;
   TrashItem: { subject_urn: string; deleted_at: string; purge_after: string };
@@ -6066,23 +6165,29 @@ export interface Components {
     union_local: string;
     role_code: Components["RoleCode"];
     rate_minor: number | Components["Masked"] | null;
-    currency: string;
+    currency_code: string;
     effective_from: string;
+    fringe_minor: number | null;
+    effective_to: string | null;
   };
   UnionLocalRateCreate: {
     union_local: string;
     role_code: Components["RoleCode"];
-    rate_minor?: number | null;
-    currency: string;
+    rate_minor: number;
+    currency_code: string;
     effective_from: string;
+    fringe_minor?: number | null;
+    effective_to?: string | null;
   };
   UnionLocalRatePage: { data: Array<Components["UnionLocalRate"]>; next_cursor: string | null };
   UnionLocalRateUpdate: {
     union_local?: string;
     role_code?: Components["RoleCode"];
-    rate_minor?: number | null;
-    currency?: string;
+    rate_minor?: number;
+    currency_code?: string;
     effective_from?: string;
+    fringe_minor?: number | null;
+    effective_to?: string | null;
   };
   UnitCode: string | null;
   Urid: string;
@@ -6339,17 +6444,21 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     jurisdiction_id: Components["JurisdictionId"];
-    reference: string;
     role_code: Components["RoleCode"];
-    rate_minor: number | null;
-    currency: string;
+    minimum_rate_minor: number | null;
+    currency_code: string;
+    effective_from: string;
+    effective_to: string | null;
+    source: string;
   };
   WageDeterminationCreate: {
     jurisdiction_id: Components["JurisdictionId"];
-    reference: string;
     role_code: Components["RoleCode"];
-    rate_minor?: number | null;
-    currency: string;
+    minimum_rate_minor: number;
+    currency_code: string;
+    effective_from: string;
+    effective_to?: string | null;
+    source: string;
   };
   WageDeterminationPage: {
     data: Array<Components["WageDetermination"]>;
@@ -6357,10 +6466,12 @@ export interface Components {
   };
   WageDeterminationUpdate: {
     jurisdiction_id?: Components["JurisdictionId"];
-    reference?: string;
     role_code?: Components["RoleCode"];
-    rate_minor?: number | null;
-    currency?: string;
+    minimum_rate_minor?: number;
+    currency_code?: string;
+    effective_from?: string;
+    effective_to?: string | null;
+    source?: string;
   };
   WebhookDelivery: {
     id: string;
@@ -9670,6 +9781,15 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["Shift"] };
   };
+  "shifts.claim": {
+    module: "Crew";
+    method: "post";
+    path: "/shifts/{id}/claim";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["Shift"] };
+  };
   "shiftSwaps.list": {
     module: "Crew";
     method: "get";
@@ -9767,24 +9887,6 @@ export interface Operations {
     module: "Crew";
     method: "post";
     path: "/time-entries/{id}/clock-out";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["TimeEntry"] };
-  };
-  "timeEntries.startBreak": {
-    module: "Crew";
-    method: "post";
-    path: "/time-entries/{id}/start-break";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["TimeEntry"] };
-  };
-  "timeEntries.endBreak": {
-    module: "Crew";
-    method: "post";
-    path: "/time-entries/{id}/end-break";
     params: { id: string };
     query: Record<string, never>;
     body: undefined;
@@ -10132,41 +10234,14 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["OvertimeRulePage"] };
   };
-  "overtimeRules.create": {
-    module: "Crew";
-    method: "post";
-    path: "/overtime-rules";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["OvertimeRuleCreate"];
-    responses: { 201: Components["OvertimeRule"] };
-  };
   "overtimeRules.get": {
     module: "Crew";
     method: "get";
-    path: "/overtime-rules/{id}";
-    params: { id: string };
+    path: "/overtime-rules/{jurisdiction_id}";
+    params: { jurisdiction_id: Components["JurisdictionId"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["OvertimeRule"] };
-  };
-  "overtimeRules.update": {
-    module: "Crew";
-    method: "patch";
-    path: "/overtime-rules/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["OvertimeRuleUpdate"];
-    responses: { 200: Components["OvertimeRule"] };
-  };
-  "overtimeRules.delete": {
-    module: "Crew";
-    method: "delete";
-    path: "/overtime-rules/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
   };
   "unionLocalRates.list": {
     module: "Crew";
@@ -10361,6 +10436,24 @@ export interface Operations {
     params: { id: string };
     query: Record<string, never>;
     body: Components["PayrollRunTransitionRequest"];
+    responses: { 200: Components["PayrollRun"] };
+  };
+  "payrollRuns.calculate": {
+    module: "Crew";
+    method: "post";
+    path: "/payroll-runs/{id}/calculate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["PayrollRun"] };
+  };
+  "payrollRuns.approve": {
+    module: "Crew";
+    method: "post";
+    path: "/payroll-runs/{id}/approve";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
     responses: { 200: Components["PayrollRun"] };
   };
   "payrollLines.list": {
@@ -20592,6 +20685,7 @@ export interface ModuleOperations {
     | "shifts.delete"
     | "shifts.transition"
     | "shifts.accept"
+    | "shifts.claim"
     | "shiftSwaps.list"
     | "shiftSwaps.create"
     | "shiftSwaps.get"
@@ -20602,8 +20696,6 @@ export interface ModuleOperations {
     | "timeEntries.get"
     | "timeEntries.clockIn"
     | "timeEntries.clockOut"
-    | "timeEntries.startBreak"
-    | "timeEntries.endBreak"
     | "timeEntryCorrections.list"
     | "timeEntryCorrections.create"
     | "timeEntryCorrections.get"
@@ -20636,10 +20728,7 @@ export interface ModuleOperations {
     | "payRates.create"
     | "payRates.get"
     | "overtimeRules.list"
-    | "overtimeRules.create"
     | "overtimeRules.get"
-    | "overtimeRules.update"
-    | "overtimeRules.delete"
     | "unionLocalRates.list"
     | "unionLocalRates.create"
     | "unionLocalRates.get"
@@ -20659,6 +20748,8 @@ export interface ModuleOperations {
     | "payrollRuns.create"
     | "payrollRuns.get"
     | "payrollRuns.transition"
+    | "payrollRuns.calculate"
+    | "payrollRuns.approve"
     | "payrollLines.list"
     | "payrollLines.get"
     | "payrollExports.list"
