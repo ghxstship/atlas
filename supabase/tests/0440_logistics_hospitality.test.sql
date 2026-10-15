@@ -110,7 +110,7 @@ select throws_ok($$update app.accommodation_blocks set rooms_held = 1 where id =
 select throws_ok($$update app.accommodation_blocks set check_out_on = '2027-06-03' where id = (select id from world where key = 'blk')$$,
   'XR001', 'accommodation_block_excludes_stays: The block must still cover every assigned stay.', 'nor stop covering an assigned stay');
 select pg_temp.as_platform();
-select is((select count(*)::int from app.domain_events where event_type = 'accommodation_assignment.created'), 3, 'each assignment emits accommodation_assignment.created');
+select is((select count(*)::int from app.domain_events where event_type = 'accommodation_assignment.created' and org_id = pg_temp.id('org_a')), 3, 'each assignment emits accommodation_assignment.created');
 select pg_temp.as_user('gina');
 select is((select count(*)::int from app.accommodation_blocks), 0, 'a Viewer outside the project reads no blocks');
 select throws_ok($$insert into app.accommodation_blocks (project_id, title, check_in_on, check_out_on, rooms_held) values ((select id from world where key = 'prj_a'), 'Viewer Block', '2027-06-01', '2027-06-02', 1)$$,
