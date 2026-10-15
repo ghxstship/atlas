@@ -78,10 +78,13 @@ function isNullOrNullable(schema: z.ZodType): boolean {
  */
 export function orNull(schema: z.ZodType): z.ZodType {
   const inner = unwrapOptional(schema);
+  const registered = (s: z.ZodType) => z.globalRegistry.get(s)?.["id"] !== undefined;
+  // A frozen `.nullable()` around a component is rewritten to the union form for the same reason.
+  if (inner instanceof z.ZodNullable && registered(inner.unwrap() as z.ZodType)) {
+    return z.union([inner.unwrap() as z.ZodType, z.null()]);
+  }
   if (isNullOrNullable(inner)) return inner;
-  return z.globalRegistry.get(inner)?.["id"] === undefined
-    ? inner.nullable()
-    : z.union([inner, z.null()]);
+  return !registered(inner) ? inner.nullable() : z.union([inner, z.null()]);
 }
 
 function rebuild(object: z.ZodObject, shape: Shape, description?: string): z.ZodObject {

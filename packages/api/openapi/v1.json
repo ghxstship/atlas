@@ -22747,7 +22747,7 @@
           },
           "role_type": { "$ref": "#/components/schemas/ExternalRoleType" },
           "role_code": {
-            "allOf": [{ "$ref": "#/components/schemas/RoleCode" }, { "type": ["string", "null"] }]
+            "anyOf": [{ "$ref": "#/components/schemas/RoleCode" }, { "type": "null" }]
           },
           "cat_urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
           "description": {
@@ -22764,7 +22764,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "rate_type": {
-            "allOf": [{ "$ref": "#/components/schemas/RateType" }, { "type": ["string", "null"] }]
+            "anyOf": [{ "$ref": "#/components/schemas/RateType" }, { "type": "null" }]
           },
           "visibility": { "$ref": "#/components/schemas/OpportunityVisibility" },
           "opportunity_state": { "$ref": "#/components/schemas/OpportunityState" },
@@ -22894,7 +22894,7 @@
           },
           "role_type": { "$ref": "#/components/schemas/ExternalRoleType" },
           "role_code": {
-            "allOf": [{ "$ref": "#/components/schemas/RoleCode" }, { "type": ["string", "null"] }]
+            "anyOf": [{ "$ref": "#/components/schemas/RoleCode" }, { "type": "null" }]
           },
           "cat_urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
           "description": {
@@ -22911,7 +22911,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "rate_type": {
-            "allOf": [{ "$ref": "#/components/schemas/RateType" }, { "type": ["string", "null"] }]
+            "anyOf": [{ "$ref": "#/components/schemas/RateType" }, { "type": "null" }]
           },
           "visibility": { "$ref": "#/components/schemas/OpportunityVisibility" },
           "jurisdiction_id": {
@@ -30871,85 +30871,26 @@
             "description": "When the row was last updated.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "name": {
-            "type": "string",
+          "full_name": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Legal or full name.",
             "example": "Alex Rivera"
-          },
-          "preferred_name": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Preferred name.",
-            "example": "Alex"
-          },
-          "primary_email": {
-            "type": "string",
-            "format": "email",
-            "description": "Verified primary email.",
-            "example": "alex.rivera@northwindlive.example"
-          },
-          "locale": {
-            "type": "string",
-            "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$",
-            "description": "BCP 47 locale tag.",
-            "example": "en-US"
-          },
-          "time_zone": {
-            "type": "string",
-            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
-            "description": "Home time zone.",
-            "example": "America/New_York"
           }
         },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "name",
-          "preferred_name",
-          "primary_email",
-          "locale",
-          "time_zone"
-        ],
+        "required": ["id", "created_at", "updated_at", "full_name"],
         "description": "One human, linked to one sign-in. Personal facts are owned by the person."
       },
       "PersonUpdate": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
+          "full_name": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Legal or full name.",
             "example": "Alex Rivera"
-          },
-          "preferred_name": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Preferred name.",
-            "example": "Alex"
-          },
-          "primary_email": {
-            "type": "string",
-            "format": "email",
-            "description": "Verified primary email.",
-            "example": "alex.rivera@northwindlive.example"
-          },
-          "locale": {
-            "type": "string",
-            "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$",
-            "description": "BCP 47 locale tag.",
-            "example": "en-US"
-          },
-          "time_zone": {
-            "type": "string",
-            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
-            "description": "Home time zone.",
-            "example": "America/New_York"
           }
         },
         "description": "Fields accepted when updating a Person. Omitted fields are unchanged."
@@ -30999,13 +30940,6 @@
             "description": "Trade name.",
             "example": "Northwind Live"
           },
-          "legal_name": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Legal name.",
-            "example": "Northwind Live LLC"
-          },
           "slug": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
@@ -31018,22 +30952,11 @@
             "description": "Identifier of the partner organization.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "is_tenant": {
-            "type": "boolean",
-            "description": "Whether the organization holds a subscription and uses Atlas.",
-            "example": true
-          },
-          "base_currency": {
+          "organization_type": {
             "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "Base currency.",
-            "example": "USD"
-          },
-          "country": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}$",
-            "description": "ISO 3166-1 alpha-2 country code.",
-            "example": "US"
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Legal form from `xpms.organization_type` (decision D17): For-Profit, Nonprofit or Public Agency. It decides which worker classifications engagements may use.",
+            "example": "For-Profit"
           }
         },
         "required": [
@@ -31041,12 +30964,9 @@
           "created_at",
           "updated_at",
           "name",
-          "legal_name",
           "slug",
           "parent_org_id",
-          "is_tenant",
-          "base_currency",
-          "country"
+          "organization_type"
         ],
         "description": "Every company on the platform: a tenant (with a subscription), an external account, or both. A partner org cannot have a parent partner."
       },
@@ -31060,13 +30980,6 @@
             "description": "Trade name.",
             "example": "Northwind Live"
           },
-          "legal_name": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Legal name.",
-            "example": "Northwind Live LLC"
-          },
           "slug": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
@@ -31079,17 +30992,11 @@
             "description": "Identifier of the partner organization.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "base_currency": {
+          "organization_type": {
             "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "Base currency.",
-            "example": "USD"
-          },
-          "country": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}$",
-            "description": "ISO 3166-1 alpha-2 country code.",
-            "example": "US"
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Legal form from `xpms.organization_type` (decision D17): For-Profit, Nonprofit or Public Agency. It decides which worker classifications engagements may use.",
+            "example": "For-Profit"
           }
         },
         "description": "Fields accepted when updating a Organization. Omitted fields are unchanged."
@@ -31244,12 +31151,6 @@
             "format": "date-time",
             "description": "End of membership.",
             "example": "2026-10-08T14:30:00Z"
-          },
-          "persona": {
-            "type": ["string", "null"],
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Primary persona. A Title Case value from the lifecycle's database enum.",
-            "example": "Producer"
           }
         },
         "required": [
@@ -31261,8 +31162,7 @@
           "updated_by",
           "person_id",
           "valid_from",
-          "valid_to",
-          "persona"
+          "valid_to"
         ],
         "description": "A person in an organization as an internal member, with time-boxed validity."
       },
@@ -31280,12 +31180,6 @@
             "format": "date-time",
             "description": "End of membership.",
             "example": "2026-10-08T14:30:00Z"
-          },
-          "persona": {
-            "type": ["string", "null"],
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Primary persona. A Title Case value from the lifecycle's database enum.",
-            "example": "Producer"
           }
         },
         "description": "Fields accepted when updating a Membership. Omitted fields are unchanged."
@@ -31352,11 +31246,16 @@
             "description": "Identifier of the membership.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "role": { "$ref": "#/components/schemas/OrgRole" },
-          "custom_role_id": {
+          "role_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the held role: a system role or a custom role of the same org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "granted_by": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the custom role.",
+            "description": "Identifier of the person accountable for the grant; null when the platform granted the first Owner of a new org.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -31368,16 +31267,10 @@
           "updated_at",
           "updated_by",
           "membership_id",
-          "role",
-          "custom_role_id"
+          "role_id",
+          "granted_by"
         ],
         "description": "A role held through a membership. A person may hold several; capabilities are the union. A person cannot grant themselves a role."
-      },
-      "OrgRole": {
-        "type": ["string", "null"],
-        "enum": ["Owner", "Admin", "Manager", "Member", "Collaborator", "Field", "Viewer", null],
-        "description": "Platform role in band order (Section 8).",
-        "example": "Manager"
       },
       "MembershipRoleCreate": {
         "type": "object",
@@ -31388,15 +31281,14 @@
             "description": "Identifier of the membership.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "role": { "$ref": "#/components/schemas/OrgRole" },
-          "custom_role_id": {
-            "type": ["string", "null"],
+          "role_id": {
+            "type": "string",
             "format": "uuid",
-            "description": "Identifier of the custom role.",
+            "description": "Identifier of the held role: a system role or a custom role of the same org.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["membership_id"],
+        "required": ["membership_id", "role_id"],
         "description": "Fields accepted when creating a MembershipRole."
       },
       "ProjectAssignmentPage": {
@@ -31461,23 +31353,29 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the person.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "valid_from": {
             "type": "string",
-            "format": "date",
-            "description": "First day on the project.",
-            "example": "2026-10-08"
+            "format": "date-time",
+            "description": "When the assignment starts.",
+            "example": "2026-10-08T14:30:00Z"
           },
           "valid_to": {
             "type": ["string", "null"],
-            "format": "date",
-            "description": "Last day on the project.",
-            "example": "2026-10-08"
+            "format": "date-time",
+            "description": "When the assignment ends; null while open.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the org membership of the person, in the project's org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_role": {
+            "type": "string",
+            "enum": ["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"],
+            "description": "Project role.",
+            "example": "Producer"
           }
         },
         "required": [
@@ -31488,9 +31386,10 @@
           "updated_at",
           "updated_by",
           "project_id",
-          "person_id",
           "valid_from",
-          "valid_to"
+          "valid_to",
+          "membership_id",
+          "project_role"
         ],
         "description": "A person on a project, with scope nodes and dates."
       },
@@ -31503,26 +31402,32 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the person.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "valid_from": {
             "type": "string",
-            "format": "date",
-            "description": "First day on the project.",
-            "example": "2026-10-08"
+            "format": "date-time",
+            "description": "When the assignment starts.",
+            "example": "2026-10-08T14:30:00Z"
           },
           "valid_to": {
             "type": ["string", "null"],
-            "format": "date",
-            "description": "Last day on the project.",
-            "example": "2026-10-08"
+            "format": "date-time",
+            "description": "When the assignment ends; null while open.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the org membership of the person, in the project's org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_role": {
+            "type": "string",
+            "enum": ["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"],
+            "description": "Project role.",
+            "example": "Producer"
           }
         },
-        "required": ["project_id", "person_id", "valid_from"],
+        "required": ["project_id", "membership_id", "project_role"],
         "description": "Fields accepted when creating a ProjectAssignment."
       },
       "ProjectAssignmentUpdate": {
@@ -31530,15 +31435,21 @@
         "properties": {
           "valid_from": {
             "type": "string",
-            "format": "date",
-            "description": "First day on the project.",
-            "example": "2026-10-08"
+            "format": "date-time",
+            "description": "When the assignment starts.",
+            "example": "2026-10-08T14:30:00Z"
           },
           "valid_to": {
             "type": ["string", "null"],
-            "format": "date",
-            "description": "Last day on the project.",
-            "example": "2026-10-08"
+            "format": "date-time",
+            "description": "When the assignment ends; null while open.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "project_role": {
+            "type": "string",
+            "enum": ["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"],
+            "description": "Project role.",
+            "example": "Producer"
           }
         },
         "description": "Fields accepted when updating a ProjectAssignment. Omitted fields are unchanged."
@@ -31677,12 +31588,6 @@
             "description": "When the row was last updated.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "organization_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the external account organization.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "person_id": {
             "type": "string",
             "format": "uuid",
@@ -31702,26 +31607,12 @@
             "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "organization_id",
-          "person_id",
-          "valid_from",
-          "valid_to"
-        ],
+        "required": ["id", "created_at", "updated_at", "person_id", "valid_from", "valid_to"],
         "description": "A person in an external organization's account."
       },
       "AccountMembershipCreate": {
         "type": "object",
         "properties": {
-          "organization_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the external account organization.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "person_id": {
             "type": "string",
             "format": "uuid",
@@ -31741,7 +31632,7 @@
             "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["organization_id", "person_id", "valid_from"],
+        "required": ["person_id"],
         "description": "Fields accepted when creating a AccountMembership."
       },
       "AccountMembershipUpdate": {
@@ -31806,9 +31697,22 @@
             "description": "Identifier of the account membership.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "role": { "$ref": "#/components/schemas/AccountRole" }
+          "account_role": { "$ref": "#/components/schemas/AccountRole" },
+          "granted_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who granted the role; null for the creator's own Account Owner role.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
         },
-        "required": ["id", "created_at", "updated_at", "account_membership_id", "role"],
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "account_membership_id",
+          "account_role",
+          "granted_by"
+        ],
         "description": "An account role held through an account membership."
       },
       "AccountRole": {
@@ -31826,9 +31730,9 @@
             "description": "Identifier of the account membership.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "role": { "$ref": "#/components/schemas/AccountRole" }
+          "account_role": { "$ref": "#/components/schemas/AccountRole" }
         },
-        "required": ["account_membership_id", "role"],
+        "required": ["account_membership_id", "account_role"],
         "description": "Fields accepted when creating a AccountMembershipRole."
       },
       "OrganizationRelationshipPage": {
@@ -32013,15 +31917,9 @@
             "example": "2026-10-08T14:30:00Z"
           },
           "representative_person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the representative.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "representative_organization_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the agency or management company.",
+            "description": "Identifier of the representative.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "artist_person_id": {
@@ -32047,6 +31945,12 @@
             "format": "date-time",
             "description": "When the artist accepted.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the artist or the account revoked it.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -32054,11 +31958,11 @@
           "created_at",
           "updated_at",
           "representative_person_id",
-          "representative_organization_id",
           "artist_person_id",
           "scopes",
           "expires_on",
-          "accepted_at"
+          "accepted_at",
+          "revoked_at"
         ],
         "description": "One party acting for another, with scopes and expiry. The artist accepts it."
       },
@@ -32072,15 +31976,9 @@
         "type": "object",
         "properties": {
           "representative_person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the representative.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "representative_organization_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the agency or management company.",
+            "description": "Identifier of the representative.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "artist_person_id": {
@@ -32102,18 +32000,12 @@
             "example": "2026-10-08"
           }
         },
-        "required": ["representative_person_id", "artist_person_id", "scopes", "expires_on"],
+        "required": ["artist_person_id", "scopes", "expires_on"],
         "description": "Fields accepted when creating a Representation."
       },
       "RepresentationUpdate": {
         "type": "object",
         "properties": {
-          "representative_organization_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the agency or management company.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "scopes": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/RepresentationScope" },
@@ -32301,7 +32193,7 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "role": { "$ref": "#/components/schemas/OrgRole" },
+          "role": { "anyOf": [{ "$ref": "#/components/schemas/OrgRole" }, { "type": "null" }] },
           "expires_at": {
             "type": "string",
             "format": "date-time",
@@ -32334,6 +32226,12 @@
           "revoked_at"
         ],
         "description": "An invitation link with a role and an expiry. The token is shown once."
+      },
+      "OrgRole": {
+        "type": "string",
+        "enum": ["Owner", "Admin", "Manager", "Member", "Collaborator", "Field", "Viewer"],
+        "description": "Platform role in band order (Section 8).",
+        "example": "Manager"
       },
       "InvitationLinkCreate": {
         "type": "object",
@@ -32446,6 +32344,17 @@
             "format": "date-time",
             "description": "When it was revoked or replaced.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "partner_bootstrap": {
+            "type": "boolean",
+            "description": "True for the first Owner invite a partner issues when it creates a client org (Section 4.6.1).",
+            "example": false
+          },
+          "accepted_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who accepted.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -32460,7 +32369,9 @@
           "expires_at",
           "invited_by",
           "accepted_at",
-          "revoked_at"
+          "revoked_at",
+          "partner_bootstrap",
+          "accepted_person_id"
         ],
         "description": "An email invitation to join an org. Created through `invites.create` (the `app.invite_member` RPC); the token is never stored or returned again."
       },
@@ -32624,24 +32535,43 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "domain": {
+          "hostname": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 253,
+            "description": "Lowercase host name, for example gateway.northwindlive.example.",
+            "example": "gateway.northwindlive.example"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": ["Atlas", "Gateway", "Email Sending", "Verified Domain"],
+            "description": "What the domain is for.",
+            "example": "Atlas"
+          },
+          "verification_state": {
+            "type": "string",
+            "enum": ["Pending", "Verified", "Failed"],
+            "description": "DNS verification state; changed only by app.record_domain_verification.",
+            "example": "Pending"
+          },
+          "verification_token": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
-            "description": "Domain.",
-            "example": "northwindlive.example"
+            "description": "Value the org publishes in a DNS TXT record to prove control.",
+            "example": "xos-verify=6f1c2d"
           },
-          "auto_join": {
-            "type": "boolean",
-            "description": "Whether verified emails join automatically.",
-            "example": true
-          },
-          "default_role": { "$ref": "#/components/schemas/OrgRole" },
-          "verified_at": {
+          "last_checked_at": {
             "type": ["string", "null"],
             "format": "date-time",
-            "description": "When the domain was verified.",
+            "description": "When the verification service last checked DNS.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "auto_join_role_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -32651,49 +32581,50 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "domain",
-          "auto_join",
-          "default_role",
-          "verified_at"
+          "hostname",
+          "purpose",
+          "verification_state",
+          "verification_token",
+          "last_checked_at",
+          "auto_join_role_id"
         ],
         "description": "A verified email domain with automatic join and a default role."
       },
       "VerifiedDomainCreate": {
         "type": "object",
         "properties": {
-          "domain": {
+          "hostname": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 300,
-            "description": "Domain.",
-            "example": "northwindlive.example"
+            "maxLength": 253,
+            "description": "Lowercase host name, for example gateway.northwindlive.example.",
+            "example": "gateway.northwindlive.example"
           },
-          "auto_join": {
-            "type": "boolean",
-            "description": "Whether verified emails join automatically.",
-            "example": true
+          "purpose": {
+            "type": "string",
+            "enum": ["Atlas", "Gateway", "Email Sending", "Verified Domain"],
+            "description": "What the domain is for.",
+            "example": "Atlas"
           },
-          "default_role": { "$ref": "#/components/schemas/OrgRole" }
+          "auto_join_role_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
         },
-        "required": ["domain", "auto_join", "default_role"],
+        "required": ["hostname", "purpose"],
         "description": "Fields accepted when creating a VerifiedDomain."
       },
       "VerifiedDomainUpdate": {
         "type": "object",
         "properties": {
-          "domain": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Domain.",
-            "example": "northwindlive.example"
-          },
-          "auto_join": {
-            "type": "boolean",
-            "description": "Whether verified emails join automatically.",
-            "example": true
-          },
-          "default_role": { "$ref": "#/components/schemas/OrgRole" }
+          "auto_join_role_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
         },
         "description": "Fields accepted when updating a VerifiedDomain. Omitted fields are unchanged."
       },
@@ -33284,62 +33215,92 @@
             "description": "When the row was last updated.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "owner_urn": {
+          "person_id": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the profile owner.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "format": "uuid",
+            "description": "Identifier of the profile owner.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "target": {
+          "section": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Section or field key.",
-            "example": "rates"
+            "enum": [
+              "photo",
+              "pronouns",
+              "headline",
+              "bio",
+              "location",
+              "skills",
+              "certifications",
+              "portfolio",
+              "rates",
+              "availability",
+              "languages",
+              "references",
+              "links",
+              "organizations"
+            ],
+            "description": "Profile section.",
+            "example": "photo"
           },
-          "level": { "$ref": "#/components/schemas/ProfileVisibility" }
+          "visibility": {
+            "type": "string",
+            "enum": ["Private", "Network", "Public"],
+            "description": "Visibility chosen for the section.",
+            "example": "Private"
+          }
         },
-        "required": ["id", "created_at", "updated_at", "owner_urn", "target", "level"],
+        "required": ["id", "created_at", "updated_at", "person_id", "section", "visibility"],
         "description": "Visibility of one profile section or field. It can be lower than the profile, never higher."
       },
       "ProfileVisibilityRuleCreate": {
         "type": "object",
         "properties": {
-          "owner_urn": {
+          "person_id": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the profile owner.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "format": "uuid",
+            "description": "Identifier of the profile owner.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "target": {
+          "section": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Section or field key.",
-            "example": "rates"
+            "enum": [
+              "photo",
+              "pronouns",
+              "headline",
+              "bio",
+              "location",
+              "skills",
+              "certifications",
+              "portfolio",
+              "rates",
+              "availability",
+              "languages",
+              "references",
+              "links",
+              "organizations"
+            ],
+            "description": "Profile section.",
+            "example": "photo"
           },
-          "level": { "$ref": "#/components/schemas/ProfileVisibility" }
+          "visibility": {
+            "type": "string",
+            "enum": ["Private", "Network", "Public"],
+            "description": "Visibility chosen for the section.",
+            "example": "Private"
+          }
         },
-        "required": ["owner_urn", "target", "level"],
+        "required": ["person_id", "section", "visibility"],
         "description": "Fields accepted when creating a ProfileVisibilityRule."
       },
       "ProfileVisibilityRuleUpdate": {
         "type": "object",
         "properties": {
-          "owner_urn": {
+          "visibility": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the profile owner.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "target": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Section or field key.",
-            "example": "rates"
-          },
-          "level": { "$ref": "#/components/schemas/ProfileVisibility" }
+            "enum": ["Private", "Network", "Public"],
+            "description": "Visibility chosen for the section.",
+            "example": "Private"
+          }
         },
         "description": "Fields accepted when updating a ProfileVisibilityRule. Omitted fields are unchanged."
       },
@@ -33481,61 +33442,82 @@
             "description": "When the row was last updated.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "owner_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the verified profile.",
-            "example": "urn:xpms:organization:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "claim": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "What is verified. A Title Case value from the lifecycle's database enum.",
-            "example": "Business Identity"
-          },
-          "verifier": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Who verified it.",
-            "example": "stripe_identity"
-          },
           "verified_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When it was verified.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "method": {
+            "type": "string",
+            "enum": ["Stripe Identity", "Business Registry"],
+            "description": "How the organization was verified.",
+            "example": "Stripe Identity"
+          },
+          "provider_reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "The provider's verification or registry record reference.",
+            "example": "vs_1Pq2Rs3Tu4"
+          },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the verification lapses; null when it does not.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the platform revoked it.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revocation_reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why it was revoked.",
+            "example": "The registry record lapsed."
           }
         },
         "required": [
           "id",
           "created_at",
           "updated_at",
-          "owner_urn",
-          "claim",
-          "verifier",
-          "verified_at"
+          "verified_at",
+          "method",
+          "provider_reference",
+          "expires_at",
+          "revoked_at",
+          "revocation_reason"
         ],
         "description": "A verification badge, shown only after the platform or a provider checks the claim."
       },
       "VerificationCreate": {
         "type": "object",
         "properties": {
-          "owner_urn": {
+          "method": {
+            "type": "string",
+            "enum": ["Stripe Identity", "Business Registry"],
+            "description": "How the organization was verified.",
+            "example": "Stripe Identity"
+          },
+          "provider_reference": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
-            "description": "URN of the verified profile.",
-            "example": "urn:xpms:organization:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "description": "The provider's verification or registry record reference.",
+            "example": "vs_1Pq2Rs3Tu4"
           },
-          "claim": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "What is verified. A Title Case value from the lifecycle's database enum.",
-            "example": "Business Identity"
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the verification lapses; null when it does not.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["owner_urn", "claim"],
+        "required": ["method", "provider_reference"],
         "description": "Fields accepted when creating a Verification."
       },
       "BlockPage": {
@@ -34719,7 +34701,9 @@
             "description": "Role name.",
             "example": "Finance Approver"
           },
-          "base_role": { "$ref": "#/components/schemas/OrgRole" },
+          "base_role": {
+            "allOf": [{ "$ref": "#/components/schemas/OrgRole" }, { "type": ["string", "null"] }]
+          },
           "description": {
             "type": ["string", "null"],
             "minLength": 1,
@@ -34751,7 +34735,9 @@
             "description": "Role name.",
             "example": "Finance Approver"
           },
-          "base_role": { "$ref": "#/components/schemas/OrgRole" },
+          "base_role": {
+            "allOf": [{ "$ref": "#/components/schemas/OrgRole" }, { "type": ["string", "null"] }]
+          },
           "description": {
             "type": ["string", "null"],
             "minLength": 1,
@@ -34773,7 +34759,9 @@
             "description": "Role name.",
             "example": "Finance Approver"
           },
-          "base_role": { "$ref": "#/components/schemas/OrgRole" },
+          "base_role": {
+            "allOf": [{ "$ref": "#/components/schemas/OrgRole" }, { "type": ["string", "null"] }]
+          },
           "description": {
             "type": ["string", "null"],
             "minLength": 1,
@@ -93693,11 +93681,7 @@
                       "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
-                      "name": "Alex Rivera",
-                      "preferred_name": "Alex",
-                      "primary_email": "alex.rivera@northwindlive.example",
-                      "locale": "en-US",
-                      "time_zone": "America/New_York"
+                      "full_name": "Alex Rivera"
                     }
                   ],
                   "next_cursor": null
@@ -93751,11 +93735,7 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "name": "Alex Rivera",
-                  "preferred_name": "Alex",
-                  "primary_email": "alex.rivera@northwindlive.example",
-                  "locale": "en-US",
-                  "time_zone": "America/New_York"
+                  "full_name": "Alex Rivera"
                 },
                 "schema": { "$ref": "#/components/schemas/Person" }
               }
@@ -93794,13 +93774,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "name": "Alex Rivera",
-                "preferred_name": "Alex",
-                "primary_email": "alex.rivera@northwindlive.example",
-                "locale": "en-US",
-                "time_zone": "America/New_York"
-              },
+              "example": { "full_name": "Alex Rivera" },
               "schema": { "$ref": "#/components/schemas/PersonUpdate" }
             }
           }
@@ -93820,11 +93794,7 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "name": "Alex Rivera",
-                  "preferred_name": "Alex",
-                  "primary_email": "alex.rivera@northwindlive.example",
-                  "locale": "en-US",
-                  "time_zone": "America/New_York"
+                  "full_name": "Alex Rivera"
                 },
                 "schema": { "$ref": "#/components/schemas/Person" }
               }
@@ -93874,12 +93844,9 @@
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "name": "Northwind Live",
-                      "legal_name": "Northwind Live LLC",
                       "slug": "northwind-live",
                       "parent_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "is_tenant": true,
-                      "base_currency": "USD",
-                      "country": "US"
+                      "organization_type": "For-Profit"
                     }
                   ],
                   "next_cursor": null
@@ -93986,12 +93953,9 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "name": "Northwind Live",
-                  "legal_name": "Northwind Live LLC",
                   "slug": "northwind-live",
                   "parent_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "is_tenant": true,
-                  "base_currency": "USD",
-                  "country": "US"
+                  "organization_type": "For-Profit"
                 },
                 "schema": { "$ref": "#/components/schemas/Organization" }
               }
@@ -94032,11 +93996,9 @@
             "application/json": {
               "example": {
                 "name": "Northwind Live",
-                "legal_name": "Northwind Live LLC",
                 "slug": "northwind-live",
                 "parent_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "base_currency": "USD",
-                "country": "US"
+                "organization_type": "For-Profit"
               },
               "schema": { "$ref": "#/components/schemas/OrganizationUpdate" }
             }
@@ -94058,12 +94020,9 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "name": "Northwind Live",
-                  "legal_name": "Northwind Live LLC",
                   "slug": "northwind-live",
                   "parent_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "is_tenant": true,
-                  "base_currency": "USD",
-                  "country": "US"
+                  "organization_type": "For-Profit"
                 },
                 "schema": { "$ref": "#/components/schemas/Organization" }
               }
@@ -94169,8 +94128,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "valid_from": "2026-10-08T14:30:00Z",
-                      "valid_to": "2026-10-08T14:30:00Z",
-                      "persona": "Producer"
+                      "valid_to": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -94229,8 +94187,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z",
-                  "persona": "Producer"
+                  "valid_to": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Membership" }
               }
@@ -94271,8 +94228,7 @@
             "application/json": {
               "example": {
                 "valid_from": "2026-10-08T14:30:00Z",
-                "valid_to": "2026-10-08T14:30:00Z",
-                "persona": "Producer"
+                "valid_to": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/MembershipUpdate" }
             }
@@ -94298,8 +94254,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z",
-                  "persona": "Producer"
+                  "valid_to": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Membership" }
               }
@@ -94346,8 +94301,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z",
-                  "persona": "Producer"
+                  "valid_to": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Membership" }
               }
@@ -94406,8 +94360,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z",
-                  "persona": "Producer"
+                  "valid_to": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Membership" }
               }
@@ -94466,8 +94419,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z",
-                  "persona": "Producer"
+                  "valid_to": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Membership" }
               }
@@ -94519,8 +94471,8 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "role": "Manager",
-                      "custom_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -94549,8 +94501,7 @@
             "application/json": {
               "example": {
                 "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "role": "Manager",
-                "custom_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/MembershipRoleCreate" }
             }
@@ -94575,8 +94526,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role": "Manager",
-                  "custom_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/MembershipRole" }
               }
@@ -94633,8 +94584,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role": "Manager",
-                  "custom_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/MembershipRole" }
               }
@@ -94681,7 +94632,7 @@
       "get": {
         "operationId": "projectAssignments.list",
         "tags": ["Identity"],
-        "x-xos-table": "app.project_assignments",
+        "x-xos-table": "app.project_members",
         "x-xos-capability": "projects.project.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -94714,9 +94665,10 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "valid_from": "2026-10-08",
-                      "valid_to": "2026-10-08"
+                      "valid_from": "2026-10-08T14:30:00Z",
+                      "valid_to": "2026-10-08T14:30:00Z",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_role": "Producer"
                     }
                   ],
                   "next_cursor": null
@@ -94733,7 +94685,7 @@
       "post": {
         "operationId": "projectAssignments.create",
         "tags": ["Identity"],
-        "x-xos-table": "app.project_assignments",
+        "x-xos-table": "app.project_members",
         "x-xos-capability": "projects.members.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "summary": "Create a project assignment",
@@ -94745,9 +94697,10 @@
             "application/json": {
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "valid_from": "2026-10-08",
-                "valid_to": "2026-10-08"
+                "valid_from": "2026-10-08T14:30:00Z",
+                "valid_to": "2026-10-08T14:30:00Z",
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "project_role": "Producer"
               },
               "schema": { "$ref": "#/components/schemas/ProjectAssignmentCreate" }
             }
@@ -94772,9 +94725,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "valid_from": "2026-10-08",
-                  "valid_to": "2026-10-08"
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_role": "Producer"
                 },
                 "schema": { "$ref": "#/components/schemas/ProjectAssignment" }
               }
@@ -94792,7 +94746,7 @@
       "get": {
         "operationId": "projectAssignments.get",
         "tags": ["Identity"],
-        "x-xos-table": "app.project_assignments",
+        "x-xos-table": "app.project_members",
         "x-xos-capability": "projects.project.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "summary": "Get a project assignment",
@@ -94831,9 +94785,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "valid_from": "2026-10-08",
-                  "valid_to": "2026-10-08"
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_role": "Producer"
                 },
                 "schema": { "$ref": "#/components/schemas/ProjectAssignment" }
               }
@@ -94848,7 +94803,7 @@
       "patch": {
         "operationId": "projectAssignments.update",
         "tags": ["Identity"],
-        "x-xos-table": "app.project_assignments",
+        "x-xos-table": "app.project_members",
         "x-xos-capability": "projects.members.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "summary": "Update a project assignment",
@@ -94872,7 +94827,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "valid_from": "2026-10-08", "valid_to": "2026-10-08" },
+              "example": {
+                "valid_from": "2026-10-08T14:30:00Z",
+                "valid_to": "2026-10-08T14:30:00Z",
+                "project_role": "Producer"
+              },
               "schema": { "$ref": "#/components/schemas/ProjectAssignmentUpdate" }
             }
           }
@@ -94896,9 +94855,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "valid_from": "2026-10-08",
-                  "valid_to": "2026-10-08"
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_role": "Producer"
                 },
                 "schema": { "$ref": "#/components/schemas/ProjectAssignment" }
               }
@@ -94916,7 +94876,7 @@
       "delete": {
         "operationId": "projectAssignments.delete",
         "tags": ["Identity"],
-        "x-xos-table": "app.project_assignments",
+        "x-xos-table": "app.project_members",
         "x-xos-capability": "projects.members.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "summary": "Delete a project assignment",
@@ -95168,7 +95128,6 @@
                       "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
-                      "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "valid_from": "2026-10-08T14:30:00Z",
                       "valid_to": "2026-10-08T14:30:00Z"
@@ -95199,7 +95158,6 @@
           "content": {
             "application/json": {
               "example": {
-                "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "valid_from": "2026-10-08T14:30:00Z",
                 "valid_to": "2026-10-08T14:30:00Z"
@@ -95223,7 +95181,6 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
                   "valid_to": "2026-10-08T14:30:00Z"
@@ -95279,7 +95236,6 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
                   "valid_to": "2026-10-08T14:30:00Z"
@@ -95344,7 +95300,6 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
                   "valid_to": "2026-10-08T14:30:00Z"
@@ -95427,7 +95382,8 @@
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "account_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "role": "Account Finance"
+                      "account_role": "Account Finance",
+                      "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -95456,7 +95412,7 @@
             "application/json": {
               "example": {
                 "account_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "role": "Account Finance"
+                "account_role": "Account Finance"
               },
               "schema": { "$ref": "#/components/schemas/AccountMembershipRoleCreate" }
             }
@@ -95478,7 +95434,8 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "account_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role": "Account Finance"
+                  "account_role": "Account Finance",
+                  "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AccountMembershipRole" }
               }
@@ -95532,7 +95489,8 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "account_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role": "Account Finance"
+                  "account_role": "Account Finance",
+                  "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AccountMembershipRole" }
               }
@@ -95879,11 +95837,11 @@
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "representative_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "representative_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "artist_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "scopes": ["Offers", "Advance"],
                       "expires_on": "2026-10-08",
-                      "accepted_at": "2026-10-08T14:30:00Z"
+                      "accepted_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -95912,7 +95870,6 @@
             "application/json": {
               "example": {
                 "representative_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "representative_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "artist_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "scopes": ["Offers", "Advance"],
                 "expires_on": "2026-10-08"
@@ -95937,11 +95894,11 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "representative_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "representative_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "artist_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scopes": ["Offers", "Advance"],
                   "expires_on": "2026-10-08",
-                  "accepted_at": "2026-10-08T14:30:00Z"
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Representation" }
               }
@@ -95995,11 +95952,11 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "representative_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "representative_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "artist_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scopes": ["Offers", "Advance"],
                   "expires_on": "2026-10-08",
-                  "accepted_at": "2026-10-08T14:30:00Z"
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Representation" }
               }
@@ -96038,11 +95995,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "representative_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "scopes": ["Offers", "Advance"],
-                "expires_on": "2026-10-08"
-              },
+              "example": { "scopes": ["Offers", "Advance"], "expires_on": "2026-10-08" },
               "schema": { "$ref": "#/components/schemas/RepresentationUpdate" }
             }
           }
@@ -96063,11 +96016,11 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "representative_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "representative_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "artist_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scopes": ["Offers", "Advance"],
                   "expires_on": "2026-10-08",
-                  "accepted_at": "2026-10-08T14:30:00Z"
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Representation" }
               }
@@ -96153,11 +96106,11 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "representative_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "representative_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "artist_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scopes": ["Offers", "Advance"],
                   "expires_on": "2026-10-08",
-                  "accepted_at": "2026-10-08T14:30:00Z"
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Representation" }
               }
@@ -96463,7 +96416,7 @@
       "get": {
         "operationId": "invitationLinks.list",
         "tags": ["Identity"],
-        "x-xos-table": "app.invitation_links",
+        "x-xos-table": "app.invite_links",
         "x-xos-capability": "org.members.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -96515,7 +96468,7 @@
       "post": {
         "operationId": "invitationLinks.create",
         "tags": ["Identity"],
-        "x-xos-table": "app.invitation_links",
+        "x-xos-table": "app.invite_links",
         "x-xos-capability": "org.members.invite",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Create an invitation link",
@@ -96573,7 +96526,7 @@
       "get": {
         "operationId": "invitationLinks.get",
         "tags": ["Identity"],
-        "x-xos-table": "app.invitation_links",
+        "x-xos-table": "app.invite_links",
         "x-xos-capability": "org.members.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Get an invitation link",
@@ -96631,7 +96584,7 @@
       "post": {
         "operationId": "invitationLinks.revoke",
         "tags": ["Identity"],
-        "x-xos-table": "app.invitation_links",
+        "x-xos-table": "app.invite_links",
         "x-xos-capability": "org.members.invite",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Revoke an invitation link",
@@ -96728,7 +96681,9 @@
                       "expires_at": "2026-10-08T14:30:00Z",
                       "invited_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "accepted_at": "2026-10-08T14:30:00Z",
-                      "revoked_at": "2026-10-08T14:30:00Z"
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "partner_bootstrap": false,
+                      "accepted_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -96838,7 +96793,9 @@
                   "expires_at": "2026-10-08T14:30:00Z",
                   "invited_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "accepted_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "partner_bootstrap": false,
+                  "accepted_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Invite" }
               }
@@ -96976,7 +96933,7 @@
       "get": {
         "operationId": "verifiedDomains.list",
         "tags": ["Identity"],
-        "x-xos-table": "app.verified_domains",
+        "x-xos-table": "app.org_domains",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -97008,10 +96965,12 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "domain": "northwindlive.example",
-                      "auto_join": true,
-                      "default_role": "Manager",
-                      "verified_at": "2026-10-08T14:30:00Z"
+                      "hostname": "gateway.northwindlive.example",
+                      "purpose": "Atlas",
+                      "verification_state": "Pending",
+                      "verification_token": "xos-verify=6f1c2d",
+                      "last_checked_at": "2026-10-08T14:30:00Z",
+                      "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -97028,7 +96987,7 @@
       "post": {
         "operationId": "verifiedDomains.create",
         "tags": ["Identity"],
-        "x-xos-table": "app.verified_domains",
+        "x-xos-table": "app.org_domains",
         "x-xos-capability": "org.security.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Create a verified domain",
@@ -97039,9 +96998,9 @@
           "content": {
             "application/json": {
               "example": {
-                "domain": "northwindlive.example",
-                "auto_join": true,
-                "default_role": "Manager"
+                "hostname": "gateway.northwindlive.example",
+                "purpose": "Atlas",
+                "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/VerifiedDomainCreate" }
             }
@@ -97065,10 +97024,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "domain": "northwindlive.example",
-                  "auto_join": true,
-                  "default_role": "Manager",
-                  "verified_at": "2026-10-08T14:30:00Z"
+                  "hostname": "gateway.northwindlive.example",
+                  "purpose": "Atlas",
+                  "verification_state": "Pending",
+                  "verification_token": "xos-verify=6f1c2d",
+                  "last_checked_at": "2026-10-08T14:30:00Z",
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
               }
@@ -97086,7 +97047,7 @@
       "get": {
         "operationId": "verifiedDomains.get",
         "tags": ["Identity"],
-        "x-xos-table": "app.verified_domains",
+        "x-xos-table": "app.org_domains",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Get a verified domain",
@@ -97124,10 +97085,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "domain": "northwindlive.example",
-                  "auto_join": true,
-                  "default_role": "Manager",
-                  "verified_at": "2026-10-08T14:30:00Z"
+                  "hostname": "gateway.northwindlive.example",
+                  "purpose": "Atlas",
+                  "verification_state": "Pending",
+                  "verification_token": "xos-verify=6f1c2d",
+                  "last_checked_at": "2026-10-08T14:30:00Z",
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
               }
@@ -97142,7 +97105,7 @@
       "patch": {
         "operationId": "verifiedDomains.update",
         "tags": ["Identity"],
-        "x-xos-table": "app.verified_domains",
+        "x-xos-table": "app.org_domains",
         "x-xos-capability": "org.security.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Update a verified domain",
@@ -97166,11 +97129,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "domain": "northwindlive.example",
-                "auto_join": true,
-                "default_role": "Manager"
-              },
+              "example": { "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
               "schema": { "$ref": "#/components/schemas/VerifiedDomainUpdate" }
             }
           }
@@ -97193,10 +97152,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "domain": "northwindlive.example",
-                  "auto_join": true,
-                  "default_role": "Manager",
-                  "verified_at": "2026-10-08T14:30:00Z"
+                  "hostname": "gateway.northwindlive.example",
+                  "purpose": "Atlas",
+                  "verification_state": "Pending",
+                  "verification_token": "xos-verify=6f1c2d",
+                  "last_checked_at": "2026-10-08T14:30:00Z",
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
               }
@@ -97214,7 +97175,7 @@
       "delete": {
         "operationId": "verifiedDomains.delete",
         "tags": ["Identity"],
-        "x-xos-table": "app.verified_domains",
+        "x-xos-table": "app.org_domains",
         "x-xos-capability": "org.security.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Delete a verified domain",
@@ -97246,7 +97207,7 @@
       "post": {
         "operationId": "verifiedDomains.verify",
         "tags": ["Identity"],
-        "x-xos-table": "app.verified_domains",
+        "x-xos-table": "app.org_domains",
         "x-xos-capability": "org.security.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Verify a domain",
@@ -97284,10 +97245,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "domain": "northwindlive.example",
-                  "auto_join": true,
-                  "default_role": "Manager",
-                  "verified_at": "2026-10-08T14:30:00Z"
+                  "hostname": "gateway.northwindlive.example",
+                  "purpose": "Atlas",
+                  "verification_state": "Pending",
+                  "verification_token": "xos-verify=6f1c2d",
+                  "last_checked_at": "2026-10-08T14:30:00Z",
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
               }
@@ -97306,7 +97269,7 @@
       "get": {
         "operationId": "offboardingChecklists.list",
         "tags": ["Identity"],
-        "x-xos-table": "app.offboarding_checklists",
+        "x-xos-table": "app.offboardings",
         "x-xos-capability": "org.members.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -97360,7 +97323,7 @@
       "get": {
         "operationId": "offboardingChecklists.get",
         "tags": ["Identity"],
-        "x-xos-table": "app.offboarding_checklists",
+        "x-xos-table": "app.offboardings",
         "x-xos-capability": "org.members.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Get an offboarding checklist",
@@ -97416,7 +97379,7 @@
       "patch": {
         "operationId": "offboardingChecklists.update",
         "tags": ["Identity"],
-        "x-xos-table": "app.offboarding_checklists",
+        "x-xos-table": "app.offboardings",
         "x-xos-capability": "org.members.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Update an offboarding checklist",
@@ -98228,7 +98191,7 @@
       "get": {
         "operationId": "profileVisibilityRules.list",
         "tags": ["Identity"],
-        "x-xos-table": "app.profile_visibility",
+        "x-xos-table": "app.profile_section_visibility",
         "x-xos-capability": "me.profile.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -98257,9 +98220,9 @@
                       "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
-                      "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "target": "rates",
-                      "level": "Private"
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "section": "photo",
+                      "visibility": "Private"
                     }
                   ],
                   "next_cursor": null
@@ -98276,7 +98239,7 @@
       "post": {
         "operationId": "profileVisibilityRules.create",
         "tags": ["Identity"],
-        "x-xos-table": "app.profile_visibility",
+        "x-xos-table": "app.profile_section_visibility",
         "x-xos-capability": "me.profile.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Create a profile visibility rule",
@@ -98287,9 +98250,9 @@
           "content": {
             "application/json": {
               "example": {
-                "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "target": "rates",
-                "level": "Private"
+                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "section": "photo",
+                "visibility": "Private"
               },
               "schema": { "$ref": "#/components/schemas/ProfileVisibilityRuleCreate" }
             }
@@ -98310,9 +98273,9 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target": "rates",
-                  "level": "Private"
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "section": "photo",
+                  "visibility": "Private"
                 },
                 "schema": { "$ref": "#/components/schemas/ProfileVisibilityRule" }
               }
@@ -98330,7 +98293,7 @@
       "get": {
         "operationId": "profileVisibilityRules.get",
         "tags": ["Identity"],
-        "x-xos-table": "app.profile_visibility",
+        "x-xos-table": "app.profile_section_visibility",
         "x-xos-capability": "me.profile.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Get a profile visibility rule",
@@ -98365,9 +98328,9 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target": "rates",
-                  "level": "Private"
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "section": "photo",
+                  "visibility": "Private"
                 },
                 "schema": { "$ref": "#/components/schemas/ProfileVisibilityRule" }
               }
@@ -98382,7 +98345,7 @@
       "patch": {
         "operationId": "profileVisibilityRules.update",
         "tags": ["Identity"],
-        "x-xos-table": "app.profile_visibility",
+        "x-xos-table": "app.profile_section_visibility",
         "x-xos-capability": "me.profile.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Update a profile visibility rule",
@@ -98406,11 +98369,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "target": "rates",
-                "level": "Private"
-              },
+              "example": { "visibility": "Private" },
               "schema": { "$ref": "#/components/schemas/ProfileVisibilityRuleUpdate" }
             }
           }
@@ -98430,9 +98389,9 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target": "rates",
-                  "level": "Private"
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "section": "photo",
+                  "visibility": "Private"
                 },
                 "schema": { "$ref": "#/components/schemas/ProfileVisibilityRule" }
               }
@@ -98450,7 +98409,7 @@
       "delete": {
         "operationId": "profileVisibilityRules.delete",
         "tags": ["Identity"],
-        "x-xos-table": "app.profile_visibility",
+        "x-xos-table": "app.profile_section_visibility",
         "x-xos-capability": "me.profile.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Delete a profile visibility rule",
@@ -98704,7 +98663,7 @@
       "get": {
         "operationId": "verifications.list",
         "tags": ["Identity"],
-        "x-xos-table": "app.verifications",
+        "x-xos-table": "app.organization_verifications",
         "x-xos-capability": "people.directory.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["people"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -98733,10 +98692,12 @@
                       "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
-                      "owner_urn": "urn:xpms:organization:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "claim": "Business Identity",
-                      "verifier": "stripe_identity",
-                      "verified_at": "2026-10-08T14:30:00Z"
+                      "verified_at": "2026-10-08T14:30:00Z",
+                      "method": "Stripe Identity",
+                      "provider_reference": "vs_1Pq2Rs3Tu4",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revocation_reason": "The registry record lapsed."
                     }
                   ],
                   "next_cursor": null
@@ -98753,7 +98714,7 @@
       "post": {
         "operationId": "verifications.create",
         "tags": ["Identity"],
-        "x-xos-table": "app.verifications",
+        "x-xos-table": "app.organization_verifications",
         "x-xos-capability": "org.profile.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Create a verification",
@@ -98764,8 +98725,9 @@
           "content": {
             "application/json": {
               "example": {
-                "owner_urn": "urn:xpms:organization:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "claim": "Business Identity"
+                "method": "Stripe Identity",
+                "provider_reference": "vs_1Pq2Rs3Tu4",
+                "expires_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/VerificationCreate" }
             }
@@ -98786,10 +98748,12 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:organization:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "claim": "Business Identity",
-                  "verifier": "stripe_identity",
-                  "verified_at": "2026-10-08T14:30:00Z"
+                  "verified_at": "2026-10-08T14:30:00Z",
+                  "method": "Stripe Identity",
+                  "provider_reference": "vs_1Pq2Rs3Tu4",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revocation_reason": "The registry record lapsed."
                 },
                 "schema": { "$ref": "#/components/schemas/Verification" }
               }
@@ -98807,7 +98771,7 @@
       "get": {
         "operationId": "verifications.get",
         "tags": ["Identity"],
-        "x-xos-table": "app.verifications",
+        "x-xos-table": "app.organization_verifications",
         "x-xos-capability": "people.directory.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["people"] }],
         "summary": "Get a verification",
@@ -98842,10 +98806,12 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:organization:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "claim": "Business Identity",
-                  "verifier": "stripe_identity",
-                  "verified_at": "2026-10-08T14:30:00Z"
+                  "verified_at": "2026-10-08T14:30:00Z",
+                  "method": "Stripe Identity",
+                  "provider_reference": "vs_1Pq2Rs3Tu4",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revocation_reason": "The registry record lapsed."
                 },
                 "schema": { "$ref": "#/components/schemas/Verification" }
               }

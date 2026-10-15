@@ -83,17 +83,11 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    organization_id: string;
     person_id: string;
     valid_from: string;
     valid_to: string | null;
   };
-  AccountMembershipCreate: {
-    organization_id: string;
-    person_id: string;
-    valid_from: string;
-    valid_to?: string | null;
-  };
+  AccountMembershipCreate: { person_id: string; valid_from?: string; valid_to?: string | null };
   AccountMembershipPage: {
     data: Array<Components["AccountMembership"]>;
     next_cursor: string | null;
@@ -103,9 +97,13 @@ export interface Components {
     created_at: string;
     updated_at: string;
     account_membership_id: string;
-    role: Components["AccountRole"];
+    account_role: Components["AccountRole"];
+    granted_by: string | null;
   };
-  AccountMembershipRoleCreate: { account_membership_id: string; role: Components["AccountRole"] };
+  AccountMembershipRoleCreate: {
+    account_membership_id: string;
+    account_role: Components["AccountRole"];
+  };
   AccountMembershipRolePage: {
     data: Array<Components["AccountMembershipRole"]>;
     next_cursor: string | null;
@@ -2677,7 +2675,7 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    role: Components["OrgRole"];
+    role: Components["OrgRole"] | null;
     expires_at: string;
     max_uses: number | null;
     revoked_at: string | null;
@@ -2701,6 +2699,8 @@ export interface Components {
     invited_by: string;
     accepted_at: string | null;
     revoked_at: string | null;
+    partner_bootstrap: boolean;
+    accepted_person_id: string | null;
   };
   InviteMemberRequest: { email: string; role_id: string; valid_for_hours?: number };
   InviteMemberResult: { invite_id: string; invite_token: string };
@@ -2995,7 +2995,6 @@ export interface Components {
     person_id: string;
     valid_from: string;
     valid_to: string | null;
-    persona: string | null;
   };
   MembershipPage: { data: Array<Components["Membership"]>; next_cursor: string | null };
   MembershipRole: {
@@ -3006,16 +3005,12 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     membership_id: string;
-    role: Components["OrgRole"];
-    custom_role_id: string | null;
+    role_id: string;
+    granted_by: string | null;
   };
-  MembershipRoleCreate: {
-    membership_id: string;
-    role?: Components["OrgRole"];
-    custom_role_id?: string | null;
-  };
+  MembershipRoleCreate: { membership_id: string; role_id: string };
   MembershipRolePage: { data: Array<Components["MembershipRole"]>; next_cursor: string | null };
-  MembershipUpdate: { valid_from?: string; valid_to?: string | null; persona?: string | null };
+  MembershipUpdate: { valid_from?: string; valid_to?: string | null };
   MergeReview: {
     id: string;
     org_id: string;
@@ -3297,11 +3292,11 @@ export interface Components {
     scope_node_id: string | null;
     title: string;
     role_type: Components["ExternalRoleType"];
-    role_code: Components["RoleCode"] & (string | null);
+    role_code: Components["RoleCode"] | null;
     cat_urid: Components["UridAtAnyGrain"];
     description: string | null;
     venue_id: string | null;
-    rate_type: Components["RateType"] & (string | null);
+    rate_type: Components["RateType"] | null;
     visibility: Components["OpportunityVisibility"];
     opportunity_state: Components["OpportunityState"];
     jurisdiction_id: Components["JurisdictionId"] | null;
@@ -3329,11 +3324,11 @@ export interface Components {
     scope_node_id?: string | null;
     title: string;
     role_type: Components["ExternalRoleType"];
-    role_code?: Components["RoleCode"] & (string | null);
+    role_code?: Components["RoleCode"] | null;
     cat_urid?: Components["UridAtAnyGrain"];
     description?: string | null;
     venue_id?: string | null;
-    rate_type?: Components["RateType"] & (string | null);
+    rate_type?: Components["RateType"] | null;
     visibility?: Components["OpportunityVisibility"];
     jurisdiction_id?: Components["JurisdictionId"] | null;
     starts_on?: string | null;
@@ -3537,7 +3532,7 @@ export interface Components {
     fiscal_year_start_month?: number;
     base_currency?: string;
   };
-  OrgRole: "Owner" | "Admin" | "Manager" | "Member" | "Collaborator" | "Field" | "Viewer" | null;
+  OrgRole: "Owner" | "Admin" | "Manager" | "Member" | "Collaborator" | "Field" | "Viewer";
   OrgStateLabel: {
     id: string;
     org_id: string;
@@ -3556,12 +3551,9 @@ export interface Components {
     created_at: string;
     updated_at: string;
     name: string;
-    legal_name: string | null;
     slug: string;
     parent_org_id: string | null;
-    is_tenant: boolean;
-    base_currency: string;
-    country: string;
+    organization_type: string;
   };
   OrganizationPage: { data: Array<Components["Organization"]>; next_cursor: string | null };
   OrganizationProfile: {
@@ -3617,11 +3609,9 @@ export interface Components {
   };
   OrganizationUpdate: {
     name?: string;
-    legal_name?: string | null;
     slug?: string;
     parent_org_id?: string | null;
-    base_currency?: string;
-    country?: string;
+    organization_type?: string;
   };
   OvertimeRule: {
     id: string;
@@ -3835,16 +3825,7 @@ export interface Components {
     next_cursor: string | null;
   };
   PermitTransitionRequest: { expected_state: string; to_state: string; reason?: string };
-  Person: {
-    id: string;
-    created_at: string;
-    updated_at: string;
-    name: string;
-    preferred_name: string | null;
-    primary_email: string;
-    locale: string;
-    time_zone: string;
-  };
+  Person: { id: string; created_at: string; updated_at: string; full_name: string | null };
   PersonPage: { data: Array<Components["Person"]>; next_cursor: string | null };
   PersonProfile: {
     id: string;
@@ -3879,13 +3860,7 @@ export interface Components {
     visibility?: Components["ProfileVisibility"];
     search_indexing?: boolean;
   };
-  PersonUpdate: {
-    name?: string;
-    preferred_name?: string | null;
-    primary_email?: string;
-    locale?: string;
-    time_zone?: string;
-  };
+  PersonUpdate: { full_name?: string | null };
   PhaseCode: string;
   PhaseCoverage: {
     phase_code: Components["PhaseCode"];
@@ -4098,24 +4073,48 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    owner_urn: string;
-    target: string;
-    level: Components["ProfileVisibility"];
+    person_id: string;
+    section:
+      | "photo"
+      | "pronouns"
+      | "headline"
+      | "bio"
+      | "location"
+      | "skills"
+      | "certifications"
+      | "portfolio"
+      | "rates"
+      | "availability"
+      | "languages"
+      | "references"
+      | "links"
+      | "organizations";
+    visibility: "Private" | "Network" | "Public";
   };
   ProfileVisibilityRuleCreate: {
-    owner_urn: string;
-    target: string;
-    level: Components["ProfileVisibility"];
+    person_id: string;
+    section:
+      | "photo"
+      | "pronouns"
+      | "headline"
+      | "bio"
+      | "location"
+      | "skills"
+      | "certifications"
+      | "portfolio"
+      | "rates"
+      | "availability"
+      | "languages"
+      | "references"
+      | "links"
+      | "organizations";
+    visibility: "Private" | "Network" | "Public";
   };
   ProfileVisibilityRulePage: {
     data: Array<Components["ProfileVisibilityRule"]>;
     next_cursor: string | null;
   };
-  ProfileVisibilityRuleUpdate: {
-    owner_urn?: string;
-    target?: string;
-    level?: Components["ProfileVisibility"];
-  };
+  ProfileVisibilityRuleUpdate: { visibility?: "Private" | "Network" | "Public" };
   Project: {
     id: string;
     org_id: string;
@@ -4149,15 +4148,17 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     project_id: string;
-    person_id: string;
     valid_from: string;
     valid_to: string | null;
+    membership_id: string;
+    project_role: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
   };
   ProjectAssignmentCreate: {
     project_id: string;
-    person_id: string;
-    valid_from: string;
+    valid_from?: string;
     valid_to?: string | null;
+    membership_id: string;
+    project_role: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
   };
   ProjectAssignmentPage: {
     data: Array<Components["ProjectAssignment"]>;
@@ -4178,7 +4179,11 @@ export interface Components {
     data: Array<Components["ProjectAssignmentRole"]>;
     next_cursor: string | null;
   };
-  ProjectAssignmentUpdate: { valid_from?: string; valid_to?: string | null };
+  ProjectAssignmentUpdate: {
+    valid_from?: string;
+    valid_to?: string | null;
+    project_role?: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
+  };
   ProjectCreate: {
     name: string;
     description?: string | null;
@@ -4732,27 +4737,22 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    representative_person_id: string;
-    representative_organization_id: string | null;
+    representative_person_id: string | null;
     artist_person_id: string;
     scopes: Array<Components["RepresentationScope"]>;
     expires_on: string;
     accepted_at: string | null;
+    revoked_at: string | null;
   };
   RepresentationCreate: {
-    representative_person_id: string;
-    representative_organization_id?: string | null;
+    representative_person_id?: string | null;
     artist_person_id: string;
     scopes: Array<Components["RepresentationScope"]>;
     expires_on: string;
   };
   RepresentationPage: { data: Array<Components["Representation"]>; next_cursor: string | null };
   RepresentationScope: "Offers" | "Advance" | "Settlement" | "Documents";
-  RepresentationUpdate: {
-    representative_organization_id?: string | null;
-    scopes?: Array<Components["RepresentationScope"]>;
-    expires_on?: string;
-  };
+  RepresentationUpdate: { scopes?: Array<Components["RepresentationScope"]>; expires_on?: string };
   Requirement: {
     id: string;
     org_id: string;
@@ -4954,7 +4954,7 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    base_role: Components["OrgRole"];
+    base_role: Components["OrgRole"] & (string | null);
     description: string | null;
   };
   RoleAssignment: {
@@ -5000,9 +5000,17 @@ export interface Components {
   RoleCapabilityCreate: { role_id: string; capability: string };
   RoleCapabilityPage: { data: Array<Components["RoleCapability"]>; next_cursor: string | null };
   RoleCode: string;
-  RoleCreate: { name: string; base_role?: Components["OrgRole"]; description?: string | null };
+  RoleCreate: {
+    name: string;
+    base_role?: Components["OrgRole"] & (string | null);
+    description?: string | null;
+  };
   RolePage: { data: Array<Components["Role"]>; next_cursor: string | null };
-  RoleUpdate: { name?: string; base_role?: Components["OrgRole"]; description?: string | null };
+  RoleUpdate: {
+    name?: string;
+    base_role?: Components["OrgRole"] & (string | null);
+    description?: string | null;
+  };
   RunOfShow: {
     id: string;
     org_id: string;
@@ -6035,12 +6043,18 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    owner_urn: string;
-    claim: string;
-    verifier: string;
     verified_at: string | null;
+    method: "Stripe Identity" | "Business Registry";
+    provider_reference: string;
+    expires_at: string | null;
+    revoked_at: string | null;
+    revocation_reason: string | null;
   };
-  VerificationCreate: { owner_urn: string; claim: string };
+  VerificationCreate: {
+    method: "Stripe Identity" | "Business Registry";
+    provider_reference: string;
+    expires_at?: string | null;
+  };
   VerificationPage: { data: Array<Components["Verification"]>; next_cursor: string | null };
   VerifiedDomain: {
     id: string;
@@ -6049,18 +6063,20 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    domain: string;
-    auto_join: boolean;
-    default_role: Components["OrgRole"];
-    verified_at: string | null;
+    hostname: string;
+    purpose: "Atlas" | "Gateway" | "Email Sending" | "Verified Domain";
+    verification_state: "Pending" | "Verified" | "Failed";
+    verification_token: string;
+    last_checked_at: string | null;
+    auto_join_role_id: string | null;
   };
-  VerifiedDomainCreate: { domain: string; auto_join: boolean; default_role: Components["OrgRole"] };
+  VerifiedDomainCreate: {
+    hostname: string;
+    purpose: "Atlas" | "Gateway" | "Email Sending" | "Verified Domain";
+    auto_join_role_id?: string | null;
+  };
   VerifiedDomainPage: { data: Array<Components["VerifiedDomain"]>; next_cursor: string | null };
-  VerifiedDomainUpdate: {
-    domain?: string;
-    auto_join?: boolean;
-    default_role?: Components["OrgRole"];
-  };
+  VerifiedDomainUpdate: { auto_join_role_id?: string | null };
   WageDetermination: {
     id: string;
     org_id: string;
