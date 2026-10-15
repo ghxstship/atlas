@@ -12,7 +12,11 @@ import { badRequest, notFound } from "../problem.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { assertIfMatch } from "../runtime/etag.ts";
 import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
+import type { HandlerSet } from "../runtime/handler.ts";
 import { decodeCursor, pageSize, toPage } from "../runtime/pagination.ts";
+import { bidTotal } from "@xos/data/gateway-marketplace";
+import { from, handlersFor, run, tableResource } from "./support/table.ts";
+import type { Row, TableResource } from "./support/table.ts";
 
 type Engagement = Components["Engagement"];
 type OnboardingItem = Components["OnboardingItem"];
@@ -425,7 +429,133 @@ async function writeOne<T>(promise: PromiseLike<{ data: unknown; error: unknown 
 
 // Handlers ---------------------------------------------------------------------------------------------------------
 
+// A04P (API parity, ADR 0023) ---------------------------------------------------------------------------------------
+// Opportunities and their positions and requirements, applications, bids, interviews, engagement documents,
+// onboarding requirements, talent pools, onboarding verification reads and agency slate writes. Each is one table read
+// and written as the caller; state changes go through A28's transition RPCs.
+
+const opportunities = tableResource("opportunities");
+const applications = tableResource("applications");
+const engagementDocuments = tableResource("engagementDocuments");
+
+/** A bid's NULL-aware total from its lines and whether it is still sealed (before the opportunity deadline). */
+async function bidContract(row: Row, context: { db: XosClient }): Promise<Row> {
+  const lines = await run<{ quantity: number; unit_price_minor: number | null }[]>(
+    from(context.db, "bid_lines")
+      .select("quantity, unit_price_minor")
+      .eq("bid_id", row["id"])
+      .is("deleted_at", null),
+  );
+  const application = await run<{ opportunity_id: string } | null>(
+    from(context.db, "applications").select("opportunity_id").eq("id", row["application_id"]).maybeSingle(),
+  );
+  const opportunity =
+    application === null
+      ? null
+      : await run<{ deadline_at: string | null } | null>(
+          from(context.db, "opportunities")
+            .select("deadline_at")
+            .eq("id", application.opportunity_id)
+            .maybeSingle(),
+        );
+  const deadline = opportunity?.deadline_at ?? null;
+  return {
+    ...row,
+    total: {
+      total_minor: bidTotal(
+        lines.map((l) => ({ quantity: Number(l.quantity), unitPriceMinor: l.unit_price_minor })),
+      ),
+      currency: String(row["currency_code"]).trim(),
+      unpriced_count: lines.filter((l) => l.unit_price_minor === null).length,
+    },
+    sealed: deadline === null || Date.parse(deadline) > Date.now(),
+  };
+}
+
+const bids = tableResource("bids", {
+  derived: ["total", "sealed"],
+  extraColumns: ["currency_code", "application_id"],
+  toContract: bidContract,
+});
+
+const verifications = tableResource("onboardingVerifications", {
+  derived: ["passed", "notes"],
+  extraColumns: ["outcome", "note"],
+  toContract: (row) => ({ ...row, passed: row["outcome"] === "Passed", notes: row["note"] ?? null }),
+});
+
+/** Runs a transition RPC and returns the row read again in the contract shape. */
+async function transitioned(
+  resource: TableResource,
+  context: Parameters<TableResource["read"]>[0],
+  id: string,
+  rpcName: string,
+  idArg: string,
+  body: { expected_state: string; to_state: string; reason?: string },
+) {
+  await resource.read(context, id, [resource.key]);
+  const { error } = await context.db.rpc(rpcName as "transition_opportunity", {
+    [idArg]: id,
+    p_expected: body.expected_state,
+    p_next: body.to_state,
+    p_reason: body.reason ?? `Moved to ${body.to_state}.`,
+  } as never);
+  if (error !== null) throw error;
+  return resource.read(context, id);
+}
+
+const parity = {
+  ...handlersFor("Opportunities", opportunities),
+  ...handlersFor("Opportunities", tableResource("opportunityPositions")),
+  ...handlersFor("Opportunities", tableResource("opportunityRequirements")),
+  ...handlersFor("Opportunities", applications),
+  ...handlersFor("Opportunities", bids),
+  ...handlersFor("Opportunities", tableResource("interviews")),
+  ...handlersFor("Opportunities", engagementDocuments),
+  ...handlersFor("Opportunities", tableResource("onboardingRequirements")),
+  ...handlersFor("Opportunities", tableResource("talentPools")),
+  ...handlersFor("Opportunities", verifications),
+  ...handlersFor("Opportunities", tableResource("agencySlates", { verbs: ["create", "delete"] })),
+
+  "opportunities.transition": async ({ params, body }, context) =>
+    ok(
+      (await transitioned(
+        opportunities,
+        context,
+        params.id,
+        "transition_opportunity",
+        "p_opportunity_id",
+        body,
+      )) as Components["Opportunity"],
+    ),
+
+  "applications.transition": async ({ params, body }, context) =>
+    ok(
+      (await transitioned(
+        applications,
+        context,
+        params.id,
+        "transition_application",
+        "p_application_id",
+        body,
+      )) as Components["Application"],
+    ),
+
+  "engagementDocuments.transition": async ({ params, body }, context) =>
+    ok(
+      (await transitioned(
+        engagementDocuments,
+        context,
+        params.id,
+        "transition_engagement_document",
+        "p_document_id",
+        body,
+      )) as Components["EngagementDocument"],
+    ),
+} satisfies HandlerSet<"Opportunities">;
+
 export const handlers = defineHandlers("Opportunities", {
+  ...parity,
   "engagements.list": async ({ query }, context) => {
     const org = requireOrg(context);
     const { rows, size } = await listRows<EngagementRow>(
