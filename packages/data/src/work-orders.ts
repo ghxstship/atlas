@@ -1,7 +1,7 @@
-import type { XosClient } from "./client";
-import { fail, ok, toDataError, type Result } from "./result";
-import { untyped } from "./untyped";
-import { listRecords, type RecordSummary } from "./work";
+import type { XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
+import { listRecords, type RecordSummary } from "./work.ts";
 
 /**
  * Work orders with bids and punch list items (Section 4.2 Work, migrations 0410 and 0411).

@@ -1,7 +1,7 @@
-import type { XosClient } from "./client";
-import { fail, ok, toDataError, type Result } from "./result";
-import { untyped } from "./untyped";
-import { listRecords, type RecordSummary } from "./work";
+import type { XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
+import { listRecords, type RecordSummary } from "./work.ts";
 
 /**
  * Schedule repository (Section 4.2 Schedule): timeline records and their dependencies, baselines

@@ -1,6 +1,6 @@
-import type { Database, XosClient } from "./client";
-import { fail, ok, toDataError, type Result } from "./result";
-import { untyped } from "./untyped";
+import type { Database, XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Work repository (Section 3.10, Section 4.2 Work): the record spine for all 26 record kinds, their

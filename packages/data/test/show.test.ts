@@ -181,6 +181,7 @@ describe("cues", () => {
     expect(
       await addCue(db, {
         orgId: "o1",
+        projectId: "p1",
         runOfShowId: "ros1",
         label: " Lights ",
         durationSeconds: 30,
@@ -194,14 +195,14 @@ describe("cues", () => {
       label: "Lights",
       duration: "30 seconds",
     });
-    await addCue(db, { orgId: "o1", runOfShowId: "ros1", label: "Doors" });
+    await addCue(db, { orgId: "o1", projectId: "p1", runOfShowId: "ros1", label: "Doors" });
     expect(stepsOf(calls[4], "insert")[0]?.[0]).toMatchObject({
       position: 1,
       duration: null,
       planned_at: null,
     });
-    expect((await addCue(db, { orgId: "o1", runOfShowId: "ros1", label: "x" })).ok).toBe(false);
-    expect((await addCue(db, { orgId: "o1", runOfShowId: "ros1", label: "x" })).ok).toBe(false);
+    expect((await addCue(db, { orgId: "o1", projectId: "p1", runOfShowId: "ros1", label: "x" })).ok).toBe(false);
+    expect((await addCue(db, { orgId: "o1", projectId: "p1", runOfShowId: "ros1", label: "x" })).ok).toBe(false);
   });
 
   it("edits, removes and calls cues", async () => {

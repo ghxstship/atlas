@@ -1,6 +1,6 @@
-import type { XosClient } from "./client";
-import { fail, ok, toDataError, type Result } from "./result";
-import { untyped } from "./untyped";
+import type { XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
+import { untyped } from "./untyped.ts";
 
 /**
  * Show repository (Section 4.2 Show): running orders and their cues, day sheets and call sheets.
@@ -200,6 +200,8 @@ export async function addCue(
   db: XosClient,
   input: {
     readonly orgId: string;
+    /** The running order's project; the database stamps it again from the running order. */
+    readonly projectId: string;
     readonly runOfShowId: string;
     readonly label: string;
     readonly plannedAt?: string | null;
@@ -213,6 +215,7 @@ export async function addCue(
     .from("cues")
     .insert({
       org_id: input.orgId,
+      project_id: input.projectId,
       run_of_show_id: input.runOfShowId,
       position,
       label: input.label.trim(),

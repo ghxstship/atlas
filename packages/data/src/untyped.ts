@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { XosClient } from "./client";
+import type { XosClient } from "./client.ts";
 
 /**
  * The client without generated row types, for two cases only: the record kind extension tables,
