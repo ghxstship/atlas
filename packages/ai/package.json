@@ -7,6 +7,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./conversation": "./src/conversation.ts",
     "./anthropic": "./src/anthropic.ts",
     "./config/models.json": "./config/models.json"
   },
