@@ -1353,20 +1353,26 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    tenant_item_code: string;
     element_id: Components["ItemId"];
-    confirmed_by: string;
+    item_id: string;
+    name: string;
+    unit_basis: string | null;
+    default_unit_price_minor: number | null;
+    currency_code: string | null;
   };
   CatalogBindingCreate: {
-    tenant_item_code: string;
     element_id: Components["ItemId"];
-    confirmed_by: string;
+    name: string;
+    unit_basis?: string | null;
+    default_unit_price_minor?: number | null;
+    currency_code?: string | null;
   };
   CatalogBindingPage: { data: Array<Components["CatalogBinding"]>; next_cursor: string | null };
   CatalogBindingUpdate: {
-    tenant_item_code?: string;
-    element_id?: Components["ItemId"];
-    confirmed_by?: string;
+    name?: string;
+    unit_basis?: string | null;
+    default_unit_price_minor?: number | null;
+    currency_code?: string | null;
   };
   Certification: {
     id: string;
@@ -2038,23 +2044,10 @@ export interface Components {
     updated_by: string | null;
     title: string;
     project_id: string | null;
-    record_id: string | null;
-    classification: string;
-    current_version_id: string | null;
   };
-  DocumentCreate: {
-    title: string;
-    project_id?: string | null;
-    record_id?: string | null;
-    classification: string;
-  };
+  DocumentCreate: { title: string; project_id?: string | null };
   DocumentPage: { data: Array<Components["Document"]>; next_cursor: string | null };
-  DocumentUpdate: {
-    title?: string;
-    project_id?: string | null;
-    record_id?: string | null;
-    classification?: string;
-  };
+  DocumentUpdate: { title?: string; project_id?: string | null };
   DocumentVersion: {
     id: string;
     org_id: string;
@@ -2064,12 +2057,10 @@ export interface Components {
     updated_by: string | null;
     document_id: string;
     version_number: number;
-    file_name: string;
-    mime_type: string;
-    byte_size: number;
-    sha256: string;
+    storage_uri: string;
+    checksum_sha256: string;
   };
-  DocumentVersionCreate: { document_id: string; file_name: string; mime_type: string };
+  DocumentVersionCreate: { document_id: string; storage_uri: string; checksum_sha256: string };
   DocumentVersionPage: { data: Array<Components["DocumentVersion"]>; next_cursor: string | null };
   DsarRequest: {
     id: string;
@@ -2265,11 +2256,6 @@ export interface Components {
   EngagementTransitionRequest: {
     expected_state: "Onboarding" | "Blocked" | "Active" | "Closing" | "Complete" | "Canceled";
     to_state: "Onboarding" | "Blocked" | "Active" | "Closing" | "Complete" | "Canceled";
-    reason?: string;
-  };
-  EntitlementFulfillmentTransitionRequest: {
-    expected_state: string;
-    to_state: string;
     reason?: string;
   };
   Expense: {
@@ -2518,15 +2504,10 @@ export interface Components {
     updated_by: string | null;
     purchase_order_id: string;
     received_at: string;
-    received_by: string;
-    dock_slot_id: string | null;
+    received_by: string | null;
+    note: string | null;
   };
-  GoodsReceiptCreate: {
-    purchase_order_id: string;
-    received_at: string;
-    received_by: string;
-    dock_slot_id?: string | null;
-  };
+  GoodsReceiptCreate: { purchase_order_id: string; received_at?: string; note?: string | null };
   GoodsReceiptPage: { data: Array<Components["GoodsReceipt"]>; next_cursor: string | null };
   Grade: string | null;
   GrainCode: string;
@@ -2825,32 +2806,41 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    organization_id: string;
-    document_id: string;
     coverage_type: string;
-    each_occurrence_minor: number | null;
-    currency: string;
-    expires_on: string;
+    coverage_limit_minor: number | null;
+    currency_code: string | null;
+    valid_to: string;
+    vendor_id: string;
+    insurer: string;
+    policy_identifier: string;
+    valid_from: string;
+    document_uri: string | null;
   };
   InsuranceCertificateCreate: {
-    organization_id: string;
-    document_id: string;
     coverage_type: string;
-    each_occurrence_minor?: number | null;
-    currency: string;
-    expires_on: string;
+    coverage_limit_minor?: number | null;
+    currency_code?: string | null;
+    valid_to: string;
+    vendor_id: string;
+    insurer: string;
+    policy_identifier: string;
+    valid_from: string;
+    document_uri?: string | null;
   };
   InsuranceCertificatePage: {
     data: Array<Components["InsuranceCertificate"]>;
     next_cursor: string | null;
   };
   InsuranceCertificateUpdate: {
-    organization_id?: string;
-    document_id?: string;
     coverage_type?: string;
-    each_occurrence_minor?: number | null;
-    currency?: string;
-    expires_on?: string;
+    coverage_limit_minor?: number | null;
+    currency_code?: string | null;
+    valid_to?: string;
+    vendor_id?: string;
+    insurer?: string;
+    policy_identifier?: string;
+    valid_from?: string;
+    document_uri?: string | null;
   };
   Integration: {
     id: string;
@@ -3007,10 +2997,14 @@ export interface Components {
     purchase_order_id: string;
     goods_receipt_id: string;
     matched: boolean;
-    variance: Components["MoneyTotal"];
+    variance_minor: number | null;
+    resolution_note: string | null;
+    resolved_by: string | null;
+    resolved_at: string | null;
   };
   InvoiceMatchCreate: { invoice_id: string; purchase_order_id: string; goods_receipt_id: string };
   InvoiceMatchPage: { data: Array<Components["InvoiceMatch"]>; next_cursor: string | null };
+  InvoiceMatchResolveRequest: { resolution_note: string };
   InvoicePage: { data: Array<Components["Invoice"]>; next_cursor: string | null };
   InvoiceTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   InvoiceUpdate: {
@@ -4135,18 +4129,18 @@ export interface Components {
     updated_by: string | null;
     purchase_order_id: string;
     description: string;
-    amount_minor: number | null;
-    currency: string;
-    po_change_state: Components["SharedState"];
+    amount_delta_minor: number | null;
+    po_change_order_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
   };
+  PoChangeOrderApproveRequest: { reason: string };
   PoChangeOrderCreate: {
     purchase_order_id: string;
     description: string;
-    amount_minor?: number | null;
-    currency: string;
+    amount_delta_minor?: number | null;
   };
   PoChangeOrderPage: { data: Array<Components["PoChangeOrder"]>; next_cursor: string | null };
-  PoChangeOrderUpdate: { description?: string; amount_minor?: number | null; currency?: string };
+  PoChangeOrderRejectRequest: { reason: string };
+  PoChangeOrderUpdate: { description?: string; amount_delta_minor?: number | null };
   PoLine: {
     id: string;
     org_id: string;
@@ -4155,33 +4149,33 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     purchase_order_id: string;
-    budget_line_id: string;
+    budget_line_id: string | null;
     element_id: Components["ItemId"];
     description: string;
     quantity: number;
-    unit: Components["UnitCode"];
+    unit_basis: Components["UnitCode"] | null;
     unit_price_minor: number | null;
-    currency: string;
+    line_number: number;
   };
   PoLineCreate: {
     purchase_order_id: string;
-    budget_line_id: string;
+    budget_line_id?: string | null;
     element_id?: Components["ItemId"];
     description: string;
     quantity: number;
-    unit: Components["UnitCode"];
+    unit_basis?: Components["UnitCode"] | null;
     unit_price_minor?: number | null;
-    currency: string;
+    line_number?: number;
   };
   PoLinePage: { data: Array<Components["PoLine"]>; next_cursor: string | null };
   PoLineUpdate: {
-    budget_line_id?: string;
+    budget_line_id?: string | null;
     element_id?: Components["ItemId"];
     description?: string;
     quantity?: number;
-    unit?: Components["UnitCode"];
+    unit_basis?: Components["UnitCode"] | null;
     unit_price_minor?: number | null;
-    currency?: string;
+    line_number?: number;
   };
   PoolLevel: "Preferred" | "Approved" | "Do Not Engage";
   PoolMember: {
@@ -4254,12 +4248,15 @@ export interface Components {
     updated_by: string | null;
     vendor_id: string;
     valid_to: string | null;
-    prequalification_state: Components["SharedState"];
+    scope_note: string;
+    decision: "Approved" | "Rejected" | null;
+    decided_by: string | null;
+    decided_at: string | null;
   };
-  PrequalificationCreate: { vendor_id: string; valid_to?: string | null };
+  PrequalificationCreate: { vendor_id: string; valid_to?: string | null; scope_note: string };
+  PrequalificationDecideRequest: { decision: "Approved" | "Rejected"; valid_to?: string };
   PrequalificationPage: { data: Array<Components["Prequalification"]>; next_cursor: string | null };
-  PrequalificationTransitionRequest: { expected_state: string; to_state: string; reason?: string };
-  PrequalificationUpdate: { valid_to?: string | null };
+  PrequalificationUpdate: { valid_to?: string | null; scope_note?: string };
   PriceBook: {
     id: string;
     org_id: string;
@@ -4517,21 +4514,21 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     vendor_id: string;
-    po_number: string;
-    currency: string;
-    po_state: Components["SharedState"];
-    total: Components["MoneyTotal"];
-    required_on: string | null;
+    po_number: number;
+    currency_code: string;
+    po_state: "Proposed" | "Approved" | "Sent" | "Closed" | "Canceled";
+    rfq_response_id: string | null;
   };
+  PurchaseOrderApproveRequest: { reason: string };
   PurchaseOrderCreate: {
     project_id: string;
     vendor_id: string;
-    currency: string;
-    required_on?: string | null;
+    currency_code: string;
+    rfq_response_id?: string | null;
   };
   PurchaseOrderPage: { data: Array<Components["PurchaseOrder"]>; next_cursor: string | null };
   PurchaseOrderTransitionRequest: { expected_state: string; to_state: string; reason?: string };
-  PurchaseOrderUpdate: { vendor_id?: string; currency?: string; required_on?: string | null };
+  PurchaseOrderUpdate: { rfq_response_id?: string | null };
   RFQTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   RadioChannel: {
     id: string;
@@ -5177,16 +5174,11 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     title: string;
-    urid: Components["UridAtAnyGrain"];
-    deadline_at: string;
-    rfq_state: Components["SharedState"];
+    rfq_state: "Proposed" | "Issued" | "Closed" | "Awarded" | "Canceled";
+    rfq_number: number;
+    responses_due_at: string | null;
   };
-  RfqCreate: {
-    project_id: string;
-    title: string;
-    urid: Components["UridAtAnyGrain"];
-    deadline_at: string;
-  };
+  RfqCreate: { project_id: string; title: string; responses_due_at?: string | null };
   RfqInvitation: {
     id: string;
     org_id: string;
@@ -5195,9 +5187,9 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     rfq_id: string;
-    organization_id: string;
+    vendor_id: string;
   };
-  RfqInvitationCreate: { rfq_id: string; organization_id: string };
+  RfqInvitationCreate: { rfq_id: string; vendor_id: string };
   RfqInvitationPage: { data: Array<Components["RfqInvitation"]>; next_cursor: string | null };
   RfqPage: { data: Array<Components["Rfq"]>; next_cursor: string | null };
   RfqResponse: {
@@ -5208,11 +5200,11 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     rfq_id: string;
-    organization_id: string;
     submitted_at: string | null;
-    total: Components["MoneyTotal"];
+    vendor_id: string;
+    valid_until: string | null;
   };
-  RfqResponseCreate: { rfq_id: string; organization_id: string };
+  RfqResponseCreate: { rfq_id: string; vendor_id: string; valid_until?: string | null };
   RfqResponseLine: {
     id: string;
     org_id: string;
@@ -5224,24 +5216,27 @@ export interface Components {
     description: string;
     quantity: number | null;
     unit_price_minor: number | null;
-    currency: string;
+    currency_code: string;
+    element_id: string | null;
   };
   RfqResponseLineCreate: {
     rfq_response_id: string;
     description: string;
     quantity?: number | null;
     unit_price_minor?: number | null;
-    currency: string;
+    currency_code: string;
+    element_id?: string | null;
   };
   RfqResponseLinePage: { data: Array<Components["RfqResponseLine"]>; next_cursor: string | null };
   RfqResponseLineUpdate: {
     description?: string;
     quantity?: number | null;
     unit_price_minor?: number | null;
-    currency?: string;
+    currency_code?: string;
+    element_id?: string | null;
   };
   RfqResponsePage: { data: Array<Components["RfqResponse"]>; next_cursor: string | null };
-  RfqUpdate: { title?: string; urid?: Components["UridAtAnyGrain"]; deadline_at?: string };
+  RfqUpdate: { title?: string; responses_due_at?: string | null };
   Rider: {
     id: string;
     org_id: string;
@@ -5763,10 +5758,10 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     title: string;
-    body: Record<string, unknown>;
-    urid: Components["UridAtAnyGrain"];
-    sop_state: string;
-    requires_acknowledgment: boolean;
+    body: string;
+    code: string;
+    version: number;
+    published_at: string | null;
   };
   SopAcknowledgment: {
     id: string;
@@ -5778,25 +5773,16 @@ export interface Components {
     sop_id: string;
     person_id: string;
     acknowledged_at: string;
+    sop_version: number;
   };
-  SopAcknowledgmentCreate: { sop_id: string; person_id: string };
+  SopAcknowledgmentCreate: { sop_id: string };
   SopAcknowledgmentPage: {
     data: Array<Components["SopAcknowledgment"]>;
     next_cursor: string | null;
   };
-  SopCreate: {
-    title: string;
-    body: Record<string, unknown>;
-    urid?: Components["UridAtAnyGrain"];
-    requires_acknowledgment: boolean;
-  };
+  SopCreate: { title: string; body: string; code: string };
   SopPage: { data: Array<Components["Sop"]>; next_cursor: string | null };
-  SopUpdate: {
-    title?: string;
-    body?: Record<string, unknown>;
-    urid?: Components["UridAtAnyGrain"];
-    requires_acknowledgment?: boolean;
-  };
+  SopUpdate: { title?: string; body?: string };
   Sort: string;
   Space: {
     id: string;
@@ -5898,17 +5884,30 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    engagement_id: string;
-    name: string;
+    description: string;
     quantity: number | null;
-    fulfillment_state: Components["SharedState"];
+    project_id: string;
+    counterparty_id: string;
+    due_on: string | null;
+    fulfilled_at: string | null;
   };
-  SponsorEntitlementCreate: { engagement_id: string; name: string; quantity?: number | null };
+  SponsorEntitlementCreate: {
+    description: string;
+    quantity?: number | null;
+    project_id: string;
+    counterparty_id: string;
+    due_on?: string | null;
+  };
   SponsorEntitlementPage: {
     data: Array<Components["SponsorEntitlement"]>;
     next_cursor: string | null;
   };
-  SponsorEntitlementUpdate: { engagement_id?: string; name?: string; quantity?: number | null };
+  SponsorEntitlementUpdate: {
+    description?: string;
+    quantity?: number | null;
+    counterparty_id?: string;
+    due_on?: string | null;
+  };
   StdCode: string;
   StdDocument: { code: Components["StdCode"]; title: string; urid: Components["UridAtAnyGrain"] };
   StdDocumentPage: { data: Array<Components["StdDocument"]>; next_cursor: string | null };
@@ -6319,10 +6318,11 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    organization_id: string;
-    counterparty_type: Components["CounterpartyType"];
-    vendor_state: Components["SharedState"];
-    internal_notes: string | null;
+    counterparty_type: Components["CounterpartyType"] | null;
+    vendor_state: "Prospect" | "Onboarded" | "Active" | "Blocked" | "Canceled";
+    counterparty_id: string;
+    payment_terms_days: number | null;
+    default_currency_code: string | null;
   };
   VendorClass: {
     id: string;
@@ -6332,7 +6332,8 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    counterparty_type: Components["CounterpartyType"] & (string | null);
+    std_vendor_class_id: string | null;
+    description: string | null;
   };
   VendorClassAssignment: {
     id: string;
@@ -6351,17 +6352,19 @@ export interface Components {
   };
   VendorClassCreate: {
     name: string;
-    counterparty_type?: Components["CounterpartyType"] & (string | null);
+    std_vendor_class_id?: string | null;
+    description?: string | null;
   };
   VendorClassPage: { data: Array<Components["VendorClass"]>; next_cursor: string | null };
   VendorClassUpdate: {
     name?: string;
-    counterparty_type?: Components["CounterpartyType"] & (string | null);
+    std_vendor_class_id?: string | null;
+    description?: string | null;
   };
   VendorCreate: {
-    organization_id: string;
-    counterparty_type: Components["CounterpartyType"];
-    internal_notes?: string | null;
+    counterparty_id: string;
+    payment_terms_days?: number | null;
+    default_currency_code?: string | null;
   };
   VendorPage: { data: Array<Components["Vendor"]>; next_cursor: string | null };
   VendorProduct: {
@@ -6372,24 +6375,30 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     vendor_id: string;
-    name: string;
     element_id: Components["ItemId"];
     unit_price_minor: number | null;
-    currency: string;
+    currency_code: string | null;
+    vendor_sku: string;
+    catalog_binding_id: string | null;
+    lead_time_days: number | null;
   };
   VendorProductCreate: {
     vendor_id: string;
-    name: string;
     element_id?: Components["ItemId"];
     unit_price_minor?: number | null;
-    currency: string;
+    currency_code?: string | null;
+    vendor_sku: string;
+    catalog_binding_id?: string | null;
+    lead_time_days?: number | null;
   };
   VendorProductPage: { data: Array<Components["VendorProduct"]>; next_cursor: string | null };
   VendorProductUpdate: {
-    name?: string;
     element_id?: Components["ItemId"];
     unit_price_minor?: number | null;
-    currency?: string;
+    currency_code?: string | null;
+    vendor_sku?: string;
+    catalog_binding_id?: string | null;
+    lead_time_days?: number | null;
   };
   VendorScorecard: {
     id: string;
@@ -6400,21 +6409,32 @@ export interface Components {
     updated_by: string | null;
     vendor_id: string;
     project_id: string | null;
-    score: number;
-    notes: string | null;
+    note: string | null;
+    period_end: string;
+    quality_score: number | null;
+    delivery_score: number | null;
+    safety_score: number | null;
   };
   VendorScorecardCreate: {
     vendor_id: string;
     project_id?: string | null;
-    score: number;
-    notes?: string | null;
+    note?: string | null;
+    period_end: string;
+    quality_score?: number | null;
+    delivery_score?: number | null;
+    safety_score?: number | null;
   };
   VendorScorecardPage: { data: Array<Components["VendorScorecard"]>; next_cursor: string | null };
-  VendorScorecardUpdate: { project_id?: string | null; score?: number; notes?: string | null };
-  VendorUpdate: {
-    counterparty_type?: Components["CounterpartyType"];
-    internal_notes?: string | null;
+  VendorScorecardUpdate: {
+    project_id?: string | null;
+    note?: string | null;
+    period_end?: string;
+    quality_score?: number | null;
+    delivery_score?: number | null;
+    safety_score?: number | null;
   };
+  VendorTransitionRequest: { expected_state: string; to_state: string; reason?: string };
+  VendorUpdate: { payment_terms_days?: number | null; default_currency_code?: string | null };
   Venue: {
     id: string;
     org_id: string;
@@ -6461,11 +6481,11 @@ export interface Components {
     updated_by: string | null;
     term: string;
     casing_rule: string;
-    usage: string;
+    definition: string;
   };
-  VerbiageTermCreate: { term: string; casing_rule: string; usage: string };
+  VerbiageTermCreate: { term: string; casing_rule: string; definition: string };
   VerbiageTermPage: { data: Array<Components["VerbiageTerm"]>; next_cursor: string | null };
-  VerbiageTermUpdate: { term?: string; casing_rule?: string; usage?: string };
+  VerbiageTermUpdate: { term?: string; casing_rule?: string; definition?: string };
   Verification: {
     id: string;
     created_at: string;
@@ -7744,6 +7764,15 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "sops.publish": {
+    module: "Knowledge";
+    method: "post";
+    path: "/sops/{id}/publish";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["Sop"] };
   };
   "sopAcknowledgments.list": {
     module: "Knowledge";
@@ -12125,15 +12154,6 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["RfqResponse"] };
   };
-  "rfqResponses.submit": {
-    module: "Procurement";
-    method: "post";
-    path: "/rfq-responses/{id}/submit";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["RfqResponse"] };
-  };
   "rfqResponseLines.list": {
     module: "Procurement";
     method: "get";
@@ -12233,7 +12253,7 @@ export interface Operations {
     path: "/purchase-orders/{id}/approve";
     params: { id: string };
     query: Record<string, never>;
-    body: undefined;
+    body: Components["PurchaseOrderApproveRequest"];
     responses: { 200: Components["PurchaseOrder"] };
   };
   "purchaseOrders.transition": {
@@ -12353,7 +12373,16 @@ export interface Operations {
     path: "/po-change-orders/{id}/approve";
     params: { id: string };
     query: Record<string, never>;
-    body: undefined;
+    body: Components["PoChangeOrderApproveRequest"];
+    responses: { 200: Components["PoChangeOrder"] };
+  };
+  "poChangeOrders.reject": {
+    module: "Procurement";
+    method: "post";
+    path: "/po-change-orders/{id}/reject";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PoChangeOrderRejectRequest"];
     responses: { 200: Components["PoChangeOrder"] };
   };
   "goodsReceipts.list": {
@@ -12453,6 +12482,15 @@ export interface Operations {
     params: { id: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
+    responses: { 200: Components["InvoiceMatch"] };
+  };
+  "invoiceMatches.resolve": {
+    module: "Procurement";
+    method: "post";
+    path: "/invoice-matches/{id}/resolve";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InvoiceMatchResolveRequest"];
     responses: { 200: Components["InvoiceMatch"] };
   };
   "catalogBindings.list": {
@@ -12608,6 +12646,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "vendors.transition": {
+    module: "Vendors";
+    method: "post";
+    path: "/vendors/{id}/transitions";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["VendorTransitionRequest"];
+    responses: { 200: Components["Vendor"] };
+  };
   "vendorClasses.list": {
     module: "Vendors";
     method: "get";
@@ -12752,13 +12799,13 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
-  "prequalifications.transition": {
+  "prequalifications.decide": {
     module: "Vendors";
     method: "post";
-    path: "/prequalifications/{id}/transitions";
+    path: "/prequalifications/{id}/decide";
     params: { id: string };
     query: Record<string, never>;
-    body: Components["PrequalificationTransitionRequest"];
+    body: Components["PrequalificationDecideRequest"];
     responses: { 200: Components["Prequalification"] };
   };
   "insuranceCertificates.list": {
@@ -12914,13 +12961,22 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
-  "sponsorEntitlements.transition": {
+  "sponsorEntitlements.fulfill": {
     module: "Vendors";
     method: "post";
-    path: "/sponsor-entitlements/{id}/transitions";
+    path: "/sponsor-entitlements/{id}/fulfill";
     params: { id: string };
     query: Record<string, never>;
-    body: Components["EntitlementFulfillmentTransitionRequest"];
+    body: undefined;
+    responses: { 200: Components["SponsorEntitlement"] };
+  };
+  "sponsorEntitlements.reopen": {
+    module: "Vendors";
+    method: "post";
+    path: "/sponsor-entitlements/{id}/reopen";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
     responses: { 200: Components["SponsorEntitlement"] };
   };
   "inspectionTemplates.list": {
@@ -20531,6 +20587,7 @@ export interface ModuleOperations {
     | "sops.get"
     | "sops.update"
     | "sops.delete"
+    | "sops.publish"
     | "sopAcknowledgments.list"
     | "sopAcknowledgments.create"
     | "sopAcknowledgments.get"
@@ -21063,7 +21120,6 @@ export interface ModuleOperations {
     | "rfqResponses.list"
     | "rfqResponses.create"
     | "rfqResponses.get"
-    | "rfqResponses.submit"
     | "rfqResponseLines.list"
     | "rfqResponseLines.create"
     | "rfqResponseLines.get"
@@ -21086,6 +21142,7 @@ export interface ModuleOperations {
     | "poChangeOrders.get"
     | "poChangeOrders.update"
     | "poChangeOrders.approve"
+    | "poChangeOrders.reject"
     | "goodsReceipts.list"
     | "goodsReceipts.create"
     | "goodsReceipts.get"
@@ -21095,6 +21152,7 @@ export interface ModuleOperations {
     | "invoiceMatches.list"
     | "invoiceMatches.create"
     | "invoiceMatches.get"
+    | "invoiceMatches.resolve"
     | "catalogBindings.list"
     | "catalogBindings.create"
     | "catalogBindings.get"
@@ -21111,6 +21169,7 @@ export interface ModuleOperations {
     | "vendors.get"
     | "vendors.update"
     | "vendors.delete"
+    | "vendors.transition"
     | "vendorClasses.list"
     | "vendorClasses.create"
     | "vendorClasses.get"
@@ -21125,7 +21184,7 @@ export interface ModuleOperations {
     | "prequalifications.get"
     | "prequalifications.update"
     | "prequalifications.delete"
-    | "prequalifications.transition"
+    | "prequalifications.decide"
     | "insuranceCertificates.list"
     | "insuranceCertificates.create"
     | "insuranceCertificates.get"
@@ -21141,7 +21200,8 @@ export interface ModuleOperations {
     | "sponsorEntitlements.get"
     | "sponsorEntitlements.update"
     | "sponsorEntitlements.delete"
-    | "sponsorEntitlements.transition";
+    | "sponsorEntitlements.fulfill"
+    | "sponsorEntitlements.reopen";
   Safety:
     | "inspectionTemplates.list"
     | "inspectionTemplates.create"
