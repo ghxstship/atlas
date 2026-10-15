@@ -7,7 +7,6 @@ import {
   listMyRecordsBetween,
   summarizeReadiness,
   type GateReadiness,
-  type HomeRecord,
 } from "@xos/data/home";
 import {
   listCriterionStatus,
