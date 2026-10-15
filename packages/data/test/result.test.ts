@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fail, ok, rowRefusal, toDataError } from "../src/result";
+import { fail, ok, rowRefusal, toDataError } from "../src/result.ts";
 
 describe("toDataError", () => {
   it("splits a refusal into the rule and the sentence (ADR 0008)", () => {

@@ -23,6 +23,7 @@
     "@xos/i18n": "workspace:*",
     "@xos/ia": "workspace:*",
     "@xos/icons": "workspace:*",
+    "@xos/schemas": "workspace:*",
     "@xos/tokens": "workspace:*",
     "@xos/ui": "workspace:*",
     "cmdk": "1.1.1",

@@ -44,6 +44,9 @@ importers:
       '@xos/icons':
         specifier: workspace:*
         version: link:../../packages/icons
+      '@xos/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       '@xos/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
@@ -209,6 +212,9 @@ importers:
       '@hono/zod-openapi':
         specifier: 1.6.3
         version: 1.6.3(hono@4.13.13)(zod@4.6.5)
+      '@xos/data':
+        specifier: workspace:*
+        version: link:../data
       '@xos/schemas':
         specifier: workspace:*
         version: link:../schemas
@@ -446,6 +452,9 @@ importers:
       eslint:
         specifier: 10.12.0
         version: 10.12.0(jiti@2.7.0)
+      prettier:
+        specifier: 3.9.9
+        version: 3.9.9
       react:
         specifier: 19.3.0
         version: 19.3.0
