@@ -13,7 +13,6 @@ import {
   RecordList,
   RecordRow,
   RefusalNotice,
-  SegmentedControl,
   Select,
   StateChip,
   Textarea,
@@ -26,6 +25,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Dialog as RDialog } from "radix-ui";
 import { useActionState, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import { transitionAction, type ActionState } from "@/app/[org]/finance/actions";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /**
  * Client building blocks the Finance and Reports pages share (A15): the view switcher and filter bar
@@ -80,7 +80,7 @@ export function ViewSwitcher({ views, value }: { views: readonly string[]; value
   const go = useQueryNav();
   if (views.length < 2) return null;
   return (
-    <SegmentedControl
+    <CollectionViews
       label={t("common.viewLabel")}
       value={value}
       options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}
