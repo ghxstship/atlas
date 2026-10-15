@@ -9,6 +9,11 @@ import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeVerbs, setTable } from "../correct.ts";
 import { collectionAction } from "../define.ts";
 import type { ResourceSpec } from "../types.ts";
+import {
+  integrationActions,
+  integrationCapabilities,
+  integrationCorrections,
+} from "./parts/settings-integrations.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -860,5 +865,8 @@ export const additions = defineAdditions("Settings", {
         },
       }),
     },
+    ...integrationCorrections,
   ],
+  actions: { ...integrationActions },
+  capabilities: { ...integrationCapabilities },
 });
