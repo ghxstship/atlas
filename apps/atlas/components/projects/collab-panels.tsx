@@ -12,7 +12,7 @@ import {
   removeAttachmentAction,
   uploadAttachmentAction,
 } from "@/lib/projects/collab-actions";
-import { ActionError, fieldError } from "./action-error";
+import { ActionError, echoed, fieldError } from "./action-error";
 
 /** Comments on a project (Section 19.6): the main thread, newest last, with a composer. */
 export function CommentsPanel({
@@ -56,7 +56,10 @@ export function CommentsPanel({
                   {names[c.authorPersonId] ?? t("collab.unknownAuthor")}
                 </span>
                 <time dateTime={c.createdAt}>
-                  {format.dateTime(new Date(c.createdAt), { dateStyle: "medium", timeStyle: "short" })}
+                  {format.dateTime(new Date(c.createdAt), {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
                 </time>
                 {c.editedAt ? <span>{t("collab.edited")}</span> : null}
               </p>
@@ -90,6 +93,7 @@ export function CommentsPanel({
             required
             maxLength={10_000}
             width="100%"
+            defaultValue={echoed(state, "body")}
             label={t("collab.addComment")}
             error={fieldError(t, state, "body")}
           />

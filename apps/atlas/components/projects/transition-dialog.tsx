@@ -2,9 +2,9 @@
 
 import { Button, Dialog, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 import { transitionAction } from "@/lib/projects/actions";
-import { ActionError, fieldError } from "./action-error";
+import { ActionError, echoed, fieldError, useClosingAction } from "./action-error";
 
 /**
  * Moves a project or its production to another state through the lifecycle RPC (Section 3.12).
@@ -26,10 +26,7 @@ export function TransitionDialog({
 }) {
   const t = useTranslations("projects");
   const [open, setOpen] = useState(false);
-  const [state, action, pending] = useActionState(transitionAction, {});
-  useEffect(() => {
-    if (state.ok) setOpen(false);
-  }, [state]);
+  const [state, action, pending] = useClosingAction(transitionAction, () => setOpen(false));
   const id = `transition-${lifecycle}`;
   if (allowed.length === 0) {
     return (
@@ -47,7 +44,9 @@ export function TransitionDialog({
           {t("transition.action")}
         </Button>
       }
-      title={lifecycle === "project" ? t("transition.projectTitle") : t("transition.productionTitle")}
+      title={
+        lifecycle === "project" ? t("transition.projectTitle") : t("transition.productionTitle")
+      }
       actions={
         <>
           <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
@@ -68,7 +67,7 @@ export function TransitionDialog({
           id={`${id}-next`}
           name="next"
           label={t("transition.to")}
-          value={allowed[0]}
+          value={allowed[0] ?? ""}
           options={allowed.map((s) => ({ value: s, label: t(`states.${s}` as "states.Active") }))}
         />
         <Textarea
@@ -77,6 +76,7 @@ export function TransitionDialog({
           required
           maxLength={500}
           width="100%"
+          defaultValue={echoed(state, "reason")}
           label={t("transition.reason")}
           help={t("transition.reasonHelp")}
           error={fieldError(t, state, "reason")}

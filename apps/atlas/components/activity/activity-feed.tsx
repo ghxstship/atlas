@@ -17,19 +17,27 @@ export function useDescribe() {
   const p = useTranslations("projects") as unknown as Translate & { has: (k: string) => boolean };
   const state = (value: unknown) => {
     const text = String(value);
-    return p.has(`states.${text}`) ? p(`states.${text}`) : p.has(`phases.${text}`) ? p(`phases.${text}`) : text;
+    return p.has(`states.${text}`)
+      ? p(`states.${text}`)
+      : p.has(`phases.${text}`)
+        ? p(`phases.${text}`)
+        : text;
   };
   return (entry: ActivityEntry) => {
     const [subject = "", verb = ""] = entry.type.split(".");
     const action = a.has(`verbs.${verb}`) ? a(`verbs.${verb}`) : a("verbs.fallback");
     const noun = a.has(`subjects.${subject}`) ? a(`subjects.${subject}`) : a("subjects.fallback");
+    const criterion =
+      typeof entry.data["criterion_id"] === "string" ? entry.data["criterion_id"] : null;
     const target = entry.recordKey
       ? `${entry.recordKey} ${entry.recordTitle ?? ""}`.trim()
       : subject === "project" && entry.project
         ? `${entry.project.key} ${entry.project.name}`
-        : entry.project
-          ? `${noun} · ${entry.project.key}`
-          : noun;
+        : criterion && entry.project
+          ? `${criterion} · ${entry.project.key}`
+          : entry.project
+            ? `${noun} · ${entry.project.key}`
+            : noun;
     const d = entry.data;
     const from = d["from_state"] ?? d["from_phase_code"];
     const to = d["to_state"] ?? d["to_phase_code"];
@@ -168,7 +176,10 @@ export function ActivityFeed({
             const d = describe(e);
             return (
               <li key={e.id} className="flex flex-wrap items-baseline gap-8 py-8 text-text-13">
-                <time dateTime={e.at} className="w-(--ui-props-label) shrink-0 text-text-secondary tabular-nums">
+                <time
+                  dateTime={e.at}
+                  className="w-(--ui-props-label) shrink-0 text-text-secondary tabular-nums"
+                >
                   {when(e.at)}
                 </time>
                 <span className="font-medium text-text-primary">{d.actor}</span>

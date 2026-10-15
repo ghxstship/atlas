@@ -26,6 +26,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { getProjectContextFor, type ProjectContext } from "./context";
 import { getOrgContext } from "@/lib/shell/context";
+import { withEcho } from "./echo";
 
 /**
  * Server actions for Projects (Section 4.2). Each resolves the viewer's org or project context
@@ -35,6 +36,8 @@ import { getOrgContext } from "@/lib/shell/context";
  */
 
 export interface ActionState {
+  /** The submitted text fields, returned on failure so the form can show them again. */
+  readonly echo?: Readonly<Record<string, string>>;
   readonly ok?: boolean;
   /** A key under `projects.errors`. */
   readonly error?: string;
@@ -172,7 +175,7 @@ function fieldErrors(issues: readonly z.core.$ZodIssue[]): ActionState {
   return { fieldErrors: errors };
 }
 
-export async function createProjectAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function createProjectActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await getOrgContext(field(form, "org"));
   if (!ctx) notFound();
   const parsed = parseProject(form);
@@ -183,7 +186,7 @@ export async function createProjectAction(_: ActionState, form: FormData): Promi
   redirect(`/${ctx.org.slug}/p/${parsed.data.key}/overview`);
 }
 
-export async function updateProjectAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function updateProjectActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const parsed = parseProject(form);
   if (!parsed.success) return fieldErrors(parsed.error.issues);
@@ -196,7 +199,7 @@ export async function updateProjectAction(_: ActionState, form: FormData): Promi
   return { ok: true };
 }
 
-export async function archiveProjectAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function archiveProjectActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const result = await setProjectArchived(
     ctx.org.viewer.db,
@@ -208,7 +211,7 @@ export async function archiveProjectAction(_: ActionState, form: FormData): Prom
   return { ok: true };
 }
 
-export async function transitionAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function transitionActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const why = reason.safeParse(field(form, "reason"));
   if (!why.success) return { fieldErrors: { reason: "reason" } };
@@ -242,7 +245,7 @@ export async function transitionAction(_: ActionState, form: FormData): Promise<
 
 // Scope tree ---------------------------------------------------------------------------------------
 
-export async function createScopeNodeAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function createScopeNodeActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const parsed = z
     .object({
@@ -280,7 +283,7 @@ export async function createScopeNodeAction(_: ActionState, form: FormData): Pro
   return { ok: true };
 }
 
-export async function updateScopeNodeAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function updateScopeNodeActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const parsed = z
     .object({ nodeId: z.uuid(), name: text(200), venueId: optional.pipe(z.uuid().nullable()) })
@@ -299,7 +302,7 @@ export async function updateScopeNodeAction(_: ActionState, form: FormData): Pro
   return { ok: true };
 }
 
-export async function removeScopeNodeAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function removeScopeNodeActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const id = z.uuid().safeParse(field(form, "nodeId"));
   if (!id.success) return { error: "not-found" };
@@ -314,7 +317,7 @@ export async function removeScopeNodeAction(_: ActionState, form: FormData): Pro
 /** Evidence names a document link or a record key (`gate_evidence_reference`). */
 const EVIDENCE_URI = /^(https:\/\/\S{3,1990}|[A-Z]{2,5}-\d{1,9})$/;
 
-export async function attestEvidenceAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function attestEvidenceActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const parsed = z
     .object({
@@ -346,7 +349,7 @@ export async function attestEvidenceAction(_: ActionState, form: FormData): Prom
   return { ok: true };
 }
 
-export async function withdrawEvidenceAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function withdrawEvidenceActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const id = z.uuid().safeParse(field(form, "evidenceId"));
   if (!id.success) return { error: "not-found" };
@@ -356,7 +359,7 @@ export async function withdrawEvidenceAction(_: ActionState, form: FormData): Pr
   return { ok: true };
 }
 
-export async function passGateAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function passGateActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const why = reason.safeParse(field(form, "reason"));
   if (!why.success) return { fieldErrors: { reason: "reason" } };
@@ -372,7 +375,7 @@ export async function passGateAction(_: ActionState, form: FormData): Promise<Ac
 
 // Members ----------------------------------------------------------------------------------------------
 
-export async function addMemberAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function addMemberActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const parsed = z
     .object({ membershipId: z.uuid(), role: z.enum(PROJECT_ROLE_ORDER) })
@@ -387,7 +390,7 @@ export async function addMemberAction(_: ActionState, form: FormData): Promise<A
   return { ok: true };
 }
 
-export async function endMemberAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function endMemberActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const id = z.uuid().safeParse(field(form, "projectMemberId"));
   if (!id.success) return { error: "not-found" };
@@ -395,4 +398,79 @@ export async function endMemberAction(_: ActionState, form: FormData): Promise<A
   if (!result.ok) return errorState(result.error);
   refresh(ctx);
   return { ok: true };
+}
+
+// Exported actions: each echoes the submitted text back on failure, so a refused form keeps
+// what the person typed (React resets uncontrolled fields after an action).
+
+export async function createProjectAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await createProjectActionImpl(state, form));
+}
+
+export async function updateProjectAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await updateProjectActionImpl(state, form));
+}
+
+export async function archiveProjectAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await archiveProjectActionImpl(state, form));
+}
+
+export async function transitionAction(state: ActionState, form: FormData): Promise<ActionState> {
+  return withEcho(form, await transitionActionImpl(state, form));
+}
+
+export async function createScopeNodeAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await createScopeNodeActionImpl(state, form));
+}
+
+export async function updateScopeNodeAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await updateScopeNodeActionImpl(state, form));
+}
+
+export async function removeScopeNodeAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await removeScopeNodeActionImpl(state, form));
+}
+
+export async function attestEvidenceAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await attestEvidenceActionImpl(state, form));
+}
+
+export async function withdrawEvidenceAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await withdrawEvidenceActionImpl(state, form));
+}
+
+export async function passGateAction(state: ActionState, form: FormData): Promise<ActionState> {
+  return withEcho(form, await passGateActionImpl(state, form));
+}
+
+export async function addMemberAction(state: ActionState, form: FormData): Promise<ActionState> {
+  return withEcho(form, await addMemberActionImpl(state, form));
+}
+
+export async function endMemberAction(state: ActionState, form: FormData): Promise<ActionState> {
+  return withEcho(form, await endMemberActionImpl(state, form));
 }

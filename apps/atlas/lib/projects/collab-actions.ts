@@ -1,11 +1,17 @@
 "use server";
 
-import { downloadUrl, listAttachments, removeAttachment, uploadAttachment } from "@xos/data/attachments";
+import {
+  downloadUrl,
+  listAttachments,
+  removeAttachment,
+  uploadAttachment,
+} from "@xos/data/attachments";
 import { deleteComment, postComment } from "@xos/data/comments";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import type { ActionState } from "./actions";
+import { withEcho } from "./echo";
 import { getProjectContextFor, type ProjectContext } from "./context";
 
 /**
@@ -43,19 +49,22 @@ function failed(kind: string, rule?: string): ActionState {
   return { error: kind === "not-found" ? "not-found" : "unexpected" };
 }
 
-export async function postCommentAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function postCommentActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const body = z.string().trim().min(1).max(10_000).safeParse(field(form, "body"));
   if (!body.success) return { fieldErrors: { body: "comment" } };
   const result = await postComment(ctx.org.viewer.db, { subject: subject(ctx), body: body.data });
   if (!result.ok) {
-    return failed(result.error.kind, result.error.kind === "refusal" ? result.error.rule : undefined);
+    return failed(
+      result.error.kind,
+      result.error.kind === "refusal" ? result.error.rule : undefined,
+    );
   }
   refresh(ctx);
   return { ok: true };
 }
 
-export async function deleteCommentAction(_: ActionState, form: FormData): Promise<ActionState> {
+async function deleteCommentActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const id = z.uuid().safeParse(field(form, "commentId"));
   if (!id.success) return { error: "not-found" };
@@ -65,10 +74,7 @@ export async function deleteCommentAction(_: ActionState, form: FormData): Promi
   return { ok: true };
 }
 
-export async function uploadAttachmentAction(
-  _: ActionState,
-  form: FormData,
-): Promise<ActionState> {
+async function uploadAttachmentActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const file = form.get("file");
   if (!(file instanceof File) || file.size === 0) return { fieldErrors: { file: "file" } };
@@ -79,16 +85,16 @@ export async function uploadAttachmentAction(
     filename: file.name,
   });
   if (!result.ok) {
-    return failed(result.error.kind, result.error.kind === "refusal" ? result.error.rule : undefined);
+    return failed(
+      result.error.kind,
+      result.error.kind === "refusal" ? result.error.rule : undefined,
+    );
   }
   refresh(ctx);
   return { ok: true };
 }
 
-export async function removeAttachmentAction(
-  _: ActionState,
-  form: FormData,
-): Promise<ActionState> {
+async function removeAttachmentActionImpl(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await projectFor(form);
   const id = z.uuid().safeParse(field(form, "attachmentId"));
   if (!id.success) return { error: "not-found" };
@@ -112,4 +118,32 @@ export async function attachmentLinkAction(
   if (!current) return null;
   const url = await downloadUrl(ctx.org.viewer.db, current);
   return url.ok ? url.data : null;
+}
+
+// Exported actions: each echoes the submitted text back on failure, so a refused form keeps
+// what the person typed (React resets uncontrolled fields after an action).
+
+export async function postCommentAction(state: ActionState, form: FormData): Promise<ActionState> {
+  return withEcho(form, await postCommentActionImpl(state, form));
+}
+
+export async function deleteCommentAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await deleteCommentActionImpl(state, form));
+}
+
+export async function uploadAttachmentAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await uploadAttachmentActionImpl(state, form));
+}
+
+export async function removeAttachmentAction(
+  state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return withEcho(form, await removeAttachmentActionImpl(state, form));
 }

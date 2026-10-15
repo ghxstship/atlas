@@ -5,3 +5,5 @@ projects.all
 projects.by-phase
 projects.portfolio-timeline
 project
+project.overview
+project.gates
