@@ -159,7 +159,8 @@ export function Calendar({ month, today, events, onEventSelect }: CalendarProps)
                             aria-current={iso === today ? "date" : undefined}
                             className={cx(
                               "self-start px-4 py-2 rounded-chip text-text-11 text-text-secondary tabular-nums",
-                              iso === today && "text-text-primary font-semibold ring-(length:--stroke-width-focus) ring-inset ring-accent",
+                              iso === today &&
+                                "text-text-primary font-semibold ring-(length:--stroke-width-focus) ring-inset ring-accent",
                             )}
                           >
                             {d}

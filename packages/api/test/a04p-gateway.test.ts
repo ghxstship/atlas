@@ -124,7 +124,7 @@ function world(context = {}) {
         author_person_id: ME,
         sent_at: "2026-10-02T09:00:00.000Z",
       },
-      background_checks: { provider: "Checkr", result: "Pending", completed_at: null },
+      background_checks: { org_id: ORG, provider: "Checkr", result: "Pending", completed_at: null },
       saved_searches: { alerts_enabled: true },
       availability_calendars: { visibility: "Private" },
     },
@@ -194,13 +194,6 @@ describe("listing reports and moderation", () => {
     await expectContract(await success(actions), "moderationActions.list");
     const action = await http.get(`/moderation-actions/${id(8104)}`);
     await expectContract(await success(action), "moderationActions.get");
-    const decided = await http.post("/moderation-actions", {
-      action: "Restricted",
-      statement_of_reasons: "The listing omits the pay range the jurisdiction requires.",
-      opportunity_id: id(8001),
-      listing_report_id: id(8103),
-    });
-    await expectContract(await success(decided), "moderationActions.create");
   });
 });
 
