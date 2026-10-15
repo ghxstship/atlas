@@ -16,10 +16,10 @@ import {
   updateBid,
   updateWorkOrder,
   type Bid,
-} from "../src/work-orders";
-import { errorResponse, okResponse } from "./fake-client";
-import { moduleClient, stepsOf } from "./module-client";
-import { recordRow } from "./records-fixture";
+} from "../src/work-orders.ts";
+import { errorResponse, okResponse } from "./fake-client.ts";
+import { moduleClient, stepsOf } from "./module-client.ts";
+import { recordRow } from "./records-fixture.ts";
 
 const bidRow = (over: Record<string, unknown> = {}) => ({
   id: "b1",

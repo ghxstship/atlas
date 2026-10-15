@@ -22,9 +22,9 @@ import {
   updateRunOfShow,
   zonedMidnight,
   type Cue,
-} from "../src/show";
-import { errorResponse, okResponse } from "./fake-client";
-import { moduleClient, stepsOf } from "./module-client";
+} from "../src/show.ts";
+import { errorResponse, okResponse } from "./fake-client.ts";
+import { moduleClient, stepsOf } from "./module-client.ts";
 
 const run = {
   id: "ros1",

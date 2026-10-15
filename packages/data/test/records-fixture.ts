@@ -1,4 +1,4 @@
-import { toRecordSummary, type RecordSummary } from "../src/work";
+import { toRecordSummary, type RecordSummary } from "../src/work.ts";
 
 /** A records row as PostgREST returns it with the project and owner embedded. */
 export function recordRow(over: Record<string, unknown> = {}) {

@@ -55,10 +55,10 @@ import {
   unwatchRecord,
   updateRecord,
   watchRecord,
-} from "../src/work";
-import { errorResponse, okResponse } from "./fake-client";
-import { moduleClient, stepsOf } from "./module-client";
-import { recordRow, summary } from "./records-fixture";
+} from "../src/work.ts";
+import { errorResponse, okResponse } from "./fake-client.ts";
+import { moduleClient, stepsOf } from "./module-client.ts";
+import { recordRow, summary } from "./records-fixture.ts";
 
 const NOW = new Date("2027-06-01T12:00:00.000Z");
 

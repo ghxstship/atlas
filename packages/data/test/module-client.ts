@@ -1,5 +1,5 @@
-import type { XosClient } from "../src/client";
-import type { Call, Response } from "./fake-client";
+import type { XosClient } from "../src/client.ts";
+import type { Call, Response } from "./fake-client.ts";
 
 /**
  * The recording stand-in of fake-client.ts with `schema(name)` as well, for the module

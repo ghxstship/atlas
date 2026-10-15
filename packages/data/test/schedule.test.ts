@@ -18,10 +18,10 @@ import {
   removeDependency,
   setActual,
   updateBaseline,
-} from "../src/schedule";
-import { errorResponse, okResponse } from "./fake-client";
-import { moduleClient, stepsOf } from "./module-client";
-import { recordRow, summary } from "./records-fixture";
+} from "../src/schedule.ts";
+import { errorResponse, okResponse } from "./fake-client.ts";
+import { moduleClient, stepsOf } from "./module-client.ts";
+import { recordRow, summary } from "./records-fixture.ts";
 
 const NOW = new Date("2027-06-02T12:00:00Z");
 

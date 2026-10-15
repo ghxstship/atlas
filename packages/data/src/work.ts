@@ -647,6 +647,62 @@ export async function restoreRecord(db: XosClient, id: string): Promise<Result<n
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/**
+ * Copies a record into a new Proposed record of the same project (journey 70): kind, subtype,
+ * title, scope, phase, URID, XYZ tag, people, dates and the kind's attributes. With children, the
+ * checklist is copied too, every item open.
+ */
+export async function duplicateRecord(
+  db: XosClient,
+  input: { readonly orgId: string; readonly recordId: string; readonly withChildren?: boolean },
+): Promise<Result<{ id: string; number: number }>> {
+  const source = await getRecord(db, input.recordId);
+  if (!source.ok) return source;
+  const r = source.data;
+  const created = await createRecord(db, {
+    orgId: input.orgId,
+    projectId: r.projectId,
+    kind: r.kind,
+    subtype: r.subtype,
+    title: r.title,
+    scopeNodeId: r.scopeNodeId,
+    phaseCode: r.phaseCode,
+    urid: r.urid,
+    xyz: r.xyz,
+    ownerId: r.ownerId,
+    accountableId: r.accountableId,
+    startsAt: r.startsAt,
+    endsAt: r.endsAt,
+    dueAt: r.dueAt,
+    timeZone: r.timeZone,
+  });
+  if (!created.ok) return created;
+  const extension = await getRecordExtension(db, r.kind, r.id);
+  if (!extension.ok) return extension;
+  if (Object.keys(extension.data).length > 0) {
+    const saved = await saveRecordExtension(db, {
+      orgId: input.orgId,
+      recordId: created.data.id,
+      kind: r.kind,
+      fields: extension.data,
+    });
+    if (!saved.ok) return saved;
+  }
+  if (input.withChildren) {
+    const items = await listChecklist(db, r.id);
+    if (!items.ok) return items;
+    for (const item of items.data) {
+      const added = await addChecklistItem(db, {
+        orgId: input.orgId,
+        recordId: created.data.id,
+        label: item.label,
+      });
+      if (!added.ok) return added;
+    }
+  }
+  return created;
+}
+
 // Kind extensions ----------------------------------------------------------------------------------
 
 /** The extension table of a kind: record_build for Build (Section 7.4, one table per kind). */
