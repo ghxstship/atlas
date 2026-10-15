@@ -1352,6 +1352,56 @@ export type Database = {
           },
         ];
       };
+      party_messages: {
+        Row: {
+          author_name: string | null;
+          author_person_id: string | null;
+          body: string | null;
+          id: string | null;
+          party_thread_id: string | null;
+          sent_at: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "party_messages_party_thread_id_fkey";
+            columns: ["party_thread_id"];
+            isOneToOne: false;
+            referencedRelation: "party_threads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      party_threads: {
+        Row: {
+          account_id: string | null;
+          created_at: string | null;
+          id: string | null;
+          last_message_at: string | null;
+          org_id: string | null;
+          org_name: string | null;
+          party_person_id: string | null;
+          subject: string | null;
+          unread_count: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "party_threads_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+          {
+            foreignKeyName: "party_threads_party_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+        ];
+      };
       payments: {
         Row: {
           account_id: string | null;
@@ -1674,6 +1724,39 @@ export type Database = {
         ComputedFields: never;
         Relationships: [];
       };
+      self_billing_agreements: {
+        Row: {
+          agreed_at: string | null;
+          engagement_id: string | null;
+          id: string | null;
+          is_active: boolean | null;
+          revoked_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          agreed_at?: string | null;
+          engagement_id?: string | null;
+          id?: string | null;
+          is_active?: never;
+          revoked_at?: string | null;
+        };
+        Update: {
+          agreed_at?: string | null;
+          engagement_id?: string | null;
+          id?: string | null;
+          is_active?: never;
+          revoked_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "self_billing_agreements_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       shifts: {
         Row: {
           ends_at: string | null;
@@ -1697,6 +1780,29 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "engagements";
             referencedColumns: ["id"];
+          },
+        ];
+      };
+      sponsor_entitlements: {
+        Row: {
+          account_id: string | null;
+          description: string | null;
+          due_on: string | null;
+          fulfilled_at: string | null;
+          id: string | null;
+          is_overdue: boolean | null;
+          project_id: string | null;
+          project_name: string | null;
+          quantity: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
           },
         ];
       };
@@ -1727,6 +1833,33 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "my_accounts";
             referencedColumns: ["account_id"];
+          },
+        ];
+      };
+      thread_read_receipts: {
+        Row: {
+          engagement_thread_id: string | null;
+          id: string | null;
+          last_read_at: string | null;
+          party_thread_id: string | null;
+          person_id: string | null;
+          person_name: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "thread_reads_engagement_thread_id_fkey";
+            columns: ["engagement_thread_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_threads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "thread_reads_party_thread_id_fkey";
+            columns: ["party_thread_id"];
+            isOneToOne: false;
+            referencedRelation: "party_threads";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -17837,6 +17970,7 @@ export type Database = {
           pay_min_minor: number | null;
           project_id: string;
           rate_type: Database["app"]["Enums"]["rate_type"] | null;
+          requisition_id: string | null;
           role_code: string | null;
           role_type: Database["app"]["Enums"]["external_role_type"];
           scope_node_id: string | null;
@@ -17866,6 +18000,7 @@ export type Database = {
           pay_min_minor?: number | null;
           project_id: string;
           rate_type?: Database["app"]["Enums"]["rate_type"] | null;
+          requisition_id?: string | null;
           role_code?: string | null;
           role_type: Database["app"]["Enums"]["external_role_type"];
           scope_node_id?: string | null;
@@ -17894,6 +18029,7 @@ export type Database = {
           pay_min_minor?: number | null;
           project_id?: string;
           rate_type?: Database["app"]["Enums"]["rate_type"] | null;
+          requisition_id?: string | null;
           role_code?: string | null;
           role_type?: Database["app"]["Enums"]["external_role_type"];
           scope_node_id?: string | null;
@@ -17952,6 +18088,20 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "opportunities_requisition_id_fkey";
+            columns: ["requisition_id"];
+            isOneToOne: false;
+            referencedRelation: "requisition_amounts";
+            referencedColumns: ["requisition_id"];
+          },
+          {
+            foreignKeyName: "opportunities_requisition_id_fkey";
+            columns: ["requisition_id"];
+            isOneToOne: false;
+            referencedRelation: "requisitions";
             referencedColumns: ["id"];
           },
           {
@@ -19200,6 +19350,161 @@ export type Database = {
           },
           {
             foreignKeyName: "organizations_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      party_messages: {
+        Row: {
+          author_person_id: string | null;
+          body: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          party_thread_id: string;
+          sent_at: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_person_id?: string | null;
+          body: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          party_thread_id: string;
+          sent_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          author_person_id?: string | null;
+          body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          party_thread_id?: string;
+          sent_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "party_messages_author_person_id_fkey";
+            columns: ["author_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "party_messages_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "party_messages_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "party_messages_party_thread_id_fkey";
+            columns: ["party_thread_id"];
+            isOneToOne: false;
+            referencedRelation: "party_threads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "party_messages_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      party_threads: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          party_organization_id: string | null;
+          party_person_id: string | null;
+          subject: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          party_organization_id?: string | null;
+          party_person_id?: string | null;
+          subject: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          party_organization_id?: string | null;
+          party_person_id?: string | null;
+          subject?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "party_threads_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "party_threads_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "party_threads_party_organization_id_fkey";
+            columns: ["party_organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "party_threads_party_person_id_fkey";
+            columns: ["party_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "party_threads_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -29173,6 +29478,102 @@ export type Database = {
           },
         ];
       };
+      self_billing_agreements: {
+        Row: {
+          agreed_at: string;
+          agreed_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          engagement_id: string;
+          id: string;
+          org_id: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          agreed_at?: string;
+          agreed_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id: string;
+          id?: string;
+          org_id: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          agreed_at?: string;
+          agreed_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_id?: string;
+          id?: string;
+          org_id?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "self_billing_agreements_agreed_by_fkey";
+            columns: ["agreed_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "self_billing_agreements_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "self_billing_agreements_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "self_billing_agreements_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "self_billing_agreements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "self_billing_agreements_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "self_billing_agreements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       service_accounts: {
         Row: {
           created_at: string;
@@ -31717,6 +32118,92 @@ export type Database = {
           },
           {
             foreignKeyName: "teams_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      thread_reads: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          engagement_thread_id: string | null;
+          id: string;
+          last_read_at: string;
+          org_id: string;
+          party_thread_id: string | null;
+          person_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_thread_id?: string | null;
+          id?: string;
+          last_read_at?: string;
+          org_id: string;
+          party_thread_id?: string | null;
+          person_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_thread_id?: string | null;
+          id?: string;
+          last_read_at?: string;
+          org_id?: string;
+          party_thread_id?: string | null;
+          person_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "thread_reads_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "thread_reads_engagement_thread_id_fkey";
+            columns: ["engagement_thread_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_threads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "thread_reads_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "thread_reads_party_thread_id_fkey";
+            columns: ["party_thread_id"];
+            isOneToOne: false;
+            referencedRelation: "party_threads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "thread_reads_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "thread_reads_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -36689,6 +37176,7 @@ export type Database = {
         Args: { p_engagement_id: string; p_record_id: string };
         Returns: string;
       };
+      agree_self_billing: { Args: { p_engagement_id: string }; Returns: string };
       apply_sync_mutation: {
         Args: {
           p_args?: Json;
@@ -37175,6 +37663,10 @@ export type Database = {
       leave_organization: { Args: { p_org_id: string }; Returns: undefined };
       lock_baseline: { Args: { p_baseline_id: string }; Returns: number };
       mark_notifications_read: { Args: { p_before?: string; p_org_id: string }; Returns: number };
+      mark_thread_read: {
+        Args: { p_engagement_thread_id: string; p_party_thread_id: string };
+        Returns: string;
+      };
       my_advance_submissions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -37539,6 +38031,7 @@ export type Database = {
       };
       revoke_profile_share: { Args: { p_profile_share_id: string }; Returns: undefined };
       revoke_representation: { Args: { p_representation_id: string }; Returns: undefined };
+      revoke_self_billing: { Args: { p_engagement_id: string }; Returns: undefined };
       run_report: {
         Args: {
           p_format: Database["app"]["Enums"]["export_format"];
@@ -37632,6 +38125,16 @@ export type Database = {
         Returns: string;
       };
       start_import_batch: { Args: { p_import_job_id: string }; Returns: string };
+      start_party_thread: {
+        Args: {
+          p_body: string;
+          p_org_id: string;
+          p_party_organization_id: string;
+          p_party_person_id: string;
+          p_subject: string;
+        };
+        Returns: string;
+      };
       submit_deliverable: {
         Args: { p_deliverable_id: string; p_document_id: string; p_message: string };
         Returns: string;
