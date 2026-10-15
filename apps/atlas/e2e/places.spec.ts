@@ -21,10 +21,24 @@ async function signIn(page: Page, email = "owner@example.com") {
   await page.waitForURL(`**/${ORG}/home`);
 }
 
+/**
+ * Waits until every horizontally scrolling region has hydrated: ScrollRegion measures its content on
+ * the client and only then becomes focusable, so axe runs on the page a keyboard user meets.
+ */
+async function hydrated(page: Page) {
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll<HTMLElement>(".overscroll-x-contain")].every(
+      (e) => e.scrollWidth <= e.clientWidth + 1 || e.tabIndex === 0,
+    ),
+  );
+}
+
 async function expectAccessibleInBothThemes(page: Page) {
+  await hydrated(page);
   await expectAccessible(page);
   await page.context().addCookies([{ name: "xos-theme", value: "light", url: page.url() }]);
   await page.reload();
+  await hydrated(page);
   await expectAccessible(page);
   await page.context().addCookies([{ name: "xos-theme", value: "dark", url: page.url() }]);
   await page.reload();
@@ -205,6 +219,7 @@ test("reconciliation: an UNKNOWN claim on a critical requirement is a gate 3 gap
 
   await panel.getByRole("button", { name: "Reconcile now" }).click();
   await expect(panel.getByText(/gate 3 gaps?$/).first()).toBeVisible();
+  await hydrated(page);
   await expectAccessible(page);
 
   const capabilities = page.getByRole("region", { name: "Capabilities", exact: true });
@@ -215,8 +230,10 @@ test("reconciliation: an UNKNOWN claim on a critical requirement is a gate 3 gap
   await capabilities.getByRole("button", { name: "Add capability" }).click();
   await expect(panel.getByText(`Venue stage manager ${id}`).first()).toBeVisible();
   await panel.getByRole("button", { name: "Reconcile now" }).click();
+  // A documented capability on the same category now meets the requirement.
   await expect(
-    panel.getByRole("cell", { name: new RegExp(`Venue stage manager ${id}`) }).first(),
-  ).toBeVisible();
+    panel.getByRole("row", { name: new RegExp(`Show caller on headset ${id}`) }),
+  ).toContainText("Met");
+  await hydrated(page);
   await expectAccessible(page);
 });
