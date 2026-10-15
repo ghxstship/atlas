@@ -181,3 +181,47 @@ test("punch lists, day sheets and call sheets", async ({ page }) => {
   await expect(page.getByText("SHW call sheet")).toBeVisible();
   await expectAccessible(page);
 });
+
+test("every Schedule, Work and Show page passes axe in the light theme and answers 200", async ({
+  page,
+  context,
+}) => {
+  const slug = await newOwnerOrg(page);
+  await context.addCookies([
+    { name: "xos-theme", value: "light", domain: new URL(page.url()).hostname, path: "/" },
+  ]);
+  await page.goto(`/${slug}/work/all-records?create=1`);
+  const sheet = page.getByRole("dialog", { name: "New record" });
+  await sheet.getByLabel("Title").fill("Hang the truss");
+  await sheet.getByLabel("Due").fill("2027-03-13T10:00");
+  await sheet.getByRole("button", { name: "Create record" }).click();
+  await page.waitForURL(/peek=SHW-1/);
+  await expectAccessible(page);
+  for (const path of [
+    `/${slug}/schedule`,
+    `/${slug}/schedule/timeline`,
+    `/${slug}/schedule/calendar?month=2027-03-01`,
+    `/${slug}/schedule/milestones`,
+    `/${slug}/schedule/baselines`,
+    `/${slug}/work`,
+    `/${slug}/work/all-records?view=board`,
+    `/${slug}/work/by-kind`,
+    `/${slug}/work/work-orders`,
+    `/${slug}/work/punch-lists`,
+    `/${slug}/work/recurring`,
+    `/${slug}/show`,
+    `/${slug}/show/run-of-show`,
+    `/${slug}/show/day-sheets`,
+    `/${slug}/show/call-sheets`,
+    `/${slug}/r/SHW-1`,
+    `/${slug}/p/SHW/schedule`,
+    `/${slug}/p/SHW/work`,
+    `/${slug}/p/SHW/show`,
+  ]) {
+    const res = await page.goto(path);
+    expect(res?.status(), path).toBe(200);
+    await expectAccessible(page);
+  }
+  const missing = await page.goto(`/${slug}/r/SHW-999`);
+  expect(missing?.status()).toBe(404);
+});
