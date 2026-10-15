@@ -31,12 +31,13 @@ import { ActualsForm, DependencyEditor } from "@/components/schedule/schedule-pa
 import type { OrgContext } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
-import { formatWhen } from "./format";
+import { formatWhen, slipAmount } from "./format";
 import { kindFields } from "./kind-fields";
 import { capabilitySet, loadRecordMeta, must, type RecordMeta } from "./load";
 import {
   AssignmentsEditor,
   ChecklistEditor,
+  DuplicateButton,
   EditRecordForm,
   ExtensionForm,
   RecurrenceForm,
@@ -344,16 +345,18 @@ export async function RecordBody({
           <ol className="m-0 flex list-none flex-col gap-8 p-0">
             {detail.replans.map((r) => {
               const shift = replanShift(r);
-              const days =
-                shift.endShiftMs === null ? null : Math.round(shift.endShiftMs / 3_600_000) / 24;
+              const slip = slipAmount(shift.endShiftMs);
               return (
                 <li key={r.id} className="flex flex-col gap-2 text-text-13">
                   <span className="font-medium">
                     {shift.moved
-                      ? days !== null && days !== 0
-                        ? days > 0
-                          ? t("work.replans.slipped", { days: Number(days.toFixed(2)) })
-                          : t("work.replans.pulledIn", { days: Number(Math.abs(days).toFixed(2)) })
+                      ? slip
+                        ? t(
+                            `work.replans.${slip.late ? "slipped" : "pulledIn"}${slip.unit === "hours" ? "Hours" : ""}`,
+                            {
+                              n: slip.n,
+                            },
+                          )
                         : t("work.replans.datesChanged")
                       : t("work.replans.stateChanged", {
                           from: t(`work.states.${r.fromState}`),
@@ -388,6 +391,7 @@ export async function RecordBody({
         me={me}
         canPost={!record.deletedAt}
       />
+      {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
       {detail.canWrite || record.deletedAt ? <TrashControls org={org} record={record} /> : null}
     </div>
   );

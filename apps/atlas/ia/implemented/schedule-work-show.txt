@@ -5,3 +5,13 @@ work.by-kind
 schedule.timeline
 schedule.calendar
 schedule.milestones
+work.work-orders
+work.punch-lists
+work.recurring
+schedule.baselines
+project.schedule
+project.work
+show.run-of-show
+show.day-sheets
+show.call-sheets
+project.show

@@ -21,7 +21,9 @@ import {
   ToastRegion,
   UndoToast,
 } from "@xos/ui";
+import type { Route } from "next";
 import { useLocale } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import {
@@ -39,6 +41,7 @@ import {
   watchAction,
 } from "./actions";
 import { fromLocalInput, toLocalInput } from "./format";
+import { duplicateRecordAction } from "./work-order-actions";
 
 /*
  * The interactive parts of a record's peek and full page (Record template, Section 11.6): state
@@ -198,14 +201,7 @@ export function EditRecordForm({
   const [accountable, setAccountable] = useState(record.accountableId ?? "");
   const [scope, setScope] = useState(record.scopeNodeId ?? "");
   const [phase, setPhase] = useState(record.phaseCode ?? "");
-  const [starts, setStarts] = useState(toLocalInput(record.startsAt, tz));
-  const [ends, setEnds] = useState(toLocalInput(record.endsAt, tz));
-  const [due, setDue] = useState(toLocalInput(record.dueAt, tz));
   const [replan, setReplan] = useState("");
-  const datesChanged =
-    starts !== toLocalInput(record.startsAt, tz) ||
-    ends !== toLocalInput(record.endsAt, tz) ||
-    due !== toLocalInput(record.dueAt, tz);
   const personOptions = [
     { value: "", label: t("values.unassigned") },
     ...people.map((p) => ({ value: p.personId, label: p.name ?? t("values.unnamed") })),
@@ -217,6 +213,19 @@ export function EditRecordForm({
       onSubmit={(e) => {
         e.preventDefault();
         setSaved(false);
+        // Dates are read from the form: native date inputs keep their own value.
+        const form = new FormData(e.currentTarget);
+        const value = (name: string) => {
+          const v = form.get(name);
+          return typeof v === "string" ? v : "";
+        };
+        const starts = value("startsAt");
+        const ends = value("endsAt");
+        const due = value("dueAt");
+        const datesChanged =
+          starts !== toLocalInput(record.startsAt, tz) ||
+          ends !== toLocalInput(record.endsAt, tz) ||
+          due !== toLocalInput(record.dueAt, tz);
         run(
           () =>
             updateRecordAction(org, record.id, {
@@ -233,7 +242,10 @@ export function EditRecordForm({
                 ? { replanReason: replan }
                 : {}),
             }),
-          () => setSaved(true),
+          () => {
+            setSaved(true);
+            setReplan("");
+          },
         );
       }}
     >
@@ -301,26 +313,26 @@ export function EditRecordForm({
           id="edit-starts"
           type="datetime-local"
           label={t("fields.starts")}
-          value={starts}
-          onChange={(e) => setStarts(e.target.value)}
+          name="startsAt"
+          defaultValue={toLocalInput(record.startsAt, tz)}
         />
         <Input
           id="edit-ends"
           type="datetime-local"
           label={t("fields.ends")}
-          value={ends}
-          onChange={(e) => setEnds(e.target.value)}
+          name="endsAt"
+          defaultValue={toLocalInput(record.endsAt, tz)}
         />
         <Input
           id="edit-due"
           type="datetime-local"
           label={t("fields.due")}
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
+          name="dueAt"
+          defaultValue={toLocalInput(record.dueAt, tz)}
         />
       </div>
       <p className="m-0 text-text-12 text-text-secondary">{t("fields.zoneNote", { zone: tz })}</p>
-      {logsReplans && datesChanged ? (
+      {logsReplans ? (
         <Textarea
           id="edit-replan"
           label={t("fields.replanReason")}
@@ -946,6 +958,33 @@ export function TrashControls({
           />
         </ToastRegion>
       ) : null}
+    </div>
+  );
+}
+
+/** Copies the record and its checklist into a new Proposed record, then opens the copy (journey 70). */
+export function DuplicateButton({ org, recordId }: { org: string; recordId: string }) {
+  const t = useCopy("work");
+  const router = useRouter();
+  const { pending, error, run } = useAction();
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <Button
+          variant="ghost"
+          icon="Copy"
+          loading={pending}
+          onClick={() =>
+            run(
+              () => duplicateRecordAction(org, recordId),
+              (data) => router.push(`/${org}/r/${data.key}` as Route),
+            )
+          }
+        >
+          {t("duplicate.button")}
+        </Button>
+      </div>
+      <ActionErrorAlert error={error} />
     </div>
   );
 }

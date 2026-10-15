@@ -4,6 +4,7 @@
 import enUS_activity from "../messages/en-US/activity.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
 import enUS_email from "../messages/en-US/email.json" with { type: "json" };
+import enUS_gateway from "../messages/en-US/gateway.json" with { type: "json" };
 import enUS_home from "../messages/en-US/home.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
@@ -19,6 +20,7 @@ import enUS_work from "../messages/en-US/work.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
 import esUS_email from "../messages/es-US/email.json" with { type: "json" };
+import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
 import esUS_home from "../messages/es-US/home.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
@@ -36,6 +38,7 @@ export const enUS = {
   activity: enUS_activity,
   crew: enUS_crew,
   email: enUS_email,
+  gateway: enUS_gateway,
   home: enUS_home,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
@@ -54,6 +57,7 @@ export const esUS = {
   activity: esUS_activity,
   crew: esUS_crew,
   email: esUS_email,
+  gateway: esUS_gateway,
   home: esUS_home,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
