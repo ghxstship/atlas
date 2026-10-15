@@ -1,19 +1,19 @@
 -- 0401_project_currency_description.sql
 -- A07 Projects (ADR 0022 range 0400 to 0409). Two project facts the frozen API contract (Project,
 -- ADR 0014) and Section 20.2 journey 37 rely on but 0301 did not store:
---   * currency_code, the project's base currency. Money on the project is priced in it; switching it
+--   * currency, the project's base currency (the API contract's field name). Money on the project is priced in it; switching it
 --     is a project setting. When the caller gives none, the database takes the currency of the
 --     project jurisdiction's country (canon xpms.jurisdiction). The late slot 0950 adds the org's
 --     base currency setting (A30, 0851) as the last fallback and makes the column required.
 --   * description, sentence-case prose about the project.
 -- app.create_project gains both as optional arguments; the old signature is replaced.
 
-alter table app.projects add column if not exists currency_code char(3) references private.currencies (currency_code);
+alter table app.projects add column if not exists currency char(3) references private.currencies (currency_code);
 alter table app.projects add column if not exists description text;
 
-create index if not exists projects_currency_code_idx on app.projects (currency_code);
+create index if not exists projects_currency_idx on app.projects (currency);
 
-comment on column app.projects.currency_code is 'Base currency of the project (ISO 4217). Defaults to the currency of the jurisdiction''s country, then the org''s base currency setting, when the caller gives none.';
+comment on column app.projects.currency is 'Base currency of the project (ISO 4217). Defaults to the currency of the jurisdiction''s country, then the org''s base currency setting, when the caller gives none.';
 comment on column app.projects.description is 'What the project is, in sentence case.';
 
 alter table app.projects drop constraint if exists projects_description_length;
@@ -34,8 +34,8 @@ $$;
 comment on function private.project_jurisdiction_currency(text) is 'Currency of the country a jurisdiction belongs to, from canon; null for a null or unknown jurisdiction.';
 
 -- Backfill rows created before this migration from their jurisdiction.
-update app.projects p set currency_code = private.project_jurisdiction_currency(p.jurisdiction_id)
-where p.currency_code is null and p.jurisdiction_id is not null;
+update app.projects p set currency = private.project_jurisdiction_currency(p.jurisdiction_id)
+where p.currency is null and p.jurisdiction_id is not null;
 
 create or replace function private.default_project_currency()
 returns trigger
@@ -44,8 +44,8 @@ security definer
 set search_path = ''
 as $$
 begin
-  if new.currency_code is null then
-    new.currency_code := private.project_jurisdiction_currency(new.jurisdiction_id);
+  if new.currency is null then
+    new.currency := private.project_jurisdiction_currency(new.jurisdiction_id);
   end if;
   return new;
 end;
@@ -54,7 +54,7 @@ $$;
 comment on function private.default_project_currency() is 'Before insert or update on app.projects: fills the currency from the jurisdiction''s country when absent. Replaced in 0950 with the org base currency fallback.';
 
 drop trigger if exists t39_default_project_currency on app.projects;
-create trigger t39_default_project_currency before insert or update of currency_code, jurisdiction_id on app.projects
+create trigger t39_default_project_currency before insert or update of currency, jurisdiction_id on app.projects
   for each row execute function private.default_project_currency();
 
 -- create_project with currency and description -------------------------------------------------------
@@ -87,7 +87,7 @@ declare
   v_name text := btrim(p_name);
 begin
   insert into app.projects (org_id, project_key, name, time_zone, jurisdiction_id, region_code, tier_code,
-    venue_id, starts_on, ends_on, currency_code, description)
+    venue_id, starts_on, ends_on, currency, description)
   values (p_org_id, v_key, v_name, p_time_zone, p_jurisdiction_id, p_region_code, p_tier_code,
     p_venue_id, p_starts_on, p_ends_on, upper(nullif(btrim(p_currency_code), '')),
     nullif(btrim(p_description), ''))
@@ -124,7 +124,7 @@ begin
   if new.project_key <> old.project_key then v_changed := array_append(v_changed, 'project_key'); end if;
   if new.name <> old.name then v_changed := array_append(v_changed, 'name'); end if;
   if new.description is distinct from old.description then v_changed := array_append(v_changed, 'description'); end if;
-  if new.currency_code is distinct from old.currency_code then v_changed := array_append(v_changed, 'currency_code'); end if;
+  if new.currency is distinct from old.currency then v_changed := array_append(v_changed, 'currency'); end if;
   if new.starts_on is distinct from old.starts_on then v_changed := array_append(v_changed, 'starts_on'); end if;
   if new.ends_on is distinct from old.ends_on then v_changed := array_append(v_changed, 'ends_on'); end if;
   if new.venue_id is distinct from old.venue_id then v_changed := array_append(v_changed, 'venue_id'); end if;

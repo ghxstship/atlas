@@ -144,14 +144,14 @@ export interface Venue {
 }
 
 const PROJECT_COLUMNS =
-  "id, project_key, name, description, currency_code, project_state, production_state, current_phase_code, jurisdiction_id, region_code, tier_code, time_zone, starts_on, ends_on, venue_id, workspace_id, archived_at, updated_at, venue:venues!projects_venue_id_fkey(name)";
+  "id, project_key, name, description, currency, project_state, production_state, current_phase_code, jurisdiction_id, region_code, tier_code, time_zone, starts_on, ends_on, venue_id, workspace_id, archived_at, updated_at, venue:venues!projects_venue_id_fkey(name)";
 
 interface ProjectRow {
   id: string;
   project_key: string;
   name: string;
   description: string | null;
-  currency_code: string;
+  currency: string;
   project_state: ProjectState;
   production_state: ProductionState;
   current_phase_code: string;
@@ -174,7 +174,7 @@ function toProject(row: ProjectRow): ProjectSummary {
     key: row.project_key,
     name: row.name,
     description: row.description,
-    currency: row.currency_code,
+    currency: row.currency,
     projectState: row.project_state,
     productionState: row.production_state,
     phaseCode: row.current_phase_code,
@@ -317,7 +317,7 @@ export async function updateProject(
   if (patch.startsOn !== undefined) update.starts_on = patch.startsOn;
   if (patch.endsOn !== undefined) update.ends_on = patch.endsOn;
   if (patch.currencyCode) {
-    (update as Record<string, unknown>)["currency_code"] = patch.currencyCode;
+    (update as Record<string, unknown>)["currency"] = patch.currencyCode;
   }
   if (patch.description !== undefined) {
     (update as Record<string, unknown>)["description"] = patch.description?.trim() || null;

@@ -30,12 +30,12 @@ security definer
 set search_path = ''
 as $$
 begin
-  if new.currency_code is null then
-    new.currency_code := coalesce(
+  if new.currency is null then
+    new.currency := coalesce(
       private.project_jurisdiction_currency(new.jurisdiction_id),
       private.org_base_currency(new.org_id));
   end if;
-  if new.currency_code is null then
+  if new.currency is null then
     perform private.refuse('project_currency_required',
       'Choose the project currency, or set the organization''s base currency.');
   end if;
@@ -46,9 +46,9 @@ $$;
 comment on function private.default_project_currency() is 'Before insert or update on app.projects: fills an absent currency from the jurisdiction''s country, then the org base currency setting, and refuses a project with none.';
 
 update app.projects p
-set currency_code = coalesce(private.project_jurisdiction_currency(p.jurisdiction_id), private.org_base_currency(p.org_id))
-where p.currency_code is null;
+set currency = coalesce(private.project_jurisdiction_currency(p.jurisdiction_id), private.org_base_currency(p.org_id))
+where p.currency is null;
 
-alter table app.projects alter column currency_code set not null;
+alter table app.projects alter column currency set not null;
 
 revoke all on function private.org_base_currency(uuid) from public, anon, authenticated;
