@@ -39575,7 +39575,7 @@
             "example": "table"
           }
         },
-        "required": ["object_key", "label", "icon", "default_view"],
+        "required": ["object_key", "label", "icon"],
         "description": "Fields accepted when creating a CustomObjectType."
       },
       "CustomObjectTypeUpdate": {
@@ -39693,6 +39693,12 @@
             "type": "boolean",
             "description": "Whether the field gets a partial index.",
             "example": true
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Position in forms and tables.",
+            "example": 1
           }
         },
         "required": [
@@ -39707,7 +39713,8 @@
           "label",
           "data_type",
           "required",
-          "filterable"
+          "filterable",
+          "sort_order"
         ],
         "description": "A typed field of a custom object type."
       },
@@ -39748,16 +39755,15 @@
             "type": "boolean",
             "description": "Whether the field gets a partial index.",
             "example": true
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Position in forms and tables.",
+            "example": 1
           }
         },
-        "required": [
-          "custom_object_type_id",
-          "field_key",
-          "label",
-          "data_type",
-          "required",
-          "filterable"
-        ],
+        "required": ["custom_object_type_id", "field_key", "label", "data_type", "sort_order"],
         "description": "Fields accepted when creating a CustomObjectField."
       },
       "CustomObjectFieldUpdate": {
@@ -39785,6 +39791,12 @@
             "type": "boolean",
             "description": "Whether the field gets a partial index.",
             "example": true
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Position in forms and tables.",
+            "example": 1
           }
         },
         "description": "Fields accepted when updating a CustomObjectField. Omitted fields are unchanged."
@@ -39864,6 +39876,12 @@
             },
             "description": "Field values keyed by field key. Stored normalized in `custom_object_values`.",
             "example": { "activation_date": "2026-10-08" }
+          },
+          "custom_object_type_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the object type the record is an instance of.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -39874,7 +39892,8 @@
           "updated_at",
           "updated_by",
           "title",
-          "values"
+          "values",
+          "custom_object_type_id"
         ],
         "description": "A record of a custom object. Values are stored one row per field, never as JSON."
       },
@@ -39987,18 +40006,47 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "custom_object_record_id": {
+          "from_record_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the custom object record.",
+            "description": "Identifier of the custom object record the link starts from.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "target_urn": {
+          "relation_key": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the related record.",
-            "example": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Name of the relation, such as sponsor or venue.",
+            "example": "sponsor"
+          },
+          "to_custom_record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the linked custom object record.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "to_record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the linked record.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "to_project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the linked project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "to_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the linked counterparty organization.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "to_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the linked person.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -40008,29 +40056,63 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "custom_object_record_id",
-          "target_urn"
+          "from_record_id",
+          "relation_key",
+          "to_custom_record_id",
+          "to_record_id",
+          "to_project_id",
+          "to_counterparty_id",
+          "to_person_id"
         ],
         "description": "A relation from a custom object record to another record."
       },
       "CustomObjectRelationCreate": {
         "type": "object",
         "properties": {
-          "custom_object_record_id": {
+          "from_record_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the custom object record.",
+            "description": "Identifier of the custom object record the link starts from.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "target_urn": {
+          "relation_key": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the related record.",
-            "example": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Name of the relation, such as sponsor or venue.",
+            "example": "sponsor"
+          },
+          "to_custom_record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the linked custom object record.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "to_record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the linked record.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "to_project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the linked project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "to_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the linked counterparty organization.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "to_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the linked person.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["custom_object_record_id", "target_urn"],
+        "required": ["from_record_id", "relation_key"],
         "description": "Fields accepted when creating a CustomObjectRelation."
       },
       "CustomFieldDefinitionPage": {
@@ -40113,6 +40195,22 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Data type.",
             "example": "boolean"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "True when forms require a value.",
+            "example": false
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "True when views filter on the field; it adds a partial index.",
+            "example": false
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Position in forms.",
+            "example": 1
           }
         },
         "required": [
@@ -40125,7 +40223,10 @@
           "target_table",
           "field_key",
           "label",
-          "data_type"
+          "data_type",
+          "required",
+          "filterable",
+          "sort_order"
         ],
         "description": "A custom field on a built-in resource."
       },
@@ -40156,9 +40257,25 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Data type.",
             "example": "boolean"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "True when forms require a value.",
+            "example": false
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "True when views filter on the field; it adds a partial index.",
+            "example": false
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Position in forms.",
+            "example": 1
           }
         },
-        "required": ["target_table", "field_key", "label", "data_type"],
+        "required": ["target_table", "field_key", "label", "data_type", "sort_order"],
         "description": "Fields accepted when creating a CustomFieldDefinition."
       },
       "CustomFieldDefinitionUpdate": {
@@ -40176,6 +40293,22 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Data type.",
             "example": "boolean"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "True when forms require a value.",
+            "example": false
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "True when views filter on the field; it adds a partial index.",
+            "example": false
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Position in forms.",
+            "example": 1
           }
         },
         "description": "Fields accepted when updating a CustomFieldDefinition. Omitted fields are unchanged."
@@ -40242,13 +40375,7 @@
             "description": "Identifier of the custom field definition.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "row_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the extended row.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "value": {
+          "value_text": {
             "anyOf": [
               { "type": "string" },
               { "type": "number" },
@@ -40257,6 +40384,58 @@
             ],
             "description": "Typed value.",
             "example": true
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the row of the field's target table the value belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "value_number": {
+            "type": ["number", "null"],
+            "description": "Number value.",
+            "example": 12.5
+          },
+          "value_money_minor": {
+            "type": ["integer", "null"],
+            "description": "Money value in minor units of value_currency. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 250000,
+            "format": "int64"
+          },
+          "value_currency": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of a money value.",
+            "example": "USD"
+          },
+          "value_date": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Date value.",
+            "example": "2026-10-08"
+          },
+          "value_timestamp": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Timestamp value.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "value_boolean": {
+            "type": ["boolean", "null"],
+            "description": "Boolean value.",
+            "example": true
+          },
+          "value_choice_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the chosen option of the field.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "value_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person value.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -40267,8 +40446,16 @@
           "updated_at",
           "updated_by",
           "custom_field_definition_id",
-          "row_id",
-          "value"
+          "value_text",
+          "target_id",
+          "value_number",
+          "value_money_minor",
+          "value_currency",
+          "value_date",
+          "value_timestamp",
+          "value_boolean",
+          "value_choice_id",
+          "value_person_id"
         ],
         "description": "A custom field value for one row."
       },
@@ -40281,13 +40468,7 @@
             "description": "Identifier of the custom field definition.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "row_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the extended row.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "value": {
+          "value_text": {
             "anyOf": [
               { "type": "string" },
               { "type": "number" },
@@ -40296,15 +40477,67 @@
             ],
             "description": "Typed value.",
             "example": true
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the row of the field's target table the value belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "value_number": {
+            "type": ["number", "null"],
+            "description": "Number value.",
+            "example": 12.5
+          },
+          "value_money_minor": {
+            "type": ["integer", "null"],
+            "description": "Money value in minor units of value_currency. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 250000,
+            "format": "int64"
+          },
+          "value_currency": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of a money value.",
+            "example": "USD"
+          },
+          "value_date": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Date value.",
+            "example": "2026-10-08"
+          },
+          "value_timestamp": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Timestamp value.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "value_boolean": {
+            "type": ["boolean", "null"],
+            "description": "Boolean value.",
+            "example": true
+          },
+          "value_choice_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the chosen option of the field.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "value_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person value.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["custom_field_definition_id", "row_id"],
+        "required": ["custom_field_definition_id", "target_id"],
         "description": "Fields accepted when creating a CustomFieldValue."
       },
       "CustomFieldValueUpdate": {
         "type": "object",
         "properties": {
-          "value": {
+          "value_text": {
             "anyOf": [
               { "type": "string" },
               { "type": "number" },
@@ -40313,6 +40546,52 @@
             ],
             "description": "Typed value.",
             "example": true
+          },
+          "value_number": {
+            "type": ["number", "null"],
+            "description": "Number value.",
+            "example": 12.5
+          },
+          "value_money_minor": {
+            "type": ["integer", "null"],
+            "description": "Money value in minor units of value_currency. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 250000,
+            "format": "int64"
+          },
+          "value_currency": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of a money value.",
+            "example": "USD"
+          },
+          "value_date": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Date value.",
+            "example": "2026-10-08"
+          },
+          "value_timestamp": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Timestamp value.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "value_boolean": {
+            "type": ["boolean", "null"],
+            "description": "Boolean value.",
+            "example": true
+          },
+          "value_choice_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the chosen option of the field.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "value_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person value.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a CustomFieldValue. Omitted fields are unchanged."
@@ -40488,35 +40767,59 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "source_document_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the uploaded spreadsheet.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "target_table": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Target entity.",
-            "example": "app.vendors"
-          },
           "import_mapping_profile_id": {
             "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the saved mapping profile.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "import_state": {
+          "target_code": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Import job state. A Title Case value from the lifecycle's database enum.",
-            "example": "In Review"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Import target the rows are written to.",
+            "example": "vendors"
           },
-          "import_batch_id": {
+          "source": {
+            "type": "string",
+            "enum": ["CSV", "XLSX", "XLS", "Google Sheets"],
+            "description": "Source format.",
+            "example": "CSV"
+          },
+          "original_filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "File name as uploaded.",
+            "example": "vendors-2026.xlsx"
+          },
+          "storage_object_path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Object path of the uploaded file in the tenant import bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/imports/vendors-2026.xlsx"
+          },
+          "import_status": {
+            "type": "string",
+            "enum": [
+              "Uploaded",
+              "Detected",
+              "Mapped",
+              "Validated",
+              "Committing",
+              "Committed",
+              "Undone",
+              "Failed",
+              "Canceled"
+            ],
+            "description": "Wizard progress.",
+            "example": "Uploaded"
+          },
+          "mapping_confirmed_at": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the committed batch.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "format": "date-time",
+            "description": "When the person confirmed every column mapping; nothing is validated before it.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -40526,37 +40829,53 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "source_document_id",
-          "target_table",
           "import_mapping_profile_id",
-          "import_state",
-          "import_batch_id"
+          "target_code",
+          "source",
+          "original_filename",
+          "storage_object_path",
+          "import_status",
+          "mapping_confirmed_at"
         ],
         "description": "A spreadsheet import through detect, map, validate, deduplicate, dry run and commit."
       },
       "ImportJobCreate": {
         "type": "object",
         "properties": {
-          "source_document_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the uploaded spreadsheet.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "target_table": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Target entity.",
-            "example": "app.vendors"
-          },
           "import_mapping_profile_id": {
             "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the saved mapping profile.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "target_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Import target the rows are written to.",
+            "example": "vendors"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["CSV", "XLSX", "XLS", "Google Sheets"],
+            "description": "Source format.",
+            "example": "CSV"
+          },
+          "original_filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "File name as uploaded.",
+            "example": "vendors-2026.xlsx"
+          },
+          "storage_object_path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Object path of the uploaded file in the tenant import bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/imports/vendors-2026.xlsx"
           }
         },
-        "required": ["source_document_id", "target_table"],
+        "required": ["target_code", "source", "original_filename", "storage_object_path"],
         "description": "Fields accepted when creating a ImportJob."
       },
       "ImportBatchPage": {
@@ -40622,7 +40941,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "committed_at": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "When the batch was committed.",
             "example": "2026-10-08T14:30:00Z"
@@ -40633,11 +40952,12 @@
             "description": "When the batch was undone.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "row_count": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Rows written.",
-            "example": 212
+          "undo_reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the batch was undone.",
+            "example": "Wrong sheet imported."
           }
         },
         "required": [
@@ -40650,7 +40970,7 @@
           "import_job_id",
           "committed_at",
           "undone_at",
-          "row_count"
+          "undo_reason"
         ],
         "description": "A committed import batch. It can be undone within 7 days unless later edits depend on it."
       },
@@ -40716,12 +41036,6 @@
             "description": "Identifier of the import job.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "source_row": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Source row number.",
-            "example": 14
-          },
           "row_state": { "$ref": "#/components/schemas/ImportRowState" },
           "reason": {
             "type": ["string", "null"],
@@ -40729,6 +41043,62 @@
             "maxLength": 300,
             "description": "Why the row is invalid or refused.",
             "example": "Unknown counterparty type."
+          },
+          "import_batch_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the batch that wrote the row; set exactly when the row is written.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "sheet_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Source sheet.",
+            "example": "Vendors"
+          },
+          "row_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "One-based row number in the sheet, as the person sees it.",
+            "example": 2
+          },
+          "target_table": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Table the row was written to.",
+            "example": "records"
+          },
+          "target_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the row written, created, updated or merged into.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "write_action": {
+            "type": ["string", "null"],
+            "enum": ["Created", "Updated", "Merged", null],
+            "description": "What the write did.",
+            "example": "Created"
+          },
+          "before_image": {
+            "type": ["object", "null"],
+            "additionalProperties": {},
+            "description": "The columns an update or merge changed, as they were before the write; undo restores them.",
+            "example": { "type": "doc" }
+          },
+          "undo_outcome": {
+            "type": ["string", "null"],
+            "enum": ["Reverted", "Kept", null],
+            "description": "Outcome when the batch was undone.",
+            "example": "Reverted"
+          },
+          "undo_reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why a row was kept: the later edit or the dependent row.",
+            "example": "Edited after the import."
           }
         },
         "required": [
@@ -40739,9 +41109,17 @@
           "updated_at",
           "updated_by",
           "import_job_id",
-          "source_row",
           "row_state",
-          "reason"
+          "reason",
+          "import_batch_id",
+          "sheet_name",
+          "row_number",
+          "target_table",
+          "target_id",
+          "write_action",
+          "before_image",
+          "undo_outcome",
+          "undo_reason"
         ],
         "description": "The validation result of one imported row, with a reason per cell."
       },
@@ -40814,11 +41192,11 @@
             "description": "Profile name.",
             "example": "Vendor List From Accounting"
           },
-          "target_table": {
+          "target_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Target entity.",
-            "example": "app.vendors"
+            "description": "Import target the profile maps onto.",
+            "example": "vendors"
           }
         },
         "required": [
@@ -40829,7 +41207,7 @@
           "updated_at",
           "updated_by",
           "name",
-          "target_table"
+          "target_code"
         ],
         "description": "A saved column-to-field mapping for one-click repeat imports."
       },
@@ -40843,14 +41221,14 @@
             "description": "Profile name.",
             "example": "Vendor List From Accounting"
           },
-          "target_table": {
+          "target_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Target entity.",
-            "example": "app.vendors"
+            "description": "Import target the profile maps onto.",
+            "example": "vendors"
           }
         },
-        "required": ["name", "target_table"],
+        "required": ["name", "target_code"],
         "description": "Fields accepted when creating a ImportMappingProfile."
       },
       "ImportMappingProfileUpdate": {
@@ -40863,11 +41241,11 @@
             "description": "Profile name.",
             "example": "Vendor List From Accounting"
           },
-          "target_table": {
+          "target_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Target entity.",
-            "example": "app.vendors"
+            "description": "Import target the profile maps onto.",
+            "example": "vendors"
           }
         },
         "description": "Fields accepted when updating a ImportMappingProfile. Omitted fields are unchanged."
@@ -40928,26 +41306,6 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "import_job_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the import job.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "candidate_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the incoming row.",
-            "example": "urn:xpms:import_row:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "existing_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the existing row.",
-            "example": "urn:xpms:vendor:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "similarity": {
             "type": "number",
             "description": "Similarity score, 0.85 or higher.",
@@ -40958,6 +41316,36 @@
             "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
             "description": "Reviewer decision. A Title Case value from the lifecycle's database enum.",
             "example": "Merge"
+          },
+          "import_row_result_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the import row that matched.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "candidate_table": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Table of the existing row.",
+            "example": "records"
+          },
+          "candidate_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the existing row it may duplicate.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "decided_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who decided, set from the session.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "decided_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When they decided, set by the database.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -40967,11 +41355,13 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "import_job_id",
-          "candidate_urn",
-          "existing_urn",
           "similarity",
-          "decision"
+          "decision",
+          "import_row_result_id",
+          "candidate_table",
+          "candidate_id",
+          "decided_by",
+          "decided_at"
         ],
         "description": "A fuzzy duplicate awaiting review. Fuzzy matches never merge automatically."
       },
@@ -41043,25 +41433,44 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "source": {
+          "source_label": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
             "description": "What is exported, as a saved view or report URN.",
             "example": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "format": { "$ref": "#/components/schemas/ExportFormat" },
-          "export_state": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Export state. A Title Case value from the lifecycle's database enum.",
-            "example": "Complete"
+          "export_format": { "$ref": "#/components/schemas/ExportFormat" },
+          "classification": { "$ref": "#/components/schemas/Classification" },
+          "watermark": {
+            "type": "boolean",
+            "description": "True for Confidential and Restricted exports: PDFs and images carry the viewer email and time.",
+            "example": false
           },
-          "document_id": {
+          "export_status": {
+            "type": "string",
+            "enum": ["Queued", "Rendering", "Ready", "Failed", "Expired"],
+            "description": "Export progress.",
+            "example": "Queued"
+          },
+          "storage_object_path": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the export file.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Object path of the file once ready.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/exports/vendors.csv"
+          },
+          "row_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Rows exported.",
+            "example": 120
+          },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the download link stops working.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -41071,26 +41480,30 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "source",
-          "format",
-          "export_state",
-          "document_id"
+          "source_label",
+          "export_format",
+          "classification",
+          "watermark",
+          "export_status",
+          "storage_object_path",
+          "row_count",
+          "expires_at"
         ],
         "description": "An export of a list or report, subject to data loss prevention rules."
       },
       "ExportJobCreate": {
         "type": "object",
         "properties": {
-          "source": {
+          "source_label": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
             "description": "What is exported, as a saved view or report URN.",
             "example": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "format": { "$ref": "#/components/schemas/ExportFormat" }
+          "export_format": { "$ref": "#/components/schemas/ExportFormat" }
         },
-        "required": ["source", "format"],
+        "required": ["source_label", "export_format"],
         "description": "Fields accepted when creating a ExportJob."
       },
       "SavedViewPage": {
@@ -41149,12 +41562,6 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "collection": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Collection key.",
-            "example": "records"
-          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -41168,17 +41575,29 @@
             "description": "View type from `views.yaml`.",
             "example": "table"
           },
-          "query": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Query in the filter grammar.",
-            "example": "filter[record_state][eq]=Blocked"
-          },
           "shared": {
             "type": "boolean",
             "description": "Whether the view is shared with the org.",
             "example": false
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member who owns the view.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "collection_key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Collection the view shows, such as records or objects/sponsors.",
+            "example": "records"
+          },
+          "group_by_field": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Field rows are grouped by, if any.",
+            "example": "record_state"
           }
         },
         "required": [
@@ -41188,23 +41607,18 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "collection",
           "name",
           "view_type",
-          "query",
-          "shared"
+          "shared",
+          "membership_id",
+          "collection_key",
+          "group_by_field"
         ],
         "description": "A saved view of a collection: filters, sort, grouping and view type."
       },
       "SavedViewCreate": {
         "type": "object",
         "properties": {
-          "collection": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Collection key.",
-            "example": "records"
-          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -41218,31 +41632,37 @@
             "description": "View type from `views.yaml`.",
             "example": "table"
           },
-          "query": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Query in the filter grammar.",
-            "example": "filter[record_state][eq]=Blocked"
-          },
           "shared": {
             "type": "boolean",
             "description": "Whether the view is shared with the org.",
             "example": false
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member who owns the view.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "collection_key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Collection the view shows, such as records or objects/sponsors.",
+            "example": "records"
+          },
+          "group_by_field": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Field rows are grouped by, if any.",
+            "example": "record_state"
           }
         },
-        "required": ["collection", "name", "view_type", "query", "shared"],
+        "required": ["name", "view_type", "membership_id", "collection_key"],
         "description": "Fields accepted when creating a SavedView."
       },
       "SavedViewUpdate": {
         "type": "object",
         "properties": {
-          "collection": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Collection key.",
-            "example": "records"
-          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -41256,17 +41676,16 @@
             "description": "View type from `views.yaml`.",
             "example": "table"
           },
-          "query": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Query in the filter grammar.",
-            "example": "filter[record_state][eq]=Blocked"
-          },
           "shared": {
             "type": "boolean",
             "description": "Whether the view is shared with the org.",
             "example": false
+          },
+          "group_by_field": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Field rows are grouped by, if any.",
+            "example": "record_state"
           }
         },
         "description": "Fields accepted when updating a SavedView. Omitted fields are unchanged."
@@ -41689,17 +42108,36 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "subject_urn": {
+          "subject_table": {
             "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Table of the subject, one of app.comment_subjects.",
+            "example": "records"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the row the thread is about.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "anchor": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
-            "description": "URN of the commented record.",
-            "example": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "description": "Part of the subject the thread is anchored to; null for the main thread.",
+            "example": "line:12"
           },
-          "resolved": {
-            "type": "boolean",
-            "description": "Whether the thread is resolved.",
-            "example": false
+          "resolved_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the thread was resolved; null while open.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "resolved_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who resolved it, set from the session.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -41709,37 +42147,55 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "subject_urn",
-          "resolved"
+          "subject_table",
+          "subject_id",
+          "anchor",
+          "resolved_at",
+          "resolved_by"
         ],
         "description": "A comment thread on any record."
       },
       "CommentThreadCreate": {
         "type": "object",
         "properties": {
-          "subject_urn": {
+          "subject_table": {
             "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Table of the subject, one of app.comment_subjects.",
+            "example": "records"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the row the thread is about.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "anchor": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
-            "description": "URN of the commented record.",
-            "example": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "resolved": {
-            "type": "boolean",
-            "description": "Whether the thread is resolved.",
-            "example": false
+            "description": "Part of the subject the thread is anchored to; null for the main thread.",
+            "example": "line:12"
           }
         },
-        "required": ["subject_urn", "resolved"],
+        "required": ["subject_table", "subject_id"],
         "description": "Fields accepted when creating a CommentThread."
       },
       "CommentThreadUpdate": {
         "type": "object",
         "properties": {
-          "resolved": {
-            "type": "boolean",
-            "description": "Whether the thread is resolved.",
-            "example": false
+          "anchor": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Part of the subject the thread is anchored to; null for the main thread.",
+            "example": "line:12"
+          },
+          "resolved_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the thread was resolved; null while open.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "description": "Fields accepted when updating a CommentThread. Omitted fields are unchanged."
@@ -41807,16 +42263,29 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "Comment body as a rich text document.",
-            "example": { "type": "doc" }
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "description": "Comment text; mentions are recorded separately.",
+            "example": "Load-in moved to 07:00."
           },
-          "author_id": {
+          "author_person_id": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier of the author.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["App", "Email", "API"],
+            "description": "Where the comment came from.",
+            "example": "App"
+          },
+          "edited_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the text was last edited.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -41828,7 +42297,9 @@
           "updated_by",
           "comment_thread_id",
           "body",
-          "author_id"
+          "author_person_id",
+          "source",
+          "edited_at"
         ],
         "description": "A comment in a thread."
       },
@@ -41842,10 +42313,17 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "Comment body as a rich text document.",
-            "example": { "type": "doc" }
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "description": "Comment text; mentions are recorded separately.",
+            "example": "Load-in moved to 07:00."
+          },
+          "source": {
+            "type": "string",
+            "enum": ["App", "Email", "API"],
+            "description": "Where the comment came from.",
+            "example": "App"
           }
         },
         "required": ["comment_thread_id", "body"],
@@ -41855,10 +42333,17 @@
         "type": "object",
         "properties": {
           "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "Comment body as a rich text document.",
-            "example": { "type": "doc" }
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "description": "Comment text; mentions are recorded separately.",
+            "example": "Load-in moved to 07:00."
+          },
+          "source": {
+            "type": "string",
+            "enum": ["App", "Email", "API"],
+            "description": "Where the comment came from.",
+            "example": "App"
           }
         },
         "description": "Fields accepted when updating a Comment. Omitted fields are unchanged."
@@ -41925,30 +42410,52 @@
             "description": "Notification kind from `notification-kinds.yaml`.",
             "example": "timesheet.approved"
           },
-          "subject_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the subject.",
-            "example": "urn:xpms:timesheet:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "created_for": {
+          "recipient_person_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the recipient.",
+            "description": "Identifier of the person the notification is for.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "deep_link": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Path to open.",
-            "example": "/crew/timesheets/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "read_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When it was read.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "actor_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person whose action caused it, when one did.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "subject_table": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Table of the record it is about.",
+            "example": "records"
+          },
+          "subject_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the record it is about.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project of the record, when it belongs to one.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "message_args": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "ICU message arguments for the kind's catalog messages, such as a record title.",
+            "example": { "type": "doc" }
+          },
+          "archived_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the recipient archived it.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
@@ -41960,10 +42467,14 @@
           "updated_at",
           "updated_by",
           "kind",
-          "subject_urn",
-          "created_for",
-          "deep_link",
-          "read_at"
+          "recipient_person_id",
+          "read_at",
+          "actor_person_id",
+          "subject_table",
+          "subject_id",
+          "project_id",
+          "message_args",
+          "archived_at"
         ],
         "description": "A notification for the caller."
       },
@@ -41974,6 +42485,12 @@
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When it was read.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "archived_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the recipient archived it.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
@@ -42022,49 +42539,69 @@
             "description": "When the row was last updated.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "kind": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Notification kind.",
-            "example": "timesheet.approved"
-          },
           "channel": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "enum": ["In App", "Email", "SMS", "Push"],
             "description": "Delivery channel.",
-            "example": "push"
+            "example": "In App"
           },
           "enabled": {
             "type": "boolean",
             "description": "Whether the channel is on for the kind.",
             "example": true
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership whose preference this is; preferences are per org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "category_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Notification category.",
+            "example": "approvals"
           }
         },
-        "required": ["id", "created_at", "updated_at", "kind", "channel", "enabled"],
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "channel",
+          "enabled",
+          "membership_id",
+          "category_code"
+        ],
         "description": "A per-kind, per-channel notification preference."
       },
       "NotificationPreferenceCreate": {
         "type": "object",
         "properties": {
-          "kind": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Notification kind.",
-            "example": "timesheet.approved"
-          },
           "channel": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "enum": ["In App", "Email", "SMS", "Push"],
             "description": "Delivery channel.",
-            "example": "push"
+            "example": "In App"
           },
           "enabled": {
             "type": "boolean",
             "description": "Whether the channel is on for the kind.",
             "example": true
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership whose preference this is; preferences are per org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "category_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Notification category.",
+            "example": "approvals"
           }
         },
-        "required": ["kind", "channel", "enabled"],
+        "required": ["channel", "enabled", "membership_id", "category_code"],
         "description": "Fields accepted when creating a NotificationPreference."
       },
       "NotificationPreferenceUpdate": {
@@ -42145,6 +42682,18 @@
             "format": "date-time",
             "description": "When it was revoked.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member who owns the feed; it shows what they may see.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "last_accessed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Last time a calendar fetched the feed.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -42155,7 +42704,9 @@
           "updated_at",
           "updated_by",
           "project_id",
-          "revoked_at"
+          "revoked_at",
+          "membership_id",
+          "last_accessed_at"
         ],
         "description": "An iCalendar feed. The token is shown once, stored hashed and revocable."
       },
@@ -42167,8 +42718,15 @@
             "format": "uuid",
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member who owns the feed; it shows what they may see.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
+        "required": ["membership_id"],
         "description": "Fields accepted when creating a CalendarFeed."
       },
       "TrashItemPage": {
@@ -109496,7 +110054,8 @@
                       "label": "Activation Date",
                       "data_type": "date",
                       "required": false,
-                      "filterable": true
+                      "filterable": true,
+                      "sort_order": 1
                     }
                   ],
                   "next_cursor": null
@@ -109529,7 +110088,8 @@
                 "label": "Activation Date",
                 "data_type": "date",
                 "required": false,
-                "filterable": true
+                "filterable": true,
+                "sort_order": 1
               },
               "schema": { "$ref": "#/components/schemas/CustomObjectFieldCreate" }
             }
@@ -109558,7 +110118,8 @@
                   "label": "Activation Date",
                   "data_type": "date",
                   "required": false,
-                  "filterable": true
+                  "filterable": true,
+                  "sort_order": 1
                 },
                 "schema": { "$ref": "#/components/schemas/CustomObjectField" }
               }
@@ -109619,7 +110180,8 @@
                   "label": "Activation Date",
                   "data_type": "date",
                   "required": false,
-                  "filterable": true
+                  "filterable": true,
+                  "sort_order": 1
                 },
                 "schema": { "$ref": "#/components/schemas/CustomObjectField" }
               }
@@ -109662,7 +110224,8 @@
                 "label": "Activation Date",
                 "data_type": "date",
                 "required": false,
-                "filterable": true
+                "filterable": true,
+                "sort_order": 1
               },
               "schema": { "$ref": "#/components/schemas/CustomObjectFieldUpdate" }
             }
@@ -109691,7 +110254,8 @@
                   "label": "Activation Date",
                   "data_type": "date",
                   "required": false,
-                  "filterable": true
+                  "filterable": true,
+                  "sort_order": 1
                 },
                 "schema": { "$ref": "#/components/schemas/CustomObjectField" }
               }
@@ -109786,7 +110350,8 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "title": "Harbor Lounge Activation",
-                      "values": { "activation_date": "2026-10-08" }
+                      "values": { "activation_date": "2026-10-08" },
+                      "custom_object_type_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -109854,7 +110419,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Harbor Lounge Activation",
-                  "values": { "activation_date": "2026-10-08" }
+                  "values": { "activation_date": "2026-10-08" },
+                  "custom_object_type_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CustomObjectRecord" }
               }
@@ -109923,7 +110489,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Harbor Lounge Activation",
-                  "values": { "activation_date": "2026-10-08" }
+                  "values": { "activation_date": "2026-10-08" },
+                  "custom_object_type_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CustomObjectRecord" }
               }
@@ -110001,7 +110568,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Harbor Lounge Activation",
-                  "values": { "activation_date": "2026-10-08" }
+                  "values": { "activation_date": "2026-10-08" },
+                  "custom_object_type_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CustomObjectRecord" }
               }
@@ -110095,8 +110663,13 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "custom_object_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "target_urn": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "from_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "relation_key": "sponsor",
+                      "to_custom_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "to_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "to_project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "to_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -110124,8 +110697,13 @@
           "content": {
             "application/json": {
               "example": {
-                "custom_object_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "target_urn": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "from_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "relation_key": "sponsor",
+                "to_custom_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "to_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "to_project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "to_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/CustomObjectRelationCreate" }
             }
@@ -110149,8 +110727,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "custom_object_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target_urn": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "from_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "relation_key": "sponsor",
+                  "to_custom_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CustomObjectRelation" }
               }
@@ -110206,8 +110789,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "custom_object_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target_urn": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "from_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "relation_key": "sponsor",
+                  "to_custom_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CustomObjectRelation" }
               }
@@ -110289,7 +110877,10 @@
                       "target_table": "app.vendors",
                       "field_key": "union_signatory",
                       "label": "Union Signatory",
-                      "data_type": "boolean"
+                      "data_type": "boolean",
+                      "required": false,
+                      "filterable": false,
+                      "sort_order": 1
                     }
                   ],
                   "next_cursor": null
@@ -110320,7 +110911,10 @@
                 "target_table": "app.vendors",
                 "field_key": "union_signatory",
                 "label": "Union Signatory",
-                "data_type": "boolean"
+                "data_type": "boolean",
+                "required": false,
+                "filterable": false,
+                "sort_order": 1
               },
               "schema": { "$ref": "#/components/schemas/CustomFieldDefinitionCreate" }
             }
@@ -110347,7 +110941,10 @@
                   "target_table": "app.vendors",
                   "field_key": "union_signatory",
                   "label": "Union Signatory",
-                  "data_type": "boolean"
+                  "data_type": "boolean",
+                  "required": false,
+                  "filterable": false,
+                  "sort_order": 1
                 },
                 "schema": { "$ref": "#/components/schemas/CustomFieldDefinition" }
               }
@@ -110406,7 +111003,10 @@
                   "target_table": "app.vendors",
                   "field_key": "union_signatory",
                   "label": "Union Signatory",
-                  "data_type": "boolean"
+                  "data_type": "boolean",
+                  "required": false,
+                  "filterable": false,
+                  "sort_order": 1
                 },
                 "schema": { "$ref": "#/components/schemas/CustomFieldDefinition" }
               }
@@ -110445,7 +111045,13 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "label": "Union Signatory", "data_type": "boolean" },
+              "example": {
+                "label": "Union Signatory",
+                "data_type": "boolean",
+                "required": false,
+                "filterable": false,
+                "sort_order": 1
+              },
               "schema": { "$ref": "#/components/schemas/CustomFieldDefinitionUpdate" }
             }
           }
@@ -110471,7 +111077,10 @@
                   "target_table": "app.vendors",
                   "field_key": "union_signatory",
                   "label": "Union Signatory",
-                  "data_type": "boolean"
+                  "data_type": "boolean",
+                  "required": false,
+                  "filterable": false,
+                  "sort_order": 1
                 },
                 "schema": { "$ref": "#/components/schemas/CustomFieldDefinition" }
               }
@@ -110554,8 +111163,16 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "custom_field_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "row_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "value": true
+                      "value_text": true,
+                      "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "value_number": 12.5,
+                      "value_money_minor": 250000,
+                      "value_currency": "USD",
+                      "value_date": "2026-10-08",
+                      "value_timestamp": "2026-10-08T14:30:00Z",
+                      "value_boolean": true,
+                      "value_choice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "value_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -110584,8 +111201,16 @@
             "application/json": {
               "example": {
                 "custom_field_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "row_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "value": true
+                "value_text": true,
+                "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "value_number": 12.5,
+                "value_money_minor": 250000,
+                "value_currency": "USD",
+                "value_date": "2026-10-08",
+                "value_timestamp": "2026-10-08T14:30:00Z",
+                "value_boolean": true,
+                "value_choice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "value_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/CustomFieldValueCreate" }
             }
@@ -110610,8 +111235,16 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "custom_field_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "row_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "value": true
+                  "value_text": true,
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "value_number": 12.5,
+                  "value_money_minor": 250000,
+                  "value_currency": "USD",
+                  "value_date": "2026-10-08",
+                  "value_timestamp": "2026-10-08T14:30:00Z",
+                  "value_boolean": true,
+                  "value_choice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "value_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CustomFieldValue" }
               }
@@ -110668,8 +111301,16 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "custom_field_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "row_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "value": true
+                  "value_text": true,
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "value_number": 12.5,
+                  "value_money_minor": 250000,
+                  "value_currency": "USD",
+                  "value_date": "2026-10-08",
+                  "value_timestamp": "2026-10-08T14:30:00Z",
+                  "value_boolean": true,
+                  "value_choice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "value_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CustomFieldValue" }
               }
@@ -110708,7 +111349,17 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "value": true },
+              "example": {
+                "value_text": true,
+                "value_number": 12.5,
+                "value_money_minor": 250000,
+                "value_currency": "USD",
+                "value_date": "2026-10-08",
+                "value_timestamp": "2026-10-08T14:30:00Z",
+                "value_boolean": true,
+                "value_choice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "value_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
               "schema": { "$ref": "#/components/schemas/CustomFieldValueUpdate" }
             }
           }
@@ -110732,8 +111383,16 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "custom_field_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "row_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "value": true
+                  "value_text": true,
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "value_number": 12.5,
+                  "value_money_minor": 250000,
+                  "value_currency": "USD",
+                  "value_date": "2026-10-08",
+                  "value_timestamp": "2026-10-08T14:30:00Z",
+                  "value_boolean": true,
+                  "value_choice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "value_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CustomFieldValue" }
               }
@@ -111069,11 +111728,13 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "source_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "target_table": "app.vendors",
                       "import_mapping_profile_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "import_state": "In Review",
-                      "import_batch_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "target_code": "vendors",
+                      "source": "CSV",
+                      "original_filename": "vendors-2026.xlsx",
+                      "storage_object_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/imports/vendors-2026.xlsx",
+                      "import_status": "Uploaded",
+                      "mapping_confirmed_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -111101,9 +111762,11 @@
           "content": {
             "application/json": {
               "example": {
-                "source_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "target_table": "app.vendors",
-                "import_mapping_profile_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "import_mapping_profile_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "target_code": "vendors",
+                "source": "CSV",
+                "original_filename": "vendors-2026.xlsx",
+                "storage_object_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/imports/vendors-2026.xlsx"
               },
               "schema": { "$ref": "#/components/schemas/ImportJobCreate" }
             }
@@ -111127,11 +111790,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "source_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target_table": "app.vendors",
                   "import_mapping_profile_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "import_state": "In Review",
-                  "import_batch_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "target_code": "vendors",
+                  "source": "CSV",
+                  "original_filename": "vendors-2026.xlsx",
+                  "storage_object_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/imports/vendors-2026.xlsx",
+                  "import_status": "Uploaded",
+                  "mapping_confirmed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ImportJob" }
               }
@@ -111187,11 +111852,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "source_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target_table": "app.vendors",
                   "import_mapping_profile_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "import_state": "In Review",
-                  "import_batch_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "target_code": "vendors",
+                  "source": "CSV",
+                  "original_filename": "vendors-2026.xlsx",
+                  "storage_object_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/imports/vendors-2026.xlsx",
+                  "import_status": "Uploaded",
+                  "mapping_confirmed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ImportJob" }
               }
@@ -111246,11 +111913,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "source_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target_table": "app.vendors",
                   "import_mapping_profile_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "import_state": "In Review",
-                  "import_batch_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "target_code": "vendors",
+                  "source": "CSV",
+                  "original_filename": "vendors-2026.xlsx",
+                  "storage_object_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/imports/vendors-2026.xlsx",
+                  "import_status": "Uploaded",
+                  "mapping_confirmed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ImportJob" }
               }
@@ -111307,11 +111976,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "source_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target_table": "app.vendors",
                   "import_mapping_profile_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "import_state": "In Review",
-                  "import_batch_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "target_code": "vendors",
+                  "source": "CSV",
+                  "original_filename": "vendors-2026.xlsx",
+                  "storage_object_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/imports/vendors-2026.xlsx",
+                  "import_status": "Uploaded",
+                  "mapping_confirmed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ImportJob" }
               }
@@ -111365,7 +112036,7 @@
                       "import_job_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "committed_at": "2026-10-08T14:30:00Z",
                       "undone_at": "2026-10-08T14:30:00Z",
-                      "row_count": 212
+                      "undo_reason": "Wrong sheet imported."
                     }
                   ],
                   "next_cursor": null
@@ -111425,7 +112096,7 @@
                   "import_job_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "committed_at": "2026-10-08T14:30:00Z",
                   "undone_at": "2026-10-08T14:30:00Z",
-                  "row_count": 212
+                  "undo_reason": "Wrong sheet imported."
                 },
                 "schema": { "$ref": "#/components/schemas/ImportBatch" }
               }
@@ -111483,7 +112154,7 @@
                   "import_job_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "committed_at": "2026-10-08T14:30:00Z",
                   "undone_at": "2026-10-08T14:30:00Z",
-                  "row_count": 212
+                  "undo_reason": "Wrong sheet imported."
                 },
                 "schema": { "$ref": "#/components/schemas/ImportBatch" }
               }
@@ -111535,9 +112206,17 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "import_job_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "source_row": 14,
                       "row_state": "Valid",
-                      "reason": "Unknown counterparty type."
+                      "reason": "Unknown counterparty type.",
+                      "import_batch_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "sheet_name": "Vendors",
+                      "row_number": 2,
+                      "target_table": "records",
+                      "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "write_action": "Created",
+                      "before_image": { "type": "doc" },
+                      "undo_outcome": "Reverted",
+                      "undo_reason": "Edited after the import."
                     }
                   ],
                   "next_cursor": null
@@ -111595,9 +112274,17 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "import_job_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "source_row": 14,
                   "row_state": "Valid",
-                  "reason": "Unknown counterparty type."
+                  "reason": "Unknown counterparty type.",
+                  "import_batch_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "sheet_name": "Vendors",
+                  "row_number": 2,
+                  "target_table": "records",
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "write_action": "Created",
+                  "before_image": { "type": "doc" },
+                  "undo_outcome": "Reverted",
+                  "undo_reason": "Edited after the import."
                 },
                 "schema": { "$ref": "#/components/schemas/ImportRowResult" }
               }
@@ -111647,7 +112334,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Vendor List From Accounting",
-                      "target_table": "app.vendors"
+                      "target_code": "vendors"
                     }
                   ],
                   "next_cursor": null
@@ -111674,7 +112361,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Vendor List From Accounting", "target_table": "app.vendors" },
+              "example": { "name": "Vendor List From Accounting", "target_code": "vendors" },
               "schema": { "$ref": "#/components/schemas/ImportMappingProfileCreate" }
             }
           }
@@ -111698,7 +112385,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Vendor List From Accounting",
-                  "target_table": "app.vendors"
+                  "target_code": "vendors"
                 },
                 "schema": { "$ref": "#/components/schemas/ImportMappingProfile" }
               }
@@ -111755,7 +112442,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Vendor List From Accounting",
-                  "target_table": "app.vendors"
+                  "target_code": "vendors"
                 },
                 "schema": { "$ref": "#/components/schemas/ImportMappingProfile" }
               }
@@ -111794,7 +112481,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Vendor List From Accounting", "target_table": "app.vendors" },
+              "example": { "name": "Vendor List From Accounting", "target_code": "vendors" },
               "schema": { "$ref": "#/components/schemas/ImportMappingProfileUpdate" }
             }
           }
@@ -111818,7 +112505,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Vendor List From Accounting",
-                  "target_table": "app.vendors"
+                  "target_code": "vendors"
                 },
                 "schema": { "$ref": "#/components/schemas/ImportMappingProfile" }
               }
@@ -111900,11 +112587,13 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "import_job_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "candidate_urn": "urn:xpms:import_row:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "existing_urn": "urn:xpms:vendor:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "similarity": 0.91,
-                      "decision": "Merge"
+                      "decision": "Merge",
+                      "import_row_result_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "candidate_table": "records",
+                      "candidate_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "decided_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -111961,11 +112650,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "import_job_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "candidate_urn": "urn:xpms:import_row:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "existing_urn": "urn:xpms:vendor:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "similarity": 0.91,
-                  "decision": "Merge"
+                  "decision": "Merge",
+                  "import_row_result_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "candidate_table": "records",
+                  "candidate_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/MergeReview" }
               }
@@ -112027,11 +112718,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "import_job_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "candidate_urn": "urn:xpms:import_row:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "existing_urn": "urn:xpms:vendor:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "similarity": 0.91,
-                  "decision": "Merge"
+                  "decision": "Merge",
+                  "import_row_result_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "candidate_table": "records",
+                  "candidate_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/MergeReview" }
               }
@@ -112083,10 +112776,14 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "source": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "format": "CSV",
-                      "export_state": "Complete",
-                      "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "source_label": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "export_format": "CSV",
+                      "classification": "Restricted",
+                      "watermark": false,
+                      "export_status": "Queued",
+                      "storage_object_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/exports/vendors.csv",
+                      "row_count": 120,
+                      "expires_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -112114,8 +112811,8 @@
           "content": {
             "application/json": {
               "example": {
-                "source": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "format": "CSV"
+                "source_label": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "export_format": "CSV"
               },
               "schema": { "$ref": "#/components/schemas/ExportJobCreate" }
             }
@@ -112139,10 +112836,14 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "source": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "format": "CSV",
-                  "export_state": "Complete",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "source_label": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "export_format": "CSV",
+                  "classification": "Restricted",
+                  "watermark": false,
+                  "export_status": "Queued",
+                  "storage_object_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/exports/vendors.csv",
+                  "row_count": 120,
+                  "expires_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ExportJob" }
               }
@@ -112198,10 +112899,14 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "source": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "format": "CSV",
-                  "export_state": "Complete",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "source_label": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "export_format": "CSV",
+                  "classification": "Restricted",
+                  "watermark": false,
+                  "export_status": "Queued",
+                  "storage_object_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/exports/vendors.csv",
+                  "row_count": 120,
+                  "expires_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ExportJob" }
               }
@@ -112250,11 +112955,12 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "collection": "records",
                       "name": "Blocked Permits This Month",
                       "view_type": "table",
-                      "query": "filter[record_state][eq]=Blocked",
-                      "shared": false
+                      "shared": false,
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "collection_key": "records",
+                      "group_by_field": "record_state"
                     }
                   ],
                   "next_cursor": null
@@ -112282,11 +112988,12 @@
           "content": {
             "application/json": {
               "example": {
-                "collection": "records",
                 "name": "Blocked Permits This Month",
                 "view_type": "table",
-                "query": "filter[record_state][eq]=Blocked",
-                "shared": false
+                "shared": false,
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "collection_key": "records",
+                "group_by_field": "record_state"
               },
               "schema": { "$ref": "#/components/schemas/SavedViewCreate" }
             }
@@ -112310,11 +113017,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "collection": "records",
                   "name": "Blocked Permits This Month",
                   "view_type": "table",
-                  "query": "filter[record_state][eq]=Blocked",
-                  "shared": false
+                  "shared": false,
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "collection_key": "records",
+                  "group_by_field": "record_state"
                 },
                 "schema": { "$ref": "#/components/schemas/SavedView" }
               }
@@ -112370,11 +113078,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "collection": "records",
                   "name": "Blocked Permits This Month",
                   "view_type": "table",
-                  "query": "filter[record_state][eq]=Blocked",
-                  "shared": false
+                  "shared": false,
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "collection_key": "records",
+                  "group_by_field": "record_state"
                 },
                 "schema": { "$ref": "#/components/schemas/SavedView" }
               }
@@ -112414,11 +113123,10 @@
           "content": {
             "application/json": {
               "example": {
-                "collection": "records",
                 "name": "Blocked Permits This Month",
                 "view_type": "table",
-                "query": "filter[record_state][eq]=Blocked",
-                "shared": false
+                "shared": false,
+                "group_by_field": "record_state"
               },
               "schema": { "$ref": "#/components/schemas/SavedViewUpdate" }
             }
@@ -112442,11 +113150,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "collection": "records",
                   "name": "Blocked Permits This Month",
                   "view_type": "table",
-                  "query": "filter[record_state][eq]=Blocked",
-                  "shared": false
+                  "shared": false,
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "collection_key": "records",
+                  "group_by_field": "record_state"
                 },
                 "schema": { "$ref": "#/components/schemas/SavedView" }
               }
@@ -113120,8 +113829,11 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "subject_urn": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "resolved": false
+                      "subject_table": "records",
+                      "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "anchor": "line:12",
+                      "resolved_at": "2026-10-08T14:30:00Z",
+                      "resolved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -113149,8 +113861,9 @@
           "content": {
             "application/json": {
               "example": {
-                "subject_urn": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "resolved": false
+                "subject_table": "records",
+                "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "anchor": "line:12"
               },
               "schema": { "$ref": "#/components/schemas/CommentThreadCreate" }
             }
@@ -113174,8 +113887,11 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "subject_urn": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "resolved": false
+                  "subject_table": "records",
+                  "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "anchor": "line:12",
+                  "resolved_at": "2026-10-08T14:30:00Z",
+                  "resolved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CommentThread" }
               }
@@ -113231,8 +113947,11 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "subject_urn": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "resolved": false
+                  "subject_table": "records",
+                  "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "anchor": "line:12",
+                  "resolved_at": "2026-10-08T14:30:00Z",
+                  "resolved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CommentThread" }
               }
@@ -113271,7 +113990,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "resolved": false },
+              "example": { "anchor": "line:12", "resolved_at": "2026-10-08T14:30:00Z" },
               "schema": { "$ref": "#/components/schemas/CommentThreadUpdate" }
             }
           }
@@ -113294,8 +114013,11 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "subject_urn": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "resolved": false
+                  "subject_table": "records",
+                  "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "anchor": "line:12",
+                  "resolved_at": "2026-10-08T14:30:00Z",
+                  "resolved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/CommentThread" }
               }
@@ -113348,8 +114070,10 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "comment_thread_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "body": { "type": "doc" },
-                      "author_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "body": "Load-in moved to 07:00.",
+                      "author_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "source": "App",
+                      "edited_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -113378,7 +114102,8 @@
             "application/json": {
               "example": {
                 "comment_thread_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "body": { "type": "doc" }
+                "body": "Load-in moved to 07:00.",
+                "source": "App"
               },
               "schema": { "$ref": "#/components/schemas/CommentCreate" }
             }
@@ -113403,8 +114128,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "comment_thread_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "body": { "type": "doc" },
-                  "author_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "body": "Load-in moved to 07:00.",
+                  "author_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "source": "App",
+                  "edited_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Comment" }
               }
@@ -113461,8 +114188,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "comment_thread_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "body": { "type": "doc" },
-                  "author_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "body": "Load-in moved to 07:00.",
+                  "author_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "source": "App",
+                  "edited_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Comment" }
               }
@@ -113501,7 +114230,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "body": { "type": "doc" } },
+              "example": { "body": "Load-in moved to 07:00.", "source": "App" },
               "schema": { "$ref": "#/components/schemas/CommentUpdate" }
             }
           }
@@ -113525,8 +114254,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "comment_thread_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "body": { "type": "doc" },
-                  "author_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "body": "Load-in moved to 07:00.",
+                  "author_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "source": "App",
+                  "edited_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Comment" }
               }
@@ -113609,10 +114340,14 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "kind": "timesheet.approved",
-                      "subject_urn": "urn:xpms:timesheet:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "created_for": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "deep_link": "/crew/timesheets/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "read_at": "2026-10-08T14:30:00Z"
+                      "recipient_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "read_at": "2026-10-08T14:30:00Z",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "subject_table": "records",
+                      "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "message_args": { "type": "doc" },
+                      "archived_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -113670,10 +114405,14 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "kind": "timesheet.approved",
-                  "subject_urn": "urn:xpms:timesheet:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_for": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "deep_link": "/crew/timesheets/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "read_at": "2026-10-08T14:30:00Z"
+                  "recipient_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "read_at": "2026-10-08T14:30:00Z",
+                  "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject_table": "records",
+                  "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "message_args": { "type": "doc" },
+                  "archived_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Notification" }
               }
@@ -113712,7 +114451,10 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "read_at": "2026-10-08T14:30:00Z" },
+              "example": {
+                "read_at": "2026-10-08T14:30:00Z",
+                "archived_at": "2026-10-08T14:30:00Z"
+              },
               "schema": { "$ref": "#/components/schemas/NotificationUpdate" }
             }
           }
@@ -113736,10 +114478,14 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "kind": "timesheet.approved",
-                  "subject_urn": "urn:xpms:timesheet:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_for": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "deep_link": "/crew/timesheets/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "read_at": "2026-10-08T14:30:00Z"
+                  "recipient_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "read_at": "2026-10-08T14:30:00Z",
+                  "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject_table": "records",
+                  "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "message_args": { "type": "doc" },
+                  "archived_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Notification" }
               }
@@ -113821,9 +114567,10 @@
                       "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
-                      "kind": "timesheet.approved",
-                      "channel": "push",
-                      "enabled": true
+                      "channel": "In App",
+                      "enabled": true,
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "category_code": "approvals"
                     }
                   ],
                   "next_cursor": null
@@ -113850,7 +114597,12 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "kind": "timesheet.approved", "channel": "push", "enabled": true },
+              "example": {
+                "channel": "In App",
+                "enabled": true,
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "category_code": "approvals"
+              },
               "schema": { "$ref": "#/components/schemas/NotificationPreferenceCreate" }
             }
           }
@@ -113870,9 +114622,10 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "kind": "timesheet.approved",
-                  "channel": "push",
-                  "enabled": true
+                  "channel": "In App",
+                  "enabled": true,
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "category_code": "approvals"
                 },
                 "schema": { "$ref": "#/components/schemas/NotificationPreference" }
               }
@@ -113925,9 +114678,10 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "kind": "timesheet.approved",
-                  "channel": "push",
-                  "enabled": true
+                  "channel": "In App",
+                  "enabled": true,
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "category_code": "approvals"
                 },
                 "schema": { "$ref": "#/components/schemas/NotificationPreference" }
               }
@@ -113986,9 +114740,10 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "kind": "timesheet.approved",
-                  "channel": "push",
-                  "enabled": true
+                  "channel": "In App",
+                  "enabled": true,
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "category_code": "approvals"
                 },
                 "schema": { "$ref": "#/components/schemas/NotificationPreference" }
               }
@@ -114041,7 +114796,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "revoked_at": "2026-10-08T14:30:00Z"
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "last_accessed_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -114068,7 +114825,10 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
               "schema": { "$ref": "#/components/schemas/CalendarFeedCreate" }
             }
           }
@@ -114092,7 +114852,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "last_accessed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/CalendarFeed" }
               }
@@ -114149,7 +114911,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "last_accessed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/CalendarFeed" }
               }

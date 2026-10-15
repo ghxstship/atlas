@@ -891,8 +891,10 @@ export interface Components {
     updated_by: string | null;
     project_id: string | null;
     revoked_at: string | null;
+    membership_id: string;
+    last_accessed_at: string | null;
   };
-  CalendarFeedCreate: { project_id?: string | null };
+  CalendarFeedCreate: { project_id?: string | null; membership_id: string };
   CalendarFeedPage: { data: Array<Components["CalendarFeed"]>; next_cursor: string | null };
   CalendarPage: { data: Array<Components["Calendar"]>; next_cursor: string | null };
   CalendarUpdate: { name?: string; time_zone?: string; project_id?: string | null };
@@ -1446,10 +1448,12 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     comment_thread_id: string;
-    body: Record<string, unknown>;
-    author_id: string;
+    body: string;
+    author_person_id: string;
+    source: "App" | "Email" | "API";
+    edited_at: string | null;
   };
-  CommentCreate: { comment_thread_id: string; body: Record<string, unknown> };
+  CommentCreate: { comment_thread_id: string; body: string; source?: "App" | "Email" | "API" };
   CommentPage: { data: Array<Components["Comment"]>; next_cursor: string | null };
   CommentThread: {
     id: string;
@@ -1458,13 +1462,16 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    subject_urn: string;
-    resolved: boolean;
+    subject_table: string;
+    subject_id: string;
+    anchor: string | null;
+    resolved_at: string | null;
+    resolved_by: string | null;
   };
-  CommentThreadCreate: { subject_urn: string; resolved: boolean };
+  CommentThreadCreate: { subject_table: string; subject_id: string; anchor?: string | null };
   CommentThreadPage: { data: Array<Components["CommentThread"]>; next_cursor: string | null };
-  CommentThreadUpdate: { resolved?: boolean };
-  CommentUpdate: { body?: Record<string, unknown> };
+  CommentThreadUpdate: { anchor?: string | null; resolved_at?: string | null };
+  CommentUpdate: { body?: string; source?: "App" | "Email" | "API" };
   ConsentRecord: {
     id: string;
     created_at: string;
@@ -1661,18 +1668,30 @@ export interface Components {
     field_key: string;
     label: string;
     data_type: string;
+    required: boolean;
+    filterable: boolean;
+    sort_order: number;
   };
   CustomFieldDefinitionCreate: {
     target_table: string;
     field_key: string;
     label: string;
     data_type: string;
+    required?: boolean;
+    filterable?: boolean;
+    sort_order: number;
   };
   CustomFieldDefinitionPage: {
     data: Array<Components["CustomFieldDefinition"]>;
     next_cursor: string | null;
   };
-  CustomFieldDefinitionUpdate: { label?: string; data_type?: string };
+  CustomFieldDefinitionUpdate: {
+    label?: string;
+    data_type?: string;
+    required?: boolean;
+    filterable?: boolean;
+    sort_order?: number;
+  };
   CustomFieldValue: {
     id: string;
     org_id: string;
@@ -1681,16 +1700,42 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     custom_field_definition_id: string;
-    row_id: string;
-    value: string | number | boolean | null;
+    value_text: string | number | boolean | null;
+    target_id: string;
+    value_number: number | null;
+    value_money_minor: number | null;
+    value_currency: string | null;
+    value_date: string | null;
+    value_timestamp: string | null;
+    value_boolean: boolean | null;
+    value_choice_id: string | null;
+    value_person_id: string | null;
   };
   CustomFieldValueCreate: {
     custom_field_definition_id: string;
-    row_id: string;
-    value?: string | number | boolean | null;
+    value_text?: string | number | boolean | null;
+    target_id: string;
+    value_number?: number | null;
+    value_money_minor?: number | null;
+    value_currency?: string | null;
+    value_date?: string | null;
+    value_timestamp?: string | null;
+    value_boolean?: boolean | null;
+    value_choice_id?: string | null;
+    value_person_id?: string | null;
   };
   CustomFieldValuePage: { data: Array<Components["CustomFieldValue"]>; next_cursor: string | null };
-  CustomFieldValueUpdate: { value?: string | number | boolean | null };
+  CustomFieldValueUpdate: {
+    value_text?: string | number | boolean | null;
+    value_number?: number | null;
+    value_money_minor?: number | null;
+    value_currency?: string | null;
+    value_date?: string | null;
+    value_timestamp?: string | null;
+    value_boolean?: boolean | null;
+    value_choice_id?: string | null;
+    value_person_id?: string | null;
+  };
   CustomObjectField: {
     id: string;
     org_id: string;
@@ -1704,14 +1749,16 @@ export interface Components {
     data_type: string;
     required: boolean;
     filterable: boolean;
+    sort_order: number;
   };
   CustomObjectFieldCreate: {
     custom_object_type_id: string;
     field_key: string;
     label: string;
     data_type: string;
-    required: boolean;
-    filterable: boolean;
+    required?: boolean;
+    filterable?: boolean;
+    sort_order: number;
   };
   CustomObjectFieldPage: {
     data: Array<Components["CustomObjectField"]>;
@@ -1722,6 +1769,7 @@ export interface Components {
     data_type?: string;
     required?: boolean;
     filterable?: boolean;
+    sort_order?: number;
   };
   CustomObjectRecord: {
     id: string;
@@ -1732,6 +1780,7 @@ export interface Components {
     updated_by: string | null;
     title: string;
     values: Record<string, string | number | boolean | null>;
+    custom_object_type_id: string;
   };
   CustomObjectRecordCreate: {
     title: string;
@@ -1752,10 +1801,23 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    custom_object_record_id: string;
-    target_urn: string;
+    from_record_id: string;
+    relation_key: string;
+    to_custom_record_id: string | null;
+    to_record_id: string | null;
+    to_project_id: string | null;
+    to_counterparty_id: string | null;
+    to_person_id: string | null;
   };
-  CustomObjectRelationCreate: { custom_object_record_id: string; target_urn: string };
+  CustomObjectRelationCreate: {
+    from_record_id: string;
+    relation_key: string;
+    to_custom_record_id?: string | null;
+    to_record_id?: string | null;
+    to_project_id?: string | null;
+    to_counterparty_id?: string | null;
+    to_person_id?: string | null;
+  };
   CustomObjectRelationPage: {
     data: Array<Components["CustomObjectRelation"]>;
     next_cursor: string | null;
@@ -1772,7 +1834,12 @@ export interface Components {
     icon: string;
     default_view: string;
   };
-  CustomObjectTypeCreate: { object_key: string; label: string; icon: string; default_view: string };
+  CustomObjectTypeCreate: {
+    object_key: string;
+    label: string;
+    icon: string;
+    default_view?: string;
+  };
   CustomObjectTypePage: { data: Array<Components["CustomObjectType"]>; next_cursor: string | null };
   CustomObjectTypeUpdate: { label?: string; icon?: string; default_view?: string };
   Dashboard: {
@@ -2189,12 +2256,16 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    source: string;
-    format: Components["ExportFormat"];
-    export_state: string;
-    document_id: string | null;
+    source_label: string;
+    export_format: Components["ExportFormat"];
+    classification: Components["Classification"];
+    watermark: boolean;
+    export_status: "Queued" | "Rendering" | "Ready" | "Failed" | "Expired";
+    storage_object_path: string | null;
+    row_count: number | null;
+    expires_at: string | null;
   };
-  ExportJobCreate: { source: string; format: Components["ExportFormat"] };
+  ExportJobCreate: { source_label: string; export_format: Components["ExportFormat"] };
   ExportJobPage: { data: Array<Components["ExportJob"]>; next_cursor: string | null };
   ExternalRoleType:
     | "Client"
@@ -2419,9 +2490,9 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     import_job_id: string;
-    committed_at: string;
+    committed_at: string | null;
     undone_at: string | null;
-    row_count: number;
+    undo_reason: string | null;
   };
   ImportBatchPage: { data: Array<Components["ImportBatch"]>; next_cursor: string | null };
   ImportJob: {
@@ -2431,16 +2502,29 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    source_document_id: string;
-    target_table: string;
     import_mapping_profile_id: string | null;
-    import_state: string;
-    import_batch_id: string | null;
+    target_code: string;
+    source: "CSV" | "XLSX" | "XLS" | "Google Sheets";
+    original_filename: string;
+    storage_object_path: string;
+    import_status:
+      | "Uploaded"
+      | "Detected"
+      | "Mapped"
+      | "Validated"
+      | "Committing"
+      | "Committed"
+      | "Undone"
+      | "Failed"
+      | "Canceled";
+    mapping_confirmed_at: string | null;
   };
   ImportJobCreate: {
-    source_document_id: string;
-    target_table: string;
     import_mapping_profile_id?: string | null;
+    target_code: string;
+    source: "CSV" | "XLSX" | "XLS" | "Google Sheets";
+    original_filename: string;
+    storage_object_path: string;
   };
   ImportJobPage: { data: Array<Components["ImportJob"]>; next_cursor: string | null };
   ImportMappingProfile: {
@@ -2451,14 +2535,14 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    target_table: string;
+    target_code: string;
   };
-  ImportMappingProfileCreate: { name: string; target_table: string };
+  ImportMappingProfileCreate: { name: string; target_code: string };
   ImportMappingProfilePage: {
     data: Array<Components["ImportMappingProfile"]>;
     next_cursor: string | null;
   };
-  ImportMappingProfileUpdate: { name?: string; target_table?: string };
+  ImportMappingProfileUpdate: { name?: string; target_code?: string };
   ImportRowResult: {
     id: string;
     org_id: string;
@@ -2467,9 +2551,17 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     import_job_id: string;
-    source_row: number;
     row_state: Components["ImportRowState"];
     reason: string | null;
+    import_batch_id: string | null;
+    sheet_name: string;
+    row_number: number;
+    target_table: string | null;
+    target_id: string | null;
+    write_action: "Created" | "Updated" | "Merged" | null;
+    before_image: Record<string, unknown> | null;
+    undo_outcome: "Reverted" | "Kept" | null;
+    undo_reason: string | null;
   };
   ImportRowResultPage: { data: Array<Components["ImportRowResult"]>; next_cursor: string | null };
   ImportRowState: "Valid" | "Invalid" | "Written" | "Refused" | "Skipped";
@@ -3062,11 +3154,13 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    import_job_id: string;
-    candidate_urn: string;
-    existing_urn: string;
     similarity: number;
     decision: string | null;
+    import_row_result_id: string;
+    candidate_table: string;
+    candidate_id: string;
+    decided_by: string | null;
+    decided_at: string | null;
   };
   MergeReviewPage: { data: Array<Components["MergeReview"]>; next_cursor: string | null };
   MergeReviewUpdate: { decision?: string | null };
@@ -3096,27 +3190,37 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     kind: string;
-    subject_urn: string;
-    created_for: string;
-    deep_link: string;
+    recipient_person_id: string;
     read_at: string | null;
+    actor_person_id: string | null;
+    subject_table: string | null;
+    subject_id: string | null;
+    project_id: string | null;
+    message_args: Record<string, unknown>;
+    archived_at: string | null;
   };
   NotificationPage: { data: Array<Components["Notification"]>; next_cursor: string | null };
   NotificationPreference: {
     id: string;
     created_at: string;
     updated_at: string;
-    kind: string;
-    channel: string;
+    channel: "In App" | "Email" | "SMS" | "Push";
     enabled: boolean;
+    membership_id: string;
+    category_code: string;
   };
-  NotificationPreferenceCreate: { kind: string; channel: string; enabled: boolean };
+  NotificationPreferenceCreate: {
+    channel: "In App" | "Email" | "SMS" | "Push";
+    enabled: boolean;
+    membership_id: string;
+    category_code: string;
+  };
   NotificationPreferencePage: {
     data: Array<Components["NotificationPreference"]>;
     next_cursor: string | null;
   };
   NotificationPreferenceUpdate: { enabled?: boolean };
-  NotificationUpdate: { read_at?: string | null };
+  NotificationUpdate: { read_at?: string | null; archived_at?: string | null };
   OauthApp: {
     id: string;
     org_id: string;
@@ -5168,26 +5272,27 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    collection: string;
     name: string;
     view_type: string;
-    query: string;
     shared: boolean;
+    membership_id: string;
+    collection_key: string;
+    group_by_field: string | null;
   };
   SavedViewCreate: {
-    collection: string;
     name: string;
     view_type: string;
-    query: string;
-    shared: boolean;
+    shared?: boolean;
+    membership_id: string;
+    collection_key: string;
+    group_by_field?: string | null;
   };
   SavedViewPage: { data: Array<Components["SavedView"]>; next_cursor: string | null };
   SavedViewUpdate: {
-    collection?: string;
     name?: string;
     view_type?: string;
-    query?: string;
     shared?: boolean;
+    group_by_field?: string | null;
   };
   ScanRequest: { code: string; symbology: string };
   ScheduleActual: {
