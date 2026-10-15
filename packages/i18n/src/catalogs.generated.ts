@@ -2,6 +2,7 @@
 // Never edit by hand. On a merge conflict, rerun the generator.
 
 import enUS_activity from "../messages/en-US/activity.json" with { type: "json" };
+import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
 import enUS_email from "../messages/en-US/email.json" with { type: "json" };
 import enUS_gateway from "../messages/en-US/gateway.json" with { type: "json" };
@@ -18,6 +19,7 @@ import enUS_show from "../messages/en-US/show.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
 import enUS_work from "../messages/en-US/work.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
+import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
 import esUS_email from "../messages/es-US/email.json" with { type: "json" };
 import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
@@ -36,6 +38,7 @@ import esUS_work from "../messages/es-US/work.json" with { type: "json" };
 
 export const enUS = {
   activity: enUS_activity,
+  compass: enUS_compass,
   crew: enUS_crew,
   email: enUS_email,
   gateway: enUS_gateway,
@@ -55,6 +58,7 @@ export const enUS = {
 
 export const esUS = {
   activity: esUS_activity,
+  compass: esUS_compass,
   crew: esUS_crew,
   email: esUS_email,
   gateway: esUS_gateway,

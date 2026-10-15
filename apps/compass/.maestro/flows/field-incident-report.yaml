@@ -1,0 +1,34 @@
+appId: pro.ghxstship.compass
+name: Report an incident in three steps
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- setLocation:
+    latitude: 25.7795
+    longitude: -80.1860
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-incidents"
+- tapOn:
+    id: "incident-report"
+- assertVisible: "Step 1 of 3"
+# Level 2 - Major from the canon Incident Severity grid (not critical, so no hold to confirm).
+- tapOn: "Level 2 - Major"
+- assertVisible:
+    id: "incident-location"
+- tapOn:
+    id: "incident-next"
+- tapOn:
+    id: "incident-title"
+- inputText: "Guest slipped near Gate A"
+- hideKeyboard
+- tapOn:
+    id: "incident-submit"
+- extendedWaitUntil:
+    visible:
+      id: "incident-filed"
+    timeout: 10000
+- assertVisible: "Guest slipped near Gate A"

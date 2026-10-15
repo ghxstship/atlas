@@ -1,0 +1,36 @@
+appId: pro.ghxstship.compass
+name: Walk the Stage Safety inspection one card at a time
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-inspections"
+- tapOn: "Start"
+- assertVisible: "Fire extinguishers tagged and in place"
+- tapOn:
+    id: "checklist-pass"
+- assertVisible: "Emergency exits clear and lit"
+# A Fail asks for a note and a photo before the walk moves on.
+- tapOn:
+    id: "checklist-fail"
+- tapOn:
+    id: "fail-save"
+- assertVisible: "Say what failed so someone can fix it."
+- assertVisible: "Add a photo of the failure."
+# Pass the remaining items; the simulator has no camera for the photo.
+- tapOn:
+    id: "checklist-pass"
+- tapOn:
+    id: "checklist-pass"
+- tapOn:
+    id: "checklist-pass"
+- tapOn:
+    id: "inspection-submit"
+- extendedWaitUntil:
+    visible:
+      id: "inspection-done"
+    timeout: 10000
