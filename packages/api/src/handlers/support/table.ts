@@ -30,7 +30,6 @@ import { MODULE_ADDITIONS } from "../../catalog/modules/index.generated.ts";
 import type { Module, ResourceSpec, Verb } from "../../catalog/types.ts";
 import { conflict, notFound, preconditionFailed, refused } from "../../problem.ts";
 import type { RequestContext } from "../../runtime/context.ts";
-import { requireOrg } from "../../runtime/context.ts";
 import { assertIfMatch, versionFromIfMatch } from "../../runtime/etag.ts";
 import type { ErasedHandler, ErasedRequest, HandlerSet } from "../../runtime/handler.ts";
 import { created, noContent, ok } from "../../runtime/handler.ts";
@@ -378,7 +377,9 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
     handlers[`${op}.create`] = async (request, context) => {
       const body = (request.body ?? {}) as Row;
       const values: Row = {
-        ...(withOrg ? { org_id: requireOrg(context).id } : {}),
+        // The credential's organization; a parent-derived org_id (derive_org_id) overrides it,
+        // so a caller without an active organization (an external party) can still create.
+        ...(withOrg && context.org !== null ? { org_id: context.org.id } : {}),
         ...toColumns(body, createFields, aliases),
         ...(options.beforeCreate === undefined ? {} : await options.beforeCreate(body, context)),
       };
