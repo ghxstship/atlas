@@ -11,9 +11,9 @@ const ORG = "demo-productions";
 const NOT_FOUND_TITLE = "Page not found";
 const DEMO_PASSWORD = `xos-demo-${"2026"}`;
 
-async function signInAsProducer(page: Page) {
+async function signInAsProducer(page: Page, email = "producer@example.com") {
   await page.goto(`/auth/sign-in?next=${encodeURIComponent(`/${ORG}/home`)}`);
-  await page.locator("#signin-email").fill("producer@example.com");
+  await page.locator("#signin-email").fill(email);
   await page.locator("#signin-password").fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: "Sign in with password" }).click();
   await page.waitForURL(`**/${ORG}/home`);
@@ -34,7 +34,9 @@ test.describe("Opportunities, org side", () => {
     await signInAsProducer(page);
   });
 
-  test("requisition to published posting, with the refusal for a posting without a requisition", async ({ page }) => {
+  test("requisition to published posting, with the refusal for a posting without a requisition", async ({
+    page,
+  }) => {
     await page.goto(`/${ORG}/opportunities/requisitions`);
     await expect(page.getByRole("heading", { level: 1, name: "Requisitions" })).toBeVisible();
     await expectAccessibleInBothThemes(page);
@@ -42,6 +44,7 @@ test.describe("Opportunities, org side", () => {
     await expect(page.getByText("New posting", { exact: true }).first()).toBeVisible();
     const title = `Festival Riggers ${Date.now().toString(36).toUpperCase()}`;
     await page.getByLabel("Title", { exact: true }).fill(title);
+    await page.getByLabel("Rate type").selectOption("Day");
     await page.getByLabel("Lowest pay").fill("900.00");
     await page.getByLabel("Highest pay").fill("950.00");
     await page.getByRole("button", { name: "Save draft" }).click();
@@ -88,11 +91,16 @@ test.describe("Opportunities, org side", () => {
     await expectAccessible(page);
   });
 
-  test("pipeline to engagement, onboarding verification, activation and a signing link", async ({ page }) => {
+  test("pipeline to engagement, onboarding verification, activation and a signing link", async ({
+    page,
+  }) => {
     await page.goto(`/${ORG}/opportunities/pipeline`);
     await expect(page.getByRole("heading", { level: 1, name: "Pipeline" })).toBeVisible();
     await expectAccessibleInBothThemes(page);
-    await page.getByRole("link", { name: /Demo Crew Member/ }).first().click();
+    await page
+      .getByRole("link", { name: /Demo Crew Member/ })
+      .first()
+      .click();
     await expect(page.getByRole("heading", { level: 1, name: "Demo Crew Member" })).toBeVisible();
     await expect(page.getByText("Accepted").first()).toBeVisible();
     await expectAccessibleInBothThemes(page);
@@ -122,7 +130,9 @@ test.describe("Opportunities, org side", () => {
     await expectAccessible(page);
   });
 
-  test("onboarding, pools, ratings, marketplace settings and the project Engagements tab", async ({ page }) => {
+  test("onboarding, pools, ratings, marketplace settings and the project Engagements tab", async ({
+    page,
+  }) => {
     await page.goto(`/${ORG}/opportunities/onboarding`);
     await expect(page.getByRole("heading", { level: 1, name: "Onboarding" })).toBeVisible();
     await expectAccessibleInBothThemes(page);
@@ -140,16 +150,25 @@ test.describe("Opportunities, org side", () => {
     await expectAccessibleInBothThemes(page);
 
     await page.goto(`/${ORG}/opportunities/marketplace-settings`);
-    await expect(page.getByRole("heading", { level: 1, name: "Marketplace settings" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Marketplace settings" }),
+    ).toBeVisible();
     await expect(page.getByText("No placement can be bought.")).toBeVisible();
     await expectAccessibleInBothThemes(page);
 
     await page.goto(`/${ORG}/opportunities/engagements?view=board`);
     await expect(page.getByRole("heading", { level: 1, name: "Engagements" })).toBeVisible();
     await expectAccessibleInBothThemes(page);
+  });
 
-    await page.goto(`/${ORG}/p/DPS/engagements`);
+  test("the project Engagements tab lists the project's engagements for a project overseer", async ({
+    page,
+  }) => {
+    await page.context().clearCookies();
+    await signInAsProducer(page, "owner@example.com");
+    await page.goto(`/${ORG}/p/NWS/engagements`);
     await expect(page.getByRole("heading", { level: 1, name: "Engagements" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: /Demo Crew Member/ })).toBeVisible();
     await expectAccessibleInBothThemes(page);
   });
 
