@@ -1,0 +1,21 @@
+appId: pro.ghxstship.compass
+name: Follow the live run of show in show mode
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-show"
+- assertVisible:
+    id: "run-of-show"
+- assertVisible: "Walk-in Music Out"
+- assertVisible:
+    id: "next-cue-countdown"
+- tapOn:
+    id: "show-mode"
+- assertVisible: "Exit Show Mode"
+- tapOn:
+    id: "show-mode"
