@@ -4,9 +4,11 @@
  * packages/api/README.md. Corrections to frozen Settings resources follow ADR 0023.
  */
 import { z } from "@hono/zod-openapi";
-import { fields } from "@xos/schemas";
+import { fields, platform as pf } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
-import { all, editShape, orNull, removeVerbs, setTable } from "../correct.ts";
+import { all, editShape, orNull, putActions, removeVerbs, setTable } from "../correct.ts";
+import { collectionAction } from "../define.ts";
+import type { ResourceSpec } from "../types.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -36,6 +38,39 @@ const brandPath = (description: string) =>
   );
 
 const SCOPE_KINDS = ["organization", "workspace", "team", "project", "record"] as const;
+
+/** The create verb as a collection action at the same path, answering `response` with 201. */
+const createAnswering =
+  (response: z.ZodType, rpc: string, summary: string, description: string) =>
+  (spec: ResourceSpec): ResourceSpec => {
+    const body = spec.def.create;
+    if (body === undefined) throw new Error(`${spec.op} has no create body.`);
+    return putActions([
+      collectionAction("create", {
+        segment: "",
+        summary,
+        description,
+        body,
+        response,
+        rpc,
+        status: 201,
+      }),
+    ])(removeVerbs("create")(spec));
+  };
+
+const WebhookEndpointSecret = z
+  .object({
+    webhook_endpoint_id: fields.ref("webhook endpoint"),
+    signing_secret: z.string().min(1).meta({
+      description:
+        "The endpoint's signing secret. Shown once; it is stored in Vault and never read back.",
+      example: "whsec_5Jk2pQ8xL1nV7cR3",
+    }),
+  })
+  .meta({
+    id: "WebhookEndpointSecret",
+    description: "A newly created webhook endpoint and its signing secret, shown once.",
+  });
 
 export const additions = defineAdditions("Settings", {
   corrections: [
@@ -773,6 +808,57 @@ export const additions = defineAdditions("Settings", {
       reason:
         "A lock is the `locked` flag of an Organization value in app.setting_values (0850); there is no app.setting_locks table. The A30 handlers already read it.",
       apply: setTable("app.setting_values"),
+    },
+    {
+      id: "api-key-create-returns-secret",
+      since: "1.0.0-draft.2",
+      resources: ["apiKeys"],
+      change:
+        "`apiKeys.create` answers 201 with ApiKeySecret (`api_key_id` and the full `secret`, shown once) instead of the ApiKey read shape.",
+      reason:
+        "app.create_api_key (0921) stores only the key's hash and returns the secret once; answering with the read shape would lose the only copy of the secret.",
+      apply: createAnswering(
+        pf.ApiKeySecret,
+        "app.create_api_key",
+        "Create an API key",
+        "Creates an API key with scopes and an expiry, optionally for a service account, through `app.create_api_key`. The full secret is returned once; only its hash is stored.",
+      ),
+    },
+    {
+      id: "webhook-endpoint-create-returns-secret",
+      since: "1.0.0-draft.2",
+      resources: ["webhookEndpoints"],
+      components: ["schemas/WebhookEndpointSecret"],
+      change:
+        "`webhookEndpoints.create` answers 201 with WebhookEndpointSecret (`webhook_endpoint_id` and the `signing_secret`, shown once) instead of the WebhookEndpoint read shape.",
+      reason:
+        "app.create_webhook_endpoint (0510) stores the signing secret in Vault and returns it once; it is never readable afterwards, so the read shape would lose it.",
+      apply: createAnswering(
+        WebhookEndpointSecret,
+        "app.create_webhook_endpoint",
+        "Create a webhook endpoint",
+        "Creates an endpoint subscribed to the given event types through `app.create_webhook_endpoint`. The signing secret is returned once.",
+      ),
+    },
+    {
+      id: "service-account-role",
+      since: "1.0.0-draft.2",
+      resources: ["serviceAccounts"],
+      change:
+        "ServiceAccountCreate takes the write-only `role_id` (required) and no longer takes `owner_person_id`, which the server sets to the creator; the owner can still change on update.",
+      reason:
+        "app.create_service_account (0922) creates the account's membership with one role, so it requires p_role_id, and records the creator as the owner.",
+      apply: editShape({
+        add: {
+          role_id: {
+            schema: fields.ref("role the service account's membership holds"),
+            create: "required",
+            update: false,
+            read: false,
+          },
+          owner_person_id: { schema: fields.ref("owner"), update: true },
+        },
+      }),
     },
   ],
 });

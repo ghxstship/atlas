@@ -12,6 +12,7 @@ import { requireOrg } from "../runtime/context.ts";
 import { assertIfMatch } from "../runtime/etag.ts";
 import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import { decodeCursor, pageSize, toPage } from "../runtime/pagination.ts";
+import { settingsParity } from "./settings/parity.ts";
 
 type SettingValue = Components["SettingValue"];
 type SettingLock = Components["SettingLock"];
@@ -83,6 +84,8 @@ function sharedScope(scope: Components["SettingScope"]): SharedScope {
 }
 
 export const handlers = defineHandlers("Settings", {
+  // API parity (A04P): see ./settings/parity.ts.
+  ...settingsParity,
   "settingDefinitions.list": async ({ query }, { db }) => {
     const size = pageSize(query.limit);
     let request = db

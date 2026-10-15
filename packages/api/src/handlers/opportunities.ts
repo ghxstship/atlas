@@ -434,8 +434,12 @@ async function writeOne<T>(promise: PromiseLike<{ data: unknown; error: unknown 
 // onboarding requirements, talent pools, onboarding verification reads and agency slate writes. Each is one table read
 // and written as the caller; state changes go through A28's transition RPCs.
 
-const opportunities = tableResource("opportunities");
-const applications = tableResource("applications");
+// Inserts leave org_id to the database (the insert grants omit it; derive_org_id fills it).
+const opportunities = tableResource("opportunities", {
+  orgColumn: false,
+  fixed: ["project_id", "role_type"],
+});
+const applications = tableResource("applications", { orgColumn: false });
 const engagementDocuments = tableResource("engagementDocuments");
 
 /** A bid's NULL-aware total from its lines and whether it is still sealed (before the opportunity deadline). */
@@ -476,6 +480,7 @@ async function bidContract(row: Row, context: { db: XosClient }): Promise<Row> {
 }
 
 const bids = tableResource("bids", {
+  orgColumn: false,
   derived: ["total", "sealed"],
   extraColumns: ["currency_code", "application_id"],
   toContract: bidContract,

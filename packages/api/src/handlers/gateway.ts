@@ -95,13 +95,13 @@ const parity = {
   ...handlersFor("Gateway", tableResource("savedSearches")),
   ...handlersFor("Gateway", tableResource("opportunityAlerts")),
   ...handlersFor("Gateway", tableResource("listingReports")),
-  ...handlersFor("Gateway", tableResource("moderationActions")),
+  ...handlersFor("Gateway", tableResource("moderationActions", { verbs: ["list", "get"] })),
   ...handlersFor("Gateway", tableResource("availabilityCalendars")),
   ...handlersFor("Gateway", tableResource("availabilityBlocks")),
   ...handlersFor("Gateway", tableResource("engagementThreads")),
-  ...handlersFor("Gateway", tableResource("engagementMessages")),
+  ...handlersFor("Gateway", tableResource("engagementMessages", { orgColumn: false })),
   ...handlersFor("Gateway", payoutAccounts),
-  ...handlersFor("Gateway", tableResource("backgroundChecks")),
+  ...handlersFor("Gateway", tableResource("backgroundChecks", { orgColumn: false })),
 
   ...handlersFor("Gateway", profileShares),
   "profileShares.create": async ({ body }, context) => {

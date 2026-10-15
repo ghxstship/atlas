@@ -15,8 +15,11 @@ import {
   revokeInvite,
   createOrganization,
 } from "@xos/data/identity";
+import { removeAccountRole } from "@xos/data/account-roles";
 import {
   acceptRepresentation,
+  addAccountMember,
+  endAccountMembership,
   proposeRepresentation,
   revokeRepresentation,
 } from "@xos/data/gateway";
@@ -24,7 +27,6 @@ import type { Components } from "../../contract/operations.generated.ts";
 import { notFound } from "../../problem.ts";
 import type { RequestContext } from "../../runtime/context.ts";
 import { requireOrg, requirePerson } from "../../runtime/context.ts";
-import { assertIfMatch } from "../../runtime/etag.ts";
 import type { HandlerSet } from "../../runtime/handler.ts";
 import { created, noContent, ok } from "../../runtime/handler.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap } from "../support/table.ts";
@@ -53,10 +55,20 @@ const representations = tableResource("representations", {
 
 // Memberships ---------------------------------------------------------------------------------------
 
-const memberships = tableResource("memberships", { verbs: ["list", "get", "update"] });
+// Memberships change only through their RPCs: callers hold no insert or update grant (0202).
+const memberships = tableResource("memberships", { verbs: ["list", "get"] });
 
 const invites = tableResource("invites", { verbs: ["list", "get"] });
-const organizations = tableResource("organizations", { verbs: ["list", "get", "update"] });
+// The update grant covers name, slug and type; the parent changes only through partner setup.
+const organizations = tableResource("organizations", {
+  verbs: ["list", "get", "update"],
+  fixed: ["parent_org_id"],
+});
+
+// External account memberships change only through app.add_account_member,
+// app.end_account_membership and app.remove_account_role (0710): callers hold no write grant.
+const accountMemberships = tableResource("accountMemberships", { verbs: ["list", "get"] });
+const accountMembershipRoles = tableResource("accountMembershipRoles", { verbs: ["list", "get"] });
 
 /** The caller's live membership in the active organization. */
 async function myMembership(context: RequestContext): Promise<Membership> {
@@ -147,10 +159,51 @@ export const identityParity = {
     return ok((await memberships.read(context, params.id)) as Membership);
   },
 
-  ...handlersFor("Identity", tableResource("membershipRoles")),
+  // The insert grant covers membership_id and role_id; the database derives org_id.
+  ...handlersFor("Identity", tableResource("membershipRoles", { orgColumn: false })),
   ...handlersFor("Identity", tableResource("projectAssignments")),
-  ...handlersFor("Identity", tableResource("accountMemberships", { orgColumn: true })),
-  ...handlersFor("Identity", tableResource("accountMembershipRoles", { orgColumn: true })),
+  ...handlersFor("Identity", accountMemberships),
+  "accountMemberships.delete": async ({ params }, context) => {
+    await accountMemberships.read(context, params.id, ["id"]);
+    unwrap(await endAccountMembership(context.db, params.id));
+    return noContent();
+  },
+  ...handlersFor("Identity", accountMembershipRoles),
+  // Granting a role adds it to the person's membership of the account (app.add_account_member).
+  "accountMembershipRoles.create": async ({ body }, context) => {
+    const membership = await run<{ org_id: string; person_id: string } | null>(
+      from(context.db, "account_memberships")
+        .select("org_id, person_id")
+        .eq("id", body.account_membership_id)
+        .is("deleted_at", null)
+        .maybeSingle(),
+    );
+    if (membership === null) {
+      throw notFound("No account membership with this identifier is visible to you.");
+    }
+    unwrap(
+      await addAccountMember(context.db, {
+        accountId: membership.org_id,
+        personId: membership.person_id,
+        role: body.account_role,
+      }),
+    );
+    const role = await run<{ id: string } | null>(
+      from(context.db, "account_membership_roles")
+        .select("id")
+        .eq("account_membership_id", body.account_membership_id)
+        .eq("account_role", body.account_role)
+        .is("deleted_at", null)
+        .maybeSingle(),
+    );
+    if (role === null) throw notFound("The granted role is not visible to you.");
+    return created((await accountMembershipRoles.read(context, role.id)) as never);
+  },
+  "accountMembershipRoles.delete": async ({ params }, context) => {
+    await accountMembershipRoles.read(context, params.id, ["id"]);
+    unwrap(await removeAccountRole(context.db, params.id));
+    return noContent();
+  },
 
   ...handlersFor("Identity", representations),
   "representations.create": async ({ body }, context) => {
@@ -164,39 +217,6 @@ export const identityParity = {
       }),
     );
     return created((await representations.read(context, representationId)) as never);
-  },
-  "representations.update": async ({ params, body, ifMatch }, context) => {
-    const current = await representations.read(context, params.id);
-    assertIfMatch(ifMatch ?? "*", current);
-    if (body.expires_on !== undefined) {
-      await run(
-        from(context.db, "representations")
-          .update({ expires_on: body.expires_on })
-          .eq("id", params.id),
-      );
-    }
-    if (body.scopes !== undefined) {
-      const held = current["scopes"] as string[];
-      const removed = held.filter((s) => !body.scopes?.includes(s as never));
-      const added = body.scopes.filter((s) => !held.includes(s));
-      if (removed.length > 0) {
-        await run(
-          from(context.db, "representation_scopes")
-            .update({ deleted_at: new Date().toISOString() })
-            .eq("representation_id", params.id)
-            .in("scope", removed)
-            .is("deleted_at", null),
-        );
-      }
-      if (added.length > 0) {
-        await run(
-          from(context.db, "representation_scopes").insert(
-            added.map((scope) => ({ representation_id: params.id, scope })),
-          ),
-        );
-      }
-    }
-    return ok((await representations.read(context, params.id)) as never);
   },
   // A representation is never deleted; removing it revokes it at once (app.revoke_representation).
   "representations.delete": async ({ params }, context) => {
@@ -244,5 +264,6 @@ export const identityParity = {
 
   ...handlersFor("Identity", tableResource("verifiedDomains")),
   ...handlersFor("Identity", tableResource("profileVisibilityRules")),
-  ...handlersFor("Identity", tableResource("verifications", { orgColumn: true })),
+  // Verifications are recorded by the verification service (service role only); callers read them.
+  ...handlersFor("Identity", tableResource("verifications", { verbs: ["list", "get"] })),
 } satisfies HandlerSet<"Identity">;

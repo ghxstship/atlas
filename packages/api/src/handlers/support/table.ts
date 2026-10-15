@@ -266,10 +266,23 @@ export interface TableOptions {
   readonly beforeCreate?: (body: Row, context: RequestContext) => Row | Promise<Row>;
   /** Columns the update sets beyond the update body, or a check that may refuse it. */
   readonly beforeUpdate?: (body: Row, current: Row, context: RequestContext) => Row | Promise<Row>;
-  /** Whether the insert carries `org_id` from the credential; defaults to tenant resources. */
+  /**
+   * Update fields the caller may not change (no column grant): sending one is refused with 422
+   * instead of reaching the database as a permission error.
+   */
+  readonly fixed?: readonly string[];
+  /**
+   * Whether the insert carries `org_id` from the credential; defaults to tenant resources. Pass
+   * false where the insert grant leaves `org_id` out and the database derives it.
+   */
   readonly orgColumn?: boolean;
   /** Narrows lists and reads beyond RLS, such as to the caller's own rows. */
   readonly scope?: (query: Query, context: RequestContext) => Query;
+  /**
+   * The identifying field for a keyless view, used as the final sort tiebreaker; defaults to the
+   * first field of the documented order. Pass a field that is unique together with the order.
+   */
+  readonly key?: string;
   /** Sortable and filterable fields; defaults to every stored read field. */
   readonly sortable?: readonly string[];
 }
@@ -295,7 +308,7 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
   const derived = new Set(options.derived ?? []);
   const fields = readFields(spec);
   const stored = fields.filter((f) => !derived.has(f));
-  const key = spec.def.key === "" ? (spec.order.by[0] as string) : spec.def.key;
+  const key = options.key ?? (spec.def.key === "" ? (spec.order.by[0] as string) : spec.def.key);
   const soft = options.softDelete ?? true;
   const extra = options.extraColumns ?? [];
   const createFields = Object.keys(spec.def.create?.shape ?? {});
@@ -397,6 +410,14 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
       const id = paramOf(request, spec);
       const body = (request.body ?? {}) as Row;
       const ifMatch = request.ifMatch ?? "*";
+      const blocked = (options.fixed ?? []).filter((f) => body[f] !== undefined);
+      if (blocked.length > 0) {
+        throw refused(
+          "REFUSE",
+          `${blocked.join(", ")} cannot change after the ${spec.label} is created.`,
+          "field_immutable",
+        );
+      }
       const current = await read(context, id);
       const patch: Row = {
         ...toColumns(body, updateFields, aliases),
