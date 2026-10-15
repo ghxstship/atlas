@@ -14,7 +14,6 @@ import type {
 } from "@xos/ui-native";
 import { useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
 import * as Haptics from "expo-haptics";
-import { icons } from "lucide-react-native";
 import { useRef, useState, type ReactElement } from "react";
 import {
   ActivityIndicator,
@@ -26,6 +25,7 @@ import {
   View,
   type TextStyle,
 } from "react-native";
+import { ICONS } from "./icons";
 
 type Tone = NonNullable<TextProps["tone"]>;
 
@@ -48,12 +48,22 @@ export function toneColor(theme: XosNativeTheme, tone: Tone): string {
   }
 }
 
-export function typography(theme: XosNativeTheme, variant: NonNullable<TextProps["variant"]>): TextStyle {
+export function typography(
+  theme: XosNativeTheme,
+  variant: NonNullable<TextProps["variant"]>,
+): TextStyle {
   const t = theme.typography[variant];
   return { fontSize: t.fontSize, lineHeight: t.lineHeight, fontWeight: t.fontWeight };
 }
 
-export function Text({ variant = "text16", tone = "primary", numberOfLines, heading, children, testID }: TextProps): ReactElement {
+export function Text({
+  variant = "text16",
+  tone = "primary",
+  numberOfLines,
+  heading,
+  children,
+  testID,
+}: TextProps): ReactElement {
   const theme = useTheme();
   return (
     <NativeText
@@ -61,20 +71,32 @@ export function Text({ variant = "text16", tone = "primary", numberOfLines, head
       accessibilityRole={heading ? "header" : "text"}
       numberOfLines={numberOfLines}
       maxFontSizeMultiplier={2}
-      style={[typography(theme, variant), { color: toneColor(theme, tone) }, variant === "mono13" ? { fontFamily: "Menlo" } : null]}
+      style={[
+        typography(theme, variant),
+        { color: toneColor(theme, tone) },
+        variant === "mono13" ? { fontFamily: "Menlo" } : null,
+      ]}
     >
       {children}
     </NativeText>
   );
 }
 
-function pascal(name: string): string {
-  return name.replace(/(^|-)([a-z0-9])/g, (_m, _d: string, c: string) => c.toUpperCase());
+/** A test id prop object, so optional ids never pass `undefined` under exactOptionalPropertyTypes. */
+export function tid(base: string | undefined, suffix?: string): { testID?: string } {
+  if (base === undefined) return {};
+  return { testID: suffix ? `${base}-${suffix}` : base };
 }
 
-export function Icon({ name, size = 24, label, tone = "primary", testID }: IconProps): ReactElement | null {
+export function Icon({
+  name,
+  size = 24,
+  label,
+  tone = "primary",
+  testID,
+}: IconProps): ReactElement | null {
   const theme = useTheme();
-  const Glyph = icons[pascal(name) as keyof typeof icons];
+  const Glyph = ICONS[name];
   if (!Glyph) return null;
   return (
     <View
@@ -129,7 +151,11 @@ export function Button({
   const startHold = () => {
     if (!holdToConfirm) return;
     setHolding(true);
-    Animated.timing(progress, { toValue: 1, duration: holdToConfirm.seconds * 1000, useNativeDriver: false }).start(({ finished }) => {
+    Animated.timing(progress, {
+      toValue: 1,
+      duration: holdToConfirm.seconds * 1000,
+      useNativeDriver: false,
+    }).start(({ finished }) => {
       setHolding(false);
       progress.setValue(0);
       if (finished) {
@@ -189,15 +215,30 @@ export function Button({
         />
       ) : null}
       {loading ? <ActivityIndicator color={foreground} /> : null}
-      {icon && !loading ? <Icon name={icon} size={20} tone={variant === "ghost" ? "accent" : "primary"} /> : null}
-      <NativeText maxFontSizeMultiplier={2} style={[typography(theme, size === "lg" ? "heading20" : "heading16"), { color: foreground }]}>
+      {icon && !loading ? (
+        <Icon name={icon} size={20} tone={variant === "ghost" ? "accent" : "primary"} />
+      ) : null}
+      <NativeText
+        maxFontSizeMultiplier={2}
+        style={[
+          typography(theme, size === "lg" ? "heading20" : "heading16"),
+          { color: foreground },
+        ]}
+      >
         {holding && holdToConfirm ? holdToConfirm.hint : label}
       </NativeText>
     </Pressable>
   );
 }
 
-export function IconButton({ icon, label, onPress, variant = "ghost", disabled, testID }: IconButtonProps): ReactElement {
+export function IconButton({
+  icon,
+  label,
+  onPress,
+  variant = "ghost",
+  disabled,
+  testID,
+}: IconButtonProps): ReactElement {
   const theme = useTheme();
   return (
     <Pressable
@@ -236,7 +277,13 @@ export function TextField({
   testID,
 }: TextFieldProps): ReactElement {
   const theme = useTheme();
-  const keyboardType = { default: "default", numeric: "number-pad", email: "email-address", phone: "phone-pad", url: "url" } as const;
+  const keyboardType = {
+    default: "default",
+    numeric: "number-pad",
+    email: "email-address",
+    phone: "phone-pad",
+    url: "url",
+  } as const;
   return (
     <View style={{ gap: theme.space["6"] }}>
       <Text variant="label13" tone="secondary">
@@ -254,7 +301,6 @@ export function TextField({
         keyboardType={keyboardType[keyboard]}
         autoComplete={autoComplete === "one-time-code" ? "one-time-code" : autoComplete}
         maxFontSizeMultiplier={2}
-        placeholderTextColor={theme.color.textTertiary}
         style={[
           typography(theme, "text16"),
           {
@@ -283,10 +329,24 @@ export function TextField({
   );
 }
 
-export function Switch({ label, value, onChange, help, disabled, testID }: SwitchProps): ReactElement {
+export function Switch({
+  label,
+  value,
+  onChange,
+  help,
+  disabled,
+  testID,
+}: SwitchProps): ReactElement {
   const theme = useTheme();
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", minHeight: theme.density.touchMin, gap: theme.space["12"] }}>
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        minHeight: theme.density.touchMin,
+        gap: theme.space["12"],
+      }}
+    >
       <View style={{ flex: 1, gap: theme.space["2"] }}>
         <Text>{label}</Text>
         {help ? (
@@ -307,10 +367,21 @@ export function Switch({ label, value, onChange, help, disabled, testID }: Switc
   );
 }
 
-export function SegmentedControl({ label, value, options, onChange, testID }: SegmentedControlProps): ReactElement {
+export function SegmentedControl({
+  label,
+  value,
+  options,
+  onChange,
+  testID,
+}: SegmentedControlProps): ReactElement {
   const theme = useTheme();
   return (
-    <View testID={testID} accessibilityRole="radiogroup" accessibilityLabel={label} style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.space["8"] }}>
+    <View
+      testID={testID}
+      accessibilityRole="radiogroup"
+      accessibilityLabel={label}
+      style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.space["8"] }}
+    >
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -335,7 +406,14 @@ export function SegmentedControl({ label, value, options, onChange, testID }: Se
             }}
           >
             {option.icon ? <Icon name={option.icon} size={20} /> : null}
-            <NativeText style={[typography(theme, "label13"), { color: selected ? theme.color.accentTextOn : theme.color.textPrimary }]}>{option.label}</NativeText>
+            <NativeText
+              style={[
+                typography(theme, "label13"),
+                { color: selected ? theme.color.accentTextOn : theme.color.textPrimary },
+              ]}
+            >
+              {option.label}
+            </NativeText>
           </Pressable>
         );
       })}

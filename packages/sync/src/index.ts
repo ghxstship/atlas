@@ -41,6 +41,7 @@ export {
   type Uploader,
 } from "./engine";
 export {
+  ageAtUpload,
   anchorFromServer,
   DEFAULT_SKEW_TOLERANCE_MS,
   needsReview,

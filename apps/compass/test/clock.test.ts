@@ -22,7 +22,7 @@ function punch(kind: PunchKind, at: number, id = `p-${at}`): Punch {
   return {
     id,
     punch_kind: kind,
-    device_at: new Date(at).toISOString(),
+    device_time: new Date(at).toISOString(),
     project_id: "proj-1",
     shift_id: "shift-1",
     membership_id: "mem-1",
@@ -211,23 +211,31 @@ describe("queued punch", () => {
     );
     expect(m).toMatchObject({
       op: "rpc",
-      target: "record_punch",
+      target: "app.record_punch",
       table: "clock_punches",
       rowId: "punch-1",
       policy: "append",
     });
     expect(m.payload).toMatchObject({
+      p_punch_id: "punch-1",
+      p_punch_kind: "In",
+      p_device_time: new Date(T0).toISOString(),
+      p_accuracy_m: 8,
+      p_geofence_id: "g1",
+      p_source: "Mobile",
+      p_membership_id: "mem-1",
+      p_engagement_id: null,
+      monotonic_at: 5_000,
+      boot_id: "b1",
+    });
+    expect(m.optimistic).toMatchObject({
+      id: "punch-1",
       punch_kind: "In",
-      device_at: new Date(T0).toISOString(),
-      monotonic_offset_ms: 4_000,
-      accuracy_m: 8,
+      device_time: new Date(T0).toISOString(),
       geofence_id: "g1",
       device_geofence_status: "inside",
       device_needs_review: false,
-      membership_id: "mem-1",
-      engagement_id: null,
     });
-    expect(m.optimistic).toEqual(m.payload);
   });
 
   it("punches an external worker by engagement and flags an unanchored offline punch", () => {
@@ -248,13 +256,15 @@ describe("queued punch", () => {
       T0,
     );
     expect(m.payload).toMatchObject({
-      engagement_id: "eng-1",
-      membership_id: null,
-      latitude: null,
+      p_engagement_id: "eng-1",
+      p_membership_id: null,
+      p_latitude: null,
+      p_kiosk_device_id: "k1",
+      p_photo_uri: "file:///p.jpg",
+    });
+    expect(m.optimistic).toMatchObject({
       device_geofence_status: "unfenced",
       device_needs_review: true,
-      kiosk_device_id: "k1",
-      photo_uri: "file:///p.jpg",
     });
     expect(typeof m.rowId).toBe("string");
   });

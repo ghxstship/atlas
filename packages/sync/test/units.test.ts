@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ageAtUpload,
   anchorFromServer,
   classifyServerError,
   defaultPolicy,
@@ -193,6 +194,16 @@ describe("offline event time", () => {
     expect(event.estimatedServerAt).toBe(new Date(server + 200 + 3_600_000).toISOString());
     expect(event.skewMs).toBe(3 * 3_600_000 - 200);
     expect(needsReview(event)).toBe(true);
+  });
+
+  it("measures a punch's age at upload by the monotonic clock, not the wall clock", () => {
+    const clock = deviceClock(1_000, 10_000);
+    const event = stampEvent(clock, null);
+    expect(event).toMatchObject({ monotonicAt: 10_000, bootId: "boot-1" });
+    clock.set(999_999_999, 70_000);
+    expect(ageAtUpload(clock, event)).toBe(60_000);
+    clock.set(0, 5, "boot-2");
+    expect(ageAtUpload(clock, event)).toBeNull();
   });
 
   it("accepts a small skew and distrusts an anchor from before a reboot", () => {

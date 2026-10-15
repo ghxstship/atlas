@@ -341,7 +341,14 @@ describe("live run of show", () => {
 
   it("calls a cue once; a second operator's call stands as applied", () => {
     const m = buildCallCue(cue(2, 2), now);
-    expect(m).toMatchObject({ op: "update", table: "cues", rowId: "c2", policy: "append" });
+    expect(m).toMatchObject({
+      op: "rpc",
+      target: "app.call_cue",
+      table: "cues",
+      rowId: "c2",
+      policy: "append",
+      payload: { p_cue_id: "c2" },
+    });
     expect(m.optimistic).toMatchObject({ called_at: new Date(now).toISOString() });
   });
 });

@@ -81,10 +81,11 @@ export function formatCountdown(ms: number): string {
 export function buildCallCue(cue: Cue, nowMs: number): MutationInput {
   const calledAt = new Date(nowMs).toISOString();
   return {
-    op: "update",
+    op: "rpc",
+    target: "app.call_cue",
     table: "cues",
     rowId: cue.id,
-    payload: { called_at: calledAt },
+    payload: { p_cue_id: cue.id },
     policy: "append",
     optimistic: { ...cue, called_at: calledAt },
   };

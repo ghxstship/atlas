@@ -23,9 +23,17 @@ import { useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
 import type { ReactElement } from "react";
 import { Modal, Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button, gloveSlop, Icon, Text } from "./primitives";
+import { Button, gloveSlop, Icon, Text, tid } from "./primitives";
 
-export function Screen({ title, scroll = true, refreshing, onRefresh, footer, children, testID }: ScreenProps): ReactElement {
+export function Screen({
+  title,
+  scroll = true,
+  refreshing,
+  onRefresh,
+  footer,
+  children,
+  testID,
+}: ScreenProps): ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const body = (
@@ -39,11 +47,22 @@ export function Screen({ title, scroll = true, refreshing, onRefresh, footer, ch
     </View>
   );
   return (
-    <View testID={testID} style={{ flex: 1, backgroundColor: theme.color.bgCanvas, paddingTop: insets.top }}>
+    <View
+      testID={testID}
+      style={{ flex: 1, backgroundColor: theme.color.bgCanvas, paddingTop: insets.top }}
+    >
       {scroll ? (
         <ScrollView
           contentContainerStyle={{ paddingBottom: theme.space["32"] }}
-          refreshControl={onRefresh ? <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} tintColor={theme.color.textSecondary} /> : undefined}
+          refreshControl={
+            onRefresh ? (
+              <RefreshControl
+                refreshing={Boolean(refreshing)}
+                onRefresh={onRefresh}
+                tintColor={theme.color.textSecondary}
+              />
+            ) : undefined
+          }
         >
           {body}
         </ScrollView>
@@ -71,7 +90,14 @@ export function Card({ title, meta, footer, onPress, children, testID }: CardPro
   const content = (
     <View style={{ gap: theme.space["8"] }}>
       {title ? (
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: theme.space["8"] }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: theme.space["8"],
+          }}
+        >
           <Text variant="heading16" heading>
             {title}
           </Text>
@@ -100,7 +126,16 @@ export function Card({ title, meta, footer, onPress, children, testID }: CardPro
   );
 }
 
-export function ListRow({ title, subtitle, icon, trailing, onPress, swipeStart, swipeEnd, testID }: ListRowProps): ReactElement {
+export function ListRow({
+  title,
+  subtitle,
+  icon,
+  trailing,
+  onPress,
+  swipeStart,
+  swipeEnd,
+  testID,
+}: ListRowProps): ReactElement {
   const theme = useTheme();
   // Every swipe has a visible button equivalent (Section 11.10 item 6): actions render as trailing buttons.
   const actions = [swipeStart, swipeEnd].filter((a): a is NonNullable<typeof a> => a !== undefined);
@@ -116,13 +151,21 @@ export function ListRow({ title, subtitle, icon, trailing, onPress, swipeStart, 
         borderBottomColor: theme.color.borderSubtle,
       }}
       accessibilityActions={actions.map((a) => ({ name: a.label, label: a.label }))}
-      onAccessibilityAction={(e) => actions.find((a) => a.label === e.nativeEvent.actionName)?.onAction()}
+      onAccessibilityAction={(e) =>
+        actions.find((a) => a.label === e.nativeEvent.actionName)?.onAction()
+      }
     >
       <Pressable
         accessibilityRole={onPress ? "button" : undefined}
         onPress={onPress}
         disabled={!onPress}
-        style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: theme.space["12"], paddingVertical: theme.space["8"] }}
+        style={{
+          flex: 1,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: theme.space["12"],
+          paddingVertical: theme.space["8"],
+        }}
       >
         {icon ? <Icon name={icon} /> : null}
         <View style={{ flex: 1, gap: theme.space["2"] }}>
@@ -142,9 +185,17 @@ export function ListRow({ title, subtitle, icon, trailing, onPress, swipeStart, 
           accessibilityLabel={a.label}
           onPress={a.onAction}
           hitSlop={gloveSlop(theme)}
-          style={{ minWidth: theme.density.touchMin, minHeight: theme.density.touchMin, alignItems: "center", justifyContent: "center" }}
+          style={{
+            minWidth: theme.density.touchMin,
+            minHeight: theme.density.touchMin,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          <Icon name={a.icon} tone={a.tone === "danger" ? "danger" : a.tone === "success" ? "success" : "accent"} />
+          <Icon
+            name={a.icon}
+            tone={a.tone === "danger" ? "danger" : a.tone === "success" ? "success" : "accent"}
+          />
         </Pressable>
       ))}
     </View>
@@ -155,7 +206,15 @@ export function Tag({ tone = "neutral", label, testID }: TagProps): ReactElement
   const theme = useTheme();
   const color = tone === "neutral" ? "secondary" : tone === "accent" ? "accent" : tone;
   return (
-    <View testID={testID} style={{ paddingHorizontal: theme.space["8"], paddingVertical: theme.space["2"], borderRadius: theme.radius.chip, backgroundColor: theme.color.bgRaised }}>
+    <View
+      testID={testID}
+      style={{
+        paddingHorizontal: theme.space["8"],
+        paddingVertical: theme.space["2"],
+        borderRadius: theme.radius.chip,
+        backgroundColor: theme.color.bgRaised,
+      }}
+    >
       <Text variant="label13" tone={color}>
         {label}
       </Text>
@@ -166,9 +225,24 @@ export function Tag({ tone = "neutral", label, testID }: TagProps): ReactElement
 export function Badge({ count, tone = "neutral", label, testID }: BadgeProps): ReactElement | null {
   const theme = useTheme();
   if (count <= 0) return null;
-  const bg = tone === "danger" ? theme.color.danger : tone === "accent" ? theme.color.accentDefault : theme.color.bgRaised;
+  const bg =
+    tone === "danger"
+      ? theme.color.danger
+      : tone === "accent"
+        ? theme.color.accentDefault
+        : theme.color.bgRaised;
   return (
-    <View testID={testID} accessibilityLabel={label} style={{ minWidth: theme.space["20"], paddingHorizontal: theme.space["6"], borderRadius: theme.radius.pill, backgroundColor: bg, alignItems: "center" }}>
+    <View
+      testID={testID}
+      accessibilityLabel={label}
+      style={{
+        minWidth: theme.space["20"],
+        paddingHorizontal: theme.space["6"],
+        borderRadius: theme.radius.pill,
+        backgroundColor: bg,
+        alignItems: "center",
+      }}
+    >
       <Text variant="label13">{count > 99 ? "99+" : String(count)}</Text>
     </View>
   );
@@ -178,23 +252,60 @@ export function ProgressBar({ label, value, testID }: ProgressBarProps): ReactEl
   const theme = useTheme();
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <View testID={testID} accessibilityRole="progressbar" accessibilityLabel={label} accessibilityValue={{ min: 0, max: 100, now: pct }} style={{ gap: theme.space["4"] }}>
+    <View
+      testID={testID}
+      accessibilityRole="progressbar"
+      accessibilityLabel={label}
+      accessibilityValue={{ min: 0, max: 100, now: pct }}
+      style={{ gap: theme.space["4"] }}
+    >
       <Text variant="text13" tone="secondary">
         {label}
       </Text>
-      <View style={{ height: theme.space["6"], borderRadius: theme.radius.pill, backgroundColor: theme.color.bgRaised, overflow: "hidden" }}>
-        <View style={{ width: `${pct}%`, height: theme.space["6"], backgroundColor: theme.color.accentDefault }} />
+      <View
+        style={{
+          height: theme.space["6"],
+          borderRadius: theme.radius.pill,
+          backgroundColor: theme.color.bgRaised,
+          overflow: "hidden",
+        }}
+      >
+        <View
+          style={{
+            width: `${pct}%`,
+            height: theme.space["6"],
+            backgroundColor: theme.color.accentDefault,
+          }}
+        />
       </View>
     </View>
   );
 }
 
-export function Skeleton({ width = "100%", height, lines = 1, testID }: SkeletonProps): ReactElement {
+export function Skeleton({
+  width = "100%",
+  height,
+  lines = 1,
+  testID,
+}: SkeletonProps): ReactElement {
   const theme = useTheme();
   return (
-    <View testID={testID} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ gap: theme.space["8"] }}>
+    <View
+      testID={testID}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ gap: theme.space["8"] }}
+    >
       {Array.from({ length: lines }, (_, i) => (
-        <View key={i} style={{ width, height: height ?? theme.space["16"], borderRadius: theme.radius.chip, backgroundColor: theme.color.bgRaised }} />
+        <View
+          key={i}
+          style={{
+            width,
+            height: height ?? theme.space["16"],
+            borderRadius: theme.radius.chip,
+            backgroundColor: theme.color.bgRaised,
+          }}
+        />
       ))}
     </View>
   );
@@ -207,7 +318,16 @@ function alertColors(theme: XosNativeTheme, tone: NonNullable<BannerProps["tone"
   return { border: theme.color.accentDefault, text: "accent" as const };
 }
 
-export function Banner({ tone = "info", icon, message, actionLabel, onAction, onDismiss, dismissLabel, testID }: BannerProps): ReactElement {
+export function Banner({
+  tone = "info",
+  icon,
+  message,
+  actionLabel,
+  onAction,
+  onDismiss,
+  dismissLabel,
+  testID,
+}: BannerProps): ReactElement {
   const theme = useTheme();
   const colors = alertColors(theme, tone);
   return (
@@ -229,17 +349,34 @@ export function Banner({ tone = "info", icon, message, actionLabel, onAction, on
       <View style={{ flex: 1 }}>
         <Text variant="text14">{message}</Text>
       </View>
-      {actionLabel && onAction ? <Button label={actionLabel} variant="ghost" onPress={onAction} /> : null}
-      {onDismiss ? <Button label={dismissLabel ?? ""} variant="ghost" icon="x" onPress={onDismiss} /> : null}
+      {actionLabel && onAction ? (
+        <Button label={actionLabel} variant="ghost" onPress={onAction} />
+      ) : null}
+      {onDismiss ? (
+        <Button label={dismissLabel ?? ""} variant="ghost" icon="x" onPress={onDismiss} />
+      ) : null}
     </View>
   );
 }
 
-export function InlineAlert({ tone = "info", title, message, testID }: InlineAlertProps): ReactElement {
+export function InlineAlert({
+  tone = "info",
+  title,
+  message,
+  testID,
+}: InlineAlertProps): ReactElement {
   const theme = useTheme();
   const colors = alertColors(theme, tone);
   return (
-    <View testID={testID} style={{ gap: theme.space["4"], paddingLeft: theme.space["12"], borderLeftWidth: theme.strokeWidth.accent, borderLeftColor: colors.border }}>
+    <View
+      testID={testID}
+      style={{
+        gap: theme.space["4"],
+        paddingLeft: theme.space["12"],
+        borderLeftWidth: theme.strokeWidth.accent,
+        borderLeftColor: colors.border,
+      }}
+    >
       {title ? (
         <Text variant="heading16" tone={colors.text}>
           {title}
@@ -251,18 +388,47 @@ export function InlineAlert({ tone = "info", title, message, testID }: InlineAle
 }
 
 /** The always-visible queue (Section 11.13: every action works offline, with the queue visible). */
-export function OfflineBanner({ message, queued, viewLabel, onView, testID }: OfflineBannerProps): ReactElement {
-  return <Banner testID={testID} tone="warning" icon="cloud-off" message={queued > 0 ? `${message} (${queued})` : message} {...(viewLabel && onView ? { actionLabel: viewLabel, onAction: onView } : {})} />;
+export function OfflineBanner({
+  message,
+  queued,
+  viewLabel,
+  onView,
+  testID,
+}: OfflineBannerProps): ReactElement {
+  return (
+    <Banner
+      {...tid(testID)}
+      tone="warning"
+      icon="cloud-off"
+      message={queued > 0 ? `${message} (${queued})` : message}
+      {...(viewLabel && onView ? { actionLabel: viewLabel, onAction: onView } : {})}
+    />
+  );
 }
 
 export function Toast({ message, actionLabel, onAction, testID }: ToastProps): ReactElement {
-  return <Banner testID={testID} message={message} {...(actionLabel && onAction ? { actionLabel, onAction } : {})} />;
+  return (
+    <Banner
+      {...tid(testID)}
+      message={message}
+      {...(actionLabel && onAction ? { actionLabel, onAction } : {})}
+    />
+  );
 }
 
-export function EmptyState({ sentence, actionLabel, icon = "inbox", onAction, testID }: EmptyStateProps): ReactElement {
+export function EmptyState({
+  sentence,
+  actionLabel,
+  icon = "inbox",
+  onAction,
+  testID,
+}: EmptyStateProps): ReactElement {
   const theme = useTheme();
   return (
-    <View testID={testID} style={{ alignItems: "center", gap: theme.space["12"], paddingVertical: theme.space["32"] }}>
+    <View
+      testID={testID}
+      style={{ alignItems: "center", gap: theme.space["12"], paddingVertical: theme.space["32"] }}
+    >
       <Icon name={icon} size={28} tone="tertiary" />
       <Text tone="secondary">{sentence}</Text>
       {onAction ? <Button label={actionLabel} onPress={onAction} /> : null}
@@ -270,10 +436,21 @@ export function EmptyState({ sentence, actionLabel, icon = "inbox", onAction, te
   );
 }
 
-export function ErrorState({ title, sentence, actionLabel, reference, onRetry, testID }: ErrorStateProps): ReactElement {
+export function ErrorState({
+  title,
+  sentence,
+  actionLabel,
+  reference,
+  onRetry,
+  testID,
+}: ErrorStateProps): ReactElement {
   const theme = useTheme();
   return (
-    <View testID={testID} accessibilityRole="alert" style={{ gap: theme.space["12"], paddingVertical: theme.space["24"] }}>
+    <View
+      testID={testID}
+      accessibilityRole="alert"
+      style={{ gap: theme.space["12"], paddingVertical: theme.space["24"] }}
+    >
       <Text variant="heading20" heading tone="danger">
         {title}
       </Text>
@@ -288,10 +465,28 @@ export function ErrorState({ title, sentence, actionLabel, reference, onRetry, t
   );
 }
 
-export function RefusalNotice({ outcome, title, reason, actionLabel, onAction, testID }: RefusalNoticeProps): ReactElement {
+export function RefusalNotice({
+  outcome,
+  title,
+  reason,
+  actionLabel,
+  onAction,
+  testID,
+}: RefusalNoticeProps): ReactElement {
   const theme = useTheme();
   return (
-    <View testID={testID} accessibilityRole="alert" style={{ gap: theme.space["12"], padding: theme.space["16"], borderRadius: theme.radius.card, backgroundColor: theme.color.bgSurface, borderWidth: theme.controlBorderWidth, borderColor: theme.color.borderStrong }}>
+    <View
+      testID={testID}
+      accessibilityRole="alert"
+      style={{
+        gap: theme.space["12"],
+        padding: theme.space["16"],
+        borderRadius: theme.radius.card,
+        backgroundColor: theme.color.bgSurface,
+        borderWidth: theme.controlBorderWidth,
+        borderColor: theme.color.borderStrong,
+      }}
+    >
       <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space["8"] }}>
         <Icon name={outcome === "REFUSE" ? "ban" : "circle-help"} tone="warning" />
         <Text variant="heading16" heading>
@@ -299,18 +494,32 @@ export function RefusalNotice({ outcome, title, reason, actionLabel, onAction, t
         </Text>
       </View>
       <Text tone="secondary">{reason}</Text>
-      {actionLabel && onAction ? <Button label={actionLabel} variant="secondary" onPress={onAction} /> : null}
+      {actionLabel && onAction ? (
+        <Button label={actionLabel} variant="secondary" onPress={onAction} />
+      ) : null}
     </View>
   );
 }
 
 /** Sheets over pages on phones (Section 11.10 item 7). */
-export function Sheet({ open, title, onClose, closeLabel, footer, children, testID }: SheetProps): ReactElement {
+export function Sheet({
+  open,
+  title,
+  onClose,
+  closeLabel,
+  footer,
+  children,
+  testID,
+}: SheetProps): ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
-      <Pressable accessibilityLabel={closeLabel} onPress={onClose} style={{ flex: 1, backgroundColor: theme.color.scrim, opacity: theme.opacity.scrimDark }} />
+      <Pressable
+        accessibilityLabel={closeLabel}
+        onPress={onClose}
+        style={{ flex: 1, backgroundColor: theme.color.scrim, opacity: theme.opacity.scrimDark }}
+      />
       <View
         testID={testID}
         accessibilityViewIsModal
@@ -322,7 +531,14 @@ export function Sheet({ open, title, onClose, closeLabel, footer, children, test
           paddingBottom: insets.bottom + theme.space["16"],
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", padding: theme.space["16"], gap: theme.space["12"] }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            padding: theme.space["16"],
+            gap: theme.space["12"],
+          }}
+        >
           <View style={{ flex: 1 }}>
             <Text variant="heading20" heading>
               {title}
@@ -330,14 +546,25 @@ export function Sheet({ open, title, onClose, closeLabel, footer, children, test
           </View>
           <Button label={closeLabel} variant="ghost" onPress={onClose} />
         </View>
-        <ScrollView contentContainerStyle={{ paddingHorizontal: theme.space["16"], gap: theme.space["16"] }}>{children}</ScrollView>
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: theme.space["16"], gap: theme.space["16"] }}
+        >
+          {children}
+        </ScrollView>
         {footer ? <View style={{ padding: theme.space["16"] }}>{footer}</View> : null}
       </View>
     </Modal>
   );
 }
 
-export function TabBar({ label, items, active, onSelect, center, testID }: TabBarProps): ReactElement {
+export function TabBar({
+  label,
+  items,
+  active,
+  onSelect,
+  center,
+  testID,
+}: TabBarProps): ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   return (
@@ -364,12 +591,22 @@ export function TabBar({ label, items, active, onSelect, center, testID }: TabBa
             accessibilityState={{ selected }}
             accessibilityLabel={item.badge ? `${item.label}, ${item.badge}` : item.label}
             onPress={() => (isCenter ? center.onPress() : onSelect(item.key))}
-            style={{ flex: 1, minHeight: theme.density.touchMin + theme.space["8"], alignItems: "center", justifyContent: "center", gap: theme.space["2"] }}
+            style={{
+              flex: 1,
+              minHeight: theme.density.touchMin + theme.space["8"],
+              alignItems: "center",
+              justifyContent: "center",
+              gap: theme.space["2"],
+            }}
           >
             <View
               style={
                 isCenter
-                  ? { padding: theme.space["8"], borderRadius: theme.radius.pill, backgroundColor: theme.color.accentDefault }
+                  ? {
+                      padding: theme.space["8"],
+                      borderRadius: theme.radius.pill,
+                      backgroundColor: theme.color.accentDefault,
+                    }
                   : undefined
               }
             >

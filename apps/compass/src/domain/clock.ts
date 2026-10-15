@@ -14,7 +14,7 @@ export type PunchKind = "In" | "Break Start" | "Break End" | "Out";
 export interface Punch {
   readonly id: string;
   readonly punch_kind: PunchKind;
-  readonly device_at: string;
+  readonly device_time: string;
   readonly project_id: string;
   readonly shift_id: string | null;
   readonly membership_id: string | null;
@@ -39,7 +39,7 @@ export interface ClockSnapshot {
 /** Forgotten clock-outs close automatically at 16 hours, flagged for supervisor review (Section 4.3). */
 export const AUTO_CLOSE_MS = 16 * 60 * 60_000;
 
-const time = (p: Punch) => Date.parse(p.device_at);
+const time = (p: Punch) => Date.parse(p.device_time);
 
 /** Replays the person's punches into the current clock state. Punches are sorted by device time. */
 export function deriveClock(punches: readonly Punch[], nowMs: number): ClockSnapshot {
@@ -237,32 +237,51 @@ export function buildPunch(
   }
   const id = newId(nowMs);
   const status = evaluateGeofence(fix, geofences, nowMs);
+  const geofenceId = status.kind === "inside" ? status.geofence.id : null;
   const row: Punch & Record<string, unknown> = {
     id,
     punch_kind: kind,
-    device_at: event.deviceAt,
+    device_time: event.deviceAt,
     project_id: ctx.projectId,
     shift_id: ctx.shiftId,
     membership_id: ctx.membershipId,
     engagement_id: ctx.engagementId,
     source: ctx.source,
-    monotonic_offset_ms: event.monotonicOffsetMs,
-    anchor_server_at: event.anchorServerAt,
     latitude: fix?.latitude ?? null,
     longitude: fix?.longitude ?? null,
     accuracy_m: fix?.accuracyM ?? null,
-    geofence_id: status.kind === "inside" ? status.geofence.id : null,
-    device_geofence_status: status.kind,
+    geofence_id: geofenceId,
     kiosk_device_id: ctx.kioskDeviceId ?? null,
     photo_uri: ctx.photoUri ?? null,
+    device_geofence_status: status.kind,
     device_needs_review: needsReview(event),
+  };
+  // Named arguments of app.record_punch. The monotonic offset is the punch's age at upload, so the
+  // uploader fills p_monotonic_offset_ms from monotonic_at and boot_id when it sends.
+  const args = {
+    p_punch_id: id,
+    p_project_id: ctx.projectId,
+    p_punch_kind: kind,
+    p_device_time: event.deviceAt,
+    p_shift_id: ctx.shiftId,
+    p_latitude: fix?.latitude ?? null,
+    p_longitude: fix?.longitude ?? null,
+    p_accuracy_m: fix?.accuracyM ?? null,
+    p_geofence_id: geofenceId,
+    p_source: ctx.source,
+    p_kiosk_device_id: ctx.kioskDeviceId ?? null,
+    p_photo_uri: ctx.photoUri ?? null,
+    p_membership_id: ctx.membershipId,
+    p_engagement_id: ctx.engagementId,
+    monotonic_at: event.monotonicAt,
+    boot_id: event.bootId,
   };
   return {
     op: "rpc",
-    target: "record_punch",
+    target: "app.record_punch",
     table: "clock_punches",
     rowId: id,
-    payload: row,
+    payload: args,
     policy: "append",
     optimistic: row,
   };

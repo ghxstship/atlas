@@ -7,12 +7,20 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  ageAtUpload,
   classifyServerError,
+  type DeviceClock,
   type Mutation,
   type Row,
   type UploadOutcome,
   type Uploader,
 } from "@xos/sync";
+
+function asRow(value: unknown): Row | null {
+  return value && typeof value === "object" && !Array.isArray(value) && "id" in value
+    ? (value as Row)
+    : null;
+}
 
 /** The A14 and A12 Result shape (packages/data/src/result.ts), redeclared structurally. */
 export type DataResult<T> =
@@ -62,16 +70,33 @@ export interface UploaderOptions {
   readonly accessToken: () => Promise<string | null>;
   readonly routes?: Readonly<Record<string, Route>>;
   readonly fetchImpl?: typeof fetch;
+  /** The org the device acts in, for app.apply_sync_mutation. */
+  readonly orgId: () => string | null;
+  /** A stable id for this install, recorded with each replayed mutation. */
+  readonly deviceId: string;
+  /** The device clock, for a punch's age at upload. */
+  readonly clock: DeviceClock;
 }
 
 /**
- * RPCs that record their mutation id in app.sync_mutations, so a replay returns the stored result. Each
- * takes the queued row as one jsonb argument (named here) plus p_mutation_id.
+ * Offline mutations replay through app.apply_sync_mutation, which runs an allowlisted RPC (private.sync_rpcs)
+ * exactly once per mutation id and stores its answer. Queued RPC targets carry the schema ("app.call_cue");
+ * other targets are plain PostgREST RPC names.
  */
-const REPLAY_LEDGER_RPCS = new Map([["record_punch", "p_punch"]]);
+const SYNC_PREFIX = "app.";
+
+/** Refusals that mean the change already happened, so the device takes them as applied. */
+const ALREADY_DONE: Readonly<Record<string, readonly string[]>> = {
+  "app.call_cue": ["cue_already_called"],
+};
 
 /** Strips device-only fields that the server tables do not have. */
-const DEVICE_ONLY = new Set(["device_geofence_status", "device_needs_review"]);
+const DEVICE_ONLY = new Set([
+  "device_geofence_status",
+  "device_needs_review",
+  "monotonic_at",
+  "boot_id",
+]);
 
 function serverPayload(payload: Readonly<Record<string, unknown>>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(payload).filter(([k]) => !DEVICE_ONLY.has(k)));
@@ -140,12 +165,23 @@ export class SupabaseUploader implements Uploader {
     return { kind: "stale", serverRow: current.data as Row };
   }
 
+  /** Named RPC arguments; a punch gets its monotonic age at the moment it is sent. */
+  #rpcArgs(mutation: Mutation): Record<string, unknown> {
+    const args = serverPayload(mutation.payload);
+    const monotonicAt = mutation.payload["monotonic_at"];
+    const bootId = mutation.payload["boot_id"];
+    if (typeof monotonicAt === "number" && typeof bootId === "string") {
+      args["p_monotonic_offset_ms"] = ageAtUpload(this.#options.clock, { monotonicAt, bootId });
+    }
+    return args;
+  }
+
   async #rpc(mutation: Mutation): Promise<UploadOutcome> {
-    const ledgerArg = REPLAY_LEDGER_RPCS.get(mutation.target);
-    const args = ledgerArg
-      ? { [ledgerArg]: serverPayload(mutation.payload), p_mutation_id: mutation.id }
-      : serverPayload(mutation.payload);
-    const { data, error, status } = await this.#options.client.rpc(mutation.target, args);
+    if (mutation.target.startsWith(SYNC_PREFIX)) return this.#replay(mutation);
+    const { data, error, status } = await this.#options.client.rpc(
+      mutation.target,
+      this.#rpcArgs(mutation),
+    );
     if (error) {
       // A compare-and-set RPC refuses a mismatched expected state; the server row decides the conflict.
       if (
@@ -166,11 +202,36 @@ export class SupabaseUploader implements Uploader {
       }
       return classifyServerError({ ...error, status });
     }
-    const row =
-      data && typeof data === "object" && !Array.isArray(data) && "id" in data
-        ? (data as Row)
-        : null;
-    return { kind: "applied", serverRow: row };
+    return { kind: "applied", serverRow: asRow(Array.isArray(data) ? data[0] : data) };
+  }
+
+  async #replay(mutation: Mutation): Promise<UploadOutcome> {
+    const orgId = this.#options.orgId();
+    if (orgId === null) {
+      return {
+        kind: "unauthorized",
+        error: { code: "no-org", message: "Sign in to an organization to upload." },
+      };
+    }
+    const { data, error, status } = await this.#options.client.rpc("apply_sync_mutation", {
+      p_mutation_id: mutation.id,
+      p_org_id: orgId,
+      p_device_id: this.#options.deviceId,
+      p_rpc: mutation.target,
+      p_args: this.#rpcArgs(mutation),
+    });
+    if (error) return classifyServerError({ ...error, status });
+    const result = (data ?? {}) as {
+      data?: unknown;
+      refusal?: { rule?: string | null; message?: string };
+    };
+    if (result.refusal) {
+      const rule = result.refusal.rule ?? "refused";
+      if (ALREADY_DONE[mutation.target]?.includes(rule))
+        return { kind: "applied", serverRow: null };
+      return { kind: "refused", error: { code: rule, message: result.refusal.message ?? rule } };
+    }
+    return { kind: "applied", serverRow: asRow(result.data) };
   }
 
   async #edgeFunction(name: string, mutation: Mutation): Promise<UploadOutcome> {

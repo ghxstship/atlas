@@ -4,7 +4,13 @@
  * implementation below stands in, and when it turns "shipped" its line switches to a re-export from
  * "@xos/ui-native" with no screen changes.
  */
-export { ThemeProvider, useTheme, themes, type ThemePreference, type XosNativeTheme } from "@xos/ui-native/theme";
+export {
+  ThemeProvider,
+  useTheme,
+  themes,
+  type ThemePreference,
+  type XosNativeTheme,
+} from "@xos/ui-native/theme";
 export { Button, Icon, IconButton, SegmentedControl, Switch, Text, TextField } from "./primitives";
 export {
   Badge,

@@ -10,6 +10,7 @@ import {
   gtin14,
   ndefText,
   parseGs1,
+  serverSymbology,
   SUPPORTED_CAMERA_TYPES,
   symbologyOf,
   validGtin,
@@ -219,14 +220,21 @@ describe("gate decisions", () => {
       now,
       () => "s1",
     );
-    expect(m).toMatchObject({ op: "insert", table: "access_scans", rowId: "s1", policy: "append" });
-    expect(m.payload).toEqual({
-      id: "s1",
-      credential_id: "c1",
-      zone_id: "backstage",
-      device_scanned_at: "2026-10-14T18:00:00.000Z",
-      offline_result: "Granted",
+    expect(m).toMatchObject({
+      op: "rpc",
+      target: "record_scan",
+      table: "access_scans",
+      rowId: "s1",
+      policy: "append",
     });
+    expect(m.payload).toEqual({
+      p_zone_id: "backstage",
+      p_credential_id: "c1",
+      p_id: "s1",
+      p_device_scanned_at: "2026-10-14T18:00:00.000Z",
+      p_offline_result: "Granted",
+    });
+    expect(m.optimistic).toMatchObject({ id: "s1", offline_result: "Granted" });
     expect(typeof buildAccessScan(cred(), "z", decision, "", now).rowId).toBe("string");
   });
 });
@@ -268,19 +276,31 @@ describe("intake and custody", () => {
       0,
       () => "i1",
     );
-    expect(m.payload).toEqual({
+    expect(m?.payload).toEqual({
       id: "i1",
       org_id: "o1",
       project_id: "p1",
       scanned_value: "ZZ-UNKNOWN",
-      symbology: "code128",
-      scan_mode: "asset",
+      symbology: "Code 128",
+      scan_mode: "Asset",
       device_scanned_at: "2026-10-14T18:00:00Z",
     });
+    const receiving = buildIntake(
+      "x",
+      "qr",
+      { orgId: "o", projectId: "p", mode: "receiving", deviceAt: "" },
+      0,
+    );
+    expect(receiving?.payload).toMatchObject({ symbology: "QR Code", scan_mode: "Shipment" });
     expect(
-      buildIntake("x", "qr", { orgId: "o", projectId: null, mode: "lookup", deviceAt: "" }, 0)
-        .table,
-    ).toBe("scan_intake");
+      buildIntake(
+        "10614141000415",
+        "itf14",
+        { orgId: "o", projectId: "p", mode: "asset", deviceAt: "" },
+        0,
+      ),
+    ).toBeNull();
+    expect(serverSymbology("nfc")).toBe("NFC");
   });
 
   it("queues a custody scan keyed by its event id", () => {

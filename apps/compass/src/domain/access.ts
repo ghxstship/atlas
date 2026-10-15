@@ -80,7 +80,7 @@ const INTERNAL_CAPABILITY: Readonly<Record<Feature, string | null>> = {
   "inspections.perform": "safety.inspection.write",
   "inspections.signOff": "safety.inspection.sign_off",
   "show.live": "show.run_of_show.read",
-  "show.callCue": "show.run_of_show.write",
+  "show.callCue": "show.cue.call",
   "show.read": "show.run_of_show.read",
   "scan.asset": "assets.custody.write",
   "scan.receiving": "procurement.receipt.write",

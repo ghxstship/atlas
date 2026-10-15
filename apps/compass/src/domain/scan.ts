@@ -254,11 +254,19 @@ export function buildAccessScan(
     device_scanned_at: deviceAt,
     offline_result: decision.result,
   };
+  // app.record_scan (A14): the database decides the result; p_id makes a replay return the first answer.
   return {
-    op: "insert",
+    op: "rpc",
+    target: "record_scan",
     table: "access_scans",
     rowId: id,
-    payload: row,
+    payload: {
+      p_zone_id: zoneId,
+      p_credential_id: credential.id,
+      p_id: id,
+      p_device_scanned_at: deviceAt,
+      p_offline_result: decision.result,
+    },
     policy: "append",
     optimistic: row,
   };
@@ -329,27 +337,57 @@ export class ContinuousScan {
 
 export interface IntakeContext {
   readonly orgId: string;
-  readonly projectId: string | null;
+  readonly projectId: string;
   readonly mode: "asset" | "receiving" | "credential" | "lookup";
   readonly deviceAt: string;
 }
 
-/** Queues an unknown code for human resolution (app.scan_intake). Never maps it automatically. */
+/** app.scan_symbology labels. ITF-14 and EAN-8 have no label yet, so they cannot go to intake. */
+const SERVER_SYMBOLOGY: Readonly<Record<Symbology, string | null>> = {
+  ean13: "EAN-13",
+  upc_a: "UPC-A",
+  ean8: null,
+  itf14: null,
+  gs1_128: "Code 128",
+  code128: "Code 128",
+  qr: "QR Code",
+  datamatrix: "Data Matrix",
+  nfc: "NFC",
+};
+
+/** app.scan_mode labels for the Compass scan modes; receiving logs against shipments. */
+const SERVER_MODE = {
+  asset: "Asset",
+  receiving: "Shipment",
+  credential: "Credential",
+  lookup: "Lookup",
+} as const;
+
+export function serverSymbology(symbology: Symbology): string | null {
+  return SERVER_SYMBOLOGY[symbology];
+}
+
+/**
+ * Queues an unknown code for human resolution (app.scan_intake). Never maps it automatically. Returns null
+ * when the symbology has no server label, so the screen can say the code needs keying in at the desk.
+ */
 export function buildIntake(
   code: string,
   symbology: Symbology,
   ctx: IntakeContext,
   nowMs: number,
   newId: (ms: number) => string = uuidv7,
-): MutationInput {
+): MutationInput | null {
+  const label = serverSymbology(symbology);
+  if (label === null) return null;
   const id = newId(nowMs);
   const row = {
     id,
     org_id: ctx.orgId,
     project_id: ctx.projectId,
     scanned_value: code,
-    symbology,
-    scan_mode: ctx.mode,
+    symbology: label,
+    scan_mode: SERVER_MODE[ctx.mode],
     device_scanned_at: ctx.deviceAt,
   };
   return {

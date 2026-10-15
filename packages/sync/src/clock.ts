@@ -35,6 +35,22 @@ export interface EventTime {
   readonly estimatedServerAt: string | null;
   /** Device wall time minus estimated server time, in milliseconds; null without a valid anchor. */
   readonly skewMs: number | null;
+  /** The raw monotonic reading and boot at the event, for the age-at-upload the server checks. */
+  readonly monotonicAt: number;
+  readonly bootId: string;
+}
+
+/**
+ * Milliseconds between the event and now by the monotonic clock: the offset app.record_punch subtracts
+ * from its receive time to place an offline punch. Null after a reboot, when the server falls back to its
+ * own skew window.
+ */
+export function ageAtUpload(
+  clock: DeviceClock,
+  event: Pick<EventTime, "monotonicAt" | "bootId">,
+): number | null {
+  if (event.bootId !== clock.bootId()) return null;
+  return Math.max(0, Math.round(clock.monotonicNow() - event.monotonicAt));
 }
 
 /** Default tolerance before an offline punch is flagged for review: two minutes. */
@@ -55,18 +71,24 @@ export function anchorFromServer(
 export function stampEvent(clock: DeviceClock, anchor: TimeAnchor | null): EventTime {
   const wall = clock.wallNow();
   const deviceAt = new Date(wall).toISOString();
-  if (!anchor || anchor.bootId !== clock.bootId()) {
+  const monotonicAt = clock.monotonicNow();
+  const bootId = clock.bootId();
+  if (!anchor || anchor.bootId !== bootId) {
     return {
       deviceAt,
       monotonicOffsetMs: null,
       anchorServerAt: null,
       estimatedServerAt: null,
       skewMs: null,
+      monotonicAt,
+      bootId,
     };
   }
-  const offset = clock.monotonicNow() - anchor.monotonicMs;
+  const offset = monotonicAt - anchor.monotonicMs;
   const estimated = anchor.serverMs + offset;
   return {
+    monotonicAt,
+    bootId,
     deviceAt,
     monotonicOffsetMs: offset,
     anchorServerAt: new Date(anchor.serverMs).toISOString(),

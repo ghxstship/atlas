@@ -55,7 +55,14 @@ function mutation(over: Partial<Mutation>): Mutation {
   };
 }
 
-const base = { functionsUrl: "https://x.example.com", accessToken: () => Promise.resolve("token") };
+let monotonic = 10_000;
+const base = {
+  functionsUrl: "https://x.example.com",
+  accessToken: () => Promise.resolve("token"),
+  orgId: () => "org-1",
+  deviceId: "device-1",
+  clock: { wallNow: () => 0, monotonicNow: () => monotonic, bootId: () => "boot-1" },
+};
 
 describe("uploader", () => {
   it("inserts and returns the server row", async () => {
@@ -127,21 +134,94 @@ describe("uploader", () => {
     expect(okay.calls).not.toContain("eq updated_at=t1");
   });
 
-  it("sends record_punch with the mutation id for the replay ledger", async () => {
-    const { client, calls } = fakeClient([{ data: { id: "p1" }, error: null, status: 200 }]);
+  it("replays record_punch through apply_sync_mutation with the punch's age at upload", async () => {
+    const { client, calls } = fakeClient([
+      { data: { data: { id: "p1" } }, error: null, status: 200 },
+    ]);
     const m = mutation({
       op: "rpc",
-      target: "record_punch",
+      target: "app.record_punch",
       table: "clock_punches",
-      payload: { id: "p1", punch_kind: "In", device_needs_review: false },
+      payload: { p_punch_id: "p1", p_punch_kind: "In", monotonic_at: 4_000, boot_id: "boot-1" },
     });
+    monotonic = 64_000;
     expect(await new SupabaseUploader({ client, ...base }).upload(m)).toEqual({
       kind: "applied",
       serverRow: { id: "p1" },
     });
     expect(calls[0]).toBe(
-      'rpc record_punch {"p_punch":{"id":"p1","punch_kind":"In"},"p_mutation_id":"mut-1"}',
+      'rpc apply_sync_mutation {"p_mutation_id":"mut-1","p_org_id":"org-1","p_device_id":"device-1","p_rpc":"app.record_punch","p_args":{"p_punch_id":"p1","p_punch_kind":"In","p_monotonic_offset_ms":60000}}',
     );
+  });
+
+  it("maps stored refusals and treats an already-called cue as applied", async () => {
+    const refused = fakeClient([
+      {
+        data: { refusal: { rule: "punch_shift_not_accepted", message: "Accept the shift first." } },
+        error: null,
+        status: 200,
+      },
+    ]);
+    const punch = mutation({ op: "rpc", target: "app.record_punch", payload: {} });
+    expect(await new SupabaseUploader({ client: refused.client, ...base }).upload(punch)).toEqual({
+      kind: "refused",
+      error: { code: "punch_shift_not_accepted", message: "Accept the shift first." },
+    });
+    const cue = fakeClient([
+      {
+        data: { refusal: { rule: "cue_already_called", message: "Called." } },
+        error: null,
+        status: 200,
+      },
+    ]);
+    const call = mutation({ op: "rpc", target: "app.call_cue", payload: { p_cue_id: "c1" } });
+    expect(await new SupabaseUploader({ client: cue.client, ...base }).upload(call)).toEqual({
+      kind: "applied",
+      serverRow: null,
+    });
+    const scalar = fakeClient([
+      { data: { data: "2026-10-15T00:00:00Z" }, error: null, status: 200 },
+    ]);
+    expect(await new SupabaseUploader({ client: scalar.client, ...base }).upload(call)).toEqual({
+      kind: "applied",
+      serverRow: null,
+    });
+    const rule = fakeClient([{ data: { refusal: { rule: null } }, error: null, status: 200 }]);
+    expect((await new SupabaseUploader({ client: rule.client, ...base }).upload(call)).kind).toBe(
+      "refused",
+    );
+  });
+
+  it("waits for sign-in when no org is chosen and retries a failed replay call", async () => {
+    const { client } = fakeClient([]);
+    const noOrg = new SupabaseUploader({ client, ...base, orgId: () => null });
+    expect((await noOrg.upload(mutation({ op: "rpc", target: "app.call_cue" }))).kind).toBe(
+      "unauthorized",
+    );
+    const down = fakeClient([{ data: null, error: { message: "fetch failed" }, status: 0 }]);
+    expect(
+      (
+        await new SupabaseUploader({ client: down.client, ...base }).upload(
+          mutation({ op: "rpc", target: "app.call_cue" }),
+        )
+      ).kind,
+    ).toBe("transient");
+  });
+
+  it("reads the first row of a table-returning RPC such as record_scan", async () => {
+    const { client } = fakeClient([
+      { data: [{ id: "s1", result: "Granted" }], error: null, status: 200 },
+    ]);
+    const scan = mutation({
+      op: "rpc",
+      target: "record_scan",
+      table: "access_scans",
+      payload: { p_id: "s1" },
+    });
+    expect(await new SupabaseUploader({ client, ...base }).upload(scan)).toEqual({
+      kind: "applied",
+      serverRow: { id: "s1", result: "Granted" },
+    });
   });
 
   it("turns a compare-and-set refusal into a stale outcome with the current row", async () => {
