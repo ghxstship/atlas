@@ -293,6 +293,7 @@ export interface Components {
     prefix: string;
     last_used_at: string | null;
     revoked_at: string | null;
+    revoked_by: string | null;
   };
   ApiKeyCreate: {
     name: string;
@@ -565,12 +566,16 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    actor_urn: string;
     action: string;
-    subject_urn: string;
-    capacity: string;
-    occurred_at: string;
     diff: Record<string, unknown>;
+    actor_kind: "Person" | "Service" | "System";
+    actor_person_id: string | null;
+    subject_table: string;
+    subject_id: string | null;
+    actor_ip: string | null;
+    user_agent: string | null;
+    request_id: string | null;
+    redacted_at: string | null;
   };
   AuditEventPage: { data: Array<Components["AuditEvent"]>; next_cursor: string | null };
   AvailabilityBlock: {
@@ -1264,7 +1269,13 @@ export interface Components {
   };
   CanonVersion: { version: string; generation: number; imported_at: string };
   CanonVersionPage: { data: Array<Components["CanonVersion"]>; next_cursor: string | null };
-  Capability: { capability: string; group: string; classification: Components["Classification"] };
+  Capability: {
+    code: string;
+    module_code: string;
+    capability_class: "read" | "write" | "approve" | "manage" | "export";
+    description: string;
+    sort_order: number;
+  };
   CapabilityDocument: {
     id: string;
     org_id: string;
@@ -1416,12 +1427,12 @@ export interface Components {
   ChangeOrderPage: { data: Array<Components["ChangeOrder"]>; next_cursor: string | null };
   ChangeOrderTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   ChangeOrderUpdate: { title?: string; description?: string };
-  Classification: "Public" | "Internal" | "Confidential" | "Restricted" | null;
+  Classification: "Public" | "Internal" | "Confidential" | "Restricted";
   ColumnClassification: {
     table_name: string;
     column_name: string;
     classification: Components["Classification"];
-    reveal_capability: string | null;
+    read_capability: string | null;
   };
   ColumnClassificationPage: {
     data: Array<Components["ColumnClassification"]>;
@@ -1459,11 +1470,19 @@ export interface Components {
     created_at: string;
     updated_at: string;
     person_id: string;
-    purpose: string;
-    granted: boolean;
-    recorded_at: string;
+    purpose_code: string;
+    notice_version: string;
+    source: "Web" | "Mobile" | "Email" | "SMS" | "Import" | "Support";
+    captured_at: string;
+    captured_ip: string | null;
+    withdrawn_at: string | null;
   };
-  ConsentRecordCreate: { person_id: string; purpose: string; granted: boolean };
+  ConsentRecordCreate: {
+    person_id: string;
+    purpose_code: string;
+    notice_version: string;
+    source: "Web" | "Mobile" | "Email" | "SMS" | "Import" | "Support";
+  };
   ConsentRecordPage: { data: Array<Components["ConsentRecord"]>; next_cursor: string | null };
   ContingencyDraw: {
     id: string;
@@ -1811,23 +1830,27 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    from_person_id: string;
-    to_person_id: string;
     valid_from: string;
     valid_to: string;
+    delegator_membership_id: string;
+    delegate_membership_id: string;
+    capability_code: string | null;
+    reason: string;
   };
   DelegationCreate: {
-    from_person_id: string;
-    to_person_id: string;
     valid_from: string;
     valid_to: string;
+    delegator_membership_id: string;
+    delegate_membership_id: string;
+    capability_code?: string | null;
+    reason: string;
   };
   DelegationPage: { data: Array<Components["Delegation"]>; next_cursor: string | null };
   DelegationUpdate: {
-    from_person_id?: string;
-    to_person_id?: string;
     valid_from?: string;
     valid_to?: string;
+    capability_code?: string | null;
+    reason?: string;
   };
   DeptCode: string;
   Direction: "require" | "provide";
@@ -1939,12 +1962,33 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    person_id: string;
-    request_type: string;
+    request_type:
+      | "Access"
+      | "Rectification"
+      | "Erasure"
+      | "Restriction"
+      | "Portability"
+      | "Objection"
+      | "Opt Out of Sale";
     dsar_state: string;
-    completed_at: string | null;
+    subject_person_id: string | null;
+    subject_email: string;
+    details: string | null;
+    received_at: string;
   };
-  DsarRequestCreate: { person_id: string; request_type: string };
+  DsarRequestCreate: {
+    request_type:
+      | "Access"
+      | "Rectification"
+      | "Erasure"
+      | "Restriction"
+      | "Portability"
+      | "Objection"
+      | "Opt Out of Sale";
+    subject_person_id?: string | null;
+    subject_email: string;
+    details?: string | null;
+  };
   DsarRequestPage: { data: Array<Components["DsarRequest"]>; next_cursor: string | null };
   EarningCode: {
     id: string;
@@ -3457,23 +3501,50 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    display_name: string;
-    logo_document_id: string | null;
-    accent_token: string;
-    gateway_domain: string | null;
+    display_name: string | null;
+    logo_light_path: string | null;
+    logo_dark_path: string | null;
+    favicon_path: string | null;
+    app_icon_path: string | null;
+    accent_hex: string | null;
+    neutral_tint_hex: string | null;
+    font_family: string | null;
+    radius_scale: "Compact" | "Default" | "Rounded";
+    email_sender_name: string | null;
+    support_email: string | null;
+    legal_entity_name: string | null;
+    suppress_powered_by: boolean;
   };
   OrgBrandingCreate: {
-    display_name: string;
-    logo_document_id?: string | null;
-    accent_token: string;
-    gateway_domain?: string | null;
+    display_name?: string | null;
+    logo_light_path?: string | null;
+    logo_dark_path?: string | null;
+    favicon_path?: string | null;
+    app_icon_path?: string | null;
+    accent_hex?: string | null;
+    neutral_tint_hex?: string | null;
+    font_family?: string | null;
+    radius_scale?: "Compact" | "Default" | "Rounded";
+    email_sender_name?: string | null;
+    support_email?: string | null;
+    legal_entity_name?: string | null;
+    suppress_powered_by?: boolean;
   };
   OrgBrandingPage: { data: Array<Components["OrgBranding"]>; next_cursor: string | null };
   OrgBrandingUpdate: {
-    display_name?: string;
-    logo_document_id?: string | null;
-    accent_token?: string;
-    gateway_domain?: string | null;
+    display_name?: string | null;
+    logo_light_path?: string | null;
+    logo_dark_path?: string | null;
+    favicon_path?: string | null;
+    app_icon_path?: string | null;
+    accent_hex?: string | null;
+    neutral_tint_hex?: string | null;
+    font_family?: string | null;
+    radius_scale?: "Compact" | "Default" | "Rounded";
+    email_sender_name?: string | null;
+    support_email?: string | null;
+    legal_entity_name?: string | null;
+    suppress_powered_by?: boolean;
   };
   OrgExport: {
     id: string;
@@ -3868,7 +3939,7 @@ export interface Components {
     declared_gap: boolean;
   };
   PhaseCoveragePage: { data: Array<Components["PhaseCoverage"]>; next_cursor: string | null };
-  Plan: { plan_code: string; name: string; monthly_price_minor: number | null; currency: string };
+  Plan: { code: string; sort_order: number };
   PlanPage: { data: Array<Components["Plan"]>; next_cursor: string | null };
   PoChangeOrder: {
     id: string;
@@ -4535,23 +4606,34 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    grantee_urn: string;
-    subject_urn: string;
-    capability: string;
+    capability_code: string;
     valid_to: string | null;
+    target_kind: "organization" | "workspace" | "team" | "project" | "record";
+    target_id: string;
+    grantee_person_id: string | null;
+    grantee_org_id: string | null;
+    valid_from: string;
+    granted_by: string | null;
+    reason: string;
   };
   RecordGrantCreate: {
-    grantee_urn: string;
-    subject_urn: string;
-    capability: string;
-    valid_to?: string | null;
+    capability_code: string;
+    valid_to: string | null;
+    target_kind: "organization" | "workspace" | "team" | "project" | "record";
+    target_id: string;
+    grantee_person_id?: string | null;
+    grantee_org_id?: string | null;
+    valid_from?: string;
+    reason: string;
   };
   RecordGrantPage: { data: Array<Components["RecordGrant"]>; next_cursor: string | null };
   RecordGrantUpdate: {
-    grantee_urn?: string;
-    subject_urn?: string;
-    capability?: string;
+    capability_code?: string;
     valid_to?: string | null;
+    grantee_person_id?: string | null;
+    grantee_org_id?: string | null;
+    valid_from?: string;
+    reason?: string;
   };
   RecordKind: string;
   RecordPage: { data: Array<Components["Record"]>; next_cursor: string | null };
@@ -4829,7 +4911,15 @@ export interface Components {
     currency?: string;
   };
   RestoreRequest: { subject_urn: string };
-  RetentionPolicy: { table_name: string; retention_days: number };
+  RetentionPolicy: {
+    table_name: string;
+    basis: "Soft Deleted" | "Age" | null;
+    time_column: string | null;
+    retention: string | null;
+    purge_method: "Delete" | "Drop Partition" | "Account Lifecycle" | null;
+    redact_personal_data_after: string | null;
+    rationale: string | null;
+  };
   RetentionPolicyPage: { data: Array<Components["RetentionPolicy"]>; next_cursor: string | null };
   Rfq: {
     id: string;
@@ -4948,14 +5038,15 @@ export interface Components {
   RiderUpdate: { engagement_id?: string; title?: string; document_id?: string | null };
   Role: {
     id: string;
-    org_id: string;
+    org_id: string | null;
     created_at: string;
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    name: string;
-    base_role: Components["OrgRole"] & (string | null);
+    name: string | null;
     description: string | null;
+    code: string;
+    band: number;
   };
   RoleAssignment: {
     id: string;
@@ -4989,28 +5080,25 @@ export interface Components {
   };
   RoleCapability: {
     id: string;
-    org_id: string;
+    org_id: string | null;
     created_at: string;
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
     role_id: string;
-    capability: string;
+    capability_code: string;
+    reach: "own" | "assigned" | "organization";
   };
-  RoleCapabilityCreate: { role_id: string; capability: string };
+  RoleCapabilityCreate: {
+    role_id: string;
+    capability_code: string;
+    reach: "own" | "assigned" | "organization";
+  };
   RoleCapabilityPage: { data: Array<Components["RoleCapability"]>; next_cursor: string | null };
   RoleCode: string;
-  RoleCreate: {
-    name: string;
-    base_role?: Components["OrgRole"] & (string | null);
-    description?: string | null;
-  };
+  RoleCreate: { name?: string | null; description?: string | null; code: string; band: number };
   RolePage: { data: Array<Components["Role"]>; next_cursor: string | null };
-  RoleUpdate: {
-    name?: string;
-    base_role?: Components["OrgRole"] & (string | null);
-    description?: string | null;
-  };
+  RoleUpdate: { name?: string | null; description?: string | null; band?: number };
   RunOfShow: {
     id: string;
     org_id: string;
@@ -5170,23 +5258,11 @@ export interface Components {
   };
   ScopeNodePage: { data: Array<Components["ScopeNode"]>; next_cursor: string | null };
   ScopeNodeUpdate: { scope_code?: string; name?: string; node_kind?: string };
-  SeparationOfDutiesRule: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    rule: string;
-    enforced_on: string;
-    is_default: boolean;
-  };
-  SeparationOfDutiesRuleCreate: { rule: string; enforced_on: string };
+  SeparationOfDutiesRule: { code: string; enforced_on: string; description: string };
   SeparationOfDutiesRulePage: {
     data: Array<Components["SeparationOfDutiesRule"]>;
     next_cursor: string | null;
   };
-  SeparationOfDutiesRuleUpdate: { rule?: string; enforced_on?: string };
   ServiceAccount: {
     id: string;
     org_id: string;
@@ -5197,6 +5273,9 @@ export interface Components {
     name: string;
     owner_person_id: string;
     expires_at: string | null;
+    user_id: string;
+    person_id: string;
+    membership_id: string;
   };
   ServiceAccountCreate: { name: string; owner_person_id: string; expires_at?: string | null };
   ServiceAccountPage: { data: Array<Components["ServiceAccount"]>; next_cursor: string | null };
@@ -5469,28 +5548,61 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     role_id: string | null;
-    person_id: string | null;
-    document_type: Components["SpendDocumentType"];
+    document_type:
+      | "Purchase Order"
+      | "Change Order"
+      | "Expense"
+      | "Invoice Approval"
+      | "Contract"
+      | "Payroll Run"
+      | "Requisition";
     limit_minor: number | null;
     dual_approval_above_minor: number | null;
-    currency: string;
+    currency_code: string;
+    membership_id: string | null;
+    account_code: string | null;
+    cost_center_id: string | null;
+    valid_from: string;
+    valid_to: string | null;
   };
   SpendAuthorityCreate: {
     role_id?: string | null;
-    person_id?: string | null;
-    document_type: Components["SpendDocumentType"];
-    limit_minor?: number | null;
+    document_type:
+      | "Purchase Order"
+      | "Change Order"
+      | "Expense"
+      | "Invoice Approval"
+      | "Contract"
+      | "Payroll Run"
+      | "Requisition";
+    limit_minor: number | null;
     dual_approval_above_minor?: number | null;
-    currency: string;
+    currency_code: string;
+    membership_id?: string | null;
+    account_code?: string | null;
+    cost_center_id?: string | null;
+    valid_from?: string;
+    valid_to?: string | null;
   };
   SpendAuthorityPage: { data: Array<Components["SpendAuthority"]>; next_cursor: string | null };
   SpendAuthorityUpdate: {
     role_id?: string | null;
-    person_id?: string | null;
-    document_type?: Components["SpendDocumentType"];
+    document_type?:
+      | "Purchase Order"
+      | "Change Order"
+      | "Expense"
+      | "Invoice Approval"
+      | "Contract"
+      | "Payroll Run"
+      | "Requisition";
     limit_minor?: number | null;
     dual_approval_above_minor?: number | null;
-    currency?: string;
+    currency_code?: string;
+    membership_id?: string | null;
+    account_code?: string | null;
+    cost_center_id?: string | null;
+    valid_from?: string;
+    valid_to?: string | null;
   };
   SpendDocumentType:
     "Purchase Order" | "Change Order" | "Expense" | "Invoice Approval" | "Contract" | "Payroll Run";
@@ -5554,12 +5666,10 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     plan_code: string;
-    subscription_state: string;
-    current_period_end: string;
-    seats: number | null;
+    subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
   };
   SubscriptionPage: { data: Array<Components["Subscription"]>; next_cursor: string | null };
-  SubscriptionUpdate: { plan_code?: string; seats?: number | null };
+  SubscriptionUpdate: { plan_code?: string };
   TagId: string | null;
   TalentPool: {
     id: string;
@@ -5648,9 +5758,9 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     team_id: string;
-    person_id: string;
+    membership_id: string;
   };
-  TeamMemberCreate: { team_id: string; person_id: string };
+  TeamMemberCreate: { team_id: string; membership_id: string };
   TeamMemberPage: { data: Array<Components["TeamMember"]>; next_cursor: string | null };
   TeamPage: { data: Array<Components["Team"]>; next_cursor: string | null };
   TeamUpdate: { name?: string };
@@ -5855,22 +5965,35 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    person_id: string;
-    capability: string;
+    capability_code: string;
     valid_from: string;
     valid_to: string | null;
+    membership_id: string;
+    scope_kind: "organization" | "workspace" | "team" | "project" | "record" | null;
+    scope_id: string | null;
+    granted_by: string | null;
+    reason: string;
   };
   UserCapabilityGrantCreate: {
-    person_id: string;
-    capability: string;
-    valid_from: string;
+    capability_code: string;
+    valid_from?: string;
     valid_to?: string | null;
+    membership_id: string;
+    scope_kind?: "organization" | "workspace" | "team" | "project" | "record" | null;
+    scope_id?: string | null;
+    reason: string;
   };
   UserCapabilityGrantPage: {
     data: Array<Components["UserCapabilityGrant"]>;
     next_cursor: string | null;
   };
-  UserCapabilityGrantUpdate: { valid_from?: string; valid_to?: string | null };
+  UserCapabilityGrantUpdate: {
+    valid_from?: string;
+    valid_to?: string | null;
+    scope_kind?: "organization" | "workspace" | "team" | "project" | "record" | null;
+    scope_id?: string | null;
+    reason?: string;
+  };
   ValidationProblem: {
     type: string;
     title: string;
@@ -6116,11 +6239,15 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     webhook_endpoint_id: string;
-    event: string;
     delivery_status: string;
-    attempt: number;
-    response_status: number | null;
     delivered_at: string | null;
+    domain_event_id: string;
+    attempt_count: number;
+    next_attempt_at: string;
+    last_attempt_at: string | null;
+    last_response_status: number | null;
+    last_error: string | null;
+    replay_requested_by: string | null;
   };
   WebhookDeliveryPage: { data: Array<Components["WebhookDelivery"]>; next_cursor: string | null };
   WebhookEndpoint: {
@@ -6132,12 +6259,18 @@ export interface Components {
     updated_by: string | null;
     url: string;
     events: Array<string>;
-    enabled: boolean;
+    description: string | null;
+    disabled_at: string | null;
   };
-  WebhookEndpointCreate: { url: string; events: Array<string>; enabled: boolean };
+  WebhookEndpointCreate: { url: string; events: Array<string>; description?: string | null };
   WebhookEndpointPage: { data: Array<Components["WebhookEndpoint"]>; next_cursor: string | null };
-  WebhookEndpointUpdate: { url?: string; events?: Array<string>; enabled?: boolean };
-  WebhookEventType: { event: string; description: string };
+  WebhookEndpointUpdate: {
+    url?: string;
+    events?: Array<string>;
+    description?: string | null;
+    disabled_at?: string | null;
+  };
+  WebhookEventType: { code: string; description: string; subject: string };
   WebhookEventTypePage: { data: Array<Components["WebhookEventType"]>; next_cursor: string | null };
   WorkOrder: {
     id: string;
@@ -6216,9 +6349,9 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     workspace_id: string;
-    person_id: string;
+    membership_id: string;
   };
-  WorkspaceMemberCreate: { workspace_id: string; person_id: string };
+  WorkspaceMemberCreate: { workspace_id: string; membership_id: string };
   WorkspaceMemberPage: { data: Array<Components["WorkspaceMember"]>; next_cursor: string | null };
   WorkspacePage: { data: Array<Components["Workspace"]>; next_cursor: string | null };
   WorkspaceUpdate: { name?: string; slug?: string };
@@ -17698,42 +17831,6 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["SeparationOfDutiesRulePage"] };
   };
-  "separationOfDutiesRules.create": {
-    module: "Settings";
-    method: "post";
-    path: "/separation-of-duties-rules";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["SeparationOfDutiesRuleCreate"];
-    responses: { 201: Components["SeparationOfDutiesRule"] };
-  };
-  "separationOfDutiesRules.get": {
-    module: "Settings";
-    method: "get";
-    path: "/separation-of-duties-rules/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["SeparationOfDutiesRule"] };
-  };
-  "separationOfDutiesRules.update": {
-    module: "Settings";
-    method: "patch";
-    path: "/separation-of-duties-rules/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["SeparationOfDutiesRuleUpdate"];
-    responses: { 200: Components["SeparationOfDutiesRule"] };
-  };
-  "separationOfDutiesRules.delete": {
-    module: "Settings";
-    method: "delete";
-    path: "/separation-of-duties-rules/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
   "columnClassifications.list": {
     module: "Settings";
     method: "get";
@@ -20947,10 +21044,6 @@ export interface ModuleOperations {
     | "spendAuthorityLimits.update"
     | "spendAuthorityLimits.delete"
     | "separationOfDutiesRules.list"
-    | "separationOfDutiesRules.create"
-    | "separationOfDutiesRules.get"
-    | "separationOfDutiesRules.update"
-    | "separationOfDutiesRules.delete"
     | "columnClassifications.list"
     | "accessReviewCampaigns.list"
     | "accessReviewCampaigns.create"

@@ -33647,21 +33647,9 @@
           },
           "subscription_state": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Subscription lifecycle state. A Title Case value from the lifecycle's database enum.",
-            "example": "Active"
-          },
-          "current_period_end": {
-            "type": "string",
-            "format": "date-time",
-            "description": "End of the current billing period.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "seats": {
-            "type": ["integer", "null"],
-            "minimum": 1,
-            "description": "Licensed seats.",
-            "example": 25
+            "enum": ["trialing", "active", "past_due", "read_only", "canceled"],
+            "description": "Subscription status as Stripe reports it; read_only after the grace period.",
+            "example": "trialing"
           }
         },
         "required": [
@@ -33672,9 +33660,7 @@
           "updated_at",
           "updated_by",
           "plan_code",
-          "subscription_state",
-          "current_period_end",
-          "seats"
+          "subscription_state"
         ],
         "description": "Present only when an organization uses Atlas: plan, billing and tenant settings."
       },
@@ -33686,12 +33672,6 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Plan code from `plans.yaml`.",
             "example": "pro"
-          },
-          "seats": {
-            "type": ["integer", "null"],
-            "minimum": 1,
-            "description": "Licensed seats.",
-            "example": 25
           }
         },
         "description": "Fields accepted when updating a Subscription. Omitted fields are unchanged."
@@ -33716,33 +33696,20 @@
       "Plan": {
         "type": "object",
         "properties": {
-          "plan_code": {
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Plan code.",
             "example": "pro"
           },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Plan name.",
-            "example": "Pro"
-          },
-          "monthly_price_minor": {
-            "type": ["integer", "null"],
-            "description": "Monthly price per seat. Integer minor units of the resource currency; null means unpriced, never zero.",
-            "example": 4900,
-            "format": "int64"
-          },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Plan order from the free plan upward.",
+            "example": 1
           }
         },
-        "required": ["plan_code", "name", "monthly_price_minor", "currency"],
+        "required": ["code", "sort_order"],
         "description": "A plan generated from `plans.yaml`."
       },
       "WorkspacePage": {
@@ -33928,10 +33895,10 @@
             "description": "Identifier of the workspace.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
+          "membership_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the member.",
+            "description": "Identifier of the membership assigned to the workspace, in the same org.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -33943,7 +33910,7 @@
           "updated_at",
           "updated_by",
           "workspace_id",
-          "person_id"
+          "membership_id"
         ],
         "description": "A member of a workspace."
       },
@@ -33956,14 +33923,14 @@
             "description": "Identifier of the workspace.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
+          "membership_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the member.",
+            "description": "Identifier of the membership assigned to the workspace, in the same org.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["workspace_id", "person_id"],
+        "required": ["workspace_id", "membership_id"],
         "description": "Fields accepted when creating a WorkspaceMember."
       },
       "TeamPage": {
@@ -34130,10 +34097,10 @@
             "description": "Identifier of the team.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
+          "membership_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the member.",
+            "description": "Identifier of the member of the team, in the same org.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -34145,7 +34112,7 @@
           "updated_at",
           "updated_by",
           "team_id",
-          "person_id"
+          "membership_id"
         ],
         "description": "A member of a team."
       },
@@ -34158,14 +34125,14 @@
             "description": "Identifier of the team.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
+          "membership_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the member.",
+            "description": "Identifier of the member of the team, in the same org.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["team_id", "person_id"],
+        "required": ["team_id", "membership_id"],
         "description": "Fields accepted when creating a TeamMember."
       },
       "OrgBrandingPage": {
@@ -34225,30 +34192,89 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "display_name": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Brand display name.",
             "example": "Northwind Live"
           },
-          "logo_document_id": {
+          "logo_light_path": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the logo file.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Logo for light themes: object path in the org-brand bucket, starting with the org id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
           },
-          "accent_token": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Accent color token.",
-            "example": "brand.accent"
+          "logo_dark_path": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Logo for dark themes: object path in the org-brand bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
           },
-          "gateway_domain": {
+          "favicon_path": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Favicon: object path in the org-brand bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
+          },
+          "app_icon_path": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "App icon: object path in the org-brand bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
+          },
+          "accent_hex": {
+            "type": ["string", "null"],
+            "pattern": "^#[0-9A-F]{6}$",
+            "description": "Accent color as uppercase #RRGGBB, replacing accent-default in every theme; null keeps the platform accent.",
+            "example": "#1F6FEB"
+          },
+          "neutral_tint_hex": {
+            "type": ["string", "null"],
+            "pattern": "^#[0-9A-F]{6}$",
+            "description": "Optional neutral tint as uppercase #RRGGBB.",
+            "example": "#1F6FEB"
+          },
+          "font_family": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
-            "description": "Custom Gateway domain.",
-            "example": "gateway.northwindlive.example"
+            "description": "Font family from the approved list; null keeps the platform font.",
+            "example": "Inter"
+          },
+          "radius_scale": {
+            "type": "string",
+            "enum": ["Compact", "Default", "Rounded"],
+            "description": "Corner radius scale.",
+            "example": "Compact"
+          },
+          "email_sender_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Sender name on emails sent for the org.",
+            "example": "Northwind Live"
+          },
+          "support_email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Support address shown on branded surfaces.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "legal_entity_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Legal entity named on generated documents and emails.",
+            "example": "Northwind Live LLC"
+          },
+          "suppress_powered_by": {
+            "type": "boolean",
+            "description": "True hides Powered by XOS; it takes effect only while the plan includes white label.",
+            "example": false
           }
         },
         "required": [
@@ -34259,9 +34285,18 @@
           "updated_at",
           "updated_by",
           "display_name",
-          "logo_document_id",
-          "accent_token",
-          "gateway_domain"
+          "logo_light_path",
+          "logo_dark_path",
+          "favicon_path",
+          "app_icon_path",
+          "accent_hex",
+          "neutral_tint_hex",
+          "font_family",
+          "radius_scale",
+          "email_sender_name",
+          "support_email",
+          "legal_entity_name",
+          "suppress_powered_by"
         ],
         "description": "White label brand settings for Atlas, Gateway, email and Compass."
       },
@@ -34269,63 +34304,180 @@
         "type": "object",
         "properties": {
           "display_name": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Brand display name.",
             "example": "Northwind Live"
           },
-          "logo_document_id": {
+          "logo_light_path": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the logo file.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Logo for light themes: object path in the org-brand bucket, starting with the org id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
           },
-          "accent_token": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Accent color token.",
-            "example": "brand.accent"
+          "logo_dark_path": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Logo for dark themes: object path in the org-brand bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
           },
-          "gateway_domain": {
+          "favicon_path": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Favicon: object path in the org-brand bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
+          },
+          "app_icon_path": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "App icon: object path in the org-brand bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
+          },
+          "accent_hex": {
+            "type": ["string", "null"],
+            "pattern": "^#[0-9A-F]{6}$",
+            "description": "Accent color as uppercase #RRGGBB, replacing accent-default in every theme; null keeps the platform accent.",
+            "example": "#1F6FEB"
+          },
+          "neutral_tint_hex": {
+            "type": ["string", "null"],
+            "pattern": "^#[0-9A-F]{6}$",
+            "description": "Optional neutral tint as uppercase #RRGGBB.",
+            "example": "#1F6FEB"
+          },
+          "font_family": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
-            "description": "Custom Gateway domain.",
-            "example": "gateway.northwindlive.example"
+            "description": "Font family from the approved list; null keeps the platform font.",
+            "example": "Inter"
+          },
+          "radius_scale": {
+            "type": "string",
+            "enum": ["Compact", "Default", "Rounded"],
+            "description": "Corner radius scale.",
+            "example": "Compact"
+          },
+          "email_sender_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Sender name on emails sent for the org.",
+            "example": "Northwind Live"
+          },
+          "support_email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Support address shown on branded surfaces.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "legal_entity_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Legal entity named on generated documents and emails.",
+            "example": "Northwind Live LLC"
+          },
+          "suppress_powered_by": {
+            "type": "boolean",
+            "description": "True hides Powered by XOS; it takes effect only while the plan includes white label.",
+            "example": false
           }
         },
-        "required": ["display_name", "accent_token"],
         "description": "Fields accepted when creating a OrgBranding."
       },
       "OrgBrandingUpdate": {
         "type": "object",
         "properties": {
           "display_name": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Brand display name.",
             "example": "Northwind Live"
           },
-          "logo_document_id": {
+          "logo_light_path": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the logo file.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Logo for light themes: object path in the org-brand bucket, starting with the org id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
           },
-          "accent_token": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Accent color token.",
-            "example": "brand.accent"
+          "logo_dark_path": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Logo for dark themes: object path in the org-brand bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
           },
-          "gateway_domain": {
+          "favicon_path": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Favicon: object path in the org-brand bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
+          },
+          "app_icon_path": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "App icon: object path in the org-brand bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg"
+          },
+          "accent_hex": {
+            "type": ["string", "null"],
+            "pattern": "^#[0-9A-F]{6}$",
+            "description": "Accent color as uppercase #RRGGBB, replacing accent-default in every theme; null keeps the platform accent.",
+            "example": "#1F6FEB"
+          },
+          "neutral_tint_hex": {
+            "type": ["string", "null"],
+            "pattern": "^#[0-9A-F]{6}$",
+            "description": "Optional neutral tint as uppercase #RRGGBB.",
+            "example": "#1F6FEB"
+          },
+          "font_family": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
-            "description": "Custom Gateway domain.",
-            "example": "gateway.northwindlive.example"
+            "description": "Font family from the approved list; null keeps the platform font.",
+            "example": "Inter"
+          },
+          "radius_scale": {
+            "type": "string",
+            "enum": ["Compact", "Default", "Rounded"],
+            "description": "Corner radius scale.",
+            "example": "Compact"
+          },
+          "email_sender_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Sender name on emails sent for the org.",
+            "example": "Northwind Live"
+          },
+          "support_email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Support address shown on branded surfaces.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "legal_entity_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Legal entity named on generated documents and emails.",
+            "example": "Northwind Live LLC"
+          },
+          "suppress_powered_by": {
+            "type": "boolean",
+            "description": "True hides Powered by XOS; it takes effect only while the plan includes white label.",
+            "example": false
           }
         },
         "description": "Fields accepted when updating a OrgBranding. Omitted fields are unchanged."
@@ -34665,7 +34817,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "org_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -34695,14 +34847,11 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "name": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Role name.",
             "example": "Finance Approver"
-          },
-          "base_role": {
-            "allOf": [{ "$ref": "#/components/schemas/OrgRole" }, { "type": ["string", "null"] }]
           },
           "description": {
             "type": ["string", "null"],
@@ -34710,6 +34859,18 @@
             "maxLength": 20000,
             "description": "What the role is for.",
             "example": "Approves purchase orders up to the spend limit."
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Role code. System role labels come from the i18n catalogs keyed by it; custom role codes never reuse a system code.",
+            "example": "site_lead"
+          },
+          "band": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Band in Section 8 order, 1 Owner to 7 Viewer. Custom roles take 2 to 7, and a person assigns only roles at or below their own band.",
+            "example": 4
           }
         },
         "required": [
@@ -34720,8 +34881,9 @@
           "updated_at",
           "updated_by",
           "name",
-          "base_role",
-          "description"
+          "description",
+          "code",
+          "band"
         ],
         "description": "A role: a platform role or an org custom role built from the capability set."
       },
@@ -34729,14 +34891,11 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Role name.",
             "example": "Finance Approver"
-          },
-          "base_role": {
-            "allOf": [{ "$ref": "#/components/schemas/OrgRole" }, { "type": ["string", "null"] }]
           },
           "description": {
             "type": ["string", "null"],
@@ -34744,23 +34903,32 @@
             "maxLength": 20000,
             "description": "What the role is for.",
             "example": "Approves purchase orders up to the spend limit."
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Role code. System role labels come from the i18n catalogs keyed by it; custom role codes never reuse a system code.",
+            "example": "site_lead"
+          },
+          "band": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Band in Section 8 order, 1 Owner to 7 Viewer. Custom roles take 2 to 7, and a person assigns only roles at or below their own band.",
+            "example": 4
           }
         },
-        "required": ["name"],
+        "required": ["code", "band"],
         "description": "Fields accepted when creating a Role."
       },
       "RoleUpdate": {
         "type": "object",
         "properties": {
           "name": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Role name.",
             "example": "Finance Approver"
-          },
-          "base_role": {
-            "allOf": [{ "$ref": "#/components/schemas/OrgRole" }, { "type": ["string", "null"] }]
           },
           "description": {
             "type": ["string", "null"],
@@ -34768,6 +34936,12 @@
             "maxLength": 20000,
             "description": "What the role is for.",
             "example": "Approves purchase orders up to the spend limit."
+          },
+          "band": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Band in Section 8 order, 1 Owner to 7 Viewer. Custom roles take 2 to 7, and a person assigns only roles at or below their own band.",
+            "example": 4
           }
         },
         "description": "Fields accepted when updating a Role. Omitted fields are unchanged."
@@ -34792,28 +34966,40 @@
       "Capability": {
         "type": "object",
         "properties": {
-          "capability": {
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Capability verb.",
             "example": "finance.po.approve"
           },
-          "group": {
+          "module_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Capability group; OAuth scopes map one to one to groups.",
             "example": "finance"
           },
-          "classification": { "$ref": "#/components/schemas/Classification" }
+          "capability_class": {
+            "type": "string",
+            "enum": ["read", "write", "approve", "manage", "export"],
+            "description": "Kind of act the capability authorizes.",
+            "example": "read"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the capability allows, for documentation and the roles page.",
+            "example": "Approve purchase orders within spend authority."
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Registry order, the default sort.",
+            "example": 1
+          }
         },
-        "required": ["capability", "group", "classification"],
+        "required": ["code", "module_code", "capability_class", "description", "sort_order"],
         "description": "A capability from `packages/schemas/capabilities.yaml`. Read-only."
-      },
-      "Classification": {
-        "type": ["string", "null"],
-        "enum": ["Public", "Internal", "Confidential", "Restricted", null],
-        "description": "Column classification (Section 8.3).",
-        "example": "Restricted"
       },
       "RoleCapabilityPage": {
         "type": "object",
@@ -34842,7 +35028,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "org_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -34877,11 +35063,17 @@
             "description": "Identifier of the role.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "capability": {
+          "capability_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Capability verb.",
             "example": "finance.po.approve"
+          },
+          "reach": {
+            "type": "string",
+            "enum": ["own", "assigned", "organization"],
+            "description": "Own rows, assigned scopes or the whole org.",
+            "example": "own"
           }
         },
         "required": [
@@ -34892,7 +35084,8 @@
           "updated_at",
           "updated_by",
           "role_id",
-          "capability"
+          "capability_code",
+          "reach"
         ],
         "description": "A capability granted to a role."
       },
@@ -34905,14 +35098,20 @@
             "description": "Identifier of the role.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "capability": {
+          "capability_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Capability verb.",
             "example": "finance.po.approve"
+          },
+          "reach": {
+            "type": "string",
+            "enum": ["own", "assigned", "organization"],
+            "description": "Own rows, assigned scopes or the whole org.",
+            "example": "own"
           }
         },
-        "required": ["role_id", "capability"],
+        "required": ["role_id", "capability_code", "reach"],
         "description": "Fields accepted when creating a RoleCapability."
       },
       "UserCapabilityGrantPage": {
@@ -34971,13 +35170,7 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the grantee.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "capability": {
+          "capability_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Capability verb.",
@@ -34994,6 +35187,37 @@
             "format": "date-time",
             "description": "End of the grant.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership that receives the capability.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "scope_kind": {
+            "type": ["string", "null"],
+            "enum": ["organization", "workspace", "team", "project", "record", null],
+            "description": "Kind of scope the grant is limited to; null for an org-wide grant.",
+            "example": "organization"
+          },
+          "scope_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the workspace, team, project or record the grant is limited to; null for an org-wide grant.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "granted_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who granted it; never the grantee.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the grant was made.",
+            "example": "Covering approvals during the tour."
           }
         },
         "required": [
@@ -35003,23 +35227,21 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "person_id",
-          "capability",
+          "capability_code",
           "valid_from",
-          "valid_to"
+          "valid_to",
+          "membership_id",
+          "scope_kind",
+          "scope_id",
+          "granted_by",
+          "reason"
         ],
         "description": "A time-boxed capability grant to a person. A person cannot grant themselves a capability."
       },
       "UserCapabilityGrantCreate": {
         "type": "object",
         "properties": {
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the grantee.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "capability": {
+          "capability_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Capability verb.",
@@ -35036,9 +35258,34 @@
             "format": "date-time",
             "description": "End of the grant.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership that receives the capability.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "scope_kind": {
+            "type": ["string", "null"],
+            "enum": ["organization", "workspace", "team", "project", "record", null],
+            "description": "Kind of scope the grant is limited to; null for an org-wide grant.",
+            "example": "organization"
+          },
+          "scope_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the workspace, team, project or record the grant is limited to; null for an org-wide grant.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the grant was made.",
+            "example": "Covering approvals during the tour."
           }
         },
-        "required": ["person_id", "capability", "valid_from"],
+        "required": ["capability_code", "membership_id", "reason"],
         "description": "Fields accepted when creating a UserCapabilityGrant."
       },
       "UserCapabilityGrantUpdate": {
@@ -35055,6 +35302,25 @@
             "format": "date-time",
             "description": "End of the grant.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "scope_kind": {
+            "type": ["string", "null"],
+            "enum": ["organization", "workspace", "team", "project", "record", null],
+            "description": "Kind of scope the grant is limited to; null for an org-wide grant.",
+            "example": "organization"
+          },
+          "scope_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the workspace, team, project or record the grant is limited to; null for an org-wide grant.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the grant was made.",
+            "example": "Covering approvals during the tour."
           }
         },
         "description": "Fields accepted when updating a UserCapabilityGrant. Omitted fields are unchanged."
@@ -35115,21 +35381,7 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "grantee_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the grantee.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "subject_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the record.",
-            "example": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "capability": {
+          "capability_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Capability verb.",
@@ -35140,6 +35392,49 @@
             "format": "date-time",
             "description": "End of the grant.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "target_kind": {
+            "type": "string",
+            "enum": ["organization", "workspace", "team", "project", "record"],
+            "description": "Kind of target.",
+            "example": "organization"
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the target row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "grantee_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who receives access; null when an organization does.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "grantee_org_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the organization whose active members receive access; null when a person does.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When access starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "granted_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who granted it; never the grantee.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the grant was made, for example the partner agreement clause.",
+            "example": "Partner agreement, clause 4.2."
           }
         },
         "required": [
@@ -35149,31 +35444,22 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "grantee_urn",
-          "subject_urn",
-          "capability",
-          "valid_to"
+          "capability_code",
+          "valid_to",
+          "target_kind",
+          "target_id",
+          "grantee_person_id",
+          "grantee_org_id",
+          "valid_from",
+          "granted_by",
+          "reason"
         ],
         "description": "A grant on specific records, with scope and expiry."
       },
       "RecordGrantCreate": {
         "type": "object",
         "properties": {
-          "grantee_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the grantee.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "subject_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the record.",
-            "example": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "capability": {
+          "capability_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Capability verb.",
@@ -35184,29 +35470,52 @@
             "format": "date-time",
             "description": "End of the grant.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "target_kind": {
+            "type": "string",
+            "enum": ["organization", "workspace", "team", "project", "record"],
+            "description": "Kind of target.",
+            "example": "organization"
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the target row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "grantee_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who receives access; null when an organization does.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "grantee_org_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the organization whose active members receive access; null when a person does.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When access starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the grant was made, for example the partner agreement clause.",
+            "example": "Partner agreement, clause 4.2."
           }
         },
-        "required": ["grantee_urn", "subject_urn", "capability"],
+        "required": ["capability_code", "valid_to", "target_kind", "target_id", "reason"],
         "description": "Fields accepted when creating a RecordGrant."
       },
       "RecordGrantUpdate": {
         "type": "object",
         "properties": {
-          "grantee_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the grantee.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "subject_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the record.",
-            "example": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "capability": {
+          "capability_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Capability verb.",
@@ -35217,6 +35526,31 @@
             "format": "date-time",
             "description": "End of the grant.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "grantee_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who receives access; null when an organization does.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "grantee_org_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the organization whose active members receive access; null when a person does.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When access starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the grant was made, for example the partner agreement clause.",
+            "example": "Partner agreement, clause 4.2."
           }
         },
         "description": "Fields accepted when updating a RecordGrant. Omitted fields are unchanged."
@@ -35277,18 +35611,6 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "from_person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the delegating person.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "to_person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the delegate.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "valid_from": {
             "type": "string",
             "format": "date-time",
@@ -35300,6 +35622,31 @@
             "format": "date-time",
             "description": "End.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "delegator_membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member who delegates.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "delegate_membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member who acts for the delegator; never the delegator.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "capability_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z_]*(\\.[a-z][a-z_]*)+$",
+            "description": "Delegated capability; null delegates every approve-class capability the delegator holds.",
+            "example": "finance.po.approve"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the delegation exists.",
+            "example": "Annual leave, 12 to 26 May."
           }
         },
         "required": [
@@ -35309,28 +35656,18 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "from_person_id",
-          "to_person_id",
           "valid_from",
-          "valid_to"
+          "valid_to",
+          "delegator_membership_id",
+          "delegate_membership_id",
+          "capability_code",
+          "reason"
         ],
         "description": "A time-boxed delegation of approvals from one person to another."
       },
       "DelegationCreate": {
         "type": "object",
         "properties": {
-          "from_person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the delegating person.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "to_person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the delegate.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "valid_from": {
             "type": "string",
             "format": "date-time",
@@ -35342,26 +35679,45 @@
             "format": "date-time",
             "description": "End.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "delegator_membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member who delegates.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "delegate_membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member who acts for the delegator; never the delegator.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "capability_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z_]*(\\.[a-z][a-z_]*)+$",
+            "description": "Delegated capability; null delegates every approve-class capability the delegator holds.",
+            "example": "finance.po.approve"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the delegation exists.",
+            "example": "Annual leave, 12 to 26 May."
           }
         },
-        "required": ["from_person_id", "to_person_id", "valid_from", "valid_to"],
+        "required": [
+          "valid_from",
+          "valid_to",
+          "delegator_membership_id",
+          "delegate_membership_id",
+          "reason"
+        ],
         "description": "Fields accepted when creating a Delegation."
       },
       "DelegationUpdate": {
         "type": "object",
         "properties": {
-          "from_person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the delegating person.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "to_person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the delegate.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "valid_from": {
             "type": "string",
             "format": "date-time",
@@ -35373,6 +35729,19 @@
             "format": "date-time",
             "description": "End.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "capability_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z_]*(\\.[a-z][a-z_]*)+$",
+            "description": "Delegated capability; null delegates every approve-class capability the delegator holds.",
+            "example": "finance.po.approve"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the delegation exists.",
+            "example": "Annual leave, 12 to 26 May."
           }
         },
         "description": "Fields accepted when updating a Delegation. Omitted fields are unchanged."
@@ -35439,13 +35808,20 @@
             "description": "Identifier of the role.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "Purchase Order",
+              "Change Order",
+              "Expense",
+              "Invoice Approval",
+              "Contract",
+              "Payroll Run",
+              "Requisition"
+            ],
+            "description": "Document type the limit applies to.",
+            "example": "Purchase Order"
           },
-          "document_type": { "$ref": "#/components/schemas/SpendDocumentType" },
           "limit_minor": {
             "type": ["integer", "null"],
             "description": "Single-approver limit in the org currency. Integer minor units of the resource currency; null means unpriced, never zero.",
@@ -35458,11 +35834,41 @@
             "example": 10000000,
             "format": "int64"
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the membership of the one person the limit applies to; null when it applies to a role.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "account_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "GL account the limit is scoped to; null for every account.",
+            "example": "5100"
+          },
+          "cost_center_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the cost center the limit is scoped to; null for every cost center.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the limit starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "valid_to": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the limit ends; null while open-ended.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -35473,26 +35879,17 @@
           "updated_at",
           "updated_by",
           "role_id",
-          "person_id",
           "document_type",
           "limit_minor",
           "dual_approval_above_minor",
-          "currency"
+          "currency_code",
+          "membership_id",
+          "account_code",
+          "cost_center_id",
+          "valid_from",
+          "valid_to"
         ],
         "description": "A spend limit by role or person and document type, enforced in the approval RPCs."
-      },
-      "SpendDocumentType": {
-        "type": "string",
-        "enum": [
-          "Purchase Order",
-          "Change Order",
-          "Expense",
-          "Invoice Approval",
-          "Contract",
-          "Payroll Run"
-        ],
-        "description": "Document type a spend limit applies to.",
-        "example": "Purchase Order"
       },
       "SpendAuthorityCreate": {
         "type": "object",
@@ -35503,13 +35900,20 @@
             "description": "Identifier of the role.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "Purchase Order",
+              "Change Order",
+              "Expense",
+              "Invoice Approval",
+              "Contract",
+              "Payroll Run",
+              "Requisition"
+            ],
+            "description": "Document type the limit applies to.",
+            "example": "Purchase Order"
           },
-          "document_type": { "$ref": "#/components/schemas/SpendDocumentType" },
           "limit_minor": {
             "type": ["integer", "null"],
             "description": "Single-approver limit in the org currency. Integer minor units of the resource currency; null means unpriced, never zero.",
@@ -35522,14 +35926,44 @@
             "example": 10000000,
             "format": "int64"
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the membership of the one person the limit applies to; null when it applies to a role.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "account_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "GL account the limit is scoped to; null for every account.",
+            "example": "5100"
+          },
+          "cost_center_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the cost center the limit is scoped to; null for every cost center.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the limit starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "valid_to": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the limit ends; null while open-ended.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["document_type", "currency"],
+        "required": ["document_type", "limit_minor", "currency_code"],
         "description": "Fields accepted when creating a SpendAuthority."
       },
       "SpendAuthorityUpdate": {
@@ -35541,13 +35975,20 @@
             "description": "Identifier of the role.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "Purchase Order",
+              "Change Order",
+              "Expense",
+              "Invoice Approval",
+              "Contract",
+              "Payroll Run",
+              "Requisition"
+            ],
+            "description": "Document type the limit applies to.",
+            "example": "Purchase Order"
           },
-          "document_type": { "$ref": "#/components/schemas/SpendDocumentType" },
           "limit_minor": {
             "type": ["integer", "null"],
             "description": "Single-approver limit in the org currency. Integer minor units of the resource currency; null means unpriced, never zero.",
@@ -35560,11 +36001,41 @@
             "example": 10000000,
             "format": "int64"
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the membership of the one person the limit applies to; null when it applies to a role.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "account_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "GL account the limit is scoped to; null for every account.",
+            "example": "5100"
+          },
+          "cost_center_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the cost center the limit is scoped to; null for every cost center.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the limit starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "valid_to": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the limit ends; null while open-ended.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "description": "Fields accepted when updating a SpendAuthority. Omitted fields are unchanged."
@@ -35589,47 +36060,11 @@
       "SeparationOfDutiesRule": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the separation of duties rule.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "org_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was created.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "created_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person who created the row; null when a seed, platform or system process created it.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was last updated.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "updated_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "rule": {
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Rule key, named in refusals.",
-            "example": "sod.po.creator_cannot_approve"
+            "description": "Rule code, the rule a refusal names.",
+            "example": "sod_approval_requester"
           },
           "enforced_on": {
             "type": "string",
@@ -35638,63 +36073,16 @@
             "description": "What the rule is enforced on.",
             "example": "Purchase orders"
           },
-          "is_default": {
-            "type": "boolean",
-            "description": "Whether it is a platform default that cannot be removed.",
-            "example": true
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the rule forbids.",
+            "example": "The requester of a spend document cannot approve it."
           }
         },
-        "required": [
-          "id",
-          "org_id",
-          "created_at",
-          "created_by",
-          "updated_at",
-          "updated_by",
-          "rule",
-          "enforced_on",
-          "is_default"
-        ],
+        "required": ["code", "enforced_on", "description"],
         "description": "A separation of duties rule. Orgs may tighten defaults but never remove them."
-      },
-      "SeparationOfDutiesRuleCreate": {
-        "type": "object",
-        "properties": {
-          "rule": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Rule key, named in refusals.",
-            "example": "sod.po.creator_cannot_approve"
-          },
-          "enforced_on": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "What the rule is enforced on.",
-            "example": "Purchase orders"
-          }
-        },
-        "required": ["rule", "enforced_on"],
-        "description": "Fields accepted when creating a SeparationOfDutiesRule."
-      },
-      "SeparationOfDutiesRuleUpdate": {
-        "type": "object",
-        "properties": {
-          "rule": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Rule key, named in refusals.",
-            "example": "sod.po.creator_cannot_approve"
-          },
-          "enforced_on": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "What the rule is enforced on.",
-            "example": "Purchase orders"
-          }
-        },
-        "description": "Fields accepted when updating a SeparationOfDutiesRule. Omitted fields are unchanged."
       },
       "ColumnClassificationPage": {
         "type": "object",
@@ -35729,15 +36117,21 @@
             "example": "rate_minor"
           },
           "classification": { "$ref": "#/components/schemas/Classification" },
-          "reveal_capability": {
+          "read_capability": {
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Capability that unmasks it.",
             "example": "data.restricted.read.payroll"
           }
         },
-        "required": ["table_name", "column_name", "classification", "reveal_capability"],
+        "required": ["table_name", "column_name", "classification", "read_capability"],
         "description": "The classification of one column in the column registry."
+      },
+      "Classification": {
+        "type": "string",
+        "enum": ["Public", "Internal", "Confidential", "Restricted"],
+        "description": "Column classification (Section 8.3).",
+        "example": "Restricted"
       },
       "AccessReviewCampaignPage": {
         "type": "object",
@@ -36456,6 +36850,12 @@
             "format": "date-time",
             "description": "When it was revoked.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked the key.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -36471,7 +36871,8 @@
           "expires_at",
           "prefix",
           "last_used_at",
-          "revoked_at"
+          "revoked_at",
+          "revoked_by"
         ],
         "description": "An org-scoped API key with capability scopes and expiry. The secret is shown once and stored hashed."
       },
@@ -36631,6 +37032,24 @@
             "format": "date-time",
             "description": "Expiry.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the sign-in of the service account, which never signs in interactively.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person row of the service account, the actor in audit columns.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership that carries the service account's role in the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -36642,7 +37061,10 @@
           "updated_by",
           "name",
           "owner_person_id",
-          "expires_at"
+          "expires_at",
+          "user_id",
+          "person_id",
+          "membership_id"
         ],
         "description": "A non-human member with its own audit identity."
       },
@@ -37111,10 +37533,18 @@
             "description": "Subscribed event names.",
             "example": ["record.state_changed", "po.approved"]
           },
-          "enabled": {
-            "type": "boolean",
-            "description": "Whether deliveries are sent.",
-            "example": true
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the endpoint is for.",
+            "example": "Sync approved POs to the ERP."
+          },
+          "disabled_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the endpoint was turned off; disabled endpoints get no new deliveries.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -37126,7 +37556,8 @@
           "updated_by",
           "url",
           "events",
-          "enabled"
+          "description",
+          "disabled_at"
         ],
         "description": "A webhook endpoint. Deliveries are signed with HMAC-SHA256 and retried for 72 hours."
       },
@@ -37145,13 +37576,15 @@
             "description": "Subscribed event names.",
             "example": ["record.state_changed", "po.approved"]
           },
-          "enabled": {
-            "type": "boolean",
-            "description": "Whether deliveries are sent.",
-            "example": true
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the endpoint is for.",
+            "example": "Sync approved POs to the ERP."
           }
         },
-        "required": ["url", "events", "enabled"],
+        "required": ["url", "events"],
         "description": "Fields accepted when creating a WebhookEndpoint."
       },
       "WebhookEndpointUpdate": {
@@ -37169,10 +37602,18 @@
             "description": "Subscribed event names.",
             "example": ["record.state_changed", "po.approved"]
           },
-          "enabled": {
-            "type": "boolean",
-            "description": "Whether deliveries are sent.",
-            "example": true
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the endpoint is for.",
+            "example": "Sync approved POs to the ERP."
+          },
+          "disabled_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the endpoint was turned off; disabled endpoints get no new deliveries.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "description": "Fields accepted when updating a WebhookEndpoint. Omitted fields are unchanged."
@@ -37239,35 +37680,60 @@
             "description": "Identifier of the endpoint.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "event": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Event name.",
-            "example": "po.approved"
-          },
           "delivery_status": {
             "type": "string",
             "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
             "description": "Delivery status. A Title Case value from the lifecycle's database enum.",
             "example": "Delivered"
           },
-          "attempt": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Attempt number.",
-            "example": 1
-          },
-          "response_status": {
-            "type": ["integer", "null"],
-            "minimum": 0,
-            "description": "Endpoint HTTP status.",
-            "example": 200
-          },
           "delivered_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When it was delivered.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "domain_event_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the domain event delivered; every attempt sends the same body built from it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "attempt_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Attempts started.",
+            "example": 1
+          },
+          "next_attempt_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the dispatcher may try next.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "last_attempt_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the latest attempt started.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "last_response_status": {
+            "type": ["integer", "null"],
+            "minimum": 100,
+            "description": "HTTP status of the latest response; null when no response arrived.",
+            "example": 200
+          },
+          "last_error": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Network or HTTP error of the latest failed attempt.",
+            "example": "Connection timed out."
+          },
+          "replay_requested_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who replayed the event from Atlas.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -37278,11 +37744,15 @@
           "updated_at",
           "updated_by",
           "webhook_endpoint_id",
-          "event",
           "delivery_status",
-          "attempt",
-          "response_status",
-          "delivered_at"
+          "delivered_at",
+          "domain_event_id",
+          "attempt_count",
+          "next_attempt_at",
+          "last_attempt_at",
+          "last_response_status",
+          "last_error",
+          "replay_requested_by"
         ],
         "description": "A webhook delivery attempt, replayable from Atlas."
       },
@@ -37306,7 +37776,7 @@
       "WebhookEventType": {
         "type": "object",
         "properties": {
-          "event": {
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Event name `{resource}.{event}`.",
@@ -37318,9 +37788,16 @@
             "maxLength": 300,
             "description": "When it fires.",
             "example": "A record moved to another state."
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Table whose rows the event describes.",
+            "example": "purchase_orders"
           }
         },
-        "required": ["event", "description"],
+        "required": ["code", "description", "subject"],
         "description": "A webhook event from the domain event table."
       },
       "SettingDefinitionPage": {
@@ -37645,43 +38122,69 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "actor_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the actor.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "action": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Action.",
             "example": "purchase_order.approved"
           },
-          "subject_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the subject.",
-            "example": "urn:xpms:purchase_order:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "capacity": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Capacity the actor acted in.",
-            "example": "internal"
-          },
-          "occurred_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When it happened.",
-            "example": "2026-10-08T14:30:00Z"
-          },
           "diff": {
             "type": "object",
             "additionalProperties": {},
             "description": "Redacted audit diff.",
             "example": { "type": "doc" }
+          },
+          "actor_kind": {
+            "type": "string",
+            "enum": ["Person", "Service", "System"],
+            "description": "Who acted.",
+            "example": "Person"
+          },
+          "actor_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who acted, when a person acted.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "subject_table": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Table of the row acted on.",
+            "example": "purchase_orders"
+          },
+          "subject_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the row acted on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "actor_ip": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Client IP address of the request. Removed at redaction.",
+            "example": "203.0.113.24"
+          },
+          "user_agent": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Client user agent of the request. Removed at redaction.",
+            "example": "Mozilla/5.0"
+          },
+          "request_id": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "API request id, for correlating with logs.",
+            "example": "req_01J9Z6"
+          },
+          "redacted_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When personal data in the event was redacted.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -37691,12 +38194,16 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "actor_urn",
           "action",
-          "subject_urn",
-          "capacity",
-          "occurred_at",
-          "diff"
+          "diff",
+          "actor_kind",
+          "actor_person_id",
+          "subject_table",
+          "subject_id",
+          "actor_ip",
+          "user_agent",
+          "request_id",
+          "redacted_at"
         ],
         "description": "An append-only compliance audit event, retained 7 years."
       },
@@ -37744,21 +38251,42 @@
             "description": "Identifier of the person.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "purpose": {
+          "purpose_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Consent purpose.",
             "example": "marketing_email"
           },
-          "granted": {
-            "type": "boolean",
-            "description": "Whether consent is granted.",
-            "example": true
+          "notice_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Version of the notice shown when consent was given.",
+            "example": "2026-10-01"
           },
-          "recorded_at": {
+          "source": {
+            "type": "string",
+            "enum": ["Web", "Mobile", "Email", "SMS", "Import", "Support"],
+            "description": "Where consent was captured.",
+            "example": "Web"
+          },
+          "captured_at": {
             "type": "string",
             "format": "date-time",
-            "description": "When it was recorded.",
+            "description": "When consent was given, set by the database.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "captured_ip": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Client IP address at capture, set by the database.",
+            "example": "203.0.113.24"
+          },
+          "withdrawn_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the person withdrew consent; null while it stands.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
@@ -37767,9 +38295,12 @@
           "created_at",
           "updated_at",
           "person_id",
-          "purpose",
-          "granted",
-          "recorded_at"
+          "purpose_code",
+          "notice_version",
+          "source",
+          "captured_at",
+          "captured_ip",
+          "withdrawn_at"
         ],
         "description": "A consent given or withdrawn."
       },
@@ -37782,19 +38313,27 @@
             "description": "Identifier of the person.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "purpose": {
+          "purpose_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Consent purpose.",
             "example": "marketing_email"
           },
-          "granted": {
-            "type": "boolean",
-            "description": "Whether consent is granted.",
-            "example": true
+          "notice_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Version of the notice shown when consent was given.",
+            "example": "2026-10-01"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["Web", "Mobile", "Email", "SMS", "Import", "Support"],
+            "description": "Where consent was captured.",
+            "example": "Web"
           }
         },
-        "required": ["person_id", "purpose", "granted"],
+        "required": ["person_id", "purpose_code", "notice_version", "source"],
         "description": "Fields accepted when creating a ConsentRecord."
       },
       "DsarRequestPage": {
@@ -37853,17 +38392,19 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the data subject.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "request_type": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Request type.",
-            "example": "access"
+            "enum": [
+              "Access",
+              "Rectification",
+              "Erasure",
+              "Restriction",
+              "Portability",
+              "Objection",
+              "Opt Out of Sale"
+            ],
+            "description": "What the requester exercises.",
+            "example": "Access"
           },
           "dsar_state": {
             "type": "string",
@@ -37871,10 +38412,29 @@
             "description": "Request state. A Title Case value from the lifecycle's database enum.",
             "example": "In Review"
           },
-          "completed_at": {
+          "subject_person_id": {
             "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person the request is about, when they have an account.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "subject_email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email the requester gave, used to verify identity and to reply.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "details": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "What the requester asked for, in their words.",
+            "example": "Send me my timesheets."
+          },
+          "received_at": {
+            "type": "string",
             "format": "date-time",
-            "description": "When it completed.",
+            "description": "When the request was received; the clock starts here.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
@@ -37885,30 +38445,53 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "person_id",
           "request_type",
           "dsar_state",
-          "completed_at"
+          "subject_person_id",
+          "subject_email",
+          "details",
+          "received_at"
         ],
         "description": "A data subject access request."
       },
       "DsarRequestCreate": {
         "type": "object",
         "properties": {
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the data subject.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "request_type": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Request type.",
-            "example": "access"
+            "enum": [
+              "Access",
+              "Rectification",
+              "Erasure",
+              "Restriction",
+              "Portability",
+              "Objection",
+              "Opt Out of Sale"
+            ],
+            "description": "What the requester exercises.",
+            "example": "Access"
+          },
+          "subject_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person the request is about, when they have an account.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "subject_email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email the requester gave, used to verify identity and to reply.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "details": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "What the requester asked for, in their words.",
+            "example": "Send me my timesheets."
           }
         },
-        "required": ["person_id", "request_type"],
+        "required": ["request_type", "subject_email"],
         "description": "Fields accepted when creating a DsarRequest."
       },
       "RetentionPolicyPage": {
@@ -37937,14 +38520,56 @@
             "description": "Table.",
             "example": "app.activity_events"
           },
-          "retention_days": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Days kept after soft delete.",
-            "example": 548
+          "basis": {
+            "type": ["string", "null"],
+            "enum": ["Soft Deleted", "Age", null],
+            "description": "What starts the retention clock.",
+            "example": "Soft Deleted"
+          },
+          "time_column": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Column that starts the clock.",
+            "example": "deleted_at"
+          },
+          "retention": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "How long rows are kept, as an interval.",
+            "example": "7 years"
+          },
+          "purge_method": {
+            "type": ["string", "null"],
+            "enum": ["Delete", "Drop Partition", "Account Lifecycle", null],
+            "description": "How expired rows leave.",
+            "example": "Delete"
+          },
+          "redact_personal_data_after": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "When personal data in the table is redacted, if ever.",
+            "example": "90 days"
+          },
+          "rationale": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the period was chosen.",
+            "example": "Tax records are kept seven years."
           }
         },
-        "required": ["table_name", "retention_days"],
+        "required": [
+          "table_name",
+          "basis",
+          "time_column",
+          "retention",
+          "purge_method",
+          "redact_personal_data_after",
+          "rationale"
+        ],
         "description": "Retention of soft-deleted rows per table."
       },
       "OrgExportPage": {
@@ -40722,6 +41347,19 @@
           "document_type"
         ],
         "description": "An approval policy with ordered steps."
+      },
+      "SpendDocumentType": {
+        "type": "string",
+        "enum": [
+          "Purchase Order",
+          "Change Order",
+          "Expense",
+          "Invoice Approval",
+          "Contract",
+          "Payroll Run"
+        ],
+        "description": "Document type a spend limit applies to.",
+        "example": "Purchase Order"
       },
       "ApprovalPolicyCreate": {
         "type": "object",
@@ -99037,9 +99675,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "plan_code": "pro",
-                      "subscription_state": "Active",
-                      "current_period_end": "2026-10-08T14:30:00Z",
-                      "seats": 25
+                      "subscription_state": "trialing"
                     }
                   ],
                   "next_cursor": null
@@ -99097,9 +99733,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "plan_code": "pro",
-                  "subscription_state": "Active",
-                  "current_period_end": "2026-10-08T14:30:00Z",
-                  "seats": 25
+                  "subscription_state": "trialing"
                 },
                 "schema": { "$ref": "#/components/schemas/Subscription" }
               }
@@ -99138,7 +99772,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "plan_code": "pro", "seats": 25 },
+              "example": { "plan_code": "pro" },
               "schema": { "$ref": "#/components/schemas/SubscriptionUpdate" }
             }
           }
@@ -99162,9 +99796,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "plan_code": "pro",
-                  "subscription_state": "Active",
-                  "current_period_end": "2026-10-08T14:30:00Z",
-                  "seats": 25
+                  "subscription_state": "trialing"
                 },
                 "schema": { "$ref": "#/components/schemas/Subscription" }
               }
@@ -99207,17 +99839,7 @@
             },
             "content": {
               "application/json": {
-                "example": {
-                  "data": [
-                    {
-                      "plan_code": "pro",
-                      "name": "Pro",
-                      "monthly_price_minor": 4900,
-                      "currency": "USD"
-                    }
-                  ],
-                  "next_cursor": null
-                },
+                "example": { "data": [{ "code": "pro", "sort_order": 1 }], "next_cursor": null },
                 "schema": { "$ref": "#/components/schemas/PlanPage" }
               }
             }
@@ -99519,7 +100141,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "workspace_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -99548,7 +100170,7 @@
             "application/json": {
               "example": {
                 "workspace_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/WorkspaceMemberCreate" }
             }
@@ -99573,7 +100195,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "workspace_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkspaceMember" }
               }
@@ -99630,7 +100252,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "workspace_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkspaceMember" }
               }
@@ -99960,7 +100582,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -99989,7 +100611,7 @@
             "application/json": {
               "example": {
                 "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/TeamMemberCreate" }
             }
@@ -100014,7 +100636,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/TeamMember" }
               }
@@ -100071,7 +100693,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/TeamMember" }
               }
@@ -100118,7 +100740,7 @@
       "get": {
         "operationId": "orgBrandings.list",
         "tags": ["Settings"],
-        "x-xos-table": "app.org_branding",
+        "x-xos-table": "app.org_brands",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -100151,9 +100773,18 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "display_name": "Northwind Live",
-                      "logo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "accent_token": "brand.accent",
-                      "gateway_domain": "gateway.northwindlive.example"
+                      "logo_light_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                      "logo_dark_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                      "favicon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                      "app_icon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                      "accent_hex": "#1F6FEB",
+                      "neutral_tint_hex": "#1F6FEB",
+                      "font_family": "Inter",
+                      "radius_scale": "Compact",
+                      "email_sender_name": "Northwind Live",
+                      "support_email": "alex.rivera@northwindlive.example",
+                      "legal_entity_name": "Northwind Live LLC",
+                      "suppress_powered_by": false
                     }
                   ],
                   "next_cursor": null
@@ -100170,7 +100801,7 @@
       "post": {
         "operationId": "orgBrandings.create",
         "tags": ["Settings"],
-        "x-xos-table": "app.org_branding",
+        "x-xos-table": "app.org_brands",
         "x-xos-capability": "org.white_label.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Create an org branding",
@@ -100182,9 +100813,18 @@
             "application/json": {
               "example": {
                 "display_name": "Northwind Live",
-                "logo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "accent_token": "brand.accent",
-                "gateway_domain": "gateway.northwindlive.example"
+                "logo_light_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                "logo_dark_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                "favicon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                "app_icon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                "accent_hex": "#1F6FEB",
+                "neutral_tint_hex": "#1F6FEB",
+                "font_family": "Inter",
+                "radius_scale": "Compact",
+                "email_sender_name": "Northwind Live",
+                "support_email": "alex.rivera@northwindlive.example",
+                "legal_entity_name": "Northwind Live LLC",
+                "suppress_powered_by": false
               },
               "schema": { "$ref": "#/components/schemas/OrgBrandingCreate" }
             }
@@ -100209,9 +100849,18 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "display_name": "Northwind Live",
-                  "logo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "accent_token": "brand.accent",
-                  "gateway_domain": "gateway.northwindlive.example"
+                  "logo_light_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "logo_dark_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "favicon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "app_icon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "accent_hex": "#1F6FEB",
+                  "neutral_tint_hex": "#1F6FEB",
+                  "font_family": "Inter",
+                  "radius_scale": "Compact",
+                  "email_sender_name": "Northwind Live",
+                  "support_email": "alex.rivera@northwindlive.example",
+                  "legal_entity_name": "Northwind Live LLC",
+                  "suppress_powered_by": false
                 },
                 "schema": { "$ref": "#/components/schemas/OrgBranding" }
               }
@@ -100229,7 +100878,7 @@
       "get": {
         "operationId": "orgBrandings.get",
         "tags": ["Settings"],
-        "x-xos-table": "app.org_branding",
+        "x-xos-table": "app.org_brands",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Get an org branding",
@@ -100268,9 +100917,18 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "display_name": "Northwind Live",
-                  "logo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "accent_token": "brand.accent",
-                  "gateway_domain": "gateway.northwindlive.example"
+                  "logo_light_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "logo_dark_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "favicon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "app_icon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "accent_hex": "#1F6FEB",
+                  "neutral_tint_hex": "#1F6FEB",
+                  "font_family": "Inter",
+                  "radius_scale": "Compact",
+                  "email_sender_name": "Northwind Live",
+                  "support_email": "alex.rivera@northwindlive.example",
+                  "legal_entity_name": "Northwind Live LLC",
+                  "suppress_powered_by": false
                 },
                 "schema": { "$ref": "#/components/schemas/OrgBranding" }
               }
@@ -100285,7 +100943,7 @@
       "patch": {
         "operationId": "orgBrandings.update",
         "tags": ["Settings"],
-        "x-xos-table": "app.org_branding",
+        "x-xos-table": "app.org_brands",
         "x-xos-capability": "org.white_label.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Update an org branding",
@@ -100311,9 +100969,18 @@
             "application/json": {
               "example": {
                 "display_name": "Northwind Live",
-                "logo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "accent_token": "brand.accent",
-                "gateway_domain": "gateway.northwindlive.example"
+                "logo_light_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                "logo_dark_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                "favicon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                "app_icon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                "accent_hex": "#1F6FEB",
+                "neutral_tint_hex": "#1F6FEB",
+                "font_family": "Inter",
+                "radius_scale": "Compact",
+                "email_sender_name": "Northwind Live",
+                "support_email": "alex.rivera@northwindlive.example",
+                "legal_entity_name": "Northwind Live LLC",
+                "suppress_powered_by": false
               },
               "schema": { "$ref": "#/components/schemas/OrgBrandingUpdate" }
             }
@@ -100338,9 +101005,18 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "display_name": "Northwind Live",
-                  "logo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "accent_token": "brand.accent",
-                  "gateway_domain": "gateway.northwindlive.example"
+                  "logo_light_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "logo_dark_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "favicon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "app_icon_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/logo-light.svg",
+                  "accent_hex": "#1F6FEB",
+                  "neutral_tint_hex": "#1F6FEB",
+                  "font_family": "Inter",
+                  "radius_scale": "Compact",
+                  "email_sender_name": "Northwind Live",
+                  "support_email": "alex.rivera@northwindlive.example",
+                  "legal_entity_name": "Northwind Live LLC",
+                  "suppress_powered_by": false
                 },
                 "schema": { "$ref": "#/components/schemas/OrgBranding" }
               }
@@ -100358,7 +101034,7 @@
       "delete": {
         "operationId": "orgBrandings.delete",
         "tags": ["Settings"],
-        "x-xos-table": "app.org_branding",
+        "x-xos-table": "app.org_brands",
         "x-xos-capability": "org.white_label.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Delete an org branding",
@@ -100955,8 +101631,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Finance Approver",
-                      "base_role": "Manager",
-                      "description": "Approves purchase orders up to the spend limit."
+                      "description": "Approves purchase orders up to the spend limit.",
+                      "code": "site_lead",
+                      "band": 4
                     }
                   ],
                   "next_cursor": null
@@ -100985,8 +101662,9 @@
             "application/json": {
               "example": {
                 "name": "Finance Approver",
-                "base_role": "Manager",
-                "description": "Approves purchase orders up to the spend limit."
+                "description": "Approves purchase orders up to the spend limit.",
+                "code": "site_lead",
+                "band": 4
               },
               "schema": { "$ref": "#/components/schemas/RoleCreate" }
             }
@@ -101011,8 +101689,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Finance Approver",
-                  "base_role": "Manager",
-                  "description": "Approves purchase orders up to the spend limit."
+                  "description": "Approves purchase orders up to the spend limit.",
+                  "code": "site_lead",
+                  "band": 4
                 },
                 "schema": { "$ref": "#/components/schemas/Role" }
               }
@@ -101069,8 +101748,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Finance Approver",
-                  "base_role": "Manager",
-                  "description": "Approves purchase orders up to the spend limit."
+                  "description": "Approves purchase orders up to the spend limit.",
+                  "code": "site_lead",
+                  "band": 4
                 },
                 "schema": { "$ref": "#/components/schemas/Role" }
               }
@@ -101111,8 +101791,8 @@
             "application/json": {
               "example": {
                 "name": "Finance Approver",
-                "base_role": "Manager",
-                "description": "Approves purchase orders up to the spend limit."
+                "description": "Approves purchase orders up to the spend limit.",
+                "band": 4
               },
               "schema": { "$ref": "#/components/schemas/RoleUpdate" }
             }
@@ -101137,8 +101817,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Finance Approver",
-                  "base_role": "Manager",
-                  "description": "Approves purchase orders up to the spend limit."
+                  "description": "Approves purchase orders up to the spend limit.",
+                  "code": "site_lead",
+                  "band": 4
                 },
                 "schema": { "$ref": "#/components/schemas/Role" }
               }
@@ -101214,9 +101895,11 @@
                 "example": {
                   "data": [
                     {
-                      "capability": "finance.po.approve",
-                      "group": "finance",
-                      "classification": "Restricted"
+                      "code": "finance.po.approve",
+                      "module_code": "finance",
+                      "capability_class": "read",
+                      "description": "Approve purchase orders within spend authority.",
+                      "sort_order": 1
                     }
                   ],
                   "next_cursor": null
@@ -101268,7 +101951,8 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "capability": "finance.po.approve"
+                      "capability_code": "finance.po.approve",
+                      "reach": "own"
                     }
                   ],
                   "next_cursor": null
@@ -101297,7 +101981,8 @@
             "application/json": {
               "example": {
                 "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "capability": "finance.po.approve"
+                "capability_code": "finance.po.approve",
+                "reach": "own"
               },
               "schema": { "$ref": "#/components/schemas/RoleCapabilityCreate" }
             }
@@ -101322,7 +102007,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "capability": "finance.po.approve"
+                  "capability_code": "finance.po.approve",
+                  "reach": "own"
                 },
                 "schema": { "$ref": "#/components/schemas/RoleCapability" }
               }
@@ -101379,7 +102065,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "capability": "finance.po.approve"
+                  "capability_code": "finance.po.approve",
+                  "reach": "own"
                 },
                 "schema": { "$ref": "#/components/schemas/RoleCapability" }
               }
@@ -101458,10 +102145,14 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "capability": "crew.timesheet.approve",
+                      "capability_code": "crew.timesheet.approve",
                       "valid_from": "2026-10-08T14:30:00Z",
-                      "valid_to": "2026-10-08T14:30:00Z"
+                      "valid_to": "2026-10-08T14:30:00Z",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "scope_kind": "organization",
+                      "scope_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "reason": "Covering approvals during the tour."
                     }
                   ],
                   "next_cursor": null
@@ -101489,10 +102180,13 @@
           "content": {
             "application/json": {
               "example": {
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "capability": "crew.timesheet.approve",
+                "capability_code": "crew.timesheet.approve",
                 "valid_from": "2026-10-08T14:30:00Z",
-                "valid_to": "2026-10-08T14:30:00Z"
+                "valid_to": "2026-10-08T14:30:00Z",
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "scope_kind": "organization",
+                "scope_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "reason": "Covering approvals during the tour."
               },
               "schema": { "$ref": "#/components/schemas/UserCapabilityGrantCreate" }
             }
@@ -101516,10 +102210,14 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "capability": "crew.timesheet.approve",
+                  "capability_code": "crew.timesheet.approve",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_kind": "organization",
+                  "scope_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Covering approvals during the tour."
                 },
                 "schema": { "$ref": "#/components/schemas/UserCapabilityGrant" }
               }
@@ -101575,10 +102273,14 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "capability": "crew.timesheet.approve",
+                  "capability_code": "crew.timesheet.approve",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_kind": "organization",
+                  "scope_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Covering approvals during the tour."
                 },
                 "schema": { "$ref": "#/components/schemas/UserCapabilityGrant" }
               }
@@ -101619,7 +102321,10 @@
             "application/json": {
               "example": {
                 "valid_from": "2026-10-08T14:30:00Z",
-                "valid_to": "2026-10-08T14:30:00Z"
+                "valid_to": "2026-10-08T14:30:00Z",
+                "scope_kind": "organization",
+                "scope_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "reason": "Covering approvals during the tour."
               },
               "schema": { "$ref": "#/components/schemas/UserCapabilityGrantUpdate" }
             }
@@ -101643,10 +102348,14 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "capability": "crew.timesheet.approve",
+                  "capability_code": "crew.timesheet.approve",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_kind": "organization",
+                  "scope_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Covering approvals during the tour."
                 },
                 "schema": { "$ref": "#/components/schemas/UserCapabilityGrant" }
               }
@@ -101728,10 +102437,15 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "grantee_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "subject_urn": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "capability": "records.read",
-                      "valid_to": "2026-10-08T14:30:00Z"
+                      "capability_code": "records.read",
+                      "valid_to": "2026-10-08T14:30:00Z",
+                      "target_kind": "organization",
+                      "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "grantee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "grantee_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "valid_from": "2026-10-08T14:30:00Z",
+                      "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "reason": "Partner agreement, clause 4.2."
                     }
                   ],
                   "next_cursor": null
@@ -101759,10 +102473,14 @@
           "content": {
             "application/json": {
               "example": {
-                "grantee_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "subject_urn": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "capability": "records.read",
-                "valid_to": "2026-10-08T14:30:00Z"
+                "capability_code": "records.read",
+                "valid_to": "2026-10-08T14:30:00Z",
+                "target_kind": "organization",
+                "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "grantee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "grantee_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "valid_from": "2026-10-08T14:30:00Z",
+                "reason": "Partner agreement, clause 4.2."
               },
               "schema": { "$ref": "#/components/schemas/RecordGrantCreate" }
             }
@@ -101786,10 +102504,15 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "grantee_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "subject_urn": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "capability": "records.read",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "capability_code": "records.read",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "target_kind": "organization",
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "grantee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "grantee_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Partner agreement, clause 4.2."
                 },
                 "schema": { "$ref": "#/components/schemas/RecordGrant" }
               }
@@ -101845,10 +102568,15 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "grantee_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "subject_urn": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "capability": "records.read",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "capability_code": "records.read",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "target_kind": "organization",
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "grantee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "grantee_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Partner agreement, clause 4.2."
                 },
                 "schema": { "$ref": "#/components/schemas/RecordGrant" }
               }
@@ -101888,10 +102616,12 @@
           "content": {
             "application/json": {
               "example": {
-                "grantee_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "subject_urn": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "capability": "records.read",
-                "valid_to": "2026-10-08T14:30:00Z"
+                "capability_code": "records.read",
+                "valid_to": "2026-10-08T14:30:00Z",
+                "grantee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "grantee_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "valid_from": "2026-10-08T14:30:00Z",
+                "reason": "Partner agreement, clause 4.2."
               },
               "schema": { "$ref": "#/components/schemas/RecordGrantUpdate" }
             }
@@ -101915,10 +102645,15 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "grantee_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "subject_urn": "urn:xpms:project:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "capability": "records.read",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "capability_code": "records.read",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "target_kind": "organization",
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "grantee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "grantee_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "granted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Partner agreement, clause 4.2."
                 },
                 "schema": { "$ref": "#/components/schemas/RecordGrant" }
               }
@@ -102000,10 +102735,12 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "valid_from": "2026-10-08T14:30:00Z",
-                      "valid_to": "2026-10-08T14:30:00Z"
+                      "valid_to": "2026-10-08T14:30:00Z",
+                      "delegator_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "delegate_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "capability_code": "finance.po.approve",
+                      "reason": "Annual leave, 12 to 26 May."
                     }
                   ],
                   "next_cursor": null
@@ -102031,10 +102768,12 @@
           "content": {
             "application/json": {
               "example": {
-                "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "valid_from": "2026-10-08T14:30:00Z",
-                "valid_to": "2026-10-08T14:30:00Z"
+                "valid_to": "2026-10-08T14:30:00Z",
+                "delegator_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "delegate_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "capability_code": "finance.po.approve",
+                "reason": "Annual leave, 12 to 26 May."
               },
               "schema": { "$ref": "#/components/schemas/DelegationCreate" }
             }
@@ -102058,10 +102797,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "delegator_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "delegate_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "capability_code": "finance.po.approve",
+                  "reason": "Annual leave, 12 to 26 May."
                 },
                 "schema": { "$ref": "#/components/schemas/Delegation" }
               }
@@ -102117,10 +102858,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "delegator_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "delegate_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "capability_code": "finance.po.approve",
+                  "reason": "Annual leave, 12 to 26 May."
                 },
                 "schema": { "$ref": "#/components/schemas/Delegation" }
               }
@@ -102160,10 +102903,10 @@
           "content": {
             "application/json": {
               "example": {
-                "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "valid_from": "2026-10-08T14:30:00Z",
-                "valid_to": "2026-10-08T14:30:00Z"
+                "valid_to": "2026-10-08T14:30:00Z",
+                "capability_code": "finance.po.approve",
+                "reason": "Annual leave, 12 to 26 May."
               },
               "schema": { "$ref": "#/components/schemas/DelegationUpdate" }
             }
@@ -102187,10 +102930,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "delegator_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "delegate_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "capability_code": "finance.po.approve",
+                  "reason": "Annual leave, 12 to 26 May."
                 },
                 "schema": { "$ref": "#/components/schemas/Delegation" }
               }
@@ -102240,7 +102985,7 @@
       "get": {
         "operationId": "spendAuthorityLimits.list",
         "tags": ["Settings"],
-        "x-xos-table": "app.spend_authority",
+        "x-xos-table": "app.spend_authorities",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -102273,11 +103018,15 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "document_type": "Purchase Order",
                       "limit_minor": 2500000,
                       "dual_approval_above_minor": 10000000,
-                      "currency": "USD"
+                      "currency_code": "USD",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "account_code": "5100",
+                      "cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "valid_from": "2026-10-08T14:30:00Z",
+                      "valid_to": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -102294,7 +103043,7 @@
       "post": {
         "operationId": "spendAuthorityLimits.create",
         "tags": ["Settings"],
-        "x-xos-table": "app.spend_authority",
+        "x-xos-table": "app.spend_authorities",
         "x-xos-capability": "org.spend_authority.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Create a spend authority limit",
@@ -102306,11 +103055,15 @@
             "application/json": {
               "example": {
                 "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "document_type": "Purchase Order",
                 "limit_minor": 2500000,
                 "dual_approval_above_minor": 10000000,
-                "currency": "USD"
+                "currency_code": "USD",
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "account_code": "5100",
+                "cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "valid_from": "2026-10-08T14:30:00Z",
+                "valid_to": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/SpendAuthorityCreate" }
             }
@@ -102335,11 +103088,15 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "document_type": "Purchase Order",
                   "limit_minor": 2500000,
                   "dual_approval_above_minor": 10000000,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "account_code": "5100",
+                  "cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/SpendAuthority" }
               }
@@ -102357,7 +103114,7 @@
       "get": {
         "operationId": "spendAuthorityLimits.get",
         "tags": ["Settings"],
-        "x-xos-table": "app.spend_authority",
+        "x-xos-table": "app.spend_authorities",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Get a spend authority limit",
@@ -102396,11 +103153,15 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "document_type": "Purchase Order",
                   "limit_minor": 2500000,
                   "dual_approval_above_minor": 10000000,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "account_code": "5100",
+                  "cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/SpendAuthority" }
               }
@@ -102415,7 +103176,7 @@
       "patch": {
         "operationId": "spendAuthorityLimits.update",
         "tags": ["Settings"],
-        "x-xos-table": "app.spend_authority",
+        "x-xos-table": "app.spend_authorities",
         "x-xos-capability": "org.spend_authority.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Update a spend authority limit",
@@ -102441,11 +103202,15 @@
             "application/json": {
               "example": {
                 "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "document_type": "Purchase Order",
                 "limit_minor": 2500000,
                 "dual_approval_above_minor": 10000000,
-                "currency": "USD"
+                "currency_code": "USD",
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "account_code": "5100",
+                "cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "valid_from": "2026-10-08T14:30:00Z",
+                "valid_to": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/SpendAuthorityUpdate" }
             }
@@ -102470,11 +103235,15 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "document_type": "Purchase Order",
                   "limit_minor": 2500000,
                   "dual_approval_above_minor": 10000000,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "account_code": "5100",
+                  "cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/SpendAuthority" }
               }
@@ -102492,7 +103261,7 @@
       "delete": {
         "operationId": "spendAuthorityLimits.delete",
         "tags": ["Settings"],
-        "x-xos-table": "app.spend_authority",
+        "x-xos-table": "app.spend_authorities",
         "x-xos-capability": "org.spend_authority.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Delete a spend authority limit",
@@ -102550,15 +103319,9 @@
                 "example": {
                   "data": [
                     {
-                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "created_at": "2026-10-08T14:30:00Z",
-                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "updated_at": "2026-10-08T14:30:00Z",
-                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "rule": "sod.po.creator_cannot_approve",
+                      "code": "sod_approval_requester",
                       "enforced_on": "Purchase orders",
-                      "is_default": true
+                      "description": "The requester of a spend document cannot approve it."
                     }
                   ],
                   "next_cursor": null
@@ -102569,217 +103332,6 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "post": {
-        "operationId": "separationOfDutiesRules.create",
-        "tags": ["Settings"],
-        "x-xos-table": "app.separation_of_duties_rules",
-        "x-xos-capability": "org.separation_of_duties.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "summary": "Create a separation of duties rule",
-        "description": "A separation of duties rule. Orgs may tighten defaults but never remove them. Creates a separation of duties rule. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "rule": "sod.po.creator_cannot_approve",
-                "enforced_on": "Purchase orders"
-              },
-              "schema": { "$ref": "#/components/schemas/SeparationOfDutiesRuleCreate" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The created separation of duties rule.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "rule": "sod.po.creator_cannot_approve",
-                  "enforced_on": "Purchase orders",
-                  "is_default": true
-                },
-                "schema": { "$ref": "#/components/schemas/SeparationOfDutiesRule" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/separation-of-duties-rules/{id}": {
-      "get": {
-        "operationId": "separationOfDutiesRules.get",
-        "tags": ["Settings"],
-        "x-xos-table": "app.separation_of_duties_rules",
-        "x-xos-capability": "org.settings.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "summary": "Get a separation of duties rule",
-        "description": "A separation of duties rule. Orgs may tighten defaults but never remove them. Returns one separation of duties rule with its `ETag`. A separation of duties rule the caller may not see returns 404.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the separation of duties rule.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the separation of duties rule.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/Fields" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The separation of duties rule.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "rule": "sod.po.creator_cannot_approve",
-                  "enforced_on": "Purchase orders",
-                  "is_default": true
-                },
-                "schema": { "$ref": "#/components/schemas/SeparationOfDutiesRule" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "patch": {
-        "operationId": "separationOfDutiesRules.update",
-        "tags": ["Settings"],
-        "x-xos-table": "app.separation_of_duties_rules",
-        "x-xos-capability": "org.separation_of_duties.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "summary": "Update a separation of duties rule",
-        "description": "A separation of duties rule. Orgs may tighten defaults but never remove them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the separation of duties rule.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the separation of duties rule.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IfMatch" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "rule": "sod.po.creator_cannot_approve",
-                "enforced_on": "Purchase orders"
-              },
-              "schema": { "$ref": "#/components/schemas/SeparationOfDutiesRuleUpdate" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The updated separation of duties rule.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "rule": "sod.po.creator_cannot_approve",
-                  "enforced_on": "Purchase orders",
-                  "is_default": true
-                },
-                "schema": { "$ref": "#/components/schemas/SeparationOfDutiesRule" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "412": { "$ref": "#/components/responses/PreconditionFailed" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "428": { "$ref": "#/components/responses/PreconditionRequired" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "delete": {
-        "operationId": "separationOfDutiesRules.delete",
-        "tags": ["Settings"],
-        "x-xos-table": "app.separation_of_duties_rules",
-        "x-xos-capability": "org.separation_of_duties.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "summary": "Delete a separation of duties rule",
-        "description": "A separation of duties rule. Orgs may tighten defaults but never remove them. Soft-deletes the separation of duties rule: it moves to Trash and can be restored for its table's retention period.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the separation of duties rule.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the separation of duties rule.",
-            "name": "id",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "204": { "description": "The separation of duties rule moved to Trash." },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -102817,7 +103369,7 @@
                       "table_name": "app.pay_rates",
                       "column_name": "rate_minor",
                       "classification": "Restricted",
-                      "reveal_capability": "data.restricted.read.payroll"
+                      "read_capability": "data.restricted.read.payroll"
                     }
                   ],
                   "next_cursor": null
@@ -104013,7 +104565,8 @@
                       "expires_at": "2026-10-08T14:30:00Z",
                       "prefix": "xos_live_7Hq2",
                       "last_used_at": "2026-10-08T14:30:00Z",
-                      "revoked_at": "2026-10-08T14:30:00Z"
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -104074,7 +104627,8 @@
                   "expires_at": "2026-10-08T14:30:00Z",
                   "prefix": "xos_live_7Hq2",
                   "last_used_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ApiKey" }
               }
@@ -104136,7 +104690,8 @@
                   "expires_at": "2026-10-08T14:30:00Z",
                   "prefix": "xos_live_7Hq2",
                   "last_used_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ApiKey" }
               }
@@ -104209,7 +104764,8 @@
                   "expires_at": "2026-10-08T14:30:00Z",
                   "prefix": "xos_live_7Hq2",
                   "last_used_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ApiKey" }
               }
@@ -104273,7 +104829,8 @@
                   "expires_at": "2026-10-08T14:30:00Z",
                   "prefix": "xos_live_7Hq2",
                   "last_used_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ApiKey" }
               }
@@ -104377,7 +104934,10 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Ledger Export Bot",
                       "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "expires_at": "2026-10-08T14:30:00Z"
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "user_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -104433,7 +104993,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Ledger Export Bot",
                   "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "expires_at": "2026-10-08T14:30:00Z"
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "user_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ServiceAccount" }
               }
@@ -104491,7 +105054,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Ledger Export Bot",
                   "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "expires_at": "2026-10-08T14:30:00Z"
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "user_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ServiceAccount" }
               }
@@ -104559,7 +105125,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Ledger Export Bot",
                   "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "expires_at": "2026-10-08T14:30:00Z"
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "user_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ServiceAccount" }
               }
@@ -105311,7 +105880,8 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "url": "https://northwindlive.example/files/site-plan.pdf",
                       "events": ["record.state_changed", "po.approved"],
-                      "enabled": true
+                      "description": "Sync approved POs to the ERP.",
+                      "disabled_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -105341,7 +105911,7 @@
               "example": {
                 "url": "https://northwindlive.example/files/site-plan.pdf",
                 "events": ["record.state_changed", "po.approved"],
-                "enabled": true
+                "description": "Sync approved POs to the ERP."
               },
               "schema": { "$ref": "#/components/schemas/WebhookEndpointCreate" }
             }
@@ -105367,7 +105937,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "url": "https://northwindlive.example/files/site-plan.pdf",
                   "events": ["record.state_changed", "po.approved"],
-                  "enabled": true
+                  "description": "Sync approved POs to the ERP.",
+                  "disabled_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/WebhookEndpoint" }
               }
@@ -105425,7 +105996,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "url": "https://northwindlive.example/files/site-plan.pdf",
                   "events": ["record.state_changed", "po.approved"],
-                  "enabled": true
+                  "description": "Sync approved POs to the ERP.",
+                  "disabled_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/WebhookEndpoint" }
               }
@@ -105467,7 +106039,8 @@
               "example": {
                 "url": "https://northwindlive.example/files/site-plan.pdf",
                 "events": ["record.state_changed", "po.approved"],
-                "enabled": true
+                "description": "Sync approved POs to the ERP.",
+                "disabled_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/WebhookEndpointUpdate" }
             }
@@ -105493,7 +106066,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "url": "https://northwindlive.example/files/site-plan.pdf",
                   "events": ["record.state_changed", "po.approved"],
-                  "enabled": true
+                  "description": "Sync approved POs to the ERP.",
+                  "disabled_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/WebhookEndpoint" }
               }
@@ -105576,11 +106150,15 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "webhook_endpoint_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "event": "po.approved",
                       "delivery_status": "Delivered",
-                      "attempt": 1,
-                      "response_status": 200,
-                      "delivered_at": "2026-10-08T14:30:00Z"
+                      "delivered_at": "2026-10-08T14:30:00Z",
+                      "domain_event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "attempt_count": 1,
+                      "next_attempt_at": "2026-10-08T14:30:00Z",
+                      "last_attempt_at": "2026-10-08T14:30:00Z",
+                      "last_response_status": 200,
+                      "last_error": "Connection timed out.",
+                      "replay_requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -105638,11 +106216,15 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "webhook_endpoint_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "event": "po.approved",
                   "delivery_status": "Delivered",
-                  "attempt": 1,
-                  "response_status": 200,
-                  "delivered_at": "2026-10-08T14:30:00Z"
+                  "delivered_at": "2026-10-08T14:30:00Z",
+                  "domain_event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attempt_count": 1,
+                  "next_attempt_at": "2026-10-08T14:30:00Z",
+                  "last_attempt_at": "2026-10-08T14:30:00Z",
+                  "last_response_status": 200,
+                  "last_error": "Connection timed out.",
+                  "replay_requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WebhookDelivery" }
               }
@@ -105698,11 +106280,15 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "webhook_endpoint_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "event": "po.approved",
                   "delivery_status": "Delivered",
-                  "attempt": 1,
-                  "response_status": 200,
-                  "delivered_at": "2026-10-08T14:30:00Z"
+                  "delivered_at": "2026-10-08T14:30:00Z",
+                  "domain_event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attempt_count": 1,
+                  "next_attempt_at": "2026-10-08T14:30:00Z",
+                  "last_attempt_at": "2026-10-08T14:30:00Z",
+                  "last_response_status": 200,
+                  "last_error": "Connection timed out.",
+                  "replay_requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WebhookDelivery" }
               }
@@ -105721,7 +106307,7 @@
       "get": {
         "operationId": "webhookEventTypes.list",
         "tags": ["Settings"],
-        "x-xos-table": "app.domain_event_types",
+        "x-xos-table": "app.domain_event_catalog",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "x-xos-order": { "by": ["event"], "numeric": false },
@@ -105747,8 +106333,9 @@
                 "example": {
                   "data": [
                     {
-                      "event": "record.state_changed",
-                      "description": "A record moved to another state."
+                      "code": "record.state_changed",
+                      "description": "A record moved to another state.",
+                      "subject": "purchase_orders"
                     }
                   ],
                   "next_cursor": null
@@ -106083,7 +106670,7 @@
       "get": {
         "operationId": "settingLocks.list",
         "tags": ["Settings"],
-        "x-xos-table": "app.setting_locks",
+        "x-xos-table": "app.setting_values",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -106132,7 +106719,7 @@
       "post": {
         "operationId": "settingLocks.create",
         "tags": ["Settings"],
-        "x-xos-table": "app.setting_locks",
+        "x-xos-table": "app.setting_values",
         "x-xos-capability": "org.security.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Create a setting lock",
@@ -106183,7 +106770,7 @@
       "get": {
         "operationId": "settingLocks.get",
         "tags": ["Settings"],
-        "x-xos-table": "app.setting_locks",
+        "x-xos-table": "app.setting_values",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Get a setting lock",
@@ -106236,7 +106823,7 @@
       "delete": {
         "operationId": "settingLocks.delete",
         "tags": ["Settings"],
-        "x-xos-table": "app.setting_locks",
+        "x-xos-table": "app.setting_values",
         "x-xos-capability": "org.security.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Delete a setting lock",
@@ -106300,12 +106887,16 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "actor_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "action": "purchase_order.approved",
-                      "subject_urn": "urn:xpms:purchase_order:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "capacity": "internal",
-                      "occurred_at": "2026-10-08T14:30:00Z",
-                      "diff": { "type": "doc" }
+                      "diff": { "type": "doc" },
+                      "actor_kind": "Person",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "subject_table": "purchase_orders",
+                      "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "actor_ip": "203.0.113.24",
+                      "user_agent": "Mozilla/5.0",
+                      "request_id": "req_01J9Z6",
+                      "redacted_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -106362,12 +106953,16 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "actor_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "action": "purchase_order.approved",
-                  "subject_urn": "urn:xpms:purchase_order:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "capacity": "internal",
-                  "occurred_at": "2026-10-08T14:30:00Z",
-                  "diff": { "type": "doc" }
+                  "diff": { "type": "doc" },
+                  "actor_kind": "Person",
+                  "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject_table": "purchase_orders",
+                  "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "actor_ip": "203.0.113.24",
+                  "user_agent": "Mozilla/5.0",
+                  "request_id": "req_01J9Z6",
+                  "redacted_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/AuditEvent" }
               }
@@ -106414,9 +107009,12 @@
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "purpose": "marketing_email",
-                      "granted": true,
-                      "recorded_at": "2026-10-08T14:30:00Z"
+                      "purpose_code": "marketing_email",
+                      "notice_version": "2026-10-01",
+                      "source": "Web",
+                      "captured_at": "2026-10-08T14:30:00Z",
+                      "captured_ip": "203.0.113.24",
+                      "withdrawn_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -106445,8 +107043,9 @@
             "application/json": {
               "example": {
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "purpose": "marketing_email",
-                "granted": true
+                "purpose_code": "marketing_email",
+                "notice_version": "2026-10-01",
+                "source": "Web"
               },
               "schema": { "$ref": "#/components/schemas/ConsentRecordCreate" }
             }
@@ -106468,9 +107067,12 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "purpose": "marketing_email",
-                  "granted": true,
-                  "recorded_at": "2026-10-08T14:30:00Z"
+                  "purpose_code": "marketing_email",
+                  "notice_version": "2026-10-01",
+                  "source": "Web",
+                  "captured_at": "2026-10-08T14:30:00Z",
+                  "captured_ip": "203.0.113.24",
+                  "withdrawn_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ConsentRecord" }
               }
@@ -106524,9 +107126,12 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "purpose": "marketing_email",
-                  "granted": true,
-                  "recorded_at": "2026-10-08T14:30:00Z"
+                  "purpose_code": "marketing_email",
+                  "notice_version": "2026-10-01",
+                  "source": "Web",
+                  "captured_at": "2026-10-08T14:30:00Z",
+                  "captured_ip": "203.0.113.24",
+                  "withdrawn_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ConsentRecord" }
               }
@@ -106575,10 +107180,12 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "request_type": "access",
+                      "request_type": "Access",
                       "dsar_state": "In Review",
-                      "completed_at": "2026-10-08T14:30:00Z"
+                      "subject_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "subject_email": "alex.rivera@northwindlive.example",
+                      "details": "Send me my timesheets.",
+                      "received_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -106606,8 +107213,10 @@
           "content": {
             "application/json": {
               "example": {
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "request_type": "access"
+                "request_type": "Access",
+                "subject_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "subject_email": "alex.rivera@northwindlive.example",
+                "details": "Send me my timesheets."
               },
               "schema": { "$ref": "#/components/schemas/DsarRequestCreate" }
             }
@@ -106631,10 +107240,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "request_type": "access",
+                  "request_type": "Access",
                   "dsar_state": "In Review",
-                  "completed_at": "2026-10-08T14:30:00Z"
+                  "subject_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject_email": "alex.rivera@northwindlive.example",
+                  "details": "Send me my timesheets.",
+                  "received_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/DsarRequest" }
               }
@@ -106690,10 +107301,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "request_type": "access",
+                  "request_type": "Access",
                   "dsar_state": "In Review",
-                  "completed_at": "2026-10-08T14:30:00Z"
+                  "subject_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject_email": "alex.rivera@northwindlive.example",
+                  "details": "Send me my timesheets.",
+                  "received_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/DsarRequest" }
               }
@@ -106734,7 +107347,17 @@
             "content": {
               "application/json": {
                 "example": {
-                  "data": [{ "table_name": "app.activity_events", "retention_days": 548 }],
+                  "data": [
+                    {
+                      "table_name": "app.activity_events",
+                      "basis": "Soft Deleted",
+                      "time_column": "deleted_at",
+                      "retention": "7 years",
+                      "purge_method": "Delete",
+                      "redact_personal_data_after": "90 days",
+                      "rationale": "Tax records are kept seven years."
+                    }
+                  ],
                   "next_cursor": null
                 },
                 "schema": { "$ref": "#/components/schemas/RetentionPolicyPage" }
