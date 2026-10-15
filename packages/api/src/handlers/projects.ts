@@ -1,23 +1,27 @@
 /**
- * Projects handlers (A07): projects, the scope tree, gate readiness and passage, and the gate
- * history. Every read runs as the caller, so row level security decides (invariant 2); every state
- * change goes through the lifecycle and gate RPCs, whose refusals come back as 422 with the rule.
- *
- * Operations left out stay document-only (README "Adding handlers") because the frozen contract
- * and the schema disagree; the A07 completion report proposes the corrections:
- *   projects.create (no project_key or time_zone in ProjectCreate), projects.delete and
- *   projects.duplicate (projects are archived, never deleted; duplication is a template feature),
- *   and the gateEvidence operations (the contract names record_id and evidence_document_id, the
- *   evidence spine stores an evidence URI).
+ * Projects handlers (A07, A04P): projects, the scope tree, gate readiness and passage, the gate
+ * history and gate evidence. Every read runs as the caller, so row level security decides
+ * (invariant 2); every state change goes through the lifecycle and gate RPCs, whose refusals come
+ * back as 422 with the rule. Projects are archived, never deleted (ADR 0023,
+ * project-archive-not-delete); evidence is withdrawn by soft delete and never edited.
  */
 import type { DataError, XosClient } from "@xos/data";
-import { createScopeNode, passGate, removeScopeNode, transitionProject } from "@xos/data/projects";
+import {
+  createProject,
+  createScopeNode,
+  passGate,
+  removeScopeNode,
+  setProjectArchived,
+  transitionProject,
+} from "@xos/data/projects";
 import type { Components } from "../contract/operations.generated.ts";
 import { conflict, notFound, preconditionFailed, refused } from "../problem.ts";
 import { versionFromIfMatch } from "../runtime/etag.ts";
 import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
+import { requireOrg } from "../runtime/context.ts";
+import { tableHandlers } from "./support/table.ts";
 
 type Project = Components["Project"];
 type ScopeNode = Components["ScopeNode"];
@@ -39,6 +43,11 @@ export const PROJECT_COLUMNS = [
   "currency",
   "starts_on",
   "ends_on",
+  "time_zone",
+  "venue_id",
+  "client_counterparty_id",
+  "production_state",
+  "archived_at",
 ] as const;
 
 const SCOPE_NODE_COLUMNS = [
@@ -208,6 +217,46 @@ export const handlers = defineHandlers("Projects", {
       }),
     ),
 
+  "projects.create": async ({ body }, context) => {
+    const result = await createProject(context.db, {
+      orgId: requireOrg(context).id,
+      key: body.project_key,
+      name: body.name,
+      timeZone: body.time_zone,
+      jurisdictionId: body.jurisdiction_id ?? null,
+      regionCode: body.region_code ?? null,
+      tierCode: body.tier_code ?? null,
+      venueId: body.venue_id ?? null,
+      startsOn: body.starts_on ?? null,
+      endsOn: body.ends_on ?? null,
+      currencyCode: body.currency ?? null,
+      description: body.description ?? null,
+    });
+    if (!result.ok) throw problemFor(result.error);
+    if (body.workspace_id !== undefined && body.workspace_id !== null) {
+      const { error } = await context.db
+        .from("projects")
+        .update({ workspace_id: body.workspace_id } as never)
+        .eq("id", result.data.id);
+      if (error !== null) throw error;
+    }
+    return created(await readProject(context.db, result.data.id));
+  },
+
+  "projects.archive": async ({ params }, { db }) => {
+    await readProject(db, params.id, ["id"]);
+    const result = await setProjectArchived(db, params.id, true);
+    if (!result.ok) throw problemFor(result.error);
+    return ok(await readProject(db, params.id));
+  },
+
+  "projects.unarchive": async ({ params }, { db }) => {
+    await readProject(db, params.id, ["id"]);
+    const result = await setProjectArchived(db, params.id, false);
+    if (!result.ok) throw problemFor(result.error);
+    return ok(await readProject(db, params.id));
+  },
+
   "projects.get": async ({ params, query }, { db }) =>
     ok(await readProject(db, params.id, selectColumns(query.fields, PROJECT_COLUMNS, "id"))),
 
@@ -369,4 +418,7 @@ export const handlers = defineHandlers("Projects", {
     if (data === null) throw notFound(`No gate transition with id ${params.id} is visible to you.`);
     return ok(data as unknown as PhaseTransition);
   },
+
+  // Gate evidence: attested by the database guard (who and when), withdrawn by soft delete.
+  ...tableHandlers("Projects", "gateEvidence"),
 });

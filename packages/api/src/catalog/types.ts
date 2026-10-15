@@ -65,6 +65,8 @@ export interface ActionSpec {
 export interface OrderSpec {
   readonly by: readonly string[];
   readonly numeric: boolean;
+  /** Newest first: the default order runs descending (a feed). Absent means ascending. */
+  readonly descending?: boolean;
   /** Field overrides for each item of the list example, in the documented order. */
   readonly examples?: readonly Readonly<Record<string, string | number>>[];
 }

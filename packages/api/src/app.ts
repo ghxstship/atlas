@@ -10,6 +10,12 @@ import { canonResources } from "./catalog/canon.ts";
 import { marketplaceResources } from "./catalog/marketplace.ts";
 import { platformResources } from "./catalog/platform.ts";
 import { applyAdditions } from "./catalog/additions.ts";
+import {
+  CONTRACT_CORRECTIONS,
+  applyCorrections,
+  resolveCorrections,
+} from "./catalog/corrections.ts";
+import type { ResolvedCorrection } from "./catalog/corrections.ts";
 import { MODULE_ADDITIONS } from "./catalog/modules/index.generated.ts";
 import type { Module, ResourceSpec } from "./catalog/types.ts";
 import { MODULES } from "./catalog/types.ts";
@@ -27,15 +33,31 @@ import type { AnyModuleHandlers } from "./runtime/handler.ts";
 import { mountHandlers } from "./runtime/mount.ts";
 import type { MountOptions } from "./runtime/mount.ts";
 
-export const API_VERSION = "1.0.0-draft.1";
+/** The v1 draft. Each draft that adds contract corrections takes the next number (ADR 0023). */
+export const API_VERSION = "1.0.0-draft.2";
 
-/** The frozen v1 catalog (ADR 0014), in module order. */
-export const frozenCatalog: readonly ResourceSpec[] = [
+/** The v1 catalog exactly as frozen (ADR 0014), in module order. Gate 20 compares it with the freeze. */
+export const uncorrectedFrozenCatalog: readonly ResourceSpec[] = [
   ...atlasResources,
   ...marketplaceResources,
   ...canonResources,
   ...platformResources,
 ];
+
+/**
+ * Every correction to the frozen catalog (ADR 0023), resolved and in the order applied: the
+ * contract-wide entries, then each module's entries in `MODULES` order.
+ */
+export const CORRECTIONS: readonly ResolvedCorrection[] = resolveCorrections(
+  uncorrectedFrozenCatalog,
+  [...CONTRACT_CORRECTIONS, ...MODULE_ADDITIONS.flatMap((m) => m.corrections)],
+);
+
+/** The frozen v1 catalog with its corrections applied. */
+export const frozenCatalog: readonly ResourceSpec[] = applyCorrections(
+  uncorrectedFrozenCatalog,
+  CORRECTIONS,
+);
 
 /** Every resource in the contract: the frozen catalog plus each module's additive operations. */
 export const catalog: readonly ResourceSpec[] = applyAdditions(frozenCatalog, MODULE_ADDITIONS);

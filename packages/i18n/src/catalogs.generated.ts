@@ -2,6 +2,8 @@
 // Never edit by hand. On a merge conflict, rerun the generator.
 
 import enUS_activity from "../messages/en-US/activity.json" with { type: "json" };
+import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
+import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
 import enUS_email from "../messages/en-US/email.json" with { type: "json" };
 import enUS_gateway from "../messages/en-US/gateway.json" with { type: "json" };
@@ -10,6 +12,8 @@ import enUS_hospitality from "../messages/en-US/hospitality.json" with { type: "
 import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
+import enUS_people from "../messages/en-US/people.json" with { type: "json" };
+import enUS_places from "../messages/en-US/places.json" with { type: "json" };
 import enUS_profiles from "../messages/en-US/profiles.json" with { type: "json" };
 import enUS_projects from "../messages/en-US/projects.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
@@ -19,6 +23,8 @@ import enUS_show from "../messages/en-US/show.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
 import enUS_work from "../messages/en-US/work.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
+import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
+import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
 import esUS_email from "../messages/es-US/email.json" with { type: "json" };
 import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
@@ -27,6 +33,8 @@ import esUS_hospitality from "../messages/es-US/hospitality.json" with { type: "
 import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
+import esUS_people from "../messages/es-US/people.json" with { type: "json" };
+import esUS_places from "../messages/es-US/places.json" with { type: "json" };
 import esUS_profiles from "../messages/es-US/profiles.json" with { type: "json" };
 import esUS_projects from "../messages/es-US/projects.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
@@ -38,6 +46,8 @@ import esUS_work from "../messages/es-US/work.json" with { type: "json" };
 
 export const enUS = {
   activity: enUS_activity,
+  compass: enUS_compass,
+  credentials: enUS_credentials,
   crew: enUS_crew,
   email: enUS_email,
   gateway: enUS_gateway,
@@ -46,6 +56,8 @@ export const enUS = {
   logistics: enUS_logistics,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
+  people: enUS_people,
+  places: enUS_places,
   profiles: enUS_profiles,
   projects: enUS_projects,
   schedule: enUS_schedule,
@@ -58,6 +70,8 @@ export const enUS = {
 
 export const esUS = {
   activity: esUS_activity,
+  compass: esUS_compass,
+  credentials: esUS_credentials,
   crew: esUS_crew,
   email: esUS_email,
   gateway: esUS_gateway,
@@ -66,6 +80,8 @@ export const esUS = {
   logistics: esUS_logistics,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
+  people: esUS_people,
+  places: esUS_places,
   profiles: esUS_profiles,
   projects: esUS_projects,
   schedule: esUS_schedule,

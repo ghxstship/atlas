@@ -135,6 +135,10 @@ test("journeys 10 and 11: publish, accept, clock in and out, approve, and void o
   await owner.getByRole("link", { name: /Published shift on NWL/ }).click();
   const peek = owner.getByRole("dialog").filter({ hasText: "Shift" });
   await expect(peek).toContainText("Moved from Draft to Published");
+  // The shift carries the comment thread.
+  await peek.getByLabel("Write a comment").fill("Bring gloves for the truck.");
+  await peek.getByRole("button", { name: "Post comment" }).click();
+  await expect(peek.getByText("Bring gloves for the truck.")).toBeVisible();
   await owner.waitForTimeout(400);
   await expectAccessible(owner);
 

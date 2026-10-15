@@ -24,8 +24,6 @@
     "created": "Created as {state}",
     "moved": "Moved from {from} to {to}",
     "byAt": "{name} · {at}",
-    "comments": "Comments and attachments",
-    "commentsBlocked": "Comments and attachments for this record open here once the shared comment service is switched on for your organization. Until then, write the reason with each state change; it is kept in the history above.",
     "back": "Back to the list",
     "properties": "Properties"
   },
@@ -112,7 +110,28 @@
     "time_off_transition_not_allowed": "The request cannot make that move from its current state.",
     "transition_reason_required": "Every state change carries a reason. Write one and try again.",
     "time_zone_unknown": "The time zone is not an IANA zone. Set the project's time zone.",
-    "other": "The change was refused by rule {rule}. Check the record and try again, or ask an administrator."
+    "other": "The change was refused by rule {rule}. Check the record and try again, or ask an administrator.",
+    "requisition_unpriced": "A requisition needs a rate and the units per person before it is approved. Edit it to price it.",
+    "requisition_locked": "A requisition's role, terms and headcount change only while it waits for approval.",
+    "requisition_state_conflict": "The requisition changed state since you opened it. Reload to see its current state.",
+    "requisition_transition_not_allowed": "A requisition cannot make that move from its current state.",
+    "requisition_scope_project": "The scope node belongs to another project.",
+    "requisition_budget_project": "The budget line belongs to another project.",
+    "requisition_currency": "The requisition's currency differs from its budget's. Use the budget currency.",
+    "role_assignment_immutable": "A role assignment keeps its project, person and role. End it and assign again.",
+    "role_assignment_basis": "That staffing basis does not match the canon role. Choose Declared, or the basis the role is staffed on.",
+    "role_assignment_requisition": "A role assignment fills an approved requisition of its own project.",
+    "role_assignment_person": "Assign an active member of the org. External people work through engagements in Opportunities.",
+    "role_assignment_state_conflict": "The role assignment changed state since you opened it. Reload to see its current state.",
+    "role_assignment_transition_not_allowed": "A role assignment cannot make that move from its current state.",
+    "agreement_signed_permanent": "A signed agreement is never revoked, unsigned or edited. Supersede it with a new agreement.",
+    "agreement_immutable": "An agreement keeps its kind, project, offer and parties.",
+    "agreement_locked": "An agreement's text changes only while it is a draft. Recall it first.",
+    "agreement_state_conflict": "The agreement changed state since you opened it. Reload to see its current state.",
+    "agreement_transition_not_allowed": "An agreement cannot make that move from its current state.",
+    "agreement_token_validity": "A signing link is valid for 1 to 90 days.",
+    "credential_self_issue": "Nobody records their own certificate. Ask another verifier to record it.",
+    "certification_holder_immutable": "A certificate record keeps its holder, verifier and code. Remove it and record it again."
   },
   "states": {
     "shift": {
@@ -498,5 +517,37 @@
     "empty": "No time off requested. Requests appear here for approval.",
     "caption": "Time off requests",
     "meta": "{days} · {hours} h"
+  },
+  "collab": {
+    "comments": "Comments",
+    "noComments": "No comments yet. Write the first one below; mention someone to notify them.",
+    "unknownAuthor": "A former member",
+    "deleted": "Comment deleted.",
+    "delete": "Delete",
+    "write": "Write a comment",
+    "post": "Post comment",
+    "attachments": "Attachments",
+    "noAttachments": "No files attached. Upload a file below; it is scanned before anyone can download it.",
+    "download": "Download",
+    "remove": "Remove",
+    "file": "File",
+    "upload": "Upload",
+    "commentRequired": "Write a comment of up to 10,000 characters.",
+    "fileRequired": "Choose a file to upload.",
+    "fileTooLarge": "Files are limited to 50 MB. Upload a smaller file.",
+    "scanning": "The file is still being scanned. Try the download again in a moment.",
+    "scan": {
+      "Pending Upload": "Uploading",
+      "Scanning": "Scanning",
+      "Clean": "Ready",
+      "Infected": "Blocked: malware found",
+      "Scan Failed": "Scan failed, upload again"
+    }
+  },
+  "segment": {
+    "loading": "Loading the page",
+    "errorTitle": "This page did not load",
+    "errorBody": "The list could not be read just now. Your data is safe; try again, and if it keeps failing, share the reference with support.",
+    "retry": "Try again"
   }
 }

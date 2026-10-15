@@ -11,9 +11,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     zone_id: string;
     credential_category_id: string;
     allowed: boolean;
@@ -37,9 +37,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     due_on: string;
     auto_remove_unreviewed: boolean;
@@ -55,9 +55,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     access_review_campaign_id: string;
     membership_role_id: string;
     decision: string | null;
@@ -68,9 +68,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     zone_id: string;
     credential_id: string;
     scanned_at: string;
@@ -83,17 +83,11 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    organization_id: string;
     person_id: string;
     valid_from: string;
     valid_to: string | null;
   };
-  AccountMembershipCreate: {
-    organization_id: string;
-    person_id: string;
-    valid_from: string;
-    valid_to?: string | null;
-  };
+  AccountMembershipCreate: { person_id: string; valid_from?: string; valid_to?: string | null };
   AccountMembershipPage: {
     data: Array<Components["AccountMembership"]>;
     next_cursor: string | null;
@@ -103,9 +97,13 @@ export interface Components {
     created_at: string;
     updated_at: string;
     account_membership_id: string;
-    role: Components["AccountRole"];
+    account_role: Components["AccountRole"];
+    granted_by: string | null;
   };
-  AccountMembershipRoleCreate: { account_membership_id: string; role: Components["AccountRole"] };
+  AccountMembershipRoleCreate: {
+    account_membership_id: string;
+    account_role: Components["AccountRole"];
+  };
   AccountMembershipRolePage: {
     data: Array<Components["AccountMembershipRole"]>;
     next_cursor: string | null;
@@ -116,9 +114,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     starts_on: string;
     ends_on: string;
     accounting_period_state: Components["AccountingPeriodState"];
@@ -136,10 +134,10 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    actor_id: string;
+    updated_by: string | null;
+    actor_id: string | null;
     verb: string;
     subject_urn: string;
     project_id: string | null;
@@ -151,9 +149,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     title: string;
     advance_state: string;
@@ -167,9 +165,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     advance_submission_id: string;
     target_urn: string;
   };
@@ -179,9 +177,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     advance_packet_id: string;
     person_id: string | null;
     organization_id: string | null;
@@ -198,9 +196,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     advance_packet_id: string;
     position: number;
     title: string;
@@ -218,9 +216,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     advance_section_id: string;
     advance_recipient_id: string;
     form_submission_id: string;
@@ -240,9 +238,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     application_id: string;
     person_id: string;
   };
@@ -252,25 +250,60 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    engagement_id: string | null;
+    updated_by: string | null;
     title: string;
-    document_id: string;
-    agreement_state: string;
+    agreement_state: "Proposed" | "Sent" | "Signed" | "Superseded" | "Expired" | "Canceled";
     signed_at: string | null;
+    agreement_kind:
+      | "Offer Letter"
+      | "Contractor Agreement"
+      | "Master Services Agreement"
+      | "Non-Disclosure Agreement";
+    body: string;
+    project_id: string | null;
+    offer_id: string | null;
+    person_id: string | null;
+    counterparty_id: string | null;
+    token_expires_at: string | null;
+    signed_name: string | null;
+    signed_body_sha256: string | null;
   };
-  AgreementCreate: { engagement_id?: string | null; title: string; document_id: string };
+  AgreementCreate: {
+    title: string;
+    agreement_kind:
+      | "Offer Letter"
+      | "Contractor Agreement"
+      | "Master Services Agreement"
+      | "Non-Disclosure Agreement";
+    body: string;
+    project_id?: string | null;
+    offer_id?: string | null;
+    person_id?: string | null;
+    counterparty_id?: string | null;
+  };
   AgreementPage: { data: Array<Components["Agreement"]>; next_cursor: string | null };
-  AgreementUpdate: { engagement_id?: string | null; title?: string; document_id?: string };
+  AgreementUpdate: {
+    title?: string;
+    agreement_kind?:
+      | "Offer Letter"
+      | "Contractor Agreement"
+      | "Master Services Agreement"
+      | "Non-Disclosure Agreement";
+    body?: string;
+    project_id?: string | null;
+    offer_id?: string | null;
+    person_id?: string | null;
+    counterparty_id?: string | null;
+  };
   AiSettings: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     assistant_enabled: boolean;
     extraction_enabled: boolean;
     drafting_enabled: boolean;
@@ -285,9 +318,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     service_account_id: string | null;
     scopes: Array<string>;
@@ -295,6 +328,7 @@ export interface Components {
     prefix: string;
     last_used_at: string | null;
     revoked_at: string | null;
+    revoked_by: string | null;
   };
   ApiKeyCreate: {
     name: string;
@@ -314,26 +348,27 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     opportunity_id: string;
-    person_id: string | null;
-    organization_id: string | null;
-    profile_share_id: string;
+    profile_share_id: string | null;
     availability_confirmed: boolean;
-    proposed_rate_minor: number | null;
-    currency: string;
     application_state: Components["ApplicationState"];
-    submitted_at: string;
+    applicant_person_id: string | null;
+    applicant_organization_id: string | null;
+    submitted_by: string | null;
+    cover_note: string | null;
+    proposed_fee_minor: number | null;
+    currency_code: string | null;
   };
   ApplicationAnswer: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     application_id: string;
     opportunity_question_id: string;
     answer: string;
@@ -349,12 +384,13 @@ export interface Components {
   };
   ApplicationCreate: {
     opportunity_id: string;
-    person_id?: string | null;
-    organization_id?: string | null;
-    profile_share_id: string;
-    availability_confirmed: boolean;
-    proposed_rate_minor?: number | null;
-    currency: string;
+    profile_share_id?: string | null;
+    availability_confirmed?: boolean;
+    applicant_person_id?: string | null;
+    applicant_organization_id?: string | null;
+    cover_note?: string | null;
+    proposed_fee_minor?: number | null;
+    currency_code?: string | null;
   };
   ApplicationPage: { data: Array<Components["Application"]>; next_cursor: string | null };
   ApplicationState:
@@ -391,9 +427,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     approval_instance_id: string;
     approved: boolean;
     comment: string | null;
@@ -410,9 +446,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     approval_policy_id: string;
     subject_urn: string;
     requested_by: string;
@@ -424,9 +460,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     document_type: Components["SpendDocumentType"];
   };
@@ -438,9 +474,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     element_id: Components["ItemId"];
     urid: Components["Urid"];
@@ -452,9 +488,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     asset_unit_id: string;
     custodian_person_id: string | null;
     custodian_organization_id: string | null;
@@ -472,9 +508,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     asset_unit_id: string;
     reported_at: string;
     description: string;
@@ -492,9 +528,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     asset_unit_id: string;
     identifier_class: string;
     value: string;
@@ -505,9 +541,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     asset_class_id: string;
     venue_id: string | null;
     quantity: number;
@@ -519,9 +555,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     asset_unit_id: string;
     performed_on: string;
     description: string;
@@ -547,9 +583,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     asset_class_id: string;
     asset_tag: string;
     serial_number: string | null;
@@ -562,15 +598,19 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    actor_urn: string;
+    updated_by: string | null;
     action: string;
-    subject_urn: string;
-    capacity: string;
-    occurred_at: string;
     diff: Record<string, unknown>;
+    actor_kind: "Person" | "Service" | "System";
+    actor_person_id: string | null;
+    subject_table: string;
+    subject_id: string | null;
+    actor_ip: string | null;
+    user_agent: string | null;
+    request_id: string | null;
+    redacted_at: string | null;
   };
   AuditEventPage: { data: Array<Components["AuditEvent"]>; next_cursor: string | null };
   AvailabilityBlock: {
@@ -580,54 +620,69 @@ export interface Components {
     availability_calendar_id: string;
     starts_at: string;
     ends_at: string;
-    available: boolean;
+    availability_kind: "Available" | "Unavailable" | "Tentative";
+    note: string | null;
   };
   AvailabilityBlockCreate: {
     availability_calendar_id: string;
     starts_at: string;
     ends_at: string;
-    available: boolean;
+    availability_kind: "Available" | "Unavailable" | "Tentative";
+    note?: string | null;
   };
   AvailabilityBlockPage: {
     data: Array<Components["AvailabilityBlock"]>;
     next_cursor: string | null;
   };
-  AvailabilityBlockUpdate: { starts_at?: string; ends_at?: string; available?: boolean };
+  AvailabilityBlockUpdate: {
+    starts_at?: string;
+    ends_at?: string;
+    availability_kind?: "Available" | "Unavailable" | "Tentative";
+    note?: string | null;
+  };
   AvailabilityCalendar: {
     id: string;
     created_at: string;
     updated_at: string;
     person_id: string;
     time_zone: string;
+    visibility: "Private" | "Shared on Application" | "Public";
   };
-  AvailabilityCalendarCreate: { person_id: string; time_zone: string };
+  AvailabilityCalendarCreate: {
+    person_id: string;
+    time_zone: string;
+    visibility?: "Private" | "Shared on Application" | "Public";
+  };
   AvailabilityCalendarPage: {
     data: Array<Components["AvailabilityCalendar"]>;
     next_cursor: string | null;
   };
-  AvailabilityCalendarUpdate: { time_zone?: string };
+  AvailabilityCalendarUpdate: {
+    time_zone?: string;
+    visibility?: "Private" | "Shared on Application" | "Public";
+  };
   BackgroundCheck: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     engagement_id: string;
     provider: string;
     provider_reference: string;
-    provider_result: string | null;
     completed_at: string | null;
+    result: "Pending" | "Clear" | "Consider" | "Suspended" | "Canceled";
   };
-  BackgroundCheckCreate: { engagement_id: string; provider: string; provider_reference: string };
+  BackgroundCheckCreate: { engagement_id: string; provider?: string; provider_reference: string };
   BackgroundCheckPage: { data: Array<Components["BackgroundCheck"]>; next_cursor: string | null };
   Beo: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     fulfillment_id: string | null;
     title: string;
@@ -645,9 +700,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     beo_id: string;
     description: string;
     quantity: number;
@@ -679,22 +734,24 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     application_id: string;
     total: Components["MoneyTotal"];
     sealed: boolean;
-    notes: string | null;
+    currency_code: string;
+    valid_until: string | null;
+    submitted_at: string;
   };
-  BidCreate: { application_id: string; notes?: string | null };
+  BidCreate: { application_id: string; currency_code: string; valid_until?: string | null };
   BidLine: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     bid_id: string;
     description: string;
     quantity: number | null;
@@ -716,14 +773,14 @@ export interface Components {
     currency?: string;
   };
   BidPage: { data: Array<Components["Bid"]>; next_cursor: string | null };
-  BidUpdate: { notes?: string | null };
+  BidUpdate: { valid_until?: string | null };
   BillingDraw: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     title: string;
     amount_minor: number | null;
@@ -751,9 +808,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     person_id: string;
     reason: string;
     started_at: string;
@@ -768,9 +825,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     name: string;
     currency: string;
@@ -787,9 +844,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     budget_id: string;
     account_code: Components["GlAccountCode"];
     cost_center_id: string;
@@ -852,9 +909,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     time_zone: string;
     project_id: string | null;
@@ -864,13 +921,15 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string | null;
     revoked_at: string | null;
+    membership_id: string;
+    last_accessed_at: string | null;
   };
-  CalendarFeedCreate: { project_id?: string | null };
+  CalendarFeedCreate: { project_id?: string | null; membership_id: string };
   CalendarFeedPage: { data: Array<Components["CalendarFeed"]>; next_cursor: string | null };
   CalendarPage: { data: Array<Components["Calendar"]>; next_cursor: string | null };
   CalendarUpdate: { name?: string; time_zone?: string; project_id?: string | null };
@@ -878,39 +937,19 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    scope_node_id: string;
-    sheet_date: string;
-    general_call_at: string;
-    body: Record<string, unknown>;
-    published: boolean;
+    updated_by: string | null;
+    day: string;
+    project_id: string;
+    published_at: string | null;
   };
-  CallSheetCreate: {
-    scope_node_id: string;
-    sheet_date: string;
-    general_call_at: string;
-    body: Record<string, unknown>;
-    published: boolean;
-  };
+  CallSheetCreate: { day: string; project_id: string };
   CallSheetPage: { data: Array<Components["CallSheet"]>; next_cursor: string | null };
-  CallSheetUpdate: {
-    sheet_date?: string;
-    general_call_at?: string;
-    body?: Record<string, unknown>;
-    published?: boolean;
-  };
-  CanonAct: { ordinal: number; act: Components["ActCode"]; gates: string; definition: string };
+  CallSheetUpdate: { day?: string };
+  CanonAct: { ordinal: number; act_code: Components["ActCode"]; definition: string };
   CanonActPage: { data: Array<Components["CanonAct"]>; next_cursor: string | null };
-  CanonAssertionRank: {
-    rank: number;
-    meaning: string;
-    economics: Components["AssertionLabel"] & (string | null);
-    compliance: Components["AssertionLabel"] & (string | null);
-    capability: Components["AssertionLabel"] & (string | null);
-    note: string | null;
-  };
+  CanonAssertionRank: { rank: number; meaning: string; note: string | null };
   CanonAssertionRankPage: {
     data: Array<Components["CanonAssertionRank"]>;
     next_cursor: string | null;
@@ -921,12 +960,7 @@ export interface Components {
     category: string;
     source: string;
   };
-  CanonCategoryGl: {
-    cat_urid: Components["Urid"];
-    disc_code: Components["DiscCode"];
-    dept_code: Components["DeptCode"];
-    account_code: Components["GlAccountCode"];
-  };
+  CanonCategoryGl: { cat_urid: Components["Urid"]; default_cost_center: string };
   CanonCategoryGlPage: { data: Array<Components["CanonCategoryGl"]>; next_cursor: string | null };
   CanonCategoryPage: { data: Array<Components["CanonCategory"]>; next_cursor: string | null };
   CanonCostCenterTemplate: {
@@ -971,9 +1005,16 @@ export interface Components {
     common_name: string | null;
     kind: string;
     unit_basis: Components["UnitCode"];
-    grain: Components["GrainCode"];
     xyz: Components["Xyz"];
     xyz_basis: string;
+    grade: string;
+    description: string | null;
+    specification: string | null;
+    tier_code: Components["TierCode"];
+    lead_time_hours: number | null;
+    crew: string | null;
+    unspsc: string | null;
+    lifecycle_state: string;
   };
   CanonElementGtin: { gtin: string; element_id: Components["ItemId"]; confirmed_by: string };
   CanonElementGtinPage: { data: Array<Components["CanonElementGtin"]>; next_cursor: string | null };
@@ -995,14 +1036,12 @@ export interface Components {
   };
   CanonElementPriceBand: {
     element_id: Components["ItemId"];
-    grade: Components["Grade"];
-    unit_price_minor: number | null;
-    currency: string;
-    assertion_rank: number;
-    effective_confidence: Components["AssertionLabel"] & (string | null);
-    valid_from: string;
+    valid_from: string | null;
     valid_to: string | null;
-    region_code: Components["RegionCode"];
+    grade_code: string;
+    amount_minor: number | null;
+    currency_code: string;
+    assertion_word: string | null;
   };
   CanonElementPriceBandPage: {
     data: Array<Components["CanonElementPriceBand"]>;
@@ -1022,7 +1061,7 @@ export interface Components {
   };
   CanonFacet: {
     facet: string;
-    form: string;
+    form: string | null;
     rolls_up_to: string | null;
     since: string | null;
     note: string | null;
@@ -1032,7 +1071,7 @@ export interface Components {
     gate: number;
     criterion_id: Components["CriterionId"];
     statement: string;
-    blocking: boolean;
+    is_blocking: boolean;
   };
   CanonGateCriterionPage: {
     data: Array<Components["CanonGateCriterion"]>;
@@ -1058,7 +1097,7 @@ export interface Components {
     class: string;
     issued_by: string;
     scope: string;
-    mutable: boolean;
+    is_mutable: boolean;
     rule: string;
     examples: string;
   };
@@ -1088,9 +1127,8 @@ export interface Components {
     level: string;
     country: string;
     parent: Components["JurisdictionId"];
-    unit_system: string;
-    currency: string;
-    primary_code_sets: string;
+    unit_system: string | null;
+    currency: string | null;
     status: string;
     note: string | null;
   };
@@ -1098,18 +1136,24 @@ export interface Components {
     data: Array<Components["CanonJurisdiction"]>;
     next_cursor: string | null;
   };
-  CanonLocale: { locale: string; name: string };
+  CanonLocale: {
+    locale_code: string;
+    name: string;
+    is_source: boolean;
+    release_stage: "general" | "beta";
+  };
   CanonLocalePage: { data: Array<Components["CanonLocale"]>; next_cursor: string | null };
   CanonMetric: {
     domain: string;
     item: string;
-    value: number;
+    value_numeric: number | null;
     qualifier: string | null;
-    source: string;
-    code_derived: boolean;
+    source: string | null;
+    is_code_derived: boolean;
     jurisdiction_id: Components["JurisdictionId"];
-    jurisdiction_neutral: boolean;
+    is_jurisdiction_neutral: boolean;
     provenance: Components["Provenance"];
+    value_text: string | null;
   };
   CanonMetricPage: { data: Array<Components["CanonMetric"]>; next_cursor: string | null };
   CanonPermitRule: {
@@ -1128,9 +1172,10 @@ export interface Components {
     gate: number;
     phase_code: Components["PhaseCode"];
     phase: string;
-    act: Components["ActCode"];
+    act_code: Components["ActCode"];
     definition: string;
     gate_exit: string;
+    is_redefined: boolean;
   };
   CanonPhasePage: { data: Array<Components["CanonPhase"]>; next_cursor: string | null };
   CanonProductionTemplate: { template_id: string; title: string; sheet_count: number };
@@ -1170,8 +1215,6 @@ export interface Components {
     record_kind: Components["RecordKind"];
     record_subtype: Components["RecordSubtype"];
     unspsc_segment: string | null;
-    gate: number | null;
-    phase_code: Components["PhaseCode"] & (string | null);
   };
   CanonRecordSubtypePage: {
     data: Array<Components["CanonRecordSubtype"]>;
@@ -1181,15 +1224,13 @@ export interface Components {
     region_code: Components["RegionCode"];
     name: string;
     jurisdiction_id: Components["JurisdictionId"];
-    currency: string;
-    cost_multiplier: number | null;
-    basis: boolean;
+    currency_code: string;
     note: string | null;
   };
   CanonRegionMultiplier: {
     region_code: Components["RegionCode"];
-    multiplier: number;
-    ratified: boolean;
+    cost_multiplier: number;
+    is_basis: boolean;
   };
   CanonRegionMultiplierPage: {
     data: Array<Components["CanonRegionMultiplier"]>;
@@ -1206,7 +1247,7 @@ export interface Components {
     job_title: string | null;
   };
   CanonRolePage: { data: Array<Components["CanonRole"]>; next_cursor: string | null };
-  CanonStalenessPolicy: { age_months_gte: number; action: string; detail: string };
+  CanonStalenessPolicy: { age_months_gte: number; action: string; detail: string | null };
   CanonStalenessPolicyPage: {
     data: Array<Components["CanonStalenessPolicy"]>;
     next_cursor: string | null;
@@ -1221,7 +1262,10 @@ export interface Components {
   CanonTeam: {
     team_id: Components["TeamId"];
     team: string;
-    rolls_to_dept_code: Components["DeptCode"];
+    dept_code: Components["DeptCode"];
+    workgroup_tag: string | null;
+    lead_role: string | null;
+    responsibilities: string | null;
   };
   CanonTeamPage: { data: Array<Components["CanonTeam"]>; next_cursor: string | null };
   CanonTier: { tier_code: Components["TierCode"]; tier: string };
@@ -1246,28 +1290,38 @@ export interface Components {
     next_cursor: string | null;
   };
   CanonTouchpointPage: { data: Array<Components["CanonTouchpoint"]>; next_cursor: string | null };
-  CanonUnitAlias: { alias: string; unit: Components["UnitCode"] };
+  CanonUnitAlias: {
+    alias: string;
+    unit_code: Components["UnitCode"];
+    dimension_code: string | null;
+  };
   CanonUnitAliasPage: { data: Array<Components["CanonUnitAlias"]>; next_cursor: string | null };
-  CanonUnitDimension: { unit: Components["UnitCode"]; dimension: string };
+  CanonUnitDimension: { dimension_code: string; name: string };
   CanonUnitDimensionPage: {
     data: Array<Components["CanonUnitDimension"]>;
     next_cursor: string | null;
   };
-  CanonUrnNamespace: { kind: string; resolves_to: string };
+  CanonUrnNamespace: { kind: string; table_name: string; key_column: string; label_column: string };
   CanonUrnNamespacePage: {
     data: Array<Components["CanonUrnNamespace"]>;
     next_cursor: string | null;
   };
-  CanonVersion: { version: string; generation: number; imported_at: string };
+  CanonVersion: { version_code: string; generation: number; bible_generated_at: string };
   CanonVersionPage: { data: Array<Components["CanonVersion"]>; next_cursor: string | null };
-  Capability: { capability: string; group: string; classification: Components["Classification"] };
+  Capability: {
+    code: string;
+    module_code: string;
+    capability_class: "read" | "write" | "approve" | "manage" | "export";
+    description: string;
+    sort_order: number;
+  };
   CapabilityDocument: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     venue_id: string;
     document_id: string;
     valid_from: string;
@@ -1290,9 +1344,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     tenant_item_code: string;
     element_id: Components["ItemId"];
     confirmed_by: string;
@@ -1312,9 +1366,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     tag_id: Components["TagId"];
     issuer: string;
@@ -1330,9 +1384,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     certification_id: string;
     person_id: string;
     evidence_document_id: string | null;
@@ -1368,9 +1422,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     title: string;
     description: string;
@@ -1383,9 +1437,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     change_order_id: string;
     budget_line_id: string | null;
     urid: Components["UridAtAnyGrain"];
@@ -1412,12 +1466,12 @@ export interface Components {
   ChangeOrderPage: { data: Array<Components["ChangeOrder"]>; next_cursor: string | null };
   ChangeOrderTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   ChangeOrderUpdate: { title?: string; description?: string };
-  Classification: "Public" | "Internal" | "Confidential" | "Restricted" | null;
+  Classification: "Public" | "Internal" | "Confidential" | "Restricted";
   ColumnClassification: {
     table_name: string;
     column_name: string;
     classification: Components["Classification"];
-    reveal_capability: string | null;
+    read_capability: string | null;
   };
   ColumnClassificationPage: {
     data: Array<Components["ColumnClassification"]>;
@@ -1427,47 +1481,60 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     comment_thread_id: string;
-    body: Record<string, unknown>;
-    author_id: string;
+    body: string;
+    author_person_id: string;
+    source: "App" | "Email" | "API";
+    edited_at: string | null;
   };
-  CommentCreate: { comment_thread_id: string; body: Record<string, unknown> };
+  CommentCreate: { comment_thread_id: string; body: string; source?: "App" | "Email" | "API" };
   CommentPage: { data: Array<Components["Comment"]>; next_cursor: string | null };
   CommentThread: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    subject_urn: string;
-    resolved: boolean;
+    updated_by: string | null;
+    subject_table: string;
+    subject_id: string;
+    anchor: string | null;
+    resolved_at: string | null;
+    resolved_by: string | null;
   };
-  CommentThreadCreate: { subject_urn: string; resolved: boolean };
+  CommentThreadCreate: { subject_table: string; subject_id: string; anchor?: string | null };
   CommentThreadPage: { data: Array<Components["CommentThread"]>; next_cursor: string | null };
-  CommentThreadUpdate: { resolved?: boolean };
-  CommentUpdate: { body?: Record<string, unknown> };
+  CommentThreadUpdate: { anchor?: string | null; resolved_at?: string | null };
+  CommentUpdate: { body?: string; source?: "App" | "Email" | "API" };
   ConsentRecord: {
     id: string;
     created_at: string;
     updated_at: string;
     person_id: string;
-    purpose: string;
-    granted: boolean;
-    recorded_at: string;
+    purpose_code: string;
+    notice_version: string;
+    source: "Web" | "Mobile" | "Email" | "SMS" | "Import" | "Support";
+    captured_at: string;
+    captured_ip: string | null;
+    withdrawn_at: string | null;
   };
-  ConsentRecordCreate: { person_id: string; purpose: string; granted: boolean };
+  ConsentRecordCreate: {
+    person_id: string;
+    purpose_code: string;
+    notice_version: string;
+    source: "Web" | "Mobile" | "Email" | "SMS" | "Import" | "Support";
+  };
   ConsentRecordPage: { data: Array<Components["ConsentRecord"]>; next_cursor: string | null };
   ContingencyDraw: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     from_budget_line_id: string;
     to_budget_line_id: string;
     amount_minor: number | null;
@@ -1495,9 +1562,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     cost_center_id: Components["CostCenterCode"];
     name: string;
     kind: string;
@@ -1530,9 +1597,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     credential_category_id: string;
     person_id: string;
@@ -1547,9 +1614,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     color_token: string;
     position: number;
@@ -1573,9 +1640,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     emergency_code_id: string;
     message: string;
@@ -1591,7 +1658,14 @@ export interface Components {
   };
   CrisisAlertPage: { data: Array<Components["CrisisAlert"]>; next_cursor: string | null };
   CriterionId: string;
-  CrosswalkCoverage: { urid: Components["Urid"]; element_count: number; gtin_mapped_count: number };
+  CrosswalkCoverage: {
+    cat_urid: Components["Urid"] | null;
+    element_count: number;
+    category: string | null;
+    unspsc_element_count: number | null;
+    gtin_element_count: number | null;
+    gtin_count: number | null;
+  };
   CrosswalkCoveragePage: {
     data: Array<Components["CrosswalkCoverage"]>;
     next_cursor: string | null;
@@ -1600,99 +1674,135 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     run_of_show_id: string;
     position: number;
-    cue_code: string;
-    title: string;
-    planned_at: string;
-    duration_seconds: number;
-    department_dept_code: Components["DeptCode"];
-    fired_at: string | null;
+    label: string;
+    planned_at: string | null;
+    called_at: string | null;
+    duration: string | null;
+    called_by: string | null;
+    project_id: string;
   };
   CueCreate: {
     run_of_show_id: string;
     position: number;
-    cue_code: string;
-    title: string;
-    planned_at: string;
-    duration_seconds: number;
-    department_dept_code?: Components["DeptCode"];
+    label: string;
+    planned_at?: string | null;
+    duration?: string | null;
   };
   CuePage: { data: Array<Components["Cue"]>; next_cursor: string | null };
   CueUpdate: {
     position?: number;
-    cue_code?: string;
-    title?: string;
-    planned_at?: string;
-    duration_seconds?: number;
-    department_dept_code?: Components["DeptCode"];
+    label?: string;
+    planned_at?: string | null;
+    duration?: string | null;
   };
   Cursor: string;
   CustomFieldDefinition: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     target_table: string;
     field_key: string;
     label: string;
     data_type: string;
+    required: boolean;
+    filterable: boolean;
+    sort_order: number;
   };
   CustomFieldDefinitionCreate: {
     target_table: string;
     field_key: string;
     label: string;
     data_type: string;
+    required?: boolean;
+    filterable?: boolean;
+    sort_order: number;
   };
   CustomFieldDefinitionPage: {
     data: Array<Components["CustomFieldDefinition"]>;
     next_cursor: string | null;
   };
-  CustomFieldDefinitionUpdate: { label?: string; data_type?: string };
+  CustomFieldDefinitionUpdate: {
+    label?: string;
+    data_type?: string;
+    required?: boolean;
+    filterable?: boolean;
+    sort_order?: number;
+  };
   CustomFieldValue: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     custom_field_definition_id: string;
-    row_id: string;
-    value: string | number | boolean | null;
+    value_text: string | number | boolean | null;
+    target_id: string;
+    value_number: number | null;
+    value_money_minor: number | null;
+    value_currency: string | null;
+    value_date: string | null;
+    value_timestamp: string | null;
+    value_boolean: boolean | null;
+    value_choice_id: string | null;
+    value_person_id: string | null;
   };
   CustomFieldValueCreate: {
     custom_field_definition_id: string;
-    row_id: string;
-    value?: string | number | boolean | null;
+    value_text?: string | number | boolean | null;
+    target_id: string;
+    value_number?: number | null;
+    value_money_minor?: number | null;
+    value_currency?: string | null;
+    value_date?: string | null;
+    value_timestamp?: string | null;
+    value_boolean?: boolean | null;
+    value_choice_id?: string | null;
+    value_person_id?: string | null;
   };
   CustomFieldValuePage: { data: Array<Components["CustomFieldValue"]>; next_cursor: string | null };
-  CustomFieldValueUpdate: { value?: string | number | boolean | null };
+  CustomFieldValueUpdate: {
+    value_text?: string | number | boolean | null;
+    value_number?: number | null;
+    value_money_minor?: number | null;
+    value_currency?: string | null;
+    value_date?: string | null;
+    value_timestamp?: string | null;
+    value_boolean?: boolean | null;
+    value_choice_id?: string | null;
+    value_person_id?: string | null;
+  };
   CustomObjectField: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     custom_object_type_id: string;
     field_key: string;
     label: string;
     data_type: string;
     required: boolean;
     filterable: boolean;
+    sort_order: number;
   };
   CustomObjectFieldCreate: {
     custom_object_type_id: string;
     field_key: string;
     label: string;
     data_type: string;
-    required: boolean;
-    filterable: boolean;
+    required?: boolean;
+    filterable?: boolean;
+    sort_order: number;
   };
   CustomObjectFieldPage: {
     data: Array<Components["CustomObjectField"]>;
@@ -1703,16 +1813,18 @@ export interface Components {
     data_type?: string;
     required?: boolean;
     filterable?: boolean;
+    sort_order?: number;
   };
   CustomObjectRecord: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     title: string;
     values: Record<string, string | number | boolean | null>;
+    custom_object_type_id: string;
   };
   CustomObjectRecordCreate: {
     title: string;
@@ -1730,13 +1842,26 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    custom_object_record_id: string;
-    target_urn: string;
+    updated_by: string | null;
+    from_record_id: string;
+    relation_key: string;
+    to_custom_record_id: string | null;
+    to_record_id: string | null;
+    to_project_id: string | null;
+    to_counterparty_id: string | null;
+    to_person_id: string | null;
   };
-  CustomObjectRelationCreate: { custom_object_record_id: string; target_urn: string };
+  CustomObjectRelationCreate: {
+    from_record_id: string;
+    relation_key: string;
+    to_custom_record_id?: string | null;
+    to_record_id?: string | null;
+    to_project_id?: string | null;
+    to_counterparty_id?: string | null;
+    to_person_id?: string | null;
+  };
   CustomObjectRelationPage: {
     data: Array<Components["CustomObjectRelation"]>;
     next_cursor: string | null;
@@ -1745,24 +1870,29 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     object_key: string;
     label: string;
     icon: string;
     default_view: string;
   };
-  CustomObjectTypeCreate: { object_key: string; label: string; icon: string; default_view: string };
+  CustomObjectTypeCreate: {
+    object_key: string;
+    label: string;
+    icon: string;
+    default_view?: string;
+  };
   CustomObjectTypePage: { data: Array<Components["CustomObjectType"]>; next_cursor: string | null };
   CustomObjectTypeUpdate: { label?: string; icon?: string; default_view?: string };
   Dashboard: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     team_id: string | null;
   };
@@ -1772,9 +1902,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     dashboard_id: string;
     report_definition_id: string;
     position: number;
@@ -1793,57 +1923,56 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    scope_node_id: string;
-    sheet_date: string;
-    body: Record<string, unknown>;
-    published: boolean;
+    updated_by: string | null;
+    day: string;
+    body: string;
+    project_id: string;
+    published_at: string | null;
   };
-  DaySheetCreate: {
-    scope_node_id: string;
-    sheet_date: string;
-    body: Record<string, unknown>;
-    published: boolean;
-  };
+  DaySheetCreate: { day: string; body: string; project_id: string };
   DaySheetPage: { data: Array<Components["DaySheet"]>; next_cursor: string | null };
-  DaySheetUpdate: { sheet_date?: string; body?: Record<string, unknown>; published?: boolean };
+  DaySheetUpdate: { day?: string; body?: string };
   Delegation: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    from_person_id: string;
-    to_person_id: string;
+    updated_by: string | null;
     valid_from: string;
     valid_to: string;
+    delegator_membership_id: string;
+    delegate_membership_id: string;
+    capability_code: string | null;
+    reason: string;
   };
   DelegationCreate: {
-    from_person_id: string;
-    to_person_id: string;
     valid_from: string;
     valid_to: string;
+    delegator_membership_id: string;
+    delegate_membership_id: string;
+    capability_code?: string | null;
+    reason: string;
   };
   DelegationPage: { data: Array<Components["Delegation"]>; next_cursor: string | null };
   DelegationUpdate: {
-    from_person_id?: string;
-    to_person_id?: string;
     valid_from?: string;
     valid_to?: string;
+    capability_code?: string | null;
+    reason?: string;
   };
-  DeptCode: string | null;
+  DeptCode: string;
   Direction: "require" | "provide";
   DiscCode: string;
   DispatchAssignment: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     incident_id: string;
     responder_id: string;
     dispatched_at: string;
@@ -1871,9 +2000,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     venue_id: string;
     shipment_id: string | null;
     starts_at: string;
@@ -1899,9 +2028,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     title: string;
     project_id: string | null;
     record_id: string | null;
@@ -1925,9 +2054,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     document_id: string;
     version_number: number;
     file_name: string;
@@ -1941,36 +2070,64 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    person_id: string;
-    request_type: string;
+    updated_by: string | null;
+    request_type:
+      | "Access"
+      | "Rectification"
+      | "Erasure"
+      | "Restriction"
+      | "Portability"
+      | "Objection"
+      | "Opt Out of Sale";
     dsar_state: string;
-    completed_at: string | null;
+    subject_person_id: string | null;
+    subject_email: string;
+    details: string | null;
+    received_at: string;
   };
-  DsarRequestCreate: { person_id: string; request_type: string };
+  DsarRequestCreate: {
+    request_type:
+      | "Access"
+      | "Rectification"
+      | "Erasure"
+      | "Restriction"
+      | "Portability"
+      | "Objection"
+      | "Opt Out of Sale";
+    subject_person_id?: string | null;
+    subject_email: string;
+    details?: string | null;
+  };
   DsarRequestPage: { data: Array<Components["DsarRequest"]>; next_cursor: string | null };
   EarningCode: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    earning_code: string;
+    updated_by: string | null;
+    code: string;
     name: string;
-    overtime: boolean;
+    is_overtime: boolean;
   };
-  EarningCodeCreate: { earning_code: string; name: string; overtime: boolean };
+  EarningCodeCreate: { code: string; name: string; is_overtime?: boolean };
   EarningCodePage: { data: Array<Components["EarningCode"]>; next_cursor: string | null };
-  EarningCodeUpdate: { earning_code?: string; name?: string; overtime?: boolean };
+  EarningCodeUpdate: { code?: string; name?: string; is_overtime?: boolean };
   ElementEconomics: {
     element_id: Components["ItemId"];
-    grade: Components["Grade"];
-    unit_price_minor: number | null;
-    currency: string;
+    currency_code: string;
     effective_confidence: Components["AssertionLabel"] & (string | null);
+    item: string | null;
+    urid: Components["Urid"] | null;
+    unit_basis: string | null;
+    grade_code: string | null;
+    amount_minor: number | null;
+    assertion_word: string | null;
+    valid_from: string | null;
+    valid_to: string | null;
+    is_unpriced: boolean | null;
   };
   ElementEconomicsPage: { data: Array<Components["ElementEconomics"]>; next_cursor: string | null };
   ElementResolution: {
@@ -1983,9 +2140,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     code: string;
     name: string;
     response: string;
@@ -1997,9 +2154,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     person_id: string | null;
     organization_id: string | null;
     project_id: string | null;
@@ -2020,15 +2177,45 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     engagement_id: string;
-    document_id: string;
+    document_id: string | null;
     title: string;
     engagement_document_state: string;
+    document_kind:
+      | "Offer"
+      | "Agreement"
+      | "Statement of Work"
+      | "Non-Disclosure Agreement"
+      | "Rider"
+      | "Advance Packet"
+      | "Insurance Certificate"
+      | "Lien Waiver"
+      | "Settlement"
+      | "Proof of Performance"
+      | "Content Consent";
+    expires_on: string | null;
   };
-  EngagementDocumentCreate: { engagement_id: string; document_id: string; title: string };
+  EngagementDocumentCreate: {
+    engagement_id: string;
+    document_id?: string | null;
+    title: string;
+    document_kind:
+      | "Offer"
+      | "Agreement"
+      | "Statement of Work"
+      | "Non-Disclosure Agreement"
+      | "Rider"
+      | "Advance Packet"
+      | "Insurance Certificate"
+      | "Lien Waiver"
+      | "Settlement"
+      | "Proof of Performance"
+      | "Content Consent";
+    expires_on?: string | null;
+  };
   EngagementDocumentPage: {
     data: Array<Components["EngagementDocument"]>;
     next_cursor: string | null;
@@ -2042,12 +2229,12 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     engagement_thread_id: string;
     body: string;
-    sent_by: string;
+    author_person_id: string | null;
     sent_at: string;
   };
   EngagementMessageCreate: { engagement_thread_id: string; body: string };
@@ -2061,9 +2248,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     engagement_id: string;
     subject: string;
   };
@@ -2084,9 +2271,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     budget_line_id: string;
     submitted_by: string;
     description: string;
@@ -2117,15 +2304,19 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    source: string;
-    format: Components["ExportFormat"];
-    export_state: string;
-    document_id: string | null;
+    updated_by: string | null;
+    source_label: string;
+    export_format: Components["ExportFormat"];
+    classification: Components["Classification"];
+    watermark: boolean;
+    export_status: "Queued" | "Rendering" | "Ready" | "Failed" | "Expired";
+    storage_object_path: string | null;
+    row_count: number | null;
+    expires_at: string | null;
   };
-  ExportJobCreate: { source: string; format: Components["ExportFormat"] };
+  ExportJobCreate: { source_label: string; export_format: Components["ExportFormat"] };
   ExportJobPage: { data: Array<Components["ExportJob"]>; next_cursor: string | null };
   ExternalRoleType:
     | "Client"
@@ -2155,9 +2346,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     kind: Components["FulfillmentKind"];
     engagement_id: string | null;
@@ -2179,9 +2370,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     fulfillment_id: string;
     description: string;
     quantity: number;
@@ -2226,41 +2417,34 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     criterion_id: Components["CriterionId"];
     record_id: string | null;
-    evidence_document_id: string | null;
-    attested_by: string;
+    attested_by: string | null;
     attested_at: string;
     assertion_rank: number;
+    evidence_uri: string | null;
+    note: string | null;
   };
   GateEvidenceCreate: {
     project_id: string;
     criterion_id: Components["CriterionId"];
     record_id?: string | null;
-    evidence_document_id?: string | null;
-    attested_by: string;
-    attested_at: string;
     assertion_rank: number;
+    evidence_uri: string;
+    note?: string | null;
   };
   GateEvidencePage: { data: Array<Components["GateEvidence"]>; next_cursor: string | null };
-  GateEvidenceUpdate: {
-    record_id?: string | null;
-    evidence_document_id?: string | null;
-    attested_by?: string;
-    attested_at?: string;
-    assertion_rank?: number;
-  };
   GateQueueEntry: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     venue_id: string;
     dock_slot_id: string | null;
     vehicle_plate: string;
@@ -2294,9 +2478,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     venue_id: string | null;
     latitude: number;
@@ -2323,9 +2507,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     purchase_order_id: string;
     received_at: string;
     received_by: string;
@@ -2353,61 +2537,82 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     import_job_id: string;
-    committed_at: string;
+    committed_at: string | null;
     undone_at: string | null;
-    row_count: number;
+    undo_reason: string | null;
   };
   ImportBatchPage: { data: Array<Components["ImportBatch"]>; next_cursor: string | null };
   ImportJob: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    source_document_id: string;
-    target_table: string;
+    updated_by: string | null;
     import_mapping_profile_id: string | null;
-    import_state: string;
-    import_batch_id: string | null;
+    target_code: string;
+    source: "CSV" | "XLSX" | "XLS" | "Google Sheets";
+    original_filename: string;
+    storage_object_path: string;
+    import_status:
+      | "Uploaded"
+      | "Detected"
+      | "Mapped"
+      | "Validated"
+      | "Committing"
+      | "Committed"
+      | "Undone"
+      | "Failed"
+      | "Canceled";
+    mapping_confirmed_at: string | null;
   };
   ImportJobCreate: {
-    source_document_id: string;
-    target_table: string;
     import_mapping_profile_id?: string | null;
+    target_code: string;
+    source: "CSV" | "XLSX" | "XLS" | "Google Sheets";
+    original_filename: string;
+    storage_object_path: string;
   };
   ImportJobPage: { data: Array<Components["ImportJob"]>; next_cursor: string | null };
   ImportMappingProfile: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
-    target_table: string;
+    target_code: string;
   };
-  ImportMappingProfileCreate: { name: string; target_table: string };
+  ImportMappingProfileCreate: { name: string; target_code: string };
   ImportMappingProfilePage: {
     data: Array<Components["ImportMappingProfile"]>;
     next_cursor: string | null;
   };
-  ImportMappingProfileUpdate: { name?: string; target_table?: string };
+  ImportMappingProfileUpdate: { name?: string; target_code?: string };
   ImportRowResult: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     import_job_id: string;
-    source_row: number;
     row_state: Components["ImportRowState"];
     reason: string | null;
+    import_batch_id: string | null;
+    sheet_name: string;
+    row_number: number;
+    target_table: string | null;
+    target_id: string | null;
+    write_action: "Created" | "Updated" | "Merged" | null;
+    before_image: Record<string, unknown> | null;
+    undo_outcome: "Reverted" | "Kept" | null;
+    undo_reason: string | null;
   };
   ImportRowResultPage: { data: Array<Components["ImportRowResult"]>; next_cursor: string | null };
   ImportRowState: "Valid" | "Invalid" | "Written" | "Refused" | "Skipped";
@@ -2415,9 +2620,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     incident_number: string;
     severity: string;
@@ -2443,9 +2648,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     incident_id: string;
     document_id: string;
   };
@@ -2456,9 +2661,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     incident_id: string;
     person_id: string | null;
     involvement: string;
@@ -2490,9 +2695,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     inspection_template_id: string;
     zone_id: string | null;
@@ -2511,9 +2716,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     inspection_template_id: string;
     position: number;
     prompt: string;
@@ -2532,9 +2737,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     inspection_id: string;
     inspection_item_id: string;
     passed: boolean;
@@ -2558,9 +2763,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     tag_id: Components["TagId"];
   };
@@ -2575,9 +2780,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     organization_id: string;
     document_id: string;
     coverage_type: string;
@@ -2609,9 +2814,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     provider: string;
     enabled: boolean;
     sync_status: string;
@@ -2624,34 +2829,40 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     application_id: string;
     scheduled_at: string;
-    meeting_url: string | null;
-    outcome_notes: string | null;
+    interview_kind: "Interview" | "Audition";
+    duration_minutes: number;
+    location_text: string | null;
+    internal_note: string | null;
   };
   InterviewCreate: {
     application_id: string;
     scheduled_at: string;
-    meeting_url?: string | null;
-    outcome_notes?: string | null;
+    interview_kind: "Interview" | "Audition";
+    duration_minutes: number;
+    location_text?: string | null;
+    internal_note?: string | null;
   };
   InterviewPage: { data: Array<Components["Interview"]>; next_cursor: string | null };
   InterviewUpdate: {
     scheduled_at?: string;
-    meeting_url?: string | null;
-    outcome_notes?: string | null;
+    interview_kind?: "Interview" | "Audition";
+    duration_minutes?: number;
+    location_text?: string | null;
+    internal_note?: string | null;
   };
   InvitationLink: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    role: Components["OrgRole"];
+    updated_by: string | null;
+    role: Components["OrgRole"] | null;
     expires_at: string;
     max_uses: number | null;
     revoked_at: string | null;
@@ -2666,15 +2877,17 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     email: string;
     role_id: string;
     expires_at: string;
     invited_by: string;
     accepted_at: string | null;
     revoked_at: string | null;
+    partner_bootstrap: boolean;
+    accepted_person_id: string | null;
   };
   InviteMemberRequest: { email: string; role_id: string; valid_for_hours?: number };
   InviteMemberResult: { invite_id: string; invite_token: string };
@@ -2685,9 +2898,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     counterparty_organization_id: string | null;
     engagement_id: string | null;
@@ -2715,9 +2928,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     invoice_id: string;
     po_line_id: string | null;
     description: string;
@@ -2745,9 +2958,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     invoice_id: string;
     purchase_order_id: string;
     goods_receipt_id: string;
@@ -2774,9 +2987,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     person_id: string;
     message: string | null;
     join_request_state: string;
@@ -2788,9 +3001,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     accounting_period_id: string;
     entry_date: string;
     memo: string;
@@ -2805,9 +3018,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     journal_entry_id: string;
     account_code: Components["GlAccountCode"];
     cost_center_id: string;
@@ -2836,42 +3049,74 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
-    venue_id: string | null;
-    active: boolean;
+    project_id: string | null;
+    last_seen_at: string | null;
+    revoked_at: string | null;
   };
-  KioskDeviceCreate: { name: string; venue_id?: string | null; active: boolean };
+  KioskDeviceCreate: { name: string; project_id?: string | null };
   KioskDevicePage: { data: Array<Components["KioskDevice"]>; next_cursor: string | null };
-  KioskDeviceUpdate: { name?: string; venue_id?: string | null; active?: boolean };
+  KioskDeviceUpdate: { name?: string; project_id?: string | null };
   Limit: number;
   LineType: string;
   ListingReport: {
     id: string;
     created_at: string;
     updated_at: string;
-    subject_urn: string;
-    reason: string;
-    report_state: string;
+    reason:
+      | "Illegal Content"
+      | "Discrimination"
+      | "Fraud"
+      | "Misleading Information"
+      | "Missing Pay Range"
+      | "Safety";
+    opportunity_id: string;
+    reporter_person_id: string;
+    details: string | null;
+    reported_at: string;
   };
-  ListingReportCreate: { subject_urn: string; reason: string };
+  ListingReportCreate: {
+    reason:
+      | "Illegal Content"
+      | "Discrimination"
+      | "Fraud"
+      | "Misleading Information"
+      | "Missing Pay Range"
+      | "Safety";
+    opportunity_id: string;
+    details?: string | null;
+  };
   ListingReportPage: { data: Array<Components["ListingReport"]>; next_cursor: string | null };
   MarkAllReadResult: { updated_count: number };
   MarketplaceListing: {
-    opportunity_id: string;
-    organization_id: string;
+    id: string;
+    org_id: string;
     title: string;
     role_type: Components["ExternalRoleType"];
     role_code: Components["RoleCode"] & (string | null);
-    locality: string | null;
-    starts_at: string | null;
-    rate_type: Components["RateType"] & (string | null);
-    rate_min_minor: number | null;
-    rate_max_minor: number | null;
-    currency: string;
+    venue_locality: string | null;
+    rate_type: Components["RateType"] | null;
+    pay_min_minor: number | null;
+    pay_max_minor: number | null;
     distance_km: number | null;
+    org_name: string;
+    org_verified: boolean;
+    description: string | null;
+    cat_urid: Components["UridAtAnyGrain"] | null;
+    venue_name: string | null;
+    jurisdiction_id: Components["JurisdictionId"] | null;
+    starts_on: string | null;
+    ends_on: string | null;
+    visibility: Components["OpportunityVisibility"];
+    currency_code: string | null;
+    rate_on_request: boolean;
+    deadline_at: string | null;
+    minimum_age: number | null;
+    opportunity_state: Components["OpportunityState"];
+    position_count: number;
   };
   MarketplaceListingPage: {
     data: Array<Components["MarketplaceListing"]>;
@@ -2881,9 +3126,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     venue_id: string;
     vehicle_plate: string;
     event: string;
@@ -2912,9 +3157,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     incident_id: string;
     treated_by: string;
     disposition: string;
@@ -2932,45 +3177,42 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     person_id: string;
     valid_from: string;
     valid_to: string | null;
-    persona: string | null;
   };
   MembershipPage: { data: Array<Components["Membership"]>; next_cursor: string | null };
   MembershipRole: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     membership_id: string;
-    role: Components["OrgRole"];
-    custom_role_id: string | null;
+    role_id: string;
+    granted_by: string | null;
   };
-  MembershipRoleCreate: {
-    membership_id: string;
-    role?: Components["OrgRole"];
-    custom_role_id?: string | null;
-  };
+  MembershipRoleCreate: { membership_id: string; role_id: string };
   MembershipRolePage: { data: Array<Components["MembershipRole"]>; next_cursor: string | null };
-  MembershipUpdate: { valid_from?: string; valid_to?: string | null; persona?: string | null };
+  MembershipUpdate: { valid_from?: string; valid_to?: string | null };
   MergeReview: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    import_job_id: string;
-    candidate_urn: string;
-    existing_urn: string;
+    updated_by: string | null;
     similarity: number;
     decision: string | null;
+    import_row_result_id: string;
+    candidate_table: string;
+    candidate_id: string;
+    decided_by: string | null;
+    decided_at: string | null;
   };
   MergeReviewPage: { data: Array<Components["MergeReview"]>; next_cursor: string | null };
   MergeReviewUpdate: { decision?: string | null };
@@ -2978,14 +3220,17 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    listing_report_id: string;
-    action: string;
+    listing_report_id: string | null;
+    action: "Removed" | "Restricted" | "Restored" | "No Action";
     statement_of_reasons: string;
+    opportunity_id: string;
+    decided_at: string;
   };
   ModerationActionCreate: {
-    listing_report_id: string;
-    action: string;
+    listing_report_id?: string | null;
+    action: "Removed" | "Restricted" | "Restored" | "No Action";
     statement_of_reasons: string;
+    opportunity_id: string;
   };
   ModerationActionPage: { data: Array<Components["ModerationAction"]>; next_cursor: string | null };
   MoneyTotal: { total_minor: number | null; currency: string; unpriced_count: number };
@@ -2993,38 +3238,48 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     kind: string;
-    subject_urn: string;
-    created_for: string;
-    deep_link: string;
+    recipient_person_id: string;
     read_at: string | null;
+    actor_person_id: string | null;
+    subject_table: string | null;
+    subject_id: string | null;
+    project_id: string | null;
+    message_args: Record<string, unknown>;
+    archived_at: string | null;
   };
   NotificationPage: { data: Array<Components["Notification"]>; next_cursor: string | null };
   NotificationPreference: {
     id: string;
     created_at: string;
     updated_at: string;
-    kind: string;
-    channel: string;
+    channel: "In App" | "Email" | "SMS" | "Push";
     enabled: boolean;
+    membership_id: string;
+    category_code: string;
   };
-  NotificationPreferenceCreate: { kind: string; channel: string; enabled: boolean };
+  NotificationPreferenceCreate: {
+    channel: "In App" | "Email" | "SMS" | "Push";
+    enabled: boolean;
+    membership_id: string;
+    category_code: string;
+  };
   NotificationPreferencePage: {
     data: Array<Components["NotificationPreference"]>;
     next_cursor: string | null;
   };
   NotificationPreferenceUpdate: { enabled?: boolean };
-  NotificationUpdate: { read_at?: string | null };
+  NotificationUpdate: { read_at?: string | null; archived_at?: string | null };
   OauthApp: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     client_id: string;
     redirect_uri: string;
@@ -3036,9 +3291,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     oauth_app_id: string;
     person_id: string;
     scopes: Array<string>;
@@ -3049,9 +3304,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     membership_id: string;
     reassign_to_person_id: string | null;
     open_record_count: number;
@@ -3066,44 +3321,61 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    application_id: string | null;
+    updated_by: string | null;
+    application_id: string;
     person_id: string | null;
     organization_id: string | null;
-    rate_type: Components["RateType"];
-    rate_minor: number | Components["Masked"] | null;
-    currency: string;
-    expires_at: string;
+    rate_type: Components["RateType"] | null;
+    expires_at: string | null;
     offer_state: string;
     responded_at: string | null;
+    version_number: number;
+    proposed_side: "Organization" | "Party";
+    amount_minor: number | null;
+    currency_code: string | null;
+    starts_on: string | null;
+    ends_on: string | null;
+    message: string | null;
+  };
+  OfferCounterRequest: {
+    rate_type?: Components["RateType"] | null;
+    amount_minor?: number | null;
+    currency_code?: string | null;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    message?: string | null;
   };
   OfferCreate: {
-    application_id?: string | null;
-    person_id?: string | null;
-    organization_id?: string | null;
-    rate_type: Components["RateType"];
-    rate_minor?: number | null;
-    currency: string;
-    expires_at: string;
+    application_id: string;
+    rate_type?: Components["RateType"] | null;
+    expires_at?: string | null;
+    amount_minor?: number | null;
+    currency_code?: string | null;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    message?: string | null;
   };
+  OfferDeclineRequest: { reason: string };
   OfferPage: { data: Array<Components["Offer"]>; next_cursor: string | null };
   OfferUpdate: {
-    person_id?: string | null;
-    organization_id?: string | null;
-    rate_type?: Components["RateType"];
-    rate_minor?: number | null;
-    currency?: string;
-    expires_at?: string;
+    rate_type?: Components["RateType"] | null;
+    expires_at?: string | null;
+    amount_minor?: number | null;
+    currency_code?: string | null;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    message?: string | null;
   };
+  OfferWithdrawRequest: { reason: string };
   OnboardingItem: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     engagement_id: string;
     onboarding_requirement_id: string;
     document_id: string | null;
@@ -3123,49 +3395,79 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    role_type: Components["ExternalRoleType"];
+    updated_by: string | null;
+    role_type: Components["ExternalRoleType"] | null;
     jurisdiction_id: Components["JurisdictionId"];
-    item_type: string;
-    title: string;
-    blocking: boolean;
     verification_method: string;
-    validity_months: number | null;
+    name: string;
+    item_kind:
+      | "Document Upload"
+      | "Electronic Signature"
+      | "Form"
+      | "Certification"
+      | "Training"
+      | "Acknowledgment"
+      | "Background Check"
+      | "Tax Form"
+      | "Payout Details";
+    is_blocking: boolean;
+    valid_for_days: number | null;
+    remind_days_before: number | null;
   };
   OnboardingRequirementCreate: {
-    role_type: Components["ExternalRoleType"];
+    role_type?: Components["ExternalRoleType"] | null;
     jurisdiction_id?: Components["JurisdictionId"];
-    item_type: string;
-    title: string;
-    blocking: boolean;
     verification_method: string;
-    validity_months?: number | null;
+    name: string;
+    item_kind:
+      | "Document Upload"
+      | "Electronic Signature"
+      | "Form"
+      | "Certification"
+      | "Training"
+      | "Acknowledgment"
+      | "Background Check"
+      | "Tax Form"
+      | "Payout Details";
+    is_blocking?: boolean;
+    valid_for_days?: number | null;
+    remind_days_before?: number | null;
   };
   OnboardingRequirementPage: {
     data: Array<Components["OnboardingRequirement"]>;
     next_cursor: string | null;
   };
   OnboardingRequirementUpdate: {
-    role_type?: Components["ExternalRoleType"];
+    role_type?: Components["ExternalRoleType"] | null;
     jurisdiction_id?: Components["JurisdictionId"];
-    item_type?: string;
-    title?: string;
-    blocking?: boolean;
     verification_method?: string;
-    validity_months?: number | null;
+    name?: string;
+    item_kind?:
+      | "Document Upload"
+      | "Electronic Signature"
+      | "Form"
+      | "Certification"
+      | "Training"
+      | "Acknowledgment"
+      | "Background Check"
+      | "Tax Form"
+      | "Payout Details";
+    is_blocking?: boolean;
+    valid_for_days?: number | null;
+    remind_days_before?: number | null;
   };
   OnboardingVerification: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     onboarding_item_id: string;
     passed: boolean;
-    verified_by: string;
+    verified_by: string | null;
     verified_at: string;
     notes: string | null;
   };
@@ -3182,29 +3484,29 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    requisition_id: string;
+    updated_by: string | null;
+    requisition_id: string | null;
     project_id: string;
     scope_node_id: string | null;
     title: string;
     role_type: Components["ExternalRoleType"];
-    role_code: Components["RoleCode"] & (string | null);
-    urid: Components["UridAtAnyGrain"];
-    description: string;
+    role_code: Components["RoleCode"] | null;
+    cat_urid: Components["UridAtAnyGrain"];
+    description: string | null;
     venue_id: string | null;
-    starts_at: string | null;
-    ends_at: string | null;
-    positions: number;
-    rate_type: Components["RateType"] & (string | null);
-    rate_min_minor: number | null;
-    rate_max_minor: number | null;
-    currency: string;
+    rate_type: Components["RateType"] | null;
     visibility: Components["OpportunityVisibility"];
-    application_deadline_at: string | null;
     opportunity_state: Components["OpportunityState"];
-    published_at: string | null;
+    jurisdiction_id: Components["JurisdictionId"] | null;
+    starts_on: string | null;
+    ends_on: string | null;
+    pay_min_minor: number | null;
+    pay_max_minor: number | null;
+    currency_code: string | null;
+    deadline_at: string | null;
+    minimum_age: number | null;
   };
   OpportunityAlert: {
     id: string;
@@ -3212,64 +3514,62 @@ export interface Components {
     updated_at: string;
     saved_search_id: string;
     opportunity_id: string;
-    sent_at: string;
+    delivered_at: string | null;
+    matched_at: string;
   };
   OpportunityAlertPage: { data: Array<Components["OpportunityAlert"]>; next_cursor: string | null };
   OpportunityCreate: {
-    requisition_id: string;
+    requisition_id?: string | null;
     project_id: string;
     scope_node_id?: string | null;
     title: string;
     role_type: Components["ExternalRoleType"];
-    role_code?: Components["RoleCode"] & (string | null);
-    urid?: Components["UridAtAnyGrain"];
-    description: string;
+    role_code?: Components["RoleCode"] | null;
+    cat_urid?: Components["UridAtAnyGrain"];
+    description?: string | null;
     venue_id?: string | null;
-    starts_at?: string | null;
-    ends_at?: string | null;
-    positions: number;
-    rate_type?: Components["RateType"] & (string | null);
-    rate_min_minor?: number | null;
-    rate_max_minor?: number | null;
-    currency: string;
-    visibility: Components["OpportunityVisibility"];
-    application_deadline_at?: string | null;
+    rate_type?: Components["RateType"] | null;
+    visibility?: Components["OpportunityVisibility"];
+    jurisdiction_id?: Components["JurisdictionId"] | null;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    pay_min_minor?: number | null;
+    pay_max_minor?: number | null;
+    currency_code?: string | null;
+    deadline_at?: string | null;
+    minimum_age?: number | null;
   };
   OpportunityPage: { data: Array<Components["Opportunity"]>; next_cursor: string | null };
   OpportunityPosition: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     opportunity_id: string;
-    title: string;
-    role_code: Components["RoleCode"] & (string | null);
-    count: number;
+    label: string;
+    call_at: string | null;
+    ends_at: string | null;
   };
   OpportunityPositionCreate: {
     opportunity_id: string;
-    title: string;
-    role_code?: Components["RoleCode"] & (string | null);
-    count: number;
+    label: string;
+    call_at?: string | null;
+    ends_at?: string | null;
   };
   OpportunityPositionPage: {
     data: Array<Components["OpportunityPosition"]>;
     next_cursor: string | null;
   };
-  OpportunityPositionUpdate: {
-    title?: string;
-    role_code?: Components["RoleCode"] & (string | null);
-    count?: number;
-  };
+  OpportunityPositionUpdate: { label?: string; call_at?: string | null; ends_at?: string | null };
   OpportunityQuestion: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     opportunity_id: string;
     position: number;
     prompt: string;
@@ -3290,34 +3590,34 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     opportunity_id: string;
-    tag_id: Components["TagId"];
     certification_id: string | null;
-    statement: string;
     insurance_minimum_minor: number | null;
-    currency: string;
+    requirement_kind: "Certification" | "Insurance" | "Equipment";
+    description: string;
+    currency_code: string | null;
   };
   OpportunityRequirementCreate: {
     opportunity_id: string;
-    tag_id?: Components["TagId"];
     certification_id?: string | null;
-    statement: string;
     insurance_minimum_minor?: number | null;
-    currency: string;
+    requirement_kind: "Certification" | "Insurance" | "Equipment";
+    description: string;
+    currency_code?: string | null;
   };
   OpportunityRequirementPage: {
     data: Array<Components["OpportunityRequirement"]>;
     next_cursor: string | null;
   };
   OpportunityRequirementUpdate: {
-    tag_id?: Components["TagId"];
     certification_id?: string | null;
-    statement?: string;
     insurance_minimum_minor?: number | null;
-    currency?: string;
+    requirement_kind?: "Certification" | "Insurance" | "Equipment";
+    description?: string;
+    currency_code?: string | null;
   };
   OpportunityState:
     "Draft" | "Pending Approval" | "Published" | "Paused" | "Filled" | "Closed" | "Canceled";
@@ -3334,52 +3634,81 @@ export interface Components {
     title?: string;
     role_type?: Components["ExternalRoleType"];
     role_code?: Components["RoleCode"] & (string | null);
-    urid?: Components["UridAtAnyGrain"];
-    description?: string;
+    cat_urid?: Components["UridAtAnyGrain"];
+    description?: string | null;
     venue_id?: string | null;
-    starts_at?: string | null;
-    ends_at?: string | null;
-    positions?: number;
     rate_type?: Components["RateType"] & (string | null);
-    rate_min_minor?: number | null;
-    rate_max_minor?: number | null;
-    currency?: string;
     visibility?: Components["OpportunityVisibility"];
-    application_deadline_at?: string | null;
+    requisition_id?: string | null;
+    jurisdiction_id?: Components["JurisdictionId"] | null;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    pay_min_minor?: number | null;
+    pay_max_minor?: number | null;
+    currency_code?: string | null;
+    deadline_at?: string | null;
+    minimum_age?: number | null;
   };
   OpportunityVisibility: "Invited" | "Pool" | "Network" | "Public";
   OrgBranding: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    display_name: string;
-    logo_document_id: string | null;
-    accent_token: string;
-    gateway_domain: string | null;
+    updated_by: string | null;
+    display_name: string | null;
+    logo_light_path: string | null;
+    logo_dark_path: string | null;
+    favicon_path: string | null;
+    app_icon_path: string | null;
+    accent_hex: string | null;
+    neutral_tint_hex: string | null;
+    font_family: string | null;
+    radius_scale: "Compact" | "Default" | "Rounded";
+    email_sender_name: string | null;
+    support_email: string | null;
+    legal_entity_name: string | null;
+    suppress_powered_by: boolean;
   };
   OrgBrandingCreate: {
-    display_name: string;
-    logo_document_id?: string | null;
-    accent_token: string;
-    gateway_domain?: string | null;
+    display_name?: string | null;
+    logo_light_path?: string | null;
+    logo_dark_path?: string | null;
+    favicon_path?: string | null;
+    app_icon_path?: string | null;
+    accent_hex?: string | null;
+    neutral_tint_hex?: string | null;
+    font_family?: string | null;
+    radius_scale?: "Compact" | "Default" | "Rounded";
+    email_sender_name?: string | null;
+    support_email?: string | null;
+    legal_entity_name?: string | null;
+    suppress_powered_by?: boolean;
   };
   OrgBrandingPage: { data: Array<Components["OrgBranding"]>; next_cursor: string | null };
   OrgBrandingUpdate: {
-    display_name?: string;
-    logo_document_id?: string | null;
-    accent_token?: string;
-    gateway_domain?: string | null;
+    display_name?: string | null;
+    logo_light_path?: string | null;
+    logo_dark_path?: string | null;
+    favicon_path?: string | null;
+    app_icon_path?: string | null;
+    accent_hex?: string | null;
+    neutral_tint_hex?: string | null;
+    font_family?: string | null;
+    radius_scale?: "Compact" | "Default" | "Rounded";
+    email_sender_name?: string | null;
+    support_email?: string | null;
+    legal_entity_name?: string | null;
+    suppress_powered_by?: boolean;
   };
   OrgExport: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     format: Components["ExportFormat"];
     export_state: string;
     document_id: string | null;
@@ -3390,9 +3719,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     cidr: string;
     label: string;
   };
@@ -3406,9 +3735,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     legal_name: string;
     country: string;
     tax_identifier: string | Components["Masked"] | null;
@@ -3430,14 +3759,14 @@ export interface Components {
     fiscal_year_start_month?: number;
     base_currency?: string;
   };
-  OrgRole: "Owner" | "Admin" | "Manager" | "Member" | "Collaborator" | "Field" | "Viewer" | null;
+  OrgRole: "Owner" | "Admin" | "Manager" | "Member" | "Collaborator" | "Field" | "Viewer";
   OrgStateLabel: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     record_state: string;
     label: string;
   };
@@ -3449,12 +3778,9 @@ export interface Components {
     created_at: string;
     updated_at: string;
     name: string;
-    legal_name: string | null;
     slug: string;
     parent_org_id: string | null;
-    is_tenant: boolean;
-    base_currency: string;
-    country: string;
+    organization_type: string;
   };
   OrganizationPage: { data: Array<Components["Organization"]>; next_cursor: string | null };
   OrganizationProfile: {
@@ -3485,9 +3811,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     related_organization_id: string;
     kind: Components["OrganizationRelationshipKind"];
     counterparty_type: Components["CounterpartyType"] & (string | null);
@@ -3510,47 +3836,27 @@ export interface Components {
   };
   OrganizationUpdate: {
     name?: string;
-    legal_name?: string | null;
     slug?: string;
     parent_org_id?: string | null;
-    base_currency?: string;
-    country?: string;
+    organization_type?: string;
   };
   OvertimeRule: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string;
-    updated_at: string;
-    updated_by: string;
-    name: string;
     jurisdiction_id: Components["JurisdictionId"];
-    threshold_hours: number;
-    multiplier: number;
-    period: string;
-  };
-  OvertimeRuleCreate: {
-    name: string;
-    jurisdiction_id: Components["JurisdictionId"];
-    threshold_hours: number;
-    multiplier: number;
-    period: string;
+    source: string;
+    weekly_ot_after_hours: number | null;
+    daily_ot_after_hours: number | null;
+    daily_dt_after_hours: number | null;
+    min_ot_multiplier: number | null;
+    min_dt_multiplier: number | null;
   };
   OvertimeRulePage: { data: Array<Components["OvertimeRule"]>; next_cursor: string | null };
-  OvertimeRuleUpdate: {
-    name?: string;
-    jurisdiction_id?: Components["JurisdictionId"];
-    threshold_hours?: number;
-    multiplier?: number;
-    period?: string;
-  };
   PayPeriod: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     starts_on: string;
     ends_on: string;
     pay_period_state: string;
@@ -3563,23 +3869,21 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    person_id: string;
-    role_code: Components["RoleCode"] & (string | null);
-    rate_type: Components["RateType"];
+    updated_by: string | null;
+    role_code: Components["RoleCode"];
     rate_minor: number | Components["Masked"] | null;
-    currency: string;
     effective_from: string;
+    membership_id: string;
+    currency_code: string;
   };
   PayRateCreate: {
-    person_id: string;
-    role_code?: Components["RoleCode"] & (string | null);
-    rate_type: Components["RateType"];
-    rate_minor?: number | null;
-    currency: string;
+    role_code: Components["RoleCode"];
+    rate_minor: number;
     effective_from: string;
+    membership_id: string;
+    currency_code: string;
   };
   PayRatePage: { data: Array<Components["PayRate"]>; next_cursor: string | null };
   PayTransparencyRule: {
@@ -3595,9 +3899,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     invoice_id: string;
     paid_on: string;
     amount_minor: number | null;
@@ -3619,102 +3923,102 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     person_id: string | null;
     organization_id: string | null;
-    provider: string;
-    provider_account_ref: string;
-    account_last4: string;
+    provider: "Stripe Connect" | "Accounting System";
+    provider_account_reference: string;
+    account_last4: string | null;
   };
   PayoutAccountCreate: {
     person_id?: string | null;
     organization_id?: string | null;
-    provider: string;
-    provider_account_ref: string;
+    provider: "Stripe Connect" | "Accounting System";
+    provider_account_reference: string;
   };
   PayoutAccountPage: { data: Array<Components["PayoutAccount"]>; next_cursor: string | null };
   PayrollExport: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     payroll_run_id: string;
     provider: string;
-    export_state: string;
-    document_id: string | null;
+    file_uri: string;
+    checksum_sha256: string;
   };
   PayrollExportCreate: { payroll_run_id: string; provider: string };
   PayrollExportPage: { data: Array<Components["PayrollExport"]>; next_cursor: string | null };
   PayrollLine: {
     id: string;
     org_id: string;
-    created_at: string;
-    created_by: string;
-    updated_at: string;
-    updated_by: string;
     payroll_run_id: string;
-    person_id: string;
     earning_code_id: string;
     hours: number;
     amount_minor: number | Components["Masked"] | null;
-    currency: string;
+    membership_id: string;
+    rate_minor: number | Components["Masked"] | null;
+    role_code: Components["RoleCode"] | null;
+    cost_center_id: string | null;
   };
   PayrollLinePage: { data: Array<Components["PayrollLine"]>; next_cursor: string | null };
   PayrollRun: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     pay_period_id: string;
-    payroll_run_state: string;
-    gross_total: number | null;
-    currency: string;
+    payroll_run_state: "Draft" | "Calculated" | "Approved" | "Exported" | "Accepted" | "Canceled";
+    currency_code: string;
   };
-  PayrollRunCreate: { pay_period_id: string; currency: string };
+  PayrollRunCreate: { pay_period_id: string; currency_code: string };
   PayrollRunPage: { data: Array<Components["PayrollRun"]>; next_cursor: string | null };
   PayrollRunTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   PerDiem: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    engagement_id: string;
-    daily_amount_minor: number | Components["Masked"] | null;
-    currency: string;
-    starts_on: string;
-    ends_on: string;
+    updated_by: string | null;
+    engagement_id: string | null;
+    project_id: string;
+    membership_id: string | null;
+    day: string;
+    amount_minor: number | null;
+    currency_code: string;
   };
   PerDiemCreate: {
-    engagement_id: string;
-    daily_amount_minor?: number | null;
-    currency: string;
-    starts_on: string;
-    ends_on: string;
+    engagement_id?: string | null;
+    project_id: string;
+    membership_id?: string | null;
+    day: string;
+    amount_minor: number;
+    currency_code: string;
   };
   PerDiemPage: { data: Array<Components["PerDiem"]>; next_cursor: string | null };
   PerDiemUpdate: {
-    engagement_id?: string;
-    daily_amount_minor?: number | null;
-    currency?: string;
-    starts_on?: string;
-    ends_on?: string;
+    engagement_id?: string | null;
+    project_id?: string;
+    membership_id?: string | null;
+    day?: string;
+    amount_minor?: number;
+    currency_code?: string;
   };
   PermitEngineRequest: { project_id: string };
   PermitRequirement: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     rule: string;
     jurisdiction_id: Components["JurisdictionId"];
@@ -3728,16 +4032,7 @@ export interface Components {
     next_cursor: string | null;
   };
   PermitTransitionRequest: { expected_state: string; to_state: string; reason?: string };
-  Person: {
-    id: string;
-    created_at: string;
-    updated_at: string;
-    name: string;
-    preferred_name: string | null;
-    primary_email: string;
-    locale: string;
-    time_zone: string;
-  };
+  Person: { id: string; created_at: string; updated_at: string; full_name: string | null };
   PersonPage: { data: Array<Components["Person"]>; next_cursor: string | null };
   PersonProfile: {
     id: string;
@@ -3772,29 +4067,27 @@ export interface Components {
     visibility?: Components["ProfileVisibility"];
     search_indexing?: boolean;
   };
-  PersonUpdate: {
-    name?: string;
-    preferred_name?: string | null;
-    primary_email?: string;
-    locale?: string;
-    time_zone?: string;
-  };
+  PersonUpdate: { full_name?: string | null };
   PhaseCode: string;
   PhaseCoverage: {
     phase_code: Components["PhaseCode"];
     active_element_count: number;
-    declared_gap: boolean;
+    gate: number | null;
+    phase: string | null;
+    element_count: number | null;
+    category_count: number | null;
+    has_active_element: boolean | null;
   };
   PhaseCoveragePage: { data: Array<Components["PhaseCoverage"]>; next_cursor: string | null };
-  Plan: { plan_code: string; name: string; monthly_price_minor: number | null; currency: string };
+  Plan: { code: string; sort_order: number };
   PlanPage: { data: Array<Components["Plan"]>; next_cursor: string | null };
   PoChangeOrder: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     purchase_order_id: string;
     description: string;
     amount_minor: number | null;
@@ -3813,9 +4106,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     purchase_order_id: string;
     budget_line_id: string;
     element_id: Components["ItemId"];
@@ -3850,9 +4143,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     talent_pool_id: string;
     person_id: string | null;
     organization_id: string | null;
@@ -3888,9 +4181,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     date: string;
     account_code: Components["GlAccountCode"];
     cost_center_id: Components["CostCenterCode"];
@@ -3911,9 +4204,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     vendor_id: string;
     valid_to: string | null;
     prequalification_state: Components["SharedState"];
@@ -3926,9 +4219,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     currency: string;
   };
@@ -3974,17 +4267,16 @@ export interface Components {
     created_at: string;
     updated_at: string;
     person_id: string | null;
-    organization_id: string;
-    shared_fields: Array<string>;
-    live_updates: boolean;
-    snapshot_at: string;
+    organization_id: string | null;
+    shared_fields: Array<{ field_key: string; field_value: string | null }>;
+    shared_at: string;
     revoked_at: string | null;
+    engagement_id: string | null;
   };
   ProfileShareCreate: {
-    person_id?: string | null;
-    organization_id: string;
-    shared_fields: Array<string>;
-    live_updates: boolean;
+    organization_id?: string | null;
+    shared_fields: Array<{ field_key: string; field_value: string | null }>;
+    engagement_id?: string | null;
   };
   ProfileSharePage: { data: Array<Components["ProfileShare"]>; next_cursor: string | null };
   ProfileVisibility: "Public" | "Network" | "Private";
@@ -3992,61 +4284,92 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    owner_urn: string;
-    target: string;
-    level: Components["ProfileVisibility"];
+    person_id: string;
+    section:
+      | "photo"
+      | "pronouns"
+      | "headline"
+      | "bio"
+      | "location"
+      | "skills"
+      | "certifications"
+      | "portfolio"
+      | "rates"
+      | "availability"
+      | "languages"
+      | "references"
+      | "links"
+      | "organizations";
+    visibility: "Private" | "Network" | "Public";
   };
   ProfileVisibilityRuleCreate: {
-    owner_urn: string;
-    target: string;
-    level: Components["ProfileVisibility"];
+    person_id: string;
+    section:
+      | "photo"
+      | "pronouns"
+      | "headline"
+      | "bio"
+      | "location"
+      | "skills"
+      | "certifications"
+      | "portfolio"
+      | "rates"
+      | "availability"
+      | "languages"
+      | "references"
+      | "links"
+      | "organizations";
+    visibility: "Private" | "Network" | "Public";
   };
   ProfileVisibilityRulePage: {
     data: Array<Components["ProfileVisibilityRule"]>;
     next_cursor: string | null;
   };
-  ProfileVisibilityRuleUpdate: {
-    owner_urn?: string;
-    target?: string;
-    level?: Components["ProfileVisibility"];
-  };
+  ProfileVisibilityRuleUpdate: { visibility?: "Private" | "Network" | "Public" };
   Project: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_key: string;
     name: string;
     description: string | null;
     workspace_id: string | null;
     jurisdiction_id: Components["JurisdictionId"];
     region_code: Components["RegionCode"];
-    tier_code: Components["TierCode"];
+    tier_code: Components["TierCode"] | null;
     current_phase_code: Components["PhaseCode"];
     project_state: string;
     currency: string;
     starts_on: string | null;
     ends_on: string | null;
+    time_zone: string;
+    venue_id: string | null;
+    client_counterparty_id: string | null;
+    production_state: string;
+    archived_at: string | null;
   };
   ProjectAssignment: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
-    person_id: string;
     valid_from: string;
     valid_to: string | null;
+    membership_id: string;
+    project_role: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
   };
   ProjectAssignmentCreate: {
     project_id: string;
-    person_id: string;
-    valid_from: string;
+    valid_from?: string;
     valid_to?: string | null;
+    membership_id: string;
+    project_role: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
   };
   ProjectAssignmentPage: {
     data: Array<Components["ProjectAssignment"]>;
@@ -4056,9 +4379,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_assignment_id: string;
     role: Components["ProjectRole"];
   };
@@ -4067,29 +4390,36 @@ export interface Components {
     data: Array<Components["ProjectAssignmentRole"]>;
     next_cursor: string | null;
   };
-  ProjectAssignmentUpdate: { valid_from?: string; valid_to?: string | null };
+  ProjectAssignmentUpdate: {
+    valid_from?: string;
+    valid_to?: string | null;
+    project_role?: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
+  };
   ProjectCreate: {
     name: string;
     description?: string | null;
     workspace_id?: string | null;
     jurisdiction_id?: Components["JurisdictionId"];
     region_code?: Components["RegionCode"];
-    tier_code: Components["TierCode"];
-    currency: string;
+    tier_code?: Components["TierCode"] | null;
+    currency?: string;
     starts_on?: string | null;
     ends_on?: string | null;
+    project_key: string;
+    time_zone: string;
+    venue_id?: string | null;
   };
   ProjectPage: { data: Array<Components["Project"]>; next_cursor: string | null };
   ProjectPhaseTransition: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     from_phase_code: Components["PhaseCode"];
-    to_phase_code: Components["PhaseCode"];
+    to_phase_code: Components["PhaseCode"] | null;
     transitioned_at: string;
     transitioned_by: string;
   };
@@ -4102,9 +4432,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     partner_organization_id: string;
     valid_to: string | null;
@@ -4123,19 +4453,23 @@ export interface Components {
     workspace_id?: string | null;
     jurisdiction_id?: Components["JurisdictionId"];
     region_code?: Components["RegionCode"];
-    tier_code?: Components["TierCode"];
+    tier_code?: Components["TierCode"] | null;
     currency?: string;
     starts_on?: string | null;
     ends_on?: string | null;
+    project_key?: string;
+    time_zone?: string;
+    venue_id?: string | null;
+    client_counterparty_id?: string | null;
   };
   Provenance: string;
   PurchaseOrder: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     vendor_id: string;
     po_number: string;
@@ -4158,9 +4492,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     channel: number;
     name: string;
     frequency_mhz: number | null;
@@ -4183,17 +4517,17 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
-    currency: string;
+    currency_code: string;
     effective_from: string;
     effective_to: string | null;
   };
   RateCardCreate: {
     name: string;
-    currency: string;
+    currency_code: string;
     effective_from: string;
     effective_to?: string | null;
   };
@@ -4201,33 +4535,42 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     rate_card_id: string;
     role_code: Components["RoleCode"];
-    rate_type: Components["RateType"];
     rate_minor: number | Components["Masked"] | null;
-    currency: string;
+    worker_classification: string;
+    pay_basis: string;
+    arrangement: string;
+    overtime_rule_id: string;
+    canon_rate_card_id: string | null;
   };
   RateCardLineCreate: {
     rate_card_id: string;
     role_code: Components["RoleCode"];
-    rate_type: Components["RateType"];
     rate_minor?: number | null;
-    currency: string;
+    worker_classification: string;
+    pay_basis: string;
+    arrangement: string;
+    overtime_rule_id: string;
+    canon_rate_card_id?: string | null;
   };
   RateCardLinePage: { data: Array<Components["RateCardLine"]>; next_cursor: string | null };
   RateCardLineUpdate: {
     role_code?: Components["RoleCode"];
-    rate_type?: Components["RateType"];
     rate_minor?: number | null;
-    currency?: string;
+    worker_classification?: string;
+    pay_basis?: string;
+    arrangement?: string;
+    overtime_rule_id?: string;
+    canon_rate_card_id?: string | null;
   };
   RateCardPage: { data: Array<Components["RateCard"]>; next_cursor: string | null };
   RateCardUpdate: {
     name?: string;
-    currency?: string;
+    currency_code?: string;
     effective_from?: string;
     effective_to?: string | null;
   };
@@ -4236,9 +4579,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     engagement_id: string;
     rater_side: string;
     score: number;
@@ -4256,9 +4599,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     rating_id: string;
     body: string;
   };
@@ -4268,9 +4611,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     goods_receipt_id: string;
     po_line_id: string;
     quantity_received: number;
@@ -4281,9 +4624,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     venue_id: string | null;
     run_at: string;
@@ -4296,9 +4639,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     reconciliation_id: string;
     requirement_id: string;
     capability_id: string | null;
@@ -4314,9 +4657,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     record_key: string;
     record_kind: Components["RecordKind"];
     record_subtype: Components["RecordSubtype"];
@@ -4340,9 +4683,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     record_id: string;
     position: number;
     label: string;
@@ -4390,9 +4733,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     predecessor_id: string;
     successor_id: string;
     dependency_type: string;
@@ -4409,26 +4752,37 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    grantee_urn: string;
-    subject_urn: string;
-    capability: string;
+    updated_by: string | null;
+    capability_code: string;
     valid_to: string | null;
+    target_kind: "organization" | "workspace" | "team" | "project" | "record";
+    target_id: string;
+    grantee_person_id: string | null;
+    grantee_org_id: string | null;
+    valid_from: string;
+    granted_by: string | null;
+    reason: string;
   };
   RecordGrantCreate: {
-    grantee_urn: string;
-    subject_urn: string;
-    capability: string;
-    valid_to?: string | null;
+    capability_code: string;
+    valid_to: string | null;
+    target_kind: "organization" | "workspace" | "team" | "project" | "record";
+    target_id: string;
+    grantee_person_id?: string | null;
+    grantee_org_id?: string | null;
+    valid_from?: string;
+    reason: string;
   };
   RecordGrantPage: { data: Array<Components["RecordGrant"]>; next_cursor: string | null };
   RecordGrantUpdate: {
-    grantee_urn?: string;
-    subject_urn?: string;
-    capability?: string;
+    capability_code?: string;
     valid_to?: string | null;
+    grantee_person_id?: string | null;
+    grantee_org_id?: string | null;
+    valid_from?: string;
+    reason?: string;
   };
   RecordKind: string;
   RecordPage: { data: Array<Components["Record"]>; next_cursor: string | null };
@@ -4436,9 +4790,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     record_id: string;
     rrule: string;
     time_zone: string;
@@ -4456,15 +4810,20 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     record_id: string;
-    field: string;
-    from_value: string | null;
-    to_value: string | null;
     reason: string | null;
     replanned_at: string;
+    from_state: string;
+    to_state: string;
+    old_starts_at: string | null;
+    new_starts_at: string | null;
+    old_ends_at: string | null;
+    new_ends_at: string | null;
+    old_due_at: string | null;
+    new_due_at: string | null;
   };
   RecordReplanPage: { data: Array<Components["RecordReplan"]>; next_cursor: string | null };
   RecordState:
@@ -4481,9 +4840,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     record_id: string;
     from_state: Components["RecordState"];
     to_state: Components["RecordState"];
@@ -4530,9 +4889,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     record_id: string;
     person_id: string;
   };
@@ -4554,9 +4913,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     source: string;
     definition: Record<string, unknown>;
@@ -4574,9 +4933,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     report_definition_id: string;
     format: Components["ExportFormat"];
     run_state: string;
@@ -4589,9 +4948,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     report_definition_id: string;
     rrule: string;
     format: Components["ExportFormat"];
@@ -4609,34 +4968,29 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    representative_person_id: string;
-    representative_organization_id: string | null;
+    representative_person_id: string | null;
     artist_person_id: string;
     scopes: Array<Components["RepresentationScope"]>;
     expires_on: string;
     accepted_at: string | null;
+    revoked_at: string | null;
   };
   RepresentationCreate: {
-    representative_person_id: string;
-    representative_organization_id?: string | null;
+    representative_person_id?: string | null;
     artist_person_id: string;
     scopes: Array<Components["RepresentationScope"]>;
     expires_on: string;
   };
   RepresentationPage: { data: Array<Components["Representation"]>; next_cursor: string | null };
   RepresentationScope: "Offers" | "Advance" | "Settlement" | "Documents";
-  RepresentationUpdate: {
-    representative_organization_id?: string | null;
-    scopes?: Array<Components["RepresentationScope"]>;
-    expires_on?: string;
-  };
+  RepresentationUpdate: { scopes?: Array<Components["RepresentationScope"]>; expires_on?: string };
   Requirement: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     direction: Components["Direction"];
     project_id: string | null;
     venue_id: string | null;
@@ -4674,47 +5028,107 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
-    title: string;
-    role_code: Components["RoleCode"] & (string | null);
-    urid: Components["UridAtAnyGrain"];
-    positions: number;
-    requisition_state: string;
-    budget_minor: number | null;
-    currency: string;
+    role_code: Components["RoleCode"];
+    requisition_state: "Proposed" | "Approved" | "Rejected" | "Filled" | "Canceled";
+    scope_node_id: string | null;
+    budget_line_id: string | null;
+    role_type:
+      | "Crew"
+      | "Contractor"
+      | "Staff"
+      | "Vendor"
+      | "Artist"
+      | "Artist Representative"
+      | "Client"
+      | "Sponsor"
+      | null;
+    worker_classification: string | null;
+    pay_basis: string | null;
+    arrangement: string | null;
+    headcount: number;
+    units_per_head: number | null;
+    rate_minor: number | null;
+    currency_code: string;
+    starts_on: string | null;
+    ends_on: string | null;
+    justification: string;
+    requested_by: string | null;
   };
   RequisitionCreate: {
     project_id: string;
-    title: string;
-    role_code?: Components["RoleCode"] & (string | null);
-    urid?: Components["UridAtAnyGrain"];
-    positions: number;
-    budget_minor?: number | null;
-    currency: string;
+    role_code: Components["RoleCode"];
+    scope_node_id?: string | null;
+    budget_line_id?: string | null;
+    role_type?:
+      | "Crew"
+      | "Contractor"
+      | "Staff"
+      | "Vendor"
+      | "Artist"
+      | "Artist Representative"
+      | "Client"
+      | "Sponsor"
+      | null;
+    worker_classification?: string | null;
+    pay_basis?: string | null;
+    arrangement?: string | null;
+    headcount?: number;
+    units_per_head?: number | null;
+    rate_minor?: number | null;
+    currency_code: string;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    justification: string;
   };
   RequisitionPage: { data: Array<Components["Requisition"]>; next_cursor: string | null };
   RequisitionTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   RequisitionUpdate: {
-    title?: string;
-    role_code?: Components["RoleCode"] & (string | null);
-    urid?: Components["UridAtAnyGrain"];
-    positions?: number;
-    budget_minor?: number | null;
-    currency?: string;
+    role_code?: Components["RoleCode"];
+    scope_node_id?: string | null;
+    budget_line_id?: string | null;
+    role_type?:
+      | "Crew"
+      | "Contractor"
+      | "Staff"
+      | "Vendor"
+      | "Artist"
+      | "Artist Representative"
+      | "Client"
+      | "Sponsor"
+      | null;
+    worker_classification?: string | null;
+    pay_basis?: string | null;
+    arrangement?: string | null;
+    headcount?: number;
+    units_per_head?: number | null;
+    rate_minor?: number | null;
+    currency_code?: string;
+    starts_on?: string | null;
+    ends_on?: string | null;
+    justification?: string;
   };
   RestoreRequest: { subject_urn: string };
-  RetentionPolicy: { table_name: string; retention_days: number };
+  RetentionPolicy: {
+    table_name: string;
+    basis: "Soft Deleted" | "Age" | null;
+    time_column: string | null;
+    retention: string | null;
+    purge_method: "Delete" | "Drop Partition" | "Account Lifecycle" | null;
+    redact_personal_data_after: string | null;
+    rationale: string | null;
+  };
   RetentionPolicyPage: { data: Array<Components["RetentionPolicy"]>; next_cursor: string | null };
   Rfq: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     title: string;
     urid: Components["UridAtAnyGrain"];
@@ -4731,9 +5145,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     rfq_id: string;
     organization_id: string;
   };
@@ -4744,9 +5158,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     rfq_id: string;
     organization_id: string;
     submitted_at: string | null;
@@ -4757,9 +5171,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     rfq_response_id: string;
     description: string;
     quantity: number | null;
@@ -4786,9 +5200,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     engagement_id: string;
     title: string;
     document_id: string | null;
@@ -4798,9 +5212,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     rider_id: string;
     urid: Components["UridAtAnyGrain"];
     statement: string;
@@ -4825,131 +5239,173 @@ export interface Components {
   RiderUpdate: { engagement_id?: string; title?: string; document_id?: string | null };
   Role: {
     id: string;
-    org_id: string;
+    org_id: string | null;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    name: string;
-    base_role: Components["OrgRole"];
+    updated_by: string | null;
+    name: string | null;
     description: string | null;
+    code: string;
+    band: number;
   };
   RoleAssignment: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     role_code: Components["RoleCode"];
     scope_node_id: string | null;
-    person_id: string | null;
-    headcount: number;
-    ratio_basis: string | null;
+    person_id: string;
+    requisition_id: string | null;
+    staffing_basis: "Declared" | "Ratio" | "Fixed";
+    starts_on: string | null;
+    ends_on: string | null;
+    assignment_state: "Proposed" | "Active" | "Complete" | "Canceled";
   };
   RoleAssignmentCreate: {
     project_id: string;
     role_code: Components["RoleCode"];
     scope_node_id?: string | null;
-    person_id?: string | null;
-    headcount: number;
-    ratio_basis?: string | null;
+    person_id: string;
+    requisition_id?: string | null;
+    staffing_basis?: "Declared" | "Ratio" | "Fixed";
+    starts_on?: string | null;
+    ends_on?: string | null;
   };
   RoleAssignmentPage: { data: Array<Components["RoleAssignment"]>; next_cursor: string | null };
   RoleAssignmentUpdate: {
     role_code?: Components["RoleCode"];
     scope_node_id?: string | null;
-    person_id?: string | null;
-    headcount?: number;
-    ratio_basis?: string | null;
+    person_id?: string;
+    requisition_id?: string | null;
+    staffing_basis?: "Declared" | "Ratio" | "Fixed";
+    starts_on?: string | null;
+    ends_on?: string | null;
   };
   RoleCapability: {
     id: string;
-    org_id: string;
+    org_id: string | null;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     role_id: string;
-    capability: string;
+    capability_code: string;
+    reach: "own" | "assigned" | "organization";
   };
-  RoleCapabilityCreate: { role_id: string; capability: string };
+  RoleCapabilityCreate: {
+    role_id: string;
+    capability_code: string;
+    reach: "own" | "assigned" | "organization";
+  };
   RoleCapabilityPage: { data: Array<Components["RoleCapability"]>; next_cursor: string | null };
   RoleCode: string;
-  RoleCreate: { name: string; base_role?: Components["OrgRole"]; description?: string | null };
+  RoleCreate: { name?: string | null; description?: string | null; code: string; band: number };
   RolePage: { data: Array<Components["Role"]>; next_cursor: string | null };
-  RoleUpdate: { name?: string; base_role?: Components["OrgRole"]; description?: string | null };
+  RoleUpdate: { name?: string | null; description?: string | null; band?: number };
   RunOfShow: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    scope_node_id: string;
-    title: string;
+    updated_by: string | null;
+    scope_node_id: string | null;
+    name: string;
     show_date: string;
-    time_zone: string;
-    published: boolean;
+    project_id: string;
   };
   RunOfShowCreate: {
-    scope_node_id: string;
-    title: string;
+    scope_node_id?: string | null;
+    name: string;
     show_date: string;
-    time_zone: string;
-    published: boolean;
+    project_id: string;
   };
   RunOfShowPage: { data: Array<Components["RunOfShow"]>; next_cursor: string | null };
-  RunOfShowUpdate: { title?: string; show_date?: string; time_zone?: string; published?: boolean };
+  RunOfShowUpdate: { name?: string; show_date?: string };
   SavedSearch: {
     id: string;
     created_at: string;
     updated_at: string;
     person_id: string;
     name: string;
-    query: string;
     alerts_enabled: boolean;
+    role_type: Components["ExternalRoleType"] | null;
+    role_code: Components["RoleCode"] | null;
+    cat_urid: Components["UridAtAnyGrain"] | null;
+    jurisdiction_id: Components["JurisdictionId"] | null;
+    starts_after: string | null;
+    ends_before: string | null;
+    min_rate_minor: number | null;
+    currency_code: string | null;
   };
-  SavedSearchCreate: { person_id: string; name: string; query: string; alerts_enabled: boolean };
+  SavedSearchCreate: {
+    person_id: string;
+    name: string;
+    alerts_enabled?: boolean;
+    role_type?: Components["ExternalRoleType"] | null;
+    role_code?: Components["RoleCode"] | null;
+    cat_urid?: Components["UridAtAnyGrain"] | null;
+    jurisdiction_id?: Components["JurisdictionId"] | null;
+    starts_after?: string | null;
+    ends_before?: string | null;
+    min_rate_minor?: number | null;
+    currency_code?: string | null;
+  };
   SavedSearchPage: { data: Array<Components["SavedSearch"]>; next_cursor: string | null };
-  SavedSearchUpdate: { name?: string; query?: string; alerts_enabled?: boolean };
+  SavedSearchUpdate: {
+    name?: string;
+    alerts_enabled?: boolean;
+    role_type?: Components["ExternalRoleType"] | null;
+    role_code?: Components["RoleCode"] | null;
+    cat_urid?: Components["UridAtAnyGrain"] | null;
+    jurisdiction_id?: Components["JurisdictionId"] | null;
+    starts_after?: string | null;
+    ends_before?: string | null;
+    min_rate_minor?: number | null;
+    currency_code?: string | null;
+  };
   SavedView: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    collection: string;
+    updated_by: string | null;
     name: string;
     view_type: string;
-    query: string;
     shared: boolean;
+    membership_id: string;
+    collection_key: string;
+    group_by_field: string | null;
   };
   SavedViewCreate: {
-    collection: string;
     name: string;
     view_type: string;
-    query: string;
-    shared: boolean;
+    shared?: boolean;
+    membership_id: string;
+    collection_key: string;
+    group_by_field?: string | null;
   };
   SavedViewPage: { data: Array<Components["SavedView"]>; next_cursor: string | null };
   SavedViewUpdate: {
-    collection?: string;
     name?: string;
     view_type?: string;
-    query?: string;
     shared?: boolean;
+    group_by_field?: string | null;
   };
   ScanRequest: { code: string; symbology: string };
   ScheduleActual: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     record_id: string;
     actual_start_at: string | null;
     actual_end_at: string | null;
@@ -4965,9 +5421,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     name: string;
     captured_at: string;
@@ -4978,9 +5434,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     idp_group: string;
     role_id: string | null;
     team_id: string | null;
@@ -4992,9 +5448,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     parent_id: string | null;
     scope_code: string;
@@ -5011,33 +5467,24 @@ export interface Components {
   };
   ScopeNodePage: { data: Array<Components["ScopeNode"]>; next_cursor: string | null };
   ScopeNodeUpdate: { scope_code?: string; name?: string; node_kind?: string };
-  SeparationOfDutiesRule: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string;
-    updated_at: string;
-    updated_by: string;
-    rule: string;
-    enforced_on: string;
-    is_default: boolean;
-  };
-  SeparationOfDutiesRuleCreate: { rule: string; enforced_on: string };
+  SeparationOfDutiesRule: { code: string; enforced_on: string; description: string };
   SeparationOfDutiesRulePage: {
     data: Array<Components["SeparationOfDutiesRule"]>;
     next_cursor: string | null;
   };
-  SeparationOfDutiesRuleUpdate: { rule?: string; enforced_on?: string };
   ServiceAccount: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     owner_person_id: string;
     expires_at: string | null;
+    user_id: string;
+    person_id: string;
+    membership_id: string;
   };
   ServiceAccountCreate: { name: string; owner_person_id: string; expires_at?: string | null };
   ServiceAccountPage: { data: Array<Components["ServiceAccount"]>; next_cursor: string | null };
@@ -5057,9 +5504,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     setting_key: string;
   };
   SettingLockCreate: { setting_key: string };
@@ -5069,9 +5516,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     scope_type: Components["SettingScope"];
     scope_id: string | null;
     setting_key: string;
@@ -5090,63 +5537,65 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     record_id: string | null;
-    role_code: Components["RoleCode"];
-    person_id: string | null;
+    role_code: Components["RoleCode"] | null;
     engagement_id: string | null;
     starts_at: string;
     ends_at: string;
-    geofence_id: string | null;
-    shift_state: string;
+    shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
+    membership_id: string | null;
+    scope_node_id: string | null;
+    time_zone: string;
   };
   ShiftCreate: {
     project_id: string;
     record_id?: string | null;
-    role_code: Components["RoleCode"];
-    person_id?: string | null;
+    role_code?: Components["RoleCode"] | null;
     engagement_id?: string | null;
     starts_at: string;
     ends_at: string;
-    geofence_id?: string | null;
+    membership_id?: string | null;
+    scope_node_id?: string | null;
+    time_zone: string;
   };
   ShiftPage: { data: Array<Components["Shift"]>; next_cursor: string | null };
   ShiftSwap: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     shift_id: string;
-    requested_by: string;
-    proposed_person_id: string | null;
-    swap_state: string;
-    decided_by: string | null;
-    decided_at: string | null;
+    swap_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
+    project_id: string;
+    requested_by_membership_id: string;
+    proposed_membership_id: string;
   };
-  ShiftSwapCreate: { shift_id: string; proposed_person_id?: string | null };
+  ShiftSwapCreate: { shift_id: string; proposed_membership_id: string };
   ShiftSwapPage: { data: Array<Components["ShiftSwap"]>; next_cursor: string | null };
   ShiftTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   ShiftUpdate: {
     record_id?: string | null;
-    role_code?: Components["RoleCode"];
-    person_id?: string | null;
+    role_code?: Components["RoleCode"] | null;
     engagement_id?: string | null;
     starts_at?: string;
     ends_at?: string;
-    geofence_id?: string | null;
+    membership_id?: string | null;
+    scope_node_id?: string | null;
+    time_zone?: string;
   };
   Shipment: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     carrier: string;
     tracking_number: string | null;
@@ -5165,9 +5614,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     shipment_id: string;
     description: string;
     quantity: number;
@@ -5200,9 +5649,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     opportunity_id: string;
     application_id: string;
     rank: number | null;
@@ -5214,9 +5663,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     venue_id: string;
     title: string;
     document_id: string;
@@ -5227,9 +5676,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     site_plan_id: string;
     label: string;
     x: number;
@@ -5243,9 +5692,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     title: string;
     body: Record<string, unknown>;
     urid: Components["UridAtAnyGrain"];
@@ -5256,9 +5705,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     sop_id: string;
     person_id: string;
     acknowledged_at: string;
@@ -5286,9 +5735,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     venue_id: string;
     name: string;
     capacity: number | null;
@@ -5306,32 +5755,65 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     role_id: string | null;
-    person_id: string | null;
-    document_type: Components["SpendDocumentType"];
+    document_type:
+      | "Purchase Order"
+      | "Change Order"
+      | "Expense"
+      | "Invoice Approval"
+      | "Contract"
+      | "Payroll Run"
+      | "Requisition";
     limit_minor: number | null;
     dual_approval_above_minor: number | null;
-    currency: string;
+    currency_code: string;
+    membership_id: string | null;
+    account_code: string | null;
+    cost_center_id: string | null;
+    valid_from: string;
+    valid_to: string | null;
   };
   SpendAuthorityCreate: {
     role_id?: string | null;
-    person_id?: string | null;
-    document_type: Components["SpendDocumentType"];
-    limit_minor?: number | null;
+    document_type:
+      | "Purchase Order"
+      | "Change Order"
+      | "Expense"
+      | "Invoice Approval"
+      | "Contract"
+      | "Payroll Run"
+      | "Requisition";
+    limit_minor: number | null;
     dual_approval_above_minor?: number | null;
-    currency: string;
+    currency_code: string;
+    membership_id?: string | null;
+    account_code?: string | null;
+    cost_center_id?: string | null;
+    valid_from?: string;
+    valid_to?: string | null;
   };
   SpendAuthorityPage: { data: Array<Components["SpendAuthority"]>; next_cursor: string | null };
   SpendAuthorityUpdate: {
     role_id?: string | null;
-    person_id?: string | null;
-    document_type?: Components["SpendDocumentType"];
+    document_type?:
+      | "Purchase Order"
+      | "Change Order"
+      | "Expense"
+      | "Invoice Approval"
+      | "Contract"
+      | "Payroll Run"
+      | "Requisition";
     limit_minor?: number | null;
     dual_approval_above_minor?: number | null;
-    currency?: string;
+    currency_code?: string;
+    membership_id?: string | null;
+    account_code?: string | null;
+    cost_center_id?: string | null;
+    valid_from?: string;
+    valid_to?: string | null;
   };
   SpendDocumentType:
     "Purchase Order" | "Change Order" | "Expense" | "Invoice Approval" | "Contract" | "Payroll Run";
@@ -5339,9 +5821,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     engagement_id: string;
     name: string;
     quantity: number | null;
@@ -5356,7 +5838,13 @@ export interface Components {
   StdCode: string;
   StdDocument: { code: Components["StdCode"]; title: string; urid: Components["UridAtAnyGrain"] };
   StdDocumentPage: { data: Array<Components["StdDocument"]>; next_cursor: string | null };
-  StdEmergencyCode: { code: Components["StdCode"]; name: string; response: string };
+  StdEmergencyCode: {
+    code: Components["StdCode"];
+    label: string;
+    emergency: string;
+    swatch: string;
+    sort_order: number;
+  };
   StdEmergencyCodePage: { data: Array<Components["StdEmergencyCode"]>; next_cursor: string | null };
   StdEnumeration: { code: Components["StdCode"]; enumeration: string; value: string };
   StdEnumerationPage: { data: Array<Components["StdEnumeration"]>; next_cursor: string | null };
@@ -5391,57 +5879,56 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     plan_code: string;
-    subscription_state: string;
-    current_period_end: string;
-    seats: number | null;
+    subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
   };
   SubscriptionPage: { data: Array<Components["Subscription"]>; next_cursor: string | null };
-  SubscriptionUpdate: { plan_code?: string; seats?: number | null };
+  SubscriptionUpdate: { plan_code?: string };
   TagId: string | null;
   TalentPool: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
-    role_type: Components["ExternalRoleType"];
+    pool_kind: "Talent" | "Vendor";
   };
-  TalentPoolCreate: { name: string; role_type: Components["ExternalRoleType"] };
+  TalentPoolCreate: { name: string; pool_kind: "Talent" | "Vendor" };
   TalentPoolPage: { data: Array<Components["TalentPool"]>; next_cursor: string | null };
-  TalentPoolUpdate: { name?: string; role_type?: Components["ExternalRoleType"] };
+  TalentPoolUpdate: { name?: string };
   TaxForm: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    engagement_id: string;
-    form_type: string;
-    tax_identifier: string | Components["Masked"];
-    tax_identifier_last4: string;
+    updated_by: string | null;
+    tin_last4: string;
     foreign_performer_withholding: boolean;
+    person_id: string | null;
+    organization_id: string | null;
+    form_kind: "W-9" | "W-8BEN" | "W-8BEN-E";
+    signed_at: string;
   };
   TaxFormCreate: {
-    engagement_id: string;
-    form_type: string;
+    foreign_performer_withholding?: boolean;
+    organization_id?: string | null;
+    form_kind: "W-9" | "W-8BEN" | "W-8BEN-E";
     tax_identifier: string;
-    foreign_performer_withholding: boolean;
   };
   TaxFormPage: { data: Array<Components["TaxForm"]>; next_cursor: string | null };
   TaxJurisdiction: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     jurisdiction_id: Components["JurisdictionId"];
     name: string;
   };
@@ -5452,9 +5939,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     tax_jurisdiction_id: string;
     rate_percent: number;
     effective_from: string;
@@ -5473,9 +5960,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
   };
   TeamCreate: { name: string };
@@ -5484,13 +5971,13 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     team_id: string;
-    person_id: string;
+    membership_id: string;
   };
-  TeamMemberCreate: { team_id: string; person_id: string };
+  TeamMemberCreate: { team_id: string; membership_id: string };
   TeamMemberPage: { data: Array<Components["TeamMember"]>; next_cursor: string | null };
   TeamPage: { data: Array<Components["Team"]>; next_cursor: string | null };
   TeamUpdate: { name?: string };
@@ -5498,9 +5985,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     current_version_id: string | null;
   };
@@ -5508,9 +5995,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     template_id: string;
     project_id: string;
   };
@@ -5527,51 +6014,54 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    person_id: string;
+    updated_by: string | null;
     shift_id: string | null;
-    clock_in_at: string;
-    clock_out_at: string | null;
+    clock_in: string;
+    clock_out: string | null;
     break_minutes: number;
-    latitude: number | null;
-    longitude: number | null;
-    auto_closed: boolean;
     kiosk_device_id: string | null;
+    project_id: string;
+    membership_id: string | null;
+    engagement_id: string | null;
+    source: "Web" | "Mobile" | "Kiosk";
+    auto_closed_at: string | null;
+    needs_review: boolean;
   };
   TimeEntryAudit: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     time_entry_id: string;
-    field: string;
-    from_value: string | null;
-    to_value: string | null;
-    changed_at: string;
+    old_values: Record<string, unknown> | null;
+    new_values: Record<string, unknown>;
   };
   TimeEntryAuditPage: { data: Array<Components["TimeEntryAudit"]>; next_cursor: string | null };
   TimeEntryCorrection: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     time_entry_id: string;
-    clock_in_at: string | null;
-    clock_out_at: string | null;
     reason: string;
-    correction_state: string;
+    correction_state: "Proposed" | "Approved" | "Rejected";
+    proposed_clock_in: string;
+    proposed_clock_out: string | null;
+    proposed_break_minutes: number;
+    requested_by: string | null;
   };
   TimeEntryCorrectionCreate: {
     time_entry_id: string;
-    clock_in_at?: string | null;
-    clock_out_at?: string | null;
     reason: string;
+    proposed_clock_in: string;
+    proposed_clock_out?: string | null;
+    proposed_break_minutes?: number;
   };
   TimeEntryCorrectionPage: {
     data: Array<Components["TimeEntryCorrection"]>;
@@ -5592,65 +6082,75 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
-    accrual_hours_per_period: number;
+    accrual_hours_per_period: number | null;
   };
-  TimeOffPolicyCreate: { name: string; accrual_hours_per_period: number };
+  TimeOffPolicyCreate: { name: string; accrual_hours_per_period?: number | null };
   TimeOffPolicyPage: { data: Array<Components["TimeOffPolicy"]>; next_cursor: string | null };
-  TimeOffPolicyUpdate: { name?: string; accrual_hours_per_period?: number };
+  TimeOffPolicyUpdate: { name?: string; accrual_hours_per_period?: number | null };
   TimeOffRequest: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    person_id: string;
+    updated_by: string | null;
     time_off_policy_id: string;
     starts_on: string;
     ends_on: string;
-    time_off_state: string;
+    time_off_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
+    membership_id: string;
+    hours: number;
   };
   TimeOffRequestCreate: {
-    person_id: string;
     time_off_policy_id: string;
     starts_on: string;
     ends_on: string;
+    membership_id: string;
+    hours: number;
   };
   TimeOffRequestPage: { data: Array<Components["TimeOffRequest"]>; next_cursor: string | null };
   Timesheet: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    person_id: string;
-    pay_period_id: string;
-    timesheet_state: string;
-    total_hours: number;
+    updated_by: string | null;
+    timesheet_state: "Proposed" | "Submitted" | "Approved" | "Rejected";
+    project_id: string;
+    membership_id: string | null;
+    engagement_id: string | null;
+    period_start: string;
+    period_end: string;
+    submitted_by: string | null;
   };
   TimesheetApproval: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     timesheet_id: string;
-    approver_id: string;
-    decision: string;
-    decided_at: string;
-    voided: boolean;
+    approved_by: string;
+    approved_minutes: number;
+    voided_at: string | null;
   };
   TimesheetApprovalPage: {
     data: Array<Components["TimesheetApproval"]>;
     next_cursor: string | null;
   };
-  TimesheetCreate: { person_id: string; pay_period_id: string };
+  TimesheetCreate: {
+    project_id: string;
+    membership_id?: string | null;
+    engagement_id?: string | null;
+    period_start: string;
+    period_end: string;
+  };
   TimesheetPage: { data: Array<Components["Timesheet"]>; next_cursor: string | null };
   TouchpointId: string;
   TrashItem: { subject_urn: string; deleted_at: string; purge_after: string };
@@ -5659,29 +6159,35 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     union_local: string;
     role_code: Components["RoleCode"];
     rate_minor: number | Components["Masked"] | null;
-    currency: string;
+    currency_code: string;
     effective_from: string;
+    fringe_minor: number | null;
+    effective_to: string | null;
   };
   UnionLocalRateCreate: {
     union_local: string;
     role_code: Components["RoleCode"];
-    rate_minor?: number | null;
-    currency: string;
+    rate_minor: number;
+    currency_code: string;
     effective_from: string;
+    fringe_minor?: number | null;
+    effective_to?: string | null;
   };
   UnionLocalRatePage: { data: Array<Components["UnionLocalRate"]>; next_cursor: string | null };
   UnionLocalRateUpdate: {
     union_local?: string;
     role_code?: Components["RoleCode"];
-    rate_minor?: number | null;
-    currency?: string;
+    rate_minor?: number;
+    currency_code?: string;
     effective_from?: string;
+    fringe_minor?: number | null;
+    effective_to?: string | null;
   };
   UnitCode: string | null;
   Urid: string;
@@ -5692,25 +6198,38 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    person_id: string;
-    capability: string;
+    updated_by: string | null;
+    capability_code: string;
     valid_from: string;
     valid_to: string | null;
+    membership_id: string;
+    scope_kind: "organization" | "workspace" | "team" | "project" | "record" | null;
+    scope_id: string | null;
+    granted_by: string | null;
+    reason: string;
   };
   UserCapabilityGrantCreate: {
-    person_id: string;
-    capability: string;
-    valid_from: string;
+    capability_code: string;
+    valid_from?: string;
     valid_to?: string | null;
+    membership_id: string;
+    scope_kind?: "organization" | "workspace" | "team" | "project" | "record" | null;
+    scope_id?: string | null;
+    reason: string;
   };
   UserCapabilityGrantPage: {
     data: Array<Components["UserCapabilityGrant"]>;
     next_cursor: string | null;
   };
-  UserCapabilityGrantUpdate: { valid_from?: string; valid_to?: string | null };
+  UserCapabilityGrantUpdate: {
+    valid_from?: string;
+    valid_to?: string | null;
+    scope_kind?: "organization" | "workspace" | "team" | "project" | "record" | null;
+    scope_id?: string | null;
+    reason?: string;
+  };
   ValidationProblem: {
     type: string;
     title: string;
@@ -5723,9 +6242,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     organization_id: string;
     counterparty_type: Components["CounterpartyType"];
     vendor_state: Components["SharedState"];
@@ -5735,9 +6254,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     counterparty_type: Components["CounterpartyType"] & (string | null);
   };
@@ -5745,9 +6264,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     vendor_id: string;
     vendor_class_id: string;
   };
@@ -5775,9 +6294,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     vendor_id: string;
     name: string;
     element_id: Components["ItemId"];
@@ -5802,9 +6321,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     vendor_id: string;
     project_id: string | null;
     score: number;
@@ -5826,9 +6345,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     address_line1: string;
     locality: string;
@@ -5869,9 +6388,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     term: string;
     casing_rule: string;
     usage: string;
@@ -5883,51 +6402,63 @@ export interface Components {
     id: string;
     created_at: string;
     updated_at: string;
-    owner_urn: string;
-    claim: string;
-    verifier: string;
     verified_at: string | null;
+    method: "Stripe Identity" | "Business Registry";
+    provider_reference: string;
+    expires_at: string | null;
+    revoked_at: string | null;
+    revocation_reason: string | null;
   };
-  VerificationCreate: { owner_urn: string; claim: string };
+  VerificationCreate: {
+    method: "Stripe Identity" | "Business Registry";
+    provider_reference: string;
+    expires_at?: string | null;
+  };
   VerificationPage: { data: Array<Components["Verification"]>; next_cursor: string | null };
   VerifiedDomain: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
-    domain: string;
-    auto_join: boolean;
-    default_role: Components["OrgRole"];
-    verified_at: string | null;
+    updated_by: string | null;
+    hostname: string;
+    purpose: "Atlas" | "Gateway" | "Email Sending" | "Verified Domain";
+    verification_state: "Pending" | "Verified" | "Failed";
+    verification_token: string;
+    last_checked_at: string | null;
+    auto_join_role_id: string | null;
   };
-  VerifiedDomainCreate: { domain: string; auto_join: boolean; default_role: Components["OrgRole"] };
+  VerifiedDomainCreate: {
+    hostname: string;
+    purpose: "Atlas" | "Gateway" | "Email Sending" | "Verified Domain";
+    auto_join_role_id?: string | null;
+  };
   VerifiedDomainPage: { data: Array<Components["VerifiedDomain"]>; next_cursor: string | null };
-  VerifiedDomainUpdate: {
-    domain?: string;
-    auto_join?: boolean;
-    default_role?: Components["OrgRole"];
-  };
+  VerifiedDomainUpdate: { auto_join_role_id?: string | null };
   WageDetermination: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     jurisdiction_id: Components["JurisdictionId"];
-    reference: string;
     role_code: Components["RoleCode"];
-    rate_minor: number | null;
-    currency: string;
+    minimum_rate_minor: number | null;
+    currency_code: string;
+    effective_from: string;
+    effective_to: string | null;
+    source: string;
   };
   WageDeterminationCreate: {
     jurisdiction_id: Components["JurisdictionId"];
-    reference: string;
     role_code: Components["RoleCode"];
-    rate_minor?: number | null;
-    currency: string;
+    minimum_rate_minor: number;
+    currency_code: string;
+    effective_from: string;
+    effective_to?: string | null;
+    source: string;
   };
   WageDeterminationPage: {
     data: Array<Components["WageDetermination"]>;
@@ -5935,49 +6466,61 @@ export interface Components {
   };
   WageDeterminationUpdate: {
     jurisdiction_id?: Components["JurisdictionId"];
-    reference?: string;
     role_code?: Components["RoleCode"];
-    rate_minor?: number | null;
-    currency?: string;
+    minimum_rate_minor?: number;
+    currency_code?: string;
+    effective_from?: string;
+    effective_to?: string | null;
+    source?: string;
   };
   WebhookDelivery: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     webhook_endpoint_id: string;
-    event: string;
     delivery_status: string;
-    attempt: number;
-    response_status: number | null;
     delivered_at: string | null;
+    domain_event_id: string;
+    attempt_count: number;
+    next_attempt_at: string;
+    last_attempt_at: string | null;
+    last_response_status: number | null;
+    last_error: string | null;
+    replay_requested_by: string | null;
   };
   WebhookDeliveryPage: { data: Array<Components["WebhookDelivery"]>; next_cursor: string | null };
   WebhookEndpoint: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     url: string;
     events: Array<string>;
-    enabled: boolean;
+    description: string | null;
+    disabled_at: string | null;
   };
-  WebhookEndpointCreate: { url: string; events: Array<string>; enabled: boolean };
+  WebhookEndpointCreate: { url: string; events: Array<string>; description?: string | null };
   WebhookEndpointPage: { data: Array<Components["WebhookEndpoint"]>; next_cursor: string | null };
-  WebhookEndpointUpdate: { url?: string; events?: Array<string>; enabled?: boolean };
-  WebhookEventType: { event: string; description: string };
+  WebhookEndpointUpdate: {
+    url?: string;
+    events?: Array<string>;
+    description?: string | null;
+    disabled_at?: string | null;
+  };
+  WebhookEventType: { code: string; description: string; subject: string };
   WebhookEventTypePage: { data: Array<Components["WebhookEventType"]>; next_cursor: string | null };
   WorkOrder: {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     project_id: string;
     record_id: string | null;
     title: string;
@@ -5991,9 +6534,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     work_order_id: string;
     bidder_organization_id: string;
     amount_minor: number | null;
@@ -6033,9 +6576,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     name: string;
     slug: string;
   };
@@ -6044,13 +6587,13 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     workspace_id: string;
-    person_id: string;
+    membership_id: string;
   };
-  WorkspaceMemberCreate: { workspace_id: string; person_id: string };
+  WorkspaceMemberCreate: { workspace_id: string; membership_id: string };
   WorkspaceMemberPage: { data: Array<Components["WorkspaceMember"]>; next_cursor: string | null };
   WorkspacePage: { data: Array<Components["Workspace"]>; next_cursor: string | null };
   WorkspaceUpdate: { name?: string; slug?: string };
@@ -6059,9 +6602,9 @@ export interface Components {
     id: string;
     org_id: string;
     created_at: string;
-    created_by: string;
+    created_by: string | null;
     updated_at: string;
-    updated_by: string;
+    updated_by: string | null;
     space_id: string;
     name: string;
     zone_code: string;
@@ -6124,15 +6667,6 @@ export interface Operations {
     body: Components["ProjectUpdate"];
     responses: { 200: Components["Project"] };
   };
-  "projects.delete": {
-    module: "Projects";
-    method: "delete";
-    path: "/projects/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
   "projects.transition": {
     module: "Projects";
     method: "post";
@@ -6160,14 +6694,23 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GateReadinessPage"] };
   };
-  "projects.duplicate": {
+  "projects.archive": {
     module: "Projects";
     method: "post";
-    path: "/projects/{id}/duplicate";
+    path: "/projects/{id}/archive";
     params: { id: string };
     query: Record<string, never>;
     body: undefined;
-    responses: { 201: Components["Project"] };
+    responses: { 200: Components["Project"] };
+  };
+  "projects.unarchive": {
+    module: "Projects";
+    method: "post";
+    path: "/projects/{id}/unarchive";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["Project"] };
   };
   "scopeNodes.list": {
     module: "Projects";
@@ -6275,15 +6818,6 @@ export interface Operations {
     params: { id: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
-    responses: { 200: Components["GateEvidence"] };
-  };
-  "gateEvidence.update": {
-    module: "Projects";
-    method: "patch";
-    path: "/gate-evidence/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["GateEvidenceUpdate"];
     responses: { 200: Components["GateEvidence"] };
   };
   "gateEvidence.delete": {
@@ -6615,15 +7149,6 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 201: Components["Record"] };
-  };
-  "records.archive": {
-    module: "Work";
-    method: "post";
-    path: "/records/{id}/archive";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["Record"] };
   };
   "recordStateTransitions.list": {
     module: "Work";
@@ -9100,15 +9625,6 @@ export interface Operations {
     body: Components["OfferUpdate"];
     responses: { 200: Components["Offer"] };
   };
-  "offers.send": {
-    module: "People";
-    method: "post";
-    path: "/offers/{id}/send";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["Offer"] };
-  };
   "offers.accept": {
     module: "People";
     method: "post";
@@ -9124,7 +9640,7 @@ export interface Operations {
     path: "/offers/{id}/decline";
     params: { id: string };
     query: Record<string, never>;
-    body: undefined;
+    body: Components["OfferDeclineRequest"];
     responses: { 200: Components["Offer"] };
   };
   "offers.counter": {
@@ -9133,7 +9649,16 @@ export interface Operations {
     path: "/offers/{id}/counter";
     params: { id: string };
     query: Record<string, never>;
-    body: Components["OfferUpdate"];
+    body: Components["OfferCounterRequest"];
+    responses: { 200: Components["Offer"] };
+  };
+  "offers.withdraw": {
+    module: "People";
+    method: "post";
+    path: "/offers/{id}/withdraw";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["OfferWithdrawRequest"];
     responses: { 200: Components["Offer"] };
   };
   "agreements.list": {
@@ -9256,6 +9781,15 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["Shift"] };
   };
+  "shifts.claim": {
+    module: "Crew";
+    method: "post";
+    path: "/shifts/{id}/claim";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["Shift"] };
+  };
   "shiftSwaps.list": {
     module: "Crew";
     method: "get";
@@ -9353,24 +9887,6 @@ export interface Operations {
     module: "Crew";
     method: "post";
     path: "/time-entries/{id}/clock-out";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["TimeEntry"] };
-  };
-  "timeEntries.startBreak": {
-    module: "Crew";
-    method: "post";
-    path: "/time-entries/{id}/start-break";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["TimeEntry"] };
-  };
-  "timeEntries.endBreak": {
-    module: "Crew";
-    method: "post";
-    path: "/time-entries/{id}/end-break";
     params: { id: string };
     query: Record<string, never>;
     body: undefined;
@@ -9718,41 +10234,14 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["OvertimeRulePage"] };
   };
-  "overtimeRules.create": {
-    module: "Crew";
-    method: "post";
-    path: "/overtime-rules";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["OvertimeRuleCreate"];
-    responses: { 201: Components["OvertimeRule"] };
-  };
   "overtimeRules.get": {
     module: "Crew";
     method: "get";
-    path: "/overtime-rules/{id}";
-    params: { id: string };
+    path: "/overtime-rules/{jurisdiction_id}";
+    params: { jurisdiction_id: Components["JurisdictionId"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["OvertimeRule"] };
-  };
-  "overtimeRules.update": {
-    module: "Crew";
-    method: "patch";
-    path: "/overtime-rules/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["OvertimeRuleUpdate"];
-    responses: { 200: Components["OvertimeRule"] };
-  };
-  "overtimeRules.delete": {
-    module: "Crew";
-    method: "delete";
-    path: "/overtime-rules/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
   };
   "unionLocalRates.list": {
     module: "Crew";
@@ -9947,6 +10436,24 @@ export interface Operations {
     params: { id: string };
     query: Record<string, never>;
     body: Components["PayrollRunTransitionRequest"];
+    responses: { 200: Components["PayrollRun"] };
+  };
+  "payrollRuns.calculate": {
+    module: "Crew";
+    method: "post";
+    path: "/payroll-runs/{id}/calculate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["PayrollRun"] };
+  };
+  "payrollRuns.approve": {
+    module: "Crew";
+    method: "post";
+    path: "/payroll-runs/{id}/approve";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
     responses: { 200: Components["PayrollRun"] };
   };
   "payrollLines.list": {
@@ -13309,15 +13816,6 @@ export interface Operations {
     body: Components["BidUpdate"];
     responses: { 200: Components["Bid"] };
   };
-  "bids.unseal": {
-    module: "Opportunities";
-    method: "post";
-    path: "/bids/{id}/unseal";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["Bid"] };
-  };
   "bidLines.list": {
     module: "Opportunities";
     method: "get";
@@ -14458,8 +14956,8 @@ export interface Operations {
   "canonActs.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/acts/{act}";
-    params: { act: Components["ActCode"] };
+    path: "/canon/acts/{act_code}";
+    params: { act_code: Components["ActCode"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["CanonAct"] };
@@ -15130,8 +15628,8 @@ export interface Operations {
   "canonUnitDimensions.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/unit-dimensions/{unit}";
-    params: { unit: Components["UnitCode"] };
+    path: "/canon/unit-dimensions/{dimension_code}";
+    params: { dimension_code: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["CanonUnitDimension"] };
@@ -15178,8 +15676,8 @@ export interface Operations {
   "canonLocales.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/locales/{locale}";
-    params: { locale: string };
+    path: "/canon/locales/{locale_code}";
+    params: { locale_code: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["CanonLocale"] };
@@ -17557,42 +18055,6 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["SeparationOfDutiesRulePage"] };
   };
-  "separationOfDutiesRules.create": {
-    module: "Settings";
-    method: "post";
-    path: "/separation-of-duties-rules";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["SeparationOfDutiesRuleCreate"];
-    responses: { 201: Components["SeparationOfDutiesRule"] };
-  };
-  "separationOfDutiesRules.get": {
-    module: "Settings";
-    method: "get";
-    path: "/separation-of-duties-rules/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["SeparationOfDutiesRule"] };
-  };
-  "separationOfDutiesRules.update": {
-    module: "Settings";
-    method: "patch";
-    path: "/separation-of-duties-rules/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["SeparationOfDutiesRuleUpdate"];
-    responses: { 200: Components["SeparationOfDutiesRule"] };
-  };
-  "separationOfDutiesRules.delete": {
-    module: "Settings";
-    method: "delete";
-    path: "/separation-of-duties-rules/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
   "columnClassifications.list": {
     module: "Settings";
     method: "get";
@@ -19820,11 +20282,11 @@ export interface ModuleOperations {
     | "projects.create"
     | "projects.get"
     | "projects.update"
-    | "projects.delete"
     | "projects.transition"
     | "projects.passGate"
     | "projects.gateReadiness"
-    | "projects.duplicate"
+    | "projects.archive"
+    | "projects.unarchive"
     | "scopeNodes.list"
     | "scopeNodes.create"
     | "scopeNodes.get"
@@ -19835,7 +20297,6 @@ export interface ModuleOperations {
     | "gateEvidence.list"
     | "gateEvidence.create"
     | "gateEvidence.get"
-    | "gateEvidence.update"
     | "gateEvidence.delete";
   Activity: "activityEvents.list" | "activityEvents.get";
   Schedule:
@@ -19869,7 +20330,6 @@ export interface ModuleOperations {
     | "records.delete"
     | "records.transition"
     | "records.duplicate"
-    | "records.archive"
     | "recordStateTransitions.list"
     | "recordStateTransitions.get"
     | "recordReplans.list"
@@ -20136,7 +20596,6 @@ export interface ModuleOperations {
     | "bids.create"
     | "bids.get"
     | "bids.update"
-    | "bids.unseal"
     | "bidLines.list"
     | "bidLines.create"
     | "bidLines.get"
@@ -20209,10 +20668,10 @@ export interface ModuleOperations {
     | "offers.create"
     | "offers.get"
     | "offers.update"
-    | "offers.send"
     | "offers.accept"
     | "offers.decline"
     | "offers.counter"
+    | "offers.withdraw"
     | "agreements.list"
     | "agreements.create"
     | "agreements.get"
@@ -20226,6 +20685,7 @@ export interface ModuleOperations {
     | "shifts.delete"
     | "shifts.transition"
     | "shifts.accept"
+    | "shifts.claim"
     | "shiftSwaps.list"
     | "shiftSwaps.create"
     | "shiftSwaps.get"
@@ -20236,8 +20696,6 @@ export interface ModuleOperations {
     | "timeEntries.get"
     | "timeEntries.clockIn"
     | "timeEntries.clockOut"
-    | "timeEntries.startBreak"
-    | "timeEntries.endBreak"
     | "timeEntryCorrections.list"
     | "timeEntryCorrections.create"
     | "timeEntryCorrections.get"
@@ -20270,10 +20728,7 @@ export interface ModuleOperations {
     | "payRates.create"
     | "payRates.get"
     | "overtimeRules.list"
-    | "overtimeRules.create"
     | "overtimeRules.get"
-    | "overtimeRules.update"
-    | "overtimeRules.delete"
     | "unionLocalRates.list"
     | "unionLocalRates.create"
     | "unionLocalRates.get"
@@ -20293,6 +20748,8 @@ export interface ModuleOperations {
     | "payrollRuns.create"
     | "payrollRuns.get"
     | "payrollRuns.transition"
+    | "payrollRuns.calculate"
+    | "payrollRuns.approve"
     | "payrollLines.list"
     | "payrollLines.get"
     | "payrollExports.list"
@@ -20809,10 +21266,6 @@ export interface ModuleOperations {
     | "spendAuthorityLimits.update"
     | "spendAuthorityLimits.delete"
     | "separationOfDutiesRules.list"
-    | "separationOfDutiesRules.create"
-    | "separationOfDutiesRules.get"
-    | "separationOfDutiesRules.update"
-    | "separationOfDutiesRules.delete"
     | "columnClassifications.list"
     | "accessReviewCampaigns.list"
     | "accessReviewCampaigns.create"
