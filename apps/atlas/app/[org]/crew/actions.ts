@@ -33,6 +33,7 @@ import {
   transitionPayPeriod,
   transitionPayrollRun,
   transitionShift,
+  trashRateCard,
   trashShift,
   updatePayPeriod,
   updateRateCard,
@@ -541,6 +542,34 @@ export async function updateRateLineAction(_: State, form: FormData): Promise<St
     }),
     t,
   );
+}
+
+/** Saves rates edited in the rate card grid, all or nothing; blank cells unprice their line. */
+export async function saveRatesAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const changes = z
+    .array(z.object({ id: uuid, rate: z.number().nonnegative().nullable() }))
+    .max(500)
+    .safeParse(JSON.parse(text(form, "changes") || "[]"));
+  if (!changes.success) return { error: t("crew.errors.money") };
+  const exponent = await exponentOf(form, text(form, "currencyCode"));
+  for (const c of changes.data) {
+    const minor = c.rate === null ? null : Math.round(c.rate * 10 ** exponent);
+    const result = await updateRateCardLine(db, c.id, { rateMinor: minor });
+    if (!result.ok) return failed(t, result.error);
+  }
+  revalidatePath(`/${ctx.org.slug}/crew`, "layout");
+  return { ok: true };
+}
+
+export async function trashRateCardAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const id = uuid.safeParse(form.get("id"));
+  if (!id.success) return failed(t, { kind: "not-found" });
+  const result = await trashRateCard(db, id.data);
+  if (!result.ok) return failed(t, result.error);
+  revalidatePath(`/${ctx.org.slug}/crew`, "layout");
+  return { ok: true, redirect: `/${ctx.org.slug}/crew/rate-cards` };
 }
 
 export async function removeRateLineAction(_: State, form: FormData): Promise<State> {

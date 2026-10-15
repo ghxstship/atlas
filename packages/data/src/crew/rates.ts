@@ -399,6 +399,18 @@ export async function recordPayRate(
   return ok({ id: data.id });
 }
 
+/** Minor unit exponent of a currency (2 for USD, 0 for JPY); not-found for an unknown code. */
+export async function getCurrencyExponent(db: XosClient, currency: string): Promise<Result<number>> {
+  const { data, error } = await db
+    .from("currencies")
+    .select("minor_unit_exponent")
+    .eq("currency_code", currency)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data || data.minor_unit_exponent === null) return fail({ kind: "not-found" });
+  return ok(data.minor_unit_exponent);
+}
+
 /** Currencies the org can price in (private.currencies through app.currencies), by code. */
 export async function listCurrencies(db: XosClient): Promise<Result<string[]>> {
   const { data, error } = await db.from("currencies").select("currency_code");
