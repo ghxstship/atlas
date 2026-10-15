@@ -278,6 +278,11 @@ export interface TableOptions {
   readonly orgColumn?: boolean;
   /** Narrows lists and reads beyond RLS, such as to the caller's own rows. */
   readonly scope?: (query: Query, context: RequestContext) => Query;
+  /**
+   * The identifying field for a keyless view, used as the final sort tiebreaker; defaults to the
+   * first field of the documented order. Pass a field that is unique together with the order.
+   */
+  readonly key?: string;
   /** Sortable and filterable fields; defaults to every stored read field. */
   readonly sortable?: readonly string[];
 }
@@ -303,7 +308,7 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
   const derived = new Set(options.derived ?? []);
   const fields = readFields(spec);
   const stored = fields.filter((f) => !derived.has(f));
-  const key = spec.def.key === "" ? (spec.order.by[0] as string) : spec.def.key;
+  const key = options.key ?? (spec.def.key === "" ? (spec.order.by[0] as string) : spec.def.key);
   const soft = options.softDelete ?? true;
   const extra = options.extraColumns ?? [];
   const createFields = Object.keys(spec.def.create?.shape ?? {});
