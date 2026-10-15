@@ -134,8 +134,17 @@ function ActButton({
   confirm?: { title: string; sentence: string; actionLabel: string };
 }) {
   const t = useCopy("advancing.common");
-  const [state, formAction, pending] = useActionState(action, INITIAL);
   const [open, setOpen] = useState(false);
+  // The dialog closes once the action answers: closing on click would unmount the submit button
+  // before the browser submits the form it belongs to.
+  const [state, formAction, pending] = useActionState(
+    async (prev: AdvancingState, form: FormData) => {
+      const next = await action(prev, form);
+      setOpen(false);
+      return next;
+    },
+    INITIAL,
+  );
   const formId = useId();
   const hidden = Object.entries(fields).map(([name, value]) => (
     <input key={name} type="hidden" name={name} value={value} />
@@ -172,7 +181,6 @@ function ActButton({
                 type="submit"
                 form={formId}
                 loading={pending}
-                onClick={() => setOpen(false)}
               >
                 {confirm.actionLabel}
               </Button>
