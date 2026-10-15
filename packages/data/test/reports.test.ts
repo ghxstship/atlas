@@ -6,11 +6,15 @@ import {
   gateReadiness,
   incidentsReport,
   laborReport,
+  listMyFinishedRuns,
   listSavedReports,
+  listSharedReports,
   purchaseOrderExposure,
+  revokeSharedReport,
+  shareReport,
   workingBudgetIds,
-} from "../src/reports";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/reports.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const project = { id: "p1", project_key: "NWL", name: "Summer", current_phase_code: "ADV" };
 
@@ -356,7 +360,7 @@ describe("purchase order exposure", () => {
             po_state: "Sent",
             currency_code: "USD",
             project: { project_key: "NWL" },
-            vendor: { counterparty: { organization: { name: "Pier Rigging" } } },
+            vendor: { counterparty: { counterparty_name: "Pier Rigging" } },
           },
           {
             id: "po2",
@@ -461,5 +465,60 @@ describe("saved reports", () => {
     const result = await listSavedReports(db, { orgId: "o1", membershipId: "m1" });
     expect(result.ok && result.data[0]?.mine).toBe(true);
     expect((await listSavedReports(db, { orgId: "o1", membershipId: "m1" })).ok).toBe(false);
+  });
+});
+
+describe("shared reports", () => {
+  it("lists runs to share and shares, keeping revoked shares as evidence", async () => {
+    const { db, calls } = fakeClient({
+      "from:report_runs": [
+        okResponse([
+          {
+            id: "run1",
+            export_format: "PDF",
+            finished_at: "x",
+            row_count: 3,
+            definition: { name: "Spend" },
+          },
+        ]),
+        errorResponse("08006", "down"),
+      ],
+      "from:shared_reports": [
+        okResponse([
+          {
+            id: "sh1",
+            engagement_id: "e1",
+            project_id: "p1",
+            report_run_id: "run1",
+            title: "Spend",
+            expires_at: null,
+            revoked_at: "y",
+            created_at: "x",
+          },
+        ]),
+        errorResponse("08006", "down"),
+      ],
+      "rpc:share_report": [
+        okResponse("sh2"),
+        errorResponse("XR001", "report_run_unfinished: wait.", "report_run_unfinished"),
+      ],
+      "rpc:revoke_shared_report": [
+        okResponse("sh1"),
+        errorResponse("XR001", "share_already_revoked: no.", "share_already_revoked"),
+      ],
+    });
+    const runs = await listMyFinishedRuns(db, { orgId: "o1", membershipId: "m1" });
+    expect(runs.ok && runs.data[0]?.reportName).toBe("Spend");
+    expect((await listMyFinishedRuns(db, { orgId: "o1", membershipId: "m1" })).ok).toBe(false);
+    const shares = await listSharedReports(db, { orgId: "o1", projectId: "p1" });
+    expect(shares.ok && shares.data[0]?.revokedAt).toBe("y");
+    expect(calls[2]?.steps).toContainEqual(["eq", ["project_id", "p1"]]);
+    expect((await listSharedReports(db, { orgId: "o1" })).ok).toBe(false);
+    const input = { reportRunId: "run1", engagementId: "e1", title: " Spend ", expiresAt: null };
+    expect(await shareReport(db, input)).toEqual({ ok: true, data: { id: "sh2" } });
+    const unfinished = await shareReport(db, input);
+    expect(unfinished.ok === false && unfinished.error.kind).toBe("refusal");
+    expect((await revokeSharedReport(db, "sh1")).ok).toBe(true);
+    expect((await revokeSharedReport(db, "sh1")).ok).toBe(false);
   });
 });

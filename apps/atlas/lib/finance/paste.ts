@@ -16,13 +16,7 @@ import {
  */
 
 export type PasteProblem =
-  | "description"
-  | "urid"
-  | "quantity"
-  | "unitPrice"
-  | "lineType"
-  | "costCenter"
-  | "xyz";
+  "description" | "urid" | "quantity" | "unitPrice" | "lineType" | "costCenter" | "xyz";
 
 export interface PasteResult {
   readonly lines: BudgetLineInput[];
@@ -57,7 +51,8 @@ export function parsePastedLines(
     if (description === "") return void problems.push({ row, field: "description" });
     if (!known.has(urid)) return void problems.push({ row, field: "urid" });
     const quantity = qty === "" ? 1 : Number(qty.replace(/,/g, ""));
-    if (!Number.isFinite(quantity) || quantity < 0) return void problems.push({ row, field: "quantity" });
+    if (!Number.isFinite(quantity) || quantity < 0)
+      return void problems.push({ row, field: "quantity" });
     const unitPrice = parseMoney(price, context.exponent);
     if (unitPrice === "invalid" || (unitPrice !== null && unitPrice < 0))
       return void problems.push({ row, field: "unitPrice" });
@@ -65,7 +60,9 @@ export function parsePastedLines(
       (type === "" ? "Cost" : null)) as BudgetLineType | null;
     if (!lineType) return void problems.push({ row, field: "lineType" });
     const costCenter =
-      center === "" ? null : (context.costCenters.find((c) => c.code === center.toUpperCase()) ?? null);
+      center === ""
+        ? null
+        : (context.costCenters.find((c) => c.code === center.toUpperCase()) ?? null);
     if (center !== "" && !costCenter) return void problems.push({ row, field: "costCenter" });
     const declared = tag === "" ? null : (tag.toUpperCase() as XyzTag);
     if (declared !== null && !["X", "Y", "Z"].includes(declared))

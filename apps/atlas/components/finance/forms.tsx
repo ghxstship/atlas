@@ -16,6 +16,9 @@ import {
   saveInvoiceAction,
   saveInvoiceLineAction,
   savePaymentAction,
+  saveSettlementAction,
+  saveSettlementLineAction,
+  selfBillAction,
   type ActionState,
 } from "@/app/[org]/finance/actions";
 import { ActionFeedback, fieldError, useAfterSave, useFinanceT, type Option } from "./kit";
@@ -157,12 +160,42 @@ export function ExpenseForm({
           />
         </>
       )}
-      <Input id="expense-description" name="description" required width="100%" label={t("common.description")} defaultValue={expense?.description ?? ""} error={fieldError(t, state, "description")} />
+      <Input
+        id="expense-description"
+        name="description"
+        required
+        width="100%"
+        label={t("common.description")}
+        defaultValue={expense?.description ?? ""}
+        error={fieldError(t, state, "description")}
+      />
       <div className="flex flex-wrap gap-12">
-        <Input id="expense-amount" name="amount" inputMode="decimal" required label={currency ? t("common.amountIn", { currency }) : t("common.amount")} defaultValue={expense?.amount ?? ""} error={fieldError(t, state, "amount")} />
-        <Input id="expense-date" name="incurredOn" type="date" required label={t("expenses.fields.incurredOn")} defaultValue={expense?.incurredOn ?? today} error={fieldError(t, state, "incurredOn")} />
+        <Input
+          id="expense-amount"
+          name="amount"
+          inputMode="decimal"
+          required
+          label={currency ? t("common.amountIn", { currency }) : t("common.amount")}
+          defaultValue={expense?.amount ?? ""}
+          error={fieldError(t, state, "amount")}
+        />
+        <Input
+          id="expense-date"
+          name="incurredOn"
+          type="date"
+          required
+          label={t("expenses.fields.incurredOn")}
+          defaultValue={expense?.incurredOn ?? today}
+          error={fieldError(t, state, "incurredOn")}
+        />
       </div>
-      <Select id="expense-vendor" name="counterpartyId" label={t("common.vendor")} value={expense?.counterpartyId ?? ""} options={[{ value: "", label: t("common.none") }, ...counterparties]} />
+      <Select
+        id="expense-vendor"
+        name="counterpartyId"
+        label={t("common.vendor")}
+        value={expense?.counterpartyId ?? ""}
+        options={[{ value: "", label: t("common.none") }, ...counterparties]}
+      />
       <ActionFeedback state={state} />
       <Submit label={expense ? t("common.save") : t("expenses.create")} pending={pending} />
     </form>
@@ -211,9 +244,30 @@ export function ChangeOrderForm({
           />
         </>
       )}
-      <Input id="co-title" name="title" required width="100%" label={t("changeOrders.fields.title")} defaultValue={order?.title ?? ""} error={fieldError(t, state, "title")} />
-      <Select id="co-type" name="orderTypeId" label={t("changeOrders.fields.orderType")} value={order?.orderTypeId ?? ""} options={[{ value: "", label: t("common.none") }, ...orderTypes]} />
-      <Textarea id="co-reason" name="reason" width="100%" label={t("changeOrders.fields.reason")} defaultValue={order?.reason ?? ""} error={fieldError(t, state, "reason")} />
+      <Input
+        id="co-title"
+        name="title"
+        required
+        width="100%"
+        label={t("changeOrders.fields.title")}
+        defaultValue={order?.title ?? ""}
+        error={fieldError(t, state, "title")}
+      />
+      <Select
+        id="co-type"
+        name="orderTypeId"
+        label={t("changeOrders.fields.orderType")}
+        value={order?.orderTypeId ?? ""}
+        options={[{ value: "", label: t("common.none") }, ...orderTypes]}
+      />
+      <Textarea
+        id="co-reason"
+        name="reason"
+        width="100%"
+        label={t("changeOrders.fields.reason")}
+        defaultValue={order?.reason ?? ""}
+        error={fieldError(t, state, "reason")}
+      />
       <ActionFeedback state={state} />
       <Submit label={order ? t("common.save") : t("changeOrders.create")} pending={pending} />
     </form>
@@ -236,24 +290,60 @@ export function ChangeOrderLineForm({
   const t = useFinanceT();
   const [state, action, pending] = useActionState(saveChangeOrderLineAction, INITIAL);
   const [urid, setUrid] = useState("");
-  const [formKey, setFormKey] = useState(0);
-  useEffect(() => {
-    if (state.ok) setFormKey((k) => k + 1);
-  }, [state.at, state.ok]);
+  // A fresh form after each added line: the key changes with every successful submit.
   return (
-    <form key={formKey} action={action} className="flex flex-col gap-12" noValidate aria-label={t("changeOrders.addLine")}>
+    <form
+      key={state.ok ? String(state.at) : "draft"}
+      action={action}
+      className="flex flex-col gap-12"
+      noValidate
+      aria-label={t("changeOrders.addLine")}
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="changeOrderId" value={changeOrderId} />
       <input type="hidden" name="currency" value={currency} />
       <input type="hidden" name="urid" value={urid} />
-      <Input id="col-description" name="description" required width="100%" label={t("common.description")} error={fieldError(t, state, "description")} />
-      <Combobox id="col-urid" label={t("budgets.columns.urid")} help={fieldError(t, state, "urid") || t("budgets.uridHelp")} options={[...urids]} onChange={setUrid} />
+      <Input
+        id="col-description"
+        name="description"
+        required
+        width="100%"
+        label={t("common.description")}
+        error={fieldError(t, state, "description")}
+      />
+      <Combobox
+        id="col-urid"
+        label={t("budgets.columns.urid")}
+        help={fieldError(t, state, "urid") || t("budgets.uridHelp")}
+        options={[...urids]}
+        onChange={setUrid}
+      />
       <div className="flex flex-wrap gap-12">
-        <Input id="col-qty" name="quantity" inputMode="decimal" defaultValue="1" label={t("budgets.columns.quantity")} error={fieldError(t, state, "quantity")} />
-        <Input id="col-price" name="unitPrice" inputMode="decimal" label={t("common.unitPriceIn", { currency })} help={t("common.blankIsUnpriced")} error={fieldError(t, state, "unitPrice")} />
+        <Input
+          id="col-qty"
+          name="quantity"
+          inputMode="decimal"
+          defaultValue="1"
+          label={t("budgets.columns.quantity")}
+          error={fieldError(t, state, "quantity")}
+        />
+        <Input
+          id="col-price"
+          name="unitPrice"
+          inputMode="decimal"
+          label={t("common.unitPriceIn", { currency })}
+          help={t("common.blankIsUnpriced")}
+          error={fieldError(t, state, "unitPrice")}
+        />
       </div>
       <Checkbox id="col-nocost" name="isNoCost" label={t("changeOrders.fields.isNoCost")} />
-      <Select id="col-line" name="budgetLineId" label={t("changeOrders.fields.budgetLine")} value="" options={[{ value: "", label: t("changeOrders.fields.newScope") }, ...budgetLines]} />
+      <Select
+        id="col-line"
+        name="budgetLineId"
+        label={t("changeOrders.fields.budgetLine")}
+        value=""
+        options={[{ value: "", label: t("changeOrders.fields.newScope") }, ...budgetLines]}
+      />
       <ActionFeedback state={state} />
       <Submit label={t("changeOrders.addLine")} pending={pending} />
     </form>
@@ -292,7 +382,14 @@ export function InvoiceForm({
           {projectId ? (
             <input type="hidden" name="projectId" value={projectId} />
           ) : (
-            <Select id="invoice-project" name="projectId" label={t("common.project")} placeholder={t("common.chooseProject")} options={[...projects]} error={fieldError(t, state, "projectId")} />
+            <Select
+              id="invoice-project"
+              name="projectId"
+              label={t("common.project")}
+              placeholder={t("common.chooseProject")}
+              options={[...projects]}
+              error={fieldError(t, state, "projectId")}
+            />
           )}
           <Select
             id="invoice-direction"
@@ -304,14 +401,47 @@ export function InvoiceForm({
               { value: "Receivable", label: t("invoices.direction.Receivable") },
             ]}
           />
-          <Select id="invoice-counterparty" name="counterpartyId" label={t("invoices.fields.counterparty")} placeholder={t("common.chooseCounterparty")} options={[...counterparties]} error={fieldError(t, state, "counterpartyId")} />
-          <Select id="invoice-currency" name="currency" label={t("common.currency")} value={defaultCurrency} options={currencies.map((c) => ({ value: c, label: c }))} />
+          <Select
+            id="invoice-counterparty"
+            name="counterpartyId"
+            label={t("invoices.fields.counterparty")}
+            placeholder={t("common.chooseCounterparty")}
+            options={[...counterparties]}
+            error={fieldError(t, state, "counterpartyId")}
+          />
+          <Select
+            id="invoice-currency"
+            name="currency"
+            label={t("common.currency")}
+            value={defaultCurrency}
+            options={currencies.map((c) => ({ value: c, label: c }))}
+          />
         </>
       )}
-      <Input id="invoice-number" name="number" label={t("invoices.fields.number")} defaultValue={invoice?.number ?? ""} error={fieldError(t, state, "number")} />
+      <Input
+        id="invoice-number"
+        name="number"
+        label={t("invoices.fields.number")}
+        defaultValue={invoice?.number ?? ""}
+        error={fieldError(t, state, "number")}
+      />
       <div className="flex flex-wrap gap-12">
-        <Input id="invoice-issued" name="issuedOn" type="date" label={t("invoices.fields.issuedOn")} defaultValue={invoice?.issuedOn ?? ""} error={fieldError(t, state, "issuedOn")} />
-        <Input id="invoice-due" name="dueOn" type="date" label={t("invoices.fields.dueOn")} defaultValue={invoice?.dueOn ?? ""} error={fieldError(t, state, "dueOn")} />
+        <Input
+          id="invoice-issued"
+          name="issuedOn"
+          type="date"
+          label={t("invoices.fields.issuedOn")}
+          defaultValue={invoice?.issuedOn ?? ""}
+          error={fieldError(t, state, "issuedOn")}
+        />
+        <Input
+          id="invoice-due"
+          name="dueOn"
+          type="date"
+          label={t("invoices.fields.dueOn")}
+          defaultValue={invoice?.dueOn ?? ""}
+          error={fieldError(t, state, "dueOn")}
+        />
       </div>
       <ActionFeedback state={state} />
       <Submit label={invoice ? t("common.save") : t("invoices.create")} pending={pending} />
@@ -332,21 +462,50 @@ export function InvoiceLineForm({
 }) {
   const t = useFinanceT();
   const [state, action, pending] = useActionState(saveInvoiceLineAction, INITIAL);
-  const [formKey, setFormKey] = useState(0);
-  useEffect(() => {
-    if (state.ok) setFormKey((k) => k + 1);
-  }, [state.at, state.ok]);
   return (
-    <form key={formKey} action={action} className="flex flex-col gap-12" noValidate aria-label={t("invoices.addLine")}>
+    <form
+      key={state.ok ? String(state.at) : "draft"}
+      action={action}
+      className="flex flex-col gap-12"
+      noValidate
+      aria-label={t("invoices.addLine")}
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="invoiceId" value={invoiceId} />
       <input type="hidden" name="currency" value={currency} />
-      <Input id="il-description" name="description" required width="100%" label={t("common.description")} error={fieldError(t, state, "description")} />
+      <Input
+        id="il-description"
+        name="description"
+        required
+        width="100%"
+        label={t("common.description")}
+        error={fieldError(t, state, "description")}
+      />
       <div className="flex flex-wrap gap-12">
-        <Input id="il-qty" name="quantity" inputMode="decimal" defaultValue="1" label={t("budgets.columns.quantity")} error={fieldError(t, state, "quantity")} />
-        <Input id="il-price" name="unitPrice" inputMode="decimal" label={t("common.unitPriceIn", { currency })} help={t("common.blankIsUnpriced")} error={fieldError(t, state, "unitPrice")} />
+        <Input
+          id="il-qty"
+          name="quantity"
+          inputMode="decimal"
+          defaultValue="1"
+          label={t("budgets.columns.quantity")}
+          error={fieldError(t, state, "quantity")}
+        />
+        <Input
+          id="il-price"
+          name="unitPrice"
+          inputMode="decimal"
+          label={t("common.unitPriceIn", { currency })}
+          help={t("common.blankIsUnpriced")}
+          error={fieldError(t, state, "unitPrice")}
+        />
       </div>
-      <Select id="il-line" name="budgetLineId" label={t("invoices.fields.budgetLine")} value="" options={[{ value: "", label: t("common.none") }, ...budgetLines]} />
+      <Select
+        id="il-line"
+        name="budgetLineId"
+        label={t("invoices.fields.budgetLine")}
+        value=""
+        options={[{ value: "", label: t("common.none") }, ...budgetLines]}
+      />
       <ActionFeedback state={state} />
       <Submit label={t("invoices.addLine")} pending={pending} />
     </form>
@@ -372,7 +531,14 @@ export function PaymentForm({
   return (
     <form action={action} className="flex flex-col gap-16" noValidate>
       <input type="hidden" name="org" value={org} />
-      <Select id="payment-counterparty" name="counterpartyId" label={t("payments.fields.counterparty")} placeholder={t("common.chooseCounterparty")} options={[...counterparties]} error={fieldError(t, state, "counterpartyId")} />
+      <Select
+        id="payment-counterparty"
+        name="counterpartyId"
+        label={t("payments.fields.counterparty")}
+        placeholder={t("common.chooseCounterparty")}
+        options={[...counterparties]}
+        error={fieldError(t, state, "counterpartyId")}
+      />
       <Select
         id="payment-direction"
         name="direction"
@@ -384,11 +550,37 @@ export function PaymentForm({
         ]}
       />
       <div className="flex flex-wrap gap-12">
-        <Input id="payment-amount" name="amount" inputMode="decimal" required label={t("common.amount")} error={fieldError(t, state, "amount")} />
-        <Select id="payment-currency" name="currency" label={t("common.currency")} value={defaultCurrency} options={currencies.map((c) => ({ value: c, label: c }))} />
+        <Input
+          id="payment-amount"
+          name="amount"
+          inputMode="decimal"
+          required
+          label={t("common.amount")}
+          error={fieldError(t, state, "amount")}
+        />
+        <Select
+          id="payment-currency"
+          name="currency"
+          label={t("common.currency")}
+          value={defaultCurrency}
+          options={currencies.map((c) => ({ value: c, label: c }))}
+        />
       </div>
-      <Input id="payment-date" name="paidOn" type="date" required label={t("payments.fields.paidOn")} defaultValue={today} error={fieldError(t, state, "paidOn")} />
-      <Input id="payment-reference" name="reference" label={t("payments.fields.reference")} error={fieldError(t, state, "reference")} />
+      <Input
+        id="payment-date"
+        name="paidOn"
+        type="date"
+        required
+        label={t("payments.fields.paidOn")}
+        defaultValue={today}
+        error={fieldError(t, state, "paidOn")}
+      />
+      <Input
+        id="payment-reference"
+        name="reference"
+        label={t("payments.fields.reference")}
+        error={fieldError(t, state, "reference")}
+      />
       <ActionFeedback state={state} />
       <Submit label={t("payments.create")} pending={pending} />
     </form>
@@ -409,12 +601,31 @@ export function ApplyPaymentForm({
   const t = useFinanceT();
   const [state, action, pending] = useActionState(applyPaymentAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-12" noValidate aria-label={t("payments.apply")}>
+    <form
+      action={action}
+      className="flex flex-col gap-12"
+      noValidate
+      aria-label={t("payments.apply")}
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="paymentId" value={paymentId} />
       <input type="hidden" name="currency" value={currency} />
-      <Select id="apply-invoice" name="invoiceId" label={t("payments.fields.invoice")} placeholder={t("payments.fields.chooseInvoice")} options={[...invoices]} error={fieldError(t, state, "invoiceId")} />
-      <Input id="apply-amount" name="amount" inputMode="decimal" required label={t("common.amountIn", { currency })} error={fieldError(t, state, "amount")} />
+      <Select
+        id="apply-invoice"
+        name="invoiceId"
+        label={t("payments.fields.invoice")}
+        placeholder={t("payments.fields.chooseInvoice")}
+        options={[...invoices]}
+        error={fieldError(t, state, "invoiceId")}
+      />
+      <Input
+        id="apply-amount"
+        name="amount"
+        inputMode="decimal"
+        required
+        label={t("common.amountIn", { currency })}
+        error={fieldError(t, state, "amount")}
+      />
       <ActionFeedback state={state} success={t("payments.applied")} />
       <Submit label={t("payments.apply")} pending={pending} />
     </form>
@@ -439,8 +650,24 @@ export function PeriodForm({
     <form action={action} className="flex flex-col gap-16" noValidate>
       <input type="hidden" name="org" value={org} />
       <div className="flex flex-wrap gap-12">
-        <Input id="period-start" name="startsOn" type="date" required label={t("periods.fields.startsOn")} defaultValue={startsOn} error={fieldError(t, state, "startsOn")} />
-        <Input id="period-end" name="endsOn" type="date" required label={t("periods.fields.endsOn")} defaultValue={endsOn} error={fieldError(t, state, "endsOn")} />
+        <Input
+          id="period-start"
+          name="startsOn"
+          type="date"
+          required
+          label={t("periods.fields.startsOn")}
+          defaultValue={startsOn}
+          error={fieldError(t, state, "startsOn")}
+        />
+        <Input
+          id="period-end"
+          name="endsOn"
+          type="date"
+          required
+          label={t("periods.fields.endsOn")}
+          defaultValue={endsOn}
+          error={fieldError(t, state, "endsOn")}
+        />
       </div>
       <ActionFeedback state={state} />
       <Submit label={t("periods.create")} pending={pending} />
@@ -508,32 +735,111 @@ export function JournalForm({
     <form action={action} className="flex flex-col gap-16" noValidate>
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="lines" value={payload} />
-      <Select id="journal-period" name="periodId" label={t("journal.fields.period")} placeholder={t("journal.fields.choosePeriod")} options={[...periods]} error={fieldError(t, state, "periodId")} />
+      <Select
+        id="journal-period"
+        name="periodId"
+        label={t("journal.fields.period")}
+        placeholder={t("journal.fields.choosePeriod")}
+        options={[...periods]}
+        error={fieldError(t, state, "periodId")}
+      />
       <div className="flex flex-wrap gap-12">
-        <Input id="journal-date" name="entryDate" type="date" required label={t("journal.fields.entryDate")} defaultValue={today} error={fieldError(t, state, "entryDate")} />
-        <Select id="journal-currency" name="currency" label={t("common.currency")} value={defaultCurrency} options={currencies.map((c) => ({ value: c, label: c }))} />
+        <Input
+          id="journal-date"
+          name="entryDate"
+          type="date"
+          required
+          label={t("journal.fields.entryDate")}
+          defaultValue={today}
+          error={fieldError(t, state, "entryDate")}
+        />
+        <Select
+          id="journal-currency"
+          name="currency"
+          label={t("common.currency")}
+          value={defaultCurrency}
+          options={currencies.map((c) => ({ value: c, label: c }))}
+        />
       </div>
-      <Input id="journal-memo" name="memo" required width="100%" label={t("journal.fields.memo")} error={fieldError(t, state, "memo")} />
+      <Input
+        id="journal-memo"
+        name="memo"
+        required
+        width="100%"
+        label={t("journal.fields.memo")}
+        error={fieldError(t, state, "memo")}
+      />
       {projectId ? (
         <input type="hidden" name="projectId" value={projectId} />
       ) : (
-        <Select id="journal-project" name="projectId" label={t("common.project")} value="" options={[{ value: "", label: t("common.none") }, ...projects]} />
+        <Select
+          id="journal-project"
+          name="projectId"
+          label={t("common.project")}
+          value=""
+          options={[{ value: "", label: t("common.none") }, ...projects]}
+        />
       )}
       <fieldset className="m-0 flex flex-col gap-12 border-0 p-0">
         <legend className="mb-8 text-label-13 font-semibold">{t("journal.fields.lines")}</legend>
         {lines.map((l, i) => (
-          <div key={l.key} className="flex flex-col gap-8 rounded-card border border-border-subtle p-12">
+          <div
+            key={l.key}
+            className="flex flex-col gap-8 rounded-card border border-border-subtle p-12"
+          >
             <div className="flex flex-wrap gap-8">
-              <Select id={`jl-account-${l.key}`} label={t("journal.fields.account", { n: i + 1 })} value={l.accountCode} options={[...accounts]} onChange={(e) => set(l.key, { accountCode: e.target.value })} />
-              <Select id={`jl-cc-${l.key}`} label={t("budgets.columns.costCenter")} value="" options={[{ value: "", label: t("common.none") }, ...costCenters]} onChange={(e) => set(l.key, { costCenterId: e.target.value })} />
-              <Input id={`jl-urid-${l.key}`} width={140} label={t("budgets.columns.urid")} value={l.urid} onChange={(e) => set(l.key, { urid: e.target.value })} />
+              <Select
+                id={`jl-account-${l.key}`}
+                label={t("journal.fields.account", { n: i + 1 })}
+                value={l.accountCode}
+                options={[...accounts]}
+                onChange={(e) => set(l.key, { accountCode: e.target.value })}
+              />
+              <Select
+                id={`jl-cc-${l.key}`}
+                label={t("budgets.columns.costCenter")}
+                value=""
+                options={[{ value: "", label: t("common.none") }, ...costCenters]}
+                onChange={(e) => set(l.key, { costCenterId: e.target.value })}
+              />
+              <Input
+                id={`jl-urid-${l.key}`}
+                width={140}
+                label={t("budgets.columns.urid")}
+                value={l.urid}
+                onChange={(e) => set(l.key, { urid: e.target.value })}
+              />
             </div>
-            <Input id={`jl-desc-${l.key}`} width="100%" label={t("common.description")} value={l.description} onChange={(e) => set(l.key, { description: e.target.value })} />
+            <Input
+              id={`jl-desc-${l.key}`}
+              width="100%"
+              label={t("common.description")}
+              value={l.description}
+              onChange={(e) => set(l.key, { description: e.target.value })}
+            />
             <div className="flex flex-wrap items-end gap-8">
-              <Input id={`jl-debit-${l.key}`} width={140} inputMode="decimal" label={t("journal.fields.debit")} value={l.debit} onChange={(e) => set(l.key, { debit: e.target.value })} />
-              <Input id={`jl-credit-${l.key}`} width={140} inputMode="decimal" label={t("journal.fields.credit")} value={l.credit} onChange={(e) => set(l.key, { credit: e.target.value })} />
+              <Input
+                id={`jl-debit-${l.key}`}
+                width={140}
+                inputMode="decimal"
+                label={t("journal.fields.debit")}
+                value={l.debit}
+                onChange={(e) => set(l.key, { debit: e.target.value })}
+              />
+              <Input
+                id={`jl-credit-${l.key}`}
+                width={140}
+                inputMode="decimal"
+                label={t("journal.fields.credit")}
+                value={l.credit}
+                onChange={(e) => set(l.key, { credit: e.target.value })}
+              />
               {lines.length > 2 ? (
-                <Button variant="ghost" icon="Trash2" onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))}>
+                <Button
+                  variant="ghost"
+                  icon="Trash2"
+                  onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))}
+                >
                   {t("journal.removeLine")}
                 </Button>
               ) : null}
@@ -541,7 +847,10 @@ export function JournalForm({
           </div>
         ))}
         <div>
-          <Button icon="Plus" onClick={() => setLines((ls) => [...ls, blank(Math.max(...ls.map((x) => x.key)) + 1)])}>
+          <Button
+            icon="Plus"
+            onClick={() => setLines((ls) => [...ls, blank(Math.max(...ls.map((x) => x.key)) + 1)])}
+          >
             {t("journal.addLine")}
           </Button>
         </div>
@@ -576,18 +885,45 @@ export function CostCenterForm({
     <form action={action} className="flex flex-col gap-16" noValidate>
       <input type="hidden" name="org" value={org} />
       {center ? <input type="hidden" name="id" value={center.id} /> : null}
-      <Input id="cc-code" name="code" required label={t("costCenters.fields.code")} help={t("costCenters.fields.codeHelp")} defaultValue={center?.code ?? "CC-"} error={fieldError(t, state, "code")} />
-      <Input id="cc-name" name="name" required width="100%" label={t("costCenters.fields.name")} defaultValue={center?.name ?? ""} error={fieldError(t, state, "name")} />
+      <Input
+        id="cc-code"
+        name="code"
+        required
+        label={t("costCenters.fields.code")}
+        help={t("costCenters.fields.codeHelp")}
+        defaultValue={center?.code ?? "CC-"}
+        error={fieldError(t, state, "code")}
+      />
+      <Input
+        id="cc-name"
+        name="name"
+        required
+        width="100%"
+        label={t("costCenters.fields.name")}
+        defaultValue={center?.name ?? ""}
+        error={fieldError(t, state, "name")}
+      />
       <Select
         id="cc-kind"
         name="kind"
         label={t("costCenters.fields.kind")}
         value={kind}
-        options={["Standing", "Overhead", "Event"].map((k) => ({ value: k, label: t(`costCenters.kinds.${k}`) }))}
+        options={["Standing", "Overhead", "Event"].map((k) => ({
+          value: k,
+          label: t(`costCenters.kinds.${k}`),
+        }))}
         onChange={(e) => setKind(e.target.value)}
       />
       {kind === "Event" ? (
-        <Select id="cc-scope" name="scopeNodeId" label={t("costCenters.fields.scopeNode")} placeholder={t("costCenters.fields.chooseScope")} value={center?.scopeNodeId ?? ""} options={[...scopeNodes]} error={fieldError(t, state, "scopeNodeId")} />
+        <Select
+          id="cc-scope"
+          name="scopeNodeId"
+          label={t("costCenters.fields.scopeNode")}
+          placeholder={t("costCenters.fields.chooseScope")}
+          value={center?.scopeNodeId ?? ""}
+          options={[...scopeNodes]}
+          error={fieldError(t, state, "scopeNodeId")}
+        />
       ) : null}
       <ActionFeedback state={state} />
       <Submit label={center ? t("common.save") : t("costCenters.create")} pending={pending} />
@@ -615,13 +951,48 @@ export function FxRateForm({
     <form action={action} className="flex flex-col gap-12" noValidate aria-label={t("fx.add")}>
       <input type="hidden" name="org" value={org} />
       <div className="flex flex-wrap gap-12">
-        <Select id="fx-base" name="base" label={t("fx.fields.base")} value={base} options={options} error={fieldError(t, state, "base")} />
-        <Select id="fx-quote" name="quote" label={t("fx.fields.quote")} value={quote} options={options} error={fieldError(t, state, "quote")} />
-        <Input id="fx-rate" name="rate" inputMode="decimal" required label={t("fx.fields.rate")} error={fieldError(t, state, "rate")} />
+        <Select
+          id="fx-base"
+          name="base"
+          label={t("fx.fields.base")}
+          value={base}
+          options={options}
+          error={fieldError(t, state, "base")}
+        />
+        <Select
+          id="fx-quote"
+          name="quote"
+          label={t("fx.fields.quote")}
+          value={quote}
+          options={options}
+          error={fieldError(t, state, "quote")}
+        />
+        <Input
+          id="fx-rate"
+          name="rate"
+          inputMode="decimal"
+          required
+          label={t("fx.fields.rate")}
+          error={fieldError(t, state, "rate")}
+        />
       </div>
       <div className="flex flex-wrap gap-12">
-        <Input id="fx-date" name="effectiveOn" type="date" required label={t("fx.fields.effectiveOn")} defaultValue={today} error={fieldError(t, state, "effectiveOn")} />
-        <Input id="fx-source" name="source" required label={t("fx.fields.source")} error={fieldError(t, state, "source")} />
+        <Input
+          id="fx-date"
+          name="effectiveOn"
+          type="date"
+          required
+          label={t("fx.fields.effectiveOn")}
+          defaultValue={today}
+          error={fieldError(t, state, "effectiveOn")}
+        />
+        <Input
+          id="fx-source"
+          name="source"
+          required
+          label={t("fx.fields.source")}
+          error={fieldError(t, state, "source")}
+        />
       </div>
       <ActionFeedback state={state} success={t("fx.added")} />
       <Submit label={t("fx.add")} pending={pending} />
@@ -655,16 +1026,189 @@ export function UplExportForm({
     URL.revokeObjectURL(url);
   }, [state.at, state.csv, state.filename]);
   return (
-    <form action={action} className="flex flex-wrap items-end gap-12" noValidate aria-label={t("upl.export")}>
+    <form
+      action={action}
+      className="flex flex-wrap items-end gap-12"
+      noValidate
+      aria-label={t("upl.export")}
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="from" value={from} />
       <input type="hidden" name="to" value={to} />
       {projectId ? <input type="hidden" name="projectId" value={projectId} /> : null}
-      <Select id="upl-target" name="target" label={t("upl.target")} value="upl" options={[{ value: "upl", label: t("upl.targets.upl") }, ...targets]} error={fieldError(t, state, "target")} />
+      <Select
+        id="upl-target"
+        name="target"
+        label={t("upl.target")}
+        value="upl"
+        options={[{ value: "upl", label: t("upl.targets.upl") }, ...targets]}
+        error={fieldError(t, state, "target")}
+      />
       <Button type="submit" variant="primary" icon="Download" loading={pending}>
         {t("upl.export")}
       </Button>
-      <ActionFeedback state={state} success={state.filename ? t("upl.exported", { file: state.filename }) : undefined} />
+      <ActionFeedback
+        state={state}
+        {...(state.filename ? { success: t("upl.exported", { file: state.filename }) } : {})}
+      />
+    </form>
+  );
+}
+
+// Settlements and self-billing ---------------------------------------------------------------------------
+
+export function SettlementForm({
+  org,
+  engagements,
+  currencies,
+  defaultCurrency,
+}: {
+  org: string;
+  engagements: readonly Option[];
+  currencies: readonly string[];
+  defaultCurrency: string;
+}) {
+  const t = useFinanceT();
+  const [state, action, pending] = useActionState(saveSettlementAction, INITIAL);
+  useAfterSave(state, "create");
+  return (
+    <form action={action} className="flex flex-col gap-16" noValidate>
+      <input type="hidden" name="org" value={org} />
+      <Select
+        id="settlement-engagement"
+        name="engagementId"
+        label={t("settlements.fields.engagement")}
+        placeholder={t("settlements.fields.chooseEngagement")}
+        options={[...engagements]}
+        error={fieldError(t, state, "engagementId")}
+      />
+      <Input
+        id="settlement-title"
+        name="title"
+        required
+        width="100%"
+        label={t("settlements.fields.title")}
+        error={fieldError(t, state, "title")}
+      />
+      <div className="flex flex-wrap gap-12">
+        <Select
+          id="settlement-currency"
+          name="currency"
+          label={t("common.currency")}
+          value={defaultCurrency}
+          options={currencies.map((c) => ({ value: c, label: c }))}
+        />
+        <Input
+          id="settlement-date"
+          name="settledOn"
+          type="date"
+          label={t("settlements.fields.settledOn")}
+          error={fieldError(t, state, "settledOn")}
+        />
+      </div>
+      <ActionFeedback state={state} />
+      <Submit label={t("settlements.create")} pending={pending} />
+    </form>
+  );
+}
+
+export function SettlementLineForm({
+  org,
+  settlementId,
+  currency,
+  kinds,
+}: {
+  org: string;
+  settlementId: string;
+  currency: string;
+  kinds: readonly Option[];
+}) {
+  const t = useFinanceT();
+  const [state, action, pending] = useActionState(saveSettlementLineAction, INITIAL);
+  return (
+    <form
+      key={state.ok ? String(state.at) : "draft"}
+      action={action}
+      className="flex flex-col gap-12"
+      noValidate
+      aria-label={t("settlements.addLine")}
+    >
+      <input type="hidden" name="org" value={org} />
+      <input type="hidden" name="settlementId" value={settlementId} />
+      <input type="hidden" name="currency" value={currency} />
+      <div className="flex flex-wrap gap-12">
+        <Select
+          id="sl-kind"
+          name="kind"
+          label={t("settlements.fields.kind")}
+          value={kinds[0]?.value ?? ""}
+          options={[...kinds]}
+        />
+        <Input
+          id="sl-amount"
+          name="amount"
+          inputMode="decimal"
+          label={t("common.amountIn", { currency })}
+          help={t("common.blankIsUnpriced")}
+          error={fieldError(t, state, "amount")}
+        />
+      </div>
+      <Input
+        id="sl-description"
+        name="description"
+        required
+        width="100%"
+        label={t("common.description")}
+        error={fieldError(t, state, "description")}
+      />
+      <ActionFeedback state={state} />
+      <Submit label={t("settlements.addLine")} pending={pending} />
+    </form>
+  );
+}
+
+export function SelfBillForm({
+  org,
+  engagements,
+}: {
+  org: string;
+  engagements: readonly Option[];
+}) {
+  const t = useFinanceT();
+  const [state, action, pending] = useActionState(selfBillAction, INITIAL);
+  useAfterSave(state, "selfbill");
+  return (
+    <form action={action} className="flex flex-col gap-16" noValidate>
+      <input type="hidden" name="org" value={org} />
+      <p className="m-0 text-text-13 text-text-secondary">{t("invoices.selfBillSentence")}</p>
+      <Select
+        id="selfbill-engagement"
+        name="engagementId"
+        label={t("settlements.fields.engagement")}
+        placeholder={t("settlements.fields.chooseEngagement")}
+        options={[...engagements]}
+        error={fieldError(t, state, "engagementId")}
+      />
+      <div className="flex flex-wrap gap-12">
+        <Input
+          id="selfbill-start"
+          name="periodStart"
+          type="date"
+          required
+          label={t("invoices.fields.periodStart")}
+          error={fieldError(t, state, "periodStart")}
+        />
+        <Input
+          id="selfbill-end"
+          name="periodEnd"
+          type="date"
+          required
+          label={t("invoices.fields.periodEnd")}
+          error={fieldError(t, state, "periodEnd")}
+        />
+      </div>
+      <ActionFeedback state={state} />
+      <Submit label={t("invoices.selfBillSubmit")} pending={pending} />
     </form>
   );
 }

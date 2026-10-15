@@ -6,29 +6,31 @@ import type { RecordState } from "@xos/ui";
  * finance state to the record state whose icon and hue carry the same meaning.
  */
 const ICON_STATE: Readonly<Record<string, RecordState>> = {
-  Proposed: "Proposed",
-  Priced: "Ready",
-  Issued: "Scheduled",
-  Approved: "Active",
-  Posted: "Complete",
-  Paid: "Complete",
-  Rejected: "Blocked",
-  Disputed: "Blocked",
-  Canceled: "Canceled",
-  Open: "Ready",
-  "In Period": "Active",
-  Closing: "In Review",
-  Closed: "Complete",
-  Audited: "Complete",
-  Archived: "Deferred",
-  Reported: "Proposed",
-  Dispatched: "Active",
-  Contained: "In Review",
-  Sent: "Scheduled",
+  Proposed: "proposed",
+  Priced: "ready",
+  Issued: "scheduled",
+  Approved: "active",
+  Posted: "complete",
+  Paid: "complete",
+  Rejected: "blocked",
+  Disputed: "blocked",
+  Canceled: "canceled",
+  Open: "ready",
+  "In Period": "active",
+  Closing: "in-review",
+  Closed: "complete",
+  Audited: "complete",
+  Archived: "deferred",
+  Reported: "proposed",
+  Dispatched: "active",
+  Contained: "in-review",
+  Sent: "scheduled",
+  Submitted: "in-review",
+  Accepted: "active",
 };
 
 export function iconState(state: string): RecordState {
-  return ICON_STATE[state] ?? "Proposed";
+  return ICON_STATE[state] ?? "proposed";
 }
 
 export type Lifecycle =
@@ -37,7 +39,8 @@ export type Lifecycle =
   | "invoice"
   | "payment"
   | "journal"
-  | "accounting_period";
+  | "accounting_period"
+  | "settlement";
 
 /** The catalog key of a state label: `finance.states.<lifecycle>.<state>` with spaces removed. */
 export function stateKey(lifecycle: Lifecycle, state: string): string {

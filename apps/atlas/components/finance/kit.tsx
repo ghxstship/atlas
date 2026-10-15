@@ -24,13 +24,7 @@ import type { Route } from "next";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Dialog as RDialog } from "radix-ui";
-import {
-  useActionState,
-  useEffect,
-  useState,
-  useTransition,
-  type ReactNode,
-} from "react";
+import { useActionState, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import { transitionAction, type ActionState } from "@/app/[org]/finance/actions";
 
 /**
@@ -46,13 +40,16 @@ export type Translate = ((key: string, values?: Record<string, string | number>)
 
 export function useFinanceT(): Translate {
   const t = useTranslations("finance");
-  const fn = ((key: string, values?: Record<string, string | number>) =>
-    (t as unknown as (k: string, v?: Record<string, string | number>) => string)(
-      key,
-      values,
-    )) as Translate;
-  fn.has = (key: string) => (t as unknown as { has: (k: string) => boolean }).has(key);
-  return fn;
+  return useMemo(() => {
+    const call = t as unknown as (k: string, v?: Record<string, string | number>) => string;
+    const has = (t as unknown as { has: (k: string) => boolean }).has;
+    return Object.assign(
+      (key: string, values?: Record<string, string | number>) => call(key, values),
+      {
+        has: (key: string) => has(key),
+      },
+    );
+  }, [t]);
 }
 
 /** Returns a function that navigates to the current page with some query values changed. */
@@ -275,7 +272,11 @@ export function RecordPeek({
   const t = useFinanceT();
   const go = useQueryNav();
   return (
-    <RDialog.Root open onOpenChange={(open) => (open ? null : go({ peek: null, full: null }))} modal={false}>
+    <RDialog.Root
+      open
+      onOpenChange={(open) => (open ? null : go({ peek: null, full: null }))}
+      modal={false}
+    >
       <RDialog.Portal>
         <RDialog.Content
           aria-describedby={undefined}
@@ -332,7 +333,7 @@ export function FormSheet({
   children,
 }: {
   title: string;
-  flag: "create" | "edit";
+  flag: string;
   children: ReactNode;
 }) {
   const go = useQueryNav();
@@ -369,7 +370,7 @@ export function EditButton({ label }: { label: string }) {
 }
 
 /** Closes the sheet and opens the new record's peek after a successful create. */
-export function useAfterSave(state: ActionState, flag: "create" | "edit") {
+export function useAfterSave(state: ActionState, flag: string) {
   const go = useQueryNav();
   useEffect(() => {
     if (state.ok) go({ [flag]: null, ...(state.id ? { peek: state.id } : {}) }, true);
@@ -433,7 +434,8 @@ export type Lifecycle =
   | "invoice"
   | "payment"
   | "journal"
-  | "accounting_period";
+  | "accounting_period"
+  | "settlement";
 
 /**
  * One lifecycle move: asks for the reason every transition ledger records, then calls the RPC. The
@@ -459,9 +461,12 @@ export function TransitionButton({
   const [state, action, pending] = useActionState(transitionAction, {});
   const nextKey = next.replace(/\s+/g, "");
   const label = t(`transitions.${lifecycle}.${nextKey}`);
-  useEffect(() => {
+  // Close once per completed submit; `at` changes on every submit (state from the previous render).
+  const [seenAt, setSeenAt] = useState(state.at);
+  if (state.at !== seenAt) {
+    setSeenAt(state.at);
     if (state.ok) setOpen(false);
-  }, [state.at, state.ok]);
+  }
   return (
     <>
       <Button variant={variant} onClick={() => setOpen(true)}>
@@ -499,7 +504,11 @@ export function TransitionButton({
               required
               width="100%"
               label={t("common.reason")}
-              defaultValue={t(`transitions.${lifecycle}.reason.${nextKey}`)}
+              defaultValue={
+                t.has(`transitions.${lifecycle}.reason.${nextKey}`)
+                  ? t(`transitions.${lifecycle}.reason.${nextKey}`)
+                  : ""
+              }
               error={state.fieldErrors?.["reason"] ? t("errors.fields.reason") : ""}
             />
             <ActionFeedback state={state} />
@@ -583,26 +592,5 @@ export function InlineActionButton({
       </Button>
       <ActionFeedback state={state} />
     </span>
-  );
-}
-
-// Blocked panels -----------------------------------------------------------------------------------------
-
-/**
- * Comments and attachments belong to A18's unified comment and attachment system, which has not
- * landed (broadcast 1, item 3). Until it does, each record shows this specific blocked state.
- */
-export function BlockedPanel({ feature }: { feature: "comments" | "attachments" }) {
-  const t = useFinanceT();
-  return (
-    <section
-      aria-labelledby={`blocked-${feature}`}
-      className="flex flex-col gap-4 rounded-card border border-dashed border-border-strong p-12"
-    >
-      <h3 id={`blocked-${feature}`} className="m-0 text-label-13 font-semibold">
-        {t(`common.${feature}`)}
-      </h3>
-      <p className="m-0 text-text-12 text-text-secondary">{t(`common.${feature}Blocked`)}</p>
-    </section>
   );
 }

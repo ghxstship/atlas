@@ -2,6 +2,7 @@
 
 import type { DataError, Result } from "@xos/data";
 import * as finance from "@xos/data/finance";
+import * as settlements from "@xos/data/settlements";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -178,10 +179,7 @@ export async function addBudgetLinesAction(_: ActionState, form: FormData): Prom
 }
 
 /** Saves one line against the version it was read at; a newer save comes back as a conflict. */
-export async function updateBudgetLineAction(
-  _: ActionState,
-  form: FormData,
-): Promise<ActionState> {
+export async function updateBudgetLineAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const id = z.uuid().safeParse(form.get("id"));
   const expected = z.string().min(1).safeParse(form.get("expectedUpdatedAt"));
@@ -279,10 +277,7 @@ export async function saveExpenseAction(_: ActionState, form: FormData): Promise
 
 // Change orders ------------------------------------------------------------------------------------
 
-export async function saveChangeOrderAction(
-  _: ActionState,
-  form: FormData,
-): Promise<ActionState> {
+export async function saveChangeOrderAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const f = fields(form);
   const title = text(200).safeParse(f["title"]);
@@ -403,10 +398,7 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
   return finish(ctx, result, result.ok ? { id: result.data.id } : {});
 }
 
-export async function saveInvoiceLineAction(
-  _: ActionState,
-  form: FormData,
-): Promise<ActionState> {
+export async function saveInvoiceLineAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const f = fields(form);
   if (f["delete"] === "1") {
@@ -634,6 +626,7 @@ const TransitionSchema = z.object({
     "payment",
     "journal",
     "accounting_period",
+    "settlement",
   ]),
   id: z.uuid(),
   expected: z.string().min(1),
@@ -698,6 +691,17 @@ export async function transitionAction(_: ActionState, form: FormData): Promise<
     case "journal":
       if (next === "Posted") return finish(ctx, await finance.postJournalEntry(db, id, why));
       return finish(ctx, await finance.cancelJournalEntry(db, id, why));
+    case "settlement":
+      if (next === "Submitted") return pending(await settlements.submitSettlement(db, id, why));
+      return finish(
+        ctx,
+        await settlements.transitionSettlement(db, {
+          id,
+          expected: expected as settlements.SettlementState,
+          next: next as settlements.SettlementState,
+          reason: why,
+        }),
+      );
     case "accounting_period":
       return finish(
         ctx,
@@ -770,8 +774,84 @@ export async function searchCatalogAction(
   form: FormData,
 ): Promise<CatalogSearchState> {
   const ctx = await contextFor(form);
-  const search = z.string().trim().max(100).safeParse(form.get("search") ?? "");
+  const search = z
+    .string()
+    .trim()
+    .max(100)
+    .safeParse(form.get("search") ?? "");
   if (!search.success) return { error: { kind: "input" } };
   const result = await finance.searchCatalogElements(ctx.viewer.db, { search: search.data });
   return result.ok ? { elements: result.data } : { error: toActionError(result.error) };
+}
+
+// Settlements and self-billing ---------------------------------------------------------------------------
+
+export async function saveSettlementAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const f = fields(form);
+  const engagement = z.uuid().safeParse(f["engagementId"]);
+  if (!engagement.success) return inputError("engagementId");
+  const title = text(200).safeParse(f["title"]);
+  if (!title.success) return inputError("title");
+  const code = currency.safeParse(f["currency"]);
+  if (!code.success) return inputError("currency");
+  const settledOn = optionalDate.safeParse(f["settledOn"] ?? "");
+  if (!settledOn.success) return inputError("settledOn", "date");
+  const result = await settlements.createSettlement(ctx.viewer.db, ctx.org.id, {
+    engagementId: engagement.data,
+    title: title.data,
+    currency: code.data,
+    settledOn: settledOn.data,
+  });
+  return finish(ctx, result, result.ok ? { id: result.data.id } : {});
+}
+
+export async function saveSettlementLineAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const f = fields(form);
+  if (f["delete"] === "1") {
+    const id = z.uuid().safeParse(f["id"]);
+    if (!id.success) return { error: { kind: "not-found" } };
+    return finish(ctx, await settlements.deleteSettlementLine(ctx.viewer.db, id.data));
+  }
+  const settlement = z.uuid().safeParse(f["settlementId"]);
+  if (!settlement.success) return { error: { kind: "not-found" } };
+  const kind = z.enum(settlements.SETTLEMENT_LINE_KINDS).safeParse(f["kind"]);
+  if (!kind.success) return inputError("kind");
+  const description = text(500).safeParse(f["description"]);
+  if (!description.success) return inputError("description");
+  const code = currency.safeParse(f["currency"]);
+  if (!code.success) return { error: { kind: "invalid" } };
+  const amount = await money(ctx, f["amount"], code.data, false);
+  if (amount === "invalid" || (amount !== null && amount < 0))
+    return inputError("amount", "unitPrice");
+  return finish(
+    ctx,
+    await settlements.addSettlementLine(ctx.viewer.db, ctx.org.id, settlement.data, {
+      kind: kind.data,
+      description: description.data,
+      amountMinor: amount,
+    }),
+  );
+}
+
+/** Generates a self-billed payable invoice from approved timesheets (Section 4.4.5). */
+export async function selfBillAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const f = fields(form);
+  const engagement = z.uuid().safeParse(f["engagementId"]);
+  if (!engagement.success) return inputError("engagementId");
+  const start = isoDate.safeParse(f["periodStart"]);
+  const end = isoDate.safeParse(f["periodEnd"]);
+  if (!start.success) return inputError("periodStart", "date");
+  if (!end.success || end.data < start.data) return inputError("periodEnd", "endBeforeStart");
+  const result = await settlements.generateSelfBilledInvoice(ctx.viewer.db, {
+    engagementId: engagement.data,
+    periodStart: start.data,
+    periodEnd: end.data,
+  });
+  return finish(ctx, result, result.ok ? { id: result.data.id } : {});
 }

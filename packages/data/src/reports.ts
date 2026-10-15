@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { XosClient } from "./client";
-import { nullAwareSum } from "./finance";
-import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result";
+import type { XosClient } from "./client.ts";
+import { nullAwareSum } from "./finance.ts";
+import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
 /**
  * Built-in reports (Section 4.2 Reports, Section 7.4 Analytics): gate readiness, the coordinate
@@ -698,7 +698,7 @@ export async function purchaseOrderExposure(
   let orders = db
     .from("purchase_orders")
     .select(
-      "id, po_number, project_id, po_state, currency_code, project:projects(project_key), vendor:vendors(counterparty:counterparties(organization:organizations!counterparties_organization_id_fkey(name)))",
+      "id, po_number, project_id, po_state, currency_code, project:projects(project_key), vendor:vendors(counterparty:counterparties(counterparty_name))",
     )
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
@@ -744,13 +744,13 @@ export async function purchaseOrderExposure(
       const committed = lines === null ? null : lines + num(t["approved_changes_minor"]);
       const rec = receivedOf.get(id) ?? [];
       const receivedMinor = rec.length === 0 ? 0 : nullAwareSum(rec).total;
-      const vendor = obj(obj(obj(p["vendor"])?.["counterparty"])?.["organization"]);
+      const vendor = obj(obj(p["vendor"])?.["counterparty"]);
       return {
         purchaseOrderId: id,
         poNumber: num(p["po_number"]),
         projectId: str(p["project_id"]),
         projectKey: strOrNull(obj(p["project"])?.["project_key"]),
-        vendorName: strOrNull(vendor?.["name"]),
+        vendorName: strOrNull(vendor?.["counterparty_name"]),
         state: str(p["po_state"]),
         currency: str(p["currency_code"]).trim(),
         unpricedCount: num(t["unpriced_count"]),
@@ -878,4 +878,108 @@ export async function listSavedReports(
       updatedAt: str(r["updated_at"]),
     })),
   );
+}
+
+// Shared reports (0992) ---------------------------------------------------------------------------------
+
+export interface ReportRun {
+  readonly id: string;
+  readonly reportName: string;
+  readonly format: string;
+  readonly finishedAt: string | null;
+  readonly rowCount: number | null;
+}
+
+/** Finished runs of the viewer's own reports, newest first: the runs they may share. */
+export async function listMyFinishedRuns(
+  db: XosClient,
+  input: { readonly orgId: string; readonly membershipId: string },
+): Promise<Result<ReportRun[]>> {
+  const result = await rows(
+    untyped(db)
+      .from("report_runs")
+      .select("id, export_format, finished_at, row_count, definition:report_definitions(name)")
+      .eq("org_id", input.orgId)
+      .eq("run_for_membership_id", input.membershipId)
+      .eq("run_status", "Succeeded")
+      .is("deleted_at", null)
+      .order("finished_at", { ascending: false })
+      .limit(50),
+  );
+  if (!result.ok) return result;
+  return ok(
+    result.data.map((r) => ({
+      id: str(r["id"]),
+      reportName: str(obj(r["definition"])?.["name"]),
+      format: str(r["export_format"]),
+      finishedAt: strOrNull(r["finished_at"]),
+      rowCount: numOrNull(r["row_count"]),
+    })),
+  );
+}
+
+export interface SharedReport {
+  readonly id: string;
+  readonly engagementId: string;
+  readonly projectId: string;
+  readonly reportRunId: string;
+  readonly title: string;
+  readonly expiresAt: string | null;
+  readonly revokedAt: string | null;
+  readonly createdAt: string;
+}
+
+/** Reports the org has shared with engagements, newest first, revoked ones included as evidence. */
+export async function listSharedReports(
+  db: XosClient,
+  input: { readonly orgId: string; readonly projectId?: string | null },
+): Promise<Result<SharedReport[]>> {
+  let query = untyped(db)
+    .from("shared_reports")
+    .select(
+      "id, engagement_id, project_id, report_run_id, title, expires_at, revoked_at, created_at",
+    )
+    .eq("org_id", input.orgId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  if (input.projectId) query = query.eq("project_id", input.projectId);
+  const result = await rows(query);
+  if (!result.ok) return result;
+  return ok(
+    result.data.map((r) => ({
+      id: str(r["id"]),
+      engagementId: str(r["engagement_id"]),
+      projectId: str(r["project_id"]),
+      reportRunId: str(r["report_run_id"]),
+      title: str(r["title"]),
+      expiresAt: strOrNull(r["expires_at"]),
+      revokedAt: strOrNull(r["revoked_at"]),
+      createdAt: str(r["created_at"]),
+    })),
+  );
+}
+
+/** Shares a finished run of the viewer's with one engagement (app.share_report). */
+export async function shareReport(
+  db: XosClient,
+  input: {
+    readonly reportRunId: string;
+    readonly engagementId: string;
+    readonly title: string;
+    readonly expiresAt: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await untyped(db).rpc("share_report", {
+    p_report_run_id: input.reportRunId,
+    p_engagement_id: input.engagementId,
+    p_title: input.title.trim(),
+    p_expires_at: input.expiresAt,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: str(data) });
+}
+
+export async function revokeSharedReport(db: XosClient, id: string): Promise<Result<null>> {
+  const { error } = await untyped(db).rpc("revoke_shared_report", { p_shared_report_id: id });
+  return error ? fail(toDataError(error)) : ok(null);
 }

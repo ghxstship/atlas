@@ -1,10 +1,11 @@
 import { listRoleCapabilities } from "@xos/data";
-import { getProjectByKey, listProjects, type ProjectRef } from "@xos/data/finance";
+import { listProjects, type ProjectRef } from "@xos/data/finance";
 import { getNode, isNodeVisible } from "@xos/ia";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { requireNode } from "@/components/shell/sitemap-page";
-import { getOrgContext, type OrgContext } from "@/lib/shell/context";
+import { getProjectContextFor } from "@/lib/projects/context";
+import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 
 /**
@@ -132,9 +133,10 @@ export async function loadFinancePage(
 }
 
 /**
- * Resolves a project tab this module owns (project.budget, project.reports): the tab node must be
- * visible to the viewer, and the project must exist and be readable, or the route answers 404.
- * A07 publishes the shared project resolver; until it merges, this small lookup stands in for it.
+ * Resolves a project tab this module owns (project.budget, project.reports) through A07's project
+ * context: the tab must be visible to the viewer and the project readable, or the route answers 404
+ * (invariant 2). Capability checks use the project's set: organization reach, plus assigned reach for
+ * project members (ADR 0016 item 1).
  */
 export async function loadProjectTab(
   node: string,
@@ -142,29 +144,31 @@ export async function loadProjectTab(
   params: Readonly<Record<string, string>>,
   search: SearchParams,
 ): Promise<FinancePage> {
-  const slug = params["org"];
-  const key = params["projectKey"];
-  const ctx = slug ? await getOrgContext(slug) : null;
-  if (!ctx || !key || !isNodeVisible(sitemap, node, ctx.nav)) notFound();
-  const project = await getProjectByKey(ctx.viewer.db, ctx.org.id, key);
-  if (!project.ok) {
-    if (project.error.kind === "not-found") notFound();
-    throw new Error(`Cannot read project ${key}: ${JSON.stringify(project.error)}`);
-  }
-  const [access, projects] = await Promise.all([getAccess(ctx), getProjects(ctx)]);
+  const pctx = await getProjectContextFor(params);
+  if (!pctx || !isNodeVisible(sitemap, node, pctx.org.nav)) notFound();
+  const ctx = pctx.org;
+  const projects = await getProjects(ctx);
+  const project = projects.find((p) => p.id === pctx.project.id) ?? {
+    id: pctx.project.id,
+    key: pctx.project.key,
+    name: pctx.project.name,
+    productionState: pctx.project.productionState,
+    currency: pctx.project.currency,
+  };
   const query = parseQuery(search);
   const { views, fallback } = nodeViews(node);
+  const caps = pctx.capabilities;
   return {
     ctx,
-    access,
+    access: { reach: (c) => (caps.has(c) ? "organization" : null), can: (c) => caps.has(c) },
     query,
     projects,
-    project: project.data,
+    project,
     inProject: true,
     view: query.view && views.includes(query.view) ? query.view : fallback,
     views,
     node: moduleNode,
-    path: `/${ctx.org.slug}/p/${project.data.key}/${node.split(".")[1] ?? ""}`,
+    path: `/${ctx.org.slug}/p/${project.key}/${node.split(".")[1] ?? ""}`,
   };
 }
 

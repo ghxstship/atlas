@@ -144,11 +144,34 @@ export function BudgetEditor(props: Props) {
   }));
 
   const columns: GridColumn[] = [
-    { key: "description", label: t("budgets.columns.description"), editable: props.canWrite, width: 260 },
-    { key: "urid", label: t("budgets.columns.urid"), type: "code", editable: props.canWrite, width: 120 },
+    {
+      key: "description",
+      label: t("budgets.columns.description"),
+      editable: props.canWrite,
+      width: 260,
+    },
+    {
+      key: "urid",
+      label: t("budgets.columns.urid"),
+      type: "code",
+      editable: props.canWrite,
+      width: 120,
+    },
     { key: "lineType", label: t("budgets.columns.lineType"), width: 110 },
-    { key: "costCenter", label: t("budgets.columns.costCenter"), type: "code", editable: props.canWrite, width: 120 },
-    { key: "quantity", label: t("budgets.columns.quantity"), type: "number", editable: props.canWrite, width: 96 },
+    {
+      key: "costCenter",
+      label: t("budgets.columns.costCenter"),
+      type: "code",
+      editable: props.canWrite,
+      width: 120,
+    },
+    {
+      key: "quantity",
+      label: t("budgets.columns.quantity"),
+      type: "number",
+      editable: props.canWrite,
+      width: 96,
+    },
     { key: "unitBasis", label: t("budgets.columns.unit"), width: 88 },
     {
       key: "unitPrice",
@@ -219,7 +242,8 @@ export function BudgetEditor(props: Props) {
       const changed =
         row["description"] !== line.description ||
         urid !== line.urid ||
-        (code ?? null) !== (line.costCenterId ? (centerCode.get(line.costCenterId) ?? null) : null) ||
+        (code ?? null) !==
+          (line.costCenterId ? (centerCode.get(line.costCenterId) ?? null) : null) ||
         Number(row["quantity"] ?? 0) !== line.quantity ||
         toMinor(row["unitPrice"] ?? null, props.exponent) !== line.unitPriceMinor;
       if (!changed) return;
@@ -301,18 +325,16 @@ export function BudgetEditor(props: Props) {
           }}
           onTakeTheirs={() => {
             const theirs = conflict.theirs;
-            setLines((current) => current.map((l) => (l.id === theirs.id ? { ...l, ...theirs } : l)));
+            setLines((current) =>
+              current.map((l) => (l.id === theirs.id ? { ...l, ...theirs } : l)),
+            );
             setConflict(null);
             setGridKey((k) => k + 1);
           }}
         />
       ) : null}
-      {sheet === "add" ? (
-        <AddLineDialog {...props} onClose={() => setSheet(null)} />
-      ) : null}
-      {sheet === "catalog" ? (
-        <CatalogDialog {...props} onClose={() => setSheet(null)} />
-      ) : null}
+      {sheet === "add" ? <AddLineDialog {...props} onClose={() => setSheet(null)} /> : null}
+      {sheet === "catalog" ? <CatalogDialog {...props} onClose={() => setSheet(null)} /> : null}
       {sheet === "paste" ? (
         <PasteDialog
           {...props}
@@ -379,9 +401,15 @@ function ConflictDialog({
   const money = (minor: number | null) =>
     minor === null
       ? t("common.unpriced")
-      : new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 10 ** exponent);
+      : new Intl.NumberFormat(undefined, { style: "currency", currency }).format(
+          minor / 10 ** exponent,
+        );
   const fields: { label: string; mine: string; theirs: string }[] = [
-    { label: t("budgets.columns.description"), mine: conflict.mine.description, theirs: conflict.theirs.description },
+    {
+      label: t("budgets.columns.description"),
+      mine: conflict.mine.description,
+      theirs: conflict.theirs.description,
+    },
     { label: t("budgets.columns.urid"), mine: conflict.mine.urid, theirs: conflict.theirs.urid },
     {
       label: t("budgets.columns.quantity"),
@@ -494,7 +522,8 @@ function AddLineDialog(props: Props & { onClose: () => void }) {
           if (!xyz) return setProblem("xyz");
           const priceText = String(f.get("unitPrice") ?? "").trim();
           const price = priceText === "" ? null : Number(priceText.replace(/,/g, ""));
-          if (price !== null && (!Number.isFinite(price) || price < 0)) return setProblem("unitPrice");
+          if (price !== null && (!Number.isFinite(price) || price < 0))
+            return setProblem("unitPrice");
           const quantity = Number(f.get("quantity") || 1);
           if (!Number.isFinite(quantity) || quantity < 0) return setProblem("quantity");
           setProblem(null);
@@ -514,7 +543,14 @@ function AddLineDialog(props: Props & { onClose: () => void }) {
           ]);
         }}
       >
-        <Input id="add-line-description" name="description" required width="100%" label={t("budgets.columns.description")} error={problem === "description" ? t("errors.fields.description") : ""} />
+        <Input
+          id="add-line-description"
+          name="description"
+          required
+          width="100%"
+          label={t("budgets.columns.description")}
+          error={problem === "description" ? t("errors.fields.description") : ""}
+        />
         <Combobox
           id="add-line-urid"
           label={t("budgets.columns.urid")}
@@ -523,12 +559,25 @@ function AddLineDialog(props: Props & { onClose: () => void }) {
           onChange={setUrid}
         />
         <div className="flex flex-wrap gap-12">
-          <Select id="add-line-type" name="lineType" label={t("budgets.columns.lineType")} value="Cost" options={BUDGET_LINE_TYPES.map((v) => ({ value: v, label: t(`budgets.lineTypes.${v}`) }))} />
+          <Select
+            id="add-line-type"
+            name="lineType"
+            label={t("budgets.columns.lineType")}
+            value="Cost"
+            options={BUDGET_LINE_TYPES.map((v) => ({
+              value: v,
+              label: t(`budgets.lineTypes.${v}`),
+            }))}
+          />
           <Select
             id="add-line-xyz"
             name="xyz"
             label={t("budgets.columns.xyz")}
-            help={option?.xyz ? t("budgets.xyzFromCategory", { tag: option.xyz }) : t("budgets.xyzDeclare")}
+            help={
+              option?.xyz
+                ? t("budgets.xyzFromCategory", { tag: option.xyz })
+                : t("budgets.xyzDeclare")
+            }
             error={problem === "xyz" ? t("errors.fields.xyz") : ""}
             value=""
             options={[
@@ -550,8 +599,22 @@ function AddLineDialog(props: Props & { onClose: () => void }) {
               ...props.costCenters.map((c) => ({ value: c.id, label: `${c.code} · ${c.name}` })),
             ]}
           />
-          <Input id="add-line-qty" name="quantity" inputMode="decimal" defaultValue="1" label={t("budgets.columns.quantity")} error={problem === "quantity" ? t("errors.fields.quantity") : ""} />
-          <Input id="add-line-price" name="unitPrice" inputMode="decimal" label={t("budgets.columns.unitPrice")} help={t("common.blankIsUnpriced")} error={problem === "unitPrice" ? t("errors.fields.unitPrice") : ""} />
+          <Input
+            id="add-line-qty"
+            name="quantity"
+            inputMode="decimal"
+            defaultValue="1"
+            label={t("budgets.columns.quantity")}
+            error={problem === "quantity" ? t("errors.fields.quantity") : ""}
+          />
+          <Input
+            id="add-line-price"
+            name="unitPrice"
+            inputMode="decimal"
+            label={t("budgets.columns.unitPrice")}
+            help={t("common.blankIsUnpriced")}
+            error={problem === "unitPrice" ? t("errors.fields.unitPrice") : ""}
+          />
         </div>
         <ActionFeedback state={state} />
       </form>
@@ -614,7 +677,12 @@ function CatalogDialog(props: Props & { onClose: () => void }) {
       <div className="flex flex-col gap-12">
         <form action={run} className="flex flex-wrap items-end gap-8">
           <input type="hidden" name="org" value={props.org} />
-          <Input id="catalog-search" name="search" type="search" label={t("budgets.catalogSearch")} />
+          <Input
+            id="catalog-search"
+            name="search"
+            type="search"
+            label={t("budgets.catalogSearch")}
+          />
           <Button type="submit" loading={searching}>
             {t("common.search")}
           </Button>
@@ -645,7 +713,10 @@ function CatalogDialog(props: Props & { onClose: () => void }) {
                   <span className="text-text-13 tabular-nums text-text-secondary">
                     {price === null
                       ? t("common.unpriced")
-                      : new Intl.NumberFormat(undefined, { style: "currency", currency: props.currency }).format(price / 10 ** props.exponent)}
+                      : new Intl.NumberFormat(undefined, {
+                          style: "currency",
+                          currency: props.currency,
+                        }).format(price / 10 ** props.exponent)}
                   </span>
                   <Input
                     id={`catalog-qty-${e.elementId}`}
@@ -654,7 +725,10 @@ function CatalogDialog(props: Props & { onClose: () => void }) {
                     label={t("budgets.columns.quantity")}
                     value={String(picked[e.elementId] ?? "")}
                     onChange={(ev) =>
-                      setPicked((p) => ({ ...p, [e.elementId]: Math.max(0, Number(ev.target.value) || 0) }))
+                      setPicked((p) => ({
+                        ...p,
+                        [e.elementId]: Math.max(0, Number(ev.target.value) || 0),
+                      }))
                     }
                   />
                 </li>
@@ -726,7 +800,10 @@ function PasteDialog(props: Props & { onClose: () => void; onPasted: (ids: strin
           <ul className="m-0 flex flex-col gap-2 ps-16 text-text-12 text-danger-text">
             {parsed.problems.slice(0, 10).map((p) => (
               <li key={`${p.row}-${p.field}`}>
-                {t("budgets.pasteProblem", { row: p.row, field: t(`budgets.pasteFields.${p.field}`) })}
+                {t("budgets.pasteProblem", {
+                  row: p.row,
+                  field: t(`budgets.pasteFields.${p.field}`),
+                })}
               </li>
             ))}
           </ul>
@@ -738,7 +815,11 @@ function PasteDialog(props: Props & { onClose: () => void; onPasted: (ids: strin
 }
 
 function DeleteLinesDialog(
-  props: Props & { lines: readonly BudgetLine[]; onClose: () => void; onDeleted: (ids: string[]) => void },
+  props: Props & {
+    lines: readonly BudgetLine[];
+    onClose: () => void;
+    onDeleted: (ids: string[]) => void;
+  },
 ) {
   const t = useFinanceT();
   const router = useRouter();
@@ -825,10 +906,43 @@ function DrawDialog(props: Props & { lines: readonly BudgetLine[]; onClose: () =
       <form id="draw-contingency" action={action} className="flex flex-col gap-12">
         <input type="hidden" name="org" value={props.org} />
         <input type="hidden" name="currency" value={props.currency} />
-        <Select id="draw-from" name="fromLineId" label={t("budgets.drawFrom")} value={contingency[0]?.id ?? ""} options={contingency.map((l) => ({ value: l.id, label: `${l.lineNumber} · ${l.description}` }))} />
-        <Select id="draw-to" name="toLineId" label={t("budgets.drawTo")} value={targets[0]?.id ?? ""} options={targets.map((l) => ({ value: l.id, label: `${l.lineNumber} · ${l.description}` }))} error={fieldError(t, state, "toLineId")} />
-        <Input id="draw-amount" name="amount" inputMode="decimal" required label={t("common.amount")} error={fieldError(t, state, "amount")} />
-        <Textarea id="draw-reason" name="reason" required width="100%" label={t("common.reason")} error={fieldError(t, state, "reason")} />
+        <Select
+          id="draw-from"
+          name="fromLineId"
+          label={t("budgets.drawFrom")}
+          value={contingency[0]?.id ?? ""}
+          options={contingency.map((l) => ({
+            value: l.id,
+            label: `${l.lineNumber} · ${l.description}`,
+          }))}
+        />
+        <Select
+          id="draw-to"
+          name="toLineId"
+          label={t("budgets.drawTo")}
+          value={targets[0]?.id ?? ""}
+          options={targets.map((l) => ({
+            value: l.id,
+            label: `${l.lineNumber} · ${l.description}`,
+          }))}
+          error={fieldError(t, state, "toLineId")}
+        />
+        <Input
+          id="draw-amount"
+          name="amount"
+          inputMode="decimal"
+          required
+          label={t("common.amount")}
+          error={fieldError(t, state, "amount")}
+        />
+        <Textarea
+          id="draw-reason"
+          name="reason"
+          required
+          width="100%"
+          label={t("common.reason")}
+          error={fieldError(t, state, "reason")}
+        />
         <ActionFeedback state={state} />
       </form>
     </Dialog>

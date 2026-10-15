@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as finance from "../src/finance";
+import * as finance from "../src/finance.ts";
 import {
   accountForUrid,
   convertMinor,
@@ -15,8 +15,8 @@ import {
   xyzFor,
   type BudgetLineInput,
   type PostingLine,
-} from "../src/finance";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/finance.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const refusal = (rule: string, sentence: string) =>
   errorResponse("XR001", `${rule}: ${sentence}`, rule);
@@ -200,14 +200,20 @@ describe("universal posting line", () => {
 
 describe("reference reads", () => {
   it("lists projects and finds one by key", async () => {
-    const row = { id: "p1", project_key: "NWL", name: "Summer", production_state: "Active" };
+    const row = {
+      id: "p1",
+      project_key: "NWL",
+      name: "Summer",
+      production_state: "Active",
+      currency: "USD",
+    };
     const { db } = fakeClient({
       "from:projects": [okResponse([row]), okResponse(row), okResponse(null)],
     });
     expect((await finance.listProjects(db, "o1")).ok).toBe(true);
     expect(await finance.getProjectByKey(db, "o1", "NWL")).toEqual({
       ok: true,
-      data: { id: "p1", key: "NWL", name: "Summer", productionState: "Active" },
+      data: { id: "p1", key: "NWL", name: "Summer", productionState: "Active", currency: "USD" },
     });
     expect(await finance.getProjectByKey(db, "o1", "ZZZ")).toEqual({
       ok: false,
@@ -219,8 +225,8 @@ describe("reference reads", () => {
     const { db } = fakeClient({
       "from:counterparties": [
         okResponse([
-          { id: "c2", counterparty_type: "Vendor", organization: { name: "Pier Rigging" } },
-          { id: "c1", counterparty_type: null, organization: null },
+          { id: "c2", counterparty_type: "Vendor", counterparty_name: "Pier Rigging" },
+          { id: "c1", counterparty_type: null, counterparty_name: null },
         ]),
       ],
     });

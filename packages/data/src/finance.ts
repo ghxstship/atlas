@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, XosClient } from "./client";
-import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
 /**
  * Finance repository (Sections 3.7, 3.11, 7.4 and 8.1 to 8.2): budgets and budget lines, expenses,
@@ -222,7 +222,8 @@ type Ledger =
   | "invoice_state_transitions"
   | "payment_state_transitions"
   | "journal_state_transitions"
-  | "accounting_period_state_transitions";
+  | "accounting_period_state_transitions"
+  | "settlement_state_transitions";
 
 const LEDGER_COLUMN: Record<Ledger, string> = {
   expense_state_transitions: "expense_id",
@@ -231,6 +232,7 @@ const LEDGER_COLUMN: Record<Ledger, string> = {
   payment_state_transitions: "payment_id",
   journal_state_transitions: "journal_entry_id",
   accounting_period_state_transitions: "accounting_period_id",
+  settlement_state_transitions: "settlement_id",
 };
 
 /** The state ledger of one subject, oldest first: the record's activity for every lifecycle. */
@@ -263,6 +265,8 @@ export interface ProjectRef {
   readonly key: string;
   readonly name: string;
   readonly productionState: string;
+  /** ISO 4217 base currency of the project, the default for its budgets. */
+  readonly currency: string;
 }
 
 const toProject = (r: Raw): ProjectRef => ({
@@ -270,6 +274,7 @@ const toProject = (r: Raw): ProjectRef => ({
   key: str(r["project_key"]),
   name: str(r["name"]),
   productionState: str(r["production_state"]),
+  currency: str(r["currency"]).trim(),
 });
 
 /** Projects of the org the viewer may read, in project key order. */
@@ -277,7 +282,7 @@ export async function listProjects(db: XosClient, orgId: string): Promise<Result
   return rows(
     db
       .from("projects")
-      .select("id, project_key, name, production_state")
+      .select("id, project_key, name, production_state, currency")
       .eq("org_id", orgId)
       .is("deleted_at", null)
       .order("project_key"),
@@ -294,7 +299,7 @@ export async function getProjectByKey(
   return one(
     db
       .from("projects")
-      .select("id, project_key, name, production_state")
+      .select("id, project_key, name, production_state, currency")
       .eq("org_id", orgId)
       .eq("project_key", key)
       .is("deleted_at", null)
@@ -309,7 +314,7 @@ export interface CounterpartyRef {
   readonly type: string | null;
 }
 
-/** Counterparties (vendors and clients) of the org; the name comes from the canonical organization. */
+/** Counterparties (vendors and clients) of the org; the name is A03's computed field over the organization. */
 export async function listCounterparties(
   db: XosClient,
   orgId: string,
@@ -317,14 +322,12 @@ export async function listCounterparties(
   const result = await rows(
     db
       .from("counterparties")
-      .select(
-        "id, counterparty_type, organization:organizations!counterparties_organization_id_fkey(name)",
-      )
+      .select("id, counterparty_type, counterparty_name")
       .eq("org_id", orgId)
       .is("deleted_at", null),
     (r) => ({
       id: str(r["id"]),
-      name: strOrNull(obj(r["organization"])?.["name"]),
+      name: strOrNull(r["counterparty_name"]),
       type: strOrNull(r["counterparty_type"]),
     }),
   );

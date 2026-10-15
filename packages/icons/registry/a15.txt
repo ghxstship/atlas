@@ -1,0 +1,9 @@
+# Icons the Finance and Reports pages (A15) draw by name that no other registry lists: toolbar
+# actions and empty states. One lucide-react name per line.
+ArrowRightLeft
+Banknote
+ClipboardPaste
+FilePlus2
+FileSpreadsheet
+Handshake
+Package
