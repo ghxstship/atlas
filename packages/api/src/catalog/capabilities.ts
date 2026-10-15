@@ -504,7 +504,6 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "finance.payment.approve": "Payment runs arrive with the payment module in Wave 3.",
   "vendors.bank_details.write":
     "Bank details are payout accounts held by the payment provider; edited through Gateway.",
-  "knowledge.sop.publish": "SOP publishing is part of the SOP lifecycle in Wave 3.",
   "audit.log.export": "Audit exports run through export jobs with step-up authentication.",
   "org.view_as_role.use": "A UI preview mode with no API operation (Section 8.4).",
   "org.modules.write": "Module switches are setting values.",

@@ -4187,22 +4187,29 @@
             "example": "Working at Height"
           },
           "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "SOP body as a rich text document.",
-            "example": { "type": "doc" }
-          },
-          "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "sop_state": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "SOP state. A Title Case value from the lifecycle's database enum.",
-            "example": "Active"
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Procedure text.",
+            "example": "Confirm the dock slot, then stage by department."
           },
-          "requires_acknowledgment": {
-            "type": "boolean",
-            "description": "Whether members must acknowledge it.",
-            "example": true
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "SOP code, SOP- and three to five digits.",
+            "example": "SOP-001"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Version number, raised on each publish.",
+            "example": 1
+          },
+          "published_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the current version was published; null while draft.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -4214,9 +4221,9 @@
           "updated_by",
           "title",
           "body",
-          "urid",
-          "sop_state",
-          "requires_acknowledgment"
+          "code",
+          "version",
+          "published_at"
         ],
         "description": "A standard operating procedure that members acknowledge."
       },
@@ -4231,19 +4238,20 @@
             "example": "Working at Height"
           },
           "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "SOP body as a rich text document.",
-            "example": { "type": "doc" }
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Procedure text.",
+            "example": "Confirm the dock slot, then stage by department."
           },
-          "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "requires_acknowledgment": {
-            "type": "boolean",
-            "description": "Whether members must acknowledge it.",
-            "example": true
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "SOP code, SOP- and three to five digits.",
+            "example": "SOP-001"
           }
         },
-        "required": ["title", "body", "requires_acknowledgment"],
+        "required": ["title", "body", "code"],
         "description": "Fields accepted when creating a Sop."
       },
       "SopUpdate": {
@@ -4257,16 +4265,11 @@
             "example": "Working at Height"
           },
           "body": {
-            "type": "object",
-            "additionalProperties": {},
-            "description": "SOP body as a rich text document.",
-            "example": { "type": "doc" }
-          },
-          "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "requires_acknowledgment": {
-            "type": "boolean",
-            "description": "Whether members must acknowledge it.",
-            "example": true
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Procedure text.",
+            "example": "Confirm the dock slot, then stage by department."
           }
         },
         "description": "Fields accepted when updating a Sop. Omitted fields are unchanged."
@@ -4344,6 +4347,12 @@
             "format": "date-time",
             "description": "When it was acknowledged.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "sop_version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Version acknowledged.",
+            "example": 2
           }
         },
         "required": [
@@ -4355,7 +4364,8 @@
           "updated_by",
           "sop_id",
           "person_id",
-          "acknowledged_at"
+          "acknowledged_at",
+          "sop_version"
         ],
         "description": "A person's acknowledgment of an SOP version."
       },
@@ -4367,15 +4377,9 @@
             "format": "uuid",
             "description": "Identifier of the SOP.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the acknowledging person.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["sop_id", "person_id"],
+        "required": ["sop_id"],
         "description": "Fields accepted when creating a SopAcknowledgment."
       },
       "DocumentPage": {
@@ -4446,24 +4450,6 @@
             "format": "uuid",
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "record_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the record the document belongs to.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "classification": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Column classification of the content. A Title Case value from the lifecycle's database enum.",
-            "example": "Internal"
-          },
-          "current_version_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the current version.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -4474,10 +4460,7 @@
           "updated_at",
           "updated_by",
           "title",
-          "project_id",
-          "record_id",
-          "classification",
-          "current_version_id"
+          "project_id"
         ],
         "description": "A document with versions. Files are stored in tenant-scoped storage."
       },
@@ -4496,21 +4479,9 @@
             "format": "uuid",
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "record_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the record the document belongs to.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "classification": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Column classification of the content. A Title Case value from the lifecycle's database enum.",
-            "example": "Internal"
           }
         },
-        "required": ["title", "classification"],
+        "required": ["title"],
         "description": "Fields accepted when creating a Document."
       },
       "DocumentUpdate": {
@@ -4528,18 +4499,6 @@
             "format": "uuid",
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "record_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the record the document belongs to.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "classification": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Column classification of the content. A Title Case value from the lifecycle's database enum.",
-            "example": "Internal"
           }
         },
         "description": "Fields accepted when updating a Document. Omitted fields are unchanged."
@@ -4612,31 +4571,18 @@
             "description": "Version number.",
             "example": 3
           },
-          "file_name": {
+          "storage_uri": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 300,
-            "description": "Original file name.",
-            "example": "site-plan-v3.pdf"
+            "maxLength": 2000,
+            "description": "Where the file is stored.",
+            "example": "https://files.example.com/site-plan-v3.pdf"
           },
-          "mime_type": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Sniffed MIME type.",
-            "example": "application/pdf"
-          },
-          "byte_size": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "File size in bytes.",
-            "example": 482113
-          },
-          "sha256": {
+          "checksum_sha256": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "SHA-256 of the file.",
-            "example": "9f2c4e1a7b"
+            "description": "SHA-256 of the file, lowercase hex.",
+            "example": "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b"
           }
         },
         "required": [
@@ -4648,10 +4594,8 @@
           "updated_by",
           "document_id",
           "version_number",
-          "file_name",
-          "mime_type",
-          "byte_size",
-          "sha256"
+          "storage_uri",
+          "checksum_sha256"
         ],
         "description": "An immutable version of a document."
       },
@@ -4664,22 +4608,21 @@
             "description": "Identifier of the document.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "file_name": {
+          "storage_uri": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 300,
-            "description": "Original file name.",
-            "example": "site-plan-v3.pdf"
+            "maxLength": 2000,
+            "description": "Where the file is stored.",
+            "example": "https://files.example.com/site-plan-v3.pdf"
           },
-          "mime_type": {
+          "checksum_sha256": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Sniffed MIME type.",
-            "example": "application/pdf"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "SHA-256 of the file, lowercase hex.",
+            "example": "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b"
           }
         },
-        "required": ["document_id", "file_name", "mime_type"],
+        "required": ["document_id", "storage_uri", "checksum_sha256"],
         "description": "Fields accepted when creating a DocumentVersion."
       },
       "VerbiageTermPage": {
@@ -4752,12 +4695,12 @@
             "description": "Casing rule.",
             "example": "Title Case as a noun"
           },
-          "usage": {
+          "definition": {
             "type": "string",
             "minLength": 1,
             "maxLength": 20000,
-            "description": "Usage note.",
-            "example": "Hyphenate as a noun; two words as a verb."
+            "description": "Definition, a sentence ending in a period.",
+            "example": "The arrival of equipment before a show."
           }
         },
         "required": [
@@ -4769,7 +4712,7 @@
           "updated_by",
           "term",
           "casing_rule",
-          "usage"
+          "definition"
         ],
         "description": "A controlled vocabulary term with casing rules. Em dashes are refused."
       },
@@ -4790,15 +4733,15 @@
             "description": "Casing rule.",
             "example": "Title Case as a noun"
           },
-          "usage": {
+          "definition": {
             "type": "string",
             "minLength": 1,
             "maxLength": 20000,
-            "description": "Usage note.",
-            "example": "Hyphenate as a noun; two words as a verb."
+            "description": "Definition, a sentence ending in a period.",
+            "example": "The arrival of equipment before a show."
           }
         },
-        "required": ["term", "casing_rule", "usage"],
+        "required": ["term", "casing_rule", "definition"],
         "description": "Fields accepted when creating a VerbiageTerm."
       },
       "VerbiageTermUpdate": {
@@ -4818,12 +4761,12 @@
             "description": "Casing rule.",
             "example": "Title Case as a noun"
           },
-          "usage": {
+          "definition": {
             "type": "string",
             "minLength": 1,
             "maxLength": 20000,
-            "description": "Usage note.",
-            "example": "Hyphenate as a noun; two words as a verb."
+            "description": "Definition, a sentence ending in a period.",
+            "example": "The arrival of equipment before a show."
           }
         },
         "description": "Fields accepted when updating a VerbiageTerm. Omitted fields are unchanged."
@@ -19060,14 +19003,24 @@
             "description": "RFQ title.",
             "example": "Main Stage Audio Package"
           },
-          "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "deadline_at": {
+          "rfq_state": {
             "type": "string",
-            "format": "date-time",
-            "description": "Bid deadline; bids unseal after it.",
-            "example": "2026-10-08T14:30:00Z"
+            "enum": ["Proposed", "Issued", "Closed", "Awarded", "Canceled"],
+            "description": "RFQ state.",
+            "example": "Proposed"
           },
-          "rfq_state": { "$ref": "#/components/schemas/SharedState" }
+          "rfq_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number from the project's display key sequence.",
+            "example": 3
+          },
+          "responses_due_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Deadline for responses; responses unseal when the RFQ closes.",
+            "example": "2026-10-08T14:30:00Z"
+          }
         },
         "required": [
           "id",
@@ -19078,9 +19031,9 @@
           "updated_by",
           "project_id",
           "title",
-          "urid",
-          "deadline_at",
-          "rfq_state"
+          "rfq_state",
+          "rfq_number",
+          "responses_due_at"
         ],
         "description": "A request for quotation. Responses stay sealed until the deadline."
       },
@@ -19100,15 +19053,14 @@
             "description": "RFQ title.",
             "example": "Main Stage Audio Package"
           },
-          "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "deadline_at": {
-            "type": "string",
+          "responses_due_at": {
+            "type": ["string", "null"],
             "format": "date-time",
-            "description": "Bid deadline; bids unseal after it.",
+            "description": "Deadline for responses; responses unseal when the RFQ closes.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["project_id", "title", "urid", "deadline_at"],
+        "required": ["project_id", "title"],
         "description": "Fields accepted when creating a Rfq."
       },
       "RfqUpdate": {
@@ -19121,11 +19073,10 @@
             "description": "RFQ title.",
             "example": "Main Stage Audio Package"
           },
-          "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "deadline_at": {
-            "type": "string",
+          "responses_due_at": {
+            "type": ["string", "null"],
             "format": "date-time",
-            "description": "Bid deadline; bids unseal after it.",
+            "description": "Deadline for responses; responses unseal when the RFQ closes.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
@@ -19138,13 +19089,13 @@
             "type": "string",
             "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
             "description": "The state the caller believes the row is in (compare-and-set).",
-            "example": "Active"
+            "example": "Issued"
           },
           "to_state": {
             "type": "string",
             "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
             "description": "Target state.",
-            "example": "Complete"
+            "example": "Closed"
           },
           "reason": {
             "type": "string",
@@ -19218,10 +19169,10 @@
             "description": "Identifier of the RFQ.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "organization_id": {
+          "vendor_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the invited vendor organization.",
+            "description": "Identifier of the invited vendor of the same org.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -19233,7 +19184,7 @@
           "updated_at",
           "updated_by",
           "rfq_id",
-          "organization_id"
+          "vendor_id"
         ],
         "description": "An invitation to bid on an RFQ."
       },
@@ -19246,14 +19197,14 @@
             "description": "Identifier of the RFQ.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "organization_id": {
+          "vendor_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the invited vendor organization.",
+            "description": "Identifier of the invited vendor of the same org.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["rfq_id", "organization_id"],
+        "required": ["rfq_id", "vendor_id"],
         "description": "Fields accepted when creating a RfqInvitation."
       },
       "RfqResponsePage": {
@@ -19318,19 +19269,24 @@
             "description": "Identifier of the RFQ.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "organization_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the responding vendor.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "submitted_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When the response was submitted.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "total": { "$ref": "#/components/schemas/MoneyTotal" }
+          "vendor_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the responding vendor; must have been invited.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "valid_until": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Last day the quoted prices hold.",
+            "example": "2026-10-08"
+          }
         },
         "required": [
           "id",
@@ -19340,9 +19296,9 @@
           "updated_at",
           "updated_by",
           "rfq_id",
-          "organization_id",
           "submitted_at",
-          "total"
+          "vendor_id",
+          "valid_until"
         ],
         "description": "A sealed RFQ response. A bidder sees only their own response."
       },
@@ -19355,14 +19311,20 @@
             "description": "Identifier of the RFQ.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "organization_id": {
+          "vendor_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the responding vendor.",
+            "description": "Identifier of the responding vendor; must have been invited.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "valid_until": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Last day the quoted prices hold.",
+            "example": "2026-10-08"
           }
         },
-        "required": ["rfq_id", "organization_id"],
+        "required": ["rfq_id", "vendor_id"],
         "description": "Fields accepted when creating a RfqResponse."
       },
       "RfqResponseLinePage": {
@@ -19441,11 +19403,17 @@
             "example": 1800000,
             "format": "int64"
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "element_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element quoted.",
+            "example": "0000.01.01-XOS-001"
           }
         },
         "required": [
@@ -19459,7 +19427,8 @@
           "description",
           "quantity",
           "unit_price_minor",
-          "currency"
+          "currency_code",
+          "element_id"
         ],
         "description": "A line of an RFQ response."
       },
@@ -19486,14 +19455,20 @@
             "example": 1800000,
             "format": "int64"
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "element_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element quoted.",
+            "example": "0000.01.01-XOS-001"
           }
         },
-        "required": ["rfq_response_id", "description", "currency"],
+        "required": ["rfq_response_id", "description", "currency_code"],
         "description": "Fields accepted when creating a RfqResponseLine."
       },
       "RfqResponseLineUpdate": {
@@ -19513,11 +19488,17 @@
             "example": 1800000,
             "format": "int64"
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "element_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element quoted.",
+            "example": "0000.01.01-XOS-001"
           }
         },
         "description": "Fields accepted when updating a RfqResponseLine. Omitted fields are unchanged."
@@ -19591,24 +19572,28 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "po_number": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "PO number issued by `next_sequence`.",
-            "example": "PO-2026-0117"
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number from the project's display key sequence.",
+            "example": 7
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
           },
-          "po_state": { "$ref": "#/components/schemas/SharedState" },
-          "total": { "$ref": "#/components/schemas/MoneyTotal" },
-          "required_on": {
+          "po_state": {
+            "type": "string",
+            "enum": ["Proposed", "Approved", "Sent", "Closed", "Canceled"],
+            "description": "Purchase order state.",
+            "example": "Proposed"
+          },
+          "rfq_response_id": {
             "type": ["string", "null"],
-            "format": "date",
-            "description": "Date the goods or services are required.",
-            "example": "2026-10-08"
+            "format": "uuid",
+            "description": "Identifier of the awarded RFQ response the order comes from.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -19621,10 +19606,9 @@
           "project_id",
           "vendor_id",
           "po_number",
-          "currency",
+          "currency_code",
           "po_state",
-          "total",
-          "required_on"
+          "rfq_response_id"
         ],
         "description": "A purchase order. Its creator cannot approve it; spend authority applies inside the approval RPC."
       },
@@ -19643,45 +19627,47 @@
             "description": "Identifier of the vendor.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
           },
-          "required_on": {
+          "rfq_response_id": {
             "type": ["string", "null"],
-            "format": "date",
-            "description": "Date the goods or services are required.",
-            "example": "2026-10-08"
+            "format": "uuid",
+            "description": "Identifier of the awarded RFQ response the order comes from.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["project_id", "vendor_id", "currency"],
+        "required": ["project_id", "vendor_id", "currency_code"],
         "description": "Fields accepted when creating a PurchaseOrder."
       },
       "PurchaseOrderUpdate": {
         "type": "object",
         "properties": {
-          "vendor_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the vendor.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
-          },
-          "required_on": {
+          "rfq_response_id": {
             "type": ["string", "null"],
-            "format": "date",
-            "description": "Date the goods or services are required.",
-            "example": "2026-10-08"
+            "format": "uuid",
+            "description": "Identifier of the awarded RFQ response the order comes from.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a PurchaseOrder. Omitted fields are unchanged."
+      },
+      "PurchaseOrderApproveRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why approve the order.",
+            "example": "Within budget."
+          }
+        },
+        "required": ["reason"],
+        "description": "Request to approve the order."
       },
       "PurchaseOrderTransitionRequest": {
         "type": "object",
@@ -19690,13 +19676,13 @@
             "type": "string",
             "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
             "description": "The state the caller believes the row is in (compare-and-set).",
-            "example": "Proposed"
+            "example": "Approved"
           },
           "to_state": {
             "type": "string",
             "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
             "description": "Target state.",
-            "example": "Committed"
+            "example": "Sent"
           },
           "reason": {
             "type": "string",
@@ -19771,7 +19757,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "budget_line_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the budget line.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -19785,18 +19771,20 @@
             "example": "Stage deck rental"
           },
           "quantity": { "type": "number", "description": "Quantity ordered.", "example": 24 },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
+          "unit_basis": {
+            "anyOf": [{ "$ref": "#/components/schemas/UnitCode" }, { "type": "null" }]
+          },
           "unit_price_minor": {
             "type": ["integer", "null"],
             "description": "Unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 4500,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
+          "line_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order of the line within the purchase order.",
+            "example": 1
           }
         },
         "required": [
@@ -19811,9 +19799,9 @@
           "element_id",
           "description",
           "quantity",
-          "unit",
+          "unit_basis",
           "unit_price_minor",
-          "currency"
+          "line_number"
         ],
         "description": "A purchase order line."
       },
@@ -19827,7 +19815,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "budget_line_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the budget line.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -19841,35 +19829,30 @@
             "example": "Stage deck rental"
           },
           "quantity": { "type": "number", "description": "Quantity ordered.", "example": 24 },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
+          "unit_basis": {
+            "anyOf": [{ "$ref": "#/components/schemas/UnitCode" }, { "type": "null" }]
+          },
           "unit_price_minor": {
             "type": ["integer", "null"],
             "description": "Unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 4500,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
+          "line_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order of the line within the purchase order.",
+            "example": 1
           }
         },
-        "required": [
-          "purchase_order_id",
-          "budget_line_id",
-          "description",
-          "quantity",
-          "unit",
-          "currency"
-        ],
+        "required": ["purchase_order_id", "description", "quantity"],
         "description": "Fields accepted when creating a PoLine."
       },
       "PoLineUpdate": {
         "type": "object",
         "properties": {
           "budget_line_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the budget line.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -19883,18 +19866,20 @@
             "example": "Stage deck rental"
           },
           "quantity": { "type": "number", "description": "Quantity ordered.", "example": 24 },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
+          "unit_basis": {
+            "anyOf": [{ "$ref": "#/components/schemas/UnitCode" }, { "type": "null" }]
+          },
           "unit_price_minor": {
             "type": ["integer", "null"],
             "description": "Unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 4500,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
+          "line_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order of the line within the purchase order.",
+            "example": 1
           }
         },
         "description": "Fields accepted when updating a PoLine. Omitted fields are unchanged."
@@ -19968,19 +19953,18 @@
             "description": "What changes.",
             "example": "Add six deck sections."
           },
-          "amount_minor": {
+          "amount_delta_minor": {
             "type": ["integer", "null"],
             "description": "Change amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 27000,
             "format": "int64"
           },
-          "currency": {
+          "po_change_order_state": {
             "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
-          },
-          "po_change_state": { "$ref": "#/components/schemas/SharedState" }
+            "enum": ["Proposed", "Approved", "Rejected", "Canceled"],
+            "description": "PO change order state.",
+            "example": "Proposed"
+          }
         },
         "required": [
           "id",
@@ -19991,9 +19975,8 @@
           "updated_by",
           "purchase_order_id",
           "description",
-          "amount_minor",
-          "currency",
-          "po_change_state"
+          "amount_delta_minor",
+          "po_change_order_state"
         ],
         "description": "A change to an issued purchase order."
       },
@@ -20013,20 +19996,14 @@
             "description": "What changes.",
             "example": "Add six deck sections."
           },
-          "amount_minor": {
+          "amount_delta_minor": {
             "type": ["integer", "null"],
             "description": "Change amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 27000,
             "format": "int64"
-          },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
           }
         },
-        "required": ["purchase_order_id", "description", "currency"],
+        "required": ["purchase_order_id", "description"],
         "description": "Fields accepted when creating a PoChangeOrder."
       },
       "PoChangeOrderUpdate": {
@@ -20039,20 +20016,42 @@
             "description": "What changes.",
             "example": "Add six deck sections."
           },
-          "amount_minor": {
+          "amount_delta_minor": {
             "type": ["integer", "null"],
             "description": "Change amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 27000,
             "format": "int64"
-          },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
           }
         },
         "description": "Fields accepted when updating a PoChangeOrder. Omitted fields are unchanged."
+      },
+      "PoChangeOrderApproveRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why approve the change.",
+            "example": "Within budget."
+          }
+        },
+        "required": ["reason"],
+        "description": "Request to approve the change."
+      },
+      "PoChangeOrderRejectRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why reject the change.",
+            "example": "Within budget."
+          }
+        },
+        "required": ["reason"],
+        "description": "Request to reject the change."
       },
       "GoodsReceiptPage": {
         "type": "object",
@@ -20123,16 +20122,17 @@
             "example": "2026-10-08T14:30:00Z"
           },
           "received_by": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the receiver.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "dock_slot_id": {
+          "note": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the dock slot.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Condition or exceptions noted.",
+            "example": "Two cases dented."
           }
         },
         "required": [
@@ -20145,7 +20145,7 @@
           "purchase_order_id",
           "received_at",
           "received_by",
-          "dock_slot_id"
+          "note"
         ],
         "description": "A goods receipt against a purchase order. Duplicate receipts are refused."
       },
@@ -20164,20 +20164,15 @@
             "description": "When the goods arrived.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "received_by": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the receiver.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "dock_slot_id": {
+          "note": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the dock slot.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Condition or exceptions noted.",
+            "example": "Two cases dented."
           }
         },
-        "required": ["purchase_order_id", "received_at", "received_by"],
+        "required": ["purchase_order_id"],
         "description": "Fields accepted when creating a GoodsReceipt."
       },
       "ReceiptLinePage": {
@@ -20370,7 +20365,31 @@
             "description": "Whether all three agree.",
             "example": true
           },
-          "variance": { "$ref": "#/components/schemas/MoneyTotal" }
+          "variance_minor": {
+            "type": ["integer", "null"],
+            "description": "Invoice total minus value received at order prices. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 2000,
+            "format": "int64"
+          },
+          "resolution_note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why a mismatch was accepted.",
+            "example": "Freight surcharge agreed."
+          },
+          "resolved_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who accepted the mismatch.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "resolved_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the mismatch was accepted.",
+            "example": "2026-10-08T14:30:00Z"
+          }
         },
         "required": [
           "id",
@@ -20383,7 +20402,10 @@
           "purchase_order_id",
           "goods_receipt_id",
           "matched",
-          "variance"
+          "variance_minor",
+          "resolution_note",
+          "resolved_by",
+          "resolved_at"
         ],
         "description": "A three-way match of PO, receipt and invoice. A mismatch is never auto-approved."
       },
@@ -20411,6 +20433,20 @@
         },
         "required": ["invoice_id", "purchase_order_id", "goods_receipt_id"],
         "description": "Fields accepted when creating a InvoiceMatch."
+      },
+      "InvoiceMatchResolveRequest": {
+        "type": "object",
+        "properties": {
+          "resolution_note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Why the difference is accepted.",
+            "example": "Freight surcharge agreed by phone."
+          }
+        },
+        "required": ["resolution_note"],
+        "description": "Request to accept a mismatch."
       },
       "CatalogBindingPage": {
         "type": "object",
@@ -20468,18 +20504,37 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "tenant_item_code": {
+          "element_id": { "$ref": "#/components/schemas/ItemId" },
+          "item_id": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Tenant's own item code.",
-            "example": "NWL-DECK-4x8"
+            "description": "Item ID {URID}-{ORG}-{SEQ}, issued by the database.",
+            "example": "0000.01.01-NORTHW-001"
           },
-          "element_id": { "$ref": "#/components/schemas/ItemId" },
-          "confirmed_by": {
+          "name": {
             "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the person who confirmed the binding.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Name the org uses for the item.",
+            "example": "4x8 Stage Deck"
+          },
+          "unit_basis": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Unit the item is bought in.",
+            "example": "ea"
+          },
+          "default_unit_price_minor": {
+            "type": ["integer", "null"],
+            "description": "Default unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 4500,
+            "format": "int64"
+          },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of the default price.",
+            "example": "USD"
           }
         },
         "required": [
@@ -20489,47 +20544,75 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "tenant_item_code",
           "element_id",
-          "confirmed_by"
+          "item_id",
+          "name",
+          "unit_basis",
+          "default_unit_price_minor",
+          "currency_code"
         ],
         "description": "A tenant item bound to a canon element."
       },
       "CatalogBindingCreate": {
         "type": "object",
         "properties": {
-          "tenant_item_code": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Tenant's own item code.",
-            "example": "NWL-DECK-4x8"
-          },
           "element_id": { "$ref": "#/components/schemas/ItemId" },
-          "confirmed_by": {
+          "name": {
             "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the person who confirmed the binding.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Name the org uses for the item.",
+            "example": "4x8 Stage Deck"
+          },
+          "unit_basis": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Unit the item is bought in.",
+            "example": "ea"
+          },
+          "default_unit_price_minor": {
+            "type": ["integer", "null"],
+            "description": "Default unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 4500,
+            "format": "int64"
+          },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of the default price.",
+            "example": "USD"
           }
         },
-        "required": ["tenant_item_code", "element_id", "confirmed_by"],
+        "required": ["element_id", "name"],
         "description": "Fields accepted when creating a CatalogBinding."
       },
       "CatalogBindingUpdate": {
         "type": "object",
         "properties": {
-          "tenant_item_code": {
+          "name": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Tenant's own item code.",
-            "example": "NWL-DECK-4x8"
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Name the org uses for the item.",
+            "example": "4x8 Stage Deck"
           },
-          "element_id": { "$ref": "#/components/schemas/ItemId" },
-          "confirmed_by": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the person who confirmed the binding.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          "unit_basis": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Unit the item is bought in.",
+            "example": "ea"
+          },
+          "default_unit_price_minor": {
+            "type": ["integer", "null"],
+            "description": "Default unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 4500,
+            "format": "int64"
+          },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of the default price.",
+            "example": "USD"
           }
         },
         "description": "Fields accepted when updating a CatalogBinding. Omitted fields are unchanged."
@@ -20596,13 +20679,6 @@
             "description": "Identifier of the vendor.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Product name.",
-            "example": "4x8 Stage Deck"
-          },
           "element_id": { "$ref": "#/components/schemas/ItemId" },
           "unit_price_minor": {
             "type": ["integer", "null"],
@@ -20610,11 +20686,30 @@
             "example": 4500,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "vendor_sku": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "The vendor's product identifier.",
+            "example": "DSS-DECK-0408"
+          },
+          "catalog_binding_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the catalog item the product fulfills.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "lead_time_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Days from order to delivery.",
+            "example": 14
           }
         },
         "required": [
@@ -20625,10 +20720,12 @@
           "updated_at",
           "updated_by",
           "vendor_id",
-          "name",
           "element_id",
           "unit_price_minor",
-          "currency"
+          "currency_code",
+          "vendor_sku",
+          "catalog_binding_id",
+          "lead_time_days"
         ],
         "description": "A product a vendor offers, optionally bound to an element."
       },
@@ -20641,13 +20738,6 @@
             "description": "Identifier of the vendor.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Product name.",
-            "example": "4x8 Stage Deck"
-          },
           "element_id": { "$ref": "#/components/schemas/ItemId" },
           "unit_price_minor": {
             "type": ["integer", "null"],
@@ -20655,26 +20745,38 @@
             "example": 4500,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "vendor_sku": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "The vendor's product identifier.",
+            "example": "DSS-DECK-0408"
+          },
+          "catalog_binding_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the catalog item the product fulfills.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "lead_time_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Days from order to delivery.",
+            "example": 14
           }
         },
-        "required": ["vendor_id", "name", "currency"],
+        "required": ["vendor_id", "vendor_sku"],
         "description": "Fields accepted when creating a VendorProduct."
       },
       "VendorProductUpdate": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Product name.",
-            "example": "4x8 Stage Deck"
-          },
           "element_id": { "$ref": "#/components/schemas/ItemId" },
           "unit_price_minor": {
             "type": ["integer", "null"],
@@ -20682,11 +20784,30 @@
             "example": 4500,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "vendor_sku": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "The vendor's product identifier.",
+            "example": "DSS-DECK-0408"
+          },
+          "catalog_binding_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the catalog item the product fulfills.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "lead_time_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Days from order to delivery.",
+            "example": 14
           }
         },
         "description": "Fields accepted when updating a VendorProduct. Omitted fields are unchanged."
@@ -20747,20 +20868,32 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "organization_id": {
+          "counterparty_type": {
+            "anyOf": [{ "$ref": "#/components/schemas/CounterpartyType" }, { "type": "null" }]
+          },
+          "vendor_state": {
+            "type": "string",
+            "enum": ["Prospect", "Onboarded", "Active", "Blocked", "Canceled"],
+            "description": "Vendor state.",
+            "example": "Prospect"
+          },
+          "counterparty_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the vendor organization.",
+            "description": "Identifier of the counterparty the vendor facet belongs to.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "counterparty_type": { "$ref": "#/components/schemas/CounterpartyType" },
-          "vendor_state": { "$ref": "#/components/schemas/SharedState" },
-          "internal_notes": {
+          "payment_terms_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Days after invoice the vendor is paid.",
+            "example": 30
+          },
+          "default_currency_code": {
             "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Internal notes; never visible externally.",
-            "example": "Reliable on short notice."
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency the vendor bills in by default.",
+            "example": "USD"
           }
         },
         "required": [
@@ -20770,10 +20903,11 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "organization_id",
           "counterparty_type",
           "vendor_state",
-          "internal_notes"
+          "counterparty_id",
+          "payment_terms_days",
+          "default_currency_code"
         ],
         "description": "An organization in the vendor relationship with this org, with its counterparty type."
       },
@@ -20786,37 +20920,70 @@
       "VendorCreate": {
         "type": "object",
         "properties": {
-          "organization_id": {
+          "counterparty_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the vendor organization.",
+            "description": "Identifier of the counterparty the vendor facet belongs to.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "counterparty_type": { "$ref": "#/components/schemas/CounterpartyType" },
-          "internal_notes": {
+          "payment_terms_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Days after invoice the vendor is paid.",
+            "example": 30
+          },
+          "default_currency_code": {
             "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Internal notes; never visible externally.",
-            "example": "Reliable on short notice."
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency the vendor bills in by default.",
+            "example": "USD"
           }
         },
-        "required": ["organization_id", "counterparty_type"],
+        "required": ["counterparty_id"],
         "description": "Fields accepted when creating a Vendor."
       },
       "VendorUpdate": {
         "type": "object",
         "properties": {
-          "counterparty_type": { "$ref": "#/components/schemas/CounterpartyType" },
-          "internal_notes": {
+          "payment_terms_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Days after invoice the vendor is paid.",
+            "example": 30
+          },
+          "default_currency_code": {
             "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Internal notes; never visible externally.",
-            "example": "Reliable on short notice."
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency the vendor bills in by default.",
+            "example": "USD"
           }
         },
         "description": "Fields accepted when updating a Vendor. Omitted fields are unchanged."
+      },
+      "VendorTransitionRequest": {
+        "type": "object",
+        "properties": {
+          "expected_state": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
+            "description": "The state the caller believes the row is in (compare-and-set).",
+            "example": "Prospect"
+          },
+          "to_state": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
+            "description": "Target state.",
+            "example": "Onboarded"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Reason, required by some transitions.",
+            "example": "Client approved the revised scope."
+          }
+        },
+        "required": ["expected_state", "to_state"],
+        "description": "Request to move a lifecycle to another state."
       },
       "VendorClassPage": {
         "type": "object",
@@ -20881,11 +21048,18 @@
             "description": "Vendor class name.",
             "example": "Staging"
           },
-          "counterparty_type": {
-            "allOf": [
-              { "$ref": "#/components/schemas/CounterpartyType" },
-              { "type": ["string", "null"] }
-            ]
+          "std_vendor_class_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Standard Library vendor class adopted.",
+            "example": "VC-001"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the class covers.",
+            "example": "Staging rental houses."
           }
         },
         "required": [
@@ -20896,7 +21070,8 @@
           "updated_at",
           "updated_by",
           "name",
-          "counterparty_type"
+          "std_vendor_class_id",
+          "description"
         ],
         "description": "An org vendor class, seeded from the Standard Library."
       },
@@ -20910,11 +21085,18 @@
             "description": "Vendor class name.",
             "example": "Staging"
           },
-          "counterparty_type": {
-            "allOf": [
-              { "$ref": "#/components/schemas/CounterpartyType" },
-              { "type": ["string", "null"] }
-            ]
+          "std_vendor_class_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Standard Library vendor class adopted.",
+            "example": "VC-001"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the class covers.",
+            "example": "Staging rental houses."
           }
         },
         "required": ["name"],
@@ -20930,11 +21112,18 @@
             "description": "Vendor class name.",
             "example": "Staging"
           },
-          "counterparty_type": {
-            "allOf": [
-              { "$ref": "#/components/schemas/CounterpartyType" },
-              { "type": ["string", "null"] }
-            ]
+          "std_vendor_class_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Standard Library vendor class adopted.",
+            "example": "VC-001"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the class covers.",
+            "example": "Staging rental houses."
           }
         },
         "description": "Fields accepted when updating a VendorClass. Omitted fields are unchanged."
@@ -21107,7 +21296,31 @@
             "description": "Expiry.",
             "example": "2026-10-08"
           },
-          "prequalification_state": { "$ref": "#/components/schemas/SharedState" }
+          "scope_note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the vendor is prequalified for.",
+            "example": "Rigging over 2,000 kg."
+          },
+          "decision": {
+            "type": ["string", "null"],
+            "enum": ["Approved", "Rejected", null],
+            "description": "Decision; null while pending.",
+            "example": "Approved"
+          },
+          "decided_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who decided.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "decided_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was decided.",
+            "example": "2026-10-08T14:30:00Z"
+          }
         },
         "required": [
           "id",
@@ -21118,7 +21331,10 @@
           "updated_by",
           "vendor_id",
           "valid_to",
-          "prequalification_state"
+          "scope_note",
+          "decision",
+          "decided_by",
+          "decided_at"
         ],
         "description": "A vendor prequalification."
       },
@@ -21136,9 +21352,16 @@
             "format": "date",
             "description": "Expiry.",
             "example": "2026-10-08"
+          },
+          "scope_note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the vendor is prequalified for.",
+            "example": "Rigging over 2,000 kg."
           }
         },
-        "required": ["vendor_id"],
+        "required": ["vendor_id", "scope_note"],
         "description": "Fields accepted when creating a Prequalification."
       },
       "PrequalificationUpdate": {
@@ -21149,34 +21372,35 @@
             "format": "date",
             "description": "Expiry.",
             "example": "2026-10-08"
+          },
+          "scope_note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the vendor is prequalified for.",
+            "example": "Rigging over 2,000 kg."
           }
         },
         "description": "Fields accepted when updating a Prequalification. Omitted fields are unchanged."
       },
-      "PrequalificationTransitionRequest": {
+      "PrequalificationDecideRequest": {
         "type": "object",
         "properties": {
-          "expected_state": {
+          "decision": {
             "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
-            "description": "The state the caller believes the row is in (compare-and-set).",
-            "example": "Proposed"
+            "enum": ["Approved", "Rejected"],
+            "description": "Decision.",
+            "example": "Approved"
           },
-          "to_state": {
+          "valid_to": {
             "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
-            "description": "Target state.",
-            "example": "Active"
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Reason, required by some transitions.",
-            "example": "Client approved the revised scope."
+            "format": "date",
+            "description": "Last day an approval holds.",
+            "example": "2027-12-31"
           }
         },
-        "required": ["expected_state", "to_state"],
-        "description": "Request to move a lifecycle to another state."
+        "required": ["decision"],
+        "description": "Request to decide a prequalification."
       },
       "InsuranceCertificatePage": {
         "type": "object",
@@ -21234,18 +21458,6 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "organization_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the insured organization.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "document_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the certificate document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "coverage_type": {
             "type": "string",
             "minLength": 1,
@@ -21253,23 +21465,55 @@
             "description": "Coverage type.",
             "example": "General Liability"
           },
-          "each_occurrence_minor": {
+          "coverage_limit_minor": {
             "type": ["integer", "null"],
             "description": "Each occurrence limit. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 100000000,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
           },
-          "expires_on": {
+          "valid_to": {
             "type": "string",
             "format": "date",
             "description": "Expiry.",
             "example": "2026-10-08"
+          },
+          "vendor_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the insured vendor.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "insurer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Insurance carrier.",
+            "example": "Example Mutual"
+          },
+          "policy_identifier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Policy number.",
+            "example": "GL-2027-0042"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date",
+            "description": "First day of coverage.",
+            "example": "2026-10-08"
+          },
+          "document_uri": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "description": "Where the certificate document is stored.",
+            "example": "https://northwindlive.example/files/site-plan.pdf"
           }
         },
         "required": [
@@ -21279,30 +21523,21 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "organization_id",
-          "document_id",
           "coverage_type",
-          "each_occurrence_minor",
-          "currency",
-          "expires_on"
+          "coverage_limit_minor",
+          "currency_code",
+          "valid_to",
+          "vendor_id",
+          "insurer",
+          "policy_identifier",
+          "valid_from",
+          "document_uri"
         ],
         "description": "A certificate of insurance naming the required additional insureds."
       },
       "InsuranceCertificateCreate": {
         "type": "object",
         "properties": {
-          "organization_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the insured organization.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "document_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the certificate document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "coverage_type": {
             "type": "string",
             "minLength": 1,
@@ -21310,43 +21545,70 @@
             "description": "Coverage type.",
             "example": "General Liability"
           },
-          "each_occurrence_minor": {
+          "coverage_limit_minor": {
             "type": ["integer", "null"],
             "description": "Each occurrence limit. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 100000000,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
           },
-          "expires_on": {
+          "valid_to": {
             "type": "string",
             "format": "date",
             "description": "Expiry.",
             "example": "2026-10-08"
+          },
+          "vendor_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the insured vendor.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "insurer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Insurance carrier.",
+            "example": "Example Mutual"
+          },
+          "policy_identifier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Policy number.",
+            "example": "GL-2027-0042"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date",
+            "description": "First day of coverage.",
+            "example": "2026-10-08"
+          },
+          "document_uri": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "description": "Where the certificate document is stored.",
+            "example": "https://northwindlive.example/files/site-plan.pdf"
           }
         },
-        "required": ["organization_id", "document_id", "coverage_type", "currency", "expires_on"],
+        "required": [
+          "coverage_type",
+          "valid_to",
+          "vendor_id",
+          "insurer",
+          "policy_identifier",
+          "valid_from"
+        ],
         "description": "Fields accepted when creating a InsuranceCertificate."
       },
       "InsuranceCertificateUpdate": {
         "type": "object",
         "properties": {
-          "organization_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the insured organization.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "document_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the certificate document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "coverage_type": {
             "type": "string",
             "minLength": 1,
@@ -21354,23 +21616,55 @@
             "description": "Coverage type.",
             "example": "General Liability"
           },
-          "each_occurrence_minor": {
+          "coverage_limit_minor": {
             "type": ["integer", "null"],
             "description": "Each occurrence limit. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 100000000,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
           },
-          "expires_on": {
+          "valid_to": {
             "type": "string",
             "format": "date",
             "description": "Expiry.",
             "example": "2026-10-08"
+          },
+          "vendor_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the insured vendor.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "insurer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Insurance carrier.",
+            "example": "Example Mutual"
+          },
+          "policy_identifier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Policy number.",
+            "example": "GL-2027-0042"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date",
+            "description": "First day of coverage.",
+            "example": "2026-10-08"
+          },
+          "document_uri": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "description": "Where the certificate document is stored.",
+            "example": "https://northwindlive.example/files/site-plan.pdf"
           }
         },
         "description": "Fields accepted when updating a InsuranceCertificate. Omitted fields are unchanged."
@@ -21443,18 +21737,36 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "score": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Score from 1 to 5.",
-            "example": 4
-          },
-          "notes": {
+          "note": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
             "description": "Internal notes.",
             "example": "On time; one damaged deck."
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "description": "Last day of the period scored.",
+            "example": "2026-10-08"
+          },
+          "quality_score": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Quality, 1 to 5; null when not scored.",
+            "example": 4
+          },
+          "delivery_score": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "On-time delivery, 1 to 5; null when not scored.",
+            "example": 4
+          },
+          "safety_score": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Safety, 1 to 5; null when not scored.",
+            "example": 4
           }
         },
         "required": [
@@ -21466,8 +21778,11 @@
           "updated_by",
           "vendor_id",
           "project_id",
-          "score",
-          "notes"
+          "note",
+          "period_end",
+          "quality_score",
+          "delivery_score",
+          "safety_score"
         ],
         "description": "A vendor scorecard for an engagement or project."
       },
@@ -21486,21 +21801,39 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "score": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Score from 1 to 5.",
-            "example": 4
-          },
-          "notes": {
+          "note": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
             "description": "Internal notes.",
             "example": "On time; one damaged deck."
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "description": "Last day of the period scored.",
+            "example": "2026-10-08"
+          },
+          "quality_score": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Quality, 1 to 5; null when not scored.",
+            "example": 4
+          },
+          "delivery_score": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "On-time delivery, 1 to 5; null when not scored.",
+            "example": 4
+          },
+          "safety_score": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Safety, 1 to 5; null when not scored.",
+            "example": 4
           }
         },
-        "required": ["vendor_id", "score"],
+        "required": ["vendor_id", "period_end"],
         "description": "Fields accepted when creating a VendorScorecard."
       },
       "VendorScorecardUpdate": {
@@ -21512,18 +21845,36 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "score": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Score from 1 to 5.",
-            "example": 4
-          },
-          "notes": {
+          "note": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
             "description": "Internal notes.",
             "example": "On time; one damaged deck."
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "description": "Last day of the period scored.",
+            "example": "2026-10-08"
+          },
+          "quality_score": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Quality, 1 to 5; null when not scored.",
+            "example": 4
+          },
+          "delivery_score": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "On-time delivery, 1 to 5; null when not scored.",
+            "example": 4
+          },
+          "safety_score": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Safety, 1 to 5; null when not scored.",
+            "example": 4
           }
         },
         "description": "Fields accepted when updating a VendorScorecard. Omitted fields are unchanged."
@@ -21584,25 +21935,42 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "engagement_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the sponsor engagement.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "name": {
+          "description": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 300,
-            "description": "Entitlement.",
-            "example": "Logo on Main Stage Screen"
+            "maxLength": 500,
+            "description": "The entitlement.",
+            "example": "Logo on the main stage scrims."
           },
           "quantity": {
             "type": ["number", "null"],
             "description": "Committed quantity.",
             "example": 12
           },
-          "fulfillment_state": { "$ref": "#/components/schemas/SharedState" }
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the entitlement is delivered on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "counterparty_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the sponsor counterparty.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "due_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "When the entitlement is owed.",
+            "example": "2026-10-08"
+          },
+          "fulfilled_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was delivered; null while owed.",
+            "example": "2026-10-08T14:30:00Z"
+          }
         },
         "required": [
           "id",
@@ -21611,86 +21979,81 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "engagement_id",
-          "name",
+          "description",
           "quantity",
-          "fulfillment_state"
+          "project_id",
+          "counterparty_id",
+          "due_on",
+          "fulfilled_at"
         ],
         "description": "A sponsor entitlement with fulfillment tracking."
       },
       "SponsorEntitlementCreate": {
         "type": "object",
         "properties": {
-          "engagement_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the sponsor engagement.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "name": {
+          "description": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 300,
-            "description": "Entitlement.",
-            "example": "Logo on Main Stage Screen"
+            "maxLength": 500,
+            "description": "The entitlement.",
+            "example": "Logo on the main stage scrims."
           },
           "quantity": {
             "type": ["number", "null"],
             "description": "Committed quantity.",
             "example": 12
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the entitlement is delivered on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "counterparty_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the sponsor counterparty.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "due_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "When the entitlement is owed.",
+            "example": "2026-10-08"
           }
         },
-        "required": ["engagement_id", "name"],
+        "required": ["description", "project_id", "counterparty_id"],
         "description": "Fields accepted when creating a SponsorEntitlement."
       },
       "SponsorEntitlementUpdate": {
         "type": "object",
         "properties": {
-          "engagement_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the sponsor engagement.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "name": {
+          "description": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 300,
-            "description": "Entitlement.",
-            "example": "Logo on Main Stage Screen"
+            "maxLength": 500,
+            "description": "The entitlement.",
+            "example": "Logo on the main stage scrims."
           },
           "quantity": {
             "type": ["number", "null"],
             "description": "Committed quantity.",
             "example": 12
+          },
+          "counterparty_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the sponsor counterparty.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "due_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "When the entitlement is owed.",
+            "example": "2026-10-08"
           }
         },
         "description": "Fields accepted when updating a SponsorEntitlement. Omitted fields are unchanged."
-      },
-      "EntitlementFulfillmentTransitionRequest": {
-        "type": "object",
-        "properties": {
-          "expected_state": {
-            "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
-            "description": "The state the caller believes the row is in (compare-and-set).",
-            "example": "Committed"
-          },
-          "to_state": {
-            "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
-            "description": "Target state.",
-            "example": "Complete"
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Reason, required by some transitions.",
-            "example": "Client approved the revised scope."
-          }
-        },
-        "required": ["expected_state", "to_state"],
-        "description": "Request to move a lifecycle to another state."
       },
       "InspectionTemplatePage": {
         "type": "object",
@@ -50415,10 +50778,10 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "title": "Working at Height",
-                      "body": { "type": "doc" },
-                      "urid": "4000.01",
-                      "sop_state": "Active",
-                      "requires_acknowledgment": true
+                      "body": "Confirm the dock slot, then stage by department.",
+                      "code": "SOP-001",
+                      "version": 1,
+                      "published_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -50447,9 +50810,8 @@
             "application/json": {
               "example": {
                 "title": "Working at Height",
-                "body": { "type": "doc" },
-                "urid": "4000.01",
-                "requires_acknowledgment": true
+                "body": "Confirm the dock slot, then stage by department.",
+                "code": "SOP-001"
               },
               "schema": { "$ref": "#/components/schemas/SopCreate" }
             }
@@ -50474,10 +50836,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Working at Height",
-                  "body": { "type": "doc" },
-                  "urid": "4000.01",
-                  "sop_state": "Active",
-                  "requires_acknowledgment": true
+                  "body": "Confirm the dock slot, then stage by department.",
+                  "code": "SOP-001",
+                  "version": 1,
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Sop" }
               }
@@ -50534,10 +50896,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Working at Height",
-                  "body": { "type": "doc" },
-                  "urid": "4000.01",
-                  "sop_state": "Active",
-                  "requires_acknowledgment": true
+                  "body": "Confirm the dock slot, then stage by department.",
+                  "code": "SOP-001",
+                  "version": 1,
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Sop" }
               }
@@ -50578,9 +50940,7 @@
             "application/json": {
               "example": {
                 "title": "Working at Height",
-                "body": { "type": "doc" },
-                "urid": "4000.01",
-                "requires_acknowledgment": true
+                "body": "Confirm the dock slot, then stage by department."
               },
               "schema": { "$ref": "#/components/schemas/SopUpdate" }
             }
@@ -50605,10 +50965,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Working at Height",
-                  "body": { "type": "doc" },
-                  "urid": "4000.01",
-                  "sop_state": "Active",
-                  "requires_acknowledgment": true
+                  "body": "Confirm the dock slot, then stage by department.",
+                  "code": "SOP-001",
+                  "version": 1,
+                  "published_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Sop" }
               }
@@ -50654,6 +51014,67 @@
         }
       }
     },
+    "/sops/{id}/publish": {
+      "post": {
+        "operationId": "sops.publish",
+        "tags": ["Knowledge"],
+        "x-xos-table": "app.sops",
+        "x-xos-capability": "knowledge.sop.publish",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "summary": "Publish an SOP",
+        "description": "Publishes the SOP: the database stamps `published_at` and raises `version` when it was published before, so everyone is asked to acknowledge the new version. Needs knowledge.sop.publish. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the sop.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the sop.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "title": "Working at Height",
+                  "body": "Confirm the dock slot, then stage by department.",
+                  "code": "SOP-001",
+                  "version": 1,
+                  "published_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/Sop" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/sop-acknowledgments": {
       "get": {
         "operationId": "sopAcknowledgments.list",
@@ -50692,7 +51113,8 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "acknowledged_at": "2026-10-08T14:30:00Z"
+                      "acknowledged_at": "2026-10-08T14:30:00Z",
+                      "sop_version": 2
                     }
                   ],
                   "next_cursor": null
@@ -50719,10 +51141,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-              },
+              "example": { "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
               "schema": { "$ref": "#/components/schemas/SopAcknowledgmentCreate" }
             }
           }
@@ -50747,7 +51166,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "acknowledged_at": "2026-10-08T14:30:00Z"
+                  "acknowledged_at": "2026-10-08T14:30:00Z",
+                  "sop_version": 2
                 },
                 "schema": { "$ref": "#/components/schemas/SopAcknowledgment" }
               }
@@ -50805,7 +51225,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "acknowledged_at": "2026-10-08T14:30:00Z"
+                  "acknowledged_at": "2026-10-08T14:30:00Z",
+                  "sop_version": 2
                 },
                 "schema": { "$ref": "#/components/schemas/SopAcknowledgment" }
               }
@@ -50855,10 +51276,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "title": "Venue Site Plan",
-                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "classification": "Internal",
-                      "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -50887,9 +51305,7 @@
             "application/json": {
               "example": {
                 "title": "Venue Site Plan",
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "classification": "Internal"
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/DocumentCreate" }
             }
@@ -50914,10 +51330,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Venue Site Plan",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "classification": "Internal",
-                  "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Document" }
               }
@@ -50974,10 +51387,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Venue Site Plan",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "classification": "Internal",
-                  "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Document" }
               }
@@ -51018,9 +51428,7 @@
             "application/json": {
               "example": {
                 "title": "Venue Site Plan",
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "classification": "Internal"
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/DocumentUpdate" }
             }
@@ -51045,10 +51453,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Venue Site Plan",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "classification": "Internal",
-                  "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Document" }
               }
@@ -51132,10 +51537,8 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "version_number": 3,
-                      "file_name": "site-plan-v3.pdf",
-                      "mime_type": "application/pdf",
-                      "byte_size": 482113,
-                      "sha256": "9f2c4e1a7b"
+                      "storage_uri": "https://files.example.com/site-plan-v3.pdf",
+                      "checksum_sha256": "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b"
                     }
                   ],
                   "next_cursor": null
@@ -51164,8 +51567,8 @@
             "application/json": {
               "example": {
                 "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "file_name": "site-plan-v3.pdf",
-                "mime_type": "application/pdf"
+                "storage_uri": "https://files.example.com/site-plan-v3.pdf",
+                "checksum_sha256": "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b"
               },
               "schema": { "$ref": "#/components/schemas/DocumentVersionCreate" }
             }
@@ -51191,10 +51594,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "version_number": 3,
-                  "file_name": "site-plan-v3.pdf",
-                  "mime_type": "application/pdf",
-                  "byte_size": 482113,
-                  "sha256": "9f2c4e1a7b"
+                  "storage_uri": "https://files.example.com/site-plan-v3.pdf",
+                  "checksum_sha256": "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b"
                 },
                 "schema": { "$ref": "#/components/schemas/DocumentVersion" }
               }
@@ -51252,10 +51653,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "version_number": 3,
-                  "file_name": "site-plan-v3.pdf",
-                  "mime_type": "application/pdf",
-                  "byte_size": 482113,
-                  "sha256": "9f2c4e1a7b"
+                  "storage_uri": "https://files.example.com/site-plan-v3.pdf",
+                  "checksum_sha256": "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b"
                 },
                 "schema": { "$ref": "#/components/schemas/DocumentVersion" }
               }
@@ -51306,7 +51705,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "term": "Load-In",
                       "casing_rule": "Title Case as a noun",
-                      "usage": "Hyphenate as a noun; two words as a verb."
+                      "definition": "The arrival of equipment before a show."
                     }
                   ],
                   "next_cursor": null
@@ -51336,7 +51735,7 @@
               "example": {
                 "term": "Load-In",
                 "casing_rule": "Title Case as a noun",
-                "usage": "Hyphenate as a noun; two words as a verb."
+                "definition": "The arrival of equipment before a show."
               },
               "schema": { "$ref": "#/components/schemas/VerbiageTermCreate" }
             }
@@ -51362,7 +51761,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "term": "Load-In",
                   "casing_rule": "Title Case as a noun",
-                  "usage": "Hyphenate as a noun; two words as a verb."
+                  "definition": "The arrival of equipment before a show."
                 },
                 "schema": { "$ref": "#/components/schemas/VerbiageTerm" }
               }
@@ -51420,7 +51819,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "term": "Load-In",
                   "casing_rule": "Title Case as a noun",
-                  "usage": "Hyphenate as a noun; two words as a verb."
+                  "definition": "The arrival of equipment before a show."
                 },
                 "schema": { "$ref": "#/components/schemas/VerbiageTerm" }
               }
@@ -51462,7 +51861,7 @@
               "example": {
                 "term": "Load-In",
                 "casing_rule": "Title Case as a noun",
-                "usage": "Hyphenate as a noun; two words as a verb."
+                "definition": "The arrival of equipment before a show."
               },
               "schema": { "$ref": "#/components/schemas/VerbiageTermUpdate" }
             }
@@ -51488,7 +51887,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "term": "Load-In",
                   "casing_rule": "Title Case as a noun",
-                  "usage": "Hyphenate as a noun; two words as a verb."
+                  "definition": "The arrival of equipment before a show."
                 },
                 "schema": { "$ref": "#/components/schemas/VerbiageTerm" }
               }
@@ -74735,9 +75134,9 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "title": "Main Stage Audio Package",
-                      "urid": "4000.01",
-                      "deadline_at": "2026-10-08T14:30:00Z",
-                      "rfq_state": "Committed"
+                      "rfq_state": "Proposed",
+                      "rfq_number": 3,
+                      "responses_due_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -74767,8 +75166,7 @@
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "title": "Main Stage Audio Package",
-                "urid": "4000.01",
-                "deadline_at": "2026-10-08T14:30:00Z"
+                "responses_due_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/RfqCreate" }
             }
@@ -74794,9 +75192,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Main Stage Audio Package",
-                  "urid": "4000.01",
-                  "deadline_at": "2026-10-08T14:30:00Z",
-                  "rfq_state": "Committed"
+                  "rfq_state": "Proposed",
+                  "rfq_number": 3,
+                  "responses_due_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Rfq" }
               }
@@ -74854,9 +75252,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Main Stage Audio Package",
-                  "urid": "4000.01",
-                  "deadline_at": "2026-10-08T14:30:00Z",
-                  "rfq_state": "Committed"
+                  "rfq_state": "Proposed",
+                  "rfq_number": 3,
+                  "responses_due_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Rfq" }
               }
@@ -74897,8 +75295,7 @@
             "application/json": {
               "example": {
                 "title": "Main Stage Audio Package",
-                "urid": "4000.01",
-                "deadline_at": "2026-10-08T14:30:00Z"
+                "responses_due_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/RfqUpdate" }
             }
@@ -74924,9 +75321,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Main Stage Audio Package",
-                  "urid": "4000.01",
-                  "deadline_at": "2026-10-08T14:30:00Z",
-                  "rfq_state": "Committed"
+                  "rfq_state": "Proposed",
+                  "rfq_number": 3,
+                  "responses_due_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Rfq" }
               }
@@ -75016,9 +75413,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Main Stage Audio Package",
-                  "urid": "4000.01",
-                  "deadline_at": "2026-10-08T14:30:00Z",
-                  "rfq_state": "Committed"
+                  "rfq_state": "Proposed",
+                  "rfq_number": 3,
+                  "responses_due_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Rfq" }
               }
@@ -75062,8 +75459,8 @@
           "content": {
             "application/json": {
               "example": {
-                "expected_state": "Active",
-                "to_state": "Complete",
+                "expected_state": "Issued",
+                "to_state": "Closed",
                 "reason": "Client approved the revised scope."
               },
               "schema": { "$ref": "#/components/schemas/RFQTransitionRequest" }
@@ -75090,9 +75487,9 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Main Stage Audio Package",
-                  "urid": "4000.01",
-                  "deadline_at": "2026-10-08T14:30:00Z",
-                  "rfq_state": "Committed"
+                  "rfq_state": "Proposed",
+                  "rfq_number": 3,
+                  "responses_due_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Rfq" }
               }
@@ -75144,7 +75541,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -75173,7 +75570,7 @@
             "application/json": {
               "example": {
                 "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/RfqInvitationCreate" }
             }
@@ -75198,7 +75595,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RfqInvitation" }
               }
@@ -75255,7 +75652,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RfqInvitation" }
               }
@@ -75335,9 +75732,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "submitted_at": "2026-10-08T14:30:00Z",
-                      "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 }
+                      "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "valid_until": "2026-10-08"
                     }
                   ],
                   "next_cursor": null
@@ -75366,7 +75763,8 @@
             "application/json": {
               "example": {
                 "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "valid_until": "2026-10-08"
               },
               "schema": { "$ref": "#/components/schemas/RfqResponseCreate" }
             }
@@ -75391,9 +75789,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "submitted_at": "2026-10-08T14:30:00Z",
-                  "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 }
+                  "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "valid_until": "2026-10-08"
                 },
                 "schema": { "$ref": "#/components/schemas/RfqResponse" }
               }
@@ -75450,9 +75848,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "submitted_at": "2026-10-08T14:30:00Z",
-                  "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 }
+                  "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "valid_until": "2026-10-08"
                 },
                 "schema": { "$ref": "#/components/schemas/RfqResponse" }
               }
@@ -75461,66 +75859,6 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/rfq-responses/{id}/submit": {
-      "post": {
-        "operationId": "rfqResponses.submit",
-        "tags": ["Procurement"],
-        "x-xos-table": "app.rfq_responses",
-        "x-xos-capability": "procurement.rfq.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
-        "summary": "Submit an RFQ response",
-        "description": "Seals and submits the response. A bidder sees only their own response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the rfq response.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the rfq response.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "submitted_at": "2026-10-08T14:30:00Z",
-                  "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 }
-                },
-                "schema": { "$ref": "#/components/schemas/RfqResponse" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -75565,7 +75903,8 @@
                       "description": "Line array, 12 boxes per side",
                       "quantity": 1,
                       "unit_price_minor": 1800000,
-                      "currency": "USD"
+                      "currency_code": "USD",
+                      "element_id": "0000.01.01-XOS-001"
                     }
                   ],
                   "next_cursor": null
@@ -75597,7 +75936,8 @@
                 "description": "Line array, 12 boxes per side",
                 "quantity": 1,
                 "unit_price_minor": 1800000,
-                "currency": "USD"
+                "currency_code": "USD",
+                "element_id": "0000.01.01-XOS-001"
               },
               "schema": { "$ref": "#/components/schemas/RfqResponseLineCreate" }
             }
@@ -75625,7 +75965,8 @@
                   "description": "Line array, 12 boxes per side",
                   "quantity": 1,
                   "unit_price_minor": 1800000,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "element_id": "0000.01.01-XOS-001"
                 },
                 "schema": { "$ref": "#/components/schemas/RfqResponseLine" }
               }
@@ -75685,7 +76026,8 @@
                   "description": "Line array, 12 boxes per side",
                   "quantity": 1,
                   "unit_price_minor": 1800000,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "element_id": "0000.01.01-XOS-001"
                 },
                 "schema": { "$ref": "#/components/schemas/RfqResponseLine" }
               }
@@ -75728,7 +76070,8 @@
                 "description": "Line array, 12 boxes per side",
                 "quantity": 1,
                 "unit_price_minor": 1800000,
-                "currency": "USD"
+                "currency_code": "USD",
+                "element_id": "0000.01.01-XOS-001"
               },
               "schema": { "$ref": "#/components/schemas/RfqResponseLineUpdate" }
             }
@@ -75756,7 +76099,8 @@
                   "description": "Line array, 12 boxes per side",
                   "quantity": 1,
                   "unit_price_minor": 1800000,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "element_id": "0000.01.01-XOS-001"
                 },
                 "schema": { "$ref": "#/components/schemas/RfqResponseLine" }
               }
@@ -75840,11 +76184,10 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "po_number": "PO-2026-0117",
-                      "currency": "USD",
-                      "po_state": "Committed",
-                      "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                      "required_on": "2026-10-08"
+                      "po_number": 7,
+                      "currency_code": "USD",
+                      "po_state": "Proposed",
+                      "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -75874,8 +76217,8 @@
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "currency": "USD",
-                "required_on": "2026-10-08"
+                "currency_code": "USD",
+                "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/PurchaseOrderCreate" }
             }
@@ -75901,11 +76244,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "po_number": "PO-2026-0117",
-                  "currency": "USD",
-                  "po_state": "Committed",
-                  "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "required_on": "2026-10-08"
+                  "po_number": 7,
+                  "currency_code": "USD",
+                  "po_state": "Proposed",
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -75963,11 +76305,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "po_number": "PO-2026-0117",
-                  "currency": "USD",
-                  "po_state": "Committed",
-                  "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "required_on": "2026-10-08"
+                  "po_number": 7,
+                  "currency_code": "USD",
+                  "po_state": "Proposed",
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -76006,11 +76347,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "currency": "USD",
-                "required_on": "2026-10-08"
-              },
+              "example": { "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
               "schema": { "$ref": "#/components/schemas/PurchaseOrderUpdate" }
             }
           }
@@ -76035,11 +76372,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "po_number": "PO-2026-0117",
-                  "currency": "USD",
-                  "po_state": "Committed",
-                  "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "required_on": "2026-10-08"
+                  "po_number": 7,
+                  "currency_code": "USD",
+                  "po_state": "Proposed",
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -76063,7 +76399,7 @@
         "x-xos-capability": "finance.po.approve",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["finance"] }],
         "summary": "Approve a purchase order",
-        "description": "Records an approval decision on the purchase order. The creator of a purchase order cannot approve it. Spend authority and separation of duties are enforced in the approval RPC; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Records an approval through app.approve_purchase_order: finance.po.approve on the project, never by the order's creator (sod_po_creator), fully priced, within spend authority. Above the dual threshold the order stays Proposed until a second approver approves; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -76079,6 +76415,15 @@
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "Within budget." },
+              "schema": { "$ref": "#/components/schemas/PurchaseOrderApproveRequest" }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The result.",
@@ -76099,11 +76444,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "po_number": "PO-2026-0117",
-                  "currency": "USD",
-                  "po_state": "Committed",
-                  "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "required_on": "2026-10-08"
+                  "po_number": 7,
+                  "currency_code": "USD",
+                  "po_state": "Proposed",
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -76147,8 +76491,8 @@
           "content": {
             "application/json": {
               "example": {
-                "expected_state": "Proposed",
-                "to_state": "Committed",
+                "expected_state": "Approved",
+                "to_state": "Sent",
                 "reason": "Client approved the revised scope."
               },
               "schema": { "$ref": "#/components/schemas/PurchaseOrderTransitionRequest" }
@@ -76175,11 +76519,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "po_number": "PO-2026-0117",
-                  "currency": "USD",
-                  "po_state": "Committed",
-                  "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "required_on": "2026-10-08"
+                  "po_number": 7,
+                  "currency_code": "USD",
+                  "po_state": "Proposed",
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -76238,11 +76581,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "po_number": "PO-2026-0117",
-                  "currency": "USD",
-                  "po_state": "Committed",
-                  "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "required_on": "2026-10-08"
+                  "po_number": 7,
+                  "currency_code": "USD",
+                  "po_state": "Proposed",
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -76298,9 +76640,9 @@
                       "element_id": "4000.01.01-XPMS-001",
                       "description": "Stage deck rental",
                       "quantity": 24,
-                      "unit": "each",
+                      "unit_basis": "each",
                       "unit_price_minor": 4500,
-                      "currency": "USD"
+                      "line_number": 1
                     }
                   ],
                   "next_cursor": null
@@ -76333,9 +76675,9 @@
                 "element_id": "4000.01.01-XPMS-001",
                 "description": "Stage deck rental",
                 "quantity": 24,
-                "unit": "each",
+                "unit_basis": "each",
                 "unit_price_minor": 4500,
-                "currency": "USD"
+                "line_number": 1
               },
               "schema": { "$ref": "#/components/schemas/PoLineCreate" }
             }
@@ -76364,9 +76706,9 @@
                   "element_id": "4000.01.01-XPMS-001",
                   "description": "Stage deck rental",
                   "quantity": 24,
-                  "unit": "each",
+                  "unit_basis": "each",
                   "unit_price_minor": 4500,
-                  "currency": "USD"
+                  "line_number": 1
                 },
                 "schema": { "$ref": "#/components/schemas/PoLine" }
               }
@@ -76427,9 +76769,9 @@
                   "element_id": "4000.01.01-XPMS-001",
                   "description": "Stage deck rental",
                   "quantity": 24,
-                  "unit": "each",
+                  "unit_basis": "each",
                   "unit_price_minor": 4500,
-                  "currency": "USD"
+                  "line_number": 1
                 },
                 "schema": { "$ref": "#/components/schemas/PoLine" }
               }
@@ -76473,9 +76815,9 @@
                 "element_id": "4000.01.01-XPMS-001",
                 "description": "Stage deck rental",
                 "quantity": 24,
-                "unit": "each",
+                "unit_basis": "each",
                 "unit_price_minor": 4500,
-                "currency": "USD"
+                "line_number": 1
               },
               "schema": { "$ref": "#/components/schemas/PoLineUpdate" }
             }
@@ -76504,9 +76846,9 @@
                   "element_id": "4000.01.01-XPMS-001",
                   "description": "Stage deck rental",
                   "quantity": 24,
-                  "unit": "each",
+                  "unit_basis": "each",
                   "unit_price_minor": 4500,
-                  "currency": "USD"
+                  "line_number": 1
                 },
                 "schema": { "$ref": "#/components/schemas/PoLine" }
               }
@@ -76590,9 +76932,8 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "description": "Add six deck sections.",
-                      "amount_minor": 27000,
-                      "currency": "USD",
-                      "po_change_state": "Committed"
+                      "amount_delta_minor": 27000,
+                      "po_change_order_state": "Proposed"
                     }
                   ],
                   "next_cursor": null
@@ -76622,8 +76963,7 @@
               "example": {
                 "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "description": "Add six deck sections.",
-                "amount_minor": 27000,
-                "currency": "USD"
+                "amount_delta_minor": 27000
               },
               "schema": { "$ref": "#/components/schemas/PoChangeOrderCreate" }
             }
@@ -76649,9 +76989,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "Add six deck sections.",
-                  "amount_minor": 27000,
-                  "currency": "USD",
-                  "po_change_state": "Committed"
+                  "amount_delta_minor": 27000,
+                  "po_change_order_state": "Proposed"
                 },
                 "schema": { "$ref": "#/components/schemas/PoChangeOrder" }
               }
@@ -76709,9 +77048,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "Add six deck sections.",
-                  "amount_minor": 27000,
-                  "currency": "USD",
-                  "po_change_state": "Committed"
+                  "amount_delta_minor": 27000,
+                  "po_change_order_state": "Proposed"
                 },
                 "schema": { "$ref": "#/components/schemas/PoChangeOrder" }
               }
@@ -76750,11 +77088,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "description": "Add six deck sections.",
-                "amount_minor": 27000,
-                "currency": "USD"
-              },
+              "example": { "description": "Add six deck sections.", "amount_delta_minor": 27000 },
               "schema": { "$ref": "#/components/schemas/PoChangeOrderUpdate" }
             }
           }
@@ -76779,9 +77113,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "Add six deck sections.",
-                  "amount_minor": 27000,
-                  "currency": "USD",
-                  "po_change_state": "Committed"
+                  "amount_delta_minor": 27000,
+                  "po_change_order_state": "Proposed"
                 },
                 "schema": { "$ref": "#/components/schemas/PoChangeOrder" }
               }
@@ -76805,7 +77138,7 @@
         "x-xos-capability": "finance.po.approve",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["finance"] }],
         "summary": "Approve a PO change order",
-        "description": "Records an approval decision on the PO change order. Its requester cannot approve it. Spend authority and separation of duties are enforced in the approval RPC; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Approves a priced, Proposed PO change order through app.decide_po_change_order under spend authority. Its requester cannot approve it; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -76821,6 +77154,15 @@
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "Within budget." },
+              "schema": { "$ref": "#/components/schemas/PoChangeOrderApproveRequest" }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The result.",
@@ -76841,9 +77183,77 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "Add six deck sections.",
-                  "amount_minor": 27000,
-                  "currency": "USD",
-                  "po_change_state": "Committed"
+                  "amount_delta_minor": 27000,
+                  "po_change_order_state": "Proposed"
+                },
+                "schema": { "$ref": "#/components/schemas/PoChangeOrder" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/po-change-orders/{id}/reject": {
+      "post": {
+        "operationId": "poChangeOrders.reject",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.po_change_orders",
+        "x-xos-capability": "finance.po.approve",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["finance"] }],
+        "summary": "Reject a PO change order",
+        "description": "Rejects a Proposed PO change order through app.decide_po_change_order. Its requester cannot decide it; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the po change order.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the po change order.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "Within budget." },
+              "schema": { "$ref": "#/components/schemas/PoChangeOrderRejectRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "description": "Add six deck sections.",
+                  "amount_delta_minor": 27000,
+                  "po_change_order_state": "Proposed"
                 },
                 "schema": { "$ref": "#/components/schemas/PoChangeOrder" }
               }
@@ -76897,7 +77307,7 @@
                       "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "received_at": "2026-10-08T14:30:00Z",
                       "received_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "note": "Two cases dented."
                     }
                   ],
                   "next_cursor": null
@@ -76927,8 +77337,7 @@
               "example": {
                 "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "received_at": "2026-10-08T14:30:00Z",
-                "received_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "note": "Two cases dented."
               },
               "schema": { "$ref": "#/components/schemas/GoodsReceiptCreate" }
             }
@@ -76955,7 +77364,7 @@
                   "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "received_at": "2026-10-08T14:30:00Z",
                   "received_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "note": "Two cases dented."
                 },
                 "schema": { "$ref": "#/components/schemas/GoodsReceipt" }
               }
@@ -77014,7 +77423,7 @@
                   "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "received_at": "2026-10-08T14:30:00Z",
                   "received_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "note": "Two cases dented."
                 },
                 "schema": { "$ref": "#/components/schemas/GoodsReceipt" }
               }
@@ -77232,7 +77641,10 @@
                       "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "goods_receipt_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "matched": true,
-                      "variance": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 }
+                      "variance_minor": 2000,
+                      "resolution_note": "Freight surcharge agreed.",
+                      "resolved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "resolved_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -77290,7 +77702,10 @@
                   "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "goods_receipt_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "matched": true,
-                  "variance": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 }
+                  "variance_minor": 2000,
+                  "resolution_note": "Freight surcharge agreed.",
+                  "resolved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "resolved_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/InvoiceMatch" }
               }
@@ -77350,7 +77765,10 @@
                   "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "goods_receipt_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "matched": true,
-                  "variance": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 }
+                  "variance_minor": 2000,
+                  "resolution_note": "Freight surcharge agreed.",
+                  "resolved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "resolved_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/InvoiceMatch" }
               }
@@ -77359,6 +77777,79 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/invoice-matches/{id}/resolve": {
+      "post": {
+        "operationId": "invoiceMatches.resolve",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.invoice_matches",
+        "x-xos-capability": "procurement.invoice_match.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Accept an invoice mismatch",
+        "description": "Records why a mismatch is accepted. Only someone other than the person who recorded the match may accept it, once; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the invoice match.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the invoice match.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "resolution_note": "Freight surcharge agreed by phone." },
+              "schema": { "$ref": "#/components/schemas/InvoiceMatchResolveRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "invoice_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "goods_receipt_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "matched": true,
+                  "variance_minor": 2000,
+                  "resolution_note": "Freight surcharge agreed.",
+                  "resolved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "resolved_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/InvoiceMatch" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -77399,9 +77890,12 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "tenant_item_code": "NWL-DECK-4x8",
                       "element_id": "4000.01.01-XPMS-001",
-                      "confirmed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "item_id": "0000.01.01-NORTHW-001",
+                      "name": "4x8 Stage Deck",
+                      "unit_basis": "ea",
+                      "default_unit_price_minor": 4500,
+                      "currency_code": "USD"
                     }
                   ],
                   "next_cursor": null
@@ -77429,9 +77923,11 @@
           "content": {
             "application/json": {
               "example": {
-                "tenant_item_code": "NWL-DECK-4x8",
                 "element_id": "4000.01.01-XPMS-001",
-                "confirmed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "name": "4x8 Stage Deck",
+                "unit_basis": "ea",
+                "default_unit_price_minor": 4500,
+                "currency_code": "USD"
               },
               "schema": { "$ref": "#/components/schemas/CatalogBindingCreate" }
             }
@@ -77455,9 +77951,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "tenant_item_code": "NWL-DECK-4x8",
                   "element_id": "4000.01.01-XPMS-001",
-                  "confirmed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "item_id": "0000.01.01-NORTHW-001",
+                  "name": "4x8 Stage Deck",
+                  "unit_basis": "ea",
+                  "default_unit_price_minor": 4500,
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/CatalogBinding" }
               }
@@ -77513,9 +78012,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "tenant_item_code": "NWL-DECK-4x8",
                   "element_id": "4000.01.01-XPMS-001",
-                  "confirmed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "item_id": "0000.01.01-NORTHW-001",
+                  "name": "4x8 Stage Deck",
+                  "unit_basis": "ea",
+                  "default_unit_price_minor": 4500,
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/CatalogBinding" }
               }
@@ -77555,9 +78057,10 @@
           "content": {
             "application/json": {
               "example": {
-                "tenant_item_code": "NWL-DECK-4x8",
-                "element_id": "4000.01.01-XPMS-001",
-                "confirmed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "name": "4x8 Stage Deck",
+                "unit_basis": "ea",
+                "default_unit_price_minor": 4500,
+                "currency_code": "USD"
               },
               "schema": { "$ref": "#/components/schemas/CatalogBindingUpdate" }
             }
@@ -77581,9 +78084,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "tenant_item_code": "NWL-DECK-4x8",
                   "element_id": "4000.01.01-XPMS-001",
-                  "confirmed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "item_id": "0000.01.01-NORTHW-001",
+                  "name": "4x8 Stage Deck",
+                  "unit_basis": "ea",
+                  "default_unit_price_minor": 4500,
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/CatalogBinding" }
               }
@@ -77666,10 +78172,12 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "name": "4x8 Stage Deck",
                       "element_id": "4000.01.01-XPMS-001",
                       "unit_price_minor": 4500,
-                      "currency": "USD"
+                      "currency_code": "USD",
+                      "vendor_sku": "DSS-DECK-0408",
+                      "catalog_binding_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "lead_time_days": 14
                     }
                   ],
                   "next_cursor": null
@@ -77698,10 +78206,12 @@
             "application/json": {
               "example": {
                 "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "name": "4x8 Stage Deck",
                 "element_id": "4000.01.01-XPMS-001",
                 "unit_price_minor": 4500,
-                "currency": "USD"
+                "currency_code": "USD",
+                "vendor_sku": "DSS-DECK-0408",
+                "catalog_binding_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "lead_time_days": 14
               },
               "schema": { "$ref": "#/components/schemas/VendorProductCreate" }
             }
@@ -77726,10 +78236,12 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "4x8 Stage Deck",
                   "element_id": "4000.01.01-XPMS-001",
                   "unit_price_minor": 4500,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "vendor_sku": "DSS-DECK-0408",
+                  "catalog_binding_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "lead_time_days": 14
                 },
                 "schema": { "$ref": "#/components/schemas/VendorProduct" }
               }
@@ -77786,10 +78298,12 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "4x8 Stage Deck",
                   "element_id": "4000.01.01-XPMS-001",
                   "unit_price_minor": 4500,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "vendor_sku": "DSS-DECK-0408",
+                  "catalog_binding_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "lead_time_days": 14
                 },
                 "schema": { "$ref": "#/components/schemas/VendorProduct" }
               }
@@ -77829,10 +78343,12 @@
           "content": {
             "application/json": {
               "example": {
-                "name": "4x8 Stage Deck",
                 "element_id": "4000.01.01-XPMS-001",
                 "unit_price_minor": 4500,
-                "currency": "USD"
+                "currency_code": "USD",
+                "vendor_sku": "DSS-DECK-0408",
+                "catalog_binding_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "lead_time_days": 14
               },
               "schema": { "$ref": "#/components/schemas/VendorProductUpdate" }
             }
@@ -77857,10 +78373,12 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "4x8 Stage Deck",
                   "element_id": "4000.01.01-XPMS-001",
                   "unit_price_minor": 4500,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "vendor_sku": "DSS-DECK-0408",
+                  "catalog_binding_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "lead_time_days": 14
                 },
                 "schema": { "$ref": "#/components/schemas/VendorProduct" }
               }
@@ -77942,10 +78460,11 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "counterparty_type": "AV Integrator",
-                      "vendor_state": "Committed",
-                      "internal_notes": "Reliable on short notice."
+                      "vendor_state": "Prospect",
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "payment_terms_days": 30,
+                      "default_currency_code": "USD"
                     }
                   ],
                   "next_cursor": null
@@ -77973,9 +78492,9 @@
           "content": {
             "application/json": {
               "example": {
-                "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "counterparty_type": "AV Integrator",
-                "internal_notes": "Reliable on short notice."
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "payment_terms_days": 30,
+                "default_currency_code": "USD"
               },
               "schema": { "$ref": "#/components/schemas/VendorCreate" }
             }
@@ -77999,10 +78518,11 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "counterparty_type": "AV Integrator",
-                  "vendor_state": "Committed",
-                  "internal_notes": "Reliable on short notice."
+                  "vendor_state": "Prospect",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payment_terms_days": 30,
+                  "default_currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -78058,10 +78578,11 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "counterparty_type": "AV Integrator",
-                  "vendor_state": "Committed",
-                  "internal_notes": "Reliable on short notice."
+                  "vendor_state": "Prospect",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payment_terms_days": 30,
+                  "default_currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -78100,10 +78621,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "counterparty_type": "AV Integrator",
-                "internal_notes": "Reliable on short notice."
-              },
+              "example": { "payment_terms_days": 30, "default_currency_code": "USD" },
               "schema": { "$ref": "#/components/schemas/VendorUpdate" }
             }
           }
@@ -78126,10 +78644,11 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "counterparty_type": "AV Integrator",
-                  "vendor_state": "Committed",
-                  "internal_notes": "Reliable on short notice."
+                  "vendor_state": "Prospect",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payment_terms_days": 30,
+                  "default_currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -78175,6 +78694,80 @@
         }
       }
     },
+    "/vendors/{id}/transitions": {
+      "post": {
+        "operationId": "vendors.transition",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.vendors",
+        "x-xos-capability": "vendors.vendor.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "summary": "Transition the vendor state",
+        "description": "Moves the vendor lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the vendor.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the vendor.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expected_state": "Prospect",
+                "to_state": "Onboarded",
+                "reason": "Client approved the revised scope."
+              },
+              "schema": { "$ref": "#/components/schemas/VendorTransitionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_type": "AV Integrator",
+                  "vendor_state": "Prospect",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payment_terms_days": 30,
+                  "default_currency_code": "USD"
+                },
+                "schema": { "$ref": "#/components/schemas/Vendor" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/vendor-classes": {
       "get": {
         "operationId": "vendorClasses.list",
@@ -78212,7 +78805,8 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Staging",
-                      "counterparty_type": "AV Integrator"
+                      "std_vendor_class_id": "VC-001",
+                      "description": "Staging rental houses."
                     }
                   ],
                   "next_cursor": null
@@ -78239,7 +78833,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Staging", "counterparty_type": "AV Integrator" },
+              "example": {
+                "name": "Staging",
+                "std_vendor_class_id": "VC-001",
+                "description": "Staging rental houses."
+              },
               "schema": { "$ref": "#/components/schemas/VendorClassCreate" }
             }
           }
@@ -78263,7 +78861,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Staging",
-                  "counterparty_type": "AV Integrator"
+                  "std_vendor_class_id": "VC-001",
+                  "description": "Staging rental houses."
                 },
                 "schema": { "$ref": "#/components/schemas/VendorClass" }
               }
@@ -78320,7 +78919,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Staging",
-                  "counterparty_type": "AV Integrator"
+                  "std_vendor_class_id": "VC-001",
+                  "description": "Staging rental houses."
                 },
                 "schema": { "$ref": "#/components/schemas/VendorClass" }
               }
@@ -78359,7 +78959,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Staging", "counterparty_type": "AV Integrator" },
+              "example": {
+                "name": "Staging",
+                "std_vendor_class_id": "VC-001",
+                "description": "Staging rental houses."
+              },
               "schema": { "$ref": "#/components/schemas/VendorClassUpdate" }
             }
           }
@@ -78383,7 +78987,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Staging",
-                  "counterparty_type": "AV Integrator"
+                  "std_vendor_class_id": "VC-001",
+                  "description": "Staging rental houses."
                 },
                 "schema": { "$ref": "#/components/schemas/VendorClass" }
               }
@@ -78658,7 +79263,10 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "valid_to": "2026-10-08",
-                      "prequalification_state": "Committed"
+                      "scope_note": "Rigging over 2,000 kg.",
+                      "decision": "Approved",
+                      "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "decided_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -78687,7 +79295,8 @@
             "application/json": {
               "example": {
                 "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "valid_to": "2026-10-08"
+                "valid_to": "2026-10-08",
+                "scope_note": "Rigging over 2,000 kg."
               },
               "schema": { "$ref": "#/components/schemas/PrequalificationCreate" }
             }
@@ -78713,7 +79322,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_to": "2026-10-08",
-                  "prequalification_state": "Committed"
+                  "scope_note": "Rigging over 2,000 kg.",
+                  "decision": "Approved",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Prequalification" }
               }
@@ -78771,7 +79383,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_to": "2026-10-08",
-                  "prequalification_state": "Committed"
+                  "scope_note": "Rigging over 2,000 kg.",
+                  "decision": "Approved",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Prequalification" }
               }
@@ -78810,7 +79425,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "valid_to": "2026-10-08" },
+              "example": { "valid_to": "2026-10-08", "scope_note": "Rigging over 2,000 kg." },
               "schema": { "$ref": "#/components/schemas/PrequalificationUpdate" }
             }
           }
@@ -78835,7 +79450,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_to": "2026-10-08",
-                  "prequalification_state": "Committed"
+                  "scope_note": "Rigging over 2,000 kg.",
+                  "decision": "Approved",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Prequalification" }
               }
@@ -78881,15 +79499,15 @@
         }
       }
     },
-    "/prequalifications/{id}/transitions": {
+    "/prequalifications/{id}/decide": {
       "post": {
-        "operationId": "prequalifications.transition",
+        "operationId": "prequalifications.decide",
         "tags": ["Vendors"],
         "x-xos-table": "app.prequalifications",
         "x-xos-capability": "vendors.prequalification.approve",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
-        "summary": "Transition the prequalification state",
-        "description": "Moves the prequalification lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "summary": "Decide a prequalification",
+        "description": "Approves or rejects a pending prequalification through app.decide_prequalification: vendors.prequalification.approve, never by the requester, final once decided. A refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -78909,12 +79527,8 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "expected_state": "Proposed",
-                "to_state": "Active",
-                "reason": "Client approved the revised scope."
-              },
-              "schema": { "$ref": "#/components/schemas/PrequalificationTransitionRequest" }
+              "example": { "decision": "Approved", "valid_to": "2027-12-31" },
+              "schema": { "$ref": "#/components/schemas/PrequalificationDecideRequest" }
             }
           }
         },
@@ -78938,7 +79552,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_to": "2026-10-08",
-                  "prequalification_state": "Committed"
+                  "scope_note": "Rigging over 2,000 kg.",
+                  "decision": "Approved",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Prequalification" }
               }
@@ -78989,12 +79606,15 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "coverage_type": "General Liability",
-                      "each_occurrence_minor": 100000000,
-                      "currency": "USD",
-                      "expires_on": "2026-10-08"
+                      "coverage_limit_minor": 100000000,
+                      "currency_code": "USD",
+                      "valid_to": "2026-10-08",
+                      "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "insurer": "Example Mutual",
+                      "policy_identifier": "GL-2027-0042",
+                      "valid_from": "2026-10-08",
+                      "document_uri": "https://northwindlive.example/files/site-plan.pdf"
                     }
                   ],
                   "next_cursor": null
@@ -79022,12 +79642,15 @@
           "content": {
             "application/json": {
               "example": {
-                "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "coverage_type": "General Liability",
-                "each_occurrence_minor": 100000000,
-                "currency": "USD",
-                "expires_on": "2026-10-08"
+                "coverage_limit_minor": 100000000,
+                "currency_code": "USD",
+                "valid_to": "2026-10-08",
+                "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "insurer": "Example Mutual",
+                "policy_identifier": "GL-2027-0042",
+                "valid_from": "2026-10-08",
+                "document_uri": "https://northwindlive.example/files/site-plan.pdf"
               },
               "schema": { "$ref": "#/components/schemas/InsuranceCertificateCreate" }
             }
@@ -79051,12 +79674,15 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "coverage_type": "General Liability",
-                  "each_occurrence_minor": 100000000,
-                  "currency": "USD",
-                  "expires_on": "2026-10-08"
+                  "coverage_limit_minor": 100000000,
+                  "currency_code": "USD",
+                  "valid_to": "2026-10-08",
+                  "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "insurer": "Example Mutual",
+                  "policy_identifier": "GL-2027-0042",
+                  "valid_from": "2026-10-08",
+                  "document_uri": "https://northwindlive.example/files/site-plan.pdf"
                 },
                 "schema": { "$ref": "#/components/schemas/InsuranceCertificate" }
               }
@@ -79112,12 +79738,15 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "coverage_type": "General Liability",
-                  "each_occurrence_minor": 100000000,
-                  "currency": "USD",
-                  "expires_on": "2026-10-08"
+                  "coverage_limit_minor": 100000000,
+                  "currency_code": "USD",
+                  "valid_to": "2026-10-08",
+                  "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "insurer": "Example Mutual",
+                  "policy_identifier": "GL-2027-0042",
+                  "valid_from": "2026-10-08",
+                  "document_uri": "https://northwindlive.example/files/site-plan.pdf"
                 },
                 "schema": { "$ref": "#/components/schemas/InsuranceCertificate" }
               }
@@ -79157,12 +79786,15 @@
           "content": {
             "application/json": {
               "example": {
-                "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "coverage_type": "General Liability",
-                "each_occurrence_minor": 100000000,
-                "currency": "USD",
-                "expires_on": "2026-10-08"
+                "coverage_limit_minor": 100000000,
+                "currency_code": "USD",
+                "valid_to": "2026-10-08",
+                "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "insurer": "Example Mutual",
+                "policy_identifier": "GL-2027-0042",
+                "valid_from": "2026-10-08",
+                "document_uri": "https://northwindlive.example/files/site-plan.pdf"
               },
               "schema": { "$ref": "#/components/schemas/InsuranceCertificateUpdate" }
             }
@@ -79186,12 +79818,15 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "coverage_type": "General Liability",
-                  "each_occurrence_minor": 100000000,
-                  "currency": "USD",
-                  "expires_on": "2026-10-08"
+                  "coverage_limit_minor": 100000000,
+                  "currency_code": "USD",
+                  "valid_to": "2026-10-08",
+                  "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "insurer": "Example Mutual",
+                  "policy_identifier": "GL-2027-0042",
+                  "valid_from": "2026-10-08",
+                  "document_uri": "https://northwindlive.example/files/site-plan.pdf"
                 },
                 "schema": { "$ref": "#/components/schemas/InsuranceCertificate" }
               }
@@ -79275,8 +79910,11 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "score": 4,
-                      "notes": "On time; one damaged deck."
+                      "note": "On time; one damaged deck.",
+                      "period_end": "2026-10-08",
+                      "quality_score": 4,
+                      "delivery_score": 4,
+                      "safety_score": 4
                     }
                   ],
                   "next_cursor": null
@@ -79306,8 +79944,11 @@
               "example": {
                 "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "score": 4,
-                "notes": "On time; one damaged deck."
+                "note": "On time; one damaged deck.",
+                "period_end": "2026-10-08",
+                "quality_score": 4,
+                "delivery_score": 4,
+                "safety_score": 4
               },
               "schema": { "$ref": "#/components/schemas/VendorScorecardCreate" }
             }
@@ -79333,8 +79974,11 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "score": 4,
-                  "notes": "On time; one damaged deck."
+                  "note": "On time; one damaged deck.",
+                  "period_end": "2026-10-08",
+                  "quality_score": 4,
+                  "delivery_score": 4,
+                  "safety_score": 4
                 },
                 "schema": { "$ref": "#/components/schemas/VendorScorecard" }
               }
@@ -79392,8 +80036,11 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "score": 4,
-                  "notes": "On time; one damaged deck."
+                  "note": "On time; one damaged deck.",
+                  "period_end": "2026-10-08",
+                  "quality_score": 4,
+                  "delivery_score": 4,
+                  "safety_score": 4
                 },
                 "schema": { "$ref": "#/components/schemas/VendorScorecard" }
               }
@@ -79434,8 +80081,11 @@
             "application/json": {
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "score": 4,
-                "notes": "On time; one damaged deck."
+                "note": "On time; one damaged deck.",
+                "period_end": "2026-10-08",
+                "quality_score": 4,
+                "delivery_score": 4,
+                "safety_score": 4
               },
               "schema": { "$ref": "#/components/schemas/VendorScorecardUpdate" }
             }
@@ -79461,8 +80111,11 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "score": 4,
-                  "notes": "On time; one damaged deck."
+                  "note": "On time; one damaged deck.",
+                  "period_end": "2026-10-08",
+                  "quality_score": 4,
+                  "delivery_score": 4,
+                  "safety_score": 4
                 },
                 "schema": { "$ref": "#/components/schemas/VendorScorecard" }
               }
@@ -79544,10 +80197,12 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "name": "Logo on Main Stage Screen",
+                      "description": "Logo on the main stage scrims.",
                       "quantity": 12,
-                      "fulfillment_state": "Committed"
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "due_on": "2026-10-08",
+                      "fulfilled_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -79575,9 +80230,11 @@
           "content": {
             "application/json": {
               "example": {
-                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "name": "Logo on Main Stage Screen",
-                "quantity": 12
+                "description": "Logo on the main stage scrims.",
+                "quantity": 12,
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "due_on": "2026-10-08"
               },
               "schema": { "$ref": "#/components/schemas/SponsorEntitlementCreate" }
             }
@@ -79601,10 +80258,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "Logo on Main Stage Screen",
+                  "description": "Logo on the main stage scrims.",
                   "quantity": 12,
-                  "fulfillment_state": "Committed"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "due_on": "2026-10-08",
+                  "fulfilled_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/SponsorEntitlement" }
               }
@@ -79660,10 +80319,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "Logo on Main Stage Screen",
+                  "description": "Logo on the main stage scrims.",
                   "quantity": 12,
-                  "fulfillment_state": "Committed"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "due_on": "2026-10-08",
+                  "fulfilled_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/SponsorEntitlement" }
               }
@@ -79703,9 +80364,10 @@
           "content": {
             "application/json": {
               "example": {
-                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "name": "Logo on Main Stage Screen",
-                "quantity": 12
+                "description": "Logo on the main stage scrims.",
+                "quantity": 12,
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "due_on": "2026-10-08"
               },
               "schema": { "$ref": "#/components/schemas/SponsorEntitlementUpdate" }
             }
@@ -79729,10 +80391,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "Logo on Main Stage Screen",
+                  "description": "Logo on the main stage scrims.",
                   "quantity": 12,
-                  "fulfillment_state": "Committed"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "due_on": "2026-10-08",
+                  "fulfilled_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/SponsorEntitlement" }
               }
@@ -79778,15 +80442,15 @@
         }
       }
     },
-    "/sponsor-entitlements/{id}/transitions": {
+    "/sponsor-entitlements/{id}/fulfill": {
       "post": {
-        "operationId": "sponsorEntitlements.transition",
+        "operationId": "sponsorEntitlements.fulfill",
         "tags": ["Vendors"],
         "x-xos-table": "app.sponsor_entitlements",
         "x-xos-capability": "vendors.entitlement.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
-        "summary": "Transition the entitlement fulfillment state",
-        "description": "Moves the entitlement fulfillment lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "summary": "Mark an entitlement fulfilled",
+        "description": "Stamps `fulfilled_at` now. Needs vendors.entitlement.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -79802,19 +80466,6 @@
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "expected_state": "Committed",
-                "to_state": "Complete",
-                "reason": "Client approved the revised scope."
-              },
-              "schema": { "$ref": "#/components/schemas/EntitlementFulfillmentTransitionRequest" }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "The result.",
@@ -79833,10 +80484,74 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "Logo on Main Stage Screen",
+                  "description": "Logo on the main stage scrims.",
                   "quantity": 12,
-                  "fulfillment_state": "Committed"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "due_on": "2026-10-08",
+                  "fulfilled_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/SponsorEntitlement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/sponsor-entitlements/{id}/reopen": {
+      "post": {
+        "operationId": "sponsorEntitlements.reopen",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.sponsor_entitlements",
+        "x-xos-capability": "vendors.entitlement.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "summary": "Mark an entitlement owed again",
+        "description": "Clears `fulfilled_at`. Needs vendors.entitlement.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the sponsor entitlement.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the sponsor entitlement.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "description": "Logo on the main stage scrims.",
+                  "quantity": 12,
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "due_on": "2026-10-08",
+                  "fulfilled_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/SponsorEntitlement" }
               }
