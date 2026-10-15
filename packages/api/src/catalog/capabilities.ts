@@ -475,6 +475,18 @@ export function canonRule(op: string): CapabilityRule | undefined {
  * fails when a capability is neither used nor listed here.
  */
 export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
+  "safety.emergency_code.write":
+    "Emergency codes are one global canon list (decision D15, xpms.emergency_code); no operation writes them (ADR 0023).",
+  "people.certification.verify":
+    "The person who records a certification holder is its verifier (private.guard_certification_holder, 0352); recording needs people.certification.verify through row level security, and there is no later verify step (ADR 0023).",
+  "org.separation_of_duties.write":
+    "The separation of duties rules are the platform's, read through the view app.separation_of_duties_rules (0320); no operation writes them (ADR 0023).",
+  "procurement.bid.unseal":
+    "Sealed bids unseal for the reader through row level security (private.bid_readable_by_org, 0720); no operation unseals a bid (ADR 0023).",
+  "people.offer.write":
+    "Offers are sent, revised and withdrawn through app.send_offer, revise_offer and withdraw_offer, which check opportunities.offer.send (0764, ADR 0023).",
+  "people.offer.approve":
+    "Sending an offer checks opportunities.offer.send in app.send_offer (0764); there is no separate offer approval step (ADR 0023).",
   "home.alerts.read":
     "Alerts are delivered through notifications; a dedicated alerts feed arrives with the Home module.",
   "projects.project.export": "Exports run through export jobs, which require data.export.run.",
@@ -492,7 +504,6 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "finance.payment.approve": "Payment runs arrive with the payment module in Wave 3.",
   "vendors.bank_details.write":
     "Bank details are payout accounts held by the payment provider; edited through Gateway.",
-  "knowledge.sop.publish": "SOP publishing is part of the SOP lifecycle in Wave 3.",
   "audit.log.export": "Audit exports run through export jobs with step-up authentication.",
   "org.view_as_role.use": "A UI preview mode with no API operation (Section 8.4).",
   "org.modules.write": "Module switches are setting values.",

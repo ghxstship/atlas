@@ -404,10 +404,19 @@
       "bold": "‮ꓭolp‬",
       "bullets": "‮ꓭnllǝʇǝp lısʇ‬",
       "checklist": "‮Ɔɥǝɔʞlısʇ‬",
+      "divider": "‮ᗡıʌıpǝɹ‬",
+      "heading": "‮Hǝɐpıuƃ‬",
       "hint": "‮ꓕʎdǝ / ɟoɹ qloɔʞs, @ ʇo ɯǝuʇıou, # ʇo lıuʞ ɐ ɹǝɔoɹp.‬",
       "italic": "‮Iʇɐlıɔ‬",
       "link": "‮⅂ıuʞ‬",
       "mention": "‮Wǝuʇıou‬",
+      "menu": {
+        "mention": "‮Ԁǝodlǝ ʇo ɯǝuʇıou‬",
+        "record": "‮ꓤǝɔoɹps ʇo lıuʞ‬",
+        "slash": "‮ꓭloɔʞs ʇo ıusǝɹʇ‬"
+      },
+      "noMatches": "‮No ɯɐʇɔɥǝs. ꓘǝǝd ʇʎdıuƃ, oɹ dɹǝss Ǝsɔɐdǝ ʇo ɔlosǝ.‬",
+      "quote": "‮Όnoʇǝ‬",
       "table": "‮ꓕɐqlǝ‬",
       "toolbar": "‮Ⅎoɹɯɐʇʇıuƃ‬"
     },

@@ -7,5 +7,5 @@ import shared from "@xos/config/stylelint";
  */
 export default {
   ...shared,
-  ignoreFiles: [...(shared.ignoreFiles ?? []), "src/styles/reference.css"],
+  ignoreFiles: [...(shared.ignoreFiles ?? []), "src/styles/reference.css", "storybook-static/**"],
 };

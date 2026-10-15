@@ -1,0 +1,116 @@
+{
+  "categories": {
+    "Question": "Pregunta",
+    "Problem": "Problema",
+    "Access": "Acceso",
+    "Billing": "Facturación",
+    "Account": "Cuenta",
+    "Feature Request": "Solicitud de función"
+  },
+  "severities": {
+    "Severity 1": "Severidad 1: la producción no funciona",
+    "Severity 2": "Severidad 2: una función principal no funciona",
+    "Severity 3": "Severidad 3: un problema con solución alternativa",
+    "Severity 4": "Severidad 4: una pregunta"
+  },
+  "states": {
+    "Open": "Abierta",
+    "Waiting": "En espera del solicitante",
+    "Resolved": "Resuelta",
+    "Closed": "Cerrada"
+  },
+  "channels": {
+    "In App": "En la aplicación",
+    "Email": "Correo, primera respuesta en 2 días hábiles",
+    "Chat": "Correo y chat en la aplicación, primera respuesta en 1 día hábil",
+    "Priority Queue": "Cola prioritaria, primera respuesta en 8 horas hábiles",
+    "Dedicated Channel": "Canal dedicado, 1 hora para severidad 1"
+  },
+  "queues": {
+    "Organization": "Organización",
+    "Platform": "Plataforma"
+  },
+  "columns": {
+    "number": "Solicitud",
+    "subject": "Asunto",
+    "requester": "Solicitada por",
+    "queue": "Cola",
+    "state": "Estado",
+    "opened": "Abierta el",
+    "due": "Primera respuesta antes de"
+  },
+  "bestEffort": "Mejor esfuerzo",
+  "platformTeam": "Equipo de soporte de la plataforma",
+  "unknownPerson": "Un miembro",
+  "org": {
+    "title": "Solicitudes de soporte",
+    "description": "Solicitudes de los miembros a los administradores y solicitudes que los administradores enviaron al equipo de la plataforma.",
+    "filter": "Mostrar",
+    "filters": {
+      "open": "Abiertas y en espera",
+      "Organization": "Cola de la organización",
+      "Platform": "Cola de la plataforma",
+      "all": "Todas las solicitudes"
+    },
+    "empty": "Todavía no hay solicitudes de soporte. Los miembros las envían desde Ayuda, Contactar a soporte.",
+    "emptyFiltered": "Ninguna solicitud coincide con este filtro. Elija Todas las solicitudes para verlas todas.",
+    "contactPlatform": "Contactar al soporte de la plataforma",
+    "noPlatform": "Su plan incluye el centro de ayuda y el foro de la comunidad. Cambie a Core o superior para contactar al soporte de la plataforma.",
+    "terms": "Su plan: {terms}",
+    "readOnly": "Puede ver las solicitudes de soporte pero no responderlas. Pida ayuda a un administrador con acceso a Ayuda y soporte."
+  },
+  "mine": {
+    "title": "Mis solicitudes de soporte",
+    "description": "Solicitudes que envió a los administradores de su organización o al equipo de la plataforma.",
+    "empty": "No ha enviado solicitudes de soporte. Pulse ? y elija Contactar a soporte cuando necesite ayuda."
+  },
+  "ticket": {
+    "title": "{number}: {subject}",
+    "open": "Abrir {number}",
+    "close": "Cerrar solicitud",
+    "details": "Detalles",
+    "diagnostics": "Diagnósticos",
+    "consented": "Enviados con consentimiento el {date}",
+    "noDiagnostics": "No se adjuntaron diagnósticos.",
+    "conversation": "Conversación",
+    "noMessages": "Todavía no hay respuestas.",
+    "reply": "Responder",
+    "replyHint": "Escriba una respuesta",
+    "send": "Enviar respuesta",
+    "closedNote": "Esta solicitud está cerrada. Envíe una nueva si todavía necesita ayuda.",
+    "move": "Cambiar estado",
+    "reason": "Motivo",
+    "reasonHint": "Por qué cambia el estado",
+    "moveTo": "Pasar a {state}",
+    "loading": "Cargando la solicitud",
+    "notFound": "Esta solicitud ya no existe o ya no puede verla.",
+    "loadFailed": "No se pudo cargar la solicitud. Ciérrela e inténtelo de nuevo.",
+    "replied": "Respuesta enviada.",
+    "moved": "Pasó a {state}."
+  },
+  "errors": {
+    "denied": "No puede hacer eso en esta solicitud. Solo el solicitante y sus responsables pueden.",
+    "closed": "Esta solicitud está cerrada y no admite más respuestas.",
+    "invalid": "Falta algo. Escriba primero una respuesta o un motivo.",
+    "conflict": "La solicitud cambió mientras la veía. Vuelva a cargar para ver su estado actual.",
+    "unexpected": "No se pudo acceder a soporte. Inténtelo de nuevo en un momento.",
+    "loadFailed": "No se pudieron cargar las solicitudes de soporte. Vuelva a cargar la página."
+  },
+  "preferences": {
+    "title": "Recorridos y consejos",
+    "description": "Los recorridos guiados se ofrecen una vez y los consejos se muestran una vez. Repita un recorrido o vuelva a mostrar todos los consejos.",
+    "tour": "{title}",
+    "state": {
+      "none": "Aún no ofrecido",
+      "Offered": "Ofrecido",
+      "Started": "Iniciado",
+      "Completed": "Completado",
+      "Dismissed": "No realizado"
+    },
+    "replay": "Repetir",
+    "resetTips": "Volver a mostrar todos los consejos",
+    "tipsDismissed": "{count, plural, =0 {Ningún consejo descartado} one {# consejo descartado} other {# consejos descartados}}",
+    "resetDone": "Los consejos volverán a mostrarse en sus páginas.",
+    "replayReady": "El recorrido comienza cuando abra su página."
+  }
+}

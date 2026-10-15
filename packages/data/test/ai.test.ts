@@ -10,8 +10,8 @@ import {
   listEnabledAiFeatures,
   saveAiSettings,
   transitionAiSuggestion,
-} from "../src/ai";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/ai.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const settingsRow = {
   assistant_enabled: true,

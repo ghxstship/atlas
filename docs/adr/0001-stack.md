@@ -103,13 +103,14 @@ Dependencies the Wave 1 agents needed that the original table did not list, each
 
 ### CI actions (pinned by commit SHA, Section 9)
 
-| Action               | Tag     | SHA                                                                                       |
-| -------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| `actions/checkout`   | v7.0.1  | `3d3c42e5aac5ba805825da76410c181273ba90b1`                                                |
-| `actions/setup-node` | v7.1.0  | `949feb2413d6458794dcd2491c4babbbce0c15c1`                                                |
-| `pnpm/action-setup`  | v6.1.0  | `ea17c68df8912ef543352723c149a84f56e3d413`                                                |
-| `supabase/setup-cli` | v3.0.1  | `45a513f8c64c0bc8e0e3dfe572b5c95be85f6359`                                                |
-| gitleaks container   | v8.30.1 | Run as a container; the gitleaks Action needs a paid license on organization repositories |
+| Action                    | Tag     | SHA                                                                                       |
+| ------------------------- | ------- | ----------------------------------------------------------------------------------------- |
+| `actions/checkout`        | v7.0.1  | `3d3c42e5aac5ba805825da76410c181273ba90b1`                                                |
+| `actions/setup-node`      | v7.1.0  | `949feb2413d6458794dcd2491c4babbbce0c15c1`                                                |
+| `actions/upload-artifact` | v7.0.1  | `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`                                                |
+| `pnpm/action-setup`       | v6.1.0  | `ea17c68df8912ef543352723c149a84f56e3d413`                                                |
+| `supabase/setup-cli`      | v3.0.1  | `45a513f8c64c0bc8e0e3dfe572b5c95be85f6359`                                                |
+| gitleaks container        | v8.30.1 | Run as a container; the gitleaks Action needs a paid license on organization repositories |
 
 ## Deviations from "latest stable"
 
@@ -118,6 +119,7 @@ Dependencies the Wave 1 agents needed that the original table did not list, each
 3. **Local Supabase port block 554xx and project id `xos4`.** The build host already runs an unrelated Supabase stack named `xos` on the default and 544xx ports. Moving this project avoids touching that stack.
 4. **stylelint 16.26.1, not 17.16.0.** `stylelint-use-logical-spec` 5.0.1, the plugin ADR 0010 relies on, declares `stylelint >=11 <17` and has not been updated since 2024. 16.26.1 is the newest release inside that range. Renovate holds stylelint below 17 until the plugin widens its range or is replaced through a new ADR.
 5. **Glide Data Grid not installed.** `@glideapps/glide-data-grid` 6.0.3 declares peers `react` and `react-dom` 16 to 18 (the repo pins 19.3.0) plus `lodash`, `marked` and `react-responsive-carousel`. SpreadsheetGrid, BudgetGrid and BidSheet ship on the accessible ARIA grid model from the design reference (keyboard editing, Excel paste, NULL-aware cells and totals). Glide is adopted when a release supports React 19, behind the same component props.
+6. **Compass pins react-native 0.86.3 and react 19.2.3, not 0.87.1 and 19.3.0.** Expo SDK 57, the pinned SDK, bundles react-native 0.86.3 and react 19.2.3, and Metro cannot bundle react-native 0.87 (`@expo/metro-config` 57 needs `react-native/rn-get-polyfills`, which 0.87 removed). The renderer needs an exact React match, so `apps/compass` alone pins Expo's bundled set: react-native 0.86.3, react 19.2.3, react-native-reanimated 4.5.1, react-native-worklets 0.10.1, react-native-screens 4.26.2, react-native-safe-area-context 5.7.0 and react-native-svg 15.15.4. `apps/compass/metro.config.js` resolves one React. `@xos/ui-native` accepts React `19.2.3 || 19.3.0`. The web apps stay on React 19.3.0. React Native 0.87 and React 19.3 move into Compass with the Expo SDK that supports them.
 
 ## Alternatives considered
 

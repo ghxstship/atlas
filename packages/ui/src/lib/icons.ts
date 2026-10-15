@@ -1,15 +1,7 @@
-import * as lucide from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { lucideName, resolveIcon as resolveRegisteredIcon } from "@xos/icons";
+import type { IconComponent } from "@xos/icons";
 
-/** Short aliases the reference Icon keeps (Icon README). */
-const ALIASES: Record<string, string> = {
-  more: "Ellipsis",
-  alert: "TriangleAlert",
-  "check-circle": "CircleCheck",
-  pin: "MapPin",
-  home: "House",
-  undo: "Undo2",
-};
+export { lucideName };
 
 /** Icons that point along the reading direction and mirror in right-to-left locales. */
 const MIRRORED = new Set([
@@ -23,29 +15,22 @@ const MIRRORED = new Set([
   "ExternalLink",
 ]);
 
-function pascal(name: string): string {
-  return name
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
-}
+const warned = new Set<string>();
 
-/** The Lucide component name for an icon name in PascalCase, kebab-case or a short alias. */
-export function lucideName(name: string): string {
-  const aliased = ALIASES[name] ?? name;
-  return /^[A-Z]/.test(aliased) ? aliased : pascal(aliased);
-}
-
-const registry = lucide as unknown as Record<string, unknown>;
-
-/** Resolves a Lucide icon component, or null when the name does not exist in the pinned release. */
-export function resolveIcon(name: string): LucideIcon | null {
-  const key = lucideName(name);
-  if (key === "icons" || key === "createLucideIcon" || key === "useLucideContext") return null;
-  const candidate = registry[key];
-  return typeof candidate === "object" || typeof candidate === "function"
-    ? (candidate as LucideIcon)
-    : null;
+/**
+ * Resolves an icon from the @xos/icons registry, the closed set that keeps lucide-react tree-shaken
+ * (RRR-70). Returns null for a name outside the registry and warns once per name so the
+ * missing name is added to the owner's registry list rather than shipping a blank square.
+ */
+export function resolveIcon(name: string): IconComponent | null {
+  const icon = resolveRegisteredIcon(name);
+  if (icon === null && !warned.has(name)) {
+    warned.add(name);
+    console.warn(
+      `@xos/ui Icon: "${name}" is not in the @xos/icons registry. Add ${lucideName(name)} to packages/icons/registry/<owner>.txt and run pnpm --filter @xos/icons generate:registry.`,
+    );
+  }
+  return icon;
 }
 
 export function isMirrored(name: string): boolean {

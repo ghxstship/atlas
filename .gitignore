@@ -19,3 +19,4 @@ canon/reports/
 
 # Claude Code agent worktrees and local state
 .claude/
+storybook-static/

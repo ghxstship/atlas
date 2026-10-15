@@ -6,6 +6,7 @@ import {
   RemoveMemberButton,
   RevokeInviteButton,
 } from "@/components/settings/forms";
+import { ContributedPanels } from "@/components/settings/contributed-panels";
 import { SectionHeader } from "@/components/settings/section-header";
 import { requireNode } from "@/components/shell/sitemap-page";
 import { getTranslate } from "@/lib/shell/translate";
@@ -18,7 +19,8 @@ import { getTranslate } from "@/lib/shell/translate";
 export default async function MembersSettingsPage({
   params,
 }: PageProps<"/[org]/settings/members">) {
-  const ctx = await requireNode("settings.members", await params);
+  const routeParams = await params;
+  const ctx = await requireNode("settings.members", routeParams);
   const db = ctx.viewer.db;
   const [members, roles, invites, t, translate, format] = await Promise.all([
     listMembers(db, ctx.org.id),
@@ -135,6 +137,7 @@ export default async function MembersSettingsPage({
           <p className="m-0 text-text-13 text-text-secondary">{t("noPending")}</p>
         )}
       </section>
+      <ContributedPanels node="settings.members" ctx={ctx} params={routeParams} />
     </>
   );
 }

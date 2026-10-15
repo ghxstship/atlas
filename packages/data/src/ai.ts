@@ -1,6 +1,6 @@
-import type { Database, Json } from "./database.types";
-import type { XosClient } from "./client";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { Database, Json } from "./database.types.ts";
+import type { XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Aurora AI repository (Section 4.7, migration 0650). Every call runs with the signed-in person's

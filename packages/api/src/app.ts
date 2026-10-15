@@ -1,7 +1,7 @@
 /**
- * The v1 Hono app factory. Route definitions are registered for the OpenAPI document only;
- * operation handlers mount module by module as each module is implemented, so no
- * unimplemented operation answers with a stub.
+ * The v1 Hono app factory. Every route definition is registered for the OpenAPI document;
+ * operation handlers from `src/handlers/<module>.ts` mount onto their routes when the app is
+ * created with dependencies, so no unimplemented operation answers with a stub.
  */
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { loadCapabilityRegistry } from "@xos/schemas/capabilities";
@@ -9,6 +9,14 @@ import { atlasResources } from "./catalog/atlas.ts";
 import { canonResources } from "./catalog/canon.ts";
 import { marketplaceResources } from "./catalog/marketplace.ts";
 import { platformResources } from "./catalog/platform.ts";
+import { applyAdditions } from "./catalog/additions.ts";
+import {
+  CONTRACT_CORRECTIONS,
+  applyCorrections,
+  resolveCorrections,
+} from "./catalog/corrections.ts";
+import type { ResolvedCorrection } from "./catalog/corrections.ts";
+import { MODULE_ADDITIONS } from "./catalog/modules/index.generated.ts";
 import type { Module, ResourceSpec } from "./catalog/types.ts";
 import { MODULES } from "./catalog/types.ts";
 import { buildRoutes } from "./build/routes.ts";
@@ -19,17 +27,40 @@ import {
   registerProblemResponses,
   registerSecuritySchemes,
 } from "./conventions/components.ts";
-import { validationHook } from "./problem.ts";
+import { MODULE_HANDLERS } from "./handlers/index.generated.ts";
+import { notFound, problemResponse, validationHook } from "./problem.ts";
+import type { AnyModuleHandlers } from "./runtime/handler.ts";
+import { mountHandlers } from "./runtime/mount.ts";
+import type { MountOptions } from "./runtime/mount.ts";
 
-export const API_VERSION = "1.0.0-draft.1";
+/** The v1 draft. Each draft that adds contract corrections takes the next number (ADR 0023). */
+export const API_VERSION = "1.0.0-draft.2";
 
-/** Every resource in the contract, in module order. */
-export const catalog: readonly ResourceSpec[] = [
+/** The v1 catalog exactly as frozen (ADR 0014), in module order. Gate 20 compares it with the freeze. */
+export const uncorrectedFrozenCatalog: readonly ResourceSpec[] = [
   ...atlasResources,
   ...marketplaceResources,
   ...canonResources,
   ...platformResources,
 ];
+
+/**
+ * Every correction to the frozen catalog (ADR 0023), resolved and in the order applied: the
+ * contract-wide entries, then each module's entries in `MODULES` order.
+ */
+export const CORRECTIONS: readonly ResolvedCorrection[] = resolveCorrections(
+  uncorrectedFrozenCatalog,
+  [...CONTRACT_CORRECTIONS, ...MODULE_ADDITIONS.flatMap((m) => m.corrections)],
+);
+
+/** The frozen v1 catalog with its corrections applied. */
+export const frozenCatalog: readonly ResourceSpec[] = applyCorrections(
+  uncorrectedFrozenCatalog,
+  CORRECTIONS,
+);
+
+/** Every resource in the contract: the frozen catalog plus each module's additive operations. */
+export const catalog: readonly ResourceSpec[] = applyAdditions(frozenCatalog, MODULE_ADDITIONS);
 
 const TAG_DESCRIPTIONS: Record<Module, string> = {
   Home: "Org dashboard, my work, gate readiness and alerts (Section 4.2).",
@@ -88,21 +119,79 @@ export const DOCUMENT_INFO = {
   tags: MODULES.map((name) => ({ name, description: TAG_DESCRIPTIONS[name] })),
 } as const;
 
-export function createApiApp(): OpenAPIHono {
-  const app = new OpenAPIHono({ defaultHook: validationHook });
+/** What the runtime needs to serve requests. Without it the app carries the document only. */
+export interface ApiDeps extends MountOptions {
+  /** Module handler sets; defaults to every file in `src/handlers`. */
+  readonly handlers?: readonly AnyModuleHandlers[];
+  /** Mount prefix stripped before routing, such as `/api/v1` in Atlas. */
+  readonly basePath?: string;
+}
+
+export function createApiApp(
+  deps?: ApiDeps,
+  specs: readonly ResourceSpec[] = catalog,
+): OpenAPIHono {
+  const base = deps?.basePath?.replace(/\/$/, "") ?? "";
+  const app = new OpenAPIHono({
+    defaultHook: validationHook,
+    ...(base === ""
+      ? {}
+      : {
+          getPath: (request: Request) => {
+            const path = new URL(request.url).pathname;
+            return path === base
+              ? "/"
+              : path.startsWith(`${base}/`)
+                ? path.slice(base.length)
+                : path;
+          },
+        }),
+  });
   const registry = app.openAPIRegistry;
   registerSecuritySchemes(registry, loadCapabilityRegistry());
   registerHeaders(registry);
   registerProblemResponses(registry);
   const params = registerParameters(registry);
-  for (const route of buildRoutes(catalog, params)) registry.registerPath(route);
+  const routes = buildRoutes(specs, params);
+  for (const route of routes) registry.registerPath(route);
+  if (deps !== undefined) {
+    mountHandlers(app, routes, deps.handlers ?? MODULE_HANDLERS, deps);
+    app.notFound((c) =>
+      problemResponse({
+        ...notFound("No operation is served at this path.").body,
+        instance: new URL(c.req.url).pathname,
+      }),
+    );
+  }
   return app;
 }
 
-export function buildOpenApiDocument(): Record<string, unknown> {
-  const doc = createApiApp().getOpenAPI31Document(DOCUMENT_INFO as never) as unknown as Record<
-    string,
-    unknown
-  >;
+/** operationIds that have a handler, in document order (Section 18, gate 5 coverage). */
+export function handledOperations(
+  modules: readonly AnyModuleHandlers[] = MODULE_HANDLERS,
+): string[] {
+  const handled = new Set(
+    modules.flatMap((m) =>
+      Object.entries(m.handlers)
+        .filter(([, h]) => h !== undefined)
+        .map(([id]) => id),
+    ),
+  );
+  return catalogOperationIds().filter((id) => handled.has(id));
+}
+
+/** Every operationId in the contract, in document order. */
+export function catalogOperationIds(): string[] {
+  const params = registerParameters(new OpenAPIHono().openAPIRegistry);
+  return buildRoutes(catalog, params).map((r) => (r as { operationId: string }).operationId);
+}
+
+/** The OpenAPI document of `specs`; the full catalog unless a test passes another set. */
+export function buildOpenApiDocument(
+  specs: readonly ResourceSpec[] = catalog,
+): Record<string, unknown> {
+  const doc = createApiApp(undefined, specs).getOpenAPI31Document(
+    DOCUMENT_INFO as never,
+  ) as unknown as Record<string, unknown>;
   return doc;
 }

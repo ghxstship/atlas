@@ -404,10 +404,19 @@
       "bold": "[Böld ·]",
       "bullets": "[Bûllétéd lîst ·····]",
       "checklist": "[Çhéçklîst ···]",
+      "divider": "[Dîvîdér ··]",
+      "heading": "[Héàdîñg ··]",
       "hint": "[Týpé / för blöçks, @ tö méñtîöñ, # tö lîñk à réçörd. ····················]",
       "italic": "[Îtàlîç ··]",
       "link": "[Lîñk ·]",
       "mention": "[Méñtîöñ ··]",
+      "menu": {
+        "mention": "[Péöplé tö méñtîöñ ······]",
+        "record": "[Réçörds tö lîñk ······]",
+        "slash": "[Blöçks tö îñsért ······]"
+      },
+      "noMatches": "[Ñö màtçhés. Kéép týpîñg, ör préss Ésçàpé tö çlösé. ····················]",
+      "quote": "[Qûöté ··]",
       "table": "[Tàblé ·]",
       "toolbar": "[Förmàttîñg ···]"
     },

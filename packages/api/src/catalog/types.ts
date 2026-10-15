@@ -4,6 +4,7 @@
  */
 import type { z } from "@hono/zod-openapi";
 import type { ResourceDefinition } from "@xos/schemas";
+import type { CapabilityRule } from "./capabilities.ts";
 
 /** Tags: the Atlas modules of Section 4.2, plus Gateway (4.4), Identity (4.8) and Platform (4.6, 4.10). */
 export const MODULES = [
@@ -64,6 +65,8 @@ export interface ActionSpec {
 export interface OrderSpec {
   readonly by: readonly string[];
   readonly numeric: boolean;
+  /** Newest first: the default order runs descending (a feed). Absent means ascending. */
+  readonly descending?: boolean;
   /** Field overrides for each item of the list example, in the documented order. */
   readonly examples?: readonly Readonly<Record<string, string | number>>[];
 }
@@ -82,4 +85,6 @@ export interface ResourceSpec {
   readonly order: OrderSpec;
   /** Path parameter name for the item; defaults to the resource key. */
   readonly keyParam: string;
+  /** Capability rule of an additive resource (`catalog/additions.ts`); frozen ones use the table. */
+  readonly capabilityRule?: CapabilityRule;
 }
