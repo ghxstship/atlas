@@ -448,11 +448,16 @@
     "title": "Registro de replanificaciones",
     "none": "Aún no hay replanificaciones. Los cambios de fecha y estado desde ahora se registran aquí.",
     "notYet": "Las replanificaciones se registran cuando el registro está Programado.",
-    "slipped": "Se retrasó {days} días",
-    "pulledIn": "Se adelantó {days} días",
+    "slipped": "Se retrasó {n, plural, one {# día} other {# días}}",
+    "slippedHours": "Se retrasó {n, plural, one {# hora} other {# horas}}",
+    "pulledIn": "Se adelantó {n, plural, one {# día} other {# días}}",
+    "pulledInHours": "Se adelantó {n, plural, one {# hora} other {# horas}}",
     "datesChanged": "Cambiaron las fechas",
     "stateChanged": "{from} a {to}",
     "window": "{before} a {after}"
+  },
+  "duplicate": {
+    "button": "Duplicar"
   },
   "trash": {
     "move": "Mover a la papelera",
@@ -578,6 +583,8 @@
     "fileTooLarge": "Los archivos pueden tener hasta 50 MB.",
     "fileScanning": "El archivo aún se está revisando. Inténtelo de nuevo en un momento.",
     "baselineName": "Nombre la línea base, por ejemplo Línea Base de la Compuerta 3.",
+    "cueLabel": "Nombre el cue, por ejemplo Sala a Media Luz.",
+    "punchWhat": "Indique en pocas palabras qué debe corregirse.",
     "rules": {
       "record_title_grammar": "Corrija el título.",
       "record_xyz_required": "Elija una categoría URID o declare la etiqueta XYZ.",

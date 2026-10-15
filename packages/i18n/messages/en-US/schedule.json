@@ -57,8 +57,10 @@
     "current": "Current finish",
     "slip": "Slip",
     "onPlan": "On plan",
-    "late": "{days} days late",
-    "early": "{days} days early",
+    "late": "{n, plural, one {# day} other {# days}} late",
+    "lateHours": "{n, plural, one {# hour} other {# hours}} late",
+    "early": "{n, plural, one {# day} other {# days}} early",
+    "earlyHours": "{n, plural, one {# hour} other {# hours}} early",
     "noDate": "No date",
     "lateCount": "{count, plural, =0 {Every record is on plan or early.} one {# record finishes after the plan.} other {# records finish after the plan.}}",
     "close": "Close"

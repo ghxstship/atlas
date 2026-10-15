@@ -8,7 +8,12 @@ import { useCopy } from "./action-ui";
 export function ModuleLoading({ rows = 8 }: { rows?: number }) {
   const t = useCopy("work");
   return (
-    <div aria-busy="true" aria-label={t("pageStates.loading")} className="flex flex-col gap-12">
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label={t("pageStates.loading")}
+      className="flex flex-col gap-12"
+    >
       <Skeleton width={240} height={28} />
       <Skeleton width="70%" height={40} />
       {Array.from({ length: rows }, (_, i) => (
