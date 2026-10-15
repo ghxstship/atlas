@@ -31,6 +31,8 @@ export function BiometricLock({
       setLocked(false);
       return undefined;
     }
+    // Settings load after launch, so the lock engages when the stored preference arrives.
+    setLocked(true);
     const subscription = AppState.addEventListener("change", (state) => {
       if (state === "background") setLocked(true);
     });
