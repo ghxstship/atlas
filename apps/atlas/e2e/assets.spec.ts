@@ -193,7 +193,7 @@ test("lots move through the ledger and a recount records the difference", async 
     .getByRole("button", { name: "Open" })
     .click();
   const peek = page.getByRole("dialog", { name: /Box Truss 12 in/ });
-  await expect(peek.getByText("Counted, 2 difference")).toBeVisible();
+  await expect(peek.getByText("Counted, 2 difference").first()).toBeVisible();
   await peek.getByRole("button", { name: "Record count" }).click();
   const count = page.getByRole("dialog", { name: "Record a count" });
   const counted = 30 + (Date.now() % 7);
