@@ -258,8 +258,10 @@ export function DownloadButton(props: {
   hidden: Readonly<Record<string, string>>;
 }) {
   const t = useTranslations("crew.form");
+  const router = useRouter();
   const [state, action, pending] = useActionState(props.action, INITIAL);
   useEffect(() => {
+    if (state.ok) router.refresh();
     if (!state.file) return;
     const blob = new Blob([state.file.content], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -268,7 +270,7 @@ export function DownloadButton(props: {
     a.download = state.file.name;
     a.click();
     URL.revokeObjectURL(url);
-  }, [state]);
+  }, [state, router]);
   return (
     <form action={action} className="flex flex-col gap-8">
       {Object.entries(props.hidden).map(([k, v]) => (

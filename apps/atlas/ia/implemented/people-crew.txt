@@ -4,4 +4,8 @@ crew.shifts
 crew.swaps
 crew.time-entries
 crew.timesheets
+crew.rate-cards
+crew.pay-periods
+crew.payroll-exports
+crew.time-off
 project.crew

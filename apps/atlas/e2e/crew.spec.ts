@@ -234,3 +234,60 @@ test("journey 66: crew claim a published open shift; a double booking is refused
   await expect(dialog.getByText("You already hold a shift that overlaps this one.")).toBeVisible();
   await expectAccessible(field);
 });
+
+test("journeys 12 and 31: pay rates by role, a posted period never reopens, export is plan gated", async ({
+  page,
+  browser,
+}) => {
+  const { slug, owner, field, fieldName } = await newCrew(page, browser);
+
+  // Rate cards and the pay rate ledger: the Owner holds the payroll restricted read.
+  await owner.goto(`/${slug}/crew/rate-cards?create=1`);
+  const card = owner.getByRole("dialog", { name: "New rate card" });
+  await card.getByLabel("Rate card name").fill("2027 Crew Rates");
+  await card.getByRole("button", { name: "New rate card" }).click();
+  await expect(owner.getByRole("heading", { level: 2, name: "2027 Crew Rates" })).toBeVisible();
+  await owner.getByRole("link", { name: "Record pay rate" }).click();
+  const rate = owner.getByRole("dialog", { name: "Record a pay rate" });
+  await rate.getByLabel("Person").selectOption({ label: fieldName });
+  await rate.getByLabel("Hourly rate").fill("32.50");
+  await rate.getByRole("button", { name: "Record pay rate" }).click();
+  await expect(rate).toBeHidden();
+  await expect(owner.getByRole("grid", { name: "Pay rate ledger" })).toContainText("$32.50");
+  await expectAccessibleInBothThemes(owner);
+
+  // Pay periods: open, start a run, cancel it, close and post; a posted period offers no reopen.
+  await owner.goto(`/${slug}/crew/pay-periods?create=1`);
+  const period = owner.getByRole("dialog", { name: "New pay period" });
+  await period.getByRole("button", { name: "New pay period" }).click();
+  await expect(period).toBeHidden();
+  await owner.getByRole("row").nth(1).dblclick();
+  await owner.getByRole("link", { name: "New payroll run" }).click();
+  const run = owner.getByRole("dialog", { name: "New payroll run" });
+  await run.getByRole("button", { name: "New payroll run" }).click();
+  await expect(run).toBeHidden();
+  await owner.getByRole("link", { name: /USD run started/ }).click();
+  await expect(owner.getByText(/No lines yet\. Calculate the run/)).toBeVisible();
+  await settled(owner);
+  await confirm(owner, "Cancel run");
+  await owner.goto(`/${slug}/crew/pay-periods`);
+  await owner.getByRole("row").nth(1).dblclick();
+  await confirm(owner, "Close period");
+  await confirm(owner, "Post period");
+  const posted = owner.getByRole("dialog").first();
+  await expect(posted).toContainText("Moved from Closed to Posted");
+  await expect(posted.getByRole("button", { name: "Reopen period" })).toHaveCount(0);
+  await expectAccessibleInBothThemes(owner);
+
+  // Payroll export starts at Team: an Access org sees the refusal with its reason.
+  await owner.goto(`/${slug}/crew/payroll-exports`);
+  await expect(
+    owner.getByText(/Payroll export is included from the Team plan/).first(),
+  ).toBeVisible();
+  await expectAccessibleInBothThemes(owner);
+
+  // The Field member reads their own pay rate in the ledger.
+  await field.goto(`/${slug}/crew/rate-cards`);
+  await expect(field.getByRole("grid", { name: "Pay rate ledger" })).toContainText("$32.50");
+  await expectAccessibleInBothThemes(field);
+});
