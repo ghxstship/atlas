@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Dialog, Input, Select, Textarea } from "@xos/ui";
+import { Button, Drawer, Input, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { createProjectAction, type ActionState } from "@/lib/projects/actions";
@@ -178,7 +178,10 @@ export function ProjectFields({
   );
 }
 
-/** New project dialog; opened from the primary action or by `?create=1` (ADR 0017 item 4). */
+/**
+ * New project, in a drawer whose body scrolls, so every field and the submit button stay reachable
+ * at any viewport height. Opened from the primary action or by `?create=1` (ADR 0017 item 4).
+ */
 export function CreateProjectDialog({
   org,
   options,
@@ -192,7 +195,7 @@ export function CreateProjectDialog({
   const [open, setOpen] = useState(defaultOpen);
   const [state, action, pending] = useActionState(createProjectAction, {});
   return (
-    <Dialog
+    <Drawer
       open={open}
       onOpenChange={setOpen}
       trigger={
@@ -201,8 +204,7 @@ export function CreateProjectDialog({
         </Button>
       }
       title={t("create.title")}
-      description={t("create.description")}
-      actions={
+      footer={
         <>
           <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
             {t("create.cancel")}
@@ -213,11 +215,12 @@ export function CreateProjectDialog({
         </>
       }
     >
+      <p className="m-0 text-text-13 text-text-secondary">{t("create.description")}</p>
       <form id="create-project" action={action} className="flex flex-col gap-12" noValidate>
         <input type="hidden" name="org" value={org} />
         <ActionError state={state} />
         <ProjectFields idPrefix="create" options={options} state={state} />
       </form>
-    </Dialog>
+    </Drawer>
   );
 }

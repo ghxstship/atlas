@@ -11,11 +11,8 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 export function ActionError({ state }: { state: ActionState }) {
   const t = useTranslations("projects.errors") as unknown as Translate;
   if (!state.error) return null;
-  return (
-    <div role="alert">
-      <InlineAlert tone="danger">{t(state.error, state.values ?? {})}</InlineAlert>
-    </div>
-  );
+  // The danger InlineAlert carries role="alert" itself.
+  return <InlineAlert tone="danger">{t(state.error, state.values ?? {})}</InlineAlert>;
 }
 
 /** The catalog message for a field error, or the empty string. */

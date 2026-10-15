@@ -8,6 +8,10 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
  * Each run signs up a new owner in a new org on the local stack, so runs never collide.
  */
 
+// Dialogs and peeks fade in; axe measures contrast mid-fade unless motion is reduced, so these
+// checks run with reduced motion, which the design system honors with no animation.
+test.use({ reducedMotion: "reduce" });
+
 async function newOwnerOrg(page: Page): Promise<string> {
   const id = uniqueId();
   const slug = `prj-${id}`;
@@ -93,6 +97,8 @@ test("journey 1: create a project with jurisdiction US-FL-MIAMI-DADE", async ({ 
   await page.goto(`/${slug}/projects/all?peek=NWL`);
   const peek = page.getByRole("dialog", { name: "NWL Northwind Summer Series" });
   await expect(peek).toContainText("US-FL-MIAMI-DADE");
+  // Park the pointer so no button is measured in its hover state.
+  await page.mouse.move(0, 0);
   await expectAccessible(page);
   await page.keyboard.press("Escape");
   await expect(peek).toBeHidden();
@@ -100,14 +106,17 @@ test("journey 1: create a project with jurisdiction US-FL-MIAMI-DADE", async ({ 
   await page.goto(`/${slug}/projects/portfolio-timeline`);
   await expect(page.getByRole("figure", { name: "Portfolio timeline" })).toBeVisible();
   await expectAccessible(page);
-  // A duplicate key is refused with words that name the fix.
+  // A new org's plan includes one active project (ADR 0018): a second is refused with words that
+  // name the next step, and the typed input stays (the refusal state).
   await page.goto(`/${slug}/projects/all?create=1`);
   const dialog = page.getByRole("dialog", { name: "New project" });
-  await dialog.getByLabel("Project key").fill("NWL");
+  await dialog.getByLabel("Project key").fill("NWM");
   await dialog.getByLabel("Project name").fill("Second Project");
   await dialog.getByRole("button", { name: "Create project" }).click();
-  await expect(dialog.getByRole("alert")).toContainText("already in use");
+  await expect(dialog.getByRole("alert")).toContainText("active project limit");
   await expect(dialog.getByLabel("Project name")).toHaveValue("Second Project");
+  await page.mouse.move(0, 0);
+  await expectAccessible(page);
 });
 
 test("journey 2: a gate is refused with the named criterion, then passes on evidence", async ({
@@ -201,6 +210,15 @@ test("Projects, Home and Activity pages pass axe in the light theme", async ({ p
     expect(res?.status(), path).toBe(200);
     await expectAccessible(page);
   }
+});
+
+test.skip("journey 1: generate permit requirements and see lead times", () => {
+  // Blocked on A09: the permit engine's project Safety tab (app.generate_permit_requirements).
+});
+
+test.skip("journey 14: schedule records with dependencies, baseline, slip and see the replan", () => {
+  // Blocked on A08: the Schedule pages that create, baseline and slip records. The replan event
+  // (record.replanned) already reaches the Activity feed this file covers.
 });
 
 test("a project the viewer cannot read answers 404", async ({ page }) => {
