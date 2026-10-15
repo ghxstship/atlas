@@ -26,10 +26,11 @@ language plpgsql as $$
 declare v uuid;
 begin
   insert into app.opportunities (project_id, role_type, role_code, title, visibility, rate_type, pay_min_minor, pay_max_minor,
-    currency_code, deadline_at, starts_on, ends_on)
+    currency_code, deadline_at, starts_on, ends_on, requisition_id)
   values (pg_temp.id(p_project), p_role_type::app.external_role_type, case when p_role_type in ('Crew', 'Staff') then '5000.51.02' end,
     'Summer Series ' || p_key, p_visibility::app.opportunity_visibility, p_rate::app.rate_type, p_min, p_max,
-    case when p_min is not null then 'USD' end, now() + p_deadline, '2027-06-01', '2027-06-03')
+    case when p_min is not null then 'USD' end, now() + p_deadline, '2027-06-01', '2027-06-03',
+    case when p_role_type in ('Crew', 'Staff') then pg_temp.id('requisition_' || substr(p_project, 5)) end)
   returning id into v;
   insert into world values (p_key, v);
   return v;
@@ -70,7 +71,7 @@ select throws_ok($$select pg_temp.opp('opp_dave', 'prj_a', 'Crew', 'Invited', 'D
 select pg_temp.as_user('carol');
 select lives_ok($$select pg_temp.publish('opp_crew')$$, 'a Manager submits and publishes');
 select throws_ok($$update app.opportunities set pay_max_minor = 99000 where id = (select id from world where key = 'opp_crew')$$,
-  'XR001', 'opportunity_published_terms: Compensation, visibility and deadline are fixed once published; pause, close and post a new opportunity.',
+  'XR001', 'opportunity_published_terms: Compensation, visibility, deadline and requisition are fixed once published; pause, close and post a new opportunity.',
   'published compensation is fixed');
 select pg_temp.opp('opp_nopay', 'prj_a', 'Crew', 'Invited', null, null, null);
 select throws_ok($$select pg_temp.publish('opp_nopay')$$,
@@ -231,7 +232,7 @@ select throws_ok($$select app.transition_application((select id from world where
 select pg_temp.as_user('rita');
 select lives_ok($$select app.transition_application((select id from world where key = 'app_art'), 'Submitted', 'Withdrawn', 'Conflict.')$$, 'the representative withdraws for the artist');
 select pg_temp.as_platform();
-select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'application'), 13, 'the application lifecycle declares thirteen moves');
+select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'application'), 14, 'the application lifecycle declares fourteen moves, with the org withdrawing an offer (0764)');
 
 -- Engagements come from accepted applications
 select pg_temp.as_user('carol');

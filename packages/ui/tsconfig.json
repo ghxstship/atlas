@@ -5,5 +5,5 @@
     "jsx": "react-jsx",
     "types": ["node"]
   },
-  "include": ["src", "test", "*.mjs", "*.ts", "*.cjs"]
+  "include": ["src", "test", "stories", ".storybook", "*.mjs", "*.ts", "*.cjs"]
 }

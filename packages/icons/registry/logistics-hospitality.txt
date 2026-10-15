@@ -1,0 +1,9 @@
+# Icons the Atlas Logistics and Hospitality pages draw by name (A11): empty states and the drawer
+# close control they open. One lucide-react name per line.
+ClipboardList
+ConciergeBell
+FolderPlus
+Hotel
+Plane
+Warehouse
+X

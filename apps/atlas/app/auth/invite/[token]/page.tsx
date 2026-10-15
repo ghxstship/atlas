@@ -13,9 +13,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Invitation acceptance (Section 4.8.1, ways to join). The preview and the acceptance go through
- * app.preview_invite and app.accept_invite, which only answer the confirmed sign-in the invite
- * was sent to; a person who is signed out signs in or signs up first and comes back here.
+ * Invitation acceptance (Section 4.8.1, ways to join). Email invitations preview and accept through
+ * app.preview_invite and app.accept_invite, which only answer the confirmed sign-in the invite was
+ * sent to. Invitation links (xlnk_ tokens) accept through app.accept_invite_link for any signed-in
+ * person. A person who is signed out signs in or signs up first and comes back here.
  */
 export default async function InvitePage({ params }: PageProps<"/auth/invite/[token]">) {
   const { token } = await params;
@@ -27,6 +28,15 @@ export default async function InvitePage({ params }: PageProps<"/auth/invite/[to
     getTranslate(),
     getFormatter(),
   ]);
+  if (token.startsWith("xlnk_")) {
+    return (
+      <div className="flex flex-col gap-16">
+        <h1 className="text-heading-20 font-semibold">{t("accept")}</h1>
+        <p className="text-text-14 text-text-secondary">{translate("profiles.join.linkBody")}</p>
+        <AcceptInviteForm token={token} />
+      </div>
+    );
+  }
   const preview = await previewInvite(viewer.db, token);
   if (!preview.ok) {
     const key =

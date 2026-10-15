@@ -1,0 +1,101 @@
+{
+  "feature": "extraction",
+  "description": "Fixed test set for document extraction: every expected value must match, and every field the document does not state must come back NO_ANSWER.",
+  "cases": [
+    {
+      "id": "coi-full",
+      "kind": "insurance_certificate",
+      "document": "CERTIFICATE OF LIABILITY INSURANCE\nInsured: Harborline Staging Co.\nInsurer A: Atlantic Mutual\nType of insurance: COMMERCIAL GENERAL LIABILITY\nEACH OCCURRENCE $ 2,000,000\nPolicy effective 04/01/2026 Policy expiration 03/31/2027\nAll amounts in USD.",
+      "expected": {
+        "coverage_type": "General Liability",
+        "each_occurrence_minor": 200000000,
+        "currency": "USD",
+        "expires_on": "2027-03-31"
+      }
+    },
+    {
+      "id": "coi-no-limit",
+      "kind": "insurance_certificate",
+      "document": "CERTIFICATE OF INSURANCE\nInsured: Northwind Rigging LLC\nCoverage: General Liability\nPolicy period: January 15, 2026 to January 15, 2027\nLimits: see attached schedule.",
+      "expected": {
+        "coverage_type": "General Liability",
+        "each_occurrence_minor": "NO_ANSWER",
+        "currency": "NO_ANSWER",
+        "expires_on": "2027-01-15"
+      }
+    },
+    {
+      "id": "invoice-full",
+      "kind": "invoice",
+      "document": "INVOICE\nBluewater Audio Rentals\nInvoice No. BW-20417\nInvoice date: 2026-09-02\nPayment due: 2026-10-02\nLine: Line array rental, 3 days\nTotal due: USD 18,450.00",
+      "expected": {
+        "invoice_number": "BW-20417",
+        "issued_on": "2026-09-02",
+        "due_on": "2026-10-02",
+        "currency": "USD"
+      }
+    },
+    {
+      "id": "invoice-no-due",
+      "kind": "invoice",
+      "document": "Tidewater Lighting\nInvoice #TL-881\nDated 9/14/2026\nAmount: $4,200.00 USD\nThank you for your business.",
+      "expected": {
+        "invoice_number": "TL-881",
+        "issued_on": "2026-09-14",
+        "due_on": "NO_ANSWER",
+        "currency": "USD"
+      }
+    },
+    {
+      "id": "receipt-full",
+      "kind": "receipt",
+      "document": "HARBOR HARDWARE\n10/03/2026 14:22\nGaffer tape 2in black x6\nTOTAL USD 89.94\nVISA ending 0000",
+      "expected": {
+        "amount_minor": 8994,
+        "currency": "USD",
+        "incurred_on": "2026-10-03"
+      }
+    },
+    {
+      "id": "receipt-torn",
+      "kind": "receipt",
+      "document": "...ARDWARE\nZip ties x4\nThank you",
+      "expected": {
+        "amount_minor": "NO_ANSWER",
+        "currency": "NO_ANSWER",
+        "incurred_on": "NO_ANSWER"
+      }
+    },
+    {
+      "id": "quote-lines",
+      "kind": "quote",
+      "document": "QUOTE Q-5521 from Lumen Video Systems\nTerms: Net 30\n1. LED Wall Panel 500mm, Qty 48, $125.00 each\n2. Video processor, Qty 2, $1,800.00 each\nAll prices USD.",
+      "expected": {
+        "notes": "Net 30"
+      },
+      "expectedLines": [
+        {
+          "description": "LED Wall Panel 500mm",
+          "quantity": 48,
+          "unit_price_minor": 12500,
+          "currency": "USD"
+        },
+        {
+          "description": "Video processor",
+          "quantity": 2,
+          "unit_price_minor": 180000,
+          "currency": "USD"
+        }
+      ]
+    },
+    {
+      "id": "rider-lines",
+      "kind": "rider",
+      "document": "TECHNICAL RIDER\nThe artist requires:\n- 4 wedge monitors on separate mixes\n- One drum riser, 8 ft x 8 ft\n- Stage power: two 20 A circuits stage left",
+      "expected": {
+        "title": "Technical Rider"
+      },
+      "expectedLines": [{ "quantity": 4 }, { "quantity": 1 }, { "quantity": 2 }]
+    }
+  ]
+}

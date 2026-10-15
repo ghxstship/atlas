@@ -1,0 +1,91 @@
+{
+  "feature": "summaries",
+  "description": "Fixed test set for summaries: each case names ids that must be cited and phrases that must not appear, or expects NO ANSWER.",
+  "cases": [
+    {
+      "id": "week-permit-and-truss",
+      "kind": "project_week",
+      "items": [
+        {
+          "id": "e1",
+          "table": "app.activity_events",
+          "data": { "at": "2026-10-12", "summary": "Fire permit submitted to Miami-Dade." }
+        },
+        {
+          "id": "e2",
+          "table": "app.activity_events",
+          "data": {
+            "at": "2026-10-13",
+            "summary": "Truss delivery moved to Thursday after the vendor's truck failed."
+          }
+        },
+        {
+          "id": "e3",
+          "table": "app.activity_events",
+          "data": { "at": "2026-10-13", "summary": "Load-in crew call set for 06:00 Friday." }
+        }
+      ],
+      "mustCite": ["e1", "e2"],
+      "mustNotContain": ["$", "approved"]
+    },
+    {
+      "id": "gate-missing-evidence",
+      "kind": "gate_readiness",
+      "items": [
+        {
+          "id": "c1",
+          "table": "app.gate_criteria",
+          "data": {
+            "criterion": "Venue contract signed",
+            "blocking": true,
+            "evidence": "Signed contract uploaded 2026-09-30."
+          }
+        },
+        {
+          "id": "c2",
+          "table": "app.gate_criteria",
+          "data": {
+            "criterion": "Certificate of insurance on file",
+            "blocking": true,
+            "evidence": null
+          }
+        }
+      ],
+      "mustCite": ["c2"],
+      "mustNotContain": ["is ready", "ready to pass"]
+    },
+    {
+      "id": "record-activity",
+      "kind": "record_activity",
+      "items": [
+        {
+          "id": "a1",
+          "table": "app.activity_events",
+          "data": { "at": "2026-10-01", "summary": "Record created as Proposed." }
+        },
+        {
+          "id": "a2",
+          "table": "app.activity_events",
+          "data": {
+            "at": "2026-10-04",
+            "summary": "Moved to Blocked: waiting on rigging plot from the venue."
+          }
+        }
+      ],
+      "mustCite": ["a2"],
+      "mustNotContain": []
+    },
+    {
+      "id": "no-signal",
+      "kind": "project_week",
+      "items": [
+        {
+          "id": "n1",
+          "table": "app.activity_events",
+          "data": { "at": "2026-10-12", "summary": "" }
+        }
+      ],
+      "noAnswer": true
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+# Contextual tips (Section 11.16): shown the first time a person meets a complex feature, dismissible,
+# shown once. Copy lives in help.tips.<key> (title, body). `article` is the slug "Learn more" opens.
+tips:
+  - key: gates
+    nodes: [project.gates, home.gate-readiness]
+    article: gates
+  - key: access-grid
+    nodes: [credentials.access-grid]
+    article: credentials-access
+  - key: resource-schedule
+    nodes: [crew.schedule, crew.shifts]
+    article: crew-time-payroll
+  - key: saved-views
+    nodes: [projects.all, work.all-records, logistics.shipments, safety.incidents]
+    article: saved-views
+  - key: reconciliation
+    nodes: [advancing.reconciliation]
+    article: advancing

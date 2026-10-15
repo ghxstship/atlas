@@ -1,0 +1,5 @@
+{
+  "extends": "@xos/config/tsconfig/library.json",
+  "compilerOptions": { "resolveJsonModule": true },
+  "include": ["src", "test", "evals", "*.ts", "*.mjs"]
+}

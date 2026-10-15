@@ -1,0 +1,722 @@
+{
+  "kinds": {
+    "Approval": "Approval",
+    "Booking": "Booking",
+    "Build": "Build",
+    "Compliance": "Compliance",
+    "Contract": "Contract",
+    "Deadline": "Deadline",
+    "Decision": "Decision",
+    "Distribution": "Distribution",
+    "Document": "Document",
+    "Event": "Event",
+    "Goal": "Goal",
+    "Inspection": "Inspection",
+    "Meeting": "Meeting",
+    "Milestone": "Milestone",
+    "Payment": "Payment",
+    "Permit": "Permit",
+    "Recruitment": "Recruitment",
+    "Rehearsal": "Rehearsal",
+    "Report": "Report",
+    "Risk": "Risk",
+    "Shift": "Shift",
+    "Strike": "Strike",
+    "Supply": "Supply",
+    "Task": "Task",
+    "Timeline": "Timeline",
+    "Training": "Training"
+  },
+  "classes": {
+    "Work": "Work",
+    "Artifact": "Artifact",
+    "Commitment": "Commitment",
+    "Control": "Control",
+    "Time": "Time"
+  },
+  "states": {
+    "Proposed": "Proposed",
+    "Ready": "Ready",
+    "Scheduled": "Scheduled",
+    "Active": "Active",
+    "Blocked": "Blocked",
+    "In Review": "In Review",
+    "Complete": "Complete",
+    "Deferred": "Deferred",
+    "Canceled": "Canceled"
+  },
+  "subtypes": {
+    "Approval": {
+      "Booking": "Booking",
+      "Budget": "Budget",
+      "Content": "Content",
+      "Design": "Design",
+      "Plan": "Plan"
+    },
+    "Booking": {
+      "Catering": "Catering",
+      "Crew": "Crew",
+      "Equipment": "Equipment",
+      "Freight": "Freight",
+      "Space": "Space",
+      "Talent": "Talent",
+      "Travel": "Travel"
+    },
+    "Build": {
+      "Commissioning": "Commissioning",
+      "Dress": "Dress",
+      "Scenic": "Scenic",
+      "Structural": "Structural",
+      "Systems": "Systems"
+    },
+    "Compliance": {
+      "Certificate": "Certificate",
+      "License": "License",
+      "Plan": "Plan",
+      "Policy": "Policy",
+      "Register": "Register"
+    },
+    "Contract": {
+      "Insurance": "Insurance",
+      "Lease": "Lease",
+      "License": "License",
+      "Service Agreement": "Service Agreement",
+      "Sponsorship": "Sponsorship",
+      "Supply Agreement": "Supply Agreement",
+      "Talent Agreement": "Talent Agreement"
+    },
+    "Deadline": {
+      "Authority Owed": "Authority Owed",
+      "Client Owed": "Client Owed",
+      "Internal": "Internal",
+      "Vendor Owed": "Vendor Owed"
+    },
+    "Decision": {
+      "Commercial": "Commercial",
+      "Creative": "Creative",
+      "Operational": "Operational"
+    },
+    "Distribution": {
+      "Internal": "Internal",
+      "On-sale": "On-sale",
+      "Press": "Press",
+      "Social": "Social"
+    },
+    "Document": {
+      "Brief": "Brief",
+      "Package": "Package",
+      "Plan": "Plan",
+      "Policy": "Policy",
+      "Register": "Register",
+      "Report": "Report",
+      "Run of Show": "Run of Show",
+      "Specification": "Specification"
+    },
+    "Event": {
+      "After Party": "After Party",
+      "Campaign Launch": "Campaign Launch",
+      "Flagship Activation": "Flagship Activation",
+      "Listening Party": "Listening Party",
+      "Standing Operations": "Standing Operations"
+    },
+    "Goal": {
+      "Commercial": "Commercial",
+      "Compliance": "Compliance",
+      "Experience": "Experience",
+      "Operational": "Operational"
+    },
+    "Inspection": {
+      "Readiness": "Readiness",
+      "Restoration": "Restoration",
+      "Safety": "Safety",
+      "Systems": "Systems"
+    },
+    "Meeting": {
+      "Recurring": "Recurring",
+      "Series": "Series",
+      "Single": "Single"
+    },
+    "Milestone": {
+      "Handover": "Handover",
+      "Opening": "Opening",
+      "Term": "Term"
+    },
+    "Payment": {
+      "Deposit": "Deposit",
+      "Progress": "Progress",
+      "Reconciliation": "Reconciliation",
+      "Settlement": "Settlement"
+    },
+    "Permit": {
+      "Alcohol": "Alcohol",
+      "Building": "Building",
+      "Fire & Life Safety": "Fire & Life Safety",
+      "Occupancy": "Occupancy",
+      "Sound": "Sound",
+      "Special Event": "Special Event"
+    },
+    "Recruitment": {
+      "Contracted": "Contracted",
+      "Crewed": "Crewed",
+      "Hourly": "Hourly",
+      "Salaried": "Salaried"
+    },
+    "Rehearsal": {
+      "Full Run": "Full Run",
+      "Stream Test": "Stream Test",
+      "Technical": "Technical"
+    },
+    "Report": {
+      "Compliance": "Compliance",
+      "Event Recap": "Event Recap",
+      "Financial": "Financial",
+      "Operations": "Operations"
+    },
+    "Risk": {
+      "Commercial": "Commercial",
+      "Operational": "Operational",
+      "Reputational": "Reputational",
+      "Safety": "Safety",
+      "Schedule": "Schedule"
+    },
+    "Shift": {
+      "Load-in": "Load-in",
+      "Load-out": "Load-out",
+      "Overnight": "Overnight",
+      "Show": "Show",
+      "Standing": "Standing"
+    },
+    "Strike": {
+      "Full Restoration": "Full Restoration",
+      "Show Strike": "Show Strike"
+    },
+    "Supply": {
+      "Audio": "Audio",
+      "Bar & Beverage": "Bar & Beverage",
+      "Catering & Kitchen": "Catering & Kitchen",
+      "Facilities & Janitorial": "Facilities & Janitorial",
+      "Guest & Front of House": "Guest & Front of House",
+      "Lighting & Video": "Lighting & Video",
+      "Power & Staging": "Power & Staging",
+      "Safety & Emergency": "Safety & Emergency",
+      "Signage & Wayfinding": "Signage & Wayfinding",
+      "Technology": "Technology"
+    },
+    "Task": {
+      "Assess": "Assess",
+      "Coordinate": "Coordinate",
+      "Define": "Define",
+      "Execute": "Execute",
+      "Issue": "Issue",
+      "Produce": "Produce",
+      "Verify": "Verify"
+    },
+    "Timeline": {
+      "Gate Window": "Gate Window",
+      "Program Month": "Program Month",
+      "Show Cycle": "Show Cycle"
+    },
+    "Training": {
+      "Induction": "Induction",
+      "Refresher": "Refresher",
+      "Role-specific": "Role-specific",
+      "Safety": "Safety"
+    }
+  },
+  "xyz": {
+    "X": "X · Resource",
+    "Y": "Y · Process",
+    "Z": "Z · Timeline"
+  },
+  "collection": {
+    "label": "{title} records",
+    "views": "View",
+    "search": "Search records",
+    "searchHint": "Title contains",
+    "apply": "Search",
+    "kind": "Kind",
+    "allKinds": "All kinds",
+    "state": "State",
+    "allStates": "All states",
+    "project": "Project",
+    "allProjects": "All projects",
+    "sort": "Sort by",
+    "sorts": {
+      "key": "Key",
+      "next": "Next date",
+      "title": "Title",
+      "state": "State",
+      "updated": "Recently changed"
+    },
+    "clear": "Clear filters",
+    "open": "Open",
+    "kindBoard": "Records by kind",
+    "stateBoard": "Records by state",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "undated": "{count, plural, one {# record has no date and is not on the calendar.} other {# records have no date and are not on the calendar.}}",
+    "showList": "Show the list"
+  },
+  "views": {
+    "list": "List",
+    "table": "Table",
+    "board": "Board",
+    "calendar": "Calendar",
+    "timeline": "Timeline",
+    "site-plan": "Site plan"
+  },
+  "columns": {
+    "key": "Key",
+    "title": "Title",
+    "kind": "Kind",
+    "state": "State",
+    "owner": "Owner",
+    "next": "Next date",
+    "project": "Project",
+    "rule": "Repeats",
+    "location": "Location",
+    "source": "Raised from",
+    "bids": "Bids",
+    "lowest": "Lowest bid",
+    "budget": "Budget",
+    "due": "Due"
+  },
+  "empty": {
+    "allRecords": {
+      "sentence": "No records yet. Create a task, permit, booking or any record kind.",
+      "action": "New record"
+    },
+    "byKind": {
+      "sentence": "No records to group by kind yet. Create a record to see its kind here.",
+      "action": "New record"
+    },
+    "projectWork": {
+      "sentence": "This project has no records yet. Create the first task for the team.",
+      "action": "New record"
+    },
+    "timeline": {
+      "sentence": "No dated records yet. Give records a start, end or due date to build the timeline.",
+      "action": "Schedule record"
+    },
+    "calendar": {
+      "sentence": "The calendar is empty. Schedule a record to see it here.",
+      "action": "Schedule record"
+    },
+    "projectSchedule": {
+      "sentence": "Nothing is scheduled on this project yet. Add a dated record to start the timeline.",
+      "action": "Schedule record"
+    },
+    "milestones": {
+      "sentence": "No milestones yet. Add the conditions the schedule must reach.",
+      "action": "New milestone"
+    },
+    "recurring": {
+      "sentence": "No recurring work yet. Open a record and set it to repeat on a schedule.",
+      "action": "Open all records"
+    },
+    "workOrders": {
+      "sentence": "No work orders yet. Scope work and invite bids on it.",
+      "action": "New work order"
+    },
+    "punchLists": {
+      "sentence": "No punch items yet. Raise one for anything that needs correcting before handover.",
+      "action": "New punch item"
+    },
+    "filtered": "No records match these filters. Clear them to see every record.",
+    "noDates": "None of these records has a date yet. Show the list to add dates.",
+    "readOnlyAction": "Open my work"
+  },
+  "values": {
+    "unassigned": "Unassigned",
+    "unnamed": "Unnamed person",
+    "noDate": "No date",
+    "none": "None",
+    "notSet": "Not set",
+    "unpriced": "Unpriced",
+    "gate": "Gate {gate} · {name}"
+  },
+  "fields": {
+    "title": "Title",
+    "titleHelp": "{kind} titles follow the kind's grammar; the database explains any correction.",
+    "kind": "Kind",
+    "class": "Class",
+    "subtype": "Subtype",
+    "project": "Project",
+    "scope": "Scope node",
+    "phase": "Phase",
+    "urid": "URID category",
+    "uridHelp": "A category code such as 5000.01.01; the XYZ tag then follows the category.",
+    "xyz": "XYZ tag",
+    "xyzHelp": "Declared when no URID category gives it.",
+    "owner": "Owner",
+    "accountable": "Accountable",
+    "starts": "Starts",
+    "ends": "Ends",
+    "due": "Due",
+    "timeZone": "Time zone",
+    "zoneNote": "Times are in {zone}.",
+    "replanReason": "Replan reason",
+    "replanHelp": "This record is scheduled, so the date change is logged as a replan. Say why."
+  },
+  "record": {
+    "properties": "Record properties",
+    "blockedBy": "Blocked by",
+    "deferredBecause": "Deferred because"
+  },
+  "create": {
+    "button": "New record",
+    "title": "New record",
+    "titleKind": "New {kind}",
+    "submit": "Create record",
+    "more": "More fields",
+    "needProject": "Create project"
+  },
+  "edit": {
+    "title": "Edit record",
+    "saved": "Saved."
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "transition": {
+    "title": "Move to",
+    "to": "{state}",
+    "none": "This record has no further moves.",
+    "dialogTitle": "Move {key} to {state}",
+    "reason": "Reason",
+    "reasonHelp": "Kept in the record's state history.",
+    "blocker": "What blocks it",
+    "blockerHelp": "Name the blocker so the owner knows what to clear.",
+    "replan": "Replan reason",
+    "replanHelp": "Why the record leaves the current plan.",
+    "submit": "Move record",
+    "boardReason": "Moved to {state} on the board."
+  },
+  "checklist": {
+    "title": "Checklist",
+    "progress": "{done} of {total} done",
+    "empty": "No checklist items yet. Add the steps that make this record done.",
+    "emptyReadOnly": "This record has no checklist.",
+    "add": "New item",
+    "addButton": "Add",
+    "remove": "Remove {label}"
+  },
+  "assignees": {
+    "title": "Assignees",
+    "empty": "No one is assigned yet.",
+    "add": "Assign someone",
+    "choose": "Choose a person",
+    "addButton": "Assign",
+    "remove": "Unassign {name}"
+  },
+  "watch": {
+    "start": "Watch",
+    "stop": "Stop watching"
+  },
+  "recurrence": {
+    "title": "Repeats",
+    "none": "This record does not repeat.",
+    "rule": "Repeats by the rule {rule}.",
+    "frequency": "Repeat",
+    "never": "Never",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "interval": "Every",
+    "days": "On",
+    "weekday": {
+      "MO": "Mon",
+      "TU": "Tue",
+      "WE": "Wed",
+      "TH": "Thu",
+      "FR": "Fri",
+      "SA": "Sat",
+      "SU": "Sun"
+    },
+    "zone": "Occurrences are counted in {zone}.",
+    "save": "Save rule",
+    "clear": "Stop repeating",
+    "next": "Next: {dates}"
+  },
+  "history": {
+    "title": "State history",
+    "created": "Created as {state}",
+    "moved": "{from} to {to}"
+  },
+  "replans": {
+    "title": "Replan log",
+    "none": "No replans yet. Date and state changes from now on are logged here.",
+    "notYet": "Replans are logged once the record is Scheduled.",
+    "slipped": "Slipped {n, plural, one {# day} other {# days}}",
+    "slippedHours": "Slipped {n, plural, one {# hour} other {# hours}}",
+    "pulledIn": "Pulled in {n, plural, one {# day} other {# days}}",
+    "pulledInHours": "Pulled in {n, plural, one {# hour} other {# hours}}",
+    "datesChanged": "Dates changed",
+    "stateChanged": "{from} to {to}",
+    "window": "{before} to {after}"
+  },
+  "duplicate": {
+    "button": "Duplicate"
+  },
+  "trash": {
+    "move": "Move to Trash",
+    "moved": "{key} moved to Trash.",
+    "inTrash": "This record is in Trash.",
+    "restore": "Restore",
+    "notifications": "Notifications"
+  },
+  "collab": {
+    "comments": "Comments",
+    "noComments": "No comments yet. Start the conversation about this item.",
+    "noCommentsReadOnly": "No comments yet.",
+    "unknownAuthor": "Someone outside your view",
+    "edited": "Edited",
+    "deleted": "This comment was deleted.",
+    "delete": "Delete",
+    "write": "Write a comment",
+    "post": "Post comment",
+    "attachments": "Attachments",
+    "noAttachments": "No files yet. Upload a drawing, photo or document.",
+    "noAttachmentsReadOnly": "No files yet.",
+    "version": "Version {n}",
+    "download": "Download",
+    "remove": "Remove",
+    "file": "File",
+    "upload": "Upload",
+    "scan": {
+      "Pending Upload": "Uploading",
+      "Scanning": "Scanning",
+      "Clean": "Ready",
+      "Infected": "Blocked: malware found",
+      "Scan Failed": "Scan failed, upload again"
+    }
+  },
+  "punch": {
+    "thisIs": "Punch item",
+    "noLocation": "No location given.",
+    "new": "New punch item",
+    "what": "What must be corrected",
+    "whatHelp": "The task is titled Correct and this text.",
+    "location": "Where",
+    "create": "Raise punch item",
+    "open": "Open",
+    "closed": "Closed",
+    "close": "Close item"
+  },
+  "workOrders": {
+    "new": "New work order",
+    "title": "Title",
+    "scope": "Scope of work",
+    "scopeHelp": "What bidders price, in plain sentences.",
+    "location": "Location",
+    "starts": "Scheduled start",
+    "ends": "Scheduled finish",
+    "hours": "Estimated hours",
+    "bidDue": "Bids due",
+    "budget": "Budget",
+    "currency": "Currency",
+    "create": "Create work order",
+    "save": "Save changes",
+    "bids": "Bids",
+    "noBids": "No bids yet. Record each bidder's price as it arrives.",
+    "bidder": "Bidder",
+    "chooseBidder": "Choose a bidder",
+    "noBidders": "Add vendors to the directory to record their bids.",
+    "amount": "Amount",
+    "amountHelp": "Leave empty when the bidder has not priced it yet.",
+    "note": "Qualifications and exclusions",
+    "addBid": "Record bid",
+    "award": "Award",
+    "awardTitle": "Award {key} to {bidder}",
+    "awardReason": "Why this bid",
+    "awarded": "Awarded",
+    "withdraw": "Withdraw",
+    "withdrawn": "Withdrawn",
+    "submitted": "Submitted {date}",
+    "summary": "{live, plural, =0 {No live bids} one {# live bid} other {# live bids}}, {unpriced, plural, =0 {all priced} one {# unpriced} other {# unpriced}}",
+    "move": "Move to {state}",
+    "moveTitle": "Move {key} to {state}",
+    "reason": "Reason",
+    "delete": "Delete draft",
+    "history": "State history",
+    "fullPage": "Open full page",
+    "creator": "You created this work order, so someone else awards it.",
+    "states": {
+      "Draft": "Draft",
+      "Open": "Open for Bids",
+      "Awarded": "Awarded",
+      "In Progress": "In Progress",
+      "Complete": "Complete",
+      "Canceled": "Canceled"
+    },
+    "boardLabel": "Work orders by state",
+    "record": "Delivers record"
+  },
+  "enums": {
+    "direction": {
+      "Payable": "Payable",
+      "Receivable": "Receivable"
+    },
+    "decision": {
+      "Approved": "Approved",
+      "Rejected": "Rejected"
+    }
+  },
+  "pageStates": {
+    "loading": "Loading",
+    "errorTitle": "This page did not load",
+    "errorSentence": "The records could not be read. Try again; if it keeps failing, share the reference with support.",
+    "retry": "Try again"
+  },
+  "errors": {
+    "next": "Change the highlighted value and try again.",
+    "refused": "The database refused this change.",
+    "notFound": "This item is gone or you can no longer see it. Reload the page.",
+    "conflict": "Something with the same value already exists.",
+    "invalid": "Some values are not valid.",
+    "unexpected": "Something went wrong on our side. Try again in a moment.",
+    "reasonRequired": "Write a reason for the move.",
+    "checklistLabel": "Write the checklist item first.",
+    "commentRequired": "Write a comment first.",
+    "fileRequired": "Choose a file to upload.",
+    "fileTooLarge": "Files can be up to 50 MB.",
+    "fileScanning": "The file is still being checked. Try again in a moment.",
+    "baselineName": "Name the baseline, for example Gate 3 Baseline.",
+    "cueLabel": "Name the cue, for example House to Half.",
+    "punchWhat": "Say what must be corrected, in a few words.",
+    "rules": {
+      "record_title_grammar": "Fix the title.",
+      "record_xyz_required": "Choose a URID category or declare the XYZ tag.",
+      "record_xyz_basis": "Declare the XYZ tag to differ from the category.",
+      "record_blocker_required": "Name what blocks the record before marking it Blocked.",
+      "record_replan_reason_required": "Give a replan reason before deferring the record.",
+      "record_transition_not_allowed": "This move is not allowed from the record's state. Choose one of the offered moves.",
+      "record_state_conflict": "Someone moved this record first. Reopen it to see its state and try again.",
+      "record_retained": "Canceled records are kept, never moved to Trash.",
+      "record_scope_project": "Choose a scope node of the record's own project.",
+      "transition_reason_required": "Every move needs a reason. Write one and try again.",
+      "dependency_cycle": "That dependency would make the schedule circular. Choose another predecessor.",
+      "dependency_project": "Dependencies link records of the same project.",
+      "baseline_locked": "A locked baseline never changes. Capture a new baseline instead.",
+      "cue_already_called": "That cue was already called. Call the next cue.",
+      "cue_call_capability": "You cannot call cues on this project. Ask the stage manager to call it.",
+      "sheet_publish_capability": "You cannot publish sheets on this project. Ask a producer to publish it.",
+      "sod_work_order_award": "Someone other than the work order's author must award it.",
+      "work_order_award_unpriced": "Record the bid's price before awarding it.",
+      "work_order_award_withdrawn": "A withdrawn bid cannot be awarded. Choose another bid.",
+      "work_order_award_bid": "Award a bid on this work order.",
+      "work_order_award_rpc_only": "Award the work order from one of its bids.",
+      "work_order_transition_not_allowed": "This move is not allowed from the work order's state.",
+      "work_order_state_conflict": "Someone moved this work order first. Reopen it and try again.",
+      "work_order_retained": "Only a draft work order can be deleted. Cancel it instead.",
+      "bid_window_closed": "Bids are recorded only while the work order is a draft or open.",
+      "bid_awarded": "An awarded bid never changes.",
+      "bid_withdrawn": "A withdrawn bid stays withdrawn. Record a new bid instead.",
+      "punch_item_what_required": "Say what must be corrected.",
+      "same_project": "Everything you link must belong to the same project.",
+      "sod_approval_requester": "Someone other than the requester must decide this approval.",
+      "approval_decided": "A decided approval is final. Raise a new approval instead.",
+      "approval_not_eligible": "Only someone who may edit this project's records can decide its approvals.",
+      "time_zone_unknown": "Choose a time zone from the list."
+    }
+  },
+  "grammar": {
+    "Approval": "A noun phrase naming what is approved, for example Rigging Plan Sign-Off.",
+    "Booking": "A noun phrase naming the reservation, for example Crew Hotel Block.",
+    "Build": "Start with a verb: name the installation, for example Install the Truss.",
+    "Compliance": "A noun phrase naming the document on file, for example General Liability Certificate.",
+    "Contract": "A noun phrase naming the agreement, for example Venue Lease.",
+    "Deadline": "A noun phrase naming the item owed, for example Final Rider.",
+    "Decision": "A noun phrase naming the choice, for example Headliner Set Time.",
+    "Distribution": "A noun phrase naming what goes out, for example Press Release.",
+    "Document": "A noun phrase naming the artifact, for example Rigging Plan.",
+    "Event": "A proper title in Title Case, for example Opening Night on the Pier.",
+    "Goal": "State the result as reached, for example Sell-Through Achieved.",
+    "Inspection": "A noun phrase naming the check, for example Fire Marshal Walk.",
+    "Meeting": "A noun phrase naming the conversation, for example Production Meeting.",
+    "Milestone": "State the condition as true, for example Stage Load-In Complete.",
+    "Payment": "Start with a verb: name the movement of money, for example Pay the Deposit.",
+    "Permit": "A noun phrase naming the instrument, for example Special Event Permit.",
+    "Recruitment": "Start with a verb: name the role filled, for example Hire Stage Managers.",
+    "Rehearsal": "Start with a verb: name the run-through, for example Run the Full Show.",
+    "Report": "A noun phrase naming the publication, for example Event Recap.",
+    "Risk": "A noun phrase naming the exposure, for example Generator Failure.",
+    "Shift": "Write role · block, for example Stagehand · Load-in.",
+    "Strike": "Start with a verb: name the load-out, for example Strike the Main Stage.",
+    "Supply": "A noun phrase naming the item received, for example Bar Ice.",
+    "Task": "Start with a verb, for example Verify the Rigging Plot.",
+    "Timeline": "A noun phrase naming the window, for example Load-In Window.",
+    "Training": "Start with a verb: name the session, for example Train the Ushers."
+  },
+  "extension": {
+    "engineering_stamp_required": "Engineer's stamp required",
+    "stamped_at": "Stamped",
+    "stamping_engineer": "Stamping engineer",
+    "run_number": "Run number",
+    "stream_target": "Stream destination",
+    "role_code": "Role",
+    "headcount": "Headcount",
+    "restoration_required": "Restoration required",
+    "signed_off_at": "Venue sign-off",
+    "signed_off_by": "Signed off by",
+    "progress_pct": "Progress (percent)",
+    "effort_hours": "Estimated effort (hours)",
+    "delivered_by": "Delivered by",
+    "duration_minutes": "Duration (minutes)",
+    "storage_uri": "Stored at",
+    "version_label": "Version",
+    "element_id": "Catalog element",
+    "quantity": "Quantity",
+    "unit_basis": "Unit",
+    "received_at": "Received",
+    "counterparty_id": "Counterparty",
+    "confirmation_identifier": "Confirmation number",
+    "value_minor": "Contract value",
+    "currency_code": "Currency",
+    "signed_at": "Signed",
+    "effective_from": "Effective from",
+    "effective_to": "Effective until",
+    "direction": "Direction",
+    "amount_minor": "Amount",
+    "worker_classification": "Worker classification",
+    "requester_person_id": "Requested by",
+    "decision": "Decision",
+    "approver_person_id": "Decided by",
+    "decided_at": "Decided",
+    "valid_from": "Valid from",
+    "valid_to": "Valid until",
+    "on_file_at": "On file since",
+    "owed_to": "Owed to",
+    "options_considered": "Options considered",
+    "decision_text": "Choice made",
+    "decided_by": "Decided by",
+    "result_enum_id": "Result",
+    "inspector_person_id": "Inspector",
+    "inspected_at": "Inspected",
+    "permit_rule": "Permit rule",
+    "permit_identifier": "Permit number",
+    "issued_at": "Issued",
+    "expires_at": "Expires",
+    "channel": "Channel",
+    "audience": "Audience",
+    "published_at": "Published",
+    "venue_id": "Venue",
+    "doors_at": "Doors",
+    "capacity": "Capacity",
+    "metric": "Metric",
+    "target_value": "Target",
+    "measured_value": "Measured",
+    "location_text": "Location",
+    "conferencing_uri": "Video link",
+    "achieved_at": "Achieved",
+    "period_start": "Period start",
+    "period_end": "Period end",
+    "likelihood": "Likelihood (1 to 5)",
+    "impact": "Impact (1 to 5)",
+    "score": "Score",
+    "mitigation": "Mitigation",
+    "baseline_locked_at": "Locked into a baseline",
+    "title": "{kind} details"
+  }
+}

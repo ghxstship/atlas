@@ -1,0 +1,60 @@
+{
+  "feature": "mapping",
+  "description": "Fixed test set for mapping help: column mappings must equal the expected map, and code bindings must pick the expected candidate or refuse.",
+  "columnCases": [
+    {
+      "id": "crew-sheet",
+      "collection": "people",
+      "fields": [
+        { "name": "full_name", "description": "Person's full name." },
+        { "name": "email", "description": "Email address." },
+        { "name": "phone", "description": "Phone number." },
+        { "name": "home_city", "description": "City the person lives in." }
+      ],
+      "columns": [
+        { "header": "Name", "samples": ["Ivy Chen", "Marco Ruiz"] },
+        { "header": "E-mail", "samples": ["ivy@example.com"] },
+        { "header": "Cell", "samples": ["555-0142"] },
+        { "header": "Shirt", "samples": ["L", "M"] }
+      ],
+      "expected": { "Name": "full_name", "E-mail": "email", "Cell": "phone", "Shirt": null }
+    },
+    {
+      "id": "vendor-sheet",
+      "collection": "vendors",
+      "fields": [
+        { "name": "name", "description": "Vendor name." },
+        { "name": "website", "description": "Website URL." },
+        { "name": "vendor_class", "description": "Vendor class, for example Audio or Staging." }
+      ],
+      "columns": [
+        { "header": "Company", "samples": ["Bluewater Audio"] },
+        { "header": "URL", "samples": ["https://bluewater.example.com"] },
+        { "header": "Category", "samples": ["Audio"] }
+      ],
+      "expected": { "Company": "name", "URL": "website", "Category": "vendor_class" }
+    }
+  ],
+  "bindingCases": [
+    {
+      "id": "led-panel",
+      "code": "0012345678905",
+      "description": "LED PANEL 500MM OUTDOOR",
+      "candidates": [
+        { "elementId": "9000.02.03-NWL-0001", "name": "LED Wall Panel", "urid": "9000.02.03" },
+        { "elementId": "5000.01.02-NWL-0004", "name": "Steel Deck Platform", "urid": "5000.01.02" }
+      ],
+      "expected": "9000.02.03-NWL-0001"
+    },
+    {
+      "id": "unreadable",
+      "code": "4006381333931",
+      "description": null,
+      "candidates": [
+        { "elementId": "9000.02.03-NWL-0001", "name": "LED Wall Panel", "urid": "9000.02.03" },
+        { "elementId": "5000.01.02-NWL-0004", "name": "Steel Deck Platform", "urid": "5000.01.02" }
+      ],
+      "expected": null
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# Hand-written Atlas pages owned by A08 (Schedule, Work, Show and the record route). One node id per line.
+record
+work.all-records
+work.by-kind
+schedule.timeline
+schedule.calendar
+schedule.milestones
+work.work-orders
+work.punch-lists
+work.recurring
+schedule.baselines
+project.schedule
+project.work
+show.run-of-show
+show.day-sheets
+show.call-sheets
+project.show

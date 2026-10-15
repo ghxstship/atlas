@@ -76,3 +76,5 @@ export const glyphIconNames: readonly GlyphIconName[] = [
     ...Object.values(map.recordKinds),
   ]),
 ].sort();
+
+export * from "./registry.ts";

@@ -403,10 +403,19 @@
     "bold": "Negrita",
     "bullets": "Lista con viñetas",
     "checklist": "Lista de verificación",
+    "divider": "Divisor",
+    "heading": "Encabezado",
     "hint": "Escriba / para bloques, @ para mencionar, # para vincular un registro.",
     "italic": "Cursiva",
     "link": "Enlace",
     "mention": "Mencionar",
+    "menu": {
+      "mention": "Personas para mencionar",
+      "record": "Registros para vincular",
+      "slash": "Bloques para insertar"
+    },
+    "noMatches": "Sin coincidencias. Siga escribiendo o pulse Escape para cerrar.",
+    "quote": "Cita",
     "table": "Tabla",
     "toolbar": "Formato"
   },
