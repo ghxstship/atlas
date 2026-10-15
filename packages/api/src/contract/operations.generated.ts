@@ -1005,7 +1005,7 @@ export interface Components {
     item: string;
     common_name: string | null;
     kind: string;
-    unit_basis: Components["UnitCode"];
+    unit_basis: string;
     xyz: Components["Xyz"];
     xyz_basis: string;
     grade: string;
@@ -1242,7 +1242,7 @@ export interface Components {
     role_code: Components["RoleCode"];
     role: string;
     dept_code: Components["DeptCode"];
-    staffing_ratio: string | null;
+    staffing_ratio: number | null;
     ratio_basis: string | null;
     kit_basis: string | null;
     job_title: string | null;
@@ -1291,11 +1291,7 @@ export interface Components {
     next_cursor: string | null;
   };
   CanonTouchpointPage: { data: Array<Components["CanonTouchpoint"]>; next_cursor: string | null };
-  CanonUnitAlias: {
-    alias: string;
-    unit_code: Components["UnitCode"];
-    dimension_code: string | null;
-  };
+  CanonUnitAlias: { alias: string; unit_code: string; dimension_code: string | null };
   CanonUnitAliasPage: { data: Array<Components["CanonUnitAlias"]>; next_cursor: string | null };
   CanonUnitDimension: { dimension_code: string; name: string };
   CanonUnitDimensionPage: {
@@ -1662,7 +1658,7 @@ export interface Components {
   CrosswalkCoverage: {
     cat_urid: Components["Urid"] | null;
     element_count: number;
-    category: string | null;
+    category: string;
     unspsc_element_count: number | null;
     gtin_element_count: number | null;
     gtin_count: number | null;
@@ -2118,8 +2114,8 @@ export interface Components {
   EarningCodeUpdate: { code?: string; name?: string; is_overtime?: boolean };
   ElementEconomics: {
     element_id: Components["ItemId"];
-    currency_code: string;
-    effective_confidence: Components["AssertionLabel"] & (string | null);
+    currency_code: string | null;
+    effective_confidence: string | null;
     item: string | null;
     urid: Components["Urid"] | null;
     unit_basis: string | null;

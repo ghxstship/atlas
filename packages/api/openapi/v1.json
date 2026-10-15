@@ -29291,9 +29291,10 @@
           },
           "qualifier": {
             "type": ["string", "null"],
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Qualifier of the value.",
-            "example": "net"
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Qualifier of the value: the code section or modelling note it follows.",
+            "example": "IBC 1005.3.2 - 0.2 in per occupant"
           },
           "source": {
             "type": ["string", "null"],
@@ -29553,8 +29554,9 @@
           },
           "since": {
             "type": ["string", "null"],
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Version that introduced it.",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Version that introduced it, as written in canon.",
             "example": "3.0"
           },
           "note": {
@@ -29689,9 +29691,10 @@
           "record_subtype": { "$ref": "#/components/schemas/RecordSubtype" },
           "unspsc_segment": {
             "type": ["string", "null"],
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "UNSPSC segment.",
-            "example": "80"
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "UNSPSC segment code and name.",
+            "example": "52160000 Audio and visual equipment and accessories"
           }
         },
         "required": ["record_kind", "record_subtype", "unspsc_segment"],
@@ -29759,11 +29762,10 @@
           },
           "dept_code": { "$ref": "#/components/schemas/DeptCode" },
           "staffing_ratio": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Staffing ratio.",
-            "example": "1 per 250 guests"
+            "type": ["number", "null"],
+            "minimum": 0,
+            "description": "Staffing ratio from canon: how many people one role holder covers.",
+            "example": 250
           },
           "ratio_basis": {
             "type": ["string", "null"],
@@ -29983,11 +29985,18 @@
         "properties": {
           "alias": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64,
             "description": "Alias as written.",
             "example": "ea"
           },
-          "unit_code": { "$ref": "#/components/schemas/UnitCode" },
+          "unit_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Unit the alias maps to.",
+            "example": "ea"
+          },
           "dimension_code": {
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
@@ -30172,7 +30181,13 @@
             "description": "Element kind.",
             "example": "rental"
           },
-          "unit_basis": { "$ref": "#/components/schemas/UnitCode" },
+          "unit_basis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Unit basis of the element.",
+            "example": "ea"
+          },
           "xyz": { "$ref": "#/components/schemas/Xyz" },
           "xyz_basis": {
             "type": "string",
@@ -31349,16 +31364,16 @@
         "properties": {
           "element_id": { "$ref": "#/components/schemas/ItemId" },
           "currency_code": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
+            "description": "ISO 4217 currency of the amount; null when unpriced.",
             "example": "USD"
           },
           "effective_confidence": {
-            "allOf": [
-              { "$ref": "#/components/schemas/AssertionLabel" },
-              { "type": ["string", "null"] }
-            ]
+            "type": ["string", "null"],
+            "pattern": "^[A-Z][A-Z_]*$",
+            "description": "Confidence at read time from the staleness policy: an assertion label, or NO_ANSWER.",
+            "example": "QUOTED"
           },
           "item": {
             "type": ["string", "null"],
@@ -31370,7 +31385,8 @@
           "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] },
           "unit_basis": {
             "type": ["string", "null"],
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64,
             "description": "Unit basis of the amount.",
             "example": "day"
           },
@@ -31455,10 +31471,11 @@
             "example": 12
           },
           "category": {
-            "type": ["string", "null"],
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Category label.",
-            "example": "Audio"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Category name.",
+            "example": "Production Leadership"
           },
           "unspsc_element_count": {
             "type": ["integer", "null"],
@@ -91583,7 +91600,7 @@
                       "domain": "capacity",
                       "item": "Stage or performance area",
                       "value_numeric": 15,
-                      "qualifier": "net",
+                      "qualifier": "IBC 1005.3.2 - 0.2 in per occupant",
                       "source": "IBC 1004.5",
                       "is_code_derived": true,
                       "jurisdiction_id": "US-FL",
@@ -91644,7 +91661,7 @@
                   "domain": "capacity",
                   "item": "Stage or performance area",
                   "value_numeric": 15,
-                  "qualifier": "net",
+                  "qualifier": "IBC 1005.3.2 - 0.2 in per occupant",
                   "source": "IBC 1004.5",
                   "is_code_derived": true,
                   "jurisdiction_id": "US-FL",
@@ -92288,7 +92305,11 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "record_kind": "Task", "record_subtype": "Design", "unspsc_segment": "80" }
+                    {
+                      "record_kind": "Task",
+                      "record_subtype": "Design",
+                      "unspsc_segment": "52160000 Audio and visual equipment and accessories"
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -92335,7 +92356,7 @@
                 "example": {
                   "record_kind": "Task",
                   "record_subtype": "Design",
-                  "unspsc_segment": "80"
+                  "unspsc_segment": "52160000 Audio and visual equipment and accessories"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonRecordSubtype" }
               }
@@ -92464,7 +92485,7 @@
                       "role_code": "0000.50.01",
                       "role": "Client sponsorship",
                       "dept_code": "0000",
-                      "staffing_ratio": "1 per 250 guests",
+                      "staffing_ratio": 250,
                       "ratio_basis": "Guests",
                       "kit_basis": "Per person",
                       "job_title": "Head Rigger"
@@ -92473,7 +92494,7 @@
                       "role_code": "0000.50.02",
                       "role": "Operator leadership",
                       "dept_code": "0000",
-                      "staffing_ratio": "1 per 250 guests",
+                      "staffing_ratio": 250,
                       "ratio_basis": "Guests",
                       "kit_basis": "Per person",
                       "job_title": "Head Rigger"
@@ -92525,7 +92546,7 @@
                   "role_code": "5000.50.01",
                   "role": "Rigging lead",
                   "dept_code": "4000",
-                  "staffing_ratio": "1 per 250 guests",
+                  "staffing_ratio": 250,
                   "ratio_basis": "Guests",
                   "kit_basis": "Per person",
                   "job_title": "Head Rigger"
@@ -92947,7 +92968,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "data": [{ "alias": "ea", "unit_code": "each", "dimension_code": "length" }],
+                  "data": [{ "alias": "ea", "unit_code": "ea", "dimension_code": "length" }],
                   "next_cursor": null
                 },
                 "schema": { "$ref": "#/components/schemas/CanonUnitAliasPage" }
@@ -92995,7 +93016,7 @@
             },
             "content": {
               "application/json": {
-                "example": { "alias": "ea", "unit_code": "each", "dimension_code": "length" },
+                "example": { "alias": "ea", "unit_code": "ea", "dimension_code": "length" },
                 "schema": { "$ref": "#/components/schemas/CanonUnitAlias" }
               }
             }
@@ -93330,7 +93351,7 @@
                       "item": "Ground Stage Deck",
                       "common_name": "Stage deck",
                       "kind": "rental",
-                      "unit_basis": "each",
+                      "unit_basis": "ea",
                       "xyz": "X",
                       "xyz_basis": "Physical inventory",
                       "grade": "Standard",
@@ -93348,7 +93369,7 @@
                       "item": "Ground Stage Deck",
                       "common_name": "Stage deck",
                       "kind": "rental",
-                      "unit_basis": "each",
+                      "unit_basis": "ea",
                       "xyz": "X",
                       "xyz_basis": "Physical inventory",
                       "grade": "Standard",
@@ -93409,7 +93430,7 @@
                   "item": "Ground Stage Deck",
                   "common_name": "Stage deck",
                   "kind": "rental",
-                  "unit_basis": "each",
+                  "unit_basis": "ea",
                   "xyz": "X",
                   "xyz_basis": "Physical inventory",
                   "grade": "Standard",
@@ -95582,7 +95603,7 @@
                     {
                       "cat_urid": "4000.01.01",
                       "element_count": 12,
-                      "category": "Audio",
+                      "category": "Production Leadership",
                       "unspsc_element_count": 12,
                       "gtin_element_count": 4,
                       "gtin_count": 9
@@ -95590,7 +95611,7 @@
                     {
                       "cat_urid": "4000.01.02",
                       "element_count": 12,
-                      "category": "Audio",
+                      "category": "Production Leadership",
                       "unspsc_element_count": 12,
                       "gtin_element_count": 4,
                       "gtin_count": 9
