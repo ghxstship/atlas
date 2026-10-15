@@ -1,7 +1,9 @@
 /**
- * Safety handlers. Add one entry per operationId of the Safety module; operations left out stay
- * document-only. See "Adding handlers" in packages/api/README.md.
+ * Safety handlers. Two agents share the module: the permit engine and inspections (A09,
+ * ./safety/permits.ts) and incidents, dispatch, emergency codes and radio (A14). This file only
+ * spreads their parts.
  */
 import { defineHandlers } from "../runtime/handler.ts";
+import { permitHandlers } from "./safety/permits.ts";
 
-export const handlers = defineHandlers("Safety", {});
+export const handlers = defineHandlers("Safety", { ...permitHandlers });
