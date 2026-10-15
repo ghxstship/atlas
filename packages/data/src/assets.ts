@@ -1,6 +1,6 @@
-import { Constants, type Database } from "./database.types";
-import type { XosClient } from "./client";
-import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result";
+import { Constants, type Database } from "./database.types.ts";
+import type { XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Assets repository (Section 4.2 Assets, Section 3.9 grain, migration 0352): asset classes bound to
@@ -676,37 +676,6 @@ export async function listAssetLots(
   );
 }
 
-/**
- * Reads of migration 0450's lot ledger and balance view, typed here until database.types.ts is
- * regenerated from a stack with that migration applied.
- */
-interface LotLedgerReads {
-  from(table: "asset_lot_balances"): {
-    select(columns: "asset_lot_id, on_hand"): {
-      in(
-        column: "asset_lot_id",
-        values: string[],
-      ): PromiseLike<{
-        data: { asset_lot_id: string; on_hand: number | string }[] | null;
-        error: DatabaseErrorLike | null;
-      }>;
-    };
-  };
-  from(table: "asset_lot_movements"): {
-    select(columns: string): {
-      eq(
-        column: "asset_lot_id",
-        value: string,
-      ): {
-        order(
-          column: "created_at",
-          options: { ascending: boolean },
-        ): PromiseLike<{ data: LotMovementRow[] | null; error: DatabaseErrorLike | null }>;
-      };
-    };
-  };
-}
-
 interface LotMovementRow {
   id: string;
   movement_kind: LotMovementKind;
@@ -719,21 +688,21 @@ interface LotMovementRow {
   project: { project_key: string } | null;
 }
 
-function lotReads(db: XosClient): LotLedgerReads {
-  return db as unknown as LotLedgerReads;
-}
-
 async function lotBalances(
   db: XosClient,
   ids: readonly string[],
 ): Promise<Result<Map<string, number>>> {
   if (ids.length === 0) return ok(new Map());
-  const { data, error } = await lotReads(db)
+  const { data, error } = await db
     .from("asset_lot_balances")
     .select("asset_lot_id, on_hand")
     .in("asset_lot_id", [...ids]);
   if (error) return fail(toDataError(error));
-  return ok(new Map((data ?? []).map((r) => [r.asset_lot_id, Number(r.on_hand)])));
+  return ok(
+    new Map(
+      data.flatMap((r) => (r.asset_lot_id === null ? [] : [[r.asset_lot_id, Number(r.on_hand)]])),
+    ),
+  );
 }
 
 export type LotMovementKind = "Count" | "Check Out" | "Check In";
@@ -755,7 +724,7 @@ export async function listAssetLotMovements(
   db: XosClient,
   lotId: string,
 ): Promise<Result<LotMovement[]>> {
-  const { data, error } = await lotReads(db)
+  const { data, error } = await db
     .from("asset_lot_movements")
     .select(
       "id, movement_kind, delta, custodian_membership_id, project_id, note, created_at, custodian:memberships!asset_lot_movements_custodian_membership_id_fkey(person:people!memberships_person_id_fkey(full_name)), project:projects!asset_lot_movements_project_id_fkey(project_key)",
@@ -764,7 +733,7 @@ export async function listAssetLotMovements(
     .order("created_at", { ascending: false });
   if (error) return fail(toDataError(error));
   return ok(
-    (data ?? []).map((r) => ({
+    ((data ?? []) as unknown as LotMovementRow[]).map((r) => ({
       id: r.id,
       kind: r.movement_kind,
       delta: Number(r.delta),
@@ -877,9 +846,7 @@ export async function recordAssetCustody(
     return refuse("asset_custody_somewhere", "A custody move names a person or a place.");
   }
   const note = input.note?.trim() ? input.note.trim() : null;
-  // custodian_engagement_id arrives with migration 0975; the generated Insert type gains it when
-  // database.types.ts is regenerated, so the row is widened to the table's Insert shape here.
-  const row = {
+  const row: Database["app"]["Tables"]["asset_custody"]["Insert"] = {
     ...(input.id ? { id: input.id } : {}),
     org_id: input.orgId,
     asset_unit_id: input.unitId,
@@ -888,7 +855,7 @@ export async function recordAssetCustody(
     venue_id: input.venueId,
     project_id: input.projectId,
     note,
-  } as Database["app"]["Tables"]["asset_custody"]["Insert"];
+  };
   const { data, error } = await db.from("asset_custody").insert(row).select("id").single();
   if (error) return fail(toDataError(error));
   return ok({ id: data.id });
@@ -1121,40 +1088,6 @@ interface ApplyRow {
   on_hand: number | string | null;
 }
 
-type RpcResponse<T> = PromiseLike<{ data: T | null; error: DatabaseErrorLike | null }>;
-
-/**
- * The asset RPCs of migrations 0450 and 0975, typed here until database.types.ts is regenerated
- * from a stack with those migrations applied (Section 3.15). The argument and row shapes match the
- * SQL signatures exactly.
- */
-interface AssetRpc {
-  (fn: "resolve_asset_code", args: { p_org_id: string; p_code: string }): RpcResponse<ResolveRow[]>;
-  (
-    fn: "apply_asset_scan",
-    args: {
-      p_event_id: string;
-      p_org_id: string;
-      p_code: string;
-      p_action: ScanAction;
-      p_custodian_membership_id: string | null;
-      p_custodian_engagement_id: string | null;
-      p_venue_id: string | null;
-      p_project_id: string | null;
-      p_note: string | null;
-      p_quantity: number | null;
-    },
-  ): RpcResponse<ApplyRow[]>;
-  (
-    fn: "count_asset_lot",
-    args: { p_asset_lot_id: string; p_counted: number; p_note: string | null },
-  ): RpcResponse<string>;
-}
-
-function assetRpc(db: XosClient): AssetRpc {
-  return db.rpc.bind(db) as unknown as AssetRpc;
-}
-
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
@@ -1167,12 +1100,13 @@ export async function resolveAssetScan(
   db: XosClient,
   input: { readonly orgId: string; readonly code: string },
 ): Promise<Result<ScanResolution>> {
-  const { data, error } = await assetRpc(db)("resolve_asset_code", {
+  const { data, error } = await db.rpc("resolve_asset_code", {
     p_org_id: input.orgId,
     p_code: input.code,
   });
   if (error) return fail(toDataError(error));
-  const row = data?.[0];
+  // Refusal rows carry nulls the generated row type does not admit.
+  const row = (data as unknown as ResolveRow[] | null)?.[0];
   if (!row || row.refusal !== null || row.subject_id === null) {
     return fail({
       kind: "refusal",
@@ -1249,20 +1183,22 @@ export async function applyAssetScanEvent(
 ): Promise<Result<ScanEventResult>> {
   if (!UUID.test(input.eventId)) return invalid("eventId");
   const note = input.note?.trim();
-  const { data, error } = await assetRpc(db)("apply_asset_scan", {
+  const { data, error } = await db.rpc("apply_asset_scan", {
     p_event_id: input.eventId,
     p_org_id: input.orgId,
     p_code: input.code,
     p_action: input.action,
-    p_custodian_membership_id: input.membershipId ?? null,
-    p_custodian_engagement_id: input.engagementId ?? null,
-    p_venue_id: input.venueId ?? null,
-    p_project_id: input.projectId ?? null,
-    p_note: note ? note : null,
-    p_quantity: input.quantity ?? null,
+    ...(input.membershipId ? { p_custodian_membership_id: input.membershipId } : {}),
+    ...(input.engagementId ? { p_custodian_engagement_id: input.engagementId } : {}),
+    ...(input.venueId ? { p_venue_id: input.venueId } : {}),
+    ...(input.projectId ? { p_project_id: input.projectId } : {}),
+    ...(note ? { p_note: note } : {}),
+    ...(input.quantity !== null && input.quantity !== undefined
+      ? { p_quantity: input.quantity }
+      : {}),
   });
   if (error) return fail(toDataError(error));
-  const row = data?.[0];
+  const row = (data as unknown as ApplyRow[] | null)?.[0];
   if (!row) return fail({ kind: "unexpected", message: "apply_asset_scan returned no row" });
   return ok({
     outcome: row.outcome,
@@ -1281,11 +1217,12 @@ export async function countAssetLot(
 ): Promise<Result<{ movementId: string | null }>> {
   if (!Number.isFinite(input.counted) || input.counted < 0) return invalid("quantity");
   const note = input.note?.trim();
-  const { data, error } = await assetRpc(db)("count_asset_lot", {
+  const { data, error } = await db.rpc("count_asset_lot", {
     p_asset_lot_id: input.lotId,
     p_counted: input.counted,
-    p_note: note ? note : null,
+    ...(note ? { p_note: note } : {}),
   });
   if (error) return fail(toDataError(error));
-  return ok({ movementId: data });
+  // A count that matches what is on hand returns null.
+  return ok({ movementId: (data as string | null) ?? null });
 }

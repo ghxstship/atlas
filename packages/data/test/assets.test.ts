@@ -36,8 +36,8 @@ import {
   searchAssetElements,
   transitionAssetUnit,
   updateAssetUnit,
-} from "../src/assets";
-import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client";
+} from "../src/assets.ts";
+import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client.ts";
 
 /** The shared fake client plus `schema(name).from(table)`, recorded as `from:<schema>.<table>`. */
 function client(queues: Record<string, Response[]>) {
@@ -1080,11 +1080,7 @@ describe("scan resolution", () => {
           p_code: "NWL-RAD-001",
           p_action: "check-out",
           p_custodian_membership_id: "m1",
-          p_custodian_engagement_id: null,
-          p_venue_id: null,
           p_project_id: "p1",
-          p_note: null,
-          p_quantity: null,
         },
       ],
     ]);
