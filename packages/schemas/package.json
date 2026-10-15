@@ -2,7 +2,7 @@
   "name": "@xos/schemas",
   "version": "0.0.0",
   "private": true,
-  "description": "Single-source registries for XOS: the capability registry, with Zod schemas and generated contracts alongside.",
+  "description": "Single-source registries for XOS: the capability, plan and settings registries, with Zod schemas and generated contracts alongside.",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -10,7 +10,8 @@
     "./capabilities": "./src/capabilities/index.ts",
     "./capabilities.yaml": "./capabilities.yaml",
     "./plans": "./src/plans/index.ts",
-    "./plans.yaml": "./plans.yaml"
+    "./plans.yaml": "./plans.yaml",
+    "./settings": "./src/settings/index.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -19,7 +20,10 @@
     "generate:capabilities": "node --experimental-strip-types --no-warnings src/capabilities/generate-cli.ts",
     "check:capabilities": "node --experimental-strip-types --no-warnings src/capabilities/generate-cli.ts --check",
     "generate:plans": "node --experimental-strip-types --no-warnings src/plans/generate-cli.ts",
-    "check:plans": "node --experimental-strip-types --no-warnings src/plans/generate-cli.ts --check"
+    "check:plans": "node --experimental-strip-types --no-warnings src/plans/generate-cli.ts --check",
+    "generate:settings": "node --experimental-strip-types --no-warnings src/settings/generate-cli.ts",
+    "check:settings": "node --experimental-strip-types --no-warnings src/settings/generate-cli.ts --check",
+    "settings:sql": "node --experimental-strip-types --no-warnings src/settings/generate-cli.ts sql"
   },
   "dependencies": {
     "yaml": "2.9.1",

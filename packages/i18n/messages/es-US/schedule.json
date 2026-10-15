@@ -1,0 +1,68 @@
+{
+  "dependencies": {
+    "title": "Dependencias",
+    "before": "Espera a",
+    "after": "Retiene a",
+    "noneBefore": "Nada tiene que ocurrir antes.",
+    "noneAfter": "Nada espera a este registro.",
+    "hidden": "Un registro fuera de su vista",
+    "remove": "Quitar la dependencia de {name}",
+    "predecessor": "Agregar un predecesor",
+    "choose": "Elija un registro",
+    "type": "Tipo",
+    "lag": "Desfase (horas)",
+    "add": "Agregar dependencia",
+    "types": {
+      "Finish to Start": "Fin a inicio",
+      "Start to Start": "Inicio a inicio",
+      "Finish to Finish": "Fin a fin",
+      "Start to Finish": "Inicio a fin"
+    }
+  },
+  "actuals": {
+    "title": "Reales",
+    "started": "Inicio real",
+    "finished": "Fin real",
+    "save": "Guardar reales"
+  },
+  "baselines": {
+    "capture": "Capturar línea base",
+    "captureTitle": "Capturar una línea base",
+    "captureHelp": "Cada registro con fecha del proyecto se copia en la línea base y esta se fija, para que los retrasos posteriores se comparen con ella.",
+    "captureButton": "Capturar y fijar",
+    "cancel": "Cancelar",
+    "project": "Proyecto",
+    "name": "Nombre de la línea base",
+    "nameExample": "Línea Base de la Compuerta 3",
+    "empty": "Aún no hay líneas base. Capture una para medir la desviación del cronograma.",
+    "emptyReadOnly": "Aún no hay líneas base. Un productor las captura en cada compuerta.",
+    "emptyAction": "Capturar línea base",
+    "readOnlyAction": "Abrir el cronograma",
+    "label": "Líneas base del cronograma",
+    "columns": {
+      "name": "Línea base",
+      "project": "Proyecto",
+      "captured": "Capturada",
+      "records": "Registros",
+      "state": "Estado"
+    },
+    "locked": "Fijada",
+    "unlocked": "Sin fijar",
+    "count": "{count, plural, one {# registro} other {# registros}}",
+    "open": "Abrir",
+    "peekTitle": "{name} · {project}",
+    "variance": "Variación frente a las fechas actuales",
+    "varianceLabel": "Fechas planificadas y actuales de los registros de la línea base",
+    "planned": "Fin planificado",
+    "current": "Fin actual",
+    "slip": "Desviación",
+    "onPlan": "Según el plan",
+    "late": "{n, plural, one {# día} other {# días}} de retraso",
+    "lateHours": "{n, plural, one {# hora} other {# horas}} de retraso",
+    "early": "{n, plural, one {# día} other {# días}} de adelanto",
+    "earlyHours": "{n, plural, one {# hora} other {# horas}} de adelanto",
+    "noDate": "Sin fecha",
+    "lateCount": "{count, plural, =0 {Todos los registros van según el plan o adelantados.} one {# registro termina después del plan.} other {# registros terminan después del plan.}}",
+    "close": "Cerrar"
+  }
+}

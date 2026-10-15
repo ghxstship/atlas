@@ -1,4 +1,4 @@
-import type { XosClient } from "../src/client";
+import type { XosClient } from "../src/client.ts";
 
 /**
  * A recording stand-in for the Supabase client. Each `from(table)` or `rpc(name)` call takes the next

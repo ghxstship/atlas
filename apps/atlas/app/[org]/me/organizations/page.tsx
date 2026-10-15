@@ -1,18 +1,20 @@
 import { getTranslations } from "next-intl/server";
 import { LeaveOrganizationButton } from "@/components/settings/leave-org";
+import { ContributedPanels } from "@/components/settings/contributed-panels";
 import { SectionHeader } from "@/components/settings/section-header";
 import { requireNode } from "@/components/shell/sitemap-page";
 import { getMyOrganizations } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
- * Personal settings, Organizations (Section 4.5.6, personal item 5): every membership, with leave.
- * Engagements and the default org arrive with A28 and A30.
+ * Personal settings, Organizations (Section 4.5.6, personal item 5): every membership, with leave,
+ * and the orgs the person may join automatically through a verified email domain.
  */
 export default async function MyOrganizationsPage({
   params,
 }: PageProps<"/[org]/me/organizations">) {
-  const ctx = await requireNode("me.organizations", await params);
+  const routeParams = await params;
+  const ctx = await requireNode("me.organizations", routeParams);
   const [orgs, t, translate] = await Promise.all([
     getMyOrganizations(),
     getTranslations("shell.settings.organizations"),
@@ -38,6 +40,7 @@ export default async function MyOrganizationsPage({
           );
         })}
       </ul>
+      <ContributedPanels node="me.organizations" ctx={ctx} params={routeParams} />
     </>
   );
 }
