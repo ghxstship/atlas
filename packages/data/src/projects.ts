@@ -243,41 +243,47 @@ export interface ProjectInput {
 }
 
 /**
- * Creates a project in Proposed at Scope and its Engagement Root scope node, coded `{KEY}-E01`
- * after the engagement it roots. The database checks the key format, uniqueness per org, the time
- * zone and the active_projects plan limit; a refusal comes back typed.
+ * Calls an RPC added in this module's migration range before the generated database types carry
+ * it. The orchestrator regenerates database.types.ts after merging the migration; the argument and
+ * result shapes are stated here, next to the migration that defines them.
+ */
+export function untypedRpc<T>(
+  db: XosClient,
+  name: string,
+  args: Record<string, unknown>,
+): PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }> {
+  const rpc = db.rpc.bind(db) as unknown as (
+    fn: string,
+    params: Record<string, unknown>,
+  ) => PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }>;
+  return rpc(name, args);
+}
+
+/**
+ * Creates a project in Proposed at Scope with its Engagement Root scope node, coded `{KEY}-E01`,
+ * in one transaction (`app.create_project`, migration 0400). The database checks the key format,
+ * uniqueness per org, the time zone, the venue's org and the active_projects plan limit; a refusal
+ * comes back typed.
  */
 export async function createProject(
   db: XosClient,
   input: ProjectInput,
-): Promise<Result<{ id: string; key: string; rootScopeNodeId: string }>> {
-  const { data, error } = await db
-    .from("projects")
-    .insert({
-      org_id: input.orgId,
-      project_key: input.key,
-      name: input.name.trim(),
-      time_zone: input.timeZone,
-      jurisdiction_id: input.jurisdictionId ?? null,
-      region_code: input.regionCode ?? null,
-      tier_code: input.tierCode ?? null,
-      venue_id: input.venueId ?? null,
-      starts_on: input.startsOn ?? null,
-      ends_on: input.endsOn ?? null,
-    })
-    .select("id, project_key")
-    .single();
-  if (error) return fail(toDataError(error));
-  const root = await createScopeNode(db, {
-    projectId: data.id,
-    parentId: null,
-    kind: "Engagement Root",
-    code: `${data.project_key}-E01`,
-    name: input.name.trim(),
-    venueId: input.venueId ?? null,
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await untypedRpc<string>(db, "create_project", {
+    p_org_id: input.orgId,
+    p_project_key: input.key,
+    p_name: input.name.trim(),
+    p_time_zone: input.timeZone,
+    p_jurisdiction_id: input.jurisdictionId ?? null,
+    p_region_code: input.regionCode ?? null,
+    p_tier_code: input.tierCode ?? null,
+    p_venue_id: input.venueId ?? null,
+    p_starts_on: input.startsOn ?? null,
+    p_ends_on: input.endsOn ?? null,
   });
-  if (!root.ok) return fail(root.error);
-  return ok({ id: data.id, key: data.project_key, rootScopeNodeId: root.data.id });
+  if (error) return fail(toDataError(error));
+  if (!data) return fail({ kind: "unexpected", message: "create_project returned no id." });
+  return ok({ id: data });
 }
 
 export type ProjectPatch = Partial<Omit<ProjectInput, "orgId">>;
@@ -517,29 +523,17 @@ export async function updateScopeNode(
   return writeOne(db.from("scope_nodes").update(update).eq("id", nodeId).select("id"));
 }
 
-/** Soft deletes a scope node with no live children. The engagement root is never removed. */
+/**
+ * Soft deletes a scope node. The database refuses the engagement root (`scope_root_retained`) and
+ * a node with live children (`scope_node_has_children`), migration 0400.
+ */
 export async function removeScopeNode(
   db: XosClient,
-  node: Pick<ScopeNode, "id" | "parentId">,
-  children: number,
+  nodeId: string,
   now: Date = new Date(),
 ): Promise<Result<null>> {
-  if (node.parentId === null) {
-    return fail({
-      kind: "refusal",
-      rule: "scope_root_retained",
-      message: "The engagement root stays.",
-    });
-  }
-  if (children > 0) {
-    return fail({
-      kind: "refusal",
-      rule: "scope_node_has_children",
-      message: "Remove the nodes beneath it first.",
-    });
-  }
   return writeOne(
-    db.from("scope_nodes").update({ deleted_at: now.toISOString() }).eq("id", node.id).select("id"),
+    db.from("scope_nodes").update({ deleted_at: now.toISOString() }).eq("id", nodeId).select("id"),
   );
 }
 
