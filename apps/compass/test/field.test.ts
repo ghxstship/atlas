@@ -433,7 +433,8 @@ describe("kiosk", () => {
         worker: must(roster[0]),
         pin: "1234",
         deviceAt: "2026-10-14T19:00:00Z",
-        monotonicOffsetMs: 12,
+        monotonicAt: 12,
+        bootId: "b1",
         photoUri: null,
       },
       now,
@@ -444,7 +445,8 @@ describe("kiosk", () => {
       id: "kp-1",
       membershipId: "m2",
       punchKind: "Out",
-      monotonicOffsetMs: 12,
+      monotonic_at: 12,
+      boot_id: "b1",
     });
   });
 });

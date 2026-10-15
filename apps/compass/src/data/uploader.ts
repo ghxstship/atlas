@@ -273,6 +273,17 @@ export class SupabaseUploader implements Uploader {
     return { kind: "applied", serverRow: asRow(result.data) };
   }
 
+  /** The Edge Function body: device-only fields removed and a queued punch's age measured at send. */
+  #edgeBody(mutation: Mutation): Record<string, unknown> {
+    const body = serverPayload(mutation.payload);
+    const monotonicAt = mutation.payload["monotonic_at"];
+    const bootId = mutation.payload["boot_id"];
+    if (typeof monotonicAt === "number" && typeof bootId === "string") {
+      body["monotonicOffsetMs"] = ageAtUpload(this.#options.clock, { monotonicAt, bootId });
+    }
+    return body;
+  }
+
   async #edgeFunction(name: string, mutation: Mutation): Promise<UploadOutcome> {
     const fetchImpl = this.#options.fetchImpl ?? fetch;
     const token = await this.#options.accessToken();
@@ -284,7 +295,7 @@ export class SupabaseUploader implements Uploader {
           "content-type": "application/json",
           ...(token ? { authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(mutation.payload),
+        body: JSON.stringify(this.#edgeBody(mutation)),
       });
     } catch (error) {
       return classifyServerError({

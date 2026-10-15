@@ -55,7 +55,6 @@ bucket_definitions:
       - SELECT * FROM scan_intake WHERE project_id = bucket.project_id
       - SELECT * FROM dock_slots WHERE project_id = bucket.project_id
       - SELECT * FROM radio_channels WHERE project_id = bucket.project_id
-      - SELECT * FROM kiosk_roster WHERE project_id = bucket.project_id
 
   internal_org:
     parameters: >-
@@ -69,6 +68,7 @@ bucket_definitions:
       - SELECT * FROM asset_custody WHERE org_id = bucket.org_id
       - SELECT * FROM sops WHERE org_id = bucket.org_id
       - SELECT * FROM zones WHERE org_id = bucket.org_id
+      - SELECT * FROM kiosk_roster WHERE org_id = bucket.org_id
 
   external_engagement:
     parameters: >-

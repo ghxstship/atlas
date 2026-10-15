@@ -347,6 +347,31 @@ describe("uploader", () => {
   });
 });
 
+describe("queued kiosk punch", () => {
+  it("sends the punch's age measured at upload and drops device fields", async () => {
+    const { client } = fakeClient([]);
+    const bodies: string[] = [];
+    const fetchImpl = (_url: string | URL | Request, init?: RequestInit) => {
+      bodies.push(String(init?.body));
+      return Promise.resolve(new Response("{}", { status: 200 }));
+    };
+    monotonic = 50_000;
+    const uploader = new SupabaseUploader({ client, ...base, fetchImpl });
+    const m = mutation({
+      op: "rpc",
+      target: "kiosk-punch",
+      table: "kiosk_punches",
+      payload: { id: "k1", pin: "1234", monotonic_at: 20_000, boot_id: "boot-1" },
+    });
+    expect((await uploader.upload(m)).kind).toBe("applied");
+    expect(JSON.parse(bodies[0] ?? "{}")).toEqual({
+      id: "k1",
+      pin: "1234",
+      monotonicOffsetMs: 30_000,
+    });
+  });
+});
+
 describe("field media", () => {
   const photo = () =>
     mutation({

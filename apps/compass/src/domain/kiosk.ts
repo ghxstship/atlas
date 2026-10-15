@@ -119,7 +119,9 @@ export interface KioskPunchInput {
   readonly worker: RosterEntry;
   readonly pin: string;
   readonly deviceAt: string;
-  readonly monotonicOffsetMs: number | null;
+  /** Raw monotonic reading and boot at the punch; the uploader turns them into the age at send. */
+  readonly monotonicAt: number;
+  readonly bootId: string;
   readonly photoUri: string | null;
 }
 
@@ -146,7 +148,8 @@ export function buildKioskPunch(
       projectId: input.projectId,
       punchKind: kioskPunchKind(input.worker),
       deviceAt: input.deviceAt,
-      monotonicOffsetMs: input.monotonicOffsetMs,
+      monotonic_at: input.monotonicAt,
+      boot_id: input.bootId,
       photoUri: input.photoUri,
     },
     policy: "append",

@@ -137,6 +137,18 @@ const INTERNAL_SOURCES: readonly Source[] = [
   },
   { table: "zones", schema: "app", relation: "zones", select: "id,org_id,venue_id,code,name" },
   {
+    // The kiosk roster: org members by name, for the shared clock-in picker (Section 4.3 item 2).
+    table: "kiosk_roster",
+    schema: "app",
+    relation: "memberships",
+    select: "id,org_id,people(full_name)",
+    map: (r) => ({
+      id: r["id"],
+      org_id: r["org_id"],
+      display_name: (r["people"] as { full_name?: string | null } | null)?.full_name ?? "",
+    }),
+  },
+  {
     table: "asset_units",
     schema: "app",
     relation: "asset_units",
