@@ -68,25 +68,45 @@ function OfferPanel({
             {
               label: t("gateway.work.applications.offer.amount"),
               value:
-                formatMoney(locale, latest.amount_minor, latest.currency_code) ?? t("gateway.common.unpriced"),
+                formatMoney(locale, latest.amount_minor, latest.currency_code) ??
+                t("gateway.common.unpriced"),
             },
             ...(latest.rate_type
-              ? [{ label: t("gateway.work.applications.offer.rateType"), value: t(enumLabelKey("rateType", latest.rate_type)) }]
+              ? [
+                  {
+                    label: t("gateway.work.applications.offer.rateType"),
+                    value: t(enumLabelKey("rateType", latest.rate_type)),
+                  },
+                ]
               : []),
             {
               label: t("gateway.work.applications.offer.dates"),
-              value: formatDateRange(locale, latest.starts_on, latest.ends_on) || t("gateway.common.noDate"),
+              value:
+                formatDateRange(locale, latest.starts_on, latest.ends_on) ||
+                t("gateway.common.noDate"),
             },
             ...(latest.expires_at
-              ? [{ label: t("gateway.work.applications.offer.expires"), value: formatDateTime(locale, latest.expires_at) }]
+              ? [
+                  {
+                    label: t("gateway.work.applications.offer.expires"),
+                    value: formatDateTime(locale, latest.expires_at),
+                  },
+                ]
               : []),
             ...(latest.proposed_side
-              ? [{ label: t("gateway.work.applications.offer.from"), value: t(enumLabelKey("offerSide", latest.proposed_side)) }]
+              ? [
+                  {
+                    label: t("gateway.work.applications.offer.from"),
+                    value: t(enumLabelKey("offerSide", latest.proposed_side)),
+                  },
+                ]
               : []),
           ]}
         />
       ) : null}
-      {latest?.message ? <p className="m-0 whitespace-pre-line text-text-13">{latest.message}</p> : null}
+      {latest?.message ? (
+        <p className="m-0 whitespace-pre-line text-text-13">{latest.message}</p>
+      ) : null}
       {answerable && offer.id ? (
         <div className="flex flex-wrap items-start gap-8">
           <ActionButton
@@ -94,7 +114,10 @@ function OfferPanel({
             label={t("gateway.work.applications.offer.accept")}
             variant="primary"
           />
-          <ActionButton action={declineOfferAction.bind(null, offer.id)} label={t("gateway.work.applications.offer.decline")} />
+          <ActionButton
+            action={declineOfferAction.bind(null, offer.id)}
+            label={t("gateway.work.applications.offer.decline")}
+          />
           {latest?.currency_code && latest.rate_type ? (
             <CounterForm
               offerId={offer.id}
@@ -108,7 +131,9 @@ function OfferPanel({
         </div>
       ) : null}
       {state === "Countered" && !fromOrg ? (
-        <p className="m-0 text-text-13 text-text-secondary">{t("gateway.work.applications.offer.waiting")}</p>
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.work.applications.offer.waiting")}
+        </p>
       ) : null}
     </div>
   );
@@ -124,19 +149,26 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/wor
   const query = await searchParams;
   const views = getNode(sitemap, "work.applications").node.list?.views ?? ["list"];
   const view = pickView(query["view"], views, "list");
-  const [t, locale, result] = await Promise.all([getTranslate(), getLocale(), listMyApplications(ctx.db)]);
+  const [t, locale, result] = await Promise.all([
+    getTranslate(),
+    getLocale(),
+    listMyApplications(ctx.db),
+  ]);
   const appIds = result.ok ? result.data.map((a) => a.id) : [];
   const offers = await readView(ctx.db, "offers", { in: ["application_id", appIds] });
   const offerIds = offers.ok ? offers.data.flatMap((o) => (o.id ? [o.id] : [])) : [];
   const versions = await readView(ctx.db, "offer_versions", { in: ["offer_id", offerIds] });
   const apps = result.ok ? result.data : [];
-  const offerFor = (appId: string) => (offers.ok ? offers.data.find((o) => o.application_id === appId) : undefined);
+  const offerFor = (appId: string) =>
+    offers.ok ? offers.data.find((o) => o.application_id === appId) : undefined;
 
   return (
     <>
       <PageTitle
         title={t("nav.gateway.primary.work")}
-        action={<ViewSwitcher views={views} current={view} path="/work/applications" query={query} />}
+        action={
+          <ViewSwitcher views={views} current={view} path="/work/applications" query={query} />
+        }
       />
       <DestinationTabs ctx={ctx} destination="work" active="work.applications" t={t} />
       {!result.ok || !offers.ok || !versions.ok ? (
@@ -189,14 +221,33 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/wor
               <li key={a.id}>
                 <Card
                   title={a.opportunity?.title ?? a.key}
-                  meta={<Tag tone={toneFor(a.state)}>{t(enumLabelKey("applicationState", a.state))}</Tag>}
+                  meta={
+                    <Tag tone={toneFor(a.state)}>
+                      {t(enumLabelKey("applicationState", a.state))}
+                    </Tag>
+                  }
                 >
                   <PropertyList
                     items={[
-                      ...(a.opportunity ? [{ label: t("gateway.work.engagements.org"), value: a.opportunity.orgName }] : []),
-                      { label: t("gateway.work.applications.submitted"), value: formatDate(locale, a.submittedAt) },
+                      ...(a.opportunity
+                        ? [
+                            {
+                              label: t("gateway.work.engagements.org"),
+                              value: a.opportunity.orgName,
+                            },
+                          ]
+                        : []),
+                      {
+                        label: t("gateway.work.applications.submitted"),
+                        value: formatDate(locale, a.submittedAt),
+                      },
                       ...(a.proposedFeeMinor !== null
-                        ? [{ label: t("gateway.work.applications.fee"), value: formatMoney(locale, a.proposedFeeMinor, a.currency) ?? "" }]
+                        ? [
+                            {
+                              label: t("gateway.work.applications.fee"),
+                              value: formatMoney(locale, a.proposedFeeMinor, a.currency) ?? "",
+                            },
+                          ]
                         : []),
                       ...(a.bid
                         ? [
@@ -204,28 +255,37 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/wor
                               label: t("gateway.work.applications.bid"),
                               value: t("gateway.work.applications.bidSummary", {
                                 n: a.bid.lines.length,
-                                total: formatMoney(locale, total, a.bid.currency) ?? t("gateway.common.unpriced"),
+                                total:
+                                  formatMoney(locale, total, a.bid.currency) ??
+                                  t("gateway.common.unpriced"),
                               }),
                             },
                           ]
                         : []),
                       ...a.interviews.map((i) => ({
                         label: t(enumLabelKey("interviewKind", i.kind)),
-                        value: [formatDateTime(locale, i.scheduledAt), i.location].filter(Boolean).join(" · "),
+                        value: [formatDateTime(locale, i.scheduledAt), i.location]
+                          .filter(Boolean)
+                          .join(" · "),
                       })),
                     ]}
                   />
                   {offer ? (
                     <OfferPanel
                       offer={offer}
-                      versions={versions.ok ? versions.data.filter((v) => v.offer_id === offer.id) : []}
+                      versions={
+                        versions.ok ? versions.data.filter((v) => v.offer_id === offer.id) : []
+                      }
                       locale={locale}
                       t={t}
                     />
                   ) : null}
                   <div className="flex flex-wrap items-center gap-8">
                     {a.opportunity ? (
-                      <Link href={opportunityHref(a) as Route} className="text-text-13 text-accent-text underline">
+                      <Link
+                        href={opportunityHref(a) as Route}
+                        className="text-text-13 text-accent-text underline"
+                      >
                         {t("gateway.work.applications.viewOpportunity")}
                       </Link>
                     ) : null}

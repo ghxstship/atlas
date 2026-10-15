@@ -13,7 +13,12 @@ import { useRouter } from "next/navigation";
 export interface BoardColumn {
   readonly state: RecordState;
   readonly label: string;
-  readonly cards: readonly { readonly key: string; readonly title: string; readonly meta?: string; readonly href: string }[];
+  readonly cards: readonly {
+    readonly key: string;
+    readonly title: string;
+    readonly meta?: string;
+    readonly href: string;
+  }[];
 }
 
 /** A read-only board: the person cannot move their own records between states. */
@@ -26,7 +31,11 @@ export function LinkBoard({ columns }: { columns: readonly BoardColumn[] }) {
       columns={columns.map((c) => ({
         state: c.state,
         label: c.label,
-        cards: c.cards.map((card) => ({ key: card.key, title: card.title, ...(card.meta ? { meta: card.meta } : {}) })),
+        cards: c.cards.map((card) => ({
+          key: card.key,
+          title: card.title,
+          ...(card.meta ? { meta: card.meta } : {}),
+        })),
       }))}
       onOpen={(key) => {
         const href = hrefs.get(key);

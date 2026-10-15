@@ -66,6 +66,297 @@
     "orgFilter": "Mostrando solo {org}",
     "clearFilter": "Mostrar todas las organizaciones"
   },
+  "engagement": {
+    "tabs": "Secciones de la contratación",
+    "representing": "Actuando por {artist}",
+    "messagesAction": "Escribir a la organización",
+    "onboardingAction": "Ver incorporación",
+    "trainingAction": "Ver capacitación",
+    "shiftsAction": "Ver turnos",
+    "invoicesAction": "Ver facturas",
+    "documentsAction": "Ver documentos",
+    "poAction": "Ver órdenes de compra",
+    "changeOrdersAction": "Ver órdenes de cambio",
+    "scheduleAction": "Ver calendario",
+    "scopeAction": "Ver alcance",
+    "advanceAction": "Abrir el avance",
+    "operationalClosed": "Esto se abre cuando la contratación está activa. Termina la incorporación para llegar ahí.",
+    "due": "Vence {date}",
+    "overview": {
+      "next": "Tus próximos pasos",
+      "stages": "En qué etapa está",
+      "stage": {
+        "offer": "Oferta",
+        "onboarding": "Incorporación",
+        "engaged": "En curso",
+        "closeOut": "Cierre"
+      },
+      "blocked": "Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios de incorporación. Abre Incorporación para ver lo pendiente.",
+      "rate": "Tu tarifa",
+      "rateHidden": "Se muestra mientras el área de pagos esté abierta",
+      "payBasis": "Base de pago",
+      "rated": "Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."
+    },
+    "documents": {
+      "empty": "Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.",
+      "emptyKind": "Aún no se compartió nada de este tipo. Pregunta a la organización si lo esperabas.",
+      "expires": "Vence {date}"
+    },
+    "onboarding": {
+      "empty": "No hay pasos de incorporación. La organización agrega los que necesite antes de que empieces.",
+      "progress": "{n} de {total} verificados",
+      "blocking": "Obligatorio antes de empezar",
+      "standing": {
+        "verified": "Verificado",
+        "review": "En revisión",
+        "todo": "Pendiente",
+        "expired": "Vencido"
+      },
+      "signHint": "Fírmalo en Documentos; el paso se completa cuando la organización firme.",
+      "backgroundHint": "El proveedor de verificación de la organización te envía un enlace seguro para tu consentimiento y datos. Aquí solo se guarda el resultado.",
+      "payoutHint": "Agrega tus datos de pago en Configuración, Pagos e impuestos. Solo se muestran los últimos cuatro dígitos."
+    },
+    "messages": {
+      "empty": "Aún no hay conversaciones. Empieza una abajo; la organización responde aquí.",
+      "org": "La organización",
+      "new": "Iniciar una conversación"
+    },
+    "invoices": {
+      "closed": "Las facturas se abren cuando el área de pagos esté abierta, al quedar activa.",
+      "empty": "Aún no hay facturas. Envía una abajo cuando termines tu trabajo.",
+      "submitTitle": "Enviar una factura",
+      "selfBilling": "Autofacturación",
+      "selfBillingBody": "Con la autofacturación activa, la organización genera tus facturas a partir de las hojas de horas aprobadas. Puedes detenerla cuando quieras.",
+      "selfBillingOn": "Autofacturación activa",
+      "selfBillingAgree": "Aceptar autofacturación",
+      "selfBillingStop": "Detener autofacturación"
+    },
+    "shifts": {
+      "empty": "Aún no hay turnos. Los turnos publicados aparecen aquí para que los aceptes.",
+      "accept": "Aceptar turno"
+    },
+    "positions": {
+      "empty": "Aún no tienes puestos asignados. Llegan cuando termines la capacitación."
+    },
+    "timesheets": {
+      "empty": "Aún no hay hojas de horas. Tus turnos registrados se reúnen aquí.",
+      "hours": "{n} horas",
+      "submitted": "Enviada el {date}",
+      "submit": "Enviar",
+      "entries": "Registros de tiempo"
+    },
+    "time": {
+      "empty": "Aún no hay tiempo registrado. Marca tu entrada desde Compass al empezar.",
+      "out": "Salida {time}",
+      "open": "Aún con entrada marcada",
+      "break": "{n} min de descanso"
+    },
+    "travel": {
+      "empty": "Aún no hay viaje ni hospedaje. Escribe a la organización si lo necesitas.",
+      "lodging": "Hospedaje",
+      "travel": "Viaje"
+    },
+    "perDiem": {
+      "empty": "Aún no hay viáticos ni asignaciones. Aparecen aquí cuando la organización los defina.",
+      "quantity": "{n} por día"
+    },
+    "credentials": {
+      "empty": "Aún no hay credenciales. Se emiten cuando pasa la incorporación.",
+      "valid": "Vigente",
+      "revoked": "Revocada"
+    },
+    "training": {
+      "empty": "No hay capacitación pendiente. Las sesiones y confirmaciones aparecen aquí al asignarse.",
+      "sessions": "Sesiones de capacitación"
+    },
+    "bid": {
+      "empty": "No tienes ofertas con esta organización. Las órdenes de compra llegan cuando una oferta gana.",
+      "summary": "Oferta sellada enviada el {date}, total {total}",
+      "quantity": "Cantidad {n}"
+    },
+    "po": {
+      "empty": "Aún no hay órdenes de compra. Llegan aquí cuando la organización envía una.",
+      "number": "OC {n}",
+      "sent": "Enviada el {date}",
+      "acknowledged": "Confirmada el {date}",
+      "acknowledge": "Confirmar recepción",
+      "line": "{n}. {description}"
+    },
+    "deliveries": {
+      "empty": "Aún no hay entregas ni turnos de muelle. Tus horarios aparecen aquí al reservarse.",
+      "docks": "Turnos de muelle",
+      "shipments": "Envíos"
+    },
+    "submittals": {
+      "empty": "Aún no hay entregables técnicos solicitados. Las solicitudes de planos y especificaciones aparecen aquí."
+    },
+    "advance": {
+      "empty": "Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.",
+      "awaitingReview": "En espera de revisión"
+    },
+    "compliance": {
+      "empty": "Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.",
+      "insurance": "Certificados de seguro",
+      "noInsurance": "No hay certificado de seguro registrado. Súbelo en Incorporación.",
+      "current": "Vigente",
+      "expired": "Vencido",
+      "prequalification": "Precalificación",
+      "validTo": "Vigente hasta {date}",
+      "items": "Pasos de cumplimiento"
+    },
+    "approvals": {
+      "empty": "Nada espera tu aprobación. Las solicitudes de la organización aparecen aquí.",
+      "requested": "Solicitada el {date}",
+      "waiting": "Te espera"
+    },
+    "changeOrders": {
+      "empty": "Aún no hay órdenes de cambio. Los cambios de alcance o costo aparecen aquí para revisión.",
+      "noCost": "Sin costo"
+    },
+    "schedule": {
+      "empty": "Aún no hay nada en el calendario compartido. Las fechas aparecen cuando la organización las comparte."
+    },
+    "reports": {
+      "empty": "Aún no hay informes compartidos. Los informes que comparta la organización aparecen aquí."
+    },
+    "activation": {
+      "empty": "Aún no hay fechas de activación. Aparecen cuando la organización las programe."
+    },
+    "runOfShow": {
+      "empty": "Aún no se comparte el guion del show. Aparece aquí cuando la organización lo comparta.",
+      "called": "Llamado {time}",
+      "mySet": "Tu presentación"
+    },
+    "scope": {
+      "statement": "Declaración de trabajo",
+      "noStatement": "Aún no se comparte la declaración de trabajo. Pídela a la organización en Mensajes.",
+      "milestones": "Hitos",
+      "noMilestones": "Aún no hay hitos compartidos."
+    },
+    "deliverables": {
+      "empty": "Aún no hay entregables. Salen de tu alcance cuando la organización los agregue.",
+      "submitted": "Entregado el {date}"
+    },
+    "entitlements": {
+      "empty": "Aún no hay beneficios. Los beneficios de tu paquete aparecen aquí.",
+      "quantity": "Cantidad {n}",
+      "fulfilled": "Cumplido el {date}",
+      "done": "Cumplido",
+      "overdue": "Atrasado",
+      "open": "Abierto"
+    },
+    "rider": {
+      "empty": "Aún no hay rider. Envía tu rider mediante el avance.",
+      "quantity": "Cantidad {n}",
+      "fulfilled": "Confirmado",
+      "pending": "Pendiente"
+    },
+    "setTimes": {
+      "empty": "Aún no hay horarios de presentación. Aparecen cuando se comparte el guion del show.",
+      "daySheets": "Hojas del día"
+    },
+    "hospitality": {
+      "empty": "Aún no hay hospitalidad. Pide lo que necesites en el avance."
+    },
+    "guestList": {
+      "unavailable": "Las listas de invitados aún no están conectadas. Pon a tus invitados en el paquete de avance y la organización los confirma ahí."
+    },
+    "roster": {
+      "empty": "Aún no representas a ningún artista. Propón una representación desde Configuración de empresa.",
+      "action": "Configuración de representación",
+      "noEngagements": "Aún no hay contrataciones para este artista."
+    },
+    "forms": {
+      "errors": {
+        "answer": "Escribe una respuesta antes de enviar.",
+        "decision": "Elige aprobar o rechazar.",
+        "reason": "Di por qué lo rechazas para que la organización pueda corregirlo.",
+        "deliverable": "Elige el documento y escribe un mensaje breve.",
+        "header": "Completa el número de factura y ambas fechas.",
+        "dates": "La fecha de vencimiento debe ser igual o posterior a la de emisión.",
+        "lines": "Cada línea necesita un artículo, una cantidad mayor que cero y un precio unitario.",
+        "file": "Elige un archivo para subir.",
+        "fileType": "Sube un archivo PDF, JPEG, PNG, HEIC o WebP.",
+        "fileSize": "El archivo supera 25 MB. Sube un escaneo o foto más pequeño.",
+        "tin": "Escribe el identificador fiscal con 4 a 30 letras y dígitos.",
+        "subject": "Ponle un asunto a la conversación."
+      },
+      "advance": {
+        "answer": "Tu respuesta",
+        "submit": "Enviar respuesta",
+        "done": "Respuesta enviada. La organización la revisa después."
+      },
+      "approval": {
+        "decision": "Decisión",
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "reason": "Por qué lo rechazas",
+        "note": "Nota para la organización",
+        "done": "Decisión enviada."
+      },
+      "deliverable": {
+        "document": "Documento",
+        "message": "Mensaje",
+        "submit": "Entregar",
+        "done": "Entregado. La organización lo acepta o lo devuelve.",
+        "noDocuments": "Primero comparte el archivo en Mensajes; luego será un documento que puedes entregar aquí."
+      },
+      "invoice": {
+        "title": "Factura",
+        "number": "Número de factura",
+        "issuedOn": "Fecha de emisión",
+        "dueOn": "Fecha de vencimiento",
+        "currency": "Montos en {currency}",
+        "description": "Artículo o servicio",
+        "quantity": "Cantidad",
+        "unitPrice": "Precio unitario",
+        "addLine": "Agregar línea",
+        "removeLine": "Quitar línea {n}",
+        "submit": "Enviar factura",
+        "done": "Factura enviada. Síguela en el rastreador de pagos."
+      },
+      "upload": {
+        "file": "Archivo o foto",
+        "help": "PDF o foto de hasta 25 MB. En el teléfono puedes tomar la foto ahora.",
+        "submit": "Subir",
+        "done": "Subido. La organización lo verifica después."
+      },
+      "tax": {
+        "title": "Formulario fiscal",
+        "kind": "Formulario",
+        "tin": "Número de identificación fiscal",
+        "tinHelp": "Se guarda cifrado. Solo se muestran los últimos cuatro caracteres.",
+        "withholding": "Soy artista extranjero sujeto a retención",
+        "submit": "Enviar formulario fiscal",
+        "done": "Formulario fiscal enviado."
+      },
+      "thread": {
+        "title": "Nueva conversación",
+        "subject": "Asunto",
+        "submit": "Iniciar conversación",
+        "done": "Conversación iniciada."
+      },
+      "message": {
+        "label": "Responder",
+        "body": "Mensaje",
+        "send": "Enviar"
+      },
+      "rating": {
+        "title": "Califica a {org}",
+        "score": "Puntuación",
+        "stars": "{n, plural, one {# estrella} other {# estrellas}}",
+        "comment": "Comentario público",
+        "release": "Ambas calificaciones aparecen juntas cuando ambas partes califiquen, o después de 14 días.",
+        "submit": "Enviar calificación",
+        "done": "Calificación enviada. Aparece cuando la organización también califique, o después de 14 días."
+      },
+      "reply": {
+        "label": "Respuesta pública",
+        "submit": "Responder",
+        "done": "Respuesta publicada."
+      }
+    }
+  },
   "enums": {
     "externalRoleType": {
       "client": "Cliente",
@@ -539,6 +830,67 @@
       "all": "Ver todas",
       "empty": "Ahora no hay oportunidades abiertas para ti. Crea una alerta y te avisaremos cuando haya una.",
       "emptyAction": "Crear alerta"
+    }
+  },
+  "money": {
+    "overview": {
+      "empty": "Aún no hay ingresos ni pendientes. Los pagos de tus contrataciones aparecen aquí.",
+      "emptyAction": "Ver contrataciones",
+      "earned": "Cobrado",
+      "pending": "Pendiente",
+      "next": "Próximo pago",
+      "none": "Nada aún",
+      "chartTitle": "Pagado por mes",
+      "chartSubtitle": "Últimos seis meses, en {currency}",
+      "month": "Mes",
+      "paid": "Pagado"
+    },
+    "invoices": {
+      "empty": "Aún no hay facturas. Envía una desde la pestaña Facturas de una contratación.",
+      "emptyAction": "Ver contrataciones",
+      "tracker": "Rastreador de pago de la factura {number}",
+      "balance": "Saldo {amount}",
+      "amounts": "Total {total}, saldo {balance}",
+      "due": "Vence {date}",
+      "number": "Número",
+      "issued": "Emitida",
+      "dueColumn": "Vence",
+      "total": "Total",
+      "balanceColumn": "Saldo",
+      "steps": {
+        "submitted": "Enviada",
+        "approved": "Aprobada",
+        "scheduled": "Programada",
+        "paid": "Pagada"
+      }
+    },
+    "timesheets": {
+      "empty": "Aún no hay hojas de horas. Los turnos registrados se reúnen en hojas de horas.",
+      "emptyAction": "Ver trabajo próximo",
+      "period": "Periodo",
+      "hours": "Horas"
+    },
+    "payments": {
+      "empty": "Aún no hay pagos. Cuando una organización paga una factura, aparece aquí.",
+      "emptyAction": "Ver facturas",
+      "paidOn": "Pagado el",
+      "amount": "Monto",
+      "reference": "Referencia"
+    },
+    "tax": {
+      "yearEnd": "Quienes cobran en EE. UU. reciben los datos 1099-NEC de cada organización al cierre del año; quienes cobran desde el extranjero ven aquí su indicador de retención.",
+      "empty": "Aún no hay formularios fiscales. Las organizaciones los piden durante la incorporación.",
+      "emptyAction": "Ver contrataciones",
+      "last4": "Termina en {last4}",
+      "withholding": "Retención a artista extranjero",
+      "form": "Formulario",
+      "tin": "Identificador",
+      "signed": "Firmado",
+      "withholdingColumn": "Retención",
+      "yes": "Sí",
+      "no": "No",
+      "payouts": "Destinos de pago",
+      "noPayouts": "Aún no hay destinos de pago. Agrega uno en Configuración, Pagos e impuestos."
     }
   },
   "shell": {

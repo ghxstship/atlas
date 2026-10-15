@@ -1,4 +1,9 @@
-import { APP_ENUMS, isCurrentEngagement, listMyEngagements, type Engagement } from "@xos/data/gateway";
+import {
+  APP_ENUMS,
+  isCurrentEngagement,
+  listMyEngagements,
+  type Engagement,
+} from "@xos/data/gateway";
 import { getNode } from "@xos/ia";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
@@ -39,7 +44,8 @@ function Row({ e, locale, t }: { e: Engagement; locale: string; t: Translate }) 
         <span className="flex min-w-0 flex-1 flex-col gap-2">
           <span className="font-medium">{e.jobTitle}</span>
           <span className="text-text-13 text-text-secondary">
-            {e.projectName} · {formatDateRange(locale, e.startDate, e.endDate)} · {t(enumLabelKey("externalRoleType", e.roleType))}
+            {e.projectName} · {formatDateRange(locale, e.startDate, e.endDate)} ·{" "}
+            {t(enumLabelKey("externalRoleType", e.roleType))}
           </span>
         </span>
         <Tag tone={toneFor(e.state)}>{t(enumLabelKey("engagementState", e.state))}</Tag>
@@ -58,9 +64,13 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
   const query = await searchParams;
   const views = getNode(sitemap, "work.engagements").node.list?.views ?? ["list"];
   const view = pickView(query["view"], views, "list");
-  const [t, locale, result] = await Promise.all([getTranslate(), getLocale(), listMyEngagements(ctx.db)]);
+  const [t, locale, result] = await Promise.all([
+    getTranslate(),
+    getLocale(),
+    listMyEngagements(ctx.db),
+  ]);
   const orgFilter = typeof query["org"] === "string" ? query["org"] : null;
-  const all = result.ok ? result.data.filter((e) => inBrandScope(ctx.brand, e.orgName)) : [];
+  const all = result.ok ? result.data.filter((e) => inBrandScope(ctx.brand, e.orgId)) : [];
   const shown = orgFilter ? all.filter((e) => e.orgId === orgFilter) : all;
   const current = shown.filter(isCurrentEngagement);
   const past = shown.filter((e) => !isCurrentEngagement(e));
@@ -68,7 +78,9 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
     <>
       <PageTitle
         title={t("nav.gateway.primary.work")}
-        action={<ViewSwitcher views={views} current={view} path="/work/engagements" query={query} />}
+        action={
+          <ViewSwitcher views={views} current={view} path="/work/engagements" query={query} />
+        }
       />
       <DestinationTabs ctx={ctx} destination="work" active="work.engagements" t={t} />
       {orgFilter && shown[0] ? (
@@ -95,7 +107,12 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
             label: t(enumLabelKey("engagementState", state)),
             cards: shown
               .filter((e) => e.state === state)
-              .map((e) => ({ key: e.id, title: e.jobTitle, meta: `${e.orgName} · ${e.projectName}`, href: href(e) })),
+              .map((e) => ({
+                key: e.id,
+                title: e.jobTitle,
+                meta: `${e.orgName} · ${e.projectName}`,
+                href: href(e),
+              })),
           }))}
         />
       ) : view === "table" ? (

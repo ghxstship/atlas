@@ -8,6 +8,7 @@ import { checkAccent, HEX_COLOR } from "./contrast";
  * may hide. The host lookup is A30's api_public.org_brand_for_host (0850).
  */
 export interface OrgBrand {
+  readonly orgId: string;
   readonly slug: string;
   readonly name: string;
   readonly logoLightPath: string | null;
@@ -44,6 +45,7 @@ export async function resolveBrand(
   return {
     kind: "org",
     org: {
+      orgId: row.org_id,
       slug: row.org_slug,
       name: row.name,
       logoLightPath: row.logo_light_path,
@@ -66,6 +68,6 @@ export function brandStyle(brand: GatewayBrand): Record<string, string> {
 }
 
 /** On an org's custom domain, only that org's rows show (Section 4.4.7). */
-export function inBrandScope(brand: GatewayBrand, orgName: string): boolean {
-  return brand.kind === "platform" || brand.org.name === orgName;
+export function inBrandScope(brand: GatewayBrand, orgId: string): boolean {
+  return brand.kind === "platform" || brand.org.orgId === orgId;
 }

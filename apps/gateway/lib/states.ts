@@ -30,9 +30,16 @@ export const APPLICATION_STATE_STYLE: Readonly<Record<ApplicationState, RecordSt
 export type Tone = "neutral" | "accent" | "success" | "warning" | "danger";
 
 export function toneFor(state: string): Tone {
-  if (["Executed", "Signed", "Approved", "Accepted", "Complete", "Paid", "Passed"].includes(state)) return "success";
-  if (["Sent", "Offered", "Countered", "Issued", "Submitted", "In Review", "Published"].includes(state)) return "accent";
-  if (["Blocked", "Disputed", "Returned", "Expired", "Rejected", "Failed"].includes(state)) return "danger";
+  if (["Executed", "Signed", "Approved", "Accepted", "Complete", "Paid", "Passed"].includes(state))
+    return "success";
+  if (
+    ["Sent", "Offered", "Countered", "Issued", "Submitted", "In Review", "Published"].includes(
+      state,
+    )
+  )
+    return "accent";
+  if (["Blocked", "Disputed", "Returned", "Expired", "Rejected", "Failed"].includes(state))
+    return "danger";
   if (["Proposed", "Draft", "Onboarding"].includes(state)) return "warning";
   return "neutral";
 }

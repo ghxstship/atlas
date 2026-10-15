@@ -29,9 +29,15 @@ export function CounterForm(props: {
     );
   }
   return (
-    <form action={action} className="flex w-full flex-col gap-12 rounded-control bg-bg-surface p-12" aria-label={t("title")}>
+    <form
+      action={action}
+      className="flex w-full flex-col gap-12 rounded-control bg-bg-surface p-12"
+      aria-label={t("title")}
+    >
       <OutcomeAlert outcome={state.outcome} />
-      {state.fieldError ? <InlineAlert tone="danger">{t(`errors.${state.fieldError}`)}</InlineAlert> : null}
+      {state.fieldError ? (
+        <InlineAlert tone="danger">{t(`errors.${state.fieldError}`)}</InlineAlert>
+      ) : null}
       <input type="hidden" name="offerId" value={props.offerId} />
       <input type="hidden" name="currency" value={props.currency} />
       <input type="hidden" name="rateType" value={props.rateType} />
@@ -43,10 +49,31 @@ export function CounterForm(props: {
           required
           label={t("amount", { currency: props.currency, rate: props.rateTypeLabel })}
         />
-        <Input id={`counter-${props.offerId}-start`} name="startsOn" type="date" required label={t("startsOn")} defaultValue={props.startsOn} />
-        <Input id={`counter-${props.offerId}-end`} name="endsOn" type="date" required label={t("endsOn")} defaultValue={props.endsOn} />
+        <Input
+          id={`counter-${props.offerId}-start`}
+          name="startsOn"
+          type="date"
+          required
+          label={t("startsOn")}
+          defaultValue={props.startsOn}
+        />
+        <Input
+          id={`counter-${props.offerId}-end`}
+          name="endsOn"
+          type="date"
+          required
+          label={t("endsOn")}
+          defaultValue={props.endsOn}
+        />
       </div>
-      <Textarea id={`counter-${props.offerId}-message`} name="message" required rows={2} width="100%" label={t("message")} />
+      <Textarea
+        id={`counter-${props.offerId}-message`}
+        name="message"
+        required
+        rows={2}
+        width="100%"
+        label={t("message")}
+      />
       <div className="flex gap-8">
         <Button type="submit" variant="primary" disabled={pending} aria-busy={pending}>
           {t("submit")}

@@ -40,7 +40,7 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
   const parsed = parseExploreQuery(query);
   const results = await searchOpportunities(ctx.db, {
     ...parsed.filter,
-    ...(ctx.brand.kind === "org" ? { orgName: ctx.brand.org.name } : {}),
+    ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
   });
   const tabs = [
     { id: "explore", label: t("nav.gateway.primary.explore"), href: "/explore" },

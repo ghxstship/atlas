@@ -28,6 +28,7 @@ export {
   Button,
   Calendar,
   Card,
+  Chart,
   Checkbox,
   DataTable,
   Divider,

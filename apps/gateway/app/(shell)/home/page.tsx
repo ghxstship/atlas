@@ -69,7 +69,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       listRepresentations(ctx.db),
       searchOpportunities(ctx.db, {
         limit: 6,
-        ...(ctx.brand.kind === "org" ? { orgName: ctx.brand.org.name } : {}),
+        ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
       }),
     ]);
   const upNext = records.ok ? pickUpNext(records.data, current, now) : null;

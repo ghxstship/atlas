@@ -47,7 +47,11 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
   const query = await searchParams;
   const views = getNode(sitemap, "work.upcoming").node.list?.views ?? ["list"];
   const view = pickView(query["view"], views, "list");
-  const [t, locale, engagements] = await Promise.all([getTranslate(), getLocale(), listMyEngagements(ctx.db)]);
+  const [t, locale, engagements] = await Promise.all([
+    getTranslate(),
+    getLocale(),
+    listMyEngagements(ctx.db),
+  ]);
   if (!engagements.ok) {
     return (
       <>
@@ -86,7 +90,10 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
         )
       : [],
   });
-  const month = typeof query["month"] === "string" && /^\d{4}-\d{2}-01$/.test(query["month"]) ? query["month"] : `${now.toISOString().slice(0, 7)}-01`;
+  const month =
+    typeof query["month"] === "string" && /^\d{4}-\d{2}-01$/.test(query["month"])
+      ? query["month"]
+      : `${now.toISOString().slice(0, 7)}-01`;
   const shiftMonth = (delta: number) => {
     const d = new Date(`${month}T00:00:00Z`);
     d.setUTCMonth(d.getUTCMonth() + delta);
@@ -126,17 +133,27 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
       ) : view === "calendar" ? (
         <div className="flex flex-col gap-12">
           <div className="flex items-center gap-8">
-            <Link href={`/work/upcoming?view=calendar&month=${shiftMonth(-1)}` as Route} className="text-text-13 text-accent-text underline">
+            <Link
+              href={`/work/upcoming?view=calendar&month=${shiftMonth(-1)}` as Route}
+              className="text-text-13 text-accent-text underline"
+            >
               {t("gateway.work.upcoming.previousMonth")}
             </Link>
-            <Link href={`/work/upcoming?view=calendar&month=${shiftMonth(1)}` as Route} className="text-text-13 text-accent-text underline">
+            <Link
+              href={`/work/upcoming?view=calendar&month=${shiftMonth(1)}` as Route}
+              className="text-text-13 text-accent-text underline"
+            >
               {t("gateway.work.upcoming.nextMonth")}
             </Link>
           </div>
           <Calendar
             month={month}
             today={now.toISOString().slice(0, 10)}
-            events={items.map((i) => ({ date: i.at.slice(0, 10), label: i.title, state: "scheduled" as const }))}
+            events={items.map((i) => ({
+              date: i.at.slice(0, 10),
+              label: i.title,
+              state: "scheduled" as const,
+            }))}
           />
         </div>
       ) : (
@@ -155,10 +172,14 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
                         <Icon name={ICONS[item.kind]} size={18} />
                       </span>
                       <span className="flex min-w-0 flex-1 flex-col gap-2">
-                        <span className="font-medium">{item.title || t(`gateway.work.upcoming.kinds.${item.kind}`)}</span>
+                        <span className="font-medium">
+                          {item.title || t(`gateway.work.upcoming.kinds.${item.kind}`)}
+                        </span>
                         <span className="text-text-13 text-text-secondary">
                           {[
-                            item.at.length > 10 ? formatDateTime(locale, item.at, item.timeZone) : t(`gateway.work.upcoming.kinds.${item.kind}`),
+                            item.at.length > 10
+                              ? formatDateTime(locale, item.at, item.timeZone)
+                              : t(`gateway.work.upcoming.kinds.${item.kind}`),
                             item.orgName,
                             item.projectName,
                             detail,
@@ -179,7 +200,9 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
                           {body}
                         </Link>
                       ) : (
-                        <div className="flex min-h-touch-min items-center gap-12 px-16 py-12">{body}</div>
+                        <div className="flex min-h-touch-min items-center gap-12 px-16 py-12">
+                          {body}
+                        </div>
                       )}
                     </li>
                   );

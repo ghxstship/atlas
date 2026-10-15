@@ -166,7 +166,7 @@ export async function saveSearchAction(_: SimpleState, form: FormData): Promise<
     roleType: roleType.success ? roleType.data : null,
     startsAfter: parsed.data.startsAfter ?? null,
     endsBefore: parsed.data.endsBefore ?? null,
-    orgId: null,
+    orgId: ctx.brand.kind === "org" ? ctx.brand.org.orgId : null,
   });
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }

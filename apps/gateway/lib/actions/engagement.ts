@@ -8,6 +8,7 @@ import {
   revokeProfileShare,
   revokeRepresentation,
   sendMessage,
+  sendPartyMessage,
   signEngagementDocument,
   submitOnboardingItem,
   type ApplicationState,
@@ -81,8 +82,10 @@ export async function sendMessageAction(
   const threadId = id.safeParse(form.get("threadId"));
   const body = z.string().trim().min(1).max(4000).safeParse(form.get("body"));
   if (!threadId.success || !body.success) return { outcome: "invalid" };
+  const db = await createServerSupabase();
+  const input = { threadId: threadId.data, body: body.data };
   const result = toAction(
-    await sendMessage(await createServerSupabase(), { threadId: threadId.data, body: body.data }),
+    form.get("kind") === "party" ? await sendPartyMessage(db, input) : await sendMessage(db, input),
   );
   return result.ok ? { sent: (prev.sent ?? 0) + 1 } : { outcome: result.outcome };
 }

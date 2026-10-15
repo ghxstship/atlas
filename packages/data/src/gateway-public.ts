@@ -38,6 +38,7 @@ async function rows<T>(
 // Brand -----------------------------------------------------------------------------------------
 
 export interface PublicBrand {
+  readonly org_id: string;
   readonly org_slug: string;
   readonly name: string;
   readonly logo_light_path: string | null;
