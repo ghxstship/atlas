@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { authErrorKey } from "../lib/auth/errors";
-import { clientIp, ownerSignupDocuments, withAcceptances } from "../lib/auth/legal";
+import { clientIp, ownerSignupDocuments, signupAcceptances } from "../lib/auth/legal";
 import { isOAuthProvider, parseEnabledProviders } from "../lib/auth/providers";
 import { safeNext, siteUrl } from "../lib/auth/redirect";
 import { LEGAL_DOCUMENTS } from "../lib/legal.generated";
@@ -59,18 +59,11 @@ describe("legal acceptance at signup", () => {
     expect(LEGAL_DOCUMENTS.length).toBeGreaterThan(10);
   });
 
-  it("records document, version, time, IP and org, appended to earlier acceptances", () => {
-    const at = new Date("2026-10-10T10:00:00.000Z");
-    const first = withAcceptances(undefined, { orgId: "o1", ip: "203.0.113.9", at });
-    expect(first).toHaveLength(2);
-    expect(first[0]).toEqual({
-      document: "terms-of-service",
-      version: ownerSignupDocuments()[0]?.version,
-      accepted_at: "2026-10-10T10:00:00.000Z",
-      ip: "203.0.113.9",
-      org_id: "o1",
-    });
-    expect(withAcceptances(first, { orgId: "o2", ip: null, at })).toHaveLength(4);
+  it("passes each signup document with its current version to the acceptance log", () => {
+    expect(signupAcceptances()).toEqual(
+      ownerSignupDocuments().map((d) => ({ slug: d.slug, version: d.version })),
+    );
+    expect(signupAcceptances([])).toEqual([]);
   });
 
   it("reads the client IP from the proxy headers", () => {

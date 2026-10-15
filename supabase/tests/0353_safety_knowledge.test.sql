@@ -66,7 +66,7 @@ select pg_temp.as_platform();
 
 -- Medical encounters (Restricted) --------------------------------------------------------------------------
 select pg_temp.as_user('carol');
-insert into app.medical_encounters (incident_id, patient_description, treatment_notes, disposition) values (pg_temp.id('inc'), 'Rigger, adult.', 'Laceration to forearm, dressed.', 'Released');
+select app.record_medical_encounter(pg_temp.id('inc'), 'Rigger, adult.', 'Laceration to forearm, dressed.', 'Released');
 select pg_temp.as_user('dave');
 select throws_ok($$select treatment_notes from app.medical_encounters$$, '42501', null, 'Restricted medical notes are not selectable directly');
 select is((select treatment_notes from app.medical_encounters_masked), null, 'without data.restricted.read.medical the notes are masked');
