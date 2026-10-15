@@ -975,6 +975,9 @@ importers:
       '@xos/tokens':
         specifier: workspace:*
         version: link:../tokens
+      qrcode-generator:
+        specifier: 1.4.4
+        version: 1.4.4
     devDependencies:
       '@testing-library/dom':
         specifier: 10.4.2

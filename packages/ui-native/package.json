@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "@xos/icons": "workspace:*",
-    "@xos/tokens": "workspace:*"
+    "@xos/tokens": "workspace:*",
+    "qrcode-generator": "1.4.4"
   },
   "peerDependencies": {
     "lucide-react-native": "1.53.0",

@@ -26,7 +26,8 @@ interface AnyProps {
 function semantic(props: AnyProps): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(props)) {
-    if (key === "role") out["role"] = value === "header" ? "heading" : value;
+    if (key === "role")
+      out["role"] = value === "header" ? "heading" : value === "summary" ? "group" : value;
     else if (key.startsWith("aria-")) out[key] = value;
     else if (key === "testID") out["data-testid"] = value;
     else if (key === "nativeID") out["id"] = value;
@@ -55,7 +56,12 @@ export function View(props: AnyProps) {
 }
 
 export function ScrollView(props: AnyProps) {
-  return createElement("div", semantic(props), props.children);
+  return createElement(
+    "div",
+    semantic(props),
+    props["refreshControl"] as ReactNode,
+    props.children,
+  );
 }
 
 export function Text(props: AnyProps) {
@@ -82,6 +88,27 @@ export function TextInput(props: AnyProps) {
 
 export function ActivityIndicator(props: AnyProps) {
   return createElement("span", { ...semantic(props), role: "progressbar" });
+}
+
+export function Switch(props: AnyProps) {
+  const onValueChange = props["onValueChange"] as ((v: boolean) => void) | undefined;
+  return createElement("input", {
+    ...semantic(props),
+    type: "checkbox",
+    role: "switch",
+    checked: props.value === true,
+    disabled: props.disabled === true,
+    onChange: () => onValueChange?.(props.value !== true),
+  });
+}
+
+export function RefreshControl(props: AnyProps) {
+  const onRefresh = props["onRefresh"] as (() => void) | undefined;
+  return createElement(
+    "button",
+    { type: "button", "data-refresh": true, onClick: () => onRefresh?.() },
+    "refresh",
+  );
 }
 
 export function Modal(props: AnyProps) {
