@@ -104,7 +104,7 @@ select throws_ok($$select app.claim_open_shift('00000000-0000-0000-0000-00000000
 select pg_temp.as_platform();
 select ok((select count(*) from app.domain_events where event_type = 'shift.created' and subject_id = pg_temp.id('sh1')) = 1, 'shift creation is a domain event');
 select ok((select count(*) from app.domain_events where event_type = 'shift.state_changed' and subject_id = pg_temp.id('sh1')) >= 2, 'every shift move is a domain event');
-select ok((select count(*) from app.domain_events where event_type = 'shift_swap.requested') = 1, 'a swap request is a domain event');
+select ok((select count(*) from app.domain_events where event_type = 'shift_swap.requested' and org_id = pg_temp.id('org_a')) = 1, 'a swap request is a domain event');
 
 -- Payroll calculation ------------------------------------------------------------------------------------------
 select pg_temp.as_user('bob');
