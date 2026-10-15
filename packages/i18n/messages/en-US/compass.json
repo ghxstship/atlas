@@ -358,5 +358,9 @@
     "deleteAccountHelp": "Deletes your account and the data you own. Opens Gateway to confirm.",
     "version": "Version {version}",
     "personal": "Personal settings"
+  },
+  "photo": {
+    "take": "Take Photo",
+    "failed": "The photo did not save: {reason}. Try again."
   }
 }

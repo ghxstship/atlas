@@ -347,6 +347,57 @@ describe("uploader", () => {
   });
 });
 
+describe("field media", () => {
+  const photo = () =>
+    mutation({
+      table: "incident_media",
+      target: "incident_media",
+      payload: {
+        id: "ph-1",
+        incident_id: "i1",
+        media_uri: "o/incidents/i1/ph-1.jpg",
+        local_uri: "file:///ph.jpg",
+        storage_path: "o/incidents/i1/ph-1.jpg",
+      },
+    });
+
+  it("uploads the photo before inserting its row, and strips device fields", async () => {
+    const { client, calls } = fakeClient([{ data: { id: "ph-1" }, error: null, status: 201 }]);
+    const uploads: string[] = [];
+    const uploader = new SupabaseUploader({
+      client,
+      ...base,
+      uploadFile: (path, uri) => (uploads.push(`${path} ${uri}`), Promise.resolve({ error: null })),
+    });
+    expect((await uploader.upload(photo())).kind).toBe("applied");
+    expect(uploads).toEqual(["o/incidents/i1/ph-1.jpg file:///ph.jpg"]);
+    expect(calls[0]).toBe(
+      'insert incident_media {"id":"ph-1","incident_id":"i1","media_uri":"o/incidents/i1/ph-1.jpg"}',
+    );
+  });
+
+  it("treats an object already uploaded as done and retries a failed upload", async () => {
+    const again = fakeClient([{ data: { id: "ph-1" }, error: null, status: 201 }]);
+    const dup = new SupabaseUploader({
+      client: again.client,
+      ...base,
+      uploadFile: () =>
+        Promise.resolve({ error: { message: "The resource already exists", statusCode: "409" } }),
+    });
+    expect((await dup.upload(photo())).kind).toBe("applied");
+    const failed = fakeClient([]);
+    const down = new SupabaseUploader({
+      client: failed.client,
+      ...base,
+      uploadFile: () => Promise.resolve({ error: { message: "Network request failed" } }),
+    });
+    expect((await down.upload(photo())).kind).toBe("transient");
+    expect(failed.calls).toEqual([]);
+    const none = new SupabaseUploader({ client: failed.client, ...base });
+    expect((await none.upload(photo())).kind).toBe("transient");
+  });
+});
+
 describe("module results", () => {
   it("maps the @xos/data Result contract to upload outcomes", () => {
     expect(outcomeFromResult({ ok: true, data: { id: "s1" } }, (d) => d)).toEqual({

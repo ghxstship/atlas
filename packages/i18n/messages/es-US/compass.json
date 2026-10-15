@@ -358,5 +358,9 @@
     "deleteAccountHelp": "Elimina tu cuenta y tus datos. Abre Gateway para confirmar.",
     "version": "Versión {version}",
     "personal": "Ajustes personales"
+  },
+  "photo": {
+    "take": "Tomar foto",
+    "failed": "La foto no se guardó: {reason}. Vuelve a intentarlo."
   }
 }

@@ -30,6 +30,7 @@ export type IncidentStep = "severity" | "location" | "evidence" | "review";
 
 export interface IncidentDraft {
   readonly id: string;
+  readonly orgId: string;
   readonly projectId: string;
   readonly severityId: string | null;
   readonly title: string;
@@ -49,6 +50,7 @@ export interface IncidentDraft {
 }
 
 export function newDraft(
+  orgId: string,
   projectId: string,
   occurredAt: string,
   fix: LocationFix | null,
@@ -57,6 +59,7 @@ export function newDraft(
 ): IncidentDraft {
   return {
     id: newId(nowMs),
+    orgId,
     projectId,
     severityId: null,
     title: "",
@@ -120,12 +123,16 @@ export function buildReport(
     },
   ];
   for (const photo of draft.photos) {
+    // The object name the field-media bucket policy expects: <org_id>/incidents/<incident_id>/<file>.
+    const path = `${draft.orgId}/incidents/${draft.id}/${photo.id}.jpg`;
     const row = {
       id: photo.id,
       incident_id: draft.id,
       project_id: draft.projectId,
-      media_uri: photo.uri,
+      media_uri: path,
       captured_at: photo.capturedAt,
+      local_uri: photo.uri,
+      storage_path: path,
     };
     writes.push({
       op: "insert",

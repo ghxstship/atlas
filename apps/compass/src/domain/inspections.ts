@@ -34,6 +34,7 @@ export interface ItemAnswer {
 
 export interface Walk {
   readonly inspectionId: string;
+  readonly orgId: string;
   readonly templateId: string;
   readonly projectId: string;
   readonly items: readonly InspectionItem[];
@@ -43,6 +44,7 @@ export interface Walk {
 }
 
 export function startWalk(
+  orgId: string,
   templateId: string,
   projectId: string,
   items: readonly InspectionItem[],
@@ -51,6 +53,7 @@ export function startWalk(
 ): Walk {
   return {
     inspectionId: newId(nowMs),
+    orgId,
     templateId,
     projectId,
     items: [...items].sort((a, b) => a.position - b.position),
@@ -156,7 +159,14 @@ export function buildInspection(
       inspection_item_id: item.id,
       result_enum_id: a.resultId,
       note: a.note.trim() || null,
-      photo_uri: a.photoUri,
+      // <org_id>/inspections/<inspection_id>/<file>, the object name the field-media bucket expects.
+      photo_uri: a.photoUri ? `${walk.orgId}/inspections/${walk.inspectionId}/${id}.jpg` : null,
+      ...(a.photoUri
+        ? {
+            local_uri: a.photoUri,
+            storage_path: `${walk.orgId}/inspections/${walk.inspectionId}/${id}.jpg`,
+          }
+        : {}),
     };
     writes.push({
       op: "insert",

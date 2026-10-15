@@ -102,7 +102,7 @@ describe("incident quick report", () => {
   });
 
   it("validates as the person types", () => {
-    const draft = newDraft("proj-1", new Date(now).toISOString(), null, now, ids);
+    const draft = newDraft("org-1", "proj-1", new Date(now).toISOString(), null, now, ids);
     expect(draftProblems(draft)).toEqual(["severity-missing", "title-missing"]);
     expect(draftProblems({ ...draft, severityId: "ENM-097", title: "x".repeat(201) })).toEqual([
       "title-too-long",
@@ -113,7 +113,7 @@ describe("incident quick report", () => {
   it("queues the incident with its pin, then photos and parties depending on it", () => {
     const fix = { longitude: -97.744, latitude: 30.266, accuracyM: 12, at: now };
     const draft = {
-      ...newDraft("proj-1", new Date(now).toISOString(), fix, now, () => "inc-1"),
+      ...newDraft("org-1", "proj-1", new Date(now).toISOString(), fix, now, () => "inc-1"),
       severityId: "ENM-098",
       title: "  Fall near Gate B  ",
       photos: [{ id: "ph-1", uri: "file:///a.jpg", capturedAt: new Date(now).toISOString() }],
@@ -193,7 +193,7 @@ describe("inspection walk", () => {
   const pass = { resultId: "ENM-082", note: "", photoUri: null, answeredAt: now + 3_000 };
 
   it("shows one item per card in template order", () => {
-    const walk = startWalk("tpl-1", "proj-1", items, now, () => "insp-1");
+    const walk = startWalk("org-1", "tpl-1", "proj-1", items, now, () => "insp-1");
     expect(currentItem(walk)?.id).toBe("it-1");
     expect(progress(walk)).toEqual({ done: 0, total: 2 });
     expect(averageSecondsPerItem(walk)).toBeNull();
@@ -214,7 +214,7 @@ describe("inspection walk", () => {
     expect(
       answerProblems({ resultId: "nope", note: "", photoUri: null, answeredAt: now }, results),
     ).toEqual(["unknown-result"]);
-    const walk = startWalk("tpl-1", "proj-1", items, now);
+    const walk = startWalk("org-1", "tpl-1", "proj-1", items, now);
     expect(() =>
       answer(
         walk,
@@ -226,7 +226,7 @@ describe("inspection walk", () => {
   });
 
   it("advances, completes, flags critical failures and queues rows", () => {
-    let walk = startWalk("tpl-1", "proj-1", items, now, () => "insp-1");
+    let walk = startWalk("org-1", "tpl-1", "proj-1", items, now, () => "insp-1");
     walk = answer(walk, "it-1", pass, results);
     expect(currentItem(walk)?.id).toBe("it-2");
     expect(isComplete(walk)).toBe(false);
@@ -251,11 +251,12 @@ describe("inspection walk", () => {
     expect(writes.slice(1).map((w) => w.payload["inspection_item_id"])).toEqual(["it-1", "it-2"]);
     expect(writes[2]?.payload).toMatchObject({
       note: "Exit 3 blocked by cases",
-      photo_uri: "file:///exit3.jpg",
+      photo_uri: expect.stringMatching(/^org-1\/inspections\/insp-1\/id-\d+\.jpg$/),
+      local_uri: "file:///exit3.jpg",
       project_id: "proj-1",
     });
     expect(writes[1]?.payload["note"]).toBeNull();
-    expect(isComplete(startWalk("t", "p", [], now))).toBe(false);
+    expect(isComplete(startWalk("org-1", "t", "p", [], now))).toBe(false);
   });
 
   it("never lets the inspector sign off their own inspection", () => {

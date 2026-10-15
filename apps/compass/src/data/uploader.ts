@@ -76,6 +76,11 @@ export interface UploaderOptions {
   readonly deviceId: string;
   /** The device clock, for a punch's age at upload. */
   readonly clock: DeviceClock;
+  /** Uploads a local file to the field-media bucket under the object name. */
+  readonly uploadFile?: (
+    path: string,
+    localUri: string,
+  ) => Promise<{ error: { message: string; statusCode?: string } | null }>;
 }
 
 /**
@@ -95,6 +100,8 @@ const DEVICE_ONLY = new Set([
   "device_geofence_status",
   "device_needs_review",
   "monotonic_at",
+  "local_uri",
+  "storage_path",
   "boot_id",
 ]);
 
@@ -125,7 +132,36 @@ export class SupabaseUploader implements Uploader {
     return this.#rpc(mutation);
   }
 
+  /**
+   * Field photos upload to the field-media bucket before their row is inserted, so a row never points at a
+   * missing object. A retried upload of the same object name is already there (409) and counts as done.
+   */
+  async #uploadMedia(mutation: Mutation): Promise<UploadOutcome | null> {
+    const localUri = mutation.payload["local_uri"];
+    const path = mutation.payload["storage_path"];
+    if (typeof localUri !== "string" || typeof path !== "string") return null;
+    if (!this.#options.uploadFile) {
+      return {
+        kind: "transient",
+        error: { code: "media", message: "Media upload is not available yet." },
+      };
+    }
+    const result = await this.#options.uploadFile(path, localUri);
+    if (
+      !result.error ||
+      result.error.statusCode === "409" ||
+      /exists|duplicate/i.test(result.error.message)
+    )
+      return null;
+    return classifyServerError({
+      status: Number(result.error.statusCode ?? 0),
+      message: result.error.message,
+    });
+  }
+
   async #insert(mutation: Mutation): Promise<UploadOutcome> {
+    const media = await this.#uploadMedia(mutation);
+    if (media) return media;
     const { data, error, status } = await this.#options.client
       .from(mutation.target)
       .insert(serverPayload(mutation.payload))

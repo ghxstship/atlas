@@ -29,6 +29,7 @@ import {
 import { downloadAll, type DownloadReport } from "../data/downloader";
 import { IdentityError, resolveIdentity, type ResolvedIdentity } from "../data/identity";
 import { SupabaseUploader } from "../data/uploader";
+import { fieldMediaUploader } from "./media";
 import {
   createSupabase,
   deviceClock,
@@ -181,6 +182,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
         orgId: () => orgRef.current,
         deviceId: id,
         clock: deviceClock,
+        uploadFile: fieldMediaUploader(client),
       });
       setStore(opened);
       setEngine(new SyncEngine({ store: opened, uploader }));
