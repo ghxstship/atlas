@@ -3614,6 +3614,20 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "agreements_offer_id_fkey";
+            columns: ["offer_id"];
+            isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["offer_id"];
+          },
+          {
+            foreignKeyName: "agreements_offer_id_fkey";
+            columns: ["offer_id"];
+            isOneToOne: false;
+            referencedRelation: "offers";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "agreements_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
@@ -20586,8 +20600,9 @@ export type Database = {
           currency_code: string;
           day: string;
           deleted_at: string | null;
+          engagement_id: string | null;
           id: string;
-          membership_id: string;
+          membership_id: string | null;
           org_id: string;
           project_id: string;
           updated_at: string;
@@ -20601,8 +20616,9 @@ export type Database = {
           currency_code: string;
           day: string;
           deleted_at?: string | null;
+          engagement_id?: string | null;
           id?: string;
-          membership_id: string;
+          membership_id?: string | null;
           org_id: string;
           project_id: string;
           updated_at?: string;
@@ -20615,8 +20631,9 @@ export type Database = {
           currency_code?: string;
           day?: string;
           deleted_at?: string | null;
+          engagement_id?: string | null;
           id?: string;
-          membership_id?: string;
+          membership_id?: string | null;
           org_id?: string;
           project_id?: string;
           updated_at?: string;
@@ -20636,6 +20653,27 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "currencies";
             referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "per_diems_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "per_diems_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "per_diems_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "per_diems_membership_id_fkey";
@@ -35061,8 +35099,10 @@ export type Database = {
         Row: {
           awarded_bid_id: string | null;
           bid_due_at: string | null;
+          budget_minor: number | null;
           created_at: string;
           created_by: string | null;
+          currency_code: string;
           deleted_at: string | null;
           estimated_hours: number | null;
           id: string;
@@ -35087,8 +35127,10 @@ export type Database = {
         Insert: {
           awarded_bid_id?: string | null;
           bid_due_at?: string | null;
+          budget_minor?: number | null;
           created_at?: string;
           created_by?: string | null;
+          currency_code: string;
           deleted_at?: string | null;
           estimated_hours?: number | null;
           id?: string;
@@ -35111,8 +35153,10 @@ export type Database = {
         Update: {
           awarded_bid_id?: string | null;
           bid_due_at?: string | null;
+          budget_minor?: number | null;
           created_at?: string;
           created_by?: string | null;
+          currency_code?: string;
           deleted_at?: string | null;
           estimated_hours?: number | null;
           id?: string;
@@ -35146,6 +35190,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_orders_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
           },
           {
             foreignKeyName: "work_orders_org_id_fkey";
