@@ -24,8 +24,6 @@
     "created": "Created as {state}",
     "moved": "Moved from {from} to {to}",
     "byAt": "{name} · {at}",
-    "comments": "Comments and attachments",
-    "commentsBlocked": "Comments and attachments for this record open here once the shared comment service is switched on for your organization. Until then, write the reason with each state change; it is kept in the history above.",
     "back": "Back to the list",
     "properties": "Properties"
   },
@@ -498,5 +496,31 @@
     "empty": "No time off requested. Requests appear here for approval.",
     "caption": "Time off requests",
     "meta": "{days} · {hours} h"
+  },
+  "collab": {
+    "comments": "Comments",
+    "noComments": "No comments yet. Write the first one below; mention someone to notify them.",
+    "unknownAuthor": "A former member",
+    "deleted": "Comment deleted.",
+    "delete": "Delete",
+    "write": "Write a comment",
+    "post": "Post comment",
+    "attachments": "Attachments",
+    "noAttachments": "No files attached. Upload a file below; it is scanned before anyone can download it.",
+    "download": "Download",
+    "remove": "Remove",
+    "file": "File",
+    "upload": "Upload",
+    "commentRequired": "Write a comment of up to 10,000 characters.",
+    "fileRequired": "Choose a file to upload.",
+    "fileTooLarge": "Files are limited to 50 MB. Upload a smaller file.",
+    "scanning": "The file is still being scanned. Try the download again in a moment.",
+    "scan": {
+      "Pending Upload": "Uploading",
+      "Scanning": "Scanning",
+      "Clean": "Ready",
+      "Infected": "Blocked: malware found",
+      "Scan Failed": "Scan failed, upload again"
+    }
   }
 }

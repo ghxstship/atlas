@@ -89,6 +89,7 @@ export default async function Page({
           <CrewRecord
             crew={crew}
             mode={search["full"] === "1" ? "full" : "peek"}
+            subject={{ table: "app.time_entries", id: e.id }}
             kindLabel={t("crew.kinds.entry")}
             recordKey={e.projectKey}
             title={t("crew.entries.title", { name: name(e), day: at(e.clockIn, zone) })}

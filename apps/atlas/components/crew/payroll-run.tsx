@@ -64,6 +64,7 @@ export async function PayrollRunRecord(props: {
     <CrewRecord
       crew={crew}
       mode={props.mode}
+      subject={{ table: "app.payroll_runs", id: run.id }}
       kindLabel={t("crew.kinds.payrollRun")}
       recordKey={run.currencyCode}
       title={t("crew.payroll.runTitle", {

@@ -24,8 +24,6 @@
     "created": "Creado como {state}",
     "moved": "Pasó de {from} a {to}",
     "byAt": "{name} · {at}",
-    "comments": "Comentarios y adjuntos",
-    "commentsBlocked": "Los comentarios y adjuntos de este registro se abren aquí cuando el servicio de comentarios compartido se active para su organización. Mientras tanto, escriba el motivo con cada cambio de estado; queda en el historial de arriba.",
     "back": "Volver a la lista",
     "properties": "Propiedades"
   },
@@ -498,5 +496,31 @@
     "empty": "No se ha solicitado tiempo libre. Las solicitudes aparecen aquí para aprobación.",
     "caption": "Solicitudes de tiempo libre",
     "meta": "{days} · {hours} h"
+  },
+  "collab": {
+    "comments": "Comentarios",
+    "noComments": "Aún no hay comentarios. Escriba el primero abajo; mencione a alguien para avisarle.",
+    "unknownAuthor": "Un exmiembro",
+    "deleted": "Comentario eliminado.",
+    "delete": "Eliminar",
+    "write": "Escribir un comentario",
+    "post": "Publicar comentario",
+    "attachments": "Adjuntos",
+    "noAttachments": "No hay archivos adjuntos. Suba un archivo abajo; se analiza antes de que alguien pueda descargarlo.",
+    "download": "Descargar",
+    "remove": "Quitar",
+    "file": "Archivo",
+    "upload": "Subir",
+    "commentRequired": "Escriba un comentario de hasta 10,000 caracteres.",
+    "fileRequired": "Elija un archivo para subir.",
+    "fileTooLarge": "Los archivos tienen un límite de 50 MB. Suba un archivo más pequeño.",
+    "scanning": "El archivo todavía se está analizando. Intente la descarga de nuevo en un momento.",
+    "scan": {
+      "Pending Upload": "Subiendo",
+      "Scanning": "Analizando",
+      "Clean": "Listo",
+      "Infected": "Bloqueado: se encontró malware",
+      "Scan Failed": "Falló el análisis, súbalo de nuevo"
+    }
   }
 }

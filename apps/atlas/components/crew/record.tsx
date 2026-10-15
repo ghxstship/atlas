@@ -1,3 +1,5 @@
+import { listAttachments } from "@xos/data/attachments";
+import { listThreads } from "@xos/data/comments";
 import { personNames, type TransitionEntry } from "@xos/data/crew";
 import type { RecordState } from "@xos/ui";
 import Link from "next/link";
@@ -6,6 +8,7 @@ import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import type { CrewContext } from "@/lib/crew/context";
 import { getTranslate } from "@/lib/shell/translate";
+import { CrewCollab } from "./collab";
 import { PropertyList, StateChip, TemplateRecord } from "./ui";
 import { PeekPanel } from "./views";
 
@@ -31,6 +34,8 @@ export interface RecordProps {
   readonly children?: ReactNode;
   /** The list URL the full page returns to. */
   readonly backHref: string;
+  /** The commentable row (a table in private.comment_subjects); omitted for ledgers without one. */
+  readonly subject?: { readonly table: string; readonly id: string };
 }
 
 async function History(props: {
@@ -78,18 +83,31 @@ async function History(props: {
   );
 }
 
-/** The comment thread waits on the shared comment service (A18); the panel says so plainly. */
-async function Conversation() {
-  const t = await getTranslate();
+/** The comment thread and attachments of the record (A18's unified comment and attachment services). */
+async function Conversation(props: { crew: CrewContext; subject: { table: string; id: string } }) {
+  const db = props.crew.ctx.viewer.db;
+  const [threads, attachments] = await Promise.all([
+    listThreads(db, props.subject),
+    listAttachments(db, props.subject),
+  ]);
+  if (!threads.ok) throw new Error(`Cannot read comments: ${threads.error.kind}`);
+  if (!attachments.ok) throw new Error(`Cannot read attachments: ${attachments.error.kind}`);
+  const authors = threads.data.flatMap((th) => th.comments.map((c) => c.authorPersonId));
+  const names = await personNames(db, authors);
   return (
-    <section aria-labelledby="record-comments" className="flex flex-col gap-8">
-      <h2 id="record-comments" className="m-0 text-text-13 font-semibold">
-        {t("crew.record.comments")}
-      </h2>
-      <p className="m-0 rounded-card border border-dashed border-border-subtle p-12 text-text-12 text-text-secondary">
-        {t("crew.record.commentsBlocked")}
-      </p>
-    </section>
+    <CrewCollab
+      org={props.crew.slug}
+      table={props.subject.table}
+      id={props.subject.id}
+      threads={threads.data}
+      attachments={attachments.data}
+      names={Object.fromEntries(
+        [...(names.ok ? names.data : new Map<string, string | null>())].flatMap(([k, v]) =>
+          v ? [[k, v]] : [],
+        ),
+      )}
+      me={props.crew.ctx.viewer.person?.id ?? null}
+    />
   );
 }
 
@@ -114,7 +132,7 @@ export async function CrewRecord(props: RecordProps) {
         <PropertyList items={[...props.properties]} />
         {props.children}
         {history}
-        <Conversation />
+        {props.subject ? <Conversation crew={props.crew} subject={props.subject} /> : null}
       </PeekPanel>
     );
   }
@@ -146,7 +164,7 @@ export async function CrewRecord(props: RecordProps) {
       >
         {props.children}
         {history}
-        <Conversation />
+        {props.subject ? <Conversation crew={props.crew} subject={props.subject} /> : null}
       </TemplateRecord>
     </div>
   );
