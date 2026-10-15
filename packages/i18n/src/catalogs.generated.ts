@@ -19,6 +19,7 @@ import enUS_permits from "../messages/en-US/permits.json" with { type: "json" };
 import enUS_places from "../messages/en-US/places.json" with { type: "json" };
 import enUS_profiles from "../messages/en-US/profiles.json" with { type: "json" };
 import enUS_projects from "../messages/en-US/projects.json" with { type: "json" };
+import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
@@ -43,6 +44,7 @@ import esUS_permits from "../messages/es-US/permits.json" with { type: "json" };
 import esUS_places from "../messages/es-US/places.json" with { type: "json" };
 import esUS_profiles from "../messages/es-US/profiles.json" with { type: "json" };
 import esUS_projects from "../messages/es-US/projects.json" with { type: "json" };
+import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
@@ -69,6 +71,7 @@ export const enUS = {
   places: enUS_places,
   profiles: enUS_profiles,
   projects: enUS_projects,
+  reports: enUS_reports,
   schedule: enUS_schedule,
   settings: enUS_settings,
   shell: enUS_shell,
@@ -96,6 +99,7 @@ export const esUS = {
   places: esUS_places,
   profiles: esUS_profiles,
   projects: esUS_projects,
+  reports: esUS_reports,
   schedule: esUS_schedule,
   settings: esUS_settings,
   shell: esUS_shell,

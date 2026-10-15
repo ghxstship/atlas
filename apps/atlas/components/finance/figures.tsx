@@ -118,7 +118,7 @@ export function SimpleTable({
   head: readonly string[];
   rows: readonly (readonly ReactNode[])[];
   numeric?: readonly number[];
-  foot?: readonly ReactNode[];
+  foot?: readonly ReactNode[] | undefined;
 }) {
   const align = (i: number) => (numeric.includes(i) ? "text-end tabular-nums" : "text-start");
   return (

@@ -109,6 +109,7 @@ interface LineFact {
   readonly costCenterCode: string | null;
   readonly extendedMinor: number | null;
   readonly actualMinor: number;
+  readonly elementId: string | null;
 }
 
 interface ChangeFact {
@@ -148,6 +149,7 @@ async function lineFacts(
       costCenterCode: strOrNull(r["cost_center_code"]),
       extendedMinor: numOrNull(r["extended_minor"]),
       actualMinor: num(r["actual_minor"]),
+      elementId: strOrNull(r["element_id"]),
     })),
   );
 }
@@ -526,39 +528,82 @@ export async function gateReadiness(
 
 // Coordinate matrix -------------------------------------------------------------------------------------
 
+export type MatrixSource = "scope" | "records" | "catalog";
+export const MATRIX_SOURCES: readonly MatrixSource[] = ["scope", "records", "catalog"];
+
 export interface CoordinateMatrixData {
   readonly departments: readonly { code: string; name: string }[];
   readonly phases: readonly { gate: number; code: string; name: string }[];
-  /** Record counts keyed `DEPT|PHASE`; a missing key is zero records. */
+  /** Counts keyed `DEPT|PHASE`; a missing key is zero. */
   readonly cells: Readonly<Record<string, number>>;
   readonly total: number;
 }
 
-/** Records by department class and phase: the 90 coordinates (10 departments by 9 phases). */
+/**
+ * The 90 coordinates (10 departments by 9 phases) counted from one source: the scope (catalog elements
+ * on the readable projects' budget lines, placed by each element's phase participation), the records
+ * that carry a URID and a phase, or the whole canon catalog.
+ */
 export async function coordinateMatrix(
   db: XosClient,
-  input: { readonly orgId: string; readonly projectId?: string | null },
+  input: {
+    readonly orgId: string;
+    readonly projectId?: string | null;
+    readonly source?: MatrixSource;
+  },
 ): Promise<Result<CoordinateMatrixData>> {
   const canon = db.schema("xpms");
-  let records = db
-    .from("records")
-    .select("urid, phase_code")
-    .eq("org_id", input.orgId)
-    .is("deleted_at", null)
-    .not("urid", "is", null)
-    .not("phase_code", "is", null);
-  if (input.projectId) records = records.eq("project_id", input.projectId);
-  const [departments, phases, found] = await Promise.all([
+  const source = input.source ?? "scope";
+  const [departments, phases] = await Promise.all([
     rows(canon.from("dim_department").select("dept_code, department").order("dept_code")),
     rows(canon.from("dim_phase").select("phase_code, gate, phase").order("gate")),
-    rows(records),
   ]);
   if (!departments.ok) return departments;
   if (!phases.ok) return phases;
-  if (!found.ok) return found;
+  const points: { dept: string; phase: string }[] = [];
+  if (source === "records") {
+    let records = db
+      .from("records")
+      .select("urid, phase_code")
+      .eq("org_id", input.orgId)
+      .is("deleted_at", null)
+      .not("urid", "is", null)
+      .not("phase_code", "is", null);
+    if (input.projectId) records = records.eq("project_id", input.projectId);
+    const found = await rows(records);
+    if (!found.ok) return found;
+    for (const r of found.data)
+      points.push({ dept: str(r["urid"]).slice(0, 4), phase: str(r["phase_code"]) });
+  } else {
+    let elementIds: string[] | null = null;
+    if (source === "scope") {
+      const projects = await projectsOf(db, input.orgId, input.projectId);
+      if (!projects.ok) return projects;
+      const facts = await lineFacts(
+        db,
+        projects.data.map((p) => p.id),
+      );
+      if (!facts.ok) return facts;
+      const working = workingBudgetIds(facts.data);
+      const ids = new Set<string>();
+      for (const f of facts.data) if (working.has(f.budgetId) && f.elementId) ids.add(f.elementId);
+      elementIds = [...ids];
+    }
+    if (elementIds === null || elementIds.length > 0) {
+      let bridge = canon.from("bridge_element_phase").select("phase_code, element:elements(urid)");
+      if (elementIds !== null) bridge = bridge.in("element_id", elementIds);
+      const found = await rows(bridge);
+      if (!found.ok) return found;
+      for (const r of found.data)
+        points.push({
+          dept: str(obj(r["element"])?.["urid"]).slice(0, 4),
+          phase: str(r["phase_code"]),
+        });
+    }
+  }
   const cells: Record<string, number> = {};
-  for (const r of found.data) {
-    const key = `${str(r["urid"]).slice(0, 4)}|${str(r["phase_code"])}`;
+  for (const p of points) {
+    const key = `${p.dept}|${p.phase}`;
     cells[key] = (cells[key] ?? 0) + 1;
   }
   return ok({
@@ -570,7 +615,7 @@ export async function coordinateMatrix(
       .filter((p) => numOrNull(p["gate"]) !== null)
       .map((p) => ({ gate: num(p["gate"]), code: str(p["phase_code"]), name: str(p["phase"]) })),
     cells,
-    total: found.data.length,
+    total: points.length,
   });
 }
 
@@ -589,6 +634,8 @@ export interface LaborRow {
 
 export interface PayrollRunRow {
   readonly payrollRunId: string;
+  /** Currency of the run; null when the run row is not readable. */
+  readonly currency: string | null;
   readonly hours: number;
   /** Null when masked (Section 8.3) or when nothing is priced. */
   readonly amountMinor: number | null;
@@ -646,6 +693,15 @@ export async function laborReport(
     run.count += 1;
     runs.set(id, run);
   }
+  const runIds = [...runs.keys()];
+  const currencies = new Map<string, string>();
+  if (runIds.length > 0) {
+    const runRows = await rows(
+      db.from("payroll_runs").select("id, currency_code").in("id", runIds),
+    );
+    if (!runRows.ok) return runRows;
+    for (const r of runRows.data) currencies.set(str(r["id"]), str(r["currency_code"]).trim());
+  }
   return ok({
     projects: projects.data.map((project) => {
       const lines = labor.filter((l) => l.projectId === project.id);
@@ -663,6 +719,7 @@ export async function laborReport(
     }),
     payrollRuns: [...runs.entries()].map(([id, run]) => ({
       payrollRunId: id,
+      currency: currencies.get(id) ?? null,
       hours: run.hours,
       amountMinor: run.masked ? null : nullAwareSum(run.amounts).total,
       isMasked: run.masked,
@@ -884,38 +941,60 @@ export async function listSavedReports(
 
 export interface ReportRun {
   readonly id: string;
+  readonly reportDefinitionId: string;
   readonly reportName: string;
   readonly format: string;
+  readonly status: string;
   readonly finishedAt: string | null;
   readonly rowCount: number | null;
+  readonly unpricedCount: number | null;
+  readonly createdAt: string;
 }
 
-/** Finished runs of the viewer's own reports, newest first: the runs they may share. */
-export async function listMyFinishedRuns(
+/** The viewer's own report runs, newest first; finished runs are the ones they may share. */
+export async function listMyRuns(
   db: XosClient,
   input: { readonly orgId: string; readonly membershipId: string },
 ): Promise<Result<ReportRun[]>> {
   const result = await rows(
     untyped(db)
       .from("report_runs")
-      .select("id, export_format, finished_at, row_count, definition:report_definitions(name)")
+      .select(
+        "id, report_definition_id, export_format, run_status, finished_at, row_count, unpriced_count, created_at, definition:report_definitions(name)",
+      )
       .eq("org_id", input.orgId)
       .eq("run_for_membership_id", input.membershipId)
-      .eq("run_status", "Succeeded")
       .is("deleted_at", null)
-      .order("finished_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(50),
   );
   if (!result.ok) return result;
   return ok(
     result.data.map((r) => ({
       id: str(r["id"]),
+      reportDefinitionId: str(r["report_definition_id"]),
       reportName: str(obj(r["definition"])?.["name"]),
       format: str(r["export_format"]),
+      status: str(r["run_status"]),
       finishedAt: strOrNull(r["finished_at"]),
       rowCount: numOrNull(r["row_count"]),
+      unpricedCount: numOrNull(r["unpriced_count"]),
+      createdAt: str(r["created_at"]),
     })),
   );
+}
+
+/** Queues a run of a saved report for the viewer (A18's app.run_report). */
+export async function runReport(
+  db: XosClient,
+  input: { readonly reportDefinitionId: string; readonly format: "CSV" | "XLSX" | "PDF" },
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await untyped(db).rpc("run_report", {
+    p_report_definition_id: input.reportDefinitionId,
+    p_format: input.format,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ id: str(data) });
 }
 
 export interface SharedReport {

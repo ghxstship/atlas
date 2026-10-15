@@ -6,11 +6,12 @@ import {
   gateReadiness,
   incidentsReport,
   laborReport,
-  listMyFinishedRuns,
+  listMyRuns,
   listSavedReports,
   listSharedReports,
   purchaseOrderExposure,
   revokeSharedReport,
+  runReport,
   shareReport,
   workingBudgetIds,
 } from "../src/reports.ts";
@@ -282,15 +283,19 @@ describe("gate readiness", () => {
 });
 
 describe("coordinate matrix", () => {
+  const canon = () => ({
+    "from:xpms.dim_department": [okResponse([{ dept_code: "5000", department: "Production" }])],
+    "from:xpms.dim_phase": [
+      okResponse([
+        { phase_code: "SCP", gate: 1, phase: "Scope" },
+        { phase_code: "DIS", gate: null, phase: "Discover" },
+      ]),
+    ],
+  });
+
   it("counts records by department class and phase", async () => {
     const { db } = fakeClient({
-      "from:xpms.dim_department": [okResponse([{ dept_code: "5000", department: "Production" }])],
-      "from:xpms.dim_phase": [
-        okResponse([
-          { phase_code: "SCP", gate: 1, phase: "Scope" },
-          { phase_code: "DIS", gate: null, phase: "Discover" },
-        ]),
-      ],
+      ...canon(),
       "from:records": [
         okResponse([
           { urid: "5000.04.02", phase_code: "SCP" },
@@ -298,9 +303,42 @@ describe("coordinate matrix", () => {
         ]),
       ],
     });
-    const result = await coordinateMatrix(db, { orgId: "o1", projectId: "p1" });
+    const result = await coordinateMatrix(db, { orgId: "o1", projectId: "p1", source: "records" });
     expect(result.ok && result.data.cells).toEqual({ "5000|SCP": 2 });
     expect(result.ok && result.data.phases).toHaveLength(1);
+  });
+
+  it("places the scope's catalog elements by their phases", async () => {
+    const { db, calls } = fakeClient({
+      ...canon(),
+      "from:projects": [okResponse([project])],
+      "from:budget_line_facts": [
+        okResponse([fact({ element_id: "E1" }), fact({ budget_line_id: "l2", element_id: null })]),
+      ],
+      "from:xpms.bridge_element_phase": [
+        okResponse([{ phase_code: "SCP", element: { urid: "5000.04.02" } }]),
+      ],
+    });
+    const result = await coordinateMatrix(db, { orgId: "o1" });
+    expect(result.ok && result.data.total).toBe(1);
+    expect(calls.find((c) => c.target === "from:xpms.bridge_element_phase")?.steps).toContainEqual([
+      "in",
+      ["element_id", ["E1"]],
+    ]);
+  });
+
+  it("covers the whole catalog, and an empty scope stays empty", async () => {
+    const whole = fakeClient({
+      ...canon(),
+      "from:xpms.bridge_element_phase": [
+        okResponse([{ phase_code: "SCP", element: [{ urid: "5000.01.01" }] }]),
+      ],
+    });
+    const all = await coordinateMatrix(whole.db, { orgId: "o1", source: "catalog" });
+    expect(all.ok && all.data.cells).toEqual({ "5000|SCP": 1 });
+    const empty = fakeClient({ ...canon(), "from:projects": [okResponse([])] });
+    const none = await coordinateMatrix(empty.db, { orgId: "o1", source: "scope" });
+    expect(none.ok && none.data.total).toBe(0);
   });
 });
 
@@ -321,6 +359,7 @@ describe("labor", () => {
           { payroll_run_id: "r2", hours: 4, amount_minor: 1000, is_masked: false },
         ]),
       ],
+      "from:payroll_runs": [okResponse([{ id: "r2", currency_code: "USD" }])],
     });
     const result = await laborReport(db, { orgId: "o1" });
     expect(result.ok && result.data.projects[0]).toMatchObject({
@@ -329,8 +368,22 @@ describe("labor", () => {
       openEntryCount: 1,
     });
     expect(result.ok && result.data.payrollRuns).toEqual([
-      { payrollRunId: "r1", hours: 8, amountMinor: null, isMasked: true, lineCount: 1 },
-      { payrollRunId: "r2", hours: 4, amountMinor: 1000, isMasked: false, lineCount: 1 },
+      {
+        payrollRunId: "r1",
+        currency: null,
+        hours: 8,
+        amountMinor: null,
+        isMasked: true,
+        lineCount: 1,
+      },
+      {
+        payrollRunId: "r2",
+        currency: "USD",
+        hours: 4,
+        amountMinor: 1000,
+        isMasked: false,
+        lineCount: 1,
+      },
     ]);
   });
 
@@ -507,9 +560,9 @@ describe("shared reports", () => {
         errorResponse("XR001", "share_already_revoked: no.", "share_already_revoked"),
       ],
     });
-    const runs = await listMyFinishedRuns(db, { orgId: "o1", membershipId: "m1" });
+    const runs = await listMyRuns(db, { orgId: "o1", membershipId: "m1" });
     expect(runs.ok && runs.data[0]?.reportName).toBe("Spend");
-    expect((await listMyFinishedRuns(db, { orgId: "o1", membershipId: "m1" })).ok).toBe(false);
+    expect((await listMyRuns(db, { orgId: "o1", membershipId: "m1" })).ok).toBe(false);
     const shares = await listSharedReports(db, { orgId: "o1", projectId: "p1" });
     expect(shares.ok && shares.data[0]?.revokedAt).toBe("y");
     expect(calls[2]?.steps).toContainEqual(["eq", ["project_id", "p1"]]);
@@ -520,5 +573,21 @@ describe("shared reports", () => {
     expect(unfinished.ok === false && unfinished.error.kind).toBe("refusal");
     expect((await revokeSharedReport(db, "sh1")).ok).toBe(true);
     expect((await revokeSharedReport(db, "sh1")).ok).toBe(false);
+  });
+});
+
+describe("report runs", () => {
+  it("queues a run or returns the error", async () => {
+    const { db } = fakeClient({
+      "rpc:run_report": [okResponse("run9"), errorResponse("42501", "report not found")],
+    });
+    expect(await runReport(db, { reportDefinitionId: "r1", format: "PDF" })).toEqual({
+      ok: true,
+      data: { id: "run9" },
+    });
+    expect(await runReport(db, { reportDefinitionId: "r1", format: "CSV" })).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
   });
 });

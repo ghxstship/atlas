@@ -207,6 +207,7 @@
       "description": "Enter a description.",
       "direction": "Choose payable or receivable.",
       "endBeforeStart": "The end date must be on or after the start date.",
+      "engagementId": "Choose an engagement.",
       "eventScope": "An Event cost center needs the event scope it belongs to.",
       "file": "Choose a file to upload.",
       "fileSize": "Files can be up to 50 MB.",

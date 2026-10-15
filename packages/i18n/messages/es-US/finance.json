@@ -207,6 +207,7 @@
       "description": "Ingrese una descripción.",
       "direction": "Elija por pagar o por cobrar.",
       "endBeforeStart": "La fecha final debe ser igual o posterior a la inicial.",
+      "engagementId": "Elija una contratación.",
       "eventScope": "Un centro de costo de Evento necesita el alcance del evento al que pertenece.",
       "file": "Elija un archivo para subir.",
       "fileSize": "Los archivos pueden pesar hasta 50 MB.",

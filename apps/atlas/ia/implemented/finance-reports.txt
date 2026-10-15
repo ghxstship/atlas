@@ -10,3 +10,12 @@ finance.universal-posting-line-export
 finance.chart-of-accounts
 finance.cost-centers
 project.budget
+reports.gate-readiness
+reports.coordinate-matrix
+reports.budget-versus-actual
+reports.labor
+reports.purchase-order-exposure
+reports.incidents
+reports.final-cost-report
+reports.saved-reports
+project.reports

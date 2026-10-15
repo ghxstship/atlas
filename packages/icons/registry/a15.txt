@@ -7,3 +7,8 @@ FilePlus2
 FileSpreadsheet
 Handshake
 Package
+BarChart3
+Gauge
+Grid3x3
+ShoppingCart
+FileCheck
