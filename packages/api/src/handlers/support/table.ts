@@ -450,3 +450,8 @@ export function tableHandlers<M extends Module>(
 ): HandlerSet<M> {
   return tableResource(op, options).handlers as unknown as HandlerSet<M>;
 }
+
+/** The handlers of a table resource built with `tableResource`, typed for the module. */
+export function handlersFor<M extends Module>(_module: M, resource: TableResource): HandlerSet<M> {
+  return resource.handlers as unknown as HandlerSet<M>;
+}

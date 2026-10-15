@@ -21,6 +21,7 @@ import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { aliasedSource, problemFor } from "./projects.ts";
+import { tableHandlers } from "./support/table.ts";
 
 type RecordBody = Components["Record"];
 type ChecklistItem = Components["RecordChecklistItem"];
@@ -760,4 +761,7 @@ export const handlers = defineHandlers("Work", {
     if (!result.ok) throw problemFor(result.error);
     return ok(await readBid(db, params.id));
   },
+
+  // Replans (A04P): the history the replan transition writes; read only, the time is created_at.
+  ...tableHandlers("Work", "recordReplans", { aliases: { replanned_at: "created_at" } }),
 });
