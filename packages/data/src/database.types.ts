@@ -30,6 +30,101 @@ export type Database = {
           },
         ];
       };
+      advance_packets: {
+        Row: {
+          due_at: string | null;
+          id: string | null;
+          org_name: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          sent_at: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      advance_sections: {
+        Row: {
+          advance_packet_id: string | null;
+          id: string | null;
+          position: number | null;
+          prompt: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          advance_packet_id?: string | null;
+          id?: string | null;
+          position?: number | null;
+          prompt?: string | null;
+          title?: string | null;
+        };
+        Update: {
+          advance_packet_id?: string | null;
+          id?: string | null;
+          position?: number | null;
+          prompt?: string | null;
+          title?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_sections_advance_packet_id_fkey";
+            columns: ["advance_packet_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_packets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advance_submissions: {
+        Row: {
+          advance_recipient_id: string | null;
+          advance_section_id: string | null;
+          body: string | null;
+          id: string | null;
+          return_reason: string | null;
+          review_outcome: Database["app"]["Enums"]["advance_review_outcome"] | null;
+          reviewed_at: string | null;
+          submitted_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          advance_recipient_id?: string | null;
+          advance_section_id?: string | null;
+          body?: string | null;
+          id?: string | null;
+          return_reason?: string | null;
+          review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
+          reviewed_at?: string | null;
+          submitted_at?: string | null;
+        };
+        Update: {
+          advance_recipient_id?: string | null;
+          advance_section_id?: string | null;
+          body?: string | null;
+          id?: string | null;
+          return_reason?: string | null;
+          review_outcome?: Database["app"]["Enums"]["advance_review_outcome"] | null;
+          reviewed_at?: string | null;
+          submitted_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advance_submissions_advance_recipient_id_fkey";
+            columns: ["advance_recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "my_advance_recipients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_submissions_advance_section_id_fkey";
+            columns: ["advance_section_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_sections";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       applications: {
         Row: {
           applicant_organization_id: string | null;
@@ -413,6 +508,24 @@ export type Database = {
           },
         ];
       };
+      hospitality: {
+        Row: {
+          description: string | null;
+          ends_at: string | null;
+          fulfillment_id: string | null;
+          fulfillment_kind: Database["app"]["Enums"]["fulfillment_kind"] | null;
+          id: string | null;
+          person_id: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          quantity: number | null;
+          starts_at: string | null;
+          supplier_name: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       interviews: {
         Row: {
           application_id: string | null;
@@ -552,6 +665,31 @@ export type Database = {
           slug?: string | null;
         };
         Relationships: [];
+      };
+      my_advance_recipients: {
+        Row: {
+          account_id: string | null;
+          advance_packet_id: string | null;
+          id: string | null;
+          person_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "advance_recipients_advance_packet_id_fkey";
+            columns: ["advance_packet_id"];
+            isOneToOne: false;
+            referencedRelation: "advance_packets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+        ];
       };
       my_agency_slates: {
         Row: {
@@ -867,6 +1005,20 @@ export type Database = {
             referencedColumns: ["account_id"];
           },
         ];
+      };
+      my_token_documents: {
+        Row: {
+          claimed_at: string | null;
+          document_kind: Database["app"]["Enums"]["engagement_document_kind"] | null;
+          engagement_document_id: string | null;
+          engagement_document_state: Database["app"]["Enums"]["engagement_document_state"] | null;
+          org_name: string | null;
+          signed_at: string | null;
+          signer_name: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
       };
       offer_versions: {
         Row: {
@@ -1320,6 +1472,61 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "representations_org_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+        ];
+      };
+      rider_lines: {
+        Row: {
+          description: string | null;
+          element_id: string | null;
+          fulfilled_at: string | null;
+          id: string | null;
+          quantity: number | null;
+          rider_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          description?: string | null;
+          element_id?: string | null;
+          fulfilled_at?: string | null;
+          id?: string | null;
+          quantity?: number | null;
+          rider_id?: string | null;
+        };
+        Update: {
+          description?: string | null;
+          element_id?: string | null;
+          fulfilled_at?: string | null;
+          id?: string | null;
+          quantity?: number | null;
+          rider_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rider_lines_rider_id_fkey";
+            columns: ["rider_id"];
+            isOneToOne: false;
+            referencedRelation: "riders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      riders: {
+        Row: {
+          account_id: string | null;
+          id: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
             columns: ["account_id"];
             isOneToOne: false;
             referencedRelation: "my_accounts";
@@ -10233,6 +10440,106 @@ export type Database = {
           },
           {
             foreignKeyName: "engagement_document_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      engagement_document_tokens: {
+        Row: {
+          access_code_hash: string;
+          claimed_at: string | null;
+          claimed_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          engagement_document_id: string;
+          expires_at: string;
+          failed_attempts: number;
+          id: string;
+          org_id: string;
+          recipient_email: string;
+          revoked_at: string | null;
+          signer_name: string | null;
+          token_hash: string;
+          updated_at: string;
+          updated_by: string | null;
+          used_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          access_code_hash: string;
+          claimed_at?: string | null;
+          claimed_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_document_id: string;
+          expires_at: string;
+          failed_attempts?: number;
+          id?: string;
+          org_id: string;
+          recipient_email: string;
+          revoked_at?: string | null;
+          signer_name?: string | null;
+          token_hash: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          used_at?: string | null;
+        };
+        Update: {
+          access_code_hash?: string;
+          claimed_at?: string | null;
+          claimed_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_document_id?: string;
+          expires_at?: string;
+          failed_attempts?: number;
+          id?: string;
+          org_id?: string;
+          recipient_email?: string;
+          revoked_at?: string | null;
+          signer_name?: string | null;
+          token_hash?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "engagement_document_tokens_claimed_by_fkey";
+            columns: ["claimed_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_document_tokens_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_document_tokens_engagement_document_id_fkey";
+            columns: ["engagement_document_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_document_tokens_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_document_tokens_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -34256,6 +34563,13 @@ export type Database = {
         }[];
       };
       claim_open_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
+      claim_token_submissions: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          claimed_advance: number;
+          claimed_documents: number;
+        }[];
+      };
       claim_webhook_deliveries: {
         Args: { p_limit?: number };
         Returns: {
@@ -34491,6 +34805,15 @@ export type Database = {
       };
       issue_advance_token: {
         Args: { p_recipient_email: string; p_recipient_id: string; p_valid_for?: string };
+        Returns: {
+          access_code: string;
+          expires_at: string;
+          token: string;
+          token_id: string;
+        }[];
+      };
+      issue_engagement_document_token: {
+        Args: { p_document_id: string; p_recipient_email: string; p_valid_for?: string };
         Returns: {
           access_code: string;
           expires_at: string;
@@ -34851,6 +35174,7 @@ export type Database = {
       };
       revoke_advance_token: { Args: { p_token_id: string }; Returns: undefined };
       revoke_api_key: { Args: { p_api_key_id: string }; Returns: undefined };
+      revoke_engagement_document_token: { Args: { p_token_id: string }; Returns: undefined };
       revoke_profile_share: { Args: { p_profile_share_id: string }; Returns: undefined };
       revoke_representation: { Args: { p_representation_id: string }; Returns: undefined };
       run_report: {
@@ -34948,6 +35272,10 @@ export type Database = {
           p_org_id: string;
           p_request_type: Database["app"]["Enums"]["dsar_request_type"];
         };
+        Returns: string;
+      };
+      submit_engaged_advance_answer: {
+        Args: { p_body: string; p_recipient_id: string; p_section_id: string };
         Returns: string;
       };
       submit_engagement_invoice: {
