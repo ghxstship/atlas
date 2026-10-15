@@ -3,6 +3,7 @@
 
 import enUS_activity from "../messages/en-US/activity.json" with { type: "json" };
 import enUS_advancing from "../messages/en-US/advancing.json" with { type: "json" };
+import enUS_assets from "../messages/en-US/assets.json" with { type: "json" };
 import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
@@ -27,6 +28,7 @@ import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
 import enUS_work from "../messages/en-US/work.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json" };
+import esUS_assets from "../messages/es-US/assets.json" with { type: "json" };
 import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
@@ -53,6 +55,7 @@ import esUS_work from "../messages/es-US/work.json" with { type: "json" };
 export const enUS = {
   activity: enUS_activity,
   advancing: enUS_advancing,
+  assets: enUS_assets,
   compass: enUS_compass,
   credentials: enUS_credentials,
   crew: enUS_crew,
@@ -80,6 +83,7 @@ export const enUS = {
 export const esUS = {
   activity: esUS_activity,
   advancing: esUS_advancing,
+  assets: esUS_assets,
   compass: esUS_compass,
   credentials: esUS_credentials,
   crew: esUS_crew,
