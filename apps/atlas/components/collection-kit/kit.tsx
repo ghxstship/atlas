@@ -18,6 +18,7 @@ import {
 } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
+import { keepInputOnSubmit, useResetOnSuccess } from "./keep-input";
 import { useCopy } from "./use-copy";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
@@ -329,6 +330,7 @@ export function EntityForm({
   const t = useCopy("procurement.kit");
   const router = useRouter();
   const [state, formAction, pending] = useActionState(action, INITIAL);
+  const formRef = useResetOnSuccess(state);
   const done = useRef<ActionState | null>(null);
   useEffect(() => {
     if (state.ok && done.current !== state) {
@@ -345,7 +347,14 @@ export function EntityForm({
     return key ? t(`validation.${key}`) : "";
   };
   return (
-    <form id={id} action={formAction} className="flex flex-col gap-12" noValidate>
+    <form
+      ref={formRef}
+      id={id}
+      action={formAction}
+      onSubmit={keepInputOnSubmit(formAction)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       {hiddenInputs(hidden)}
       <ActionFeedback state={state} refusals={refusals} />
       {fields.map((f) => {
@@ -556,7 +565,13 @@ export function ActionButton({
   const formId = `action-${label.replace(/[^a-z0-9]+/gi, "-")}-${Object.values(hidden).join("-")}`;
   const needsDialog = Boolean(reason || confirm || extraFields?.length);
   const form = (
-    <form id={formId} action={formAction} className="flex flex-col gap-12" noValidate>
+    <form
+      id={formId}
+      action={formAction}
+      onSubmit={keepInputOnSubmit(formAction)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       {hiddenInputs(hidden)}
       {confirm ? <p className="m-0">{confirm.body}</p> : null}
       {reason ? (
