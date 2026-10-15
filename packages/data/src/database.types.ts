@@ -29798,6 +29798,82 @@ export type Database = {
           },
         ];
       };
+      saved_view_defaults: {
+        Row: {
+          collection_key: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          saved_view_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          collection_key: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          saved_view_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          collection_key?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          saved_view_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "saved_view_defaults_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "saved_view_defaults_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "saved_view_defaults_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "saved_view_defaults_saved_view_id_fkey";
+            columns: ["saved_view_id"];
+            isOneToOne: false;
+            referencedRelation: "saved_views";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "saved_view_defaults_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       saved_view_filters: {
         Row: {
           created_at: string;
@@ -29863,6 +29939,79 @@ export type Database = {
           },
           {
             foreignKeyName: "saved_view_filters_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      saved_view_shares: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          saved_view_id: string;
+          team_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          saved_view_id: string;
+          team_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          saved_view_id?: string;
+          team_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "saved_view_shares_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "saved_view_shares_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "saved_view_shares_saved_view_id_fkey";
+            columns: ["saved_view_id"];
+            isOneToOne: false;
+            referencedRelation: "saved_views";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "saved_view_shares_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "saved_view_shares_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -33443,6 +33592,328 @@ export type Database = {
           },
         ];
       };
+      support_ticket_diagnostics: {
+        Row: {
+          app_version: string | null;
+          consented_at: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          device: string | null;
+          id: string;
+          org_id: string;
+          recent_errors: string | null;
+          route: string | null;
+          screenshot_path: string | null;
+          support_ticket_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          app_version?: string | null;
+          consented_at: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          device?: string | null;
+          id?: string;
+          org_id: string;
+          recent_errors?: string | null;
+          route?: string | null;
+          screenshot_path?: string | null;
+          support_ticket_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          app_version?: string | null;
+          consented_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          device?: string | null;
+          id?: string;
+          org_id?: string;
+          recent_errors?: string | null;
+          route?: string | null;
+          screenshot_path?: string | null;
+          support_ticket_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_diagnostics_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_ticket_diagnostics_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_ticket_diagnostics_support_ticket_id_fkey";
+            columns: ["support_ticket_id"];
+            isOneToOne: false;
+            referencedRelation: "support_tickets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_ticket_diagnostics_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      support_ticket_messages: {
+        Row: {
+          author_membership_id: string | null;
+          body: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          support_ticket_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_membership_id?: string | null;
+          body: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          support_ticket_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          author_membership_id?: string | null;
+          body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          support_ticket_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_messages_author_membership_id_fkey";
+            columns: ["author_membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_ticket_messages_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_ticket_messages_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_ticket_messages_support_ticket_id_fkey";
+            columns: ["support_ticket_id"];
+            isOneToOne: false;
+            referencedRelation: "support_tickets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_ticket_messages_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      support_ticket_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["support_ticket_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          support_ticket_id: string;
+          to_state: Database["app"]["Enums"]["support_ticket_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["support_ticket_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          support_ticket_id: string;
+          to_state: Database["app"]["Enums"]["support_ticket_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["support_ticket_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          support_ticket_id?: string;
+          to_state?: Database["app"]["Enums"]["support_ticket_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_ticket_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_ticket_state_transitions_support_ticket_id_fkey";
+            columns: ["support_ticket_id"];
+            isOneToOne: false;
+            referencedRelation: "support_tickets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_ticket_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      support_tickets: {
+        Row: {
+          body: string;
+          category: Database["app"]["Enums"]["support_category"];
+          channel: Database["app"]["Enums"]["support_channel"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          first_responded_at: string | null;
+          first_response_due_at: string | null;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          queue: Database["app"]["Enums"]["support_queue"];
+          severity: Database["app"]["Enums"]["support_severity"];
+          subject: string;
+          ticket_number: string;
+          ticket_state: Database["app"]["Enums"]["support_ticket_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          category: Database["app"]["Enums"]["support_category"];
+          channel: Database["app"]["Enums"]["support_channel"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          first_responded_at?: string | null;
+          first_response_due_at?: string | null;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          queue: Database["app"]["Enums"]["support_queue"];
+          severity?: Database["app"]["Enums"]["support_severity"];
+          subject: string;
+          ticket_number: string;
+          ticket_state?: Database["app"]["Enums"]["support_ticket_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          body?: string;
+          category?: Database["app"]["Enums"]["support_category"];
+          channel?: Database["app"]["Enums"]["support_channel"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          first_responded_at?: string | null;
+          first_response_due_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          queue?: Database["app"]["Enums"]["support_queue"];
+          severity?: Database["app"]["Enums"]["support_severity"];
+          subject?: string;
+          ticket_number?: string;
+          ticket_state?: Database["app"]["Enums"]["support_ticket_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_tickets_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_tickets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_tickets_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       suppression_list: {
         Row: {
           address: string;
@@ -35074,6 +35545,144 @@ export type Database = {
           },
           {
             foreignKeyName: "timesheets_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tip_dismissals: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          tip_key: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          tip_key: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          tip_key?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tip_dismissals_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tip_dismissals_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tip_dismissals_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tip_dismissals_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tour_progress: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          step: number;
+          tour_key: string;
+          tour_state: Database["app"]["Enums"]["tour_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          step?: number;
+          tour_key: string;
+          tour_state?: Database["app"]["Enums"]["tour_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          step?: number;
+          tour_key?: string;
+          tour_state?: Database["app"]["Enums"]["tour_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tour_progress_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tour_progress_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tour_progress_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tour_progress_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -40591,6 +41200,18 @@ export type Database = {
         Args: { p_capabilities: string[]; p_project_id: string };
         Returns: string[];
       };
+      open_support_ticket: {
+        Args: {
+          p_body: string;
+          p_category: Database["app"]["Enums"]["support_category"];
+          p_diagnostics?: Json;
+          p_org_id: string;
+          p_queue: Database["app"]["Enums"]["support_queue"];
+          p_severity?: Database["app"]["Enums"]["support_severity"];
+          p_subject: string;
+        };
+        Returns: string;
+      };
       operations_project_capabilities: {
         Args: { p_org_id: string };
         Returns: {
@@ -40634,6 +41255,10 @@ export type Database = {
       };
       post_journal_entry: {
         Args: { p_journal_entry_id: string; p_reason: string };
+        Returns: string;
+      };
+      post_support_message: {
+        Args: { p_body: string; p_support_ticket_id: string };
         Returns: string;
       };
       preview_invite: {
@@ -41081,6 +41706,7 @@ export type Database = {
         };
         Returns: string;
       };
+      set_saved_view_default: { Args: { p_saved_view_id: string }; Returns: string };
       set_setting: {
         Args: {
           p_locked?: boolean;
@@ -41451,6 +42077,15 @@ export type Database = {
           p_next: Database["app"]["Enums"]["review_state"];
           p_reason: string;
           p_submittal_id: string;
+        };
+        Returns: string;
+      };
+      transition_support_ticket: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["support_ticket_state"];
+          p_next: Database["app"]["Enums"]["support_ticket_state"];
+          p_reason: string;
+          p_support_ticket_id: string;
         };
         Returns: string;
       };
@@ -41836,18 +42471,41 @@ export type Database = {
       submittal_kind:
         "Shop Drawing" | "Product Data" | "Sample" | "Method Statement" | "Certificate" | "Other";
       subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
+      support_category:
+        "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
+      support_channel: "In App" | "Email" | "Chat" | "Priority Queue" | "Dedicated Channel";
+      support_queue: "Organization" | "Platform";
+      support_severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
+      support_ticket_state: "Open" | "Waiting" | "Resolved" | "Closed";
       suppression_reason: "Hard Bounce" | "Complaint" | "Unsubscribe" | "STOP" | "Manual";
       swap_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
       tax_form_kind: "W-9" | "W-8BEN" | "W-8BEN-E";
       time_entry_source: "Web" | "Mobile" | "Kiosk";
       time_off_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
       timesheet_state: "Proposed" | "Submitted" | "Approved" | "Rejected";
+      tour_state: "Offered" | "Started" | "Completed" | "Dismissed";
       travel_mode: "Flight" | "Ground";
       undo_outcome: "Reverted" | "Kept";
       vendor_state: "Prospect" | "Onboarded" | "Active" | "Blocked" | "Canceled";
       verification_method: "Automatic" | "Reviewer";
       verification_outcome: "Passed" | "Failed";
-      view_type: "List" | "Board" | "Table" | "Calendar" | "Timeline";
+      view_type:
+        | "List"
+        | "Board"
+        | "Table"
+        | "Calendar"
+        | "Timeline"
+        | "Spreadsheet"
+        | "Gallery"
+        | "Resource Schedule"
+        | "Map"
+        | "Site Plan"
+        | "Tree"
+        | "Matrix"
+        | "Org Chart"
+        | "Chart"
+        | "Feed"
+        | "Inbox";
       work_order_state: "Draft" | "Open" | "Awarded" | "In Progress" | "Complete" | "Canceled";
       xyz_basis: "Category" | "Declared";
     };
@@ -48047,18 +48705,41 @@ export const Constants = {
         "Other",
       ],
       subscription_state: ["trialing", "active", "past_due", "read_only", "canceled"],
+      support_category: ["Question", "Problem", "Access", "Billing", "Account", "Feature Request"],
+      support_channel: ["In App", "Email", "Chat", "Priority Queue", "Dedicated Channel"],
+      support_queue: ["Organization", "Platform"],
+      support_severity: ["Severity 1", "Severity 2", "Severity 3", "Severity 4"],
+      support_ticket_state: ["Open", "Waiting", "Resolved", "Closed"],
       suppression_reason: ["Hard Bounce", "Complaint", "Unsubscribe", "STOP", "Manual"],
       swap_state: ["Proposed", "Approved", "Rejected", "Canceled"],
       tax_form_kind: ["W-9", "W-8BEN", "W-8BEN-E"],
       time_entry_source: ["Web", "Mobile", "Kiosk"],
       time_off_state: ["Proposed", "Approved", "Rejected", "Canceled"],
       timesheet_state: ["Proposed", "Submitted", "Approved", "Rejected"],
+      tour_state: ["Offered", "Started", "Completed", "Dismissed"],
       travel_mode: ["Flight", "Ground"],
       undo_outcome: ["Reverted", "Kept"],
       vendor_state: ["Prospect", "Onboarded", "Active", "Blocked", "Canceled"],
       verification_method: ["Automatic", "Reviewer"],
       verification_outcome: ["Passed", "Failed"],
-      view_type: ["List", "Board", "Table", "Calendar", "Timeline"],
+      view_type: [
+        "List",
+        "Board",
+        "Table",
+        "Calendar",
+        "Timeline",
+        "Spreadsheet",
+        "Gallery",
+        "Resource Schedule",
+        "Map",
+        "Site Plan",
+        "Tree",
+        "Matrix",
+        "Org Chart",
+        "Chart",
+        "Feed",
+        "Inbox",
+      ],
       work_order_state: ["Draft", "Open", "Awarded", "In Progress", "Complete", "Canceled"],
       xyz_basis: ["Category", "Declared"],
     },

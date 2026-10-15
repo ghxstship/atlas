@@ -103,13 +103,14 @@ Dependencies the Wave 1 agents needed that the original table did not list, each
 
 ### CI actions (pinned by commit SHA, Section 9)
 
-| Action               | Tag     | SHA                                                                                       |
-| -------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| `actions/checkout`   | v7.0.1  | `3d3c42e5aac5ba805825da76410c181273ba90b1`                                                |
-| `actions/setup-node` | v7.1.0  | `949feb2413d6458794dcd2491c4babbbce0c15c1`                                                |
-| `pnpm/action-setup`  | v6.1.0  | `ea17c68df8912ef543352723c149a84f56e3d413`                                                |
-| `supabase/setup-cli` | v3.0.1  | `45a513f8c64c0bc8e0e3dfe572b5c95be85f6359`                                                |
-| gitleaks container   | v8.30.1 | Run as a container; the gitleaks Action needs a paid license on organization repositories |
+| Action                    | Tag     | SHA                                                                                       |
+| ------------------------- | ------- | ----------------------------------------------------------------------------------------- |
+| `actions/checkout`        | v7.0.1  | `3d3c42e5aac5ba805825da76410c181273ba90b1`                                                |
+| `actions/setup-node`      | v7.1.0  | `949feb2413d6458794dcd2491c4babbbce0c15c1`                                                |
+| `actions/upload-artifact` | v7.0.1  | `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`                                                |
+| `pnpm/action-setup`       | v6.1.0  | `ea17c68df8912ef543352723c149a84f56e3d413`                                                |
+| `supabase/setup-cli`      | v3.0.1  | `45a513f8c64c0bc8e0e3dfe572b5c95be85f6359`                                                |
+| gitleaks container        | v8.30.1 | Run as a container; the gitleaks Action needs a paid license on organization repositories |
 
 ## Deviations from "latest stable"
 

@@ -4,6 +4,7 @@
 import enUS_activity from "../messages/en-US/activity.json" with { type: "json" };
 import enUS_advancing from "../messages/en-US/advancing.json" with { type: "json" };
 import enUS_assets from "../messages/en-US/assets.json" with { type: "json" };
+import enUS_canonBrowser from "../messages/en-US/canonBrowser.json" with { type: "json" };
 import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
@@ -13,12 +14,14 @@ import enUS_gateway from "../messages/en-US/gateway.json" with { type: "json" };
 import enUS_home from "../messages/en-US/home.json" with { type: "json" };
 import enUS_hospitality from "../messages/en-US/hospitality.json" with { type: "json" };
 import enUS_incidents from "../messages/en-US/incidents.json" with { type: "json" };
+import enUS_knowledge from "../messages/en-US/knowledge.json" with { type: "json" };
 import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
 import enUS_people from "../messages/en-US/people.json" with { type: "json" };
 import enUS_permits from "../messages/en-US/permits.json" with { type: "json" };
 import enUS_places from "../messages/en-US/places.json" with { type: "json" };
+import enUS_procurement from "../messages/en-US/procurement.json" with { type: "json" };
 import enUS_profiles from "../messages/en-US/profiles.json" with { type: "json" };
 import enUS_projects from "../messages/en-US/projects.json" with { type: "json" };
 import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
@@ -27,10 +30,12 @@ import enUS_settings from "../messages/en-US/settings.json" with { type: "json" 
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
 import enUS_show from "../messages/en-US/show.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
+import enUS_vendors from "../messages/en-US/vendors.json" with { type: "json" };
 import enUS_work from "../messages/en-US/work.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json" };
 import esUS_assets from "../messages/es-US/assets.json" with { type: "json" };
+import esUS_canonBrowser from "../messages/es-US/canonBrowser.json" with { type: "json" };
 import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
@@ -40,12 +45,14 @@ import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
 import esUS_home from "../messages/es-US/home.json" with { type: "json" };
 import esUS_hospitality from "../messages/es-US/hospitality.json" with { type: "json" };
 import esUS_incidents from "../messages/es-US/incidents.json" with { type: "json" };
+import esUS_knowledge from "../messages/es-US/knowledge.json" with { type: "json" };
 import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
 import esUS_people from "../messages/es-US/people.json" with { type: "json" };
 import esUS_permits from "../messages/es-US/permits.json" with { type: "json" };
 import esUS_places from "../messages/es-US/places.json" with { type: "json" };
+import esUS_procurement from "../messages/es-US/procurement.json" with { type: "json" };
 import esUS_profiles from "../messages/es-US/profiles.json" with { type: "json" };
 import esUS_projects from "../messages/es-US/projects.json" with { type: "json" };
 import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
@@ -54,12 +61,14 @@ import esUS_settings from "../messages/es-US/settings.json" with { type: "json" 
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
 import esUS_show from "../messages/es-US/show.json" with { type: "json" };
 import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
+import esUS_vendors from "../messages/es-US/vendors.json" with { type: "json" };
 import esUS_work from "../messages/es-US/work.json" with { type: "json" };
 
 export const enUS = {
   activity: enUS_activity,
   advancing: enUS_advancing,
   assets: enUS_assets,
+  canonBrowser: enUS_canonBrowser,
   compass: enUS_compass,
   credentials: enUS_credentials,
   crew: enUS_crew,
@@ -69,12 +78,14 @@ export const enUS = {
   home: enUS_home,
   hospitality: enUS_hospitality,
   incidents: enUS_incidents,
+  knowledge: enUS_knowledge,
   logistics: enUS_logistics,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
   people: enUS_people,
   permits: enUS_permits,
   places: enUS_places,
+  procurement: enUS_procurement,
   profiles: enUS_profiles,
   projects: enUS_projects,
   reports: enUS_reports,
@@ -83,6 +94,7 @@ export const enUS = {
   shell: enUS_shell,
   show: enUS_show,
   ui: enUS_ui,
+  vendors: enUS_vendors,
   work: enUS_work,
 };
 
@@ -90,6 +102,7 @@ export const esUS = {
   activity: esUS_activity,
   advancing: esUS_advancing,
   assets: esUS_assets,
+  canonBrowser: esUS_canonBrowser,
   compass: esUS_compass,
   credentials: esUS_credentials,
   crew: esUS_crew,
@@ -99,12 +112,14 @@ export const esUS = {
   home: esUS_home,
   hospitality: esUS_hospitality,
   incidents: esUS_incidents,
+  knowledge: esUS_knowledge,
   logistics: esUS_logistics,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
   people: esUS_people,
   permits: esUS_permits,
   places: esUS_places,
+  procurement: esUS_procurement,
   profiles: esUS_profiles,
   projects: esUS_projects,
   reports: esUS_reports,
@@ -113,5 +128,6 @@ export const esUS = {
   shell: esUS_shell,
   show: esUS_show,
   ui: esUS_ui,
+  vendors: esUS_vendors,
   work: esUS_work,
 };
