@@ -29,7 +29,7 @@ import {
 import { sitemap } from "@/ia/sitemap.generated";
 import type { AtlasLocale } from "@/i18n/negotiate";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
-import { setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
+import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
 import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
 import { broadcast, SessionWatcher } from "./session-watcher";
@@ -260,9 +260,11 @@ export function ShellFrame(props: ShellFrameProps) {
             current={org.name}
             heading={t("shell.chrome.organizations")}
             orgs={props.orgs.map((o) => ({ name: o.name, role: o.role }))}
-            onSelect={(name) => {
+            onSelect={async (name) => {
               const target = props.orgs.find((o) => o.name === name);
-              if (target) go(`/${target.slug}/home`);
+              if (!target) return;
+              const slug = await selectOrganization(target.slug);
+              go(slug ? `/${slug}/home` : "/");
             }}
           />
         }

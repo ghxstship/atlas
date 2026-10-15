@@ -431,5 +431,10 @@
   "favorites": {
     "pin": "Pin page",
     "unpin": "Unpin page"
+  },
+  "descriptions": {
+    "teams": "Teams group members who share work. Each team lists its members.",
+    "workspaces": "Workspaces divide the org by office or venue group. Override settings for each one here.",
+    "accessReviews": "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled."
   }
 }

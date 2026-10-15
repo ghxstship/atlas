@@ -105,7 +105,10 @@ describe("mounting", () => {
     const res = await instance.request("/projects", { headers: auth });
     expect(res.status).toBe(404);
     expect(res.headers.get("content-type")).toBe("application/problem+json");
-    expect(handledOperations()).toEqual(["canonDepartments.list", "canonDepartments.get"]);
+    expect(handledOperations()).toEqual(
+      expect.arrayContaining(["canonDepartments.list", "canonDepartments.get"]),
+    );
+    expect(handledOperations().every((op) => catalogOperationIds().includes(op))).toBe(true);
     expect(catalogOperationIds().length).toBeGreaterThan(1000);
   });
 

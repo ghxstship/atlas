@@ -7,6 +7,7 @@ import {
   isOrgSlug,
   listMyOrganizations,
 } from "@xos/data";
+import { acceptInviteLink } from "@xos/data/profiles";
 import { recordLegalAcceptances } from "@xos/data/settings";
 import type { Route } from "next";
 import { headers } from "next/headers";
@@ -186,7 +187,15 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
 export async function acceptInvitation(_: FormState, form: FormData): Promise<FormState> {
   const token = text(form, "token");
   const db = await createServerSupabase();
-  const accepted = await acceptInvite(db, token);
+  // Invitation links (xlnk_, migration 0861) are not tied to an email address; their refusals map to
+  // the invitation messages.
+  const accepted = token.startsWith("xlnk_")
+    ? await acceptInviteLink(db, token).then((r) =>
+        r.ok || r.error.kind !== "refusal" || r.error.rule === "invite_rate_limited"
+          ? r
+          : { ok: false as const, error: { ...r.error, rule: "invite_invalid" } },
+      )
+    : await acceptInvite(db, token);
   if (!accepted.ok) {
     const error = accepted.error;
     return { error: error.kind === "refusal" ? `invite.${error.rule}` : "unexpected" };
