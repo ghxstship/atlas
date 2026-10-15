@@ -6006,6 +6006,29 @@ var incidents_default$1 = {
   withdraw: "Withdraw",
   zone: "Zone",
 };
+var integrations_default$1 = {
+  chat: {
+    event: {
+      withProject: "{event} in {project}.",
+      withoutProject: "{event}.",
+      recordCreated: "New {kind} in {project}: {title}",
+      recordStateChanged: "A record in {project} moved from {from} to {to}.",
+      projectCreated: "New project: {name}",
+      invoiceIssued: "An invoice was issued in {project}.",
+      incidentReported: "An incident was reported in {project}. Open Atlas for details.",
+      integrationFailed: "A sync of {connection} failed: {error}",
+    },
+    slash: {
+      help: "Commands: /xos record KEY shows a record, for example /xos record NWL-12. /xos help shows this list.",
+      unknown: "That command is not one XOS knows. Type /xos help for the list.",
+      unlinked:
+        "Your chat account is not linked to XOS yet. Ask an Admin to link it in Atlas Settings, Integrations.",
+      notFound: "No record {key} exists, or you cannot see it. Check the key and try again.",
+      keyMissing: "Add a record key, for example /xos record NWL-12.",
+      record: "{key} {title}: {kind}, {state}.",
+    },
+  },
+};
 var knowledge_default$1 = {
   sops: {
     title: "Standard operating procedures",
@@ -17241,6 +17264,30 @@ var incidents_default = {
   withdraw: "Retirar",
   zone: "Zona",
 };
+var integrations_default = {
+  chat: {
+    event: {
+      withProject: "{event} en {project}.",
+      withoutProject: "{event}.",
+      recordCreated: "Nuevo {kind} en {project}: {title}",
+      recordStateChanged: "Un registro de {project} pasó de {from} a {to}.",
+      projectCreated: "Nuevo proyecto: {name}",
+      invoiceIssued: "Se emitió una factura en {project}.",
+      incidentReported: "Se reportó un incidente en {project}. Abre Atlas para ver los detalles.",
+      integrationFailed: "Falló una sincronización de {connection}: {error}",
+    },
+    slash: {
+      help: "Comandos: /xos record CLAVE muestra un registro, por ejemplo /xos record NWL-12. /xos help muestra esta lista.",
+      unknown: "XOS no reconoce ese comando. Escribe /xos help para ver la lista.",
+      unlinked:
+        "Tu cuenta de chat aún no está vinculada a XOS. Pide a un administrador que la vincule en Configuración de Atlas, Integraciones.",
+      notFound:
+        "No existe el registro {key} o no puedes verlo. Revisa la clave e inténtalo de nuevo.",
+      keyMissing: "Agrega una clave de registro, por ejemplo /xos record NWL-12.",
+      record: "{key} {title}: {kind}, {state}.",
+    },
+  },
+};
 var knowledge_default = {
   sops: {
     title: "Procedimientos operativos estándar",
@@ -23562,6 +23609,7 @@ var enUS = {
   home: home_default$1,
   hospitality: hospitality_default$1,
   incidents: incidents_default$1,
+  integrations: integrations_default$1,
   knowledge: knowledge_default$1,
   logistics: logistics_default$1,
   nav: nav_default$1,
@@ -23595,6 +23643,7 @@ var esUS = {
   home: home_default,
   hospitality: hospitality_default,
   incidents: incidents_default,
+  integrations: integrations_default,
   knowledge: knowledge_default,
   logistics: logistics_default,
   nav: nav_default,
