@@ -6457,6 +6457,162 @@ export type Database = {
           },
         ];
       };
+      canon_extension_proposals: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          deleted_at: string | null;
+          extension_level: Database["app"]["Enums"]["canon_extension_level"];
+          id: string;
+          label: string;
+          org_id: string;
+          parent_code: string;
+          proposal_state: Database["app"]["Enums"]["canon_extension_state"];
+          proposed_code: string;
+          rationale: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          extension_level: Database["app"]["Enums"]["canon_extension_level"];
+          id?: string;
+          label: string;
+          org_id: string;
+          parent_code: string;
+          proposal_state?: Database["app"]["Enums"]["canon_extension_state"];
+          proposed_code: string;
+          rationale: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          extension_level?: Database["app"]["Enums"]["canon_extension_level"];
+          id?: string;
+          label?: string;
+          org_id?: string;
+          parent_code?: string;
+          proposal_state?: Database["app"]["Enums"]["canon_extension_state"];
+          proposed_code?: string;
+          rationale?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "canon_extension_proposals_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "canon_extension_proposals_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "canon_extension_proposals_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "canon_extension_proposals_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      canon_extension_state_transitions: {
+        Row: {
+          canon_extension_proposal_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["canon_extension_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["canon_extension_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          canon_extension_proposal_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["canon_extension_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          to_state: Database["app"]["Enums"]["canon_extension_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          canon_extension_proposal_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["canon_extension_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          to_state?: Database["app"]["Enums"]["canon_extension_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "canon_extension_state_transiti_canon_extension_proposal_id_fkey";
+            columns: ["canon_extension_proposal_id"];
+            isOneToOne: false;
+            referencedRelation: "canon_extension_proposals";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "canon_extension_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "canon_extension_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "canon_extension_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       capabilities: {
         Row: {
           capability_class: Database["app"]["Enums"]["capability_class"];
@@ -12099,6 +12255,95 @@ export type Database = {
           },
           {
             foreignKeyName: "engagements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      entitlement_deliveries: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          delivered_on: string;
+          id: string;
+          note: string | null;
+          org_id: string;
+          quantity_delivered: number | null;
+          recorded_by: string | null;
+          sponsor_entitlement_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivered_on: string;
+          id?: string;
+          note?: string | null;
+          org_id: string;
+          quantity_delivered?: number | null;
+          recorded_by?: string | null;
+          sponsor_entitlement_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivered_on?: string;
+          id?: string;
+          note?: string | null;
+          org_id?: string;
+          quantity_delivered?: number | null;
+          recorded_by?: string | null;
+          sponsor_entitlement_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "entitlement_deliveries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "entitlement_deliveries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "entitlement_deliveries_recorded_by_fkey";
+            columns: ["recorded_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "entitlement_deliveries_sponsor_entitlement_id_fkey";
+            columns: ["sponsor_entitlement_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_entitlements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "entitlement_deliveries_sponsor_entitlement_id_fkey";
+            columns: ["sponsor_entitlement_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_proof_of_performance";
+            referencedColumns: ["sponsor_entitlement_id"];
+          },
+          {
+            foreignKeyName: "entitlement_deliveries_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -32390,6 +32635,179 @@ export type Database = {
           },
         ];
       };
+      sponsor_asset_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["review_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          sponsor_asset_id: string;
+          to_state: Database["app"]["Enums"]["review_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["review_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          sponsor_asset_id: string;
+          to_state: Database["app"]["Enums"]["review_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["review_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          sponsor_asset_id?: string;
+          to_state?: Database["app"]["Enums"]["review_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_asset_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_asset_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_asset_state_transitions_sponsor_asset_id_fkey";
+            columns: ["sponsor_asset_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_assets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_asset_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sponsor_assets: {
+        Row: {
+          asset_kind: Database["app"]["Enums"]["sponsor_asset_kind"];
+          asset_state: Database["app"]["Enums"]["review_state"];
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          deleted_at: string | null;
+          due_on: string | null;
+          id: string;
+          org_id: string;
+          revision: number;
+          sponsor_entitlement_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          usage_note: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          asset_kind: Database["app"]["Enums"]["sponsor_asset_kind"];
+          asset_state?: Database["app"]["Enums"]["review_state"];
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          due_on?: string | null;
+          id?: string;
+          org_id: string;
+          revision?: number;
+          sponsor_entitlement_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          usage_note?: string | null;
+        };
+        Update: {
+          asset_kind?: Database["app"]["Enums"]["sponsor_asset_kind"];
+          asset_state?: Database["app"]["Enums"]["review_state"];
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          due_on?: string | null;
+          id?: string;
+          org_id?: string;
+          revision?: number;
+          sponsor_entitlement_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          usage_note?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_assets_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_assets_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_assets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_assets_sponsor_entitlement_id_fkey";
+            columns: ["sponsor_entitlement_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_entitlements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_assets_sponsor_entitlement_id_fkey";
+            columns: ["sponsor_entitlement_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_proof_of_performance";
+            referencedColumns: ["sponsor_entitlement_id"];
+          },
+          {
+            foreignKeyName: "sponsor_assets_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sponsor_entitlements: {
         Row: {
           counterparty_id: string;
@@ -32650,6 +33068,223 @@ export type Database = {
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      submittal_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["review_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          submittal_id: string;
+          to_state: Database["app"]["Enums"]["review_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["review_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          submittal_id: string;
+          to_state: Database["app"]["Enums"]["review_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["review_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          submittal_id?: string;
+          to_state?: Database["app"]["Enums"]["review_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "submittal_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittal_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittal_state_transitions_submittal_id_fkey";
+            columns: ["submittal_id"];
+            isOneToOne: false;
+            referencedRelation: "submittals";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittal_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      submittals: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          deleted_at: string | null;
+          due_on: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          purchase_order_id: string | null;
+          revision: number;
+          spec_reference: string | null;
+          submittal_kind: Database["app"]["Enums"]["submittal_kind"];
+          submittal_number: number;
+          submittal_state: Database["app"]["Enums"]["review_state"];
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          due_on?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          purchase_order_id?: string | null;
+          revision?: number;
+          spec_reference?: string | null;
+          submittal_kind: Database["app"]["Enums"]["submittal_kind"];
+          submittal_number?: number;
+          submittal_state?: Database["app"]["Enums"]["review_state"];
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          due_on?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          purchase_order_id?: string | null;
+          revision?: number;
+          spec_reference?: string | null;
+          submittal_kind?: Database["app"]["Enums"]["submittal_kind"];
+          submittal_number?: number;
+          submittal_state?: Database["app"]["Enums"]["review_state"];
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "submittals_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittals_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittals_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "submittals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "submittals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "submittals_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittals_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_order_totals";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "submittals_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittals_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittals_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
             referencedColumns: ["id"];
           },
         ];
@@ -37731,24 +38366,6 @@ export type Database = {
           variance_minor: number | null;
         };
         ComputedFields: never;
-        Insert: {
-          goods_receipt_id?: string | null;
-          invoice_id?: string | null;
-          invoice_match_id?: string | null;
-          is_matched?: never;
-          is_resolved?: never;
-          purchase_order_id?: string | null;
-          variance_minor?: never;
-        };
-        Update: {
-          goods_receipt_id?: string | null;
-          invoice_id?: string | null;
-          invoice_match_id?: string | null;
-          is_matched?: never;
-          is_resolved?: never;
-          purchase_order_id?: string | null;
-          variance_minor?: never;
-        };
         Relationships: [
           {
             foreignKeyName: "invoice_matches_goods_receipt_id_fkey";
@@ -39110,6 +39727,59 @@ export type Database = {
           },
         ];
       };
+      sponsor_proof_of_performance: {
+        Row: {
+          counterparty_id: string | null;
+          delivery_count: number | null;
+          description: string | null;
+          due_on: string | null;
+          fulfilled_at: string | null;
+          is_met: boolean | null;
+          last_delivered_on: string | null;
+          project_id: string | null;
+          quantity_delivered: number | null;
+          quantity_owed: number | null;
+          sponsor_entitlement_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_entitlements_counterparty_id_fkey";
+            columns: ["counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sync_rpcs: {
         Row: {
           description: string | null;
@@ -39713,6 +40383,15 @@ export type Database = {
           signing_secret: string;
           webhook_endpoint_id: string;
         }[];
+      };
+      decide_canon_extension: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["canon_extension_state"];
+          p_next: Database["app"]["Enums"]["canon_extension_state"];
+          p_proposal_id: string;
+          p_reason: string;
+        };
+        Returns: string;
       };
       decide_client_approval: {
         Args: {
@@ -40757,6 +41436,24 @@ export type Database = {
         };
         Returns: string;
       };
+      transition_sponsor_asset: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["review_state"];
+          p_next: Database["app"]["Enums"]["review_state"];
+          p_reason: string;
+          p_sponsor_asset_id: string;
+        };
+        Returns: string;
+      };
+      transition_submittal: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["review_state"];
+          p_next: Database["app"]["Enums"]["review_state"];
+          p_reason: string;
+          p_submittal_id: string;
+        };
+        Returns: string;
+      };
       transition_vendor: {
         Args: {
           p_expected: Database["app"]["Enums"]["vendor_state"];
@@ -40873,6 +41570,8 @@ export type Database = {
       billing_interval: "Monthly" | "Annual";
       brand_radius_scale: "Compact" | "Default" | "Rounded";
       budget_line_type: "Cost" | "Labor" | "Fee" | "Contingency";
+      canon_extension_level: "Discipline" | "Category";
+      canon_extension_state: "Proposed" | "Approved" | "Rejected" | "Withdrawn";
       capability_class: "read" | "write" | "approve" | "manage" | "export";
       capability_direction: "Require" | "Provide";
       capability_reach: "own" | "assigned" | "organization";
@@ -41093,6 +41792,7 @@ export type Database = {
       representation_scope: "Offers" | "Advance" | "Settlement" | "Documents";
       requisition_state: "Proposed" | "Approved" | "Rejected" | "Filled" | "Canceled";
       retention_basis: "Soft Deleted" | "Age";
+      review_state: "Proposed" | "Submitted" | "Approved" | "Returned" | "Canceled";
       rfq_state: "Proposed" | "Issued" | "Closed" | "Awarded" | "Canceled";
       role_assignment_state: "Proposed" | "Active" | "Complete" | "Canceled";
       run_status: "Queued" | "Running" | "Succeeded" | "Failed";
@@ -41131,7 +41831,10 @@ export type Database = {
         | "Contract"
         | "Payroll Run"
         | "Requisition";
+      sponsor_asset_kind: "Logo" | "Artwork" | "Copy" | "Video" | "Other";
       staffing_basis: "Ratio" | "Fixed" | "Declared";
+      submittal_kind:
+        "Shop Drawing" | "Product Data" | "Sample" | "Method Statement" | "Certificate" | "Other";
       subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
       suppression_reason: "Hard Bounce" | "Complaint" | "Unsubscribe" | "STOP" | "Manual";
       swap_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
@@ -47043,6 +47746,8 @@ export const Constants = {
       billing_interval: ["Monthly", "Annual"],
       brand_radius_scale: ["Compact", "Default", "Rounded"],
       budget_line_type: ["Cost", "Labor", "Fee", "Contingency"],
+      canon_extension_level: ["Discipline", "Category"],
+      canon_extension_state: ["Proposed", "Approved", "Rejected", "Withdrawn"],
       capability_class: ["read", "write", "approve", "manage", "export"],
       capability_direction: ["Require", "Provide"],
       capability_reach: ["own", "assigned", "organization"],
@@ -47291,6 +47996,7 @@ export const Constants = {
       representation_scope: ["Offers", "Advance", "Settlement", "Documents"],
       requisition_state: ["Proposed", "Approved", "Rejected", "Filled", "Canceled"],
       retention_basis: ["Soft Deleted", "Age"],
+      review_state: ["Proposed", "Submitted", "Approved", "Returned", "Canceled"],
       rfq_state: ["Proposed", "Issued", "Closed", "Awarded", "Canceled"],
       role_assignment_state: ["Proposed", "Active", "Complete", "Canceled"],
       run_status: ["Queued", "Running", "Succeeded", "Failed"],
@@ -47330,7 +48036,16 @@ export const Constants = {
         "Payroll Run",
         "Requisition",
       ],
+      sponsor_asset_kind: ["Logo", "Artwork", "Copy", "Video", "Other"],
       staffing_basis: ["Ratio", "Fixed", "Declared"],
+      submittal_kind: [
+        "Shop Drawing",
+        "Product Data",
+        "Sample",
+        "Method Statement",
+        "Certificate",
+        "Other",
+      ],
       subscription_state: ["trialing", "active", "past_due", "read_only", "canceled"],
       suppression_reason: ["Hard Bounce", "Complaint", "Unsubscribe", "STOP", "Manual"],
       swap_state: ["Proposed", "Approved", "Rejected", "Canceled"],
