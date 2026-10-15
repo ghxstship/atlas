@@ -1,3 +1,4 @@
+import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
 /**
@@ -89,4 +90,74 @@ export function nextStates<S extends string>(
   from: S,
 ): S[] {
   return rules.filter((r) => r.from === from).map((r) => r.to);
+}
+
+/** The lifecycle ledgers A16 pages show as state history, with their subject column. */
+export const STATE_LEDGERS = {
+  vendor: ["vendor_state_transitions", "vendor_id"],
+  rfq: ["rfq_state_transitions", "rfq_id"],
+  purchase_order: ["purchase_order_state_transitions", "purchase_order_id"],
+  po_change_order: ["po_change_order_state_transitions", "po_change_order_id"],
+  submittal: ["submittal_state_transitions", "submittal_id"],
+  sponsor_asset: ["sponsor_asset_state_transitions", "sponsor_asset_id"],
+  canon_extension: ["canon_extension_state_transitions", "canon_extension_proposal_id"],
+} as const;
+
+export type StateLedger = keyof typeof STATE_LEDGERS;
+
+export interface StateChange {
+  readonly id: string;
+  /** Null for the creation entry. */
+  readonly from: string | null;
+  readonly to: string;
+  readonly reason: string;
+  readonly at: string;
+  readonly by: string | null;
+}
+
+/** Every state change of one row, oldest first, from its append-only lifecycle ledger. */
+export async function listStateHistory(
+  db: XosClient,
+  ledger: StateLedger,
+  subjectId: string,
+): Promise<Result<StateChange[]>> {
+  const [table, column] = STATE_LEDGERS[ledger];
+  const query = (
+    db as unknown as {
+      from(name: string): {
+        select(columns: string): {
+          eq(
+            column: string,
+            value: string,
+          ): {
+            order(column: string): PromiseLike<{
+              data:
+                | {
+                    id: string;
+                    from_state: string | null;
+                    to_state: string;
+                    reason: string;
+                    created_at: string;
+                    created_by: string | null;
+                  }[]
+                | null;
+              error: DatabaseErrorLike | null;
+            }>;
+          };
+        };
+      };
+    }
+  )
+    .from(table)
+    .select("id, from_state, to_state, reason, created_at, created_by")
+    .eq(column, subjectId)
+    .order("created_at");
+  return readRows(query, (row) => ({
+    id: row.id,
+    from: row.from_state,
+    to: row.to_state,
+    reason: row.reason,
+    at: row.created_at,
+    by: row.created_by,
+  }));
 }

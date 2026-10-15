@@ -4,6 +4,7 @@ import {
   Button,
   Dialog,
   Drawer,
+  EmptyState,
   ErrorState,
   InlineAlert,
   Input,
@@ -17,7 +18,7 @@ import {
 } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
-import { useTranslations } from "next-intl";
+import { useCopy } from "./use-copy";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import type { ActionState } from "@/lib/collection-kit/forms";
@@ -68,13 +69,13 @@ export function ActionFeedback({
   /** Namespace holding the module's refusal copy, for example `procurement.refusals`. */
   refusals: string;
 }) {
-  const kit = useTranslations("procurement.kit");
-  const r = useTranslations(refusals as "procurement.refusals");
+  const kit = useCopy("procurement.kit");
+  const r = useCopy(refusals);
   if (state.rule) {
-    const key = r.has(state.rule as never) ? state.rule : null;
+    const key = r.has(state.rule) ? state.rule : null;
     return (
       <InlineAlert tone="warning" title={kit("refusedTitle")}>
-        {key ? r(key as never) : kit(`refusalFamily.${familyOf(state.rule)}`)}
+        {key ? r(key) : kit(`refusalFamily.${familyOf(state.rule)}`)}
         <span className="block font-mono text-text-11 text-text-tertiary">{state.rule}</span>
       </InlineAlert>
     );
@@ -118,7 +119,7 @@ export function PeekDrawer({
   actions?: ReactNode;
   children?: ReactNode;
 }) {
-  const t = useTranslations("procurement.kit");
+  const t = useCopy("procurement.kit");
   const router = useRouter();
   return (
     <Drawer
@@ -161,7 +162,7 @@ export function RecordPage({
   children?: ReactNode;
   related?: ReactNode;
 }) {
-  const t = useTranslations("procurement.kit");
+  const t = useCopy("procurement.kit");
   return (
     <TemplateRecord
       propertiesLabel={t("properties")}
@@ -213,22 +214,23 @@ export function KitSection({
   );
 }
 
-/**
- * Comments and attachments arrive with A18's unified comment system and attachment store (keyed by
- * subject table and id). Until then the panel names the feature and says it is not yet available.
- */
-export function BlockedPanel({ feature }: { feature: "comments" | "attachments" }) {
-  const t = useTranslations("procurement.kit.blocked");
+/** An empty collection the viewer cannot add to: one sentence and a refresh. */
+export function EmptyRefresh({ icon, sentence }: { icon: string; sentence: string }) {
+  const t = useCopy("procurement.kit");
+  const router = useRouter();
   return (
-    <KitSection id={`blocked-${feature}`} title={t(`${feature}.title`)}>
-      <InlineAlert tone="info">{t(`${feature}.body`)}</InlineAlert>
-    </KitSection>
+    <EmptyState
+      icon={icon}
+      sentence={sentence}
+      actionLabel={t("refresh")}
+      onAction={() => router.refresh()}
+    />
   );
 }
 
 /** A failed read: says what failed and offers a retry. */
 export function ErrorPanel({ what }: { what: string }) {
-  const t = useTranslations("procurement.kit.loadError");
+  const t = useCopy("procurement.kit.loadError");
   const router = useRouter();
   return (
     <ErrorState
@@ -272,7 +274,7 @@ export type FieldSpec =
       defaultValue?: string;
       options: { value: string; label: string }[];
       /** Adds a blank first choice with this label. */
-      placeholder?: string;
+      blankLabel?: string;
     }
   | {
       kind: "checkboxes";
@@ -324,14 +326,17 @@ export function EntityForm({
   successHref?: string;
   onCancelHref?: string;
 }) {
-  const t = useTranslations("procurement.kit");
+  const t = useCopy("procurement.kit");
   const router = useRouter();
   const [state, formAction, pending] = useActionState(action, INITIAL);
   const done = useRef<ActionState | null>(null);
   useEffect(() => {
     if (state.ok && done.current !== state) {
       done.current = state;
-      if (successHref) router.push(successHref.replace("{id}", state.id ?? "") as Route);
+      if (successHref)
+        router.push(
+          successHref.replace("{id}", state.id ?? "").replace("%7Bid%7D", state.id ?? "") as Route,
+        );
       else router.refresh();
     }
   }, [state, successHref, router]);
@@ -370,7 +375,7 @@ export function EntityForm({
                 name={f.name}
                 label={f.label}
                 options={f.options}
-                {...(f.placeholder ? { placeholder: f.placeholder } : {})}
+                {...(f.blankLabel ? { placeholder: f.blankLabel } : {})}
                 {...(f.defaultValue !== undefined ? { value: f.defaultValue } : {})}
                 {...(f.help ? { help: f.help } : {})}
                 error={error}
@@ -412,7 +417,11 @@ export function EntityForm({
                 required={f.required}
                 readOnly={f.readOnly}
                 defaultValue={f.defaultValue ?? ""}
-                {...(f.help ? { help: f.help } : f.kind === "money" ? { help: t("moneyHelp") } : {})}
+                {...(f.help
+                  ? { help: f.help }
+                  : f.kind === "money"
+                    ? { help: t("moneyHelp") }
+                    : {})}
                 error={error}
               />
             );
@@ -443,7 +452,7 @@ function ChecksumField({
   spec: { name: string; label: string; help?: string; required?: boolean };
   error: string;
 }) {
-  const t = useTranslations("procurement.kit");
+  const t = useCopy("procurement.kit");
   const [checksum, setChecksum] = useState("");
   return (
     <div className="flex flex-col gap-4">
@@ -532,7 +541,7 @@ export function ActionButton({
   /** Extra fields shown in the dialog, for example a validity date. */
   extraFields?: FieldSpec[];
 }) {
-  const t = useTranslations("procurement.kit");
+  const t = useCopy("procurement.kit");
   const router = useRouter();
   const [state, formAction, pending] = useActionState(action, INITIAL);
   const [open, setOpen] = useState(false);
@@ -572,7 +581,9 @@ export function ActionButton({
             options={f.options}
             {...(f.defaultValue !== undefined ? { value: f.defaultValue } : {})}
           />
-        ) : f.kind === "textarea" || f.kind === "checkboxes" || f.kind === "file-checksum" ? null : (
+        ) : f.kind === "textarea" ||
+          f.kind === "checkboxes" ||
+          f.kind === "file-checksum" ? null : (
           <Input
             key={f.name}
             id={`${formId}-${f.name}`}
@@ -636,18 +647,20 @@ export function ActionButton({
 /** The lifecycle moves the database allows from the current state, each asking for a reason. */
 export function TransitionButtons({
   action,
+  org,
   id,
   expected,
   moves,
   refusals,
 }: {
   action: ServerAction;
+  org: string;
   id: string;
   expected: string;
   moves: { next: string; label: string; danger?: boolean }[];
   refusals: string;
 }) {
-  const t = useTranslations("procurement.kit");
+  const t = useCopy("procurement.kit");
   if (moves.length === 0) return null;
   return (
     <div className="flex flex-wrap items-center gap-8" role="group" aria-label={t("moves")}>
@@ -655,7 +668,7 @@ export function TransitionButtons({
         <ActionButton
           key={m.next}
           action={action}
-          hidden={{ id, expected, next: m.next }}
+          hidden={{ org, id, expected, next: m.next }}
           label={m.label}
           variant={m.danger ? "danger" : "secondary"}
           reason={t("reasonFor", { move: m.label })}

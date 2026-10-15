@@ -4,6 +4,7 @@ import {
   addVendorBankAccount,
   createInsuranceCertificate,
   createScorecard,
+  createSponsorAsset,
   createSponsorEntitlement,
   createVendor,
   createVendorClass,
@@ -12,23 +13,29 @@ import {
   deleteScorecard,
   deleteSponsorEntitlement,
   deleteVendorClass,
+  recordEntitlementDelivery,
   requestPrequalification,
   setEntitlementFulfilled,
   setVendorClasses,
+  transitionSponsorAsset,
   transitionVendor,
   updateInsuranceCertificate,
   updateScorecard,
   updateSponsorEntitlement,
   updateVendor,
   updateVendorClass,
+  SPONSOR_ASSET_KINDS,
   VENDOR_STATES,
   type InsuranceCertificateInput,
+  type ReviewState,
+  type SponsorAssetKind,
   type ScorecardInput,
   type VendorState,
 } from "@xos/data/vendors";
 import { actionContext, finish } from "@/lib/collection-kit/actions";
 import {
   all,
+  decimal,
   FieldErrors,
   integer,
   isoDate,
@@ -106,7 +113,13 @@ export async function transitionVendorAction(_: ActionState, form: FormData): Pr
   const next = text(form, "next") as VendorState | null;
   const reason = requiredText(form, "reason", 500);
   if (reason === null) return { fieldErrors: { reason: "required" } };
-  if (!id || !expected || !next || !VENDOR_STATES.includes(expected) || !VENDOR_STATES.includes(next)) {
+  if (
+    !id ||
+    !expected ||
+    !next ||
+    !VENDOR_STATES.includes(expected) ||
+    !VENDOR_STATES.includes(next)
+  ) {
     return { error: "invalid" };
   }
   return finish(await transitionVendor(ctx.viewer.db, { id, expected, next, reason }), ctx, MODULE);
@@ -145,7 +158,10 @@ function classInput(form: FormData, errors: FieldErrors) {
   };
 }
 
-export async function createVendorClassAction(_: ActionState, form: FormData): Promise<ActionState> {
+export async function createVendorClassAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await actionContext(form);
   const errors = new FieldErrors();
   const input = classInput(form, errors);
@@ -153,7 +169,10 @@ export async function createVendorClassAction(_: ActionState, form: FormData): P
   return finish(await createVendorClass(ctx.viewer.db, ctx.org.id, input), ctx, MODULE);
 }
 
-export async function updateVendorClassAction(_: ActionState, form: FormData): Promise<ActionState> {
+export async function updateVendorClassAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
   const errors = new FieldErrors();
@@ -163,7 +182,10 @@ export async function updateVendorClassAction(_: ActionState, form: FormData): P
   return finish(await updateVendorClass(ctx.viewer.db, id, input), ctx, MODULE);
 }
 
-export async function deleteVendorClassAction(_: ActionState, form: FormData): Promise<ActionState> {
+export async function deleteVendorClassAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
   if (id === null) return { error: "notFound" };
@@ -193,7 +215,8 @@ export async function decidePrequalificationAction(
   const decision = text(form, "decision");
   const validTo = isoDate(form, "validTo");
   if (validTo === undefined) return { fieldErrors: { validTo: "date" } };
-  if (id === null || (decision !== "Approved" && decision !== "Rejected")) return { error: "invalid" };
+  if (id === null || (decision !== "Approved" && decision !== "Rejected"))
+    return { error: "invalid" };
   return finish(
     await decidePrequalification(ctx.viewer.db, { id, decision, validTo: validTo ?? null }),
     ctx,
@@ -206,7 +229,10 @@ export async function decidePrequalificationAction(
 function certificateInput(form: FormData, errors: FieldErrors): InsuranceCertificateInput | null {
   const vendorId = errors.need("vendorId", uuid(form, "vendorId"));
   const insurer = errors.need("insurer", requiredText(form, "insurer", 200));
-  const policyIdentifier = errors.need("policyIdentifier", requiredText(form, "policyIdentifier", 100));
+  const policyIdentifier = errors.need(
+    "policyIdentifier",
+    requiredText(form, "policyIdentifier", 100),
+  );
   const coverageType = errors.need("coverageType", requiredText(form, "coverageType", 100));
   const validFrom = isoDate(form, "validFrom");
   const validTo = isoDate(form, "validTo");
@@ -216,8 +242,17 @@ function certificateInput(form: FormData, errors: FieldErrors): InsuranceCertifi
   const code = currency(form, "currencyCode", errors);
   const limit = moneyToMinor(text(form, "coverageLimit"));
   if (limit === undefined) errors.add("coverageLimit", "money");
-  if (limit !== null && limit !== undefined && code === null) errors.add("currencyCode", "currencyNeeded");
-  if (errors.any || !vendorId || !insurer || !policyIdentifier || !coverageType || !validFrom || !validTo) {
+  if (limit !== null && limit !== undefined && code === null)
+    errors.add("currencyCode", "currencyNeeded");
+  if (
+    errors.any ||
+    !vendorId ||
+    !insurer ||
+    !policyIdentifier ||
+    !coverageType ||
+    !validFrom ||
+    !validTo
+  ) {
     return null;
   }
   return {
@@ -233,7 +268,10 @@ function certificateInput(form: FormData, errors: FieldErrors): InsuranceCertifi
   };
 }
 
-export async function createCertificateAction(_: ActionState, form: FormData): Promise<ActionState> {
+export async function createCertificateAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await actionContext(form);
   const errors = new FieldErrors();
   const input = certificateInput(form, errors);
@@ -241,7 +279,10 @@ export async function createCertificateAction(_: ActionState, form: FormData): P
   return finish(await createInsuranceCertificate(ctx.viewer.db, input), ctx, MODULE);
 }
 
-export async function updateCertificateAction(_: ActionState, form: FormData): Promise<ActionState> {
+export async function updateCertificateAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
   const errors = new FieldErrors();
@@ -251,7 +292,10 @@ export async function updateCertificateAction(_: ActionState, form: FormData): P
   return finish(await updateInsuranceCertificate(ctx.viewer.db, id, input), ctx, MODULE);
 }
 
-export async function deleteCertificateAction(_: ActionState, form: FormData): Promise<ActionState> {
+export async function deleteCertificateAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
   if (id === null) return { error: "notFound" };
@@ -321,7 +365,10 @@ function entitlementInput(form: FormData, errors: FieldErrors) {
   return { counterpartyId, description, quantity: quantity ?? null, dueOn: dueOn ?? null };
 }
 
-export async function createEntitlementAction(_: ActionState, form: FormData): Promise<ActionState> {
+export async function createEntitlementAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await actionContext(form);
   const errors = new FieldErrors();
   const projectId = errors.need("projectId", uuid(form, "projectId"));
@@ -339,7 +386,10 @@ export async function createEntitlementAction(_: ActionState, form: FormData): P
   );
 }
 
-export async function updateEntitlementAction(_: ActionState, form: FormData): Promise<ActionState> {
+export async function updateEntitlementAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
   const errors = new FieldErrors();
@@ -357,7 +407,10 @@ export async function updateEntitlementAction(_: ActionState, form: FormData): P
   );
 }
 
-export async function fulfillEntitlementAction(_: ActionState, form: FormData): Promise<ActionState> {
+export async function fulfillEntitlementAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
   if (id === null) return { error: "notFound" };
@@ -368,9 +421,98 @@ export async function fulfillEntitlementAction(_: ActionState, form: FormData): 
   );
 }
 
-export async function deleteEntitlementAction(_: ActionState, form: FormData): Promise<ActionState> {
+export async function deleteEntitlementAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const ctx = await actionContext(form);
   const id = uuid(form, "id");
   if (id === null) return { error: "notFound" };
   return finish(await deleteSponsorEntitlement(ctx.viewer.db, id), ctx, MODULE);
+}
+
+// Sponsor assets and deliveries (0492) ------------------------------------------------------------------------
+
+const REVIEW_STATES: readonly ReviewState[] = [
+  "Proposed",
+  "Submitted",
+  "Approved",
+  "Returned",
+  "Canceled",
+];
+
+export async function createSponsorAssetAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const errors = new FieldErrors();
+  const entitlementId = uuid(form, "entitlementId");
+  const kind = text(form, "kind") as SponsorAssetKind | null;
+  if (!kind || !SPONSOR_ASSET_KINDS.includes(kind)) errors.add("kind", "required");
+  const title = errors.need("title", requiredText(form, "title", 200));
+  const dueOn = isoDate(form, "dueOn");
+  if (dueOn === undefined) errors.add("dueOn", "date");
+  if (entitlementId === null) return { error: "notFound" };
+  if (errors.any || !kind || !title) return errors.state;
+  return finish(
+    await createSponsorAsset(ctx.viewer.db, {
+      entitlementId,
+      kind,
+      title,
+      usageNote: text(form, "usageNote"),
+      dueOn: dueOn ?? null,
+    }),
+    ctx,
+    MODULE,
+  );
+}
+
+export async function transitionSponsorAssetAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  const expected = text(form, "expected") as ReviewState | null;
+  const next = text(form, "next") as ReviewState | null;
+  const reason = requiredText(form, "reason", 500);
+  if (reason === null) return { fieldErrors: { reason: "required" } };
+  if (
+    !id ||
+    !expected ||
+    !next ||
+    !REVIEW_STATES.includes(expected) ||
+    !REVIEW_STATES.includes(next)
+  ) {
+    return { error: "invalid" };
+  }
+  return finish(
+    await transitionSponsorAsset(ctx.viewer.db, { id, expected, next, reason }),
+    ctx,
+    MODULE,
+  );
+}
+
+export async function recordDeliveryAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const errors = new FieldErrors();
+  const entitlementId = uuid(form, "entitlementId");
+  const deliveredOn = isoDate(form, "deliveredOn");
+  errors.need("deliveredOn", deliveredOn, deliveredOn === undefined ? "date" : "required");
+  const quantity = decimal(form, "quantityDelivered");
+  if (quantity === undefined || (quantity !== null && quantity < 0))
+    errors.add("quantityDelivered", "number");
+  if (entitlementId === null) return { error: "notFound" };
+  if (errors.any || !deliveredOn) return errors.state;
+  return finish(
+    await recordEntitlementDelivery(ctx.viewer.db, {
+      entitlementId,
+      deliveredOn,
+      quantityDelivered: quantity ?? null,
+      note: text(form, "note"),
+    }),
+    ctx,
+    MODULE,
+  );
 }

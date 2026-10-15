@@ -55,7 +55,11 @@ export function collectionState(
 }
 
 /** The collection URL with extra query keys, keeping view, search and month. */
-export function withQuery(path: string, state: CollectionState, extra: Record<string, string> = {}): string {
+export function withQuery(
+  path: string,
+  state: CollectionState,
+  extra: Record<string, string> = {},
+): string {
   const q = new URLSearchParams(state.baseQuery);
   for (const [k, v] of Object.entries(extra)) q.set(k, v);
   const qs = q.toString();
@@ -70,4 +74,28 @@ export function toMajor(minor: number | null, exponent = 2): number | null {
 /** Today as YYYY-MM-DD in UTC. */
 export function today(now: Date = new Date()): string {
   return now.toISOString().slice(0, 10);
+}
+
+/** The number formatter part of next-intl's formatter that money cells need. */
+export interface NumberFormatter {
+  number(value: number, options?: Intl.NumberFormatOptions): string;
+}
+
+/**
+ * A money amount in minor units as display text in its own currency; null shows the unpriced label
+ * (Section 3.11: unpriced is never zero). Used for table cells that mix currencies.
+ */
+export function formatMinor(
+  format: NumberFormatter,
+  minor: number | null,
+  currency: string | null,
+  exponent: number,
+  unpriced: string,
+): string {
+  if (minor === null) return unpriced;
+  const major = minor / 10 ** exponent;
+  const fraction = { minimumFractionDigits: exponent, maximumFractionDigits: exponent };
+  return currency
+    ? format.number(major, { style: "currency", currency, ...fraction })
+    : format.number(major, fraction);
 }

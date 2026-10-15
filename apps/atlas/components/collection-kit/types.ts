@@ -47,7 +47,10 @@ export interface KitChart {
   readonly title: string;
   readonly categoryLabel: string;
   readonly categories: readonly string[];
-  readonly series: readonly { readonly name: string; readonly values: readonly (number | null)[] }[];
+  readonly series: readonly {
+    readonly name: string;
+    readonly values: readonly (number | null)[];
+  }[];
   readonly format?: "number" | "money";
   readonly currency?: string;
 }

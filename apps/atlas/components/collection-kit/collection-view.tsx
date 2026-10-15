@@ -20,7 +20,7 @@ import {
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
-import { useTranslations } from "next-intl";
+import { useCopy } from "./use-copy";
 import type { KitBoardColumn, KitChart, KitColumn, KitRow, ViewKind } from "./types";
 
 /**
@@ -59,7 +59,7 @@ export function CollectionView({
   /** The peek or create drawer, rendered after the body. */
   children?: ReactNode;
 }) {
-  const t = useTranslations("procurement.kit");
+  const t = useCopy("procurement.kit");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -108,7 +108,7 @@ export function CollectionView({
           type="search"
           width="100%"
           label={t("search")}
-          placeholder={t("searchPlaceholder")}
+          placeholder={t("searchHint")}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -160,7 +160,11 @@ export function CollectionView({
           label: c.label,
           cards: visible
             .filter((r) => r.boardValue === c.value)
-            .map((r) => ({ key: r.id, title: `${r.key} ${r.title}`, ...(r.meta ? { meta: r.meta } : {}) })),
+            .map((r) => ({
+              key: r.id,
+              title: `${r.key} ${r.title}`,
+              ...(r.meta ? { meta: r.meta } : {}),
+            })),
         }))}
         onOpen={open}
       />
@@ -179,7 +183,9 @@ export function CollectionView({
               title={r.title}
               interactive
               meta={<span className="font-mono text-text-12">{r.key}</span>}
-              {...(r.state ? { footer: <StateChip state={r.state.state} label={r.state.label} compact /> } : {})}
+              {...(r.state
+                ? { footer: <StateChip state={r.state.state} label={r.state.label} compact /> }
+                : {})}
             >
               <span className="text-text-13 text-text-secondary">{r.meta ?? ""}</span>
             </Card>

@@ -24,6 +24,7 @@ import {
   readRows,
   rpcValue,
   touched,
+  listStateHistory,
 } from "../src/commercial-common.ts";
 import { commercialClient, errorResponse, okResponse } from "./commercial-fake.ts";
 
@@ -444,5 +445,34 @@ describe("canon extensions", () => {
     expect(refused.ok === false && refused.error.kind === "refusal" && refused.error.rule).toBe(
       "sod_approval_requester",
     );
+  });
+});
+
+describe("state history", () => {
+  it("reads a lifecycle ledger oldest first", async () => {
+    const { db, calls } = commercialClient({
+      "from:vendor_state_transitions": [
+        okResponse([
+          {
+            id: "t1",
+            from_state: null,
+            to_state: "Prospect",
+            reason: "Created.",
+            created_at: "t",
+            created_by: "p1",
+          },
+        ]),
+      ],
+    });
+    const result = await listStateHistory(db, "vendor", "v1");
+    expect(result.ok && result.data[0]).toEqual({
+      id: "t1",
+      from: null,
+      to: "Prospect",
+      reason: "Created.",
+      at: "t",
+      by: "p1",
+    });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["vendor_id", "v1"]]);
   });
 });
