@@ -9,6 +9,10 @@ import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeVerbs } from "../correct.ts";
 import { collectionAction } from "../define.ts";
 import type { ResourceSpec } from "../types.ts";
+import {
+  viewsHelpSupportCapabilities,
+  viewsHelpSupportResources,
+} from "./parts/views-help-support.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -55,6 +59,8 @@ const createAnswering =
   };
 
 export const additions = defineAdditions("Platform", {
+  resources: [...viewsHelpSupportResources],
+  capabilities: { ...viewsHelpSupportCapabilities },
   corrections: [
     {
       id: "custom-object-type-default-view",

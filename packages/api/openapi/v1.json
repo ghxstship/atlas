@@ -44242,6 +44242,914 @@
         },
         "required": ["outcome"],
         "description": "Decision on a requested guest."
+      },
+      "SavedViewSharePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SavedViewShare" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SavedViewShare": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the saved view share.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "saved_view_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the saved view.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "team_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the team of the same org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "saved_view_id",
+          "team_id"
+        ],
+        "description": "A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows."
+      },
+      "SavedViewShareCreate": {
+        "type": "object",
+        "properties": {
+          "saved_view_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the saved view.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "team_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the team of the same org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["saved_view_id", "team_id"],
+        "description": "Fields accepted when creating a SavedViewShare."
+      },
+      "SavedViewDefaultPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SavedViewDefault" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SavedViewDefault": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the saved view default.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership of the caller, set by the server.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "collection_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\/[a-z][a-z0-9_]*)?$",
+            "description": "Collection (page) the default applies to, as saved views name it.",
+            "example": "logistics/shipments"
+          },
+          "saved_view_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the saved view the caller can read, of the same collection.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "membership_id",
+          "collection_key",
+          "saved_view_id"
+        ],
+        "description": "The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default)."
+      },
+      "SavedViewDefaultCreate": {
+        "type": "object",
+        "properties": {
+          "saved_view_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the saved view the caller can read, of the same collection.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["saved_view_id"],
+        "description": "Fields accepted when creating a SavedViewDefault."
+      },
+      "TourProgressPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TourProgress" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "TourProgress": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the tour progress.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership of the caller, set by the server.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "tour_key": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$",
+            "description": "Tour key from the help content.",
+            "example": "atlas.getting-started"
+          },
+          "tour_state": {
+            "type": "string",
+            "enum": ["Offered", "Started", "Completed", "Dismissed"],
+            "description": "Offered, Started, Completed or Dismissed.",
+            "example": "Started"
+          },
+          "step": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Last step reached, from 0.",
+            "example": 2
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "membership_id",
+          "tour_key",
+          "tour_state",
+          "step"
+        ],
+        "description": "The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again."
+      },
+      "TourProgressCreate": {
+        "type": "object",
+        "properties": {
+          "tour_key": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$",
+            "description": "Tour key from the help content.",
+            "example": "atlas.getting-started"
+          },
+          "tour_state": {
+            "type": "string",
+            "enum": ["Offered", "Started", "Completed", "Dismissed"],
+            "description": "Offered, Started, Completed or Dismissed.",
+            "example": "Started"
+          },
+          "step": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Last step reached, from 0.",
+            "example": 2
+          }
+        },
+        "required": ["tour_key", "tour_state", "step"],
+        "description": "Fields accepted when creating a TourProgress."
+      },
+      "TourProgressUpdate": {
+        "type": "object",
+        "properties": {
+          "tour_state": {
+            "type": "string",
+            "enum": ["Offered", "Started", "Completed", "Dismissed"],
+            "description": "Offered, Started, Completed or Dismissed.",
+            "example": "Started"
+          },
+          "step": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Last step reached, from 0.",
+            "example": 2
+          }
+        },
+        "description": "Fields accepted when updating a TourProgress. Omitted fields are unchanged."
+      },
+      "TipDismissalPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TipDismissal" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "TipDismissal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the tip dismissal.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership of the caller, set by the server.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "tip_key": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$",
+            "description": "Tip key from the help content.",
+            "example": "gates"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "membership_id",
+          "tip_key"
+        ],
+        "description": "A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived."
+      },
+      "TipDismissalCreate": {
+        "type": "object",
+        "properties": {
+          "tip_key": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$",
+            "description": "Tip key from the help content.",
+            "example": "gates"
+          }
+        },
+        "required": ["tip_key"],
+        "description": "Fields accepted when creating a TipDismissal."
+      },
+      "SupportTicketPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SupportTicket" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SupportTicket": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the support ticket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership of the requester, set by the server.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "ticket_number": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Display number, SUP-0001 upward per org.",
+            "example": "SUP-0001"
+          },
+          "queue": {
+            "type": "string",
+            "enum": ["Organization", "Platform"],
+            "description": "Organization or Platform.",
+            "example": "Organization"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["Question", "Problem", "Access", "Billing", "Account", "Feature Request"],
+            "description": "What the request is about.",
+            "example": "Access"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["Severity 1", "Severity 2", "Severity 3", "Severity 4"],
+            "description": "Severity 1 (outage) to Severity 4 (question).",
+            "example": "Severity 3"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "One-line summary.",
+            "example": "Scanner shows an unknown zone"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What happened and what the requester needs.",
+            "example": "At the north gate the scanner says the zone is unknown."
+          },
+          "ticket_state": {
+            "type": "string",
+            "enum": ["Open", "Waiting", "Resolved", "Closed"],
+            "description": "Open, Waiting, Resolved or Closed; moved by the transition action.",
+            "example": "Open"
+          },
+          "channel": {
+            "type": "string",
+            "enum": ["In App", "Email", "Chat", "Priority Queue", "Dedicated Channel"],
+            "description": "In App for the Organization queue; by plan for the Platform queue.",
+            "example": "In App"
+          },
+          "first_response_due_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Platform first response deadline from the plan; null for best effort.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "first_responded_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When a responder first answered.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "membership_id",
+          "ticket_number",
+          "queue",
+          "category",
+          "severity",
+          "subject",
+          "body",
+          "ticket_state",
+          "channel",
+          "first_response_due_at",
+          "first_responded_at"
+        ],
+        "description": "A request for help (0643): to the org's own admins (Organization queue) or, from holders of org.help.write, to the platform team (Platform queue), whose channel and first response deadline follow the plan. Readable by the requester and by those who answer support for the org."
+      },
+      "SupportTicketOpenRequest": {
+        "type": "object",
+        "properties": {
+          "queue": {
+            "type": "string",
+            "enum": ["Organization", "Platform"],
+            "description": "Organization or Platform.",
+            "example": "Organization"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["Question", "Problem", "Access", "Billing", "Account", "Feature Request"],
+            "description": "What the request is about.",
+            "example": "Access"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["Severity 1", "Severity 2", "Severity 3", "Severity 4"],
+            "description": "Severity 1 to 4; Severity 3 when omitted.",
+            "example": "Severity 3"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "One-line summary.",
+            "example": "Scanner shows an unknown zone"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What happened and what the requester needs.",
+            "example": "Zone B denies Crew."
+          },
+          "diagnostics": {
+            "type": "object",
+            "properties": {
+              "consent": {
+                "type": "boolean",
+                "enum": [true],
+                "description": "Must be true: diagnostics are stored only with the requester's consent.",
+                "example": true
+              },
+              "route": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "Page the requester was on.",
+                "example": "/demo/credentials/scans"
+              },
+              "app_version": {
+                "type": "string",
+                "maxLength": 50,
+                "description": "App version and build.",
+                "example": "4.0.0 (812)"
+              },
+              "device": {
+                "type": "string",
+                "maxLength": 300,
+                "description": "Browser or device.",
+                "example": "Safari 19 on iOS 26"
+              },
+              "recent_errors": {
+                "type": "string",
+                "maxLength": 4000,
+                "description": "Recent client errors, newest first.",
+                "example": "TypeError"
+              }
+            },
+            "required": ["consent"],
+            "description": "Diagnostics to attach, with consent."
+          }
+        },
+        "required": ["queue", "category", "subject", "body"],
+        "description": "A new support request."
+      },
+      "SupportTicketTransitionRequest": {
+        "type": "object",
+        "properties": {
+          "expected_state": {
+            "type": "string",
+            "enum": ["Open", "Waiting", "Resolved", "Closed"],
+            "description": "The state the caller believes the row is in (compare-and-set).",
+            "example": "Open"
+          },
+          "to_state": {
+            "type": "string",
+            "enum": ["Open", "Waiting", "Resolved", "Closed"],
+            "description": "Target state.",
+            "example": "Waiting"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Reason, required by some transitions.",
+            "example": "Client approved the revised scope."
+          }
+        },
+        "required": ["expected_state", "to_state"],
+        "description": "Request to move a lifecycle to another state."
+      },
+      "SupportTicketMessage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the support ticket message.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "support_ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the support request.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "author_membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the member who wrote it; null for the platform team.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Message text.",
+            "example": "Which zone did you pick?"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "support_ticket_id",
+          "author_membership_id",
+          "body"
+        ],
+        "description": "One message on a support request (0643), oldest first. Append-only; posted with the reply action."
+      },
+      "SupportTicketReplyRequest": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Message text.",
+            "example": "Zone B, backstage."
+          }
+        },
+        "required": ["body"],
+        "description": "A reply on a support request."
+      },
+      "SupportTicketMessagePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SupportTicketMessage" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SupportTicketDiagnosticsPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SupportTicketDiagnostics" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SupportTicketDiagnostics": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the support ticket diagnostics.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "support_ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the support request.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "consented_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the requester agreed to send the diagnostics.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "route": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Page the requester was on.",
+            "example": "/demo/credentials/scans"
+          },
+          "app_version": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "App version and build.",
+            "example": "4.0.0 (812)"
+          },
+          "device": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Browser or device and operating system.",
+            "example": "Safari 19 on iOS 26"
+          },
+          "recent_errors": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Recent client errors, newest first.",
+            "example": "TypeError"
+          },
+          "screenshot_path": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Storage path of a screenshot.",
+            "example": "org/ticket/shot.png"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "support_ticket_id",
+          "consented_at",
+          "route",
+          "app_version",
+          "device",
+          "recent_errors",
+          "screenshot_path"
+        ],
+        "description": "Diagnostics the requester chose to attach to a support request (0643), with the moment they consented. Append-only."
       }
     },
     "parameters": {
@@ -117323,6 +118231,1386 @@
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/saved-view-shares": {
+      "get": {
+        "operationId": "savedViewShares.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.saved_view_shares",
+        "x-xos-capability": "my_work.items.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["my_work"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List saved view share rows",
+        "description": "A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows. Returns a cursor page of saved view share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of saved view share rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SavedViewSharePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "savedViewShares.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.saved_view_shares",
+        "x-xos-capability": "org.views.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Create a saved view share",
+        "description": "A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows. Creates a saved view share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/SavedViewShareCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created saved view share.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/SavedViewShare" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/saved-view-shares/{id}": {
+      "get": {
+        "operationId": "savedViewShares.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.saved_view_shares",
+        "x-xos-capability": "my_work.items.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["my_work"] }],
+        "summary": "Get a saved view share",
+        "description": "A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows. Returns one saved view share with its `ETag`. A saved view share the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the saved view share.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the saved view share.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The saved view share.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/SavedViewShare" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "savedViewShares.delete",
+        "tags": ["Platform"],
+        "x-xos-table": "app.saved_view_shares",
+        "x-xos-capability": "org.views.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Delete a saved view share",
+        "description": "A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows. Soft-deletes the saved view share: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the saved view share.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the saved view share.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The saved view share moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/saved-view-defaults": {
+      "get": {
+        "operationId": "savedViewDefaults.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.saved_view_defaults",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List saved view default rows",
+        "description": "The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default). Returns a cursor page of saved view default rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of saved view default rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "collection_key": "logistics/shipments",
+                      "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SavedViewDefaultPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "savedViewDefaults.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.saved_view_defaults",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Create a saved view default",
+        "description": "The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default). Creates a saved view default. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "schema": { "$ref": "#/components/schemas/SavedViewDefaultCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created saved view default.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "collection_key": "logistics/shipments",
+                  "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/SavedViewDefault" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/saved-view-defaults/{id}": {
+      "get": {
+        "operationId": "savedViewDefaults.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.saved_view_defaults",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a saved view default",
+        "description": "The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default). Returns one saved view default with its `ETag`. A saved view default the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the saved view default.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the saved view default.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The saved view default.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "collection_key": "logistics/shipments",
+                  "saved_view_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/SavedViewDefault" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "savedViewDefaults.delete",
+        "tags": ["Platform"],
+        "x-xos-table": "app.saved_view_defaults",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Delete a saved view default",
+        "description": "The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default). Soft-deletes the saved view default: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the saved view default.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the saved view default.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The saved view default moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/tour-progress": {
+      "get": {
+        "operationId": "tourProgress.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.tour_progress",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List tour progress rows",
+        "description": "The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again. Returns a cursor page of tour progress rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of tour progress rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "tour_key": "atlas.getting-started",
+                      "tour_state": "Started",
+                      "step": 2
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/TourProgressPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "tourProgress.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.tour_progress",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Create a tour progress",
+        "description": "The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again. Creates a tour progress. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "tour_key": "atlas.getting-started",
+                "tour_state": "Started",
+                "step": 2
+              },
+              "schema": { "$ref": "#/components/schemas/TourProgressCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created tour progress.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "tour_key": "atlas.getting-started",
+                  "tour_state": "Started",
+                  "step": 2
+                },
+                "schema": { "$ref": "#/components/schemas/TourProgress" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/tour-progress/{id}": {
+      "get": {
+        "operationId": "tourProgress.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.tour_progress",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a tour progress",
+        "description": "The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again. Returns one tour progress with its `ETag`. A tour progress the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the tour progress.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the tour progress.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The tour progress.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "tour_key": "atlas.getting-started",
+                  "tour_state": "Started",
+                  "step": 2
+                },
+                "schema": { "$ref": "#/components/schemas/TourProgress" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "tourProgress.update",
+        "tags": ["Platform"],
+        "x-xos-table": "app.tour_progress",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Update a tour progress",
+        "description": "The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the tour progress.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the tour progress.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "tour_state": "Started", "step": 2 },
+              "schema": { "$ref": "#/components/schemas/TourProgressUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated tour progress.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "tour_key": "atlas.getting-started",
+                  "tour_state": "Started",
+                  "step": 2
+                },
+                "schema": { "$ref": "#/components/schemas/TourProgress" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/tip-dismissals": {
+      "get": {
+        "operationId": "tipDismissals.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.tip_dismissals",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List tip dismissal rows",
+        "description": "A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived. Returns a cursor page of tip dismissal rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of tip dismissal rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "tip_key": "gates"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/TipDismissalPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "tipDismissals.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.tip_dismissals",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Create a tip dismissal",
+        "description": "A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived. Creates a tip dismissal. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "tip_key": "gates" },
+              "schema": { "$ref": "#/components/schemas/TipDismissalCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created tip dismissal.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "tip_key": "gates"
+                },
+                "schema": { "$ref": "#/components/schemas/TipDismissal" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/tip-dismissals/{id}": {
+      "get": {
+        "operationId": "tipDismissals.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.tip_dismissals",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a tip dismissal",
+        "description": "A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived. Returns one tip dismissal with its `ETag`. A tip dismissal the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the tip dismissal.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the tip dismissal.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The tip dismissal.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "tip_key": "gates"
+                },
+                "schema": { "$ref": "#/components/schemas/TipDismissal" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "tipDismissals.delete",
+        "tags": ["Platform"],
+        "x-xos-table": "app.tip_dismissals",
+        "x-xos-capability": "me.preferences.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Delete a tip dismissal",
+        "description": "A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived. Soft-deletes the tip dismissal: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the tip dismissal.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the tip dismissal.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The tip dismissal moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-tickets": {
+      "get": {
+        "operationId": "supportTickets.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_tickets",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List support ticket rows",
+        "description": "A request for help (0643): to the org's own admins (Organization queue) or, from holders of org.help.write, to the platform team (Platform queue), whose channel and first response deadline follow the plan. Readable by the requester and by those who answer support for the org. Returns a cursor page of support ticket rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of support ticket rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "ticket_number": "SUP-0001",
+                      "queue": "Organization",
+                      "category": "Access",
+                      "severity": "Severity 3",
+                      "subject": "Scanner shows an unknown zone",
+                      "body": "At the north gate the scanner says the zone is unknown.",
+                      "ticket_state": "Open",
+                      "channel": "In App",
+                      "first_response_due_at": "2026-10-08T14:30:00Z",
+                      "first_responded_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SupportTicketPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "supportTickets.open",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_tickets",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "open_support_ticket",
+        "summary": "Open a support request",
+        "description": "Opens a request as the caller (app.open_support_ticket). The Platform queue needs org.help.write and a plan with a platform channel (support_platform_admins_only, support_plan_no_channel: 422); diagnostics need consent (support_diagnostics_consent). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "queue": "Organization",
+                "category": "Access",
+                "severity": "Severity 3",
+                "subject": "Scanner shows an unknown zone",
+                "body": "Zone B denies Crew.",
+                "diagnostics": {
+                  "consent": true,
+                  "route": "/demo/credentials/scans",
+                  "app_version": "4.0.0 (812)",
+                  "device": "Safari 19 on iOS 26",
+                  "recent_errors": "TypeError"
+                }
+              },
+              "schema": { "$ref": "#/components/schemas/SupportTicketOpenRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "ticket_number": "SUP-0001",
+                  "queue": "Organization",
+                  "category": "Access",
+                  "severity": "Severity 3",
+                  "subject": "Scanner shows an unknown zone",
+                  "body": "At the north gate the scanner says the zone is unknown.",
+                  "ticket_state": "Open",
+                  "channel": "In App",
+                  "first_response_due_at": "2026-10-08T14:30:00Z",
+                  "first_responded_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/SupportTicket" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-tickets/{id}": {
+      "get": {
+        "operationId": "supportTickets.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_tickets",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a support ticket",
+        "description": "A request for help (0643): to the org's own admins (Organization queue) or, from holders of org.help.write, to the platform team (Platform queue), whose channel and first response deadline follow the plan. Readable by the requester and by those who answer support for the org. Returns one support ticket with its `ETag`. A support ticket the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the support ticket.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the support ticket.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The support ticket.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "ticket_number": "SUP-0001",
+                  "queue": "Organization",
+                  "category": "Access",
+                  "severity": "Severity 3",
+                  "subject": "Scanner shows an unknown zone",
+                  "body": "At the north gate the scanner says the zone is unknown.",
+                  "ticket_state": "Open",
+                  "channel": "In App",
+                  "first_response_due_at": "2026-10-08T14:30:00Z",
+                  "first_responded_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/SupportTicket" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-tickets/{id}/transition": {
+      "post": {
+        "operationId": "supportTickets.transition",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_tickets",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "transition_support_ticket",
+        "summary": "Move a support request",
+        "description": "Moves a request with a reason (app.transition_support_ticket). Responders make any allowed move; the requester closes, reopens a resolved request or takes back a waiting one (support_ticket_transition_forbidden: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the support ticket.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the support ticket.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expected_state": "Open",
+                "to_state": "Waiting",
+                "reason": "Client approved the revised scope."
+              },
+              "schema": { "$ref": "#/components/schemas/SupportTicketTransitionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "ticket_number": "SUP-0001",
+                  "queue": "Organization",
+                  "category": "Access",
+                  "severity": "Severity 3",
+                  "subject": "Scanner shows an unknown zone",
+                  "body": "At the north gate the scanner says the zone is unknown.",
+                  "ticket_state": "Open",
+                  "channel": "In App",
+                  "first_response_due_at": "2026-10-08T14:30:00Z",
+                  "first_responded_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/SupportTicket" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-tickets/{id}/reply": {
+      "post": {
+        "operationId": "supportTickets.reply",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_tickets",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "post_support_message",
+        "summary": "Reply on a support request",
+        "description": "Adds a message as the requester or a responder (app.post_support_message). A closed request takes no messages (support_ticket_closed: 422); a requester's reply reopens a waiting request. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the support ticket.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the support ticket.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "body": "Zone B, backstage." },
+              "schema": { "$ref": "#/components/schemas/SupportTicketReplyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "support_ticket_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "body": "Which zone did you pick?"
+                },
+                "schema": { "$ref": "#/components/schemas/SupportTicketMessage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-ticket-messages": {
+      "get": {
+        "operationId": "supportTicketMessages.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_ticket_messages",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List support ticket message rows",
+        "description": "One message on a support request (0643), oldest first. Append-only; posted with the reply action. Returns a cursor page of support ticket message rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of support ticket message rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "support_ticket_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "body": "Which zone did you pick?"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SupportTicketMessagePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-ticket-messages/{id}": {
+      "get": {
+        "operationId": "supportTicketMessages.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_ticket_messages",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a support ticket message",
+        "description": "One message on a support request (0643), oldest first. Append-only; posted with the reply action. Returns one support ticket message with its `ETag`. A support ticket message the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the support ticket message.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the support ticket message.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The support ticket message.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "support_ticket_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "body": "Which zone did you pick?"
+                },
+                "schema": { "$ref": "#/components/schemas/SupportTicketMessage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-ticket-diagnostics": {
+      "get": {
+        "operationId": "supportTicketDiagnostics.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_ticket_diagnostics",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List support ticket diagnostics rows",
+        "description": "Diagnostics the requester chose to attach to a support request (0643), with the moment they consented. Append-only. Returns a cursor page of support ticket diagnostics rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of support ticket diagnostics rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "support_ticket_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "consented_at": "2026-10-08T14:30:00Z",
+                      "route": "/demo/credentials/scans",
+                      "app_version": "4.0.0 (812)",
+                      "device": "Safari 19 on iOS 26",
+                      "recent_errors": "TypeError",
+                      "screenshot_path": "org/ticket/shot.png"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SupportTicketDiagnosticsPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-ticket-diagnostics/{id}": {
+      "get": {
+        "operationId": "supportTicketDiagnostics.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_ticket_diagnostics",
+        "x-xos-capability": "me.account.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a support ticket diagnostics",
+        "description": "Diagnostics the requester chose to attach to a support request (0643), with the moment they consented. Append-only. Returns one support ticket diagnostics with its `ETag`. A support ticket diagnostics the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the support ticket diagnostics.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the support ticket diagnostics.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The support ticket diagnostics.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "support_ticket_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "consented_at": "2026-10-08T14:30:00Z",
+                  "route": "/demo/credentials/scans",
+                  "app_version": "4.0.0 (812)",
+                  "device": "Safari 19 on iOS 26",
+                  "recent_errors": "TypeError",
+                  "screenshot_path": "org/ticket/shot.png"
+                },
+                "schema": { "$ref": "#/components/schemas/SupportTicketDiagnostics" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

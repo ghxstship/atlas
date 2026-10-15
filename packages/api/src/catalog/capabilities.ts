@@ -531,6 +531,5 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "data.export.restricted": "Classification-aware export checks run inside export jobs.",
   "data.legal_hold.manage": "Legal holds arrive with A21.",
   "data.restricted.read.government_id": "No government identifier column is exposed yet.",
-  "me.preferences.write": "Preferences are personal setting values.",
   "me.api_tokens.write": "Personal API tokens arrive with A30.",
 };
