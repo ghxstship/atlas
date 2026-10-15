@@ -957,6 +957,408 @@ var activity_default$1 = {
     fallback: "a record",
   },
 };
+var crew_default$1 = {
+  frame: {
+    views: "Views",
+    pages: "{module} pages",
+  },
+  views: {
+    list: "List",
+    table: "Table",
+    board: "Board",
+    calendar: "Calendar",
+    "resource-schedule": "Schedule",
+    spreadsheet: "Grid",
+    gallery: "Gallery",
+  },
+  peek: {
+    openFull: "Open full page",
+    copyLink: "Copy link",
+    close: "Close",
+  },
+  record: {
+    system: "XOS",
+    someone: "A former member",
+    history: "History",
+    created: "Created as {state}",
+    moved: "Moved from {from} to {to}",
+    byAt: "{name} · {at}",
+    comments: "Comments and attachments",
+    commentsBlocked:
+      "Comments and attachments for this record open here once the shared comment service is switched on for your organization. Until then, write the reason with each state change; it is kept in the history above.",
+    back: "Back to the list",
+    properties: "Properties",
+  },
+  form: {
+    refused: "Not saved",
+    cancel: "Cancel",
+    reason: "Reason",
+    reasonHelp: "Kept in the record's history and the audit log.",
+  },
+  errors: {
+    notFound: "This record is gone or you can no longer see it. Reload the list.",
+    conflict: "Another record already holds these values. Change them and save again.",
+    invalid: "A value is outside what this field accepts. Check the highlighted fields.",
+    unexpected: "The change did not save because of a problem on our side. Try again in a moment.",
+    fixFields: "Fix the highlighted fields and save again.",
+    dateTime: "Enter a date and time.",
+    date: "Enter a date.",
+    endAfterStart: "The end comes after the start.",
+    project: "Choose a project.",
+    person: "Choose a person.",
+    reason: "Write a reason of up to 500 characters.",
+    nothingToPublish: "There are no drafted shifts in this view to publish.",
+    breakMinutes: "Break minutes are a whole number from 0 to 1440.",
+    name: "Enter a name of up to 200 characters.",
+    role: "Choose a canon role.",
+    combination: "Choose a pay basis and arrangement that the classification permits.",
+    money: "Enter an amount with at most two decimals, or leave it blank for Unpriced.",
+    moneyRequired: "Enter the rate as an amount with at most two decimals.",
+    currency: "Choose a currency.",
+    hours: "Enter the hours as a number above zero.",
+  },
+  refusals: {
+    shift_accept_rpc:
+      "Only the person on the shift accepts it, or a crew member claims it while it is open.",
+    shift_already_claimed: "Someone already holds this shift. Choose another open shift.",
+    shift_not_published:
+      "Only a published open shift can be claimed. Ask the planner to publish it.",
+    shift_double_booked:
+      "You already hold a shift that overlaps this one. Swap or release that shift first.",
+    shift_state_conflict:
+      "The shift changed state since you opened it. Reload to see its current state.",
+    shift_transition_not_allowed:
+      "A shift cannot make that move. Its history shows the moves it has made.",
+    shift_canceled: "A canceled shift keeps its times and person. Plan a new shift instead.",
+    shift_record:
+      "A shift staffs a Shift record of its own project. Choose a record from this project.",
+    shift_scope_project: "The scope node belongs to another project. Choose one from this project.",
+    swap_not_on_shift: "Only the person on the shift asks to swap it.",
+    swap_stale:
+      "The shift changed hands since the swap was asked for. Reject this swap and ask again.",
+    swap_state_conflict: "The swap was already decided. Reload to see its current state.",
+    sod_swap_requester: "Neither person in a swap can approve it. Ask another supervisor.",
+    time_entry_overlap:
+      "This person already has time recorded for part of that period, possibly from another device. Clock out of the open entry first.",
+    time_entry_project: "People record time only on projects they belong to or hold a shift on.",
+    time_entry_shift: "The entry must work a shift of the same person and project.",
+    time_entry_immutable:
+      "A time entry keeps its person and project. Void it and record a new one.",
+    production_closed:
+      "This production is closed, so it takes no new time. Reopen it from the project to record time.",
+    correction_immutable: "A decided correction never changes. Request a new correction.",
+    sod_approval_requester: "You requested this, so someone else approves it.",
+    sod_timesheet_submitter:
+      "The worker and the submitter cannot approve this timesheet. Ask another approver.",
+    timesheet_open_entry:
+      "An entry in this period is still clocked in. Clock out of it before submitting.",
+    timesheet_immutable: "A submitted timesheet keeps its period, project and person.",
+    timesheet_state_conflict:
+      "The timesheet changed state since you opened it. Reload to see its current state.",
+    timesheet_transition_not_allowed: "A timesheet cannot make that move from its current state.",
+    pay_period_overlap: "Pay periods never overlap. Choose dates outside the existing periods.",
+    pay_period_dates_locked: "A pay period's dates change only while it is Open.",
+    pay_period_runs_open:
+      "Every payroll run of the period must be Accepted or Canceled before the period posts.",
+    pay_period_transition_not_allowed:
+      "A posted pay period never reopens, and a period cannot skip a step.",
+    pay_period_state_conflict:
+      "The pay period changed state since you opened it. Reload to see its current state.",
+    pay_period_posted: "This pay period is posted and accepts no payroll changes.",
+    payroll_run_transition_not_allowed:
+      "A payroll run moves through Calculated, Approved and Exported in order.",
+    payroll_run_state_conflict:
+      "The payroll run changed state since you opened it. Reload to see its current state.",
+    payroll_run_not_calculated:
+      "Only a calculated payroll run can be approved. Calculate it first.",
+    payroll_run_not_draft: "Only a draft payroll run is calculated. Return it to Draft first.",
+    payroll_run_not_approved: "Only an approved payroll run is exported. Approve it first.",
+    payroll_run_locked: "Payroll lines change only while the run is Draft or Calculated.",
+    payroll_earning_code_missing:
+      "Add a regular earning code in Payroll and Time Off settings, then calculate again.",
+    payroll_overtime_code_missing:
+      "Overtime was worked. Add an overtime earning code in Payroll and Time Off settings, then calculate again.",
+    payroll_rate_missing:
+      "Someone on an approved timesheet has no pay rate in this currency. Record one in the pay rate ledger, then calculate again.",
+    payroll_wage_rule_missing:
+      "A project on an approved timesheet has no jurisdiction with a wage-hour rule, so overtime has no answer. Set the project's jurisdiction.",
+    payroll_export_changed:
+      "The payroll lines changed since this file was produced. Produce a new export.",
+    plan_feature_required:
+      "Payroll export is included from the Team plan. An Owner can upgrade in Billing and Plan.",
+    export_restricted: "A payroll export carries Restricted pay rates. Ask an Owner to produce it.",
+    step_up_required:
+      "Exporting Restricted pay data needs step-up authentication. Verify with your second factor, then try again.",
+    spend_unpriced: "An unpriced amount cannot be approved. Price every line first.",
+    spend_authority_missing:
+      "No spend authority covers this payroll run for your role. An Owner sets limits in Spend Authority settings.",
+    spend_authority_exceeded:
+      "This payroll run is above your spend limit. It goes to the next approver.",
+    spend_approval_duplicate:
+      "You already approved this run. A second approval needs a different approver.",
+    sod_time_off_requester: "You cannot approve your own time off. Ask another approver.",
+    time_off_state_conflict:
+      "The request changed state since you opened it. Reload to see its current state.",
+    time_off_transition_not_allowed: "The request cannot make that move from its current state.",
+    transition_reason_required: "Every state change carries a reason. Write one and try again.",
+    time_zone_unknown: "The time zone is not an IANA zone. Set the project's time zone.",
+    other:
+      "The change was refused by rule {rule}. Check the record and try again, or ask an administrator.",
+  },
+  states: {
+    shift: {
+      Draft: "Draft",
+      Published: "Published",
+      Accepted: "Accepted",
+      Canceled: "Canceled",
+    },
+    swap: {
+      Proposed: "Waiting for approval",
+      Approved: "Approved",
+      Rejected: "Rejected",
+      Canceled: "Withdrawn",
+    },
+    timesheet: {
+      Proposed: "Draft",
+      Submitted: "Submitted",
+      Approved: "Approved",
+      Rejected: "Rejected",
+    },
+    correction: {
+      Proposed: "Waiting for approval",
+      Approved: "Approved",
+      Rejected: "Rejected",
+    },
+    entry: {
+      Open: "Clocked in",
+      Closed: "Closed",
+    },
+    payPeriod: {
+      Open: "Open",
+      Closed: "Closed",
+      Posted: "Posted",
+    },
+    payrollRun: {
+      Draft: "Draft",
+      Calculated: "Calculated",
+      Approved: "Approved",
+      Exported: "Exported",
+      Accepted: "Accepted",
+      Canceled: "Canceled",
+    },
+    timeOff: {
+      Proposed: "Waiting for approval",
+      Approved: "Approved",
+      Rejected: "Rejected",
+      Canceled: "Canceled",
+    },
+    rateCard: {
+      Upcoming: "Upcoming",
+      Current: "Current",
+      Ended: "Ended",
+    },
+  },
+  kinds: {
+    shift: "Shift",
+    swap: "Shift swap",
+    entry: "Time entry",
+    timesheet: "Timesheet",
+    rateCard: "Rate card",
+    payPeriod: "Pay period",
+    payrollRun: "Payroll run",
+    timeOff: "Time off",
+  },
+  fields: {
+    project: "Project",
+    person: "Person",
+    role: "Role",
+    when: "When",
+    timeZone: "Time zone",
+    hours: "Hours",
+    state: "State",
+    startsAt: "Starts ({zone})",
+    endsAt: "Ends ({zone})",
+  },
+  common: {
+    unnamed: "Unnamed person",
+    noRole: "No role set",
+    edit: "Edit",
+    trash: "Move to Trash",
+    save: "Save",
+    allProjects: "All projects",
+    allStates: "All states",
+    range: "{start} to {end}",
+    clearFilter: "Clear the filter",
+    pair: "{a} · {b}",
+  },
+  time: { clockedIn: "Clocked in" },
+  payroll: {
+    secondApprover:
+      "Your approval is recorded. This run is above the dual approval threshold, so a second approver finishes it.",
+  },
+  swaps: {
+    requestTitle: "Ask to swap this shift",
+    request: "Send swap request",
+    proposed: "Hand the shift to",
+  },
+  shifts: {
+    openRow: "Open shifts",
+    chipLabel: "{state} shift on {project}",
+    person: "Person",
+    weekHours: "Week hours",
+    doubleBooked: "Double booked",
+    overtimeRisk: "Overtime risk",
+    open: "Open shift",
+    openHelp: "Leave it open to let crew claim it once it is published.",
+    publish: "Publish",
+    publishTitle: "Publish this shift to crew?",
+    publishReason: "Published to crew.",
+    unpublish: "Return to draft",
+    unpublishTitle: "Return this shift to draft?",
+    unpublishReason: "Back to planning.",
+    accept: "Accept shift",
+    acceptTitle: "Accept this shift?",
+    acceptReason: "Accepted.",
+    claim: "Claim shift",
+    claimTitle: "Claim this open shift?",
+    claimReason: "Claimed from open shifts.",
+    requestSwap: "Ask to swap",
+    clockIn: "Clock in",
+    clockInTitle: "Clock in to this shift now?",
+    clockInReason: "Clocked in from Atlas.",
+    clockOut: "Clock out",
+    clockOutTitle: "Clock out now?",
+    clockOutReason: "Clocked out from Atlas.",
+    cancel: "Cancel shift",
+    cancelTitle: "Cancel this shift?",
+    cancelReason: "No longer needed.",
+    trashTitle: "Move this shift to Trash?",
+    trashHelp: "It leaves every view and can be restored from Trash during its retention period.",
+    trashReason: "Moved to Trash.",
+    entries: "Time on this shift",
+    createTitle: "New shift",
+    create: "New shift",
+    editTitle: "Edit shift",
+    publishAll: "Publish {count, plural, one {# draft} other {# drafts}}",
+    publishAllTitle:
+      "Publish {count, plural, one {# drafted shift} other {# drafted shifts}} to crew?",
+    weekNav: "Week",
+    prevWeek: "Previous week",
+    nextWeek: "Next week",
+    prevMonth: "Previous month",
+    nextMonth: "Next month",
+    weekOf: "Week of {date}",
+    emptyNoProjects:
+      "Shifts belong to a project. Create a project first, then staff its days here.",
+    emptyWriter:
+      "No shifts in this period. Create a shift and assign crew to it, or leave it open for crew to claim.",
+    emptyReader:
+      "No shifts in this period. Check the next week, or ask your supervisor to publish the schedule.",
+    goProjects: "Go to Projects",
+    gridLabel: "Crew schedule by person and day",
+    tableCaption: "Shifts",
+    listLabel: "Shifts",
+    clashTitle: "{count, plural, one {# double booking} other {# double bookings}}",
+    clashBody:
+      "Someone holds overlapping shifts. Reassign one of them before publishing; their second clock in will be refused.",
+  },
+  swapsPage: {
+    title: "{from} to {to}",
+    approve: "Approve",
+    approveTitle: "Approve this swap and hand over the shift?",
+    approveReason: "Coverage confirmed.",
+    reject: "Reject",
+    rejectTitle: "Reject this swap?",
+    rejectReason: "Coverage does not work for this shift.",
+    withdraw: "Withdraw request",
+    withdrawTitle: "Withdraw your swap request?",
+    withdrawReason: "No longer needed.",
+    requestedBy: "Asked by",
+    openShift: "Open the shift",
+    empty: "No swap requests. Crew ask to hand a shift to someone else from the shift itself.",
+    emptyFiltered: "No swaps in this state. Clear the filter to see every request.",
+    viewShifts: "View shifts",
+    caption: "Shift swaps",
+  },
+  entries: {
+    title: "{name} · {day}",
+    requestCorrection: "Request a correction",
+    void: "Void entry",
+    voidTitle: "Void this time entry?",
+    voidHelp:
+      "The entry leaves the timesheet and payroll. The change is audited, and an approval of its timesheet is voided.",
+    voidReason: "Recorded in error.",
+    clockIn: "Clock in",
+    clockOut: "Clock out",
+    clockInZone: "Clock in ({zone})",
+    clockOutZone: "Clock out ({zone})",
+    clockOutHelp: "Leave blank while the person is still working.",
+    break: "Break",
+    breakMinutes: "Unpaid break minutes",
+    minutes: "{count, plural, one {# minute} other {# minutes}}",
+    source: "Captured from",
+    sources: {
+      Web: "Atlas",
+      Mobile: "Compass",
+      Kiosk: "Kiosk",
+    },
+    corrections: "Corrections",
+    correctionTo: "Change to {start} to {end}, break {minutes} minutes",
+    approveCorrection: "Approve this correction and rewrite the entry?",
+    approveCorrectionReason: "Matches the call sheet.",
+    rejectCorrection: "Reject this correction?",
+    rejectCorrectionReason: "The entry stands as recorded.",
+    pendingNote: "A correction is waiting for a time approver.",
+    audit: "Audit trail",
+    auditCreated: "Recorded",
+    auditChanged: "Changed",
+    createTitle: "Record time",
+    create: "Record time",
+    editTitle: "Edit time entry",
+    correctTitle: "Request a correction",
+    correctReason: "Why the entry is wrong",
+    emptyWriter:
+      "No time recorded this week. Crew clock in from Compass, or record time for someone here.",
+    emptyReader:
+      "No time recorded this week. Clock in from your shift in Compass or from the shift here.",
+    caption: "Time entries",
+    weekTotal: "Week",
+  },
+  sheets: {
+    title: "{name} · {hours} h",
+    submit: "Submit for approval",
+    submitTitle: "Submit this timesheet for approval?",
+    submitReason: "Submitted for approval.",
+    approveTitle: "Approve {hours} hours?",
+    approveReason: "Matches the call sheet.",
+    rejectTitle: "Reject this timesheet?",
+    rejectReason: "Hours need another look; see the entries.",
+    period: "Period",
+    periodStart: "First day",
+    periodEnd: "Last day",
+    openTitle: "An entry is still clocked in",
+    openBody: "Clock out of every entry in the period before the timesheet can be submitted.",
+    voidedTitle: "An earlier approval was voided",
+    voidedBody:
+      "The hours changed after approval, so the timesheet went back to Draft for resubmission.",
+    entries: "Entries in the period",
+    day: "Day",
+    total: "Total",
+    approvals: "Approvals",
+    approvalStands: "{name} approved {hours} hours.",
+    approvalVoided: "{name} approved {hours} hours; voided when the hours changed.",
+    createTitle: "New timesheet",
+    create: "New timesheet",
+    emptyWriter:
+      "No timesheets yet. Open a timesheet for a person and period; its hours come from their time entries.",
+    emptyReader: "No timesheets yet. Time entries roll up into timesheets for approval.",
+    viewEntries: "View time entries",
+    caption: "Timesheets",
+    waitingTitle: "{count, plural, one {# timesheet waits} other {# timesheets wait}} for approval",
+    waitingBody:
+      "Open each one to check its entries, then approve or reject it. You cannot approve your own.",
+  },
+};
 var email_default$1 = {
   common: {
     preview: "{orgName} on XOS",
@@ -5337,6 +5739,422 @@ var activity_default = {
     fallback: "un registro",
   },
 };
+var crew_default = {
+  frame: {
+    views: "Vistas",
+    pages: "Páginas de {module}",
+  },
+  views: {
+    list: "Lista",
+    table: "Tabla",
+    board: "Tablero",
+    calendar: "Calendario",
+    "resource-schedule": "Programación",
+    spreadsheet: "Cuadrícula",
+    gallery: "Galería",
+  },
+  peek: {
+    openFull: "Abrir página completa",
+    copyLink: "Copiar enlace",
+    close: "Cerrar",
+  },
+  record: {
+    system: "XOS",
+    someone: "Un exmiembro",
+    history: "Historial",
+    created: "Creado como {state}",
+    moved: "Pasó de {from} a {to}",
+    byAt: "{name} · {at}",
+    comments: "Comentarios y adjuntos",
+    commentsBlocked:
+      "Los comentarios y adjuntos de este registro se abren aquí cuando el servicio de comentarios compartido se active para su organización. Mientras tanto, escriba el motivo con cada cambio de estado; queda en el historial de arriba.",
+    back: "Volver a la lista",
+    properties: "Propiedades",
+  },
+  form: {
+    refused: "No se guardó",
+    cancel: "Cancelar",
+    reason: "Motivo",
+    reasonHelp: "Se guarda en el historial del registro y en el registro de auditoría.",
+  },
+  errors: {
+    notFound: "Este registro ya no existe o ya no puede verlo. Vuelva a cargar la lista.",
+    conflict: "Otro registro ya tiene estos valores. Cámbielos y guarde de nuevo.",
+    invalid: "Un valor está fuera de lo que acepta este campo. Revise los campos marcados.",
+    unexpected:
+      "El cambio no se guardó por un problema de nuestra parte. Inténtelo de nuevo en un momento.",
+    fixFields: "Corrija los campos marcados y guarde de nuevo.",
+    dateTime: "Ingrese una fecha y hora.",
+    date: "Ingrese una fecha.",
+    endAfterStart: "El final va después del inicio.",
+    project: "Elija un proyecto.",
+    person: "Elija una persona.",
+    reason: "Escriba un motivo de hasta 500 caracteres.",
+    nothingToPublish: "No hay turnos en borrador en esta vista para publicar.",
+    breakMinutes: "Los minutos de descanso son un número entero de 0 a 1440.",
+    name: "Ingrese un nombre de hasta 200 caracteres.",
+    role: "Elija un rol del canon.",
+    combination: "Elija una base de pago y un acuerdo que la clasificación permita.",
+    money: "Ingrese un monto con dos decimales como máximo, o déjelo en blanco para Sin precio.",
+    moneyRequired: "Ingrese la tarifa como un monto con dos decimales como máximo.",
+    currency: "Elija una moneda.",
+    hours: "Ingrese las horas como un número mayor que cero.",
+  },
+  refusals: {
+    shift_accept_rpc:
+      "Solo la persona del turno lo acepta, o un miembro del equipo lo reclama mientras está abierto.",
+    shift_already_claimed: "Alguien ya tiene este turno. Elija otro turno abierto.",
+    shift_not_published:
+      "Solo se puede reclamar un turno abierto publicado. Pida al planificador que lo publique.",
+    shift_double_booked:
+      "Ya tiene un turno que se superpone con este. Intercambie o libere ese turno primero.",
+    shift_state_conflict:
+      "El turno cambió de estado desde que lo abrió. Vuelva a cargar para ver su estado actual.",
+    shift_transition_not_allowed:
+      "Un turno no puede hacer ese cambio. Su historial muestra los cambios que ha tenido.",
+    shift_canceled:
+      "Un turno cancelado conserva su horario y su persona. Planifique un turno nuevo.",
+    shift_record:
+      "Un turno cubre un registro de turno de su propio proyecto. Elija un registro de este proyecto.",
+    shift_scope_project:
+      "El nodo de alcance pertenece a otro proyecto. Elija uno de este proyecto.",
+    swap_not_on_shift: "Solo la persona del turno pide intercambiarlo.",
+    swap_stale:
+      "El turno cambió de manos desde que se pidió el intercambio. Rechace este intercambio y pídalo de nuevo.",
+    swap_state_conflict: "El intercambio ya se decidió. Vuelva a cargar para ver su estado actual.",
+    sod_swap_requester:
+      "Ninguna de las dos personas del intercambio puede aprobarlo. Pídalo a otro supervisor.",
+    time_entry_overlap:
+      "Esta persona ya tiene tiempo registrado en parte de ese periodo, quizá desde otro dispositivo. Primero marque la salida del registro abierto.",
+    time_entry_project:
+      "Las personas registran tiempo solo en proyectos a los que pertenecen o donde tienen un turno.",
+    time_entry_shift: "El registro debe corresponder a un turno de la misma persona y proyecto.",
+    time_entry_immutable:
+      "Un registro de tiempo conserva su persona y su proyecto. Anúlelo y registre uno nuevo.",
+    production_closed:
+      "Esta producción está cerrada y no acepta tiempo nuevo. Reábrala desde el proyecto para registrar tiempo.",
+    correction_immutable: "Una corrección decidida no cambia. Solicite una corrección nueva.",
+    sod_approval_requester: "Usted lo solicitó, así que otra persona lo aprueba.",
+    sod_timesheet_submitter:
+      "La persona que trabajó y quien envió no pueden aprobar esta hoja de horas. Pídalo a otro aprobador.",
+    timesheet_open_entry:
+      "Un registro de este periodo sigue con entrada marcada. Marque la salida antes de enviar.",
+    timesheet_immutable: "Una hoja de horas enviada conserva su periodo, proyecto y persona.",
+    timesheet_state_conflict:
+      "La hoja de horas cambió de estado desde que la abrió. Vuelva a cargar para ver su estado actual.",
+    timesheet_transition_not_allowed:
+      "Una hoja de horas no puede hacer ese cambio desde su estado actual.",
+    pay_period_overlap:
+      "Los periodos de pago no se superponen. Elija fechas fuera de los periodos existentes.",
+    pay_period_dates_locked: "Las fechas de un periodo de pago solo cambian mientras está Abierto.",
+    pay_period_runs_open:
+      "Cada nómina del periodo debe estar Aceptada o Cancelada antes de contabilizar el periodo.",
+    pay_period_transition_not_allowed:
+      "Un periodo contabilizado nunca se reabre, y un periodo no puede saltarse un paso.",
+    pay_period_state_conflict:
+      "El periodo de pago cambió de estado desde que lo abrió. Vuelva a cargar para ver su estado actual.",
+    pay_period_posted: "Este periodo de pago está contabilizado y no acepta cambios de nómina.",
+    payroll_run_transition_not_allowed:
+      "Una nómina pasa por Calculada, Aprobada y Exportada en orden.",
+    payroll_run_state_conflict:
+      "La nómina cambió de estado desde que la abrió. Vuelva a cargar para ver su estado actual.",
+    payroll_run_not_calculated: "Solo se aprueba una nómina calculada. Calcúlela primero.",
+    payroll_run_not_draft: "Solo se calcula una nómina en borrador. Devuélvala a Borrador primero.",
+    payroll_run_not_approved: "Solo se exporta una nómina aprobada. Apruébela primero.",
+    payroll_run_locked:
+      "Las líneas de nómina cambian solo mientras la nómina está en Borrador o Calculada.",
+    payroll_earning_code_missing:
+      "Agregue un código de ingreso regular en la configuración de Nómina y tiempo libre, y calcule de nuevo.",
+    payroll_overtime_code_missing:
+      "Se trabajaron horas extra. Agregue un código de horas extra en la configuración de Nómina y tiempo libre, y calcule de nuevo.",
+    payroll_rate_missing:
+      "Alguien en una hoja de horas aprobada no tiene tarifa en esta moneda. Regístrela en el libro de tarifas y calcule de nuevo.",
+    payroll_wage_rule_missing:
+      "Un proyecto con una hoja de horas aprobada no tiene una jurisdicción con regla de salario y horas, así que las horas extra no tienen respuesta. Defina la jurisdicción del proyecto.",
+    payroll_export_changed:
+      "Las líneas de nómina cambiaron desde que se generó este archivo. Genere una exportación nueva.",
+    plan_feature_required:
+      "La exportación de nómina se incluye desde el plan Team. Un Propietario puede mejorar el plan en Facturación y plan.",
+    export_restricted:
+      "Una exportación de nómina lleva tarifas de pago restringidas. Pida a un Propietario que la genere.",
+    step_up_required:
+      "Exportar datos de pago restringidos requiere una verificación adicional. Verifique con su segundo factor e inténtelo de nuevo.",
+    spend_unpriced: "No se puede aprobar un monto sin precio. Ponga precio a cada línea primero.",
+    spend_authority_missing:
+      "Ninguna autorización de gasto cubre esta nómina para su rol. Un Propietario define límites en la configuración de Autorización de gasto.",
+    spend_authority_exceeded: "Esta nómina supera su límite de gasto. Pasa al siguiente aprobador.",
+    spend_approval_duplicate:
+      "Usted ya aprobó esta nómina. Una segunda aprobación necesita otro aprobador.",
+    sod_time_off_requester: "No puede aprobar su propio tiempo libre. Pídalo a otro aprobador.",
+    time_off_state_conflict:
+      "La solicitud cambió de estado desde que la abrió. Vuelva a cargar para ver su estado actual.",
+    time_off_transition_not_allowed:
+      "La solicitud no puede hacer ese cambio desde su estado actual.",
+    transition_reason_required:
+      "Cada cambio de estado lleva un motivo. Escriba uno e inténtelo de nuevo.",
+    time_zone_unknown: "La zona horaria no es una zona IANA. Defina la zona horaria del proyecto.",
+    other:
+      "La regla {rule} rechazó el cambio. Revise el registro e inténtelo de nuevo, o consulte a un administrador.",
+  },
+  states: {
+    shift: {
+      Draft: "Borrador",
+      Published: "Publicado",
+      Accepted: "Aceptado",
+      Canceled: "Cancelado",
+    },
+    swap: {
+      Proposed: "En espera de aprobación",
+      Approved: "Aprobado",
+      Rejected: "Rechazado",
+      Canceled: "Retirado",
+    },
+    timesheet: {
+      Proposed: "Borrador",
+      Submitted: "Enviada",
+      Approved: "Aprobada",
+      Rejected: "Rechazada",
+    },
+    correction: {
+      Proposed: "En espera de aprobación",
+      Approved: "Aprobada",
+      Rejected: "Rechazada",
+    },
+    entry: {
+      Open: "Con entrada marcada",
+      Closed: "Cerrado",
+    },
+    payPeriod: {
+      Open: "Abierto",
+      Closed: "Cerrado",
+      Posted: "Contabilizado",
+    },
+    payrollRun: {
+      Draft: "Borrador",
+      Calculated: "Calculada",
+      Approved: "Aprobada",
+      Exported: "Exportada",
+      Accepted: "Aceptada",
+      Canceled: "Cancelada",
+    },
+    timeOff: {
+      Proposed: "En espera de aprobación",
+      Approved: "Aprobado",
+      Rejected: "Rechazado",
+      Canceled: "Cancelado",
+    },
+    rateCard: {
+      Upcoming: "Próxima",
+      Current: "Vigente",
+      Ended: "Terminada",
+    },
+  },
+  kinds: {
+    shift: "Turno",
+    swap: "Intercambio de turno",
+    entry: "Registro de tiempo",
+    timesheet: "Hoja de horas",
+    rateCard: "Tabla de tarifas",
+    payPeriod: "Periodo de pago",
+    payrollRun: "Nómina",
+    timeOff: "Tiempo libre",
+  },
+  fields: {
+    project: "Proyecto",
+    person: "Persona",
+    role: "Rol",
+    when: "Cuándo",
+    timeZone: "Zona horaria",
+    hours: "Horas",
+    state: "Estado",
+    startsAt: "Inicio ({zone})",
+    endsAt: "Fin ({zone})",
+  },
+  common: {
+    unnamed: "Persona sin nombre",
+    noRole: "Sin rol",
+    edit: "Editar",
+    trash: "Mover a la papelera",
+    save: "Guardar",
+    allProjects: "Todos los proyectos",
+    allStates: "Todos los estados",
+    range: "{start} a {end}",
+    clearFilter: "Quitar el filtro",
+    pair: "{a} · {b}",
+  },
+  time: { clockedIn: "Con entrada marcada" },
+  payroll: {
+    secondApprover:
+      "Su aprobación quedó registrada. Esta nómina supera el umbral de doble aprobación, así que un segundo aprobador la termina.",
+  },
+  swaps: {
+    requestTitle: "Pedir el intercambio de este turno",
+    request: "Enviar solicitud de intercambio",
+    proposed: "Entregar el turno a",
+  },
+  shifts: {
+    openRow: "Turnos abiertos",
+    chipLabel: "Turno {state} en {project}",
+    person: "Persona",
+    weekHours: "Horas de la semana",
+    doubleBooked: "Turno duplicado",
+    overtimeRisk: "Riesgo de horas extra",
+    open: "Turno abierto",
+    openHelp: "Déjelo abierto para que el equipo lo reclame cuando se publique.",
+    publish: "Publicar",
+    publishTitle: "¿Publicar este turno para el equipo?",
+    publishReason: "Publicado para el equipo.",
+    unpublish: "Devolver a borrador",
+    unpublishTitle: "¿Devolver este turno a borrador?",
+    unpublishReason: "De vuelta a planificación.",
+    accept: "Aceptar turno",
+    acceptTitle: "¿Aceptar este turno?",
+    acceptReason: "Aceptado.",
+    claim: "Reclamar turno",
+    claimTitle: "¿Reclamar este turno abierto?",
+    claimReason: "Reclamado de los turnos abiertos.",
+    requestSwap: "Pedir intercambio",
+    clockIn: "Marcar entrada",
+    clockInTitle: "¿Marcar la entrada a este turno ahora?",
+    clockInReason: "Entrada marcada desde Atlas.",
+    clockOut: "Marcar salida",
+    clockOutTitle: "¿Marcar la salida ahora?",
+    clockOutReason: "Salida marcada desde Atlas.",
+    cancel: "Cancelar turno",
+    cancelTitle: "¿Cancelar este turno?",
+    cancelReason: "Ya no se necesita.",
+    trashTitle: "¿Mover este turno a la papelera?",
+    trashHelp:
+      "Sale de todas las vistas y se puede restaurar desde la papelera durante su periodo de retención.",
+    trashReason: "Movido a la papelera.",
+    entries: "Tiempo en este turno",
+    createTitle: "Nuevo turno",
+    create: "Nuevo turno",
+    editTitle: "Editar turno",
+    publishAll: "Publicar {count, plural, one {# borrador} other {# borradores}}",
+    publishAllTitle:
+      "¿Publicar {count, plural, one {# turno en borrador} other {# turnos en borrador}} para el equipo?",
+    weekNav: "Semana",
+    prevWeek: "Semana anterior",
+    nextWeek: "Semana siguiente",
+    prevMonth: "Mes anterior",
+    nextMonth: "Mes siguiente",
+    weekOf: "Semana del {date}",
+    emptyNoProjects:
+      "Los turnos pertenecen a un proyecto. Cree un proyecto primero y luego cubra sus días aquí.",
+    emptyWriter:
+      "No hay turnos en este periodo. Cree un turno y asígnele personal, o déjelo abierto para que el equipo lo reclame.",
+    emptyReader:
+      "No hay turnos en este periodo. Revise la semana siguiente o pida a su supervisor que publique la programación.",
+    goProjects: "Ir a Proyectos",
+    gridLabel: "Programación del equipo por persona y día",
+    tableCaption: "Turnos",
+    listLabel: "Turnos",
+    clashTitle: "{count, plural, one {# turno duplicado} other {# turnos duplicados}}",
+    clashBody:
+      "Alguien tiene turnos que se superponen. Reasigne uno antes de publicar; su segunda entrada será rechazada.",
+  },
+  swapsPage: {
+    title: "{from} a {to}",
+    approve: "Aprobar",
+    approveTitle: "¿Aprobar este intercambio y entregar el turno?",
+    approveReason: "Cobertura confirmada.",
+    reject: "Rechazar",
+    rejectTitle: "¿Rechazar este intercambio?",
+    rejectReason: "La cobertura no funciona para este turno.",
+    withdraw: "Retirar solicitud",
+    withdrawTitle: "¿Retirar su solicitud de intercambio?",
+    withdrawReason: "Ya no se necesita.",
+    requestedBy: "Pedido por",
+    openShift: "Abrir el turno",
+    empty:
+      "No hay solicitudes de intercambio. El equipo pide entregar un turno desde el propio turno.",
+    emptyFiltered:
+      "No hay intercambios en este estado. Quite el filtro para ver todas las solicitudes.",
+    viewShifts: "Ver turnos",
+    caption: "Intercambios de turno",
+  },
+  entries: {
+    title: "{name} · {day}",
+    requestCorrection: "Solicitar una corrección",
+    void: "Anular registro",
+    voidTitle: "¿Anular este registro de tiempo?",
+    voidHelp:
+      "El registro sale de la hoja de horas y de la nómina. El cambio queda auditado y se anula la aprobación de su hoja de horas.",
+    voidReason: "Registrado por error.",
+    clockIn: "Entrada",
+    clockOut: "Salida",
+    clockInZone: "Entrada ({zone})",
+    clockOutZone: "Salida ({zone})",
+    clockOutHelp: "Déjela en blanco mientras la persona sigue trabajando.",
+    break: "Descanso",
+    breakMinutes: "Minutos de descanso no pagados",
+    minutes: "{count, plural, one {# minuto} other {# minutos}}",
+    source: "Registrado desde",
+    sources: {
+      Web: "Atlas",
+      Mobile: "Compass",
+      Kiosk: "Quiosco",
+    },
+    corrections: "Correcciones",
+    correctionTo: "Cambiar a {start} a {end}, descanso de {minutes} minutos",
+    approveCorrection: "¿Aprobar esta corrección y reescribir el registro?",
+    approveCorrectionReason: "Coincide con la hoja de llamado.",
+    rejectCorrection: "¿Rechazar esta corrección?",
+    rejectCorrectionReason: "El registro queda como se marcó.",
+    pendingNote: "Una corrección espera a un aprobador de tiempo.",
+    audit: "Registro de auditoría",
+    auditCreated: "Registrado",
+    auditChanged: "Modificado",
+    createTitle: "Registrar tiempo",
+    create: "Registrar tiempo",
+    editTitle: "Editar registro de tiempo",
+    correctTitle: "Solicitar una corrección",
+    correctReason: "Por qué el registro es incorrecto",
+    emptyWriter:
+      "No hay tiempo registrado esta semana. El equipo marca la entrada desde Compass, o registre tiempo para alguien aquí.",
+    emptyReader:
+      "No hay tiempo registrado esta semana. Marque la entrada desde su turno en Compass o desde el turno aquí.",
+    caption: "Registros de tiempo",
+    weekTotal: "Semana",
+  },
+  sheets: {
+    title: "{name} · {hours} h",
+    submit: "Enviar para aprobación",
+    submitTitle: "¿Enviar esta hoja de horas para aprobación?",
+    submitReason: "Enviada para aprobación.",
+    approveTitle: "¿Aprobar {hours} horas?",
+    approveReason: "Coincide con la hoja de llamado.",
+    rejectTitle: "¿Rechazar esta hoja de horas?",
+    rejectReason: "Las horas necesitan otra revisión; vea los registros.",
+    period: "Periodo",
+    periodStart: "Primer día",
+    periodEnd: "Último día",
+    openTitle: "Un registro sigue con entrada marcada",
+    openBody: "Marque la salida de cada registro del periodo antes de enviar la hoja de horas.",
+    voidedTitle: "Se anuló una aprobación anterior",
+    voidedBody:
+      "Las horas cambiaron después de la aprobación, así que la hoja volvió a Borrador para enviarse de nuevo.",
+    entries: "Registros del periodo",
+    day: "Día",
+    total: "Total",
+    approvals: "Aprobaciones",
+    approvalStands: "{name} aprobó {hours} horas.",
+    approvalVoided: "{name} aprobó {hours} horas; se anuló cuando cambiaron las horas.",
+    createTitle: "Nueva hoja de horas",
+    create: "Nueva hoja de horas",
+    emptyWriter:
+      "Aún no hay hojas de horas. Abra una para una persona y un periodo; sus horas salen de sus registros de tiempo.",
+    emptyReader:
+      "Aún no hay hojas de horas. Los registros de tiempo se agrupan en hojas de horas para aprobación.",
+    viewEntries: "Ver registros de tiempo",
+    caption: "Hojas de horas",
+    waitingTitle:
+      "{count, plural, one {# hoja de horas espera} other {# hojas de horas esperan}} aprobación",
+    waitingBody:
+      "Abra cada una para revisar sus registros y luego apruébela o recházela. No puede aprobar la suya.",
+  },
+};
 var email_default = {
   common: {
     preview: "{orgName} en XOS",
@@ -9603,6 +10421,7 @@ var work_default = {
 //#region ../i18n/src/catalogs.generated.ts
 var enUS = {
   activity: activity_default$1,
+  crew: crew_default$1,
   email: email_default$1,
   home: home_default$1,
   nav: nav_default$1,
@@ -9618,6 +10437,7 @@ var enUS = {
 };
 var esUS = {
   activity: activity_default,
+  crew: crew_default,
   email: email_default,
   home: home_default,
   nav: nav_default,
