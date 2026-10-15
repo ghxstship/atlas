@@ -25,3 +25,8 @@ Sheet
 Table
 Trash2
 Users
+ArrowLeft
+BookOpen
+CircleHelp
+LifeBuoy
+Play

@@ -32,6 +32,7 @@ import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
 import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
 import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
+import { HelpCenter, helpCommandItems, openHelpArticle } from "@/components/help/help-center";
 import { broadcast, SessionWatcher } from "./session-watcher";
 
 export interface ShellFrameProps {
@@ -272,6 +273,7 @@ export function ShellFrame(props: ShellFrameProps) {
         header={
           <>
             <Breadcrumbs items={crumbs} />
+            <HelpCenter org={org.slug} />
             <DropdownMenu
               label={t("shell.chrome.account")}
               icon="CircleUserRound"
@@ -305,17 +307,30 @@ export function ShellFrame(props: ShellFrameProps) {
         open={commandOpen}
         onOpenChange={setCommandOpen}
         placeholder={t("shell.chrome.searchHint")}
-        groups={nav.commands.map((g) => ({
-          label: g.label,
-          items: g.items.map((item) => ({
-            label: item.label,
-            icon: item.icon,
-            onSelect: () => {
-              setCommandOpen(false);
-              go(item.href);
-            },
+        groups={[
+          ...nav.commands.map((g) => ({
+            label: g.label,
+            items: g.items.map((item) => ({
+              label: item.label,
+              icon: item.icon,
+              onSelect: () => {
+                setCommandOpen(false);
+                go(item.href);
+              },
+            })),
           })),
-        }))}
+          {
+            label: t("help.title"),
+            items: helpCommandItems(props.locale).map((a) => ({
+              label: a.title,
+              icon: "BookOpen",
+              onSelect: () => {
+                setCommandOpen(false);
+                openHelpArticle(a.slug);
+              },
+            })),
+          },
+        ]}
       />
       <form
         ref={signOutForm}

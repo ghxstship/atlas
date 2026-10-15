@@ -4614,6 +4614,189 @@ var gateway_default$1 = {
     },
   },
 };
+var help_default$1 = {
+  button: "Help",
+  title: "Help",
+  search: "Search help",
+  searchHint: "Search articles",
+  searchEmpty: "No articles match {query}. Try another word, or contact support below.",
+  searchResults: "Articles matching {query}",
+  forThisPage: "For this page",
+  noArticles: "This page has no article of its own yet. The general articles below still apply.",
+  general: "Everywhere in Atlas",
+  back: "Back to help",
+  related: "Related",
+  loadFailed:
+    "Your tours and tips could not be loaded. Help articles still work; reopen Help to try again.",
+  kinds: {
+    guide: "Guide",
+    page: "Page",
+    workflow: "Workflow",
+    glossary: "Glossary",
+  },
+  shortcuts: {
+    title: "Keyboard shortcuts",
+    command: "Open the command menu",
+    help: "Open help for this page",
+    focus: "Turn focus mode on or off",
+    close: "Close a menu, dialog or peek",
+    move: "Move between rows",
+    open: "Open the focused record",
+    select: "Select the focused row",
+    all: "All shortcuts",
+  },
+  whatsNew: {
+    title: "What's new",
+    "saved-views": {
+      title: "Saved views on every collection",
+      body: "Save the view, filters and sort you use, share them with your team, and open them by default.",
+    },
+    "contextual-help": {
+      title: "Help for every page",
+      body: "Press ? on any page for its articles, shortcuts and tours.",
+    },
+    "support-requests": {
+      title: "Support requests with diagnostics",
+      body: "Contact your admins from Help and follow the answer in Me, Account.",
+    },
+  },
+  tours: {
+    title: "Guided tours",
+    none: "No tour covers this page. Tours for other pages are offered when you open them.",
+    replay: "Replay {title}",
+    start: "Start {title}",
+    offerTitle: "Take a quick tour?",
+    offerBody: "{title}: {summary}",
+    offerStart: "Start tour",
+    offerLater: "Not now",
+    step: "Step {current} of {total}",
+    next: "Next",
+    previous: "Back",
+    finish: "Finish",
+    skip: "End tour",
+    label: "Guided tour",
+    "atlas_getting-started": {
+      title: "Getting started",
+      summary: "Four steps through navigation, help and the command menu.",
+      steps: {
+        1: {
+          title: "Welcome to Atlas",
+          body: "This tour shows where things are. You can end it at any time and replay it from Help.",
+        },
+        2: {
+          title: "Navigation",
+          body: "Everything you can open is in the sidebar. Groups that match your role start expanded.",
+        },
+        3: {
+          title: "Help on every page",
+          body: "Press ? or choose Help for the articles, shortcuts and support for the page you are on.",
+        },
+        4: {
+          title: "The command menu",
+          body: "Press Mod+K or / and type the name of any page to go there.",
+        },
+      },
+    },
+    module_collections: {
+      title: "Working with collections",
+      summary: "Views, filters and saved views in three steps.",
+      steps: {
+        1: {
+          title: "One collection, many views",
+          body: "Each collection offers only the views that fit its data: list, table, board, calendar or map.",
+        },
+        2: {
+          title: "Switch views",
+          body: "Use the view switcher. Your filters, sort and search stay as they are.",
+        },
+        3: {
+          title: "Save a view",
+          body: "Open Saved views to save what you see, share it with a team, or open it by default.",
+        },
+      },
+    },
+    module_crew: {
+      title: "Crew and time",
+      summary: "Shifts, timesheets and payroll in three steps.",
+      steps: {
+        1: {
+          title: "The resource schedule",
+          body: "Shifts show people down the side and time across. Publish shifts so crew can accept them in Compass.",
+        },
+        2: {
+          title: "Time from Compass",
+          body: "Crew clock in inside the venue geofence. Supervisors approve timesheets; later changes void the approval.",
+        },
+        3: {
+          title: "Payroll",
+          body: "Export payroll for a pay period and post it. A posted period stays closed.",
+        },
+      },
+    },
+  },
+  tips: {
+    label: "Tip",
+    learnMore: "Learn more",
+    dismiss: "Dismiss tip",
+    gates: {
+      title: "Gates guard each phase",
+      body: "A gate passes only when its blocking criteria are met. Hover over a gate chip for its definition.",
+    },
+    "access-grid": {
+      title: "Change access cell by cell",
+      body: "Move with the arrow keys and press Space to allow or deny a category in a zone.",
+    },
+    "resource-schedule": {
+      title: "Read the resource schedule",
+      body: "People run down the side and time runs across. Switch to the table view for the same shifts as rows.",
+    },
+    "saved-views": {
+      title: "Save the view you need",
+      body: "Set your filters, then open Saved views to keep them, share them or open them by default.",
+    },
+    reconciliation: {
+      title: "Gaps feed the next gate",
+      body: "A rider requirement the venue cannot meet, or one marked UNKNOWN on a critical item, shows as a gate gap.",
+    },
+  },
+  contact: {
+    title: "Contact support",
+    description: "Your request goes to your organization's admins, who answer in the request.",
+    open: "Contact support",
+    queue: "Send to",
+    queues: {
+      Organization: "My organization's admins",
+      Platform: "The platform support team",
+    },
+    platformTerms: "Platform support for your plan: {terms}",
+    category: "Category",
+    severity: "Severity",
+    subject: "Subject",
+    subjectHint: "Scanner shows an unknown zone",
+    body: "What happened, and what do you need?",
+    bodyHint: "Steps you took, what you expected and what you saw",
+    diagnostics: "Attach diagnostics",
+    diagnosticsHelp: "Only the details listed below are sent, and only if you tick the box.",
+    diagnosticsRoute: "Page",
+    diagnosticsVersion: "App version",
+    diagnosticsDevice: "Browser and device",
+    diagnosticsErrors: "Recent errors",
+    diagnosticsNoErrors: "No errors recorded on this visit",
+    send: "Send request",
+    cancel: "Cancel",
+    sent: "Request {number} sent. Follow it in Me, Account.",
+    followUp: "Open my requests",
+    required: "Fill in the subject and the description to send the request.",
+    errors: {
+      denied:
+        "You cannot send this request. Only org admins contact platform support; send it to your admins instead.",
+      noChannel:
+        "Your plan includes the help center and community forum. Upgrade to contact platform support.",
+      invalid: "The request is missing something. Check the subject and description.",
+      unexpected: "The request could not be sent. Try again in a moment.",
+    },
+  },
+};
 var home_default$1 = {
   dashboard: {
     activeProjects: "Active projects",
@@ -8911,6 +9094,128 @@ var show_default$1 = {
     table: "Table",
     timeline: "Timeline",
     calendar: "Calendar",
+  },
+};
+var support_default$1 = {
+  categories: {
+    Question: "Question",
+    Problem: "Problem",
+    Access: "Access",
+    Billing: "Billing",
+    Account: "Account",
+    "Feature Request": "Feature request",
+  },
+  severities: {
+    "Severity 1": "Severity 1: production is down",
+    "Severity 2": "Severity 2: a major feature is broken",
+    "Severity 3": "Severity 3: a problem with a workaround",
+    "Severity 4": "Severity 4: a question",
+  },
+  states: {
+    Open: "Open",
+    Waiting: "Waiting on requester",
+    Resolved: "Resolved",
+    Closed: "Closed",
+  },
+  channels: {
+    "In App": "In app",
+    Email: "Email, first response within 2 business days",
+    Chat: "Email and in-app chat, first response within 1 business day",
+    "Priority Queue": "Priority queue, first response within 8 business hours",
+    "Dedicated Channel": "Dedicated channel, 1 hour for severity 1",
+  },
+  queues: {
+    Organization: "Organization",
+    Platform: "Platform",
+  },
+  columns: {
+    number: "Request",
+    subject: "Subject",
+    requester: "Asked by",
+    queue: "Queue",
+    state: "State",
+    opened: "Opened",
+    due: "First response due",
+  },
+  bestEffort: "Best effort",
+  platformTeam: "Platform support team",
+  unknownPerson: "A member",
+  org: {
+    title: "Support requests",
+    description:
+      "Requests from members to the admins, and requests the admins sent to the platform team.",
+    filter: "Show",
+    filters: {
+      open: "Open and waiting",
+      Organization: "Organization queue",
+      Platform: "Platform queue",
+      all: "All requests",
+    },
+    empty: "No support requests yet. Members send requests from Help, Contact support.",
+    emptyFiltered: "No requests match this filter. Choose All requests to see every request.",
+    contactPlatform: "Contact platform support",
+    noPlatform:
+      "Your plan includes the help center and community forum. Upgrade to Core or above to contact platform support.",
+    terms: "Your plan: {terms}",
+    readOnly:
+      "You can see support requests but not answer them. Ask an admin with Help and support access.",
+  },
+  mine: {
+    title: "My support requests",
+    description: "Requests you sent to your organization's admins or to the platform team.",
+    empty:
+      "You have not sent a support request. Press ? and choose Contact support when you need help.",
+  },
+  ticket: {
+    title: "{number}: {subject}",
+    open: "Open {number}",
+    close: "Close request",
+    details: "Details",
+    diagnostics: "Diagnostics",
+    consented: "Sent with consent on {date}",
+    noDiagnostics: "No diagnostics were attached.",
+    conversation: "Conversation",
+    noMessages: "No replies yet.",
+    reply: "Reply",
+    replyHint: "Write a reply",
+    send: "Send reply",
+    closedNote: "This request is closed. Send a new request if you still need help.",
+    move: "Change state",
+    reason: "Reason",
+    reasonHint: "Why the state changes",
+    moveTo: "Move to {state}",
+    loading: "Loading the request",
+    notFound: "This request no longer exists or you can no longer see it.",
+    loadFailed: "The request could not be loaded. Close it and try again.",
+    replied: "Reply sent.",
+    moved: "Moved to {state}.",
+  },
+  errors: {
+    denied: "You cannot do that on this request. Only the requester and its responders can.",
+    closed: "This request is closed and takes no more replies.",
+    invalid: "Something is missing. Write a reply or a reason first.",
+    conflict: "The request changed while you were looking at it. Reload to see its current state.",
+    unexpected: "Support could not be reached. Try again in a moment.",
+    loadFailed: "Support requests could not be loaded. Reload the page to try again.",
+  },
+  preferences: {
+    title: "Tours and tips",
+    description:
+      "Guided tours are offered once and tips are shown once. Replay a tour or show every tip again.",
+    tour: "{title}",
+    state: {
+      none: "Not offered yet",
+      Offered: "Offered",
+      Started: "Started",
+      Completed: "Completed",
+      Dismissed: "Not taken",
+    },
+    replay: "Replay",
+    resetTips: "Show all tips again",
+    tipsDismissed:
+      "{count, plural, =0 {No tips dismissed} one {# tip dismissed} other {# tips dismissed}}",
+    resetDone: "Tips will show again on the pages they belong to.",
+    replayReady: "The tour starts when you open its page.",
   },
 };
 var ui_default$1 = {
@@ -13850,6 +14155,192 @@ var gateway_default = {
     },
   },
 };
+var help_default = {
+  button: "Ayuda",
+  title: "Ayuda",
+  search: "Buscar en la ayuda",
+  searchHint: "Buscar artículos",
+  searchEmpty:
+    "Ningún artículo coincide con {query}. Pruebe otra palabra o contacte a soporte más abajo.",
+  searchResults: "Artículos que coinciden con {query}",
+  forThisPage: "Para esta página",
+  noArticles:
+    "Esta página todavía no tiene un artículo propio. Los artículos generales siguen aplicando.",
+  general: "En todo Atlas",
+  back: "Volver a la ayuda",
+  related: "Relacionado",
+  loadFailed:
+    "No se pudieron cargar sus recorridos y consejos. Los artículos funcionan; vuelva a abrir la Ayuda para intentarlo de nuevo.",
+  kinds: {
+    guide: "Guía",
+    page: "Página",
+    workflow: "Flujo de trabajo",
+    glossary: "Glosario",
+  },
+  shortcuts: {
+    title: "Atajos de teclado",
+    command: "Abrir el menú de comandos",
+    help: "Abrir la ayuda de esta página",
+    focus: "Activar o desactivar el modo de enfoque",
+    close: "Cerrar un menú, diálogo o panel",
+    move: "Moverse entre filas",
+    open: "Abrir el registro enfocado",
+    select: "Seleccionar la fila enfocada",
+    all: "Todos los atajos",
+  },
+  whatsNew: {
+    title: "Novedades",
+    "saved-views": {
+      title: "Vistas guardadas en cada colección",
+      body: "Guarde la vista, los filtros y el orden que usa, compártalos con su equipo y ábralos de forma predeterminada.",
+    },
+    "contextual-help": {
+      title: "Ayuda para cada página",
+      body: "Pulse ? en cualquier página para ver sus artículos, atajos y recorridos.",
+    },
+    "support-requests": {
+      title: "Solicitudes de soporte con diagnósticos",
+      body: "Contacte a sus administradores desde la Ayuda y siga la respuesta en Yo, Cuenta.",
+    },
+  },
+  tours: {
+    title: "Recorridos guiados",
+    none: "Ningún recorrido cubre esta página. Los recorridos de otras páginas se ofrecen al abrirlas.",
+    replay: "Repetir {title}",
+    start: "Iniciar {title}",
+    offerTitle: "¿Hacer un recorrido rápido?",
+    offerBody: "{title}: {summary}",
+    offerStart: "Iniciar recorrido",
+    offerLater: "Ahora no",
+    step: "Paso {current} de {total}",
+    next: "Siguiente",
+    previous: "Atrás",
+    finish: "Terminar",
+    skip: "Terminar recorrido",
+    label: "Recorrido guiado",
+    "atlas_getting-started": {
+      title: "Primeros pasos",
+      summary: "Cuatro pasos por la navegación, la ayuda y el menú de comandos.",
+      steps: {
+        1: {
+          title: "Bienvenido a Atlas",
+          body: "Este recorrido muestra dónde está cada cosa. Puede terminarlo en cualquier momento y repetirlo desde la Ayuda.",
+        },
+        2: {
+          title: "Navegación",
+          body: "Todo lo que puede abrir está en la barra lateral. Los grupos de su rol aparecen expandidos.",
+        },
+        3: {
+          title: "Ayuda en cada página",
+          body: "Pulse ? o elija Ayuda para ver los artículos, atajos y soporte de la página actual.",
+        },
+        4: {
+          title: "El menú de comandos",
+          body: "Pulse Mod+K o / y escriba el nombre de cualquier página para ir a ella.",
+        },
+      },
+    },
+    module_collections: {
+      title: "Trabajar con colecciones",
+      summary: "Vistas, filtros y vistas guardadas en tres pasos.",
+      steps: {
+        1: {
+          title: "Una colección, muchas vistas",
+          body: "Cada colección ofrece solo las vistas que corresponden a sus datos: lista, tabla, tablero, calendario o mapa.",
+        },
+        2: {
+          title: "Cambie de vista",
+          body: "Use el selector de vistas. Sus filtros, orden y búsqueda se mantienen.",
+        },
+        3: {
+          title: "Guarde una vista",
+          body: "Abra Vistas guardadas para guardar lo que ve, compartirlo con un equipo o abrirlo de forma predeterminada.",
+        },
+      },
+    },
+    module_crew: {
+      title: "Equipo y tiempo",
+      summary: "Turnos, hojas de horas y nómina en tres pasos.",
+      steps: {
+        1: {
+          title: "El programa de recursos",
+          body: "Los turnos muestran personas a un lado y el tiempo a lo largo. Publique turnos para que el equipo los acepte en Compass.",
+        },
+        2: {
+          title: "Tiempo desde Compass",
+          body: "El equipo marca entrada dentro de la geocerca. Los supervisores aprueban hojas de horas; los cambios posteriores anulan la aprobación.",
+        },
+        3: {
+          title: "Nómina",
+          body: "Exporte la nómina de un período y publíquela. Un período publicado permanece cerrado.",
+        },
+      },
+    },
+  },
+  tips: {
+    label: "Consejo",
+    learnMore: "Más información",
+    dismiss: "Descartar consejo",
+    gates: {
+      title: "Las puertas protegen cada fase",
+      body: "Una puerta pasa solo cuando se cumplen sus criterios bloqueantes. Pase el puntero sobre un chip de puerta para ver su definición.",
+    },
+    "access-grid": {
+      title: "Cambie el acceso celda por celda",
+      body: "Muévase con las flechas y pulse Espacio para permitir o denegar una categoría en una zona.",
+    },
+    "resource-schedule": {
+      title: "Lea el programa de recursos",
+      body: "Las personas van a un lado y el tiempo a lo largo. Cambie a la vista de tabla para ver los mismos turnos como filas.",
+    },
+    "saved-views": {
+      title: "Guarde la vista que necesita",
+      body: "Defina sus filtros y abra Vistas guardadas para conservarlos, compartirlos o abrirlos de forma predeterminada.",
+    },
+    reconciliation: {
+      title: "Las brechas alimentan la próxima puerta",
+      body: "Un requisito del rider que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como brecha.",
+    },
+  },
+  contact: {
+    title: "Contactar a soporte",
+    description:
+      "Su solicitud llega a los administradores de su organización, que responden en la solicitud.",
+    open: "Contactar a soporte",
+    queue: "Enviar a",
+    queues: {
+      Organization: "Los administradores de mi organización",
+      Platform: "El equipo de soporte de la plataforma",
+    },
+    platformTerms: "Soporte de la plataforma para su plan: {terms}",
+    category: "Categoría",
+    severity: "Severidad",
+    subject: "Asunto",
+    subjectHint: "El escáner muestra una zona desconocida",
+    body: "¿Qué ocurrió y qué necesita?",
+    bodyHint: "Los pasos que siguió, lo que esperaba y lo que vio",
+    diagnostics: "Adjuntar diagnósticos",
+    diagnosticsHelp: "Solo se envían los datos indicados abajo, y solo si marca la casilla.",
+    diagnosticsRoute: "Página",
+    diagnosticsVersion: "Versión de la aplicación",
+    diagnosticsDevice: "Navegador y dispositivo",
+    diagnosticsErrors: "Errores recientes",
+    diagnosticsNoErrors: "No se registraron errores en esta visita",
+    send: "Enviar solicitud",
+    cancel: "Cancelar",
+    sent: "Se envió la solicitud {number}. Sígala en Yo, Cuenta.",
+    followUp: "Abrir mis solicitudes",
+    required: "Complete el asunto y la descripción para enviar la solicitud.",
+    errors: {
+      denied:
+        "No puede enviar esta solicitud. Solo los administradores contactan al soporte de la plataforma; envíela a sus administradores.",
+      noChannel:
+        "Su plan incluye el centro de ayuda y el foro de la comunidad. Cambie de plan para contactar al soporte de la plataforma.",
+      invalid: "Falta información en la solicitud. Revise el asunto y la descripción.",
+      unexpected: "No se pudo enviar la solicitud. Inténtelo de nuevo en un momento.",
+    },
+  },
+};
 var home_default = {
   dashboard: {
     activeProjects: "Proyectos activos",
@@ -18261,6 +18752,131 @@ var show_default = {
     calendar: "Calendario",
   },
 };
+var support_default = {
+  categories: {
+    Question: "Pregunta",
+    Problem: "Problema",
+    Access: "Acceso",
+    Billing: "Facturación",
+    Account: "Cuenta",
+    "Feature Request": "Solicitud de función",
+  },
+  severities: {
+    "Severity 1": "Severidad 1: la producción no funciona",
+    "Severity 2": "Severidad 2: una función principal no funciona",
+    "Severity 3": "Severidad 3: un problema con solución alternativa",
+    "Severity 4": "Severidad 4: una pregunta",
+  },
+  states: {
+    Open: "Abierta",
+    Waiting: "En espera del solicitante",
+    Resolved: "Resuelta",
+    Closed: "Cerrada",
+  },
+  channels: {
+    "In App": "En la aplicación",
+    Email: "Correo, primera respuesta en 2 días hábiles",
+    Chat: "Correo y chat en la aplicación, primera respuesta en 1 día hábil",
+    "Priority Queue": "Cola prioritaria, primera respuesta en 8 horas hábiles",
+    "Dedicated Channel": "Canal dedicado, 1 hora para severidad 1",
+  },
+  queues: {
+    Organization: "Organización",
+    Platform: "Plataforma",
+  },
+  columns: {
+    number: "Solicitud",
+    subject: "Asunto",
+    requester: "Solicitada por",
+    queue: "Cola",
+    state: "Estado",
+    opened: "Abierta el",
+    due: "Primera respuesta antes de",
+  },
+  bestEffort: "Mejor esfuerzo",
+  platformTeam: "Equipo de soporte de la plataforma",
+  unknownPerson: "Un miembro",
+  org: {
+    title: "Solicitudes de soporte",
+    description:
+      "Solicitudes de los miembros a los administradores y solicitudes que los administradores enviaron al equipo de la plataforma.",
+    filter: "Mostrar",
+    filters: {
+      open: "Abiertas y en espera",
+      Organization: "Cola de la organización",
+      Platform: "Cola de la plataforma",
+      all: "Todas las solicitudes",
+    },
+    empty:
+      "Todavía no hay solicitudes de soporte. Los miembros las envían desde Ayuda, Contactar a soporte.",
+    emptyFiltered:
+      "Ninguna solicitud coincide con este filtro. Elija Todas las solicitudes para verlas todas.",
+    contactPlatform: "Contactar al soporte de la plataforma",
+    noPlatform:
+      "Su plan incluye el centro de ayuda y el foro de la comunidad. Cambie a Core o superior para contactar al soporte de la plataforma.",
+    terms: "Su plan: {terms}",
+    readOnly:
+      "Puede ver las solicitudes de soporte pero no responderlas. Pida ayuda a un administrador con acceso a Ayuda y soporte.",
+  },
+  mine: {
+    title: "Mis solicitudes de soporte",
+    description:
+      "Solicitudes que envió a los administradores de su organización o al equipo de la plataforma.",
+    empty:
+      "No ha enviado solicitudes de soporte. Pulse ? y elija Contactar a soporte cuando necesite ayuda.",
+  },
+  ticket: {
+    title: "{number}: {subject}",
+    open: "Abrir {number}",
+    close: "Cerrar solicitud",
+    details: "Detalles",
+    diagnostics: "Diagnósticos",
+    consented: "Enviados con consentimiento el {date}",
+    noDiagnostics: "No se adjuntaron diagnósticos.",
+    conversation: "Conversación",
+    noMessages: "Todavía no hay respuestas.",
+    reply: "Responder",
+    replyHint: "Escriba una respuesta",
+    send: "Enviar respuesta",
+    closedNote: "Esta solicitud está cerrada. Envíe una nueva si todavía necesita ayuda.",
+    move: "Cambiar estado",
+    reason: "Motivo",
+    reasonHint: "Por qué cambia el estado",
+    moveTo: "Pasar a {state}",
+    loading: "Cargando la solicitud",
+    notFound: "Esta solicitud ya no existe o ya no puede verla.",
+    loadFailed: "No se pudo cargar la solicitud. Ciérrela e inténtelo de nuevo.",
+    replied: "Respuesta enviada.",
+    moved: "Pasó a {state}.",
+  },
+  errors: {
+    denied: "No puede hacer eso en esta solicitud. Solo el solicitante y sus responsables pueden.",
+    closed: "Esta solicitud está cerrada y no admite más respuestas.",
+    invalid: "Falta algo. Escriba primero una respuesta o un motivo.",
+    conflict: "La solicitud cambió mientras la veía. Vuelva a cargar para ver su estado actual.",
+    unexpected: "No se pudo acceder a soporte. Inténtelo de nuevo en un momento.",
+    loadFailed: "No se pudieron cargar las solicitudes de soporte. Vuelva a cargar la página.",
+  },
+  preferences: {
+    title: "Recorridos y consejos",
+    description:
+      "Los recorridos guiados se ofrecen una vez y los consejos se muestran una vez. Repita un recorrido o vuelva a mostrar todos los consejos.",
+    tour: "{title}",
+    state: {
+      none: "Aún no ofrecido",
+      Offered: "Ofrecido",
+      Started: "Iniciado",
+      Completed: "Completado",
+      Dismissed: "No realizado",
+    },
+    replay: "Repetir",
+    resetTips: "Volver a mostrar todos los consejos",
+    tipsDismissed:
+      "{count, plural, =0 {Ningún consejo descartado} one {# consejo descartado} other {# consejos descartados}}",
+    resetDone: "Los consejos volverán a mostrarse en sus páginas.",
+    replayReady: "El recorrido comienza cuando abra su página.",
+  },
+};
 var ui_default = {
   access: {
     allowed: "{cat} en {zone}: permitido",
@@ -19573,6 +20189,7 @@ var enUS = {
   crew: crew_default$1,
   email: email_default$1,
   gateway: gateway_default$1,
+  help: help_default$1,
   home: home_default$1,
   hospitality: hospitality_default$1,
   incidents: incidents_default$1,
@@ -19588,6 +20205,7 @@ var enUS = {
   settings: settings_default$1,
   shell: shell_default$1,
   show: show_default$1,
+  support: support_default$1,
   ui: ui_default$1,
   views: views_default$1,
   work: work_default$1,
@@ -19601,6 +20219,7 @@ var esUS = {
   crew: crew_default,
   email: email_default,
   gateway: gateway_default,
+  help: help_default,
   home: home_default,
   hospitality: hospitality_default,
   incidents: incidents_default,
@@ -19616,6 +20235,7 @@ var esUS = {
   settings: settings_default,
   shell: shell_default,
   show: show_default,
+  support: support_default,
   ui: ui_default,
   views: views_default,
   work: work_default,
