@@ -38065,6 +38065,14 @@ export type Database = {
         Args: { p_engagement_id: string; p_record_id: string };
         Returns: string;
       };
+      add_incident_media: {
+        Args: { p_captured_at?: string; p_id?: string; p_incident_id: string; p_media_uri: string };
+        Returns: string;
+      };
+      add_incident_party: {
+        Args: { p_description: string; p_id?: string; p_incident_id: string; p_person_id?: string };
+        Returns: string;
+      };
       add_marshalling_entry: {
         Args: { p_entry: string; p_project_id: string; p_shipment_id?: string; p_zone_id?: string };
         Returns: string;
@@ -38484,6 +38492,10 @@ export type Database = {
         Returns: string;
       };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
+      dispatch_responder: {
+        Args: { p_id?: string; p_incident_id: string; p_membership_id: string };
+        Returns: string;
+      };
       end_account_membership: { Args: { p_account_membership_id: string }; Returns: undefined };
       end_membership: { Args: { p_membership_id: string }; Returns: undefined };
       engaged_person_name: { Args: { p_engagement_id: string }; Returns: string };
@@ -38569,6 +38581,7 @@ export type Database = {
       };
       leave_organization: { Args: { p_org_id: string }; Returns: undefined };
       lock_baseline: { Args: { p_baseline_id: string }; Returns: number };
+      mark_dispatch_arrived: { Args: { p_dispatch_assignment_id: string }; Returns: string };
       mark_notifications_read: { Args: { p_before?: string; p_org_id: string }; Returns: number };
       mark_thread_read: {
         Args: { p_engagement_thread_id: string; p_party_thread_id: string };
@@ -38896,6 +38909,26 @@ export type Database = {
       reply_address_local_part: {
         Args: { p_person_id: string; p_subject_id: string };
         Returns: string;
+      };
+      report_incident: {
+        Args: {
+          p_accuracy_m?: number;
+          p_device_reported_at?: string;
+          p_id?: string;
+          p_latitude?: number;
+          p_longitude?: number;
+          p_occurred_at: string;
+          p_project_id: string;
+          p_severity_enum_id: string;
+          p_title: string;
+          p_zone_id?: string;
+        };
+        Returns: {
+          id: string;
+          incident_number: number;
+          incident_state: Database["app"]["Enums"]["incident_state"];
+          replayed: boolean;
+        }[];
       };
       request_client_approval: {
         Args: {
