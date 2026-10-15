@@ -528,6 +528,9 @@ export interface LiveActivityProps extends NativeBaseProps {
   /** On break: the first action becomes End Break. */
   onBreak?: boolean;
   labels: { break: string; endBreak: string; clockOut: string };
+  /** Break, or End Break while on break. */
+  onToggleBreak?: () => void;
+  onClockOut?: () => void;
 }
 
 export interface ForceUpdateScreenProps extends NativeBaseProps {

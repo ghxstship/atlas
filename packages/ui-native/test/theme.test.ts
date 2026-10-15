@@ -92,6 +92,6 @@ describe("published component list", () => {
       "UpNextCard",
     ]);
     expect(nativeComponentStatus.ThemeProvider).toBe("shipped");
-    expect(nativeComponentStatus.SignaturePad).toBe("published");
+    expect(Object.values(nativeComponentStatus).every((s) => s === "shipped")).toBe(true);
   });
 });
