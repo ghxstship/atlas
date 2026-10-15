@@ -76,9 +76,20 @@ export function ActionForm({
           {submitLabel}
         </Button>
         <p role="status" className="m-0 text-text-13 text-success-text">
-          {state.ok && successKey ? root(successKey, state.result ?? {}) : null}
+          {state.ok && successKey ? root(successKey, messageValues(state.result)) : null}
         </p>
       </div>
     </form>
   );
+}
+
+/** Action results travel as strings; counts become numbers again so ICU plurals select by them. */
+function messageValues(
+  result: Readonly<Record<string, string>> | undefined,
+): Record<string, string | number> {
+  const values: Record<string, string | number> = {};
+  for (const [key, value] of Object.entries(result ?? {})) {
+    values[key] = key === "count" ? Number(value) : value;
+  }
+  return values;
 }
