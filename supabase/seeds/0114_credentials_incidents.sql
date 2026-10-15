@@ -1,7 +1,7 @@
 -- 0114_credentials_incidents.sql
 -- A14 Credentials and Safety incidents (Section 19.6: the demo tenant exercises the feature). On the demo
 -- project (NWS, Northwind Summer Series):
---   * the Harborside Park Lawn venue with three zones (LAWN, VIP, FOH-PARK)
+--   * the Bayside Festival Grounds venue with three zones (LAWN, VIP, FOH-PARK)
 --   * four credential categories (ALL-ACCESS, PRODUCTION, VENDOR, ARTIST) and an access grid over the
 --     lawn zones, with one past window so the matrix shows both open and closed access
 --   * badges for the Demo Admin, the Demo Producer and the external crew person, one of them revoked
@@ -66,7 +66,7 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', c_owner, 'role', 'authenticated')::text, true);
 
   insert into app.venues (id, org_id, name, jurisdiction_id, time_zone, street_address, locality)
-  values (c_venue, c_org, 'Harborside Park Lawn', v_jurisdiction, 'America/New_York', '200 Bayshore Drive', 'Miami');
+  values (c_venue, c_org, 'Bayside Festival Grounds', v_jurisdiction, 'America/New_York', '200 Bayshore Drive', 'Miami');
   insert into app.zones (id, org_id, venue_id, code, name) values
     (c_zone_lawn, c_org, c_venue, 'LAWN', 'Festival Lawn'),
     (c_zone_vip, c_org, c_venue, 'VIP', 'VIP Terrace'),
