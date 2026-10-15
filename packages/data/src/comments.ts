@@ -1,5 +1,5 @@
-import type { Database, XosClient } from "./client";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Comments repository (Section 7.3: one unified comment system for every module). Threads and comments

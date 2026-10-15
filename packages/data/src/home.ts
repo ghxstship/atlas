@@ -1,6 +1,6 @@
-import type { XosClient } from "./client";
-import type { CriterionStatus, GateCriterion, Phase, ProjectSummary } from "./projects";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { XosClient } from "./client.ts";
+import type { CriterionStatus, GateCriterion, Phase, ProjectSummary } from "./projects.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Home repository (Section 4.2 Home, Section 4.5.5): what needs the person today, gate readiness

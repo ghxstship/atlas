@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createCallerClient } from "../src/client";
+import { createCallerClient } from "../src/client.ts";
 
 describe("createCallerClient", () => {
   it("sends the caller's token on every request and reads the app schema", async () => {

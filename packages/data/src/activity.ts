@@ -1,6 +1,6 @@
-import type { XosClient } from "./client";
-import { untypedRpc } from "./projects";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { XosClient } from "./client.ts";
+import { untypedRpc } from "./projects.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Activity repository (Section 4.2 Activity): the user-facing feed, read through

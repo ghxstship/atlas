@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { listActivity, listAuditEvents } from "../src/activity";
+import { listActivity, listAuditEvents } from "../src/activity.ts";
 import {
   listBlockedRecords,
   listMyOverdueRecords,
   listMyRecordsBetween,
   listRecentRecords,
   summarizeReadiness,
-} from "../src/home";
-import type { CriterionStatus, GateCriterion, Phase, ProjectSummary } from "../src/projects";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/home.ts";
+import type { CriterionStatus, GateCriterion, Phase, ProjectSummary } from "../src/projects.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const FEED_ROW = {
   id: "a1",

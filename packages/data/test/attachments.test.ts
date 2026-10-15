@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { XosClient } from "../src/client";
+import type { XosClient } from "../src/client.ts";
 import {
   beginUpload,
   completeUpload,
@@ -9,8 +9,8 @@ import {
   sha256Hex,
   uploadAttachment,
   type AttachmentVersion,
-} from "../src/attachments";
-import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client";
+} from "../src/attachments.ts";
+import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client.ts";
 
 const subject = { table: "app.documents", id: "doc-1" };
 

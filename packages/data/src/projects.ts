@@ -1,6 +1,6 @@
-import type { Database, XosClient } from "./client";
-import { Constants } from "./database.types";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { Constants } from "./database.types.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Projects repository (Section 4.2 Projects, Section 4.5.1, Section 3.4): projects with their

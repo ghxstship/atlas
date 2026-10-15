@@ -30,8 +30,8 @@ import {
   setSectionVisibility,
   updateMyProfile,
   updateOrganizationProfile,
-} from "../src/profiles";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/profiles.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const down = () => errorResponse("08000", "down");
 const profileRow = {

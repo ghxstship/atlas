@@ -22,8 +22,8 @@ import {
   setModuleEnabled,
   setPersonalSetting,
   setSetting,
-} from "../src/settings";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/settings.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const refusal = () =>
   errorResponse("XR001", "setting_locked: The org locked it.", "setting_locked");

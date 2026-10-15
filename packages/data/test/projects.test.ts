@@ -33,8 +33,8 @@ import {
   updateProject,
   updateScopeNode,
   withdrawEvidence,
-} from "../src/projects";
-import { errorResponse, fakeClient, okResponse } from "./fake-client";
+} from "../src/projects.ts";
+import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 const PROJECT_ROW = {
   id: "p1",

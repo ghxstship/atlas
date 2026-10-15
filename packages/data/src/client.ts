@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "./database.types";
+import type { Database } from "./database.types.ts";
 
 /**
  * The typed Supabase client every repository function takes. The apps create it (Atlas through
