@@ -43,16 +43,6 @@
       "sentence": "Something went wrong while loading. Try again; if it keeps failing, check your connection.",
       "action": "Try again"
     },
-    "comments": {
-      "title": "Comments",
-      "blocked": "Comments open here once the shared comment system ships. Until then, follow changes to this record in the Activity feed.",
-      "action": "Open activity"
-    },
-    "attachments": {
-      "title": "Attachments",
-      "blocked": "Files attach here once shared attachments ship. Until then, keep paperwork in Knowledge documents.",
-      "action": "Open documents"
-    },
     "refusal": {
       "createTitle": "You cannot add this here",
       "createReason": "Adding {thing} needs write access on at least one project. Ask a project manager to add you to the project.",
@@ -77,7 +67,8 @@
       "accommodation_block_excludes_stays": "The block must still cover every assigned stay. Move those stays first.",
       "accommodation_block_deleted": "This block is in Trash. Restore it before assigning rooms.",
       "accommodation_assignment_outside_block": "The stay must fall within the block's check-in and check-out dates.",
-      "accommodation_assignment_duplicate": "This guest already has a room in the block on those nights."
+      "accommodation_assignment_duplicate": "This guest already has a room in the block on those nights.",
+      "fileScanning": "The file is still being scanned. Try again in a minute."
     },
     "fieldErrors": {
       "required": "Fill in this field.",
@@ -89,7 +80,40 @@
       "currency": "Pick the currency of the price.",
       "tooLong": "This is too long.",
       "rooms": "Enter at least one room.",
-      "guests": "Enter a guest count above zero, or leave it blank."
+      "guests": "Enter a guest count above zero, or leave it blank.",
+      "file": "Choose a file to upload.",
+      "fileSize": "Files can be up to 50 MB."
+    },
+    "unnamed": "Unnamed person",
+    "peekMissing": {
+      "title": "This record is not available",
+      "reason": "It was moved to Trash, or you no longer have access to it. Pick another record from the list."
+    },
+    "collab": {
+      "comments": "Comments",
+      "noComments": "No comments yet. Start the conversation about this record.",
+      "noCommentsReadOnly": "No comments yet.",
+      "unknownAuthor": "Someone outside your view",
+      "edited": "Edited",
+      "deleted": "This comment was deleted.",
+      "delete": "Delete",
+      "write": "Write a comment",
+      "post": "Post comment",
+      "attachments": "Attachments",
+      "noAttachments": "No files yet. Upload a bill of lading, delivery photo or contract.",
+      "noAttachmentsReadOnly": "No files yet.",
+      "version": "Version {n}",
+      "download": "Download",
+      "remove": "Remove",
+      "file": "File",
+      "upload": "Upload",
+      "scan": {
+        "Pending Upload": "Uploading",
+        "Scanning": "Scanning",
+        "Clean": "Ready",
+        "Infected": "Blocked: malware found",
+        "Scan Failed": "Scan failed, upload again"
+      }
     }
   },
   "kinds": {

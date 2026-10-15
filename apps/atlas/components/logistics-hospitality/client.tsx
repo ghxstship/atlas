@@ -283,12 +283,14 @@ export function OperationsPeek({
     <SidePeek
       open
       onOpenChange={(open) => {
-        if (!open) router.push(hrefWith({ peek: null, full: null, edit: null }) as Route, { scroll: false });
+        if (!open)
+          router.push(hrefWith({ peek: null, full: null, edit: null }) as Route, { scroll: false });
       }}
       onOpenFull={() => router.push(hrefWith({ full: "1" }) as Route)}
       onCopyLink={() => {
         void navigator.clipboard.writeText(
-          new URL(hrefWith({ peek: recordKey, full: "1", edit: null }), window.location.origin).href,
+          new URL(hrefWith({ peek: recordKey, full: "1", edit: null }), window.location.origin)
+            .href,
         );
       }}
       recordKey={recordKey}

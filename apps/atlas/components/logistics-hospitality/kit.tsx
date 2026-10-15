@@ -1,4 +1,6 @@
-import { isNodeVisible } from "@xos/ia";
+import { listMembers } from "@xos/data";
+import { listAttachments } from "@xos/data/attachments";
+import { listThreads } from "@xos/data/comments";
 import type { MoneyTotal } from "@xos/data/hospitality";
 import {
   findOperationsProject,
@@ -10,16 +12,16 @@ import {
 import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
-import { EmptyStateLink } from "@/components/ui";
 import { requireNode } from "@/components/shell/sitemap-page";
-import { getOrgContext, type OrgContext } from "@/lib/shell/context";
-import { nodeHref, sitemap } from "@/lib/shell/sitemap";
-import { Card, Money } from "./ui";
+import type { OrgContext } from "@/lib/shell/context";
+import { CollabPanels } from "./collab";
+import type { CollabSubject } from "./collab-actions";
+import { Money } from "./ui";
 
 /**
  * Server helpers shared by the Logistics and Hospitality pages (A11): route guards for module pages
- * and project tabs, the page's query state, formatting in the project time zone, and the panels
- * every record shows.
+ * and project tabs, the page's query state, formatting in the project time zone, and the comment and
+ * attachment panels every record shows.
  */
 
 export type SearchParams = Readonly<Record<string, string | string[] | undefined>>;
@@ -31,9 +33,32 @@ export function param(search: SearchParams, name: string): string | undefined {
 }
 
 /** The requested view when the page offers it, otherwise the page's default (Section 11.15). */
-export function readView<T extends string>(search: SearchParams, views: readonly T[], fallback: T): T {
+export function readView<T extends string>(
+  search: SearchParams,
+  views: readonly T[],
+  fallback: T,
+): T {
   const asked = param(search, "view");
   return (views as readonly string[]).includes(asked ?? "") ? (asked as T) : fallback;
+}
+
+/** The current URL with some query parameters replaced (null removes one). */
+export function hrefWith(
+  base: string,
+  search: SearchParams,
+  changes: Readonly<Record<string, string | null>>,
+): string {
+  const next = new URLSearchParams();
+  for (const [key, value] of Object.entries(search)) {
+    const v = Array.isArray(value) ? value[0] : value;
+    if (v !== undefined) next.set(key, v);
+  }
+  for (const [key, value] of Object.entries(changes)) {
+    if (value === null) next.delete(key);
+    else next.set(key, value);
+  }
+  const query = next.toString();
+  return query ? `${base}?${query}` : base;
 }
 
 /** What a page renders for: the org, the viewer's access, and the project when it is a tab. */
@@ -73,19 +98,19 @@ export async function moduleScope(node: string, params: Readonly<Record<string, 
 }
 
 /**
- * Guard for a project tab. The shell's requireNode answers 404 for every `/p/{projectKey}` route
- * until A07's project resolver lands, so the tab resolves its project here, under row level security:
- * a project the viewer cannot read is 404 like a missing one.
+ * Guard for a project tab: the shell guard resolves the project through A07's project context (a
+ * project the viewer cannot read is 404), and the tab reads it again in the shape it needs.
  */
 export async function projectTabScope(node: string, params: Readonly<Record<string, string>>) {
-  const slug = params["org"];
-  const key = params["projectKey"];
-  const ctx = slug === undefined ? null : await getOrgContext(slug);
-  if (!ctx || key === undefined || !isNodeVisible(sitemap, node, ctx.nav)) notFound();
-  const project = await findOperationsProject(ctx.viewer.db, ctx.org.id, key);
+  const ctx = await requireNode(node, params);
+  const project = await findOperationsProject(
+    ctx.viewer.db,
+    ctx.org.id,
+    params["projectKey"] ?? "",
+  );
   if (!project.ok) {
     if (project.error.kind === "not-found") notFound();
-    throw new Error(`Cannot read project ${key}: ${JSON.stringify(project.error)}`);
+    throw new Error(`Cannot read project: ${JSON.stringify(project.error)}`);
   }
   return scopeFor(ctx, params, project.data);
 }
@@ -109,21 +134,31 @@ export async function getZonedFormat() {
     date: (isoDate: string | null) =>
       isoDate === null
         ? null
-        : format.dateTime(new Date(`${isoDate}T12:00:00Z`), { dateStyle: "medium", timeZone: "UTC" }),
-    /** The calendar date of an instant in a zone, as YYYY-MM-DD. */
-    isoDate: (instant: string, timeZone: string) =>
-      new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(
-        new Date(instant),
-      ),
+        : format.dateTime(new Date(`${isoDate}T12:00:00Z`), {
+            dateStyle: "medium",
+            timeZone: "UTC",
+          }),
+    weekday: (isoDate: string) =>
+      format.dateTime(new Date(`${isoDate}T12:00:00Z`), { weekday: "short", timeZone: "UTC" }),
   };
+}
+
+/** The calendar date of an instant in a zone, as YYYY-MM-DD. */
+export function isoDateIn(instant: string, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(instant));
 }
 
 /** The month a calendar shows (`month=YYYY-MM`, default this month) and its neighbors. */
 export function calendarMonth(search: SearchParams, now: Date = new Date()) {
-  const asked = param(search, "month");
-  const [y, m] = /^\d{4}-\d{2}$/.test(asked ?? "")
-    ? (asked as string).split("-").map(Number) as [number, number]
-    : [now.getUTCFullYear(), now.getUTCMonth() + 1];
+  const asked = param(search, "month") ?? "";
+  const match = /^(\d{4})-(\d{2})$/.exec(asked);
+  const y = match ? Number(match[1]) : now.getUTCFullYear();
+  const m = match ? Number(match[2]) : now.getUTCMonth() + 1;
   const iso = (year: number, month: number) => {
     const d = new Date(Date.UTC(year, month - 1, 1));
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -156,34 +191,44 @@ export async function TotalValue({ total }: { total: MoneyTotal }) {
   );
 }
 
-/**
- * Comments and attachments, in the blocked state that names the feature (broadcast 1, section 3):
- * A18 builds the shared comment and attachment system; until it ships each panel says so and links
- * to where the work happens meanwhile.
- */
-export async function BlockedPanels({ scope }: { scope: PageScope }) {
+/** Names of the org's members by person id, for comment authors and guest pickers. */
+export async function memberNames(scope: PageScope): Promise<Record<string, string>> {
   const t = await getTranslations("logistics.common");
-  const activity = nodeHref("activity.feed", scope.params) ?? nodeHref("home", scope.params);
-  const documents = nodeHref("knowledge.documents", scope.params) ?? nodeHref("home", scope.params);
+  const members = await listMembers(scope.ctx.viewer.db, scope.ctx.org.id);
+  if (!members.ok) throw new Error(`Cannot read members: ${JSON.stringify(members.error)}`);
+  return Object.fromEntries(members.data.map((m) => [m.personId, m.fullName ?? t("unnamed")]));
+}
+
+/** Comments and attachments of one record (Section 19.6), loaded for the peek and the full page. */
+export async function RecordCollab({
+  scope,
+  subject,
+  canPost,
+}: {
+  scope: PageScope;
+  subject: CollabSubject;
+  canPost: boolean;
+}) {
+  const db = scope.ctx.viewer.db;
+  const [threads, attachments, names] = await Promise.all([
+    listThreads(db, subject),
+    listAttachments(db, subject),
+    memberNames(scope),
+  ]);
+  if (!threads.ok) throw new Error(`Cannot read comments: ${JSON.stringify(threads.error)}`);
+  if (!attachments.ok) {
+    throw new Error(`Cannot read attachments: ${JSON.stringify(attachments.error)}`);
+  }
   return (
-    <div className="grid gap-12 md:grid-cols-2">
-      <Card title={t("comments.title")}>
-        <EmptyStateLink
-          icon="MessageSquare"
-          sentence={t("comments.blocked")}
-          actionLabel={t("comments.action")}
-          href={activity ?? "/"}
-        />
-      </Card>
-      <Card title={t("attachments.title")}>
-        <EmptyStateLink
-          icon="Paperclip"
-          sentence={t("attachments.blocked")}
-          actionLabel={t("attachments.action")}
-          href={documents ?? "/"}
-        />
-      </Card>
-    </div>
+    <CollabPanels
+      org={scope.ctx.org.slug}
+      subject={subject}
+      threads={threads.data}
+      attachments={attachments.data}
+      names={names}
+      me={scope.ctx.viewer.person?.id ?? null}
+      canPost={canPost}
+    />
   );
 }
 

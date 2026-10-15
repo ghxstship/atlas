@@ -11,6 +11,7 @@ import {
   displayKey,
   findIdByKey,
   findOperationsProject,
+  getDockSlot,
   getOperationsAccess,
   getShipment,
   instantToLocal,
@@ -510,6 +511,18 @@ describe("gate queue and yard log", () => {
     expect(
       await addMarshallingEntry(db, "p1", { entry: "", shipmentId: null, zoneId: null }),
     ).toEqual({ ok: false, error: { kind: "invalid", message: "entry length" } });
+  });
+});
+
+describe("one dock slot", () => {
+  it("reads a slot or answers not-found", async () => {
+    const { db } = client({
+      "from:dock_slots": [okResponse(slotRow), okResponse(null), errorResponse("XX000", "down")],
+    });
+    const found = await getDockSlot(db, "d1");
+    expect(found.ok && found.data.zoneName).toBe("Loading Dock");
+    expect(await getDockSlot(db, "d1")).toEqual({ ok: false, error: { kind: "not-found" } });
+    expect((await getDockSlot(db, "d1")).ok).toBe(false);
   });
 });
 

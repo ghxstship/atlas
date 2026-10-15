@@ -593,6 +593,18 @@ function toDockSlot(row: DockRow): DockSlot {
 }
 
 /** Live dock slots in start order. An empty orgId means the scope is a shipment. */
+/** One live dock slot, or not-found. */
+export async function getDockSlot(db: XosClient, id: string): Promise<Result<DockSlot>> {
+  const { data, error } = await db
+    .from("dock_slots")
+    .select(DOCK_COLUMNS)
+    .eq("id", id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  return data ? ok(toDockSlot(data as unknown as DockRow)) : fail({ kind: "not-found" });
+}
+
 export async function listDockSlots(db: XosClient, scope: DockScope): Promise<Result<DockSlot[]>> {
   let query = db.from("dock_slots").select(DOCK_COLUMNS).is("deleted_at", null);
   if (scope.orgId) query = query.eq("org_id", scope.orgId);

@@ -81,7 +81,10 @@ export async function contextForSlug(slug: string): Promise<OrgContext> {
 }
 
 /** One project of the org the viewer can read, for its time zone; null when it is not readable. */
-export async function projectFor(ctx: OrgContext, projectId: string): Promise<OperationsProject | null> {
+export async function projectFor(
+  ctx: OrgContext,
+  projectId: string,
+): Promise<OperationsProject | null> {
   const projects = await listOperationsProjects(ctx.viewer.db, ctx.org.id);
   if (!projects.ok) return null;
   return projects.data.find((p) => p.id === projectId) ?? null;
