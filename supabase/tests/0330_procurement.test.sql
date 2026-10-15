@@ -183,9 +183,10 @@ select pg_temp.as_platform();
 
 -- Three-way match (invariant 17) --------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
-with x as (insert into app.invoices (project_id, direction, counterparty_id, invoice_number, currency_code) values (pg_temp.id('prj_a'), 'Payable', pg_temp.id('cp_v'), 'HS-1001', 'USD') returning id)
+insert into app.accounting_periods (org_id, starts_on, ends_on) values (pg_temp.id('org_a'), '2027-06-01', '2027-06-30');
+with x as (insert into app.invoices (project_id, direction, counterparty_id, invoice_number, currency_code, issued_on) values (pg_temp.id('prj_a'), 'Payable', pg_temp.id('cp_v'), 'HS-1001', 'USD', '2027-06-12') returning id)
   insert into world select 'inv', id from x;
-insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor) values (pg_temp.id('inv'), 1, 'Stage deck sections.', 2, 21000);
+insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor, urid) values (pg_temp.id('inv'), 1, 'Stage deck sections.', 2, 21000, '0000.01.01');
 with x as (insert into app.invoice_matches (invoice_id, purchase_order_id, goods_receipt_id) values (pg_temp.id('inv'), pg_temp.id('po'), pg_temp.id('gr')) returning id)
   insert into world select 'match', id from x;
 select pg_temp.as_platform();

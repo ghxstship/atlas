@@ -54,6 +54,7 @@ export {
   type InboundStore,
 } from "./inbound/parse.ts";
 export {
+  PUNCH_KINDS,
   PlatformDbError,
   billingStore,
   inboundStore,
@@ -61,7 +62,9 @@ export {
   notificationStore,
   supabaseDb,
   webhookStore,
+  type KioskPunchInput,
   type KioskPunchResult,
+  type PunchKind,
   type NotificationStoreOptions,
   type PlatformDb,
 } from "./stores.ts";

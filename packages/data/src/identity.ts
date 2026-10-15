@@ -1,10 +1,10 @@
-import type { Database, XosClient } from "./client";
+import type { Database, XosClient } from "./client.ts";
 
 /** An insert whose org_id the database derives from its parent row (ADR 0002 tenant guards). */
 type DerivedOrgInsert = Database["app"]["Tables"]["membership_roles"]["Insert"];
-import { fail, ok, rowRefusal, toDataError, type Result } from "./result";
+import { fail, ok, rowRefusal, toDataError, type Result } from "./result.ts";
 
-export { isOrgSlug, slugFromName } from "./slug";
+export { isOrgSlug, slugFromName } from "./slug.ts";
 
 /**
  * Identity repository (Section 4.8.1): people, organizations, memberships, roles and invitations.
