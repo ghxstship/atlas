@@ -21,7 +21,9 @@ import {
   ToastRegion,
   UndoToast,
 } from "@xos/ui";
+import type { Route } from "next";
 import { useLocale } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import {
@@ -39,6 +41,7 @@ import {
   watchAction,
 } from "./actions";
 import { fromLocalInput, toLocalInput } from "./format";
+import { duplicateRecordAction } from "./work-order-actions";
 
 /*
  * The interactive parts of a record's peek and full page (Record template, Section 11.6): state
@@ -946,6 +949,33 @@ export function TrashControls({
           />
         </ToastRegion>
       ) : null}
+    </div>
+  );
+}
+
+/** Copies the record and its checklist into a new Proposed record, then opens the copy (journey 70). */
+export function DuplicateButton({ org, recordId }: { org: string; recordId: string }) {
+  const t = useCopy("work");
+  const router = useRouter();
+  const { pending, error, run } = useAction();
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <Button
+          variant="ghost"
+          icon="Copy"
+          loading={pending}
+          onClick={() =>
+            run(
+              () => duplicateRecordAction(org, recordId),
+              (data) => router.push(`/${org}/r/${data.key}` as Route),
+            )
+          }
+        >
+          {t("duplicate.button")}
+        </Button>
+      </div>
+      <ActionErrorAlert error={error} />
     </div>
   );
 }

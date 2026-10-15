@@ -5,3 +5,6 @@ work.by-kind
 schedule.timeline
 schedule.calendar
 schedule.milestones
+work.work-orders
+work.punch-lists
+work.recurring

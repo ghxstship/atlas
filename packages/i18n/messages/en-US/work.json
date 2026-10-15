@@ -454,6 +454,9 @@
     "stateChanged": "{from} to {to}",
     "window": "{before} to {after}"
   },
+  "duplicate": {
+    "button": "Duplicate"
+  },
   "trash": {
     "move": "Move to Trash",
     "moved": "{key} moved to Trash.",
@@ -578,6 +581,7 @@
     "fileTooLarge": "Files can be up to 50 MB.",
     "fileScanning": "The file is still being checked. Try again in a moment.",
     "baselineName": "Name the baseline, for example Gate 3 Baseline.",
+    "punchWhat": "Say what must be corrected, in a few words.",
     "rules": {
       "record_title_grammar": "Fix the title.",
       "record_xyz_required": "Choose a URID category or declare the XYZ tag.",

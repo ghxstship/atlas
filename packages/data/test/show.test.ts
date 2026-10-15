@@ -201,8 +201,12 @@ describe("cues", () => {
       duration: null,
       planned_at: null,
     });
-    expect((await addCue(db, { orgId: "o1", projectId: "p1", runOfShowId: "ros1", label: "x" })).ok).toBe(false);
-    expect((await addCue(db, { orgId: "o1", projectId: "p1", runOfShowId: "ros1", label: "x" })).ok).toBe(false);
+    expect(
+      (await addCue(db, { orgId: "o1", projectId: "p1", runOfShowId: "ros1", label: "x" })).ok,
+    ).toBe(false);
+    expect(
+      (await addCue(db, { orgId: "o1", projectId: "p1", runOfShowId: "ros1", label: "x" })).ok,
+    ).toBe(false);
   });
 
   it("edits, removes and calls cues", async () => {

@@ -9,6 +9,7 @@ import {
   getWorkOrder,
   listBidderOptions,
   listPunchItems,
+  listWorkOrderHistory,
   listWorkOrders,
   listWorkOrderTransitions,
   summarizeBids,
@@ -52,6 +53,8 @@ const woRow = (over: Record<string, unknown> = {}) => ({
   scheduled_ends_at: null,
   estimated_hours: null,
   bid_due_at: null,
+  budget_minor: "900000",
+  currency_code: "USD",
   awarded_bid_id: null,
   work_order_state: "Open",
   created_by: "pe1",
@@ -375,5 +378,39 @@ describe("punch items", () => {
       ok: false,
       error: { kind: "not-found" },
     });
+  });
+});
+
+describe("work order history", () => {
+  it("reads the state ledger", async () => {
+    const { db } = moduleClient({
+      "from:work_order_state_transitions": [
+        okResponse([
+          {
+            id: "e1",
+            from_state: null,
+            to_state: "Draft",
+            reason: "Created.",
+            created_at: "t",
+            actor: null,
+          },
+          {
+            id: "e2",
+            from_state: "Draft",
+            to_state: "Open",
+            reason: "Bids invited.",
+            created_at: "t2",
+            actor: { full_name: "Pat" },
+          },
+        ]),
+        errorResponse("XX000", "b"),
+      ],
+    });
+    const history = await listWorkOrderHistory(db, "w1");
+    expect(history.ok && history.data.map((h) => [h.to, h.byName])).toEqual([
+      ["Draft", null],
+      ["Open", "Pat"],
+    ]);
+    expect((await listWorkOrderHistory(db, "w1")).ok).toBe(false);
   });
 });

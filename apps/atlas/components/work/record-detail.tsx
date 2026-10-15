@@ -37,6 +37,7 @@ import { capabilitySet, loadRecordMeta, must, type RecordMeta } from "./load";
 import {
   AssignmentsEditor,
   ChecklistEditor,
+  DuplicateButton,
   EditRecordForm,
   ExtensionForm,
   RecurrenceForm,
@@ -388,6 +389,7 @@ export async function RecordBody({
         me={me}
         canPost={!record.deletedAt}
       />
+      {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
       {detail.canWrite || record.deletedAt ? <TrashControls org={org} record={record} /> : null}
     </div>
   );

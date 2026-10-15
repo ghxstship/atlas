@@ -454,6 +454,9 @@
     "stateChanged": "{from} a {to}",
     "window": "{before} a {after}"
   },
+  "duplicate": {
+    "button": "Duplicar"
+  },
   "trash": {
     "move": "Mover a la papelera",
     "moved": "{key} se movió a la papelera.",
@@ -578,6 +581,7 @@
     "fileTooLarge": "Los archivos pueden tener hasta 50 MB.",
     "fileScanning": "El archivo aún se está revisando. Inténtelo de nuevo en un momento.",
     "baselineName": "Nombre la línea base, por ejemplo Línea Base de la Compuerta 3.",
+    "punchWhat": "Indique en pocas palabras qué debe corregirse.",
     "rules": {
       "record_title_grammar": "Corrija el título.",
       "record_xyz_required": "Elija una categoría URID o declare la etiqueta XYZ.",
