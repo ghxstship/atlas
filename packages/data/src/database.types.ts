@@ -158,6 +158,7 @@ export type Database = {
           category_code: string | null;
           category_name: string | null;
           credential_number: string | null;
+          engagement_id: string | null;
           holder_name: string | null;
           holder_person_id: string | null;
           id: string | null;
@@ -168,7 +169,15 @@ export type Database = {
           valid_to: string | null;
         };
         ComputedFields: never;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "credentials_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       cues: {
         Row: {
@@ -203,10 +212,24 @@ export type Database = {
         ComputedFields: never;
         Relationships: [];
       };
+      deliveries: {
+        Row: {
+          arrives_at: string | null;
+          direction: Database["app"]["Enums"]["shipment_direction"] | null;
+          id: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          ships_at: string | null;
+          tracking_identifier: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       dock_slots: {
         Row: {
           direction: Database["app"]["Enums"]["shipment_direction"] | null;
           ends_at: string | null;
+          engagement_id: string | null;
           id: string | null;
           project_id: string | null;
           project_name: string | null;
@@ -218,7 +241,22 @@ export type Database = {
           zone_name: string | null;
         };
         ComputedFields: never;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "dock_slots_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dock_slots_shipment_id_fkey";
+            columns: ["shipment_id"];
+            isOneToOne: false;
+            referencedRelation: "deliveries";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       engagement_documents: {
         Row: {
@@ -348,6 +386,33 @@ export type Database = {
           },
         ];
       };
+      goods_receipts: {
+        Row: {
+          id: string | null;
+          purchase_order_id: string | null;
+          received_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          id?: string | null;
+          purchase_order_id?: string | null;
+          received_at?: string | null;
+        };
+        Update: {
+          id?: string | null;
+          purchase_order_id?: string | null;
+          received_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "goods_receipts_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       interviews: {
         Row: {
           application_id: string | null;
@@ -447,6 +512,21 @@ export type Database = {
             referencedColumns: ["account_id"];
           },
         ];
+      };
+      lodging: {
+        Row: {
+          block_title: string | null;
+          check_in_on: string | null;
+          check_out_on: string | null;
+          guest_name: string | null;
+          hotel_name: string | null;
+          id: string | null;
+          person_id: string | null;
+          project_id: string | null;
+          project_name: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
       };
       my_accounts: {
         Row: {
@@ -1064,6 +1144,84 @@ export type Database = {
           },
         ];
       };
+      po_lines: {
+        Row: {
+          amount_minor: number | null;
+          description: string | null;
+          element_id: string | null;
+          id: string | null;
+          line_number: number | null;
+          purchase_order_id: string | null;
+          quantity: number | null;
+          unit_basis: string | null;
+          unit_price_minor: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_minor?: never;
+          description?: string | null;
+          element_id?: string | null;
+          id?: string | null;
+          line_number?: number | null;
+          purchase_order_id?: string | null;
+          quantity?: number | null;
+          unit_basis?: string | null;
+          unit_price_minor?: number | null;
+        };
+        Update: {
+          amount_minor?: never;
+          description?: string | null;
+          element_id?: string | null;
+          id?: string | null;
+          line_number?: number | null;
+          purchase_order_id?: string | null;
+          quantity?: number | null;
+          unit_basis?: string | null;
+          unit_price_minor?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "po_lines_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      purchase_orders: {
+        Row: {
+          account_id: string | null;
+          acknowledged_at: string | null;
+          currency_code: string | null;
+          id: string | null;
+          org_id: string | null;
+          org_name: string | null;
+          po_number: number | null;
+          po_state: Database["app"]["Enums"]["po_state"] | null;
+          project_id: string | null;
+          project_name: string | null;
+          sent_at: string | null;
+          total_minor: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+        ];
+      };
       ratings: {
         Row: {
           comment: string | null;
@@ -1079,6 +1237,31 @@ export type Database = {
         };
         ComputedFields: never;
         Relationships: [];
+      };
+      receipt_lines: {
+        Row: {
+          goods_receipt_id: string | null;
+          id: string | null;
+          po_line_id: string | null;
+          quantity_received: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "receipt_lines_goods_receipt_id_fkey";
+            columns: ["goods_receipt_id"];
+            isOneToOne: false;
+            referencedRelation: "goods_receipts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "receipt_lines_po_line_id_fkey";
+            columns: ["po_line_id"];
+            isOneToOne: false;
+            referencedRelation: "po_lines";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       records: {
         Row: {
@@ -1155,6 +1338,32 @@ export type Database = {
         ComputedFields: never;
         Relationships: [];
       };
+      shifts: {
+        Row: {
+          ends_at: string | null;
+          engagement_id: string | null;
+          id: string | null;
+          job_title: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          role_code: string | null;
+          scope_node_id: string | null;
+          scope_node_name: string | null;
+          shift_state: Database["app"]["Enums"]["shift_state"] | null;
+          starts_at: string | null;
+          time_zone: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "shifts_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       tax_forms: {
         Row: {
           account_id: string | null;
@@ -1179,6 +1388,142 @@ export type Database = {
           {
             foreignKeyName: "tax_forms_organization_id_fkey";
             columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+        ];
+      };
+      time_entries: {
+        Row: {
+          break_minutes: number | null;
+          clock_in: string | null;
+          clock_out: string | null;
+          engagement_id: string | null;
+          id: string | null;
+          project_id: string | null;
+          shift_id: string | null;
+          source: Database["app"]["Enums"]["time_entry_source"] | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          break_minutes?: number | null;
+          clock_in?: string | null;
+          clock_out?: string | null;
+          engagement_id?: string | null;
+          id?: string | null;
+          project_id?: string | null;
+          shift_id?: string | null;
+          source?: Database["app"]["Enums"]["time_entry_source"] | null;
+        };
+        Update: {
+          break_minutes?: number | null;
+          clock_in?: string | null;
+          clock_out?: string | null;
+          engagement_id?: string | null;
+          id?: string | null;
+          project_id?: string | null;
+          shift_id?: string | null;
+          source?: Database["app"]["Enums"]["time_entry_source"] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_entries_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      timesheets: {
+        Row: {
+          decided_at: string | null;
+          engagement_id: string | null;
+          id: string | null;
+          period_end: string | null;
+          period_start: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          submitted_at: string | null;
+          timesheet_state: Database["app"]["Enums"]["timesheet_state"] | null;
+          worked_minutes: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "timesheets_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_insurance_certificates: {
+        Row: {
+          account_id: string | null;
+          coverage_limit_minor: number | null;
+          coverage_type: string | null;
+          currency_code: string | null;
+          id: string | null;
+          insurer: string | null;
+          is_current: boolean | null;
+          org_id: string | null;
+          org_name: string | null;
+          policy_identifier: string | null;
+          valid_from: string | null;
+          valid_to: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+          {
+            foreignKeyName: "insurance_certificates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+        ];
+      };
+      vendor_prequalifications: {
+        Row: {
+          account_id: string | null;
+          decided_at: string | null;
+          decision: Database["app"]["Enums"]["approval_decision"] | null;
+          id: string | null;
+          is_current: boolean | null;
+          org_id: string | null;
+          org_name: string | null;
+          scope: string | null;
+          valid_to: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+          {
+            foreignKeyName: "prequalifications_org_id_fkey";
+            columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "my_accounts";
             referencedColumns: ["account_id"];
@@ -18514,6 +18859,89 @@ export type Database = {
         };
         Relationships: [];
       };
+      po_acknowledgments: {
+        Row: {
+          acknowledged_at: string;
+          acknowledged_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          purchase_order_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          acknowledged_at?: string;
+          acknowledged_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          purchase_order_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          acknowledged_at?: string;
+          acknowledged_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          purchase_order_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "po_acknowledgments_acknowledged_by_fkey";
+            columns: ["acknowledged_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_acknowledgments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_acknowledgments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_acknowledgments_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_order_totals";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "po_acknowledgments_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_acknowledgments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       po_change_order_state_transitions: {
         Row: {
           created_at: string;
@@ -33654,6 +34082,7 @@ export type Database = {
     };
     Functions: {
       abandon_idempotent_request: { Args: { p_key: string; p_org_id: string }; Returns: undefined };
+      accept_engaged_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
       accept_invite: {
         Args: { p_token: string };
         Returns: {
@@ -33674,6 +34103,7 @@ export type Database = {
         };
         Returns: string;
       };
+      acknowledge_purchase_order: { Args: { p_purchase_order_id: string }; Returns: string };
       add_account_member: {
         Args: {
           p_account_id: string;
@@ -34471,6 +34901,10 @@ export type Database = {
           p_value_text?: string;
         };
         Returns: string;
+      };
+      set_thread_subscription: {
+        Args: { p_comment_thread_id: string; p_subscribed: boolean };
+        Returns: undefined;
       };
       share_profile: {
         Args: {
