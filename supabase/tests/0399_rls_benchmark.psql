@@ -1,0 +1,115 @@
+-- RLS benchmark (Section 18 gate 17: policy-filtered list queries under 50 ms at p95 on 1,000,000 rows).
+-- Run against a local stack only, never the shared one:
+--   docker exec -i supabase_db_<project_id> psql -U postgres -d postgres -X -f - < supabase/tests/0399_rls_benchmark.psql
+-- The file ends in .psql so pg_prove skips it; it runs in one transaction that rolls back, so nothing
+-- persists. It seeds 1,000,000 records over 200 Northwind projects (5,000 on the member's project,
+-- interleaved in time with the others as real projects run side by side) with
+-- a Task extension row each and 1,000,000 time entries, with triggers off for the seed only, then times
+-- each list query 20 times as a Member (dave), a Manager with oversight (carol) and a Field member (frank)
+-- and prints p50, p95 and the gate verdict. Each query and person is its own statement under a 20 second
+-- timeout, rolled back to a savepoint when it times out, so a pathological plan reports FAIL instead of
+-- stalling the run.
+\set ON_ERROR_STOP on
+begin;
+create extension if not exists pgtap with schema extensions;
+set search_path = extensions, public;
+\ir 0300_domain_world.psql
+
+-- Seed -------------------------------------------------------------------------------------------------
+select pg_temp.as_platform();
+set local session_replication_role = replica;
+
+insert into app.projects (org_id, project_key, name, time_zone, currency)
+select pg_temp.id('org_a'), 'B' || chr(65 + (g / 26) % 26) || chr(65 + g % 26), 'Benchmark Project ' || g, 'America/New_York', 'USD'
+from generate_series(1, 200) g;
+
+create temporary table bench_projects as
+select array_agg(p.id order by p.id) as ids from app.projects p where p.org_id = pg_temp.id('org_a') and p.name like 'Benchmark Project %';
+
+insert into app.records (org_id, project_id, record_number, record_kind, title, xyz, xyz_basis, created_at)
+select pg_temp.id('org_a'),
+  case when g % 200 = 0 then pg_temp.id('prj_a') else b.ids[1 + (g % 199)] end,
+  g, 'Task', 'Benchmark Task ' || g, 'X', 'Declared', timestamptz '2027-01-01' + make_interval(secs => g)
+from generate_series(1, 1000000) g cross join bench_projects b;
+
+insert into app.record_task (record_id, org_id, progress_pct)
+select r.id, r.org_id, (r.record_number % 100)::smallint from app.records r where r.title like 'Benchmark Task %';
+
+insert into app.time_entries (org_id, project_id, membership_id, clock_in, clock_out, source)
+select pg_temp.id('org_a'),
+  case when g % 200 = 0 then pg_temp.id('prj_a') else b.ids[1 + (g % 199)] end,
+  case g % 3 when 0 then pg_temp.id('frank@org_a') when 1 then pg_temp.id('erin@org_a') else pg_temp.id('mia@org_a') end,
+  timestamptz '2027-01-01' + make_interval(hours => g), timestamptz '2027-01-01' + make_interval(hours => g, mins => 30), 'Web'
+from generate_series(1, 1000000) g cross join bench_projects b;
+
+set local session_replication_role = origin;
+analyze app.projects;
+analyze app.records;
+analyze app.record_task;
+analyze app.time_entries;
+
+-- Timer --------------------------------------------------------------------------------------------------
+create temporary table bench_results (query text, who text, run int, ms numeric);
+grant insert, select on bench_results to public;
+create temporary table bench_queries (query text primary key, sql text);
+grant select on bench_queries to public;
+
+insert into bench_queries values
+  ('records: project list', format('select id, title from app.records where project_id = %L and deleted_at is null order by record_number desc limit 50', pg_temp.id('prj_a'))),
+  ('records: all visible, newest first', 'select id, title from app.records where deleted_at is null order by created_at desc limit 50'),
+  ('record_task: project list', format('select t.record_id, t.progress_pct from app.record_task t join app.records r on r.id = t.record_id where r.project_id = %L order by r.record_number desc limit 50', pg_temp.id('prj_a'))),
+  ('record_task: first page', 'select t.record_id, t.progress_pct from app.record_task t limit 50'),
+  ('time_entries: project list', format('select id, clock_in from app.time_entries where project_id = %L order by clock_in desc limit 50', pg_temp.id('prj_a'))),
+  ('time_entries: newest first', 'select id, clock_in from app.time_entries order by clock_in desc limit 50');
+
+create function pg_temp.bench(p_query text, p_who text, p_runs int default 20) returns void
+language plpgsql as $$
+declare
+  v_sql text := (select q.sql from bench_queries q where q.query = p_query);
+  v_start timestamptz;
+  i int;
+begin
+  perform pg_temp.as_user(p_who);
+  execute v_sql;
+  for i in 1..p_runs loop
+    v_start := clock_timestamp();
+    execute v_sql;
+    insert into bench_results values (p_query, p_who, i, extract(epoch from clock_timestamp() - v_start) * 1000);
+  end loop;
+  perform pg_temp.as_platform();
+end $$;
+
+\set ON_ERROR_STOP off
+\set ON_ERROR_ROLLBACK on
+set statement_timeout = '20s';
+select pg_temp.bench('records: project list', 'dave');
+select pg_temp.bench('records: project list', 'carol');
+select pg_temp.bench('records: project list', 'frank');
+select pg_temp.bench('records: all visible, newest first', 'dave');
+select pg_temp.bench('records: all visible, newest first', 'carol');
+select pg_temp.bench('records: all visible, newest first', 'frank');
+select pg_temp.bench('record_task: project list', 'dave');
+select pg_temp.bench('record_task: project list', 'carol');
+select pg_temp.bench('record_task: project list', 'frank');
+select pg_temp.bench('record_task: first page', 'dave');
+select pg_temp.bench('record_task: first page', 'carol');
+select pg_temp.bench('record_task: first page', 'frank');
+select pg_temp.bench('time_entries: project list', 'dave');
+select pg_temp.bench('time_entries: project list', 'carol');
+select pg_temp.bench('time_entries: project list', 'frank');
+select pg_temp.bench('time_entries: newest first', 'dave');
+select pg_temp.bench('time_entries: newest first', 'carol');
+select pg_temp.bench('time_entries: newest first', 'frank');
+set statement_timeout = 0;
+select pg_temp.as_platform();
+
+select q.query, w.who,
+  round(percentile_cont(0.5) within group (order by r.ms)::numeric, 1) as p50_ms,
+  round(percentile_cont(0.95) within group (order by r.ms)::numeric, 1) as p95_ms,
+  case when count(r.ms) = 0 then 'FAIL (over 20 s)'
+       when percentile_cont(0.95) within group (order by r.ms) < 50 then 'pass' else 'FAIL' end as gate_17
+from bench_queries q cross join (values ('dave'), ('carol'), ('frank')) w(who)
+left join bench_results r on r.query = q.query and r.who = w.who
+group by q.query, w.who order by q.query, w.who;
+
+rollback;

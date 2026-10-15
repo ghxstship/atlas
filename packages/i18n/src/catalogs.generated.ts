@@ -9,9 +9,12 @@ import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
 import enUS_profiles from "../messages/en-US/profiles.json" with { type: "json" };
 import enUS_projects from "../messages/en-US/projects.json" with { type: "json" };
+import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
+import enUS_show from "../messages/en-US/show.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
+import enUS_work from "../messages/en-US/work.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_email from "../messages/es-US/email.json" with { type: "json" };
 import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
@@ -20,9 +23,12 @@ import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
 import esUS_profiles from "../messages/es-US/profiles.json" with { type: "json" };
 import esUS_projects from "../messages/es-US/projects.json" with { type: "json" };
+import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
+import esUS_show from "../messages/es-US/show.json" with { type: "json" };
 import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
+import esUS_work from "../messages/es-US/work.json" with { type: "json" };
 
 export const enUS = {
   activity: enUS_activity,
@@ -33,9 +39,12 @@ export const enUS = {
   opportunities: enUS_opportunities,
   profiles: enUS_profiles,
   projects: enUS_projects,
+  schedule: enUS_schedule,
   settings: enUS_settings,
   shell: enUS_shell,
+  show: enUS_show,
   ui: enUS_ui,
+  work: enUS_work,
 };
 
 export const esUS = {
@@ -47,7 +56,10 @@ export const esUS = {
   opportunities: esUS_opportunities,
   profiles: esUS_profiles,
   projects: esUS_projects,
+  schedule: esUS_schedule,
   settings: esUS_settings,
   shell: esUS_shell,
+  show: esUS_show,
   ui: esUS_ui,
+  work: esUS_work,
 };
