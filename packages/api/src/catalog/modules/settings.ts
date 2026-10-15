@@ -9,6 +9,12 @@ import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeVerbs, setTable } from "../correct.ts";
 import { collectionAction } from "../define.ts";
 import type { ResourceSpec } from "../types.ts";
+import {
+  aiSettingsActions,
+  auroraCapabilities,
+  auroraCorrections,
+  auroraResources,
+} from "./parts/aurora.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -73,7 +79,12 @@ const WebhookEndpointSecret = z
   });
 
 export const additions = defineAdditions("Settings", {
+  // Aurora AI (A25): see ./parts/aurora.ts.
+  resources: [...auroraResources],
+  actions: { aiSettings: aiSettingsActions },
+  capabilities: { ...auroraCapabilities },
   corrections: [
+    ...auroraCorrections,
     {
       id: "subscription-state-and-stripe-fields",
       since: "1.0.0-draft.2",

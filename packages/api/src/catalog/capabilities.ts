@@ -514,7 +514,6 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "org.notifications.write": "Org notification defaults are setting values.",
   "org.help.write": "Help settings are setting values (A31).",
   "org.localization.write": "Localization defaults are setting values.",
-  "org.usage.read": "Usage reads arrive with A18 billing in Wave 2.",
   "org.legal.read": "Legal acceptance records arrive with A21.",
   "org.legal.accept": "Legal acceptance records arrive with A21.",
   "org.support_session.grant":

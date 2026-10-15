@@ -3678,6 +3678,476 @@ export type Database = {
           },
         ];
       };
+      ai_requests: {
+        Row: {
+          completed_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          failure_code: string | null;
+          feature: Database["app"]["Enums"]["ai_feature"];
+          id: string;
+          model: string;
+          org_id: string;
+          outcome: Database["app"]["Enums"]["ai_request_outcome"];
+          output_redacted: string | null;
+          person_id: string;
+          prompt_redacted: string | null;
+          subject_id: string | null;
+          subject_table: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          completed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          failure_code?: string | null;
+          feature: Database["app"]["Enums"]["ai_feature"];
+          id?: string;
+          model: string;
+          org_id: string;
+          outcome?: Database["app"]["Enums"]["ai_request_outcome"];
+          output_redacted?: string | null;
+          person_id: string;
+          prompt_redacted?: string | null;
+          subject_id?: string | null;
+          subject_table?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          completed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          failure_code?: string | null;
+          feature?: Database["app"]["Enums"]["ai_feature"];
+          id?: string;
+          model?: string;
+          org_id?: string;
+          outcome?: Database["app"]["Enums"]["ai_request_outcome"];
+          output_redacted?: string | null;
+          person_id?: string;
+          prompt_redacted?: string | null;
+          subject_id?: string | null;
+          subject_table?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_requests_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_requests_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_requests_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_requests_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ai_settings: {
+        Row: {
+          assistant_enabled: boolean;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          drafting_enabled: boolean;
+          extraction_enabled: boolean;
+          id: string;
+          mapping_enabled: boolean;
+          org_id: string;
+          plain_language_enabled: boolean;
+          summaries_enabled: boolean;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          assistant_enabled?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          drafting_enabled?: boolean;
+          extraction_enabled?: boolean;
+          id?: string;
+          mapping_enabled?: boolean;
+          org_id: string;
+          plain_language_enabled?: boolean;
+          summaries_enabled?: boolean;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          assistant_enabled?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          drafting_enabled?: boolean;
+          extraction_enabled?: boolean;
+          id?: string;
+          mapping_enabled?: boolean;
+          org_id?: string;
+          plain_language_enabled?: boolean;
+          summaries_enabled?: boolean;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_settings_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_settings_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_settings_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ai_suggestion_fields: {
+        Row: {
+          confidence: number | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          field_path: string;
+          id: string;
+          missing: string | null;
+          org_id: string;
+          position: number;
+          proposed_value: Json | null;
+          refusal: string | null;
+          source_excerpt: string | null;
+          suggestion_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          confidence?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          field_path: string;
+          id?: string;
+          missing?: string | null;
+          org_id: string;
+          position: number;
+          proposed_value?: Json | null;
+          refusal?: string | null;
+          source_excerpt?: string | null;
+          suggestion_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          confidence?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          field_path?: string;
+          id?: string;
+          missing?: string | null;
+          org_id?: string;
+          position?: number;
+          proposed_value?: Json | null;
+          refusal?: string | null;
+          source_excerpt?: string | null;
+          suggestion_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_suggestion_fields_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_suggestion_fields_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_suggestion_fields_suggestion_id_fkey";
+            columns: ["suggestion_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_suggestions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_suggestion_fields_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ai_suggestion_state_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          from_state: Database["app"]["Enums"]["ai_suggestion_state"] | null;
+          id: string;
+          org_id: string;
+          reason: string;
+          suggestion_id: string;
+          to_state: Database["app"]["Enums"]["ai_suggestion_state"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["ai_suggestion_state"] | null;
+          id?: string;
+          org_id: string;
+          reason: string;
+          suggestion_id: string;
+          to_state: Database["app"]["Enums"]["ai_suggestion_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          from_state?: Database["app"]["Enums"]["ai_suggestion_state"] | null;
+          id?: string;
+          org_id?: string;
+          reason?: string;
+          suggestion_id?: string;
+          to_state?: Database["app"]["Enums"]["ai_suggestion_state"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_suggestion_state_transitions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_suggestion_state_transitions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_suggestion_state_transitions_suggestion_id_fkey";
+            columns: ["suggestion_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_suggestions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_suggestion_state_transitions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ai_suggestions: {
+        Row: {
+          applied_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_at: string;
+          id: string;
+          operation_id: string;
+          org_id: string;
+          request_id: string;
+          suggestion_state: Database["app"]["Enums"]["ai_suggestion_state"];
+          summary: string;
+          target_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          applied_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string;
+          id?: string;
+          operation_id: string;
+          org_id: string;
+          request_id: string;
+          suggestion_state?: Database["app"]["Enums"]["ai_suggestion_state"];
+          summary: string;
+          target_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          applied_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string;
+          id?: string;
+          operation_id?: string;
+          org_id?: string;
+          request_id?: string;
+          suggestion_state?: Database["app"]["Enums"]["ai_suggestion_state"];
+          summary?: string;
+          target_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_suggestions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_suggestions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_suggestions_request_id_fkey";
+            columns: ["request_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_requests";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_suggestions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ai_usage: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          input_tokens: number | null;
+          metered_at: string;
+          org_id: string;
+          output_tokens: number | null;
+          request_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          input_tokens?: number | null;
+          metered_at?: string;
+          org_id: string;
+          output_tokens?: number | null;
+          request_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          input_tokens?: number | null;
+          metered_at?: string;
+          org_id?: string;
+          output_tokens?: number | null;
+          request_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_usage_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_usage_request_id_fkey";
+            columns: ["request_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_requests";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_usage_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       api_keys: {
         Row: {
           created_at: string;
@@ -37860,6 +38330,15 @@ export type Database = {
       };
     };
     Views: {
+      ai_never_send: {
+        Row: {
+          column_name: string | null;
+          reason: string | null;
+          table_name: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       application_board: {
         Row: {
           applicant_kind: string | null;
@@ -40622,6 +41101,50 @@ export type Database = {
         Returns: string;
       };
       agree_self_billing: { Args: { p_engagement_id: string }; Returns: string };
+      ai_allowance: {
+        Args: { p_org_id: string };
+        Returns: {
+          allowance: number;
+          plan_includes_aurora: boolean;
+          used: number;
+        }[];
+      };
+      ai_begin_request: {
+        Args: {
+          p_feature: Database["app"]["Enums"]["ai_feature"];
+          p_model: string;
+          p_org_id: string;
+          p_subject_id?: string;
+          p_subject_table?: string;
+        };
+        Returns: string;
+      };
+      ai_complete_request: {
+        Args: {
+          p_failure_code?: string;
+          p_input_tokens?: number;
+          p_outcome: Database["app"]["Enums"]["ai_request_outcome"];
+          p_output: string;
+          p_output_tokens?: number;
+          p_prompt: string;
+          p_request_id: string;
+        };
+        Returns: undefined;
+      };
+      ai_enabled_features: {
+        Args: { p_org_id: string };
+        Returns: Database["app"]["Enums"]["ai_feature"][];
+      };
+      ai_propose_suggestion: {
+        Args: {
+          p_fields: Json;
+          p_operation_id: string;
+          p_request_id: string;
+          p_summary: string;
+          p_target_id: string;
+        };
+        Returns: string;
+      };
       apply_asset_scan: {
         Args: {
           p_action: Database["app"]["Enums"]["asset_scan_action"];
@@ -41872,6 +42395,16 @@ export type Database = {
         };
         Returns: string;
       };
+      transition_ai_suggestion: {
+        Args: {
+          p_applied_id?: string;
+          p_expected: Database["app"]["Enums"]["ai_suggestion_state"];
+          p_next: Database["app"]["Enums"]["ai_suggestion_state"];
+          p_reason: string;
+          p_suggestion_id: string;
+        };
+        Returns: string;
+      };
       transition_application: {
         Args: {
           p_application_id: string;
@@ -42187,6 +42720,10 @@ export type Database = {
         | "Master Services Agreement"
         | "Non-Disclosure Agreement";
       agreement_state: "Proposed" | "Sent" | "Signed" | "Superseded" | "Expired" | "Canceled";
+      ai_feature:
+        "assistant" | "plain_language" | "extraction" | "drafting" | "summaries" | "mapping";
+      ai_request_outcome: "Pending" | "Answered" | "No Answer" | "Failed";
+      ai_suggestion_state: "Proposed" | "Confirmed" | "Applied" | "Rejected" | "Expired";
       application_state:
         | "Submitted"
         | "In Review"
@@ -48384,6 +48921,9 @@ export const Constants = {
         "Non-Disclosure Agreement",
       ],
       agreement_state: ["Proposed", "Sent", "Signed", "Superseded", "Expired", "Canceled"],
+      ai_feature: ["assistant", "plain_language", "extraction", "drafting", "summaries", "mapping"],
+      ai_request_outcome: ["Pending", "Answered", "No Answer", "Failed"],
+      ai_suggestion_state: ["Proposed", "Confirmed", "Applied", "Rejected", "Expired"],
       application_state: [
         "Submitted",
         "In Review",
