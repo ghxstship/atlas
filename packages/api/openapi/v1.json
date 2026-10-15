@@ -29383,9 +29383,10 @@
           },
           "qualifier": {
             "type": ["string", "null"],
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Qualifier of the value.",
-            "example": "net"
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Qualifier of the value: the code section or modelling note it follows.",
+            "example": "IBC 1005.3.2 - 0.2 in per occupant"
           },
           "source": {
             "type": ["string", "null"],
@@ -29645,8 +29646,9 @@
           },
           "since": {
             "type": ["string", "null"],
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Version that introduced it.",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Version that introduced it, as written in canon.",
             "example": "3.0"
           },
           "note": {
@@ -29781,9 +29783,10 @@
           "record_subtype": { "$ref": "#/components/schemas/RecordSubtype" },
           "unspsc_segment": {
             "type": ["string", "null"],
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "UNSPSC segment.",
-            "example": "80"
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "UNSPSC segment code and name.",
+            "example": "52160000 Audio and visual equipment and accessories"
           }
         },
         "required": ["record_kind", "record_subtype", "unspsc_segment"],
@@ -29851,11 +29854,10 @@
           },
           "dept_code": { "$ref": "#/components/schemas/DeptCode" },
           "staffing_ratio": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Staffing ratio.",
-            "example": "1 per 250 guests"
+            "type": ["number", "null"],
+            "minimum": 0,
+            "description": "Staffing ratio from canon: how many people one role holder covers.",
+            "example": 250
           },
           "ratio_basis": {
             "type": ["string", "null"],
@@ -30075,11 +30077,18 @@
         "properties": {
           "alias": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64,
             "description": "Alias as written.",
             "example": "ea"
           },
-          "unit_code": { "$ref": "#/components/schemas/UnitCode" },
+          "unit_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Unit the alias maps to.",
+            "example": "ea"
+          },
           "dimension_code": {
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
@@ -30264,7 +30273,13 @@
             "description": "Element kind.",
             "example": "rental"
           },
-          "unit_basis": { "$ref": "#/components/schemas/UnitCode" },
+          "unit_basis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Unit basis of the element.",
+            "example": "ea"
+          },
           "xyz": { "$ref": "#/components/schemas/Xyz" },
           "xyz_basis": {
             "type": "string",
@@ -31441,16 +31456,16 @@
         "properties": {
           "element_id": { "$ref": "#/components/schemas/ItemId" },
           "currency_code": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
+            "description": "ISO 4217 currency of the amount; null when unpriced.",
             "example": "USD"
           },
           "effective_confidence": {
-            "allOf": [
-              { "$ref": "#/components/schemas/AssertionLabel" },
-              { "type": ["string", "null"] }
-            ]
+            "type": ["string", "null"],
+            "pattern": "^[A-Z][A-Z_]*$",
+            "description": "Confidence at read time from the staleness policy: an assertion label, or NO_ANSWER.",
+            "example": "QUOTED"
           },
           "item": {
             "type": ["string", "null"],
@@ -31462,7 +31477,8 @@
           "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] },
           "unit_basis": {
             "type": ["string", "null"],
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64,
             "description": "Unit basis of the amount.",
             "example": "day"
           },
@@ -31547,10 +31563,11 @@
             "example": 12
           },
           "category": {
-            "type": ["string", "null"],
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Category label.",
-            "example": "Audio"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Category name.",
+            "example": "Production Leadership"
           },
           "unspsc_element_count": {
             "type": ["integer", "null"],
@@ -37688,38 +37705,6 @@
         ],
         "description": "An org-scoped API key with capability scopes and expiry. The secret is shown once and stored hashed."
       },
-      "ApiKeyCreate": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Key name.",
-            "example": "Accounting Sync"
-          },
-          "service_account_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the service account.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "scopes": {
-            "type": "array",
-            "items": { "type": "string", "minLength": 1 },
-            "description": "Capability groups the key may use.",
-            "example": ["finance"]
-          },
-          "expires_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Expiry.",
-            "example": "2026-10-08T14:30:00Z"
-          }
-        },
-        "required": ["name", "scopes", "expires_at"],
-        "description": "Fields accepted when creating a ApiKey."
-      },
       "ApiKeyUpdate": {
         "type": "object",
         "properties": {
@@ -37769,6 +37754,38 @@
         },
         "required": ["api_key_id", "secret"],
         "description": "A newly created API key secret, shown once."
+      },
+      "ApiKeyCreate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Key name.",
+            "example": "Accounting Sync"
+          },
+          "service_account_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the service account.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "scopes": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "description": "Capability groups the key may use.",
+            "example": ["finance"]
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Expiry.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["name", "scopes", "expires_at"],
+        "description": "Fields accepted when creating a ApiKey."
       },
       "ServiceAccountPage": {
         "type": "object",
@@ -37890,20 +37907,20 @@
             "description": "Service account name.",
             "example": "Ledger Export Bot"
           },
-          "owner_person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the owner.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "expires_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "Expiry.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "role_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the role the service account's membership holds.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["name", "owner_person_id"],
+        "required": ["name", "role_id"],
         "description": "Fields accepted when creating a ServiceAccount."
       },
       "ServiceAccountUpdate": {
@@ -38373,32 +38390,6 @@
         ],
         "description": "A webhook endpoint. Deliveries are signed with HMAC-SHA256 and retried for 72 hours."
       },
-      "WebhookEndpointCreate": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string",
-            "format": "uri",
-            "description": "HTTPS endpoint URL.",
-            "example": "https://northwindlive.example/files/site-plan.pdf"
-          },
-          "events": {
-            "type": "array",
-            "items": { "type": "string", "pattern": "^[a-z_]+\\.[a-z_]+$" },
-            "description": "Subscribed event names.",
-            "example": ["record.state_changed", "po.approved"]
-          },
-          "description": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 2000,
-            "description": "What the endpoint is for.",
-            "example": "Sync approved POs to the ERP."
-          }
-        },
-        "required": ["url", "events"],
-        "description": "Fields accepted when creating a WebhookEndpoint."
-      },
       "WebhookEndpointUpdate": {
         "type": "object",
         "properties": {
@@ -38429,6 +38420,51 @@
           }
         },
         "description": "Fields accepted when updating a WebhookEndpoint. Omitted fields are unchanged."
+      },
+      "WebhookEndpointSecret": {
+        "type": "object",
+        "properties": {
+          "webhook_endpoint_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the webhook endpoint.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "signing_secret": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The endpoint's signing secret. Shown once; it is stored in Vault and never read back.",
+            "example": "whsec_5Jk2pQ8xL1nV7cR3"
+          }
+        },
+        "required": ["webhook_endpoint_id", "signing_secret"],
+        "description": "A newly created webhook endpoint and its signing secret, shown once."
+      },
+      "WebhookEndpointCreate": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "HTTPS endpoint URL.",
+            "example": "https://northwindlive.example/files/site-plan.pdf"
+          },
+          "events": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^[a-z_]+\\.[a-z_]+$" },
+            "description": "Subscribed event names.",
+            "example": ["record.state_changed", "po.approved"]
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the endpoint is for.",
+            "example": "Sync approved POs to the ERP."
+          }
+        },
+        "required": ["url", "events"],
+        "description": "Fields accepted when creating a WebhookEndpoint."
       },
       "WebhookDeliveryPage": {
         "type": "object",
@@ -42313,9 +42349,20 @@
             "description": "What is exported, as a saved view or report URN.",
             "example": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "export_format": { "$ref": "#/components/schemas/ExportFormat" }
+          "export_format": { "$ref": "#/components/schemas/ExportFormat" },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^app\\.[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
+              "description": "A column as app.table.column.",
+              "example": "app.vendors.name"
+            },
+            "minItems": 1,
+            "description": "Columns the export contains, as app.table.column."
+          }
         },
-        "required": ["source_label", "export_format"],
+        "required": ["source_label", "export_format", "columns"],
         "description": "Fields accepted when creating a ExportJob."
       },
       "SavedViewPage": {
@@ -43522,6 +43569,25 @@
         ],
         "description": "An iCalendar feed. The token is shown once, stored hashed and revocable."
       },
+      "CalendarFeedToken": {
+        "type": "object",
+        "properties": {
+          "calendar_feed_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the calendar feed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "feed_token": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The token of the feed's subscription URL. Shown once; only its hash is stored, and revoking the feed ends it.",
+            "example": "cal_9fQ2mX4vT7kL1pR8"
+          }
+        },
+        "required": ["calendar_feed_id", "feed_token"],
+        "description": "A newly created calendar feed and its subscription token, shown once."
+      },
       "CalendarFeedCreate": {
         "type": "object",
         "properties": {
@@ -43530,15 +43596,8 @@
             "format": "uuid",
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "membership_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the member who owns the feed; it shows what they may see.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["membership_id"],
         "description": "Fields accepted when creating a CalendarFeed."
       },
       "TrashItemPage": {
@@ -91805,7 +91864,7 @@
                       "domain": "capacity",
                       "item": "Stage or performance area",
                       "value_numeric": 15,
-                      "qualifier": "net",
+                      "qualifier": "IBC 1005.3.2 - 0.2 in per occupant",
                       "source": "IBC 1004.5",
                       "is_code_derived": true,
                       "jurisdiction_id": "US-FL",
@@ -91866,7 +91925,7 @@
                   "domain": "capacity",
                   "item": "Stage or performance area",
                   "value_numeric": 15,
-                  "qualifier": "net",
+                  "qualifier": "IBC 1005.3.2 - 0.2 in per occupant",
                   "source": "IBC 1004.5",
                   "is_code_derived": true,
                   "jurisdiction_id": "US-FL",
@@ -92510,7 +92569,11 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "record_kind": "Task", "record_subtype": "Design", "unspsc_segment": "80" }
+                    {
+                      "record_kind": "Task",
+                      "record_subtype": "Design",
+                      "unspsc_segment": "52160000 Audio and visual equipment and accessories"
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -92557,7 +92620,7 @@
                 "example": {
                   "record_kind": "Task",
                   "record_subtype": "Design",
-                  "unspsc_segment": "80"
+                  "unspsc_segment": "52160000 Audio and visual equipment and accessories"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonRecordSubtype" }
               }
@@ -92686,7 +92749,7 @@
                       "role_code": "0000.50.01",
                       "role": "Client sponsorship",
                       "dept_code": "0000",
-                      "staffing_ratio": "1 per 250 guests",
+                      "staffing_ratio": 250,
                       "ratio_basis": "Guests",
                       "kit_basis": "Per person",
                       "job_title": "Head Rigger"
@@ -92695,7 +92758,7 @@
                       "role_code": "0000.50.02",
                       "role": "Operator leadership",
                       "dept_code": "0000",
-                      "staffing_ratio": "1 per 250 guests",
+                      "staffing_ratio": 250,
                       "ratio_basis": "Guests",
                       "kit_basis": "Per person",
                       "job_title": "Head Rigger"
@@ -92747,7 +92810,7 @@
                   "role_code": "5000.50.01",
                   "role": "Rigging lead",
                   "dept_code": "4000",
-                  "staffing_ratio": "1 per 250 guests",
+                  "staffing_ratio": 250,
                   "ratio_basis": "Guests",
                   "kit_basis": "Per person",
                   "job_title": "Head Rigger"
@@ -93169,7 +93232,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "data": [{ "alias": "ea", "unit_code": "each", "dimension_code": "length" }],
+                  "data": [{ "alias": "ea", "unit_code": "ea", "dimension_code": "length" }],
                   "next_cursor": null
                 },
                 "schema": { "$ref": "#/components/schemas/CanonUnitAliasPage" }
@@ -93217,7 +93280,7 @@
             },
             "content": {
               "application/json": {
-                "example": { "alias": "ea", "unit_code": "each", "dimension_code": "length" },
+                "example": { "alias": "ea", "unit_code": "ea", "dimension_code": "length" },
                 "schema": { "$ref": "#/components/schemas/CanonUnitAlias" }
               }
             }
@@ -93552,7 +93615,7 @@
                       "item": "Ground Stage Deck",
                       "common_name": "Stage deck",
                       "kind": "rental",
-                      "unit_basis": "each",
+                      "unit_basis": "ea",
                       "xyz": "X",
                       "xyz_basis": "Physical inventory",
                       "grade": "Standard",
@@ -93570,7 +93633,7 @@
                       "item": "Ground Stage Deck",
                       "common_name": "Stage deck",
                       "kind": "rental",
-                      "unit_basis": "each",
+                      "unit_basis": "ea",
                       "xyz": "X",
                       "xyz_basis": "Physical inventory",
                       "grade": "Standard",
@@ -93631,7 +93694,7 @@
                   "item": "Ground Stage Deck",
                   "common_name": "Stage deck",
                   "kind": "rental",
-                  "unit_basis": "each",
+                  "unit_basis": "ea",
                   "xyz": "X",
                   "xyz_basis": "Physical inventory",
                   "grade": "Standard",
@@ -95804,7 +95867,7 @@
                     {
                       "cat_urid": "4000.01.01",
                       "element_count": 12,
-                      "category": "Audio",
+                      "category": "Production Leadership",
                       "unspsc_element_count": 12,
                       "gtin_element_count": 4,
                       "gtin_count": 9
@@ -95812,7 +95875,7 @@
                     {
                       "cat_urid": "4000.01.02",
                       "element_count": 12,
-                      "category": "Audio",
+                      "category": "Production Leadership",
                       "unspsc_element_count": 12,
                       "gtin_element_count": 4,
                       "gtin_count": 9
@@ -106270,8 +106333,9 @@
         "x-xos-table": "app.api_keys",
         "x-xos-capability": "org.api_keys.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "app.create_api_key",
         "summary": "Create an API key",
-        "description": "An org-scoped API key with capability scopes and expiry. The secret is shown once and stored hashed. Creates an API key. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "Creates an API key with scopes and an expiry, optionally for a service account, through `app.create_api_key`. The full secret is returned once; only its hash is stored. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -106289,9 +106353,8 @@
         },
         "responses": {
           "201": {
-            "description": "The created API key.",
+            "description": "The result.",
             "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
               "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
@@ -106299,22 +106362,10 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "Accounting Sync",
-                  "service_account_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "scopes": ["finance"],
-                  "expires_at": "2026-10-08T14:30:00Z",
-                  "prefix": "xos_live_7Hq2",
-                  "last_used_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z",
-                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "api_key_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "secret": "xos_live_7Hq2wQ1nC8vL0pR4tY6u"
                 },
-                "schema": { "$ref": "#/components/schemas/ApiKey" }
+                "schema": { "$ref": "#/components/schemas/ApiKeySecret" }
               }
             }
           },
@@ -106650,8 +106701,8 @@
             "application/json": {
               "example": {
                 "name": "Ledger Export Bot",
-                "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "expires_at": "2026-10-08T14:30:00Z"
+                "expires_at": "2026-10-08T14:30:00Z",
+                "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/ServiceAccountCreate" }
             }
@@ -107585,8 +107636,9 @@
         "x-xos-table": "app.webhook_endpoints",
         "x-xos-capability": "org.webhooks.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "app.create_webhook_endpoint",
         "summary": "Create a webhook endpoint",
-        "description": "A webhook endpoint. Deliveries are signed with HMAC-SHA256 and retried for 72 hours. Creates a webhook endpoint. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "Creates an endpoint subscribed to the given event types through `app.create_webhook_endpoint`. The signing secret is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -107603,9 +107655,8 @@
         },
         "responses": {
           "201": {
-            "description": "The created webhook endpoint.",
+            "description": "The result.",
             "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
               "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
@@ -107613,18 +107664,10 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "url": "https://northwindlive.example/files/site-plan.pdf",
-                  "events": ["record.state_changed", "po.approved"],
-                  "description": "Sync approved POs to the ERP.",
-                  "disabled_at": "2026-10-08T14:30:00Z"
+                  "webhook_endpoint_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "signing_secret": "whsec_5Jk2pQ8xL1nV7cR3"
                 },
-                "schema": { "$ref": "#/components/schemas/WebhookEndpoint" }
+                "schema": { "$ref": "#/components/schemas/WebhookEndpointSecret" }
               }
             }
           },
@@ -113938,7 +113981,8 @@
             "application/json": {
               "example": {
                 "source_label": "urn:xpms:saved_view:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "export_format": "CSV"
+                "export_format": "CSV",
+                "columns": ["app.vendors.name"]
               },
               "schema": { "$ref": "#/components/schemas/ExportJobCreate" }
             }
@@ -115944,26 +115988,23 @@
         "x-xos-table": "app.calendar_feeds",
         "x-xos-capability": "me.calendar_feeds.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.create_calendar_feed",
         "summary": "Create a calendar feed",
-        "description": "An iCalendar feed. The token is shown once, stored hashed and revocable. Creates a calendar feed. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "Creates an iCalendar feed of the caller's schedule, optionally for one project, through `app.create_calendar_feed`. The token of the subscription URL is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-              },
+              "example": { "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
               "schema": { "$ref": "#/components/schemas/CalendarFeedCreate" }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "The created calendar feed.",
+            "description": "The result.",
             "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
               "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
@@ -115971,18 +116012,10 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "revoked_at": "2026-10-08T14:30:00Z",
-                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "last_accessed_at": "2026-10-08T14:30:00Z"
+                  "calendar_feed_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "feed_token": "cal_9fQ2mX4vT7kL1pR8"
                 },
-                "schema": { "$ref": "#/components/schemas/CalendarFeed" }
+                "schema": { "$ref": "#/components/schemas/CalendarFeedToken" }
               }
             }
           },

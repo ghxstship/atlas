@@ -452,5 +452,148 @@ export const additions = defineAdditions("Canon", {
         }),
       ),
     },
+    {
+      id: "canon-metric-qualifier-text",
+      since: "1.0.0-draft.2",
+      resources: ["canonMetrics"],
+      change: "`qualifier` is free text (nullable), not a code.",
+      reason:
+        "xpms.dim_metric (0101) stores each metric's qualifier as the code section or modelling note it follows, such as `IBC 1006.2.1 (2 up to 500; 3 to 1,000; 4 above)`, which the code pattern rejects.",
+      apply: editShape({
+        add: {
+          qualifier: {
+            schema: orNull(
+              fields.text(
+                "Qualifier of the value: the code section or modelling note it follows.",
+                "IBC 1005.3.2 - 0.2 in per occupant",
+                1000,
+              ),
+            ),
+          },
+        },
+      }),
+    },
+    {
+      id: "canon-facet-since-text",
+      since: "1.0.0-draft.2",
+      resources: ["canonFacets"],
+      change: "`since` is the version as written (nullable text), not a code.",
+      reason:
+        "xpms.dim_facet (0101) records the introducing version as written in the canon sheet, such as `3.0 (declared)`, which the code pattern rejects.",
+      apply: editShape({
+        add: {
+          since: {
+            schema: orNull(
+              fields.text("Version that introduced it, as written in canon.", "3.0", 64),
+            ),
+          },
+        },
+      }),
+    },
+    {
+      id: "canon-record-subtype-unspsc-text",
+      since: "1.0.0-draft.2",
+      resources: ["canonRecordSubtypes"],
+      change: "`unspsc_segment` is the segment code with its name (nullable text), not a code.",
+      reason:
+        "xpms.dim_record_subtype (0101) stores the UNSPSC segment as code and name, such as `52160000 Audio and visual equipment and accessories`, which the code pattern rejects.",
+      apply: editShape({
+        add: {
+          unspsc_segment: {
+            schema: orNull(
+              fields.text(
+                "UNSPSC segment code and name.",
+                "52160000 Audio and visual equipment and accessories",
+                200,
+              ),
+            ),
+          },
+        },
+      }),
+    },
+    {
+      id: "canon-role-staffing-ratio-number",
+      since: "1.0.0-draft.2",
+      resources: ["canonRoles"],
+      change: "`staffing_ratio` is a number (nullable), not text.",
+      reason: "xpms.dim_role (0101) stores the staffing ratio as numeric, such as 250.",
+      apply: editShape({
+        add: {
+          staffing_ratio: {
+            schema: orNull(
+              z.number().min(0).meta({
+                description: "Staffing ratio from canon: how many people one role holder covers.",
+                example: 250,
+              }),
+            ),
+          },
+        },
+      }),
+    },
+    {
+      id: "canon-unit-alias-text",
+      since: "1.0.0-draft.2",
+      resources: ["canonUnitAliases"],
+      change: "`alias` and `unit_code` are text: canon units include phrases such as `lump sum`.",
+      reason:
+        "xpms.dim_unit_alias (0101) maps units written as phrases with spaces, such as `sq ft per year`, which the code and unit patterns reject.",
+      apply: editShape({
+        add: {
+          alias: { schema: fields.text("Alias as written.", "ea", 64) },
+          unit_code: { schema: fields.text("Unit the alias maps to.", "ea", 64) },
+        },
+      }),
+    },
+    {
+      id: "canon-element-unit-basis-text",
+      since: "1.0.0-draft.2",
+      resources: ["canonElements"],
+      change: "`unit_basis` is text: canon units include phrases such as `lump sum`.",
+      reason:
+        "xpms.elements (0104) prices some elements per `lump sum` or `sq ft per year`, which the unit pattern rejects.",
+      apply: editShape({
+        add: { unit_basis: { schema: fields.text("Unit basis of the element.", "ea", 64) } },
+      }),
+    },
+    {
+      id: "canon-element-economics-unpriced",
+      since: "1.0.0-draft.2",
+      resources: ["canonElementEconomics"],
+      change:
+        "`currency_code` is nullable (an unpriced grade has no currency), `unit_basis` stays nullable, and `effective_confidence` admits NO_ANSWER.",
+      reason:
+        "The view xpms.v_element_economics (0104) reports grades without a band with a NULL amount and currency, and computes effective confidence as an assertion label or NO_ANSWER, which the label pattern rejects.",
+      apply: editShape({
+        add: {
+          currency_code: {
+            schema: orNull(fields.currency("ISO 4217 currency of the amount; null when unpriced.")),
+          },
+          unit_basis: { schema: orNull(fields.text("Unit basis of the amount.", "day", 64)) },
+          effective_confidence: {
+            schema: orNull(
+              z
+                .string()
+                .regex(/^[A-Z][A-Z_]*$/)
+                .meta({
+                  description:
+                    "Confidence at read time from the staleness policy: an assertion label, or NO_ANSWER.",
+                  example: "QUOTED",
+                }),
+            ),
+          },
+        },
+      }),
+    },
+    {
+      id: "canon-crosswalk-category-text",
+      since: "1.0.0-draft.2",
+      resources: ["canonCrosswalkCoverage"],
+      change: "`category` is the category name as written (text), not a Title Case label.",
+      reason:
+        "The view xpms.v_crosswalk_coverage (0104) names categories as canon writes them, such as `FF&E (Furniture, Fixtures & Equipment)`, which the label pattern rejects.",
+      apply: editShape({
+        add: { category: { schema: fields.text("Category name.", "Production Leadership", 200) } },
+      }),
+    },
   ],
 });

@@ -17,7 +17,10 @@ import {
   lineAmount,
   listAccommodationBlocks,
   listBeos,
-  listCurrencyCodes,
+  listCurrencies,
+  parseMinor,
+  toMajor,
+  formatMajorInput,
   listFulfillmentMoves,
   listFulfillments,
   listFulfillmentTransitions,
@@ -443,15 +446,41 @@ describe("BEOs", () => {
     expect((await removeBeoLine(db, "bl9")).ok).toBe(true);
   });
 
-  it("lists currency codes", async () => {
+  it("lists currencies with their exponents", async () => {
     const { db } = fakeClient({
       "from:currencies": [
-        okResponse([{ currency_code: "EUR" }, { currency_code: "USD" }]),
+        okResponse([
+          { currency_code: "JPY", minor_unit_exponent: 0 },
+          { currency_code: "USD", minor_unit_exponent: 2 },
+          { currency_code: "XTS", minor_unit_exponent: null },
+        ]),
         errorResponse("XX000", "down"),
       ],
     });
-    expect(await listCurrencyCodes(db)).toEqual({ ok: true, data: ["EUR", "USD"] });
-    expect((await listCurrencyCodes(db)).ok).toBe(false);
+    expect(await listCurrencies(db)).toEqual({
+      ok: true,
+      data: [
+        { code: "JPY", exponent: 0 },
+        { code: "USD", exponent: 2 },
+        { code: "XTS", exponent: 2 },
+      ],
+    });
+    expect((await listCurrencies(db)).ok).toBe(false);
+  });
+
+  it("converts between major and minor units by exponent", () => {
+    expect(toMajor(18900, 2)).toBe(189);
+    expect(toMajor(500, 0)).toBe(500);
+    expect(parseMinor("189.00", 2)).toBe(18900);
+    expect(parseMinor("1,250.5", 2)).toBe(125050);
+    expect(parseMinor("500", 0)).toBe(500);
+    expect(parseMinor("1.234", 3)).toBe(1234);
+    expect(parseMinor("", 2)).toBeNull();
+    expect(parseMinor("12.345", 2)).toBeUndefined();
+    expect(parseMinor("5.5", 0)).toBeUndefined();
+    expect(parseMinor("abc", 2)).toBeUndefined();
+    expect(formatMajorInput(18900, 2)).toBe("189.00");
+    expect(formatMajorInput(null, 2)).toBe("");
   });
 });
 

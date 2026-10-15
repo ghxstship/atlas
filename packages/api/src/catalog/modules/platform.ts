@@ -6,7 +6,9 @@
 import { z } from "@hono/zod-openapi";
 import { Classification, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
-import { editShape, orNull } from "../correct.ts";
+import { all, editShape, orNull, putActions, removeVerbs } from "../correct.ts";
+import { collectionAction } from "../define.ts";
+import type { ResourceSpec } from "../types.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -18,6 +20,39 @@ const tableName = (description: string) =>
     .string()
     .regex(/^[a-z][a-z0-9_]*$/)
     .meta({ description, example: "records" });
+
+const CalendarFeedToken = z
+  .object({
+    calendar_feed_id: fields.ref("calendar feed"),
+    feed_token: z.string().min(1).meta({
+      description:
+        "The token of the feed's subscription URL. Shown once; only its hash is stored, and revoking the feed ends it.",
+      example: "cal_9fQ2mX4vT7kL1pR8",
+    }),
+  })
+  .meta({
+    id: "CalendarFeedToken",
+    description: "A newly created calendar feed and its subscription token, shown once.",
+  });
+
+/** The create verb as a collection action at the same path, answering `response` with 201. */
+const createAnswering =
+  (response: z.ZodType, rpc: string, summary: string, description: string) =>
+  (spec: ResourceSpec): ResourceSpec => {
+    const body = spec.def.create;
+    if (body === undefined) throw new Error(`${spec.op} has no create body.`);
+    return putActions([
+      collectionAction("create", {
+        segment: "",
+        summary,
+        description,
+        body,
+        response,
+        rpc,
+        status: 201,
+      }),
+    ])(removeVerbs("create")(spec));
+  };
 
 export const additions = defineAdditions("Platform", {
   corrections: [
@@ -507,6 +542,62 @@ export const additions = defineAdditions("Platform", {
           },
           last_accessed_at: {
             schema: orNull(fields.instant("Last time a calendar fetched the feed.")),
+          },
+        },
+      }),
+    },
+    {
+      id: "calendar-feed-create-returns-token",
+      since: "1.0.0-draft.2",
+      resources: ["calendarFeeds"],
+      components: ["schemas/CalendarFeedToken"],
+      change:
+        "CalendarFeedCreate takes only `project_id`: the owning membership is the caller's. `calendarFeeds.create` answers 201 with CalendarFeedToken (`calendar_feed_id` and the `feed_token`, shown once) instead of the CalendarFeed read shape.",
+      reason:
+        "app.create_calendar_feed (0550) creates the feed for the caller's own membership in the organization and stores only the token's hash, returning the token once; answering with the read shape would lose the only copy of the subscription URL's token.",
+      apply: all(
+        editShape({
+          add: {
+            membership_id: {
+              schema: fields.ref("member who owns the feed; it shows what they may see"),
+              update: false,
+            },
+          },
+        }),
+        createAnswering(
+          CalendarFeedToken,
+          "app.create_calendar_feed",
+          "Create a calendar feed",
+          "Creates an iCalendar feed of the caller's schedule, optionally for one project, through `app.create_calendar_feed`. The token of the subscription URL is returned once.",
+        ),
+      ),
+    },
+    {
+      id: "export-job-requested-columns",
+      since: "1.0.0-draft.2",
+      resources: ["exportJobs"],
+      change:
+        "ExportJobCreate takes the write-only `columns` (required): the `app.table.column` names the export contains.",
+      reason:
+        "app.request_export (0530) refuses an export that names no columns and computes the classification and watermark from them (Section 8.6); the frozen create body could not name them.",
+      apply: editShape({
+        add: {
+          columns: {
+            schema: z
+              .array(
+                z
+                  .string()
+                  .regex(/^app\.[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/)
+                  .meta({
+                    description: "A column as app.table.column.",
+                    example: "app.vendors.name",
+                  }),
+              )
+              .min(1)
+              .meta({ description: "Columns the export contains, as app.table.column." }),
+            create: "required",
+            update: false,
+            read: false,
           },
         },
       }),

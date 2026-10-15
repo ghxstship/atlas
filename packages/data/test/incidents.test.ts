@@ -25,6 +25,7 @@ import {
   listIncidentsForDispatch,
   listMedicalEncounters,
   listMyDispatches,
+  listProjectAuthorities,
   listRadioChannels,
   listStandardRadioChannels,
   markArrived,
@@ -536,6 +537,28 @@ describe("emergency codes and crisis alerts", () => {
     expect((await listCrisisAlerts(db, { orgId: "o1" })).ok).toBe(false);
     expect((await issueCrisisAlert(db, input)).ok).toBe(false);
     expect((await endCrisisAlert(db, "a3")).ok).toBe(false);
+  });
+});
+
+describe("authorities", () => {
+  it("keeps only responding services the protocols name", async () => {
+    const { db } = client({
+      "from:project_authority": [
+        okResponse([
+          { service: "fire", agency: "Miami-Dade Fire Rescue", contact: "911" },
+          { service: "ems", agency: "County EMS", contact: null },
+          { service: "building", agency: "Building Department", contact: null },
+          { service: null, agency: null, contact: null },
+        ]),
+        down,
+      ],
+    });
+    const result = await listProjectAuthorities(db, "j1");
+    expect(result.ok && result.data).toEqual([
+      { service: "fire", agency: "Miami-Dade Fire Rescue", contact: "911" },
+      { service: "ems", agency: "County EMS" },
+    ]);
+    expect((await listProjectAuthorities(db, "j1")).ok).toBe(false);
   });
 });
 

@@ -53,8 +53,8 @@ with x as (insert into app.incidents (project_id, title, severity_enum_id, occur
 select app.transition_incident(pg_temp.id('inc2'), 'Reported', 'Contained', 'Taped off.');
 select lives_ok($$select app.close_incident((select id from world where key = 'inc2'), 'Fixed.')$$, 'a non-critical incident may be closed by its reporter with sign-off');
 select pg_temp.as_platform();
-select is((select count(*)::int from app.domain_events where event_type = 'incident.reported'), 2, 'incident.reported was emitted for each incident');
-select is((select count(*)::int from app.domain_events where event_type = 'incident.closed'), 2, 'incident.closed was emitted on each sign-off');
+select is((select count(*)::int from app.domain_events where event_type = 'incident.reported' and org_id in (pg_temp.id('org_a'), pg_temp.id('org_b'))), 2, 'incident.reported was emitted for each incident');
+select is((select count(*)::int from app.domain_events where event_type = 'incident.closed' and org_id in (pg_temp.id('org_a'), pg_temp.id('org_b'))), 2, 'incident.closed was emitted on each sign-off');
 select pg_temp.as_user('gina');
 select is((select count(*)::int from app.incidents), 0, 'a Viewer outside the project reads no incidents (invariant 2)');
 select pg_temp.as_user('xavier');

@@ -1,0 +1,196 @@
+{
+  "kinds": {
+    "fulfillment": "Servicio",
+    "beo": "BEO",
+    "block": "Bloque de alojamiento"
+  },
+  "projectTab": {
+    "sections": "Secciones de hospitalidad",
+    "fulfillments": "Servicios",
+    "beos": "BEO",
+    "blocks": "Bloques de alojamiento"
+  },
+  "fulfillments": {
+    "title": "Servicios",
+    "new": "Nuevo servicio",
+    "editTitle": "Editar {key}",
+    "empty": "Aún no hay servicios de hospitalidad. Agrega alojamiento, catering, viajes o amenidades para esta producción.",
+    "emptyAction": "Nuevo servicio",
+    "emptyReadOnly": "Aún no hay servicios de hospitalidad. Aparecen aquí cuando un coordinador los agrega.",
+    "noProjects": "Los servicios pertenecen a un proyecto. Crea un proyecto primero y luego agrega su hospitalidad.",
+    "noProjectsAction": "Abrir proyectos",
+    "kind": {
+      "Lodging": "Alojamiento",
+      "Catering": "Catering",
+      "Travel": "Viajes",
+      "Amenity": "Amenidades"
+    },
+    "state": {
+      "Proposed": "Propuesto",
+      "Active": "Activo",
+      "Blocked": "Bloqueado",
+      "Complete": "Completo",
+      "Canceled": "Cancelado"
+    },
+    "fields": {
+      "key": "Clave",
+      "project": "Proyecto",
+      "kind": "Tipo",
+      "title": "Qué se ofrece",
+      "titleHelp": "Un nombre corto, como Alojamiento del equipo en Harborview.",
+      "supplier": "Proveedor",
+      "supplierHelp": "Los proveedores son las empresas con las que trabajas. Agrega uno en Proveedores si falta.",
+      "startsAt": "Empieza",
+      "endsAt": "Termina",
+      "state": "Estado",
+      "total": "Total",
+      "guests": "Huéspedes",
+      "lines": "Líneas"
+    },
+    "guestCount": "{count, plural, one {# huésped} other {# huéspedes}}",
+    "lines": {
+      "title": "Líneas",
+      "empty": "Aún no hay líneas. Agrega una noche de habitación, una comida o un servicio, y el huésped al que corresponde.",
+      "emptyReadOnly": "Aún no hay líneas.",
+      "add": "Agregar línea",
+      "description": "Qué se ofrece",
+      "guest": "Huésped",
+      "noGuest": "No es para un solo huésped",
+      "quantity": "Cantidad",
+      "unitPrice": "Precio unitario",
+      "unitPriceHelp": "Déjalo en blanco si aún no conoces el precio; se mostrará como Sin precio.",
+      "currency": "Moneda",
+      "amount": "Importe",
+      "remove": "Quitar {description}"
+    },
+    "transition": {
+      "form": "Cambiar estado",
+      "label": "Mover a",
+      "reason": "Motivo",
+      "submit": "Mover"
+    },
+    "history": {
+      "title": "Historial de estados",
+      "created": "Creado como {state} {time}",
+      "moved": "De {from} a {to} {time}",
+      "by": "Por {name}."
+    },
+    "beos": {
+      "title": "BEO",
+      "empty": "Aún no hay BEO para este catering. Genera una para que el proveedor de catering tenga la orden.",
+      "generate": "Generar BEO"
+    },
+    "travel": {
+      "title": "Tramos de viaje",
+      "empty": "Aún no hay vuelos ni traslados. Agrega los tramos de cada viajero.",
+      "add": "Agregar tramo",
+      "traveler": "Viajero",
+      "mode": "Medio",
+      "modes": {
+        "Flight": "Vuelo",
+        "Ground": "Terrestre"
+      },
+      "operator": "Operador",
+      "service": "Número de vuelo o servicio",
+      "confirmation": "Código de confirmación",
+      "departsFrom": "Desde",
+      "departsAt": "Sale",
+      "arrivesAtPlace": "Hasta",
+      "arrivesAt": "Llega",
+      "fare": "Tarifa",
+      "cancel": "Cancelar tramo",
+      "summary": "{mode} {service}",
+      "route": "De {from} a {to}",
+      "line": "{traveler}, {summary}",
+      "when": "{route}, {time}"
+    }
+  },
+  "beos": {
+    "title": "BEO",
+    "new": "Generar BEO",
+    "editTitle": "Editar {key}",
+    "empty": "Aún no hay órdenes de banquete. Genera una desde un servicio de catering.",
+    "emptyAction": "Generar BEO",
+    "emptyReadOnly": "Aún no hay órdenes de banquete. Aparecen aquí cuando un coordinador las genera.",
+    "titleFor": "BEO de {fulfillment}",
+    "titleStandalone": "Orden de banquete",
+    "state": {
+      "draft": "Borrador",
+      "approved": "Aprobada"
+    },
+    "fields": {
+      "key": "Clave",
+      "project": "Proyecto",
+      "fulfillment": "Servicio de catering",
+      "noFulfillment": "Sin vincular",
+      "eventAt": "Servicio de comida",
+      "guestCount": "Invitados garantizados",
+      "approval": "Aprobación",
+      "total": "Total",
+      "state": "Estado"
+    },
+    "approve": "Aprobar BEO",
+    "approved": "Aprobada {time} por {name}",
+    "approvedNoName": "Aprobada {time}",
+    "notApproved": "Aún no aprobada",
+    "authorHint": "Tú escribiste esta BEO, así que otra persona con permiso de aprobación debe aprobarla.",
+    "lines": {
+      "title": "Menú y servicio",
+      "empty": "Aún no hay líneas de menú. Agrega cada platillo y servicio con su cantidad.",
+      "emptyReadOnly": "Aún no hay líneas de menú.",
+      "add": "Agregar línea",
+      "description": "Platillo o servicio",
+      "quantity": "Cantidad",
+      "unitPrice": "Precio unitario",
+      "currency": "Moneda",
+      "remove": "Quitar {description}"
+    }
+  },
+  "blocks": {
+    "title": "Bloques de alojamiento",
+    "new": "Nuevo bloque",
+    "editTitle": "Editar {key}",
+    "empty": "Aún no hay bloques de alojamiento. Contrata un bloque de habitaciones para que el equipo y los invitados tengan dónde dormir.",
+    "emptyAction": "Nuevo bloque",
+    "emptyReadOnly": "Aún no hay bloques de alojamiento. Aparecen aquí cuando un coordinador los contrata.",
+    "state": {
+      "upcoming": "Próximo",
+      "inStay": "En estadía",
+      "past": "Pasado"
+    },
+    "fields": {
+      "key": "Clave",
+      "project": "Proyecto",
+      "title": "Nombre del bloque",
+      "hotel": "Hotel",
+      "checkInOn": "Entrada",
+      "checkOutOn": "Salida",
+      "roomsHeld": "Habitaciones reservadas por noche",
+      "releaseOn": "Fecha de liberación",
+      "releaseHelp": "Las habitaciones sin asignar vuelven al hotel en esta fecha.",
+      "nightlyRate": "Tarifa por noche",
+      "currency": "Moneda",
+      "contractTotal": "Total del contrato",
+      "occupancy": "Asignadas",
+      "state": "Estado"
+    },
+    "occupancy": "{assigned} de {held} noches de habitación asignadas",
+    "nights": {
+      "title": "Habitaciones por noche",
+      "night": "Noche",
+      "assigned": "Asignadas",
+      "free": "Libres"
+    },
+    "assignments": {
+      "title": "Asignaciones de habitación",
+      "empty": "Aún no hay habitaciones asignadas. Asigna a cada huésped una estadía dentro del bloque.",
+      "emptyReadOnly": "Aún no hay habitaciones asignadas.",
+      "assign": "Asignar habitación",
+      "guest": "Huésped",
+      "checkInOn": "Entrada",
+      "checkOutOn": "Salida",
+      "stay": "Del {from} al {to}",
+      "remove": "Quitar a {name}"
+    }
+  }
+}

@@ -12,6 +12,7 @@
  * 6. runs the handler and serializes its typed result, adding `ETag` where the contract declares
  *    it, and maps thrown problems and database errors to RFC 9457 responses.
  */
+import { z as zod } from "@hono/zod-openapi";
 import type { OpenAPIHono, RouteConfig } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import type { z } from "zod";
@@ -70,6 +71,27 @@ export interface OperationRoute {
   readonly capability: string | undefined;
 }
 
+/**
+ * The path parameter schema for request validation: path segments arrive as strings, so an
+ * integer key (a canon rank or generation) is converted to a number before its own schema checks
+ * it. Only validation changes; the documented parameter stays an integer.
+ */
+export function coercePathParams(schema: z.ZodType | undefined): z.ZodType | undefined {
+  if (!(schema instanceof zod.ZodObject)) return schema;
+  const shape = schema.shape as Record<string, z.ZodType>;
+  if (!Object.values(shape).some((s) => s instanceof zod.ZodNumber)) return schema;
+  return zod.object(
+    Object.fromEntries(
+      Object.entries(shape).map(([name, s]) => [
+        name,
+        s instanceof zod.ZodNumber
+          ? zod.preprocess((v) => (typeof v === "string" && /^-?\d+$/.test(v) ? Number(v) : v), s)
+          : s,
+      ]),
+    ),
+  );
+}
+
 function asZod(value: unknown): z.ZodType | undefined {
   return typeof value === "object" && value !== null && "safeParse" in value
     ? (value as z.ZodType)
@@ -96,7 +118,7 @@ export function operationRoute(route: RouteConfig): OperationRoute {
     module: r.tags[0] as Module,
     method: route.method,
     path: route.path,
-    params: asZod(route.request?.params),
+    params: coercePathParams(asZod(route.request?.params)),
     query: asZod(route.request?.query),
     body: asZod(content?.[JSON_MEDIA_TYPE]?.schema),
     responses,
@@ -112,17 +134,23 @@ export function honoPath(path: string): string {
 
 /**
  * Router order: at each segment a static segment sorts before a parameter, so
- * `/projects/summary` is matched before `/projects/{id}`.
+ * `/projects/summary` is matched before `/projects/{id}`. It is a total order (static segments
+ * compare as strings, then the shorter path first, then the method), so the sort gives the same
+ * order whatever order the routes arrive in.
  */
 export function compareRoutes(a: OperationRoute, b: OperationRoute): number {
   const sa = a.path.split("/");
   const sb = b.path.split("/");
   for (let i = 0; i < Math.min(sa.length, sb.length); i += 1) {
-    const pa = (sa[i] as string).startsWith("{");
-    const pb = (sb[i] as string).startsWith("{");
+    const x = sa[i] as string;
+    const y = sb[i] as string;
+    const pa = x.startsWith("{");
+    const pb = y.startsWith("{");
     if (pa !== pb) return pa ? 1 : -1;
+    if (!pa && x !== y) return x < y ? -1 : 1;
   }
-  return 0;
+  if (sa.length !== sb.length) return sa.length - sb.length;
+  return a.method < b.method ? -1 : a.method > b.method ? 1 : 0;
 }
 
 function issues(error: z.ZodError, prefix: string): ValidationIssue[] {

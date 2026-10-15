@@ -101,6 +101,20 @@ function world(context = {}) {
         return null;
       },
       revoke_representation: () => null,
+      end_account_membership: () => null,
+      remove_account_role: () => null,
+      add_account_member: (args, self) => {
+        self.tables["account_membership_roles"]?.push({
+          id: id(9070),
+          org_id: args["p_account_id"],
+          ...TIMES,
+          account_membership_id: id(9005),
+          account_role: args["p_role"],
+          granted_by: ME,
+          deleted_at: null,
+        });
+        return id(9005);
+      },
       invite_member: () => [{ invite_id: id(9040), invite_token: "inv_member_token_0001" }],
       preview_invite: () => [
         {
@@ -115,7 +129,7 @@ function world(context = {}) {
       accept_invite: () => [{ membership_id: MEMBERSHIP, refusal: null, reason: null }],
     },
     {
-      membership_roles: { granted_by: ME },
+      membership_roles: { org_id: ORG, granted_by: ME },
       account_membership_roles: { granted_by: null },
       project_members: { valid_from: "2026-10-01T12:00:00.000Z", valid_to: null },
       account_memberships: { valid_from: "2026-10-01T12:00:00.000Z", valid_to: null },
@@ -185,10 +199,6 @@ describe("memberships and assignments", () => {
     await expectContract(await success(listed), "memberships.list");
     const read = await http.get(`/memberships/${MEMBERSHIP}`);
     await expectContract(await success(read), "memberships.get");
-    const edited = await http.patch(`/memberships/${MEMBERSHIP}`, {
-      valid_to: "2027-01-01T00:00:00Z",
-    });
-    await expectContract(await success(edited), "memberships.update");
     const left = await http.post("/memberships/leave");
     const after = (await expectContract(await success(left), "memberships.leave")) as Row;
     expect(after["valid_to"]).not.toBeNull();
@@ -240,12 +250,6 @@ describe("memberships and assignments", () => {
     await expectContract(await success(listed), "accountMemberships.list");
     const read = await http.get(`/account-memberships/${id(9005)}`);
     await expectContract(await success(read), "accountMemberships.get");
-    const added = await http.post("/account-memberships", { person_id: id(9062) });
-    await expectContract(await success(added), "accountMemberships.create");
-    const edited = await http.patch(`/account-memberships/${id(9005)}`, {
-      valid_to: "2027-06-30T00:00:00Z",
-    });
-    await expectContract(await success(edited), "accountMemberships.update");
     const removed = await http.delete(`/account-memberships/${id(9005)}`);
     await expectContract(await success(removed), "accountMemberships.delete");
 
@@ -280,12 +284,6 @@ describe("representations", () => {
     });
     const made = (await expectContract(await success(proposed), "representations.create")) as Row;
     expect(made["scopes"]).toEqual(["Documents", "Offers"]);
-    const edited = await http.patch(`/representations/${REP}`, {
-      scopes: ["Documents"],
-      expires_on: "2028-01-31",
-    });
-    const changed = (await expectContract(await success(edited), "representations.update")) as Row;
-    expect(changed["scopes"]).toEqual(["Documents"]);
     const accepted = await http.post(`/representations/${REP}/accept`);
     await expectContract(await success(accepted), "representations.accept");
     const revoked = await http.delete(`/representations/${REP}`);
@@ -362,10 +360,5 @@ describe("domains, visibility and verifications", () => {
     await expectContract(await success(verifications), "verifications.list");
     const verification = await http.get(`/verifications/${id(9010)}`);
     await expectContract(await success(verification), "verifications.get");
-    const made = await http.post("/verifications", {
-      method: "Business Registry",
-      provider_reference: "FL-DOS-P21000012345",
-    });
-    await expectContract(await success(made), "verifications.create");
   });
 });
