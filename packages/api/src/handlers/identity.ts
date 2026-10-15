@@ -10,6 +10,7 @@ import { requireOrg, requirePerson } from "../runtime/context.ts";
 import { assertIfMatch } from "../runtime/etag.ts";
 import { created, defineHandlers, ok } from "../runtime/handler.ts";
 import { decodeCursor, pageSize, toPage } from "../runtime/pagination.ts";
+import { identityParity } from "./identity/parity.ts";
 
 type JoinRequest = Components["JoinRequest"];
 type InvitationLink = Components["InvitationLink"];
@@ -293,6 +294,8 @@ async function readOffboarding(db: XosClient, id: string): Promise<OffboardingRo
 }
 
 export const handlers = defineHandlers("Identity", {
+  // API parity (A04P): see ./identity/parity.ts.
+  ...identityParity,
   "joinRequests.list": async ({ query }, context) => {
     const org = requireOrg(context);
     const size = pageSize(query.limit);
