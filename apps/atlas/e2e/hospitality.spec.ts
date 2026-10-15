@@ -30,17 +30,17 @@ test("fulfillments, BEOs and accommodation blocks render in every view", async (
   for (const view of ["list", "table", "board", "calendar"]) {
     await page.goto(`/${ORG}/hospitality/fulfillments?view=${view}&month=2027-03`);
     await expect(page.getByRole("heading", { level: 1, name: "Fulfillments" })).toBeVisible();
-    await expectAccessibleInBothThemes(page, view === "calendar");
+    await expectAccessibleInBothThemes(page);
   }
   for (const view of ["list", "table", "calendar"]) {
     await page.goto(`/${ORG}/hospitality/beos?view=${view}&month=2027-03`);
     await expect(page.getByRole("heading", { level: 1, name: "BEOs" })).toBeVisible();
-    await expectAccessibleInBothThemes(page, view === "calendar");
+    await expectAccessibleInBothThemes(page);
     await page.goto(`/${ORG}/hospitality/accommodation-blocks?view=${view}&month=2027-03`);
     await expect(
       page.getByRole("heading", { level: 1, name: "Accommodation blocks" }),
     ).toBeVisible();
-    await expectAccessibleInBothThemes(page, view === "calendar");
+    await expectAccessibleInBothThemes(page);
   }
   await page.goto(`/${ORG}/p/NWS/hospitality?section=blocks`);
   await expect(page.getByRole("heading", { level: 1, name: "Accommodation blocks" })).toBeVisible();
