@@ -342,12 +342,12 @@ export interface IntakeContext {
   readonly deviceAt: string;
 }
 
-/** app.scan_symbology labels. ITF-14 and EAN-8 have no label yet, so they cannot go to intake. */
-const SERVER_SYMBOLOGY: Readonly<Record<Symbology, string | null>> = {
+/** app.scan_symbology labels for each device symbology. GS1-128 is a Code 128 symbol. */
+const SERVER_SYMBOLOGY: Readonly<Record<Symbology, string>> = {
   ean13: "EAN-13",
   upc_a: "UPC-A",
-  ean8: null,
-  itf14: null,
+  ean8: "EAN-8",
+  itf14: "ITF-14",
   gs1_128: "Code 128",
   code128: "Code 128",
   qr: "QR Code",
@@ -363,23 +363,19 @@ const SERVER_MODE = {
   lookup: "Lookup",
 } as const;
 
-export function serverSymbology(symbology: Symbology): string | null {
+export function serverSymbology(symbology: Symbology): string {
   return SERVER_SYMBOLOGY[symbology];
 }
 
-/**
- * Queues an unknown code for human resolution (app.scan_intake). Never maps it automatically. Returns null
- * when the symbology has no server label, so the screen can say the code needs keying in at the desk.
- */
+/** Queues an unknown code for human resolution (app.scan_intake). Never maps it automatically. */
 export function buildIntake(
   code: string,
   symbology: Symbology,
   ctx: IntakeContext,
   nowMs: number,
   newId: (ms: number) => string = uuidv7,
-): MutationInput | null {
+): MutationInput {
   const label = serverSymbology(symbology);
-  if (label === null) return null;
   const id = newId(nowMs);
   const row = {
     id,

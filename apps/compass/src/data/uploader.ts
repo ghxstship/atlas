@@ -70,7 +70,7 @@ export interface UploaderOptions {
   readonly accessToken: () => Promise<string | null>;
   readonly routes?: Readonly<Record<string, Route>>;
   readonly fetchImpl?: typeof fetch;
-  /** The org the device acts in, for app.apply_sync_mutation. */
+  /** The member org the device acts in, for app.apply_sync_mutation; null for external users. */
   readonly orgId: () => string | null;
   /** A stable id for this install, recorded with each replayed mutation. */
   readonly deviceId: string;
@@ -177,11 +177,21 @@ export class SupabaseUploader implements Uploader {
   }
 
   async #rpc(mutation: Mutation): Promise<UploadOutcome> {
-    if (mutation.target.startsWith(SYNC_PREFIX)) return this.#replay(mutation);
-    const { data, error, status } = await this.#options.client.rpc(
-      mutation.target,
-      this.#rpcArgs(mutation),
-    );
+    const synced = mutation.target.startsWith(SYNC_PREFIX);
+    const orgId = this.#options.orgId();
+    if (synced && orgId !== null) return this.#replay(mutation, orgId);
+    // External users hold no membership, so the replay ledger (which acts in a member org) is not open to
+    // them; their RPCs are idempotent on the client id (record_punch on p_punch_id) and are called directly.
+    const name = synced ? mutation.target.slice(SYNC_PREFIX.length) : mutation.target;
+    const { data, error, status } = await this.#options.client.rpc(name, this.#rpcArgs(mutation));
+    if (
+      error &&
+      synced &&
+      error.code === "XR001" &&
+      ALREADY_DONE[mutation.target]?.some((r) => error.hint === r || error.message.startsWith(r))
+    ) {
+      return { kind: "applied", serverRow: null };
+    }
     if (error) {
       // A compare-and-set RPC refuses a mismatched expected state; the server row decides the conflict.
       if (
@@ -205,14 +215,7 @@ export class SupabaseUploader implements Uploader {
     return { kind: "applied", serverRow: asRow(Array.isArray(data) ? data[0] : data) };
   }
 
-  async #replay(mutation: Mutation): Promise<UploadOutcome> {
-    const orgId = this.#options.orgId();
-    if (orgId === null) {
-      return {
-        kind: "unauthorized",
-        error: { code: "no-org", message: "Sign in to an organization to upload." },
-      };
-    }
+  async #replay(mutation: Mutation, orgId: string): Promise<UploadOutcome> {
     const { data, error, status } = await this.#options.client.rpc("apply_sync_mutation", {
       p_mutation_id: mutation.id,
       p_org_id: orgId,

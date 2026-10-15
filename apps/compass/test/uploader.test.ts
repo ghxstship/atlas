@@ -192,12 +192,31 @@ describe("uploader", () => {
     );
   });
 
-  it("waits for sign-in when no org is chosen and retries a failed replay call", async () => {
-    const { client } = fakeClient([]);
-    const noOrg = new SupabaseUploader({ client, ...base, orgId: () => null });
-    expect((await noOrg.upload(mutation({ op: "rpc", target: "app.call_cue" }))).kind).toBe(
-      "unauthorized",
-    );
+  it("calls an external user's punch directly and retries a failed replay call", async () => {
+    const { client, calls } = fakeClient([{ data: { id: "p9" }, error: null, status: 200 }]);
+    const external = new SupabaseUploader({ client, ...base, orgId: () => null });
+    const punch = mutation({
+      op: "rpc",
+      target: "app.record_punch",
+      payload: { p_punch_id: "p9", p_engagement_id: "e1" },
+    });
+    expect(await external.upload(punch)).toEqual({ kind: "applied", serverRow: { id: "p9" } });
+    expect(calls[0]).toBe('rpc record_punch {"p_punch_id":"p9","p_engagement_id":"e1"}');
+    const called = fakeClient([
+      {
+        data: null,
+        error: {
+          code: "XR001",
+          message: "cue_already_called: This cue was already called; call the next cue.",
+        },
+        status: 400,
+      },
+    ]);
+    const cue = new SupabaseUploader({ client: called.client, ...base, orgId: () => null });
+    expect(await cue.upload(mutation({ op: "rpc", target: "app.call_cue" }))).toEqual({
+      kind: "applied",
+      serverRow: null,
+    });
     const down = fakeClient([{ data: null, error: { message: "fetch failed" }, status: 0 }]);
     expect(
       (

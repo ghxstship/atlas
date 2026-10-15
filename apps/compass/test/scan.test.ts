@@ -276,7 +276,7 @@ describe("intake and custody", () => {
       0,
       () => "i1",
     );
-    expect(m?.payload).toEqual({
+    expect(m.payload).toEqual({
       id: "i1",
       org_id: "o1",
       project_id: "p1",
@@ -291,15 +291,15 @@ describe("intake and custody", () => {
       { orgId: "o", projectId: "p", mode: "receiving", deviceAt: "" },
       0,
     );
-    expect(receiving?.payload).toMatchObject({ symbology: "QR Code", scan_mode: "Shipment" });
-    expect(
-      buildIntake(
-        "10614141000415",
-        "itf14",
-        { orgId: "o", projectId: "p", mode: "asset", deviceAt: "" },
-        0,
-      ),
-    ).toBeNull();
+    expect(receiving.payload).toMatchObject({ symbology: "QR Code", scan_mode: "Shipment" });
+    const itf = buildIntake(
+      "10614141000415",
+      "itf14",
+      { orgId: "o", projectId: "p", mode: "asset", deviceAt: "" },
+      0,
+    );
+    expect(itf.payload).toMatchObject({ symbology: "ITF-14" });
+    expect(serverSymbology("ean8")).toBe("EAN-8");
     expect(serverSymbology("nfc")).toBe("NFC");
   });
 

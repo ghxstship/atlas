@@ -33,10 +33,16 @@ async function fetchSource(client: SupabaseClient, source: Source, projectId: st
 function enrich(table: string, rows: Row[], pulled: ReadonlyMap<string, Row[]>): Row[] {
   if (table !== "cues") return rows;
   const project = new Map((pulled.get("run_of_show") ?? []).map((r) => [r.id, r["project_id"]]));
-  return rows.map((r) => (r["project_id"] ? r : { ...r, project_id: project.get(String(r["run_of_show_id"])) ?? null }));
+  return rows.map((r) =>
+    r["project_id"] ? r : { ...r, project_id: project.get(String(r["run_of_show_id"])) ?? null },
+  );
 }
 
-export async function downloadAll({ client, session, projectId }: DownloadOptions): Promise<DownloadReport> {
+export async function downloadAll({
+  client,
+  session,
+  projectId,
+}: DownloadOptions): Promise<DownloadReport> {
   let written = 0;
   let refused = 0;
   const failed: { table: string; message: string }[] = [];
@@ -47,10 +53,17 @@ export async function downloadAll({ client, session, projectId }: DownloadOption
       failed.push({ table: source.table, message: error.message });
       continue;
     }
-    const rows = enrich(source.table, toLocalRows(source, (data ?? []) as unknown as Record<string, unknown>[]) as Row[], pulled);
+    const rows = enrich(
+      source.table,
+      toLocalRows(source, (data ?? []) as unknown as Record<string, unknown>[]) as Row[],
+      pulled,
+    );
     pulled.set(source.table, [...(pulled.get(source.table) ?? []), ...rows]);
     // A full pull is a snapshot; a project-limited pull must not remove other projects' rows.
-    const report = projectId === null || !source.projectColumn ? await session.replace(source.table, rows) : await session.ingest(source.table, rows);
+    const report =
+      projectId === null || !source.projectColumn
+        ? await session.replace(source.table, rows)
+        : await session.ingest(source.table, rows);
     written += report.written;
     refused += report.refused;
   }
