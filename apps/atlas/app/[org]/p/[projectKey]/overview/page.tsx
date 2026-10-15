@@ -119,6 +119,7 @@ export default async function OverviewPage({
                 { label: t("fields.venue"), value: project.venueName ?? t("values.none") },
                 { label: t("fields.region"), value: project.regionCode ?? t("values.none") },
                 { label: t("fields.tier"), value: project.tierCode ?? t("values.none") },
+                { label: t("fields.currency"), value: project.currency },
                 { label: t("fields.timeZone"), value: project.timeZone },
                 { label: t("fields.startsOn"), value: date(project.startsOn) },
                 { label: t("fields.endsOn"), value: date(project.endsOn) },

@@ -69,7 +69,8 @@
     "startsOn": "Primer día de producción",
     "endsOn": "Último día de producción",
     "dates": "Fechas",
-    "updated": "Actualizado"
+    "updated": "Actualizado",
+    "currency": "Moneda"
   },
   "values": {
     "unresolved": "Sin resolver",
@@ -116,7 +117,7 @@
   },
   "create": {
     "title": "Nuevo proyecto",
-    "description": "Un proyecto empieza como Propuesto en Alcance con su raíz del encargo. Puedes resolver la jurisdicción ahora o en la puerta 1.",
+    "description": "Descripción",
     "key": "Clave del proyecto",
     "keyHelp": "De dos a cinco letras mayúsculas, única en tu organización. Las claves de registro empiezan con ella, por ejemplo NWL-142.",
     "name": "Nombre del proyecto",
@@ -131,7 +132,10 @@
     "startsOn": "Primer día de producción",
     "endsOn": "Último día de producción",
     "submit": "Crear proyecto",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "currency": "Moneda",
+    "currencyDefault": "Predeterminada de la jurisdicción o de la organización",
+    "currencyHelp": "El dinero del proyecto se expresa en esta moneda. Si dejas la predeterminada, decide el país de la jurisdicción y después la moneda base de tu organización."
   },
   "errors": {
     "keyFormat": "Usa de dos a cinco letras mayúsculas para la clave, por ejemplo NWL.",
@@ -169,7 +173,10 @@
     "project_member_immutable": "Quita al miembro y agrégalo de nuevo en lugar de cambiar quién es.",
     "comment": "Escribe un comentario de hasta 10,000 caracteres.",
     "file": "Elige un archivo para adjuntar.",
-    "fileSize": "Los archivos pueden pesar hasta 50 MB. Elige un archivo más pequeño."
+    "fileSize": "Los archivos pueden pesar hasta 50 MB. Elige un archivo más pequeño.",
+    "description": "Mantén la descripción por debajo de 20,000 caracteres.",
+    "currency": "Elige una moneda de la lista.",
+    "project_currency_required": "Elige una moneda o define la moneda base de tu organización en la configuración."
   },
   "transition": {
     "projectTitle": "Cambiar el estado del proyecto",

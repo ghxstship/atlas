@@ -7,6 +7,8 @@ const project = (over: Partial<ProjectSummary>): ProjectSummary => ({
   id: "p1",
   key: "NWS",
   name: "Northwind Summer Series",
+  description: null,
+  currency: "USD",
   projectState: "Active",
   productionState: "Active",
   phaseCode: "ENG",

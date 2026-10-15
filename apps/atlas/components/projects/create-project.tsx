@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Dialog, Input, Select } from "@xos/ui";
+import { Button, Dialog, Input, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { createProjectAction, type ActionState } from "@/lib/projects/actions";
@@ -12,6 +12,7 @@ export interface ProjectFormOptions {
   readonly regions: readonly { readonly value: string; readonly label: string }[];
   readonly venues: readonly { readonly value: string; readonly label: string }[];
   readonly timeZones: readonly string[];
+  readonly currencies: readonly string[];
   readonly defaultTimeZone: string;
 }
 
@@ -25,6 +26,8 @@ export interface ProjectFormValues {
   readonly venueId: string | null;
   readonly startsOn: string | null;
   readonly endsOn: string | null;
+  readonly currencyCode: string | null;
+  readonly description: string | null;
 }
 
 /**
@@ -96,6 +99,19 @@ export function ProjectFields({
         options={[choose, ...options.jurisdictions]}
         disabled={disabled}
       />
+      <Select
+        id={`${idPrefix}-currency`}
+        name="currencyCode"
+        label={t("create.currency")}
+        help={t("create.currencyHelp")}
+        value={echoed(state, "currencyCode", values?.currencyCode ?? "")}
+        options={[
+          { value: "", label: t("create.currencyDefault") },
+          ...options.currencies.map((c) => ({ value: c, label: c })),
+        ]}
+        disabled={disabled}
+        error={err("currencyCode")}
+      />
       <div className="flex flex-wrap gap-12">
         <Select
           id={`${idPrefix}-tier`}
@@ -126,6 +142,16 @@ export function ProjectFields({
       ) : (
         <input type="hidden" name="venueId" value={values?.venueId ?? ""} />
       )}
+      <Textarea
+        id={`${idPrefix}-description`}
+        name="description"
+        maxLength={20000}
+        width="100%"
+        label={t("create.description")}
+        defaultValue={echoed(state, "description", values?.description ?? "")}
+        disabled={disabled}
+        error={err("description")}
+      />
       <div className="flex flex-wrap gap-12">
         <Input
           id={`${idPrefix}-starts`}
