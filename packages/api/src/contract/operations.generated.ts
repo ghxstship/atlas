@@ -16,22 +16,23 @@ export interface Components {
     updated_by: string | null;
     zone_id: string;
     credential_category_id: string;
-    allowed: boolean;
-    window_starts_at: string | null;
-    window_ends_at: string | null;
+    access_level_enum_id: string;
+    window_starts_at: string;
+    window_ends_at: string;
+    project_id: string;
   };
   AccessGridEntryCreate: {
     zone_id: string;
     credential_category_id: string;
-    allowed: boolean;
-    window_starts_at?: string | null;
-    window_ends_at?: string | null;
+    access_level_enum_id: string;
+    window_starts_at: string;
+    window_ends_at: string;
   };
   AccessGridEntryPage: { data: Array<Components["AccessGridEntry"]>; next_cursor: string | null };
   AccessGridEntryUpdate: {
-    allowed?: boolean;
-    window_starts_at?: string | null;
-    window_ends_at?: string | null;
+    access_level_enum_id?: string;
+    window_starts_at?: string;
+    window_ends_at?: string;
   };
   AccessReviewCampaign: {
     id: string;
@@ -74,10 +75,17 @@ export interface Components {
     zone_id: string;
     credential_id: string;
     scanned_at: string;
-    granted: boolean;
-    refusal_reason: string | null;
+    result: "Granted" | "Denied";
+    project_id: string;
+    device_scanned_at: string | null;
+    offline_result: "Granted" | "Denied" | null;
   };
-  AccessScanCreate: { zone_id: string; credential_id: string; scanned_at: string };
+  AccessScanCreate: {
+    zone_id: string;
+    credential_id: string;
+    device_scanned_at?: string | null;
+    offline_result?: "Granted" | "Denied" | null;
+  };
   AccessScanPage: { data: Array<Components["AccessScan"]>; next_cursor: string | null };
   AccountMembership: {
     id: string;
@@ -1431,16 +1439,9 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    tag_id: Components["TagId"];
-    issuer: string;
-    validity_months: number | null;
+    issuing_body: string;
   };
-  CertificationCreate: {
-    name: string;
-    tag_id?: Components["TagId"];
-    issuer: string;
-    validity_months?: number | null;
-  };
+  CertificationCreate: { name: string; issuing_body: string };
   CertificationHolder: {
     id: string;
     org_id: string;
@@ -1450,35 +1451,28 @@ export interface Components {
     updated_by: string | null;
     certification_id: string;
     person_id: string;
-    evidence_document_id: string | null;
     expires_on: string | null;
-    verified_at: string | null;
     verified_by: string | null;
-    public_verification_consent: boolean;
+    issued_on: string;
+    public_verification_consented: boolean;
   };
   CertificationHolderCreate: {
     certification_id: string;
     person_id: string;
-    evidence_document_id?: string | null;
     expires_on?: string | null;
-    public_verification_consent: boolean;
+    issued_on: string;
   };
   CertificationHolderPage: {
     data: Array<Components["CertificationHolder"]>;
     next_cursor: string | null;
   };
   CertificationHolderUpdate: {
-    evidence_document_id?: string | null;
     expires_on?: string | null;
-    public_verification_consent?: boolean;
+    issued_on?: string;
+    public_verification_consented?: boolean;
   };
   CertificationPage: { data: Array<Components["Certification"]>; next_cursor: string | null };
-  CertificationUpdate: {
-    name?: string;
-    tag_id?: Components["TagId"];
-    issuer?: string;
-    validity_months?: number | null;
-  };
+  CertificationUpdate: { name?: string; issuing_body?: string };
   ChangeOrder: {
     id: string;
     org_id: string;
@@ -1663,13 +1657,14 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     credential_category_id: string;
-    person_id: string;
     engagement_id: string | null;
-    credential_state: string;
-    issued_by: string;
-    issued_at: string;
+    issued_by: string | null;
     valid_from: string;
-    valid_to: string;
+    valid_to: string | null;
+    holder_person_id: string;
+    credential_number: string;
+    revoked_at: string | null;
+    revoked_by: string | null;
   };
   CredentialCategory: {
     id: string;
@@ -1679,22 +1674,21 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    color_token: string;
-    position: number;
+    project_id: string;
+    code: string;
   };
-  CredentialCategoryCreate: { name: string; color_token: string; position: number };
+  CredentialCategoryCreate: { name: string; project_id: string; code: string };
   CredentialCategoryPage: {
     data: Array<Components["CredentialCategory"]>;
     next_cursor: string | null;
   };
-  CredentialCategoryUpdate: { name?: string; color_token?: string; position?: number };
+  CredentialCategoryUpdate: { name?: string; code?: string };
   CredentialCreate: {
-    project_id: string;
     credential_category_id: string;
-    person_id: string;
     engagement_id?: string | null;
-    valid_from: string;
-    valid_to: string;
+    valid_from?: string;
+    valid_to?: string | null;
+    holder_person_id: string;
   };
   CredentialPage: { data: Array<Components["Credential"]>; next_cursor: string | null };
   CrisisAlert: {
@@ -1705,17 +1699,16 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     project_id: string;
-    emergency_code_id: string;
     message: string;
     issued_at: string;
-    cleared_at: string | null;
+    ended_at: string | null;
+    emergency_code: string;
   };
   CrisisAlertCreate: {
     project_id: string;
-    emergency_code_id: string;
     message: string;
-    issued_at: string;
-    cleared_at?: string | null;
+    ended_at?: string | null;
+    emergency_code: string;
   };
   CrisisAlertPage: { data: Array<Components["CrisisAlert"]>; next_cursor: string | null };
   CriterionId: string;
@@ -2034,28 +2027,20 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     incident_id: string;
-    responder_id: string;
     dispatched_at: string;
     arrived_at: string | null;
-    cleared_at: string | null;
+    membership_id: string;
   };
   DispatchAssignmentCreate: {
     incident_id: string;
-    responder_id: string;
-    dispatched_at: string;
     arrived_at?: string | null;
-    cleared_at?: string | null;
+    membership_id: string;
   };
   DispatchAssignmentPage: {
     data: Array<Components["DispatchAssignment"]>;
     next_cursor: string | null;
   };
-  DispatchAssignmentUpdate: {
-    responder_id?: string;
-    dispatched_at?: string;
-    arrived_at?: string | null;
-    cleared_at?: string | null;
-  };
+  DispatchAssignmentUpdate: { arrived_at?: string | null };
   DockSlot: {
     id: string;
     org_id: string;
@@ -2197,19 +2182,13 @@ export interface Components {
     match: string;
   };
   EmergencyCode: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
     code: string;
-    name: string;
-    response: string;
+    label: string;
+    emergency: string;
+    swatch: string;
+    sort_order: number;
   };
-  EmergencyCodeCreate: { code: string; name: string; response: string };
   EmergencyCodePage: { data: Array<Components["EmergencyCode"]>; next_cursor: string | null };
-  EmergencyCodeUpdate: { code?: string; name?: string; response?: string };
   Engagement: {
     id: string;
     org_id: string;
@@ -2721,25 +2700,30 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     project_id: string;
-    incident_number: string;
-    severity: string;
     title: string;
     occurred_at: string;
     zone_id: string | null;
     latitude: number | null;
     longitude: number | null;
-    incident_state: string;
-    emergency_code_id: string | null;
+    severity_enum_id: string;
+    incident_number: number;
+    incident_state: "Reported" | "Dispatched" | "Contained" | "Closed";
+    reported_by: string | null;
+    closed_signed_off_by: string | null;
+    accuracy_m: number | null;
+    device_reported_at: string | null;
   };
+  IncidentCloseRequest: { note: string };
   IncidentCreate: {
     project_id: string;
-    severity: string;
     title: string;
     occurred_at: string;
     zone_id?: string | null;
     latitude?: number | null;
     longitude?: number | null;
-    emergency_code_id?: string | null;
+    severity_enum_id: string;
+    accuracy_m?: number | null;
+    device_reported_at?: string | null;
   };
   IncidentMedia: {
     id: string;
@@ -2749,9 +2733,11 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     incident_id: string;
-    document_id: string;
+    media_uri: string;
+    captured_at: string | null;
+    project_id: string;
   };
-  IncidentMediaCreate: { incident_id: string; document_id: string };
+  IncidentMediaCreate: { incident_id: string; media_uri: string; captured_at?: string | null };
   IncidentMediaPage: { data: Array<Components["IncidentMedia"]>; next_cursor: string | null };
   IncidentPage: { data: Array<Components["Incident"]>; next_cursor: string | null };
   IncidentParty: {
@@ -2763,30 +2749,25 @@ export interface Components {
     updated_by: string | null;
     incident_id: string;
     person_id: string | null;
-    involvement: string;
-    name_if_unknown: string | null;
+    description: string;
   };
-  IncidentPartyCreate: {
-    incident_id: string;
-    person_id?: string | null;
-    involvement: string;
-    name_if_unknown?: string | null;
-  };
+  IncidentPartyCreate: { incident_id: string; person_id?: string | null; description: string };
   IncidentPartyPage: { data: Array<Components["IncidentParty"]>; next_cursor: string | null };
-  IncidentPartyUpdate: {
-    person_id?: string | null;
-    involvement?: string;
-    name_if_unknown?: string | null;
+  IncidentPartyUpdate: { person_id?: string | null; description?: string };
+  IncidentTransitionRequest: {
+    expected_state: "Reported" | "Dispatched" | "Contained";
+    to_state: "Reported" | "Dispatched" | "Contained";
+    reason?: string;
   };
-  IncidentTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   IncidentUpdate: {
-    severity?: string;
     title?: string;
     occurred_at?: string;
     zone_id?: string | null;
     latitude?: number | null;
     longitude?: number | null;
-    emergency_code_id?: string | null;
+    severity_enum_id?: string;
+    accuracy_m?: number | null;
+    device_reported_at?: string | null;
   };
   Inspection: {
     id: string;
@@ -3258,18 +3239,22 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     incident_id: string;
-    treated_by: string;
-    disposition: string;
-    notes: string | Components["Masked"];
+    patient_description: string;
+    treatment_notes: string | null;
+    disposition: string | null;
   };
   MedicalEncounterCreate: {
     incident_id: string;
-    treated_by: string;
-    disposition: string;
-    notes: string;
+    patient_description: string;
+    treatment_notes?: string | null;
+    disposition?: string | null;
   };
   MedicalEncounterPage: { data: Array<Components["MedicalEncounter"]>; next_cursor: string | null };
-  MedicalEncounterUpdate: { treated_by?: string; disposition?: string; notes?: string };
+  MedicalEncounterUpdate: {
+    patient_description?: string;
+    treatment_notes?: string | null;
+    disposition?: string | null;
+  };
   Membership: {
     id: string;
     org_id: string;
@@ -4595,24 +4580,19 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    channel: number;
+    channel_number: number;
     name: string;
-    frequency_mhz: number | null;
-    project_id: string | null;
+    project_id: string;
+    zone_id: string | null;
   };
   RadioChannelCreate: {
-    channel: number;
+    channel_number: number;
     name: string;
-    frequency_mhz?: number | null;
-    project_id?: string | null;
+    project_id: string;
+    zone_id?: string | null;
   };
   RadioChannelPage: { data: Array<Components["RadioChannel"]>; next_cursor: string | null };
-  RadioChannelUpdate: {
-    channel?: number;
-    name?: string;
-    frequency_mhz?: number | null;
-    project_id?: string | null;
-  };
+  RadioChannelUpdate: { channel_number?: number; name?: string; zone_id?: string | null };
   RateCard: {
     id: string;
     org_id: string;
@@ -6016,7 +5996,7 @@ export interface Components {
   };
   SubscriptionPage: { data: Array<Components["Subscription"]>; next_cursor: string | null };
   SubscriptionUpdate: { plan_code?: string };
-  TagId: string | null;
+  TagId: string;
   TalentPool: {
     id: string;
     org_id: string;
@@ -11130,15 +11110,6 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
-  "certificationHolders.verify": {
-    module: "Credentials";
-    method: "post";
-    path: "/certification-holders/{id}/verify";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["CertificationHolder"] };
-  };
   "budgets.list": {
     module: "Finance";
     method: "get";
@@ -13290,7 +13261,7 @@ export interface Operations {
     path: "/incidents/{id}/close";
     params: { id: string };
     query: Record<string, never>;
-    body: undefined;
+    body: Components["IncidentCloseRequest"];
     responses: { 200: Components["Incident"] };
   };
   "incidentParties.list": {
@@ -13527,41 +13498,14 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["EmergencyCodePage"] };
   };
-  "emergencyCodes.create": {
-    module: "Safety";
-    method: "post";
-    path: "/emergency-codes";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["EmergencyCodeCreate"];
-    responses: { 201: Components["EmergencyCode"] };
-  };
   "emergencyCodes.get": {
     module: "Safety";
     method: "get";
-    path: "/emergency-codes/{id}";
-    params: { id: string };
+    path: "/emergency-codes/{code}";
+    params: { code: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["EmergencyCode"] };
-  };
-  "emergencyCodes.update": {
-    module: "Safety";
-    method: "patch";
-    path: "/emergency-codes/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["EmergencyCodeUpdate"];
-    responses: { 200: Components["EmergencyCode"] };
-  };
-  "emergencyCodes.delete": {
-    module: "Safety";
-    method: "delete";
-    path: "/emergency-codes/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
   };
   "radioChannels.list": {
     module: "Safety";
@@ -21022,8 +20966,7 @@ export interface ModuleOperations {
     | "certificationHolders.create"
     | "certificationHolders.get"
     | "certificationHolders.update"
-    | "certificationHolders.delete"
-    | "certificationHolders.verify";
+    | "certificationHolders.delete";
   Finance:
     | "budgets.list"
     | "budgets.create"
@@ -21260,10 +21203,7 @@ export interface ModuleOperations {
     | "crisisAlerts.get"
     | "crisisAlerts.clear"
     | "emergencyCodes.list"
-    | "emergencyCodes.create"
     | "emergencyCodes.get"
-    | "emergencyCodes.update"
-    | "emergencyCodes.delete"
     | "radioChannels.list"
     | "radioChannels.create"
     | "radioChannels.get"

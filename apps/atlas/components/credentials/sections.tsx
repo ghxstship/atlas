@@ -15,6 +15,7 @@ import {
   type CredentialStatus,
   type IssuedCredential,
   type OperationsProject,
+  type Zone,
 } from "@xos/data/credentials";
 import { listMembers } from "@xos/data";
 import type { Route } from "next";
@@ -801,7 +802,9 @@ export async function AccessGridSection({ page }: { page: ModulePage }) {
     );
   }
 
-  const zoneLabel = (z: { code: string }) => z.code;
+  // Matrix columns are named by zone code; a code two venues share also names its venue.
+  const zoneLabel = (z: Zone) =>
+    zones.filter((o) => o.code === z.code).length > 1 ? joined(z.code, z.venueName) : z.code;
   const grants = [
     ...new Set(
       grid.flatMap((g) => {
@@ -998,7 +1001,10 @@ export async function AccessGridSection({ page }: { page: ModulePage }) {
                   id="grid-zone"
                   name="zoneId"
                   label={t("credentials.grid.zone")}
-                  options={zones.map((z) => ({ value: z.id, label: `${z.code} · ${z.name}` }))}
+                  options={zones.map((z) => ({
+                    value: z.id,
+                    label: joined(z.code, z.name, z.venueName),
+                  }))}
                   required
                 />
                 <SelectField
@@ -1136,7 +1142,10 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
               id="scan-zone"
               name="zoneId"
               label={t("credentials.grid.zone")}
-              options={zones.map((z) => ({ value: z.id, label: `${z.code} · ${z.name}` }))}
+              options={zones.map((z) => ({
+                value: z.id,
+                label: joined(z.code, z.name, z.venueName),
+              }))}
               required
             />
             <TextField

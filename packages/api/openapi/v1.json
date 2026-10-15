@@ -14796,17 +14796,17 @@
             "description": "Category name.",
             "example": "All Access"
           },
-          "color_token": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Design token for the badge color.",
-            "example": "badge.red"
-          },
-          "position": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Display order.",
-            "example": 1
+            "description": "Category code, unique per project.",
+            "example": "ALL-ACCESS"
           }
         },
         "required": [
@@ -14817,8 +14817,8 @@
           "updated_at",
           "updated_by",
           "name",
-          "color_token",
-          "position"
+          "project_id",
+          "code"
         ],
         "description": "A credential category, such as All Access or Artist."
       },
@@ -14832,20 +14832,20 @@
             "description": "Category name.",
             "example": "All Access"
           },
-          "color_token": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Design token for the badge color.",
-            "example": "badge.red"
-          },
-          "position": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Display order.",
-            "example": 1
+            "description": "Category code, unique per project.",
+            "example": "ALL-ACCESS"
           }
         },
-        "required": ["name", "color_token", "position"],
+        "required": ["name", "project_id", "code"],
         "description": "Fields accepted when creating a CredentialCategory."
       },
       "CredentialCategoryUpdate": {
@@ -14858,17 +14858,11 @@
             "description": "Category name.",
             "example": "All Access"
           },
-          "color_token": {
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Design token for the badge color.",
-            "example": "badge.red"
-          },
-          "position": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Display order.",
-            "example": 1
+            "description": "Category code, unique per project.",
+            "example": "ALL-ACCESS"
           }
         },
         "description": "Fields accepted when updating a CredentialCategory. Omitted fields are unchanged."
@@ -14941,35 +14935,17 @@
             "description": "Identifier of the credential category.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the holder.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "engagement_id": {
             "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the engagement.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "credential_state": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Credential state. A Title Case value from the lifecycle's database enum.",
-            "example": "Active"
-          },
           "issued_by": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
             "description": "Identifier of the issuer.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "issued_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When it was issued.",
-            "example": "2026-10-08T14:30:00Z"
           },
           "valid_from": {
             "type": "string",
@@ -14978,10 +14954,34 @@
             "example": "2026-10-08T14:30:00Z"
           },
           "valid_to": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "End of validity.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "holder_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the holder.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "credential_number": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Number printed on the badge, issued by the database.",
+            "example": "CR-000123"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the credential was revoked.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -14993,35 +14993,24 @@
           "updated_by",
           "project_id",
           "credential_category_id",
-          "person_id",
           "engagement_id",
-          "credential_state",
           "issued_by",
-          "issued_at",
           "valid_from",
-          "valid_to"
+          "valid_to",
+          "holder_person_id",
+          "credential_number",
+          "revoked_at",
+          "revoked_by"
         ],
         "description": "An issued credential. Credentials cannot be self-issued."
       },
       "CredentialCreate": {
         "type": "object",
         "properties": {
-          "project_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the project.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "credential_category_id": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier of the credential category.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the holder.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "engagement_id": {
@@ -15037,13 +15026,19 @@
             "example": "2026-10-08T14:30:00Z"
           },
           "valid_to": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "End of validity.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "holder_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the holder.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["project_id", "credential_category_id", "person_id", "valid_from", "valid_to"],
+        "required": ["credential_category_id", "holder_person_id"],
         "description": "Fields accepted when creating a Credential."
       },
       "AccessGridEntryPage": {
@@ -15114,22 +15109,29 @@
             "description": "Identifier of the credential category.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "allowed": {
-            "type": "boolean",
-            "description": "Whether the category may enter the zone.",
-            "example": true
+          "access_level_enum_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Access level: a row of the canon Access Level enumeration.",
+            "example": "ENM-036"
           },
           "window_starts_at": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "date-time",
-            "description": "Window start.",
+            "description": "When access opens.",
             "example": "2026-10-08T14:30:00Z"
           },
           "window_ends_at": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "date-time",
-            "description": "Window end.",
+            "description": "When access closes.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the category, copied from it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -15141,9 +15143,10 @@
           "updated_by",
           "zone_id",
           "credential_category_id",
-          "allowed",
+          "access_level_enum_id",
           "window_starts_at",
-          "window_ends_at"
+          "window_ends_at",
+          "project_id"
         ],
         "description": "A zone by credential category access rule with a time window."
       },
@@ -15162,45 +15165,53 @@
             "description": "Identifier of the credential category.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "allowed": {
-            "type": "boolean",
-            "description": "Whether the category may enter the zone.",
-            "example": true
+          "access_level_enum_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Access level: a row of the canon Access Level enumeration.",
+            "example": "ENM-036"
           },
           "window_starts_at": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "date-time",
-            "description": "Window start.",
+            "description": "When access opens.",
             "example": "2026-10-08T14:30:00Z"
           },
           "window_ends_at": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "date-time",
-            "description": "Window end.",
+            "description": "When access closes.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["zone_id", "credential_category_id", "allowed"],
+        "required": [
+          "zone_id",
+          "credential_category_id",
+          "access_level_enum_id",
+          "window_starts_at",
+          "window_ends_at"
+        ],
         "description": "Fields accepted when creating a AccessGridEntry."
       },
       "AccessGridEntryUpdate": {
         "type": "object",
         "properties": {
-          "allowed": {
-            "type": "boolean",
-            "description": "Whether the category may enter the zone.",
-            "example": true
+          "access_level_enum_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Access level: a row of the canon Access Level enumeration.",
+            "example": "ENM-036"
           },
           "window_starts_at": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "date-time",
-            "description": "Window start.",
+            "description": "When access opens.",
             "example": "2026-10-08T14:30:00Z"
           },
           "window_ends_at": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "date-time",
-            "description": "Window end.",
+            "description": "When access closes.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
@@ -15280,17 +15291,29 @@
             "description": "When the scan happened.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "granted": {
-            "type": "boolean",
-            "description": "Whether entry was granted.",
-            "example": true
+          "result": {
+            "type": "string",
+            "enum": ["Granted", "Denied"],
+            "description": "The database's decision for the scan.",
+            "example": "Granted"
           },
-          "refusal_reason": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the credential, copied from it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "device_scanned_at": {
             "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Why entry was refused.",
-            "example": "Outside the access window."
+            "format": "date-time",
+            "description": "When the device scanned, for a scan made offline.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "offline_result": {
+            "type": ["string", "null"],
+            "enum": ["Granted", "Denied", null],
+            "description": "What the device decided offline.",
+            "example": "Granted"
           }
         },
         "required": [
@@ -15303,8 +15326,10 @@
           "zone_id",
           "credential_id",
           "scanned_at",
-          "granted",
-          "refusal_reason"
+          "result",
+          "project_id",
+          "device_scanned_at",
+          "offline_result"
         ],
         "description": "A credential scan at an access point, validated against the Access Grid."
       },
@@ -15323,14 +15348,20 @@
             "description": "Identifier of the credential.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "scanned_at": {
-            "type": "string",
+          "device_scanned_at": {
+            "type": ["string", "null"],
             "format": "date-time",
-            "description": "When the scan happened.",
+            "description": "When the device scanned, for a scan made offline.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "offline_result": {
+            "type": ["string", "null"],
+            "enum": ["Granted", "Denied", null],
+            "description": "What the device decided offline.",
+            "example": "Granted"
           }
         },
-        "required": ["zone_id", "credential_id", "scanned_at"],
+        "required": ["zone_id", "credential_id"],
         "description": "Fields accepted when creating a AccessScan."
       },
       "CertificationPage": {
@@ -15396,19 +15427,12 @@
             "description": "Certification name.",
             "example": "OSHA 10"
           },
-          "tag_id": { "$ref": "#/components/schemas/TagId" },
-          "issuer": {
+          "issuing_body": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
-            "description": "Issuing body.",
+            "description": "Body that issues the certification.",
             "example": "OSHA"
-          },
-          "validity_months": {
-            "type": ["integer", "null"],
-            "minimum": 0,
-            "description": "Months until expiry.",
-            "example": 60
           }
         },
         "required": [
@@ -15419,17 +15443,9 @@
           "updated_at",
           "updated_by",
           "name",
-          "tag_id",
-          "issuer",
-          "validity_months"
+          "issuing_body"
         ],
         "description": "A certification type, linked to canon compliance tags."
-      },
-      "TagId": {
-        "type": ["string", "null"],
-        "pattern": "^TAG-[0-9]{3}$",
-        "description": "Sustainability or compliance tag from `xpms.dim_tag`.",
-        "example": "TAG-002"
       },
       "CertificationCreate": {
         "type": "object",
@@ -15441,22 +15457,15 @@
             "description": "Certification name.",
             "example": "OSHA 10"
           },
-          "tag_id": { "$ref": "#/components/schemas/TagId" },
-          "issuer": {
+          "issuing_body": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
-            "description": "Issuing body.",
+            "description": "Body that issues the certification.",
             "example": "OSHA"
-          },
-          "validity_months": {
-            "type": ["integer", "null"],
-            "minimum": 0,
-            "description": "Months until expiry.",
-            "example": 60
           }
         },
-        "required": ["name", "issuer"],
+        "required": ["name", "issuing_body"],
         "description": "Fields accepted when creating a Certification."
       },
       "CertificationUpdate": {
@@ -15469,19 +15478,12 @@
             "description": "Certification name.",
             "example": "OSHA 10"
           },
-          "tag_id": { "$ref": "#/components/schemas/TagId" },
-          "issuer": {
+          "issuing_body": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
-            "description": "Issuing body.",
+            "description": "Body that issues the certification.",
             "example": "OSHA"
-          },
-          "validity_months": {
-            "type": ["integer", "null"],
-            "minimum": 0,
-            "description": "Months until expiry.",
-            "example": 60
           }
         },
         "description": "Fields accepted when updating a Certification. Omitted fields are unchanged."
@@ -15554,23 +15556,11 @@
             "description": "Identifier of the holder.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "evidence_document_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the evidence document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "expires_on": {
             "type": ["string", "null"],
             "format": "date",
             "description": "Expiry date.",
             "example": "2026-10-08"
-          },
-          "verified_at": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "When it was verified.",
-            "example": "2026-10-08T14:30:00Z"
           },
           "verified_by": {
             "type": ["string", "null"],
@@ -15578,9 +15568,15 @@
             "description": "Identifier of the verifier.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "public_verification_consent": {
+          "issued_on": {
+            "type": "string",
+            "format": "date",
+            "description": "When the certification was issued.",
+            "example": "2026-10-08"
+          },
+          "public_verification_consented": {
             "type": "boolean",
-            "description": "Whether the holder allows public verification.",
+            "description": "Whether the holder allows public verification by code.",
             "example": false
           }
         },
@@ -15593,11 +15589,10 @@
           "updated_by",
           "certification_id",
           "person_id",
-          "evidence_document_id",
           "expires_on",
-          "verified_at",
           "verified_by",
-          "public_verification_consent"
+          "issued_on",
+          "public_verification_consented"
         ],
         "description": "A person's certification with evidence and expiry. It cannot be self-verified and verifies publicly only with consent."
       },
@@ -15616,45 +15611,40 @@
             "description": "Identifier of the holder.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "evidence_document_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the evidence document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "expires_on": {
             "type": ["string", "null"],
             "format": "date",
             "description": "Expiry date.",
             "example": "2026-10-08"
           },
-          "public_verification_consent": {
-            "type": "boolean",
-            "description": "Whether the holder allows public verification.",
-            "example": false
+          "issued_on": {
+            "type": "string",
+            "format": "date",
+            "description": "When the certification was issued.",
+            "example": "2026-10-08"
           }
         },
-        "required": ["certification_id", "person_id", "public_verification_consent"],
+        "required": ["certification_id", "person_id", "issued_on"],
         "description": "Fields accepted when creating a CertificationHolder."
       },
       "CertificationHolderUpdate": {
         "type": "object",
         "properties": {
-          "evidence_document_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the evidence document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "expires_on": {
             "type": ["string", "null"],
             "format": "date",
             "description": "Expiry date.",
             "example": "2026-10-08"
           },
-          "public_verification_consent": {
+          "issued_on": {
+            "type": "string",
+            "format": "date",
+            "description": "When the certification was issued.",
+            "example": "2026-10-08"
+          },
+          "public_verification_consented": {
             "type": "boolean",
-            "description": "Whether the holder allows public verification.",
+            "description": "Whether the holder allows public verification by code.",
             "example": false
           }
         },
@@ -22270,18 +22260,6 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "incident_number": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Incident number.",
-            "example": "INC-0042"
-          },
-          "severity": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Severity. A Title Case value from the lifecycle's database enum.",
-            "example": "Critical"
-          },
           "title": {
             "type": "string",
             "minLength": 1,
@@ -22315,17 +22293,46 @@
             "description": "WGS 84 longitude.",
             "example": -80.1918
           },
+          "severity_enum_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Severity: a row of the canon Incident Severity enumeration.",
+            "example": "ENM-097"
+          },
+          "incident_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number from the project's display key sequence.",
+            "example": 142
+          },
           "incident_state": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Incident state. A Title Case value from the lifecycle's database enum.",
-            "example": "Active"
+            "enum": ["Reported", "Dispatched", "Contained", "Closed"],
+            "description": "Incident state.",
+            "example": "Reported"
           },
-          "emergency_code_id": {
+          "reported_by": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the emergency code.",
+            "description": "Identifier of the reporter, from the session.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "closed_signed_off_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who signed off the closure.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "accuracy_m": {
+            "type": ["number", "null"],
+            "description": "Horizontal accuracy of the location in meters.",
+            "example": 8
+          },
+          "device_reported_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the reporter filed it on the device, for a report queued offline.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -22336,15 +22343,18 @@
           "updated_at",
           "updated_by",
           "project_id",
-          "incident_number",
-          "severity",
           "title",
           "occurred_at",
           "zone_id",
           "latitude",
           "longitude",
+          "severity_enum_id",
+          "incident_number",
           "incident_state",
-          "emergency_code_id"
+          "reported_by",
+          "closed_signed_off_by",
+          "accuracy_m",
+          "device_reported_at"
         ],
         "description": "An incident with dispatch. A critical incident cannot be relabeled and closed in one statement; closing requires sign-off."
       },
@@ -22357,12 +22367,6 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "severity": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Severity. A Title Case value from the lifecycle's database enum.",
-            "example": "Critical"
-          },
           "title": {
             "type": "string",
             "minLength": 1,
@@ -22396,25 +22400,30 @@
             "description": "WGS 84 longitude.",
             "example": -80.1918
           },
-          "emergency_code_id": {
+          "severity_enum_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Severity: a row of the canon Incident Severity enumeration.",
+            "example": "ENM-097"
+          },
+          "accuracy_m": {
+            "type": ["number", "null"],
+            "description": "Horizontal accuracy of the location in meters.",
+            "example": 8
+          },
+          "device_reported_at": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the emergency code.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "format": "date-time",
+            "description": "When the reporter filed it on the device, for a report queued offline.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["project_id", "severity", "title", "occurred_at"],
+        "required": ["project_id", "title", "occurred_at", "severity_enum_id"],
         "description": "Fields accepted when creating a Incident."
       },
       "IncidentUpdate": {
         "type": "object",
         "properties": {
-          "severity": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Severity. A Title Case value from the lifecycle's database enum.",
-            "example": "Critical"
-          },
           "title": {
             "type": "string",
             "minLength": 1,
@@ -22448,11 +22457,22 @@
             "description": "WGS 84 longitude.",
             "example": -80.1918
           },
-          "emergency_code_id": {
+          "severity_enum_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Severity: a row of the canon Incident Severity enumeration.",
+            "example": "ENM-097"
+          },
+          "accuracy_m": {
+            "type": ["number", "null"],
+            "description": "Horizontal accuracy of the location in meters.",
+            "example": 8
+          },
+          "device_reported_at": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the emergency code.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "format": "date-time",
+            "description": "When the reporter filed it on the device, for a report queued offline.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "description": "Fields accepted when updating a Incident. Omitted fields are unchanged."
@@ -22462,15 +22482,15 @@
         "properties": {
           "expected_state": {
             "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
+            "enum": ["Reported", "Dispatched", "Contained"],
             "description": "The state the caller believes the row is in (compare-and-set).",
-            "example": "Active"
+            "example": "Reported"
           },
           "to_state": {
             "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
+            "enum": ["Reported", "Dispatched", "Contained"],
             "description": "Target state.",
-            "example": "In Review"
+            "example": "Dispatched"
           },
           "reason": {
             "type": "string",
@@ -22481,6 +22501,20 @@
         },
         "required": ["expected_state", "to_state"],
         "description": "Request to move a lifecycle to another state."
+      },
+      "IncidentCloseRequest": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Sign-off note.",
+            "example": "Area inspected and safe."
+          }
+        },
+        "required": ["note"],
+        "description": "Request to close an incident with sign-off."
       },
       "IncidentPartyPage": {
         "type": "object",
@@ -22550,18 +22584,12 @@
             "description": "Identifier of the involved person.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "involvement": {
+          "description": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Involvement. A Title Case value from the lifecycle's database enum.",
-            "example": "Witness"
-          },
-          "name_if_unknown": {
-            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
-            "description": "Name when the person has no record.",
-            "example": "Guest, name withheld"
+            "description": "Role in the incident, or a description of an unknown person.",
+            "example": "Witness"
           }
         },
         "required": [
@@ -22573,8 +22601,7 @@
           "updated_by",
           "incident_id",
           "person_id",
-          "involvement",
-          "name_if_unknown"
+          "description"
         ],
         "description": "A person involved in an incident."
       },
@@ -22593,21 +22620,15 @@
             "description": "Identifier of the involved person.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "involvement": {
+          "description": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Involvement. A Title Case value from the lifecycle's database enum.",
-            "example": "Witness"
-          },
-          "name_if_unknown": {
-            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
-            "description": "Name when the person has no record.",
-            "example": "Guest, name withheld"
+            "description": "Role in the incident, or a description of an unknown person.",
+            "example": "Witness"
           }
         },
-        "required": ["incident_id", "involvement"],
+        "required": ["incident_id", "description"],
         "description": "Fields accepted when creating a IncidentParty."
       },
       "IncidentPartyUpdate": {
@@ -22619,18 +22640,12 @@
             "description": "Identifier of the involved person.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "involvement": {
+          "description": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Involvement. A Title Case value from the lifecycle's database enum.",
-            "example": "Witness"
-          },
-          "name_if_unknown": {
-            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
-            "description": "Name when the person has no record.",
-            "example": "Guest, name withheld"
+            "description": "Role in the incident, or a description of an unknown person.",
+            "example": "Witness"
           }
         },
         "description": "Fields accepted when updating a IncidentParty. Omitted fields are unchanged."
@@ -22697,10 +22712,23 @@
             "description": "Identifier of the incident.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "document_id": {
+          "media_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Where the photo or video is stored.",
+            "example": "org/incidents/gate.jpg"
+          },
+          "captured_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was captured.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "project_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the media document.",
+            "description": "Identifier of the project of the incident, copied from it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -22712,7 +22740,9 @@
           "updated_at",
           "updated_by",
           "incident_id",
-          "document_id"
+          "media_uri",
+          "captured_at",
+          "project_id"
         ],
         "description": "A photo or file attached to an incident."
       },
@@ -22725,14 +22755,21 @@
             "description": "Identifier of the incident.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "document_id": {
+          "media_uri": {
             "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the media document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Where the photo or video is stored.",
+            "example": "org/incidents/gate.jpg"
+          },
+          "captured_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was captured.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["incident_id", "document_id"],
+        "required": ["incident_id", "media_uri"],
         "description": "Fields accepted when creating a IncidentMedia."
       },
       "DispatchAssignmentPage": {
@@ -22797,12 +22834,6 @@
             "description": "Identifier of the incident.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "responder_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the responder.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "dispatched_at": {
             "type": "string",
             "format": "date-time",
@@ -22815,11 +22846,11 @@
             "description": "When the responder arrived.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "cleared_at": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "When the responder cleared.",
-            "example": "2026-10-08T14:30:00Z"
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the responder's membership.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -22830,10 +22861,9 @@
           "updated_at",
           "updated_by",
           "incident_id",
-          "responder_id",
           "dispatched_at",
           "arrived_at",
-          "cleared_at"
+          "membership_id"
         ],
         "description": "A responder dispatched to an incident."
       },
@@ -22846,59 +22876,29 @@
             "description": "Identifier of the incident.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "responder_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the responder.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "dispatched_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the responder was dispatched.",
-            "example": "2026-10-08T14:30:00Z"
-          },
           "arrived_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When the responder arrived.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "cleared_at": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "When the responder cleared.",
-            "example": "2026-10-08T14:30:00Z"
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the responder's membership.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["incident_id", "responder_id", "dispatched_at"],
+        "required": ["incident_id", "membership_id"],
         "description": "Fields accepted when creating a DispatchAssignment."
       },
       "DispatchAssignmentUpdate": {
         "type": "object",
         "properties": {
-          "responder_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the responder.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "dispatched_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the responder was dispatched.",
-            "example": "2026-10-08T14:30:00Z"
-          },
           "arrived_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When the responder arrived.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "cleared_at": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "When the responder cleared.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
@@ -22966,29 +22966,26 @@
             "description": "Identifier of the incident.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "treated_by": {
+          "patient_description": {
             "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the treating medic.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Who was treated, without identifying medical detail.",
+            "example": "Guest, adult"
+          },
+          "treatment_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Treatment given. Restricted.",
+            "example": "Abrasion to the left knee, cleaned and dressed."
           },
           "disposition": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Disposition. A Title Case value from the lifecycle's database enum.",
-            "example": "Treated And Released"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 20000,
-                "description": "Clinical notes.",
-                "example": "Abrasion to the left knee, cleaned and dressed."
-              },
-              { "$ref": "#/components/schemas/Masked" }
-            ]
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Outcome, such as released or transported.",
+            "example": "Released"
           }
         },
         "required": [
@@ -22999,9 +22996,9 @@
           "updated_at",
           "updated_by",
           "incident_id",
-          "treated_by",
-          "disposition",
-          "notes"
+          "patient_description",
+          "treatment_notes",
+          "disposition"
         ],
         "description": "A medical encounter. Notes are Restricted, encrypted and never sent to a model."
       },
@@ -23014,50 +23011,54 @@
             "description": "Identifier of the incident.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "treated_by": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the treating medic.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "disposition": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Disposition. A Title Case value from the lifecycle's database enum.",
-            "example": "Treated And Released"
-          },
-          "notes": {
+          "patient_description": {
             "type": "string",
             "minLength": 1,
+            "maxLength": 300,
+            "description": "Who was treated, without identifying medical detail.",
+            "example": "Guest, adult"
+          },
+          "treatment_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
             "maxLength": 20000,
-            "description": "Clinical notes.",
+            "description": "Treatment given. Restricted.",
             "example": "Abrasion to the left knee, cleaned and dressed."
+          },
+          "disposition": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Outcome, such as released or transported.",
+            "example": "Released"
           }
         },
-        "required": ["incident_id", "treated_by", "disposition", "notes"],
+        "required": ["incident_id", "patient_description"],
         "description": "Fields accepted when creating a MedicalEncounter."
       },
       "MedicalEncounterUpdate": {
         "type": "object",
         "properties": {
-          "treated_by": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the treating medic.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "disposition": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Disposition. A Title Case value from the lifecycle's database enum.",
-            "example": "Treated And Released"
-          },
-          "notes": {
+          "patient_description": {
             "type": "string",
             "minLength": 1,
+            "maxLength": 300,
+            "description": "Who was treated, without identifying medical detail.",
+            "example": "Guest, adult"
+          },
+          "treatment_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
             "maxLength": 20000,
-            "description": "Clinical notes.",
+            "description": "Treatment given. Restricted.",
             "example": "Abrasion to the left knee, cleaned and dressed."
+          },
+          "disposition": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Outcome, such as released or transported.",
+            "example": "Released"
           }
         },
         "description": "Fields accepted when updating a MedicalEncounter. Omitted fields are unchanged."
@@ -23124,12 +23125,6 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "emergency_code_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the emergency code.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "message": {
             "type": "string",
             "minLength": 1,
@@ -23143,11 +23138,17 @@
             "description": "When the alert was issued.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "cleared_at": {
+          "ended_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When the alert was cleared.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "emergency_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon emergency code announced.",
+            "example": "CODE_RED"
           }
         },
         "required": [
@@ -23158,10 +23159,10 @@
           "updated_at",
           "updated_by",
           "project_id",
-          "emergency_code_id",
           "message",
           "issued_at",
-          "cleared_at"
+          "ended_at",
+          "emergency_code"
         ],
         "description": "A crisis alert broadcast to a project."
       },
@@ -23174,12 +23175,6 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "emergency_code_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the emergency code.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "message": {
             "type": "string",
             "minLength": 1,
@@ -23187,20 +23182,20 @@
             "description": "Alert message.",
             "example": "Weather hold: clear the north lawn."
           },
-          "issued_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the alert was issued.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "cleared_at": {
+          "ended_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When the alert was cleared.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "emergency_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon emergency code announced.",
+            "example": "CODE_RED"
           }
         },
-        "required": ["project_id", "emergency_code_id", "message", "issued_at"],
+        "required": ["project_id", "message", "emergency_code"],
         "description": "Fields accepted when creating a CrisisAlert."
       },
       "EmergencyCodePage": {
@@ -23223,128 +23218,41 @@
       "EmergencyCode": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the emergency code.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "org_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was created.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "created_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person who created the row; null when a seed, platform or system process created it.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was last updated.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "updated_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Emergency code.",
-            "example": "10"
+            "description": "Code token.",
+            "example": "CODE_RED"
           },
-          "name": {
+          "label": {
             "type": "string",
             "minLength": 1,
             "maxLength": 300,
-            "description": "Code name.",
-            "example": "Medical Assist"
+            "description": "Code word.",
+            "example": "Code Red"
           },
-          "response": {
+          "emergency": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 20000,
-            "description": "Response procedure.",
-            "example": "Dispatch the medical team to the location."
+            "maxLength": 300,
+            "description": "The emergency the code announces.",
+            "example": "Fire Emergency"
+          },
+          "swatch": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Design token of the swatch.",
+            "example": "ecode-red"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Canon order.",
+            "example": 1
           }
         },
-        "required": [
-          "id",
-          "org_id",
-          "created_at",
-          "created_by",
-          "updated_at",
-          "updated_by",
-          "code",
-          "name",
-          "response"
-        ],
+        "required": ["code", "label", "emergency", "swatch", "sort_order"],
         "description": "An org emergency code, seeded from the Standard Library and listed in numeric order."
-      },
-      "EmergencyCodeCreate": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Emergency code.",
-            "example": "10"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Code name.",
-            "example": "Medical Assist"
-          },
-          "response": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Response procedure.",
-            "example": "Dispatch the medical team to the location."
-          }
-        },
-        "required": ["code", "name", "response"],
-        "description": "Fields accepted when creating a EmergencyCode."
-      },
-      "EmergencyCodeUpdate": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Emergency code.",
-            "example": "10"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Code name.",
-            "example": "Medical Assist"
-          },
-          "response": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Response procedure.",
-            "example": "Dispatch the medical team to the location."
-          }
-        },
-        "description": "Fields accepted when updating a EmergencyCode. Omitted fields are unchanged."
       },
       "RadioChannelPage": {
         "type": "object",
@@ -23402,7 +23310,7 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "channel": {
+          "channel_number": {
             "type": "integer",
             "minimum": 1,
             "description": "Channel number.",
@@ -23415,15 +23323,16 @@
             "description": "Channel name.",
             "example": "Production"
           },
-          "frequency_mhz": {
-            "type": ["number", "null"],
-            "description": "Frequency in MHz.",
-            "example": 462.5625
-          },
           "project_id": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "uuid",
             "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "zone_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the zone the channel covers.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -23434,17 +23343,17 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "channel",
+          "channel_number",
           "name",
-          "frequency_mhz",
-          "project_id"
+          "project_id",
+          "zone_id"
         ],
         "description": "A radio channel in the org radio plan, listed in numeric order."
       },
       "RadioChannelCreate": {
         "type": "object",
         "properties": {
-          "channel": {
+          "channel_number": {
             "type": "integer",
             "minimum": 1,
             "description": "Channel number.",
@@ -23457,25 +23366,26 @@
             "description": "Channel name.",
             "example": "Production"
           },
-          "frequency_mhz": {
-            "type": ["number", "null"],
-            "description": "Frequency in MHz.",
-            "example": 462.5625
-          },
           "project_id": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "uuid",
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "zone_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the zone the channel covers.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["channel", "name"],
+        "required": ["channel_number", "name", "project_id"],
         "description": "Fields accepted when creating a RadioChannel."
       },
       "RadioChannelUpdate": {
         "type": "object",
         "properties": {
-          "channel": {
+          "channel_number": {
             "type": "integer",
             "minimum": 1,
             "description": "Channel number.",
@@ -23488,15 +23398,10 @@
             "description": "Channel name.",
             "example": "Production"
           },
-          "frequency_mhz": {
-            "type": ["number", "null"],
-            "description": "Frequency in MHz.",
-            "example": 462.5625
-          },
-          "project_id": {
+          "zone_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the project.",
+            "description": "Identifier of the zone the channel covers.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -29149,6 +29054,12 @@
         },
         "required": ["tag_id", "tag_type", "tag"],
         "description": "A sustainability or compliance tag."
+      },
+      "TagId": {
+        "type": "string",
+        "pattern": "^TAG-[0-9]{3}$",
+        "description": "Sustainability or compliance tag from `xpms.dim_tag`.",
+        "example": "TAG-002"
       },
       "CanonTouchpointPage": {
         "type": "object",
@@ -67653,9 +67564,9 @@
         "x-xos-table": "app.credential_categories",
         "x-xos-capability": "credentials.credential.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["credentials"] }],
-        "x-xos-order": { "by": ["position"], "numeric": false },
+        "x-xos-order": { "by": ["code"], "numeric": false },
         "summary": "List credential category rows",
-        "description": "A credential category, such as All Access or Artist. Returns a cursor page of credential category rows the caller may see. The default order is `position` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A credential category, such as All Access or Artist. Returns a cursor page of credential category rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -67683,8 +67594,8 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "All Access",
-                      "color_token": "badge.red",
-                      "position": 1
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "code": "ALL-ACCESS"
                     }
                   ],
                   "next_cursor": null
@@ -67711,7 +67622,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "All Access", "color_token": "badge.red", "position": 1 },
+              "example": {
+                "name": "All Access",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "code": "ALL-ACCESS"
+              },
               "schema": { "$ref": "#/components/schemas/CredentialCategoryCreate" }
             }
           }
@@ -67735,8 +67650,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "All Access",
-                  "color_token": "badge.red",
-                  "position": 1
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "code": "ALL-ACCESS"
                 },
                 "schema": { "$ref": "#/components/schemas/CredentialCategory" }
               }
@@ -67793,8 +67708,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "All Access",
-                  "color_token": "badge.red",
-                  "position": 1
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "code": "ALL-ACCESS"
                 },
                 "schema": { "$ref": "#/components/schemas/CredentialCategory" }
               }
@@ -67833,7 +67748,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "All Access", "color_token": "badge.red", "position": 1 },
+              "example": { "name": "All Access", "code": "ALL-ACCESS" },
               "schema": { "$ref": "#/components/schemas/CredentialCategoryUpdate" }
             }
           }
@@ -67857,8 +67772,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "All Access",
-                  "color_token": "badge.red",
-                  "position": 1
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "code": "ALL-ACCESS"
                 },
                 "schema": { "$ref": "#/components/schemas/CredentialCategory" }
               }
@@ -67942,13 +67857,14 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "credential_state": "Active",
                       "issued_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "issued_at": "2026-10-08T14:30:00Z",
                       "valid_from": "2026-10-08T14:30:00Z",
-                      "valid_to": "2026-10-08T14:30:00Z"
+                      "valid_to": "2026-10-08T14:30:00Z",
+                      "holder_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "credential_number": "CR-000123",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -67976,12 +67892,11 @@
           "content": {
             "application/json": {
               "example": {
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "valid_from": "2026-10-08T14:30:00Z",
-                "valid_to": "2026-10-08T14:30:00Z"
+                "valid_to": "2026-10-08T14:30:00Z",
+                "holder_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/CredentialCreate" }
             }
@@ -68007,13 +67922,14 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "credential_state": "Active",
                   "issued_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "issued_at": "2026-10-08T14:30:00Z",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "holder_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "credential_number": "CR-000123",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Credential" }
               }
@@ -68071,13 +67987,14 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "credential_state": "Active",
                   "issued_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "issued_at": "2026-10-08T14:30:00Z",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "holder_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "credential_number": "CR-000123",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Credential" }
               }
@@ -68134,13 +68051,14 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "credential_state": "Active",
                   "issued_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "issued_at": "2026-10-08T14:30:00Z",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "holder_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "credential_number": "CR-000123",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Credential" }
               }
@@ -68193,9 +68111,10 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "allowed": true,
+                      "access_level_enum_id": "ENM-036",
                       "window_starts_at": "2026-10-08T14:30:00Z",
-                      "window_ends_at": "2026-10-08T14:30:00Z"
+                      "window_ends_at": "2026-10-08T14:30:00Z",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -68225,7 +68144,7 @@
               "example": {
                 "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "allowed": true,
+                "access_level_enum_id": "ENM-036",
                 "window_starts_at": "2026-10-08T14:30:00Z",
                 "window_ends_at": "2026-10-08T14:30:00Z"
               },
@@ -68253,9 +68172,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "allowed": true,
+                  "access_level_enum_id": "ENM-036",
                   "window_starts_at": "2026-10-08T14:30:00Z",
-                  "window_ends_at": "2026-10-08T14:30:00Z"
+                  "window_ends_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AccessGridEntry" }
               }
@@ -68313,9 +68233,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "allowed": true,
+                  "access_level_enum_id": "ENM-036",
                   "window_starts_at": "2026-10-08T14:30:00Z",
-                  "window_ends_at": "2026-10-08T14:30:00Z"
+                  "window_ends_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AccessGridEntry" }
               }
@@ -68355,7 +68276,7 @@
           "content": {
             "application/json": {
               "example": {
-                "allowed": true,
+                "access_level_enum_id": "ENM-036",
                 "window_starts_at": "2026-10-08T14:30:00Z",
                 "window_ends_at": "2026-10-08T14:30:00Z"
               },
@@ -68383,9 +68304,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "allowed": true,
+                  "access_level_enum_id": "ENM-036",
                   "window_starts_at": "2026-10-08T14:30:00Z",
-                  "window_ends_at": "2026-10-08T14:30:00Z"
+                  "window_ends_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AccessGridEntry" }
               }
@@ -68470,8 +68392,10 @@
                       "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "credential_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "scanned_at": "2026-10-08T14:30:00Z",
-                      "granted": true,
-                      "refusal_reason": "Outside the access window."
+                      "result": "Granted",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "device_scanned_at": "2026-10-08T14:30:00Z",
+                      "offline_result": "Granted"
                     }
                   ],
                   "next_cursor": null
@@ -68501,7 +68425,8 @@
               "example": {
                 "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "credential_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "scanned_at": "2026-10-08T14:30:00Z"
+                "device_scanned_at": "2026-10-08T14:30:00Z",
+                "offline_result": "Granted"
               },
               "schema": { "$ref": "#/components/schemas/AccessScanCreate" }
             }
@@ -68528,8 +68453,10 @@
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "credential_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scanned_at": "2026-10-08T14:30:00Z",
-                  "granted": true,
-                  "refusal_reason": "Outside the access window."
+                  "result": "Granted",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "device_scanned_at": "2026-10-08T14:30:00Z",
+                  "offline_result": "Granted"
                 },
                 "schema": { "$ref": "#/components/schemas/AccessScan" }
               }
@@ -68588,8 +68515,10 @@
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "credential_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scanned_at": "2026-10-08T14:30:00Z",
-                  "granted": true,
-                  "refusal_reason": "Outside the access window."
+                  "result": "Granted",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "device_scanned_at": "2026-10-08T14:30:00Z",
+                  "offline_result": "Granted"
                 },
                 "schema": { "$ref": "#/components/schemas/AccessScan" }
               }
@@ -68639,9 +68568,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "OSHA 10",
-                      "tag_id": "TAG-002",
-                      "issuer": "OSHA",
-                      "validity_months": 60
+                      "issuing_body": "OSHA"
                     }
                   ],
                   "next_cursor": null
@@ -68668,12 +68595,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "name": "OSHA 10",
-                "tag_id": "TAG-002",
-                "issuer": "OSHA",
-                "validity_months": 60
-              },
+              "example": { "name": "OSHA 10", "issuing_body": "OSHA" },
               "schema": { "$ref": "#/components/schemas/CertificationCreate" }
             }
           }
@@ -68697,9 +68619,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "OSHA 10",
-                  "tag_id": "TAG-002",
-                  "issuer": "OSHA",
-                  "validity_months": 60
+                  "issuing_body": "OSHA"
                 },
                 "schema": { "$ref": "#/components/schemas/Certification" }
               }
@@ -68756,9 +68676,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "OSHA 10",
-                  "tag_id": "TAG-002",
-                  "issuer": "OSHA",
-                  "validity_months": 60
+                  "issuing_body": "OSHA"
                 },
                 "schema": { "$ref": "#/components/schemas/Certification" }
               }
@@ -68797,12 +68715,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "name": "OSHA 10",
-                "tag_id": "TAG-002",
-                "issuer": "OSHA",
-                "validity_months": 60
-              },
+              "example": { "name": "OSHA 10", "issuing_body": "OSHA" },
               "schema": { "$ref": "#/components/schemas/CertificationUpdate" }
             }
           }
@@ -68826,9 +68739,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "OSHA 10",
-                  "tag_id": "TAG-002",
-                  "issuer": "OSHA",
-                  "validity_months": 60
+                  "issuing_body": "OSHA"
                 },
                 "schema": { "$ref": "#/components/schemas/Certification" }
               }
@@ -68912,11 +68823,10 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "certification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "expires_on": "2026-10-08",
-                      "verified_at": "2026-10-08T14:30:00Z",
                       "verified_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "public_verification_consent": false
+                      "issued_on": "2026-10-08",
+                      "public_verification_consented": false
                     }
                   ],
                   "next_cursor": null
@@ -68946,9 +68856,8 @@
               "example": {
                 "certification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "expires_on": "2026-10-08",
-                "public_verification_consent": false
+                "issued_on": "2026-10-08"
               },
               "schema": { "$ref": "#/components/schemas/CertificationHolderCreate" }
             }
@@ -68974,11 +68883,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "certification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "expires_on": "2026-10-08",
-                  "verified_at": "2026-10-08T14:30:00Z",
                   "verified_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "public_verification_consent": false
+                  "issued_on": "2026-10-08",
+                  "public_verification_consented": false
                 },
                 "schema": { "$ref": "#/components/schemas/CertificationHolder" }
               }
@@ -69036,11 +68944,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "certification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "expires_on": "2026-10-08",
-                  "verified_at": "2026-10-08T14:30:00Z",
                   "verified_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "public_verification_consent": false
+                  "issued_on": "2026-10-08",
+                  "public_verification_consented": false
                 },
                 "schema": { "$ref": "#/components/schemas/CertificationHolder" }
               }
@@ -69080,9 +68987,9 @@
           "content": {
             "application/json": {
               "example": {
-                "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "expires_on": "2026-10-08",
-                "public_verification_consent": false
+                "issued_on": "2026-10-08",
+                "public_verification_consented": false
               },
               "schema": { "$ref": "#/components/schemas/CertificationHolderUpdate" }
             }
@@ -69108,11 +69015,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "certification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "expires_on": "2026-10-08",
-                  "verified_at": "2026-10-08T14:30:00Z",
                   "verified_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "public_verification_consent": false
+                  "issued_on": "2026-10-08",
+                  "public_verification_consented": false
                 },
                 "schema": { "$ref": "#/components/schemas/CertificationHolder" }
               }
@@ -69153,69 +69059,6 @@
           "204": { "description": "The certification holder moved to Trash." },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/certification-holders/{id}/verify": {
-      "post": {
-        "operationId": "certificationHolders.verify",
-        "tags": ["Credentials"],
-        "x-xos-table": "app.certification_holders",
-        "x-xos-capability": "people.certification.verify",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["people"] }],
-        "summary": "Verify a certification",
-        "description": "Verifies the certification against its issuer or evidence. Certifications cannot be self-verified. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the certification holder.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the certification holder.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "certification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "evidence_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "expires_on": "2026-10-08",
-                  "verified_at": "2026-10-08T14:30:00Z",
-                  "verified_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "public_verification_consent": false
-                },
-                "schema": { "$ref": "#/components/schemas/CertificationHolder" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
@@ -81046,15 +80889,18 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "incident_number": "INC-0042",
-                      "severity": "Critical",
                       "title": "Guest Fall Near North Bar",
                       "occurred_at": "2026-10-08T14:30:00Z",
                       "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "latitude": 25.7617,
                       "longitude": -80.1918,
-                      "incident_state": "Active",
-                      "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "severity_enum_id": "ENM-097",
+                      "incident_number": 142,
+                      "incident_state": "Reported",
+                      "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "accuracy_m": 8,
+                      "device_reported_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -81083,13 +80929,14 @@
             "application/json": {
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "severity": "Critical",
                 "title": "Guest Fall Near North Bar",
                 "occurred_at": "2026-10-08T14:30:00Z",
                 "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "latitude": 25.7617,
                 "longitude": -80.1918,
-                "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "severity_enum_id": "ENM-097",
+                "accuracy_m": 8,
+                "device_reported_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/IncidentCreate" }
             }
@@ -81114,15 +80961,18 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "incident_number": "INC-0042",
-                  "severity": "Critical",
                   "title": "Guest Fall Near North Bar",
                   "occurred_at": "2026-10-08T14:30:00Z",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "latitude": 25.7617,
                   "longitude": -80.1918,
-                  "incident_state": "Active",
-                  "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "severity_enum_id": "ENM-097",
+                  "incident_number": 142,
+                  "incident_state": "Reported",
+                  "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "accuracy_m": 8,
+                  "device_reported_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Incident" }
               }
@@ -81179,15 +81029,18 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "incident_number": "INC-0042",
-                  "severity": "Critical",
                   "title": "Guest Fall Near North Bar",
                   "occurred_at": "2026-10-08T14:30:00Z",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "latitude": 25.7617,
                   "longitude": -80.1918,
-                  "incident_state": "Active",
-                  "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "severity_enum_id": "ENM-097",
+                  "incident_number": 142,
+                  "incident_state": "Reported",
+                  "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "accuracy_m": 8,
+                  "device_reported_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Incident" }
               }
@@ -81227,13 +81080,14 @@
           "content": {
             "application/json": {
               "example": {
-                "severity": "Critical",
                 "title": "Guest Fall Near North Bar",
                 "occurred_at": "2026-10-08T14:30:00Z",
                 "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "latitude": 25.7617,
                 "longitude": -80.1918,
-                "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "severity_enum_id": "ENM-097",
+                "accuracy_m": 8,
+                "device_reported_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/IncidentUpdate" }
             }
@@ -81258,15 +81112,18 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "incident_number": "INC-0042",
-                  "severity": "Critical",
                   "title": "Guest Fall Near North Bar",
                   "occurred_at": "2026-10-08T14:30:00Z",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "latitude": 25.7617,
                   "longitude": -80.1918,
-                  "incident_state": "Active",
-                  "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "severity_enum_id": "ENM-097",
+                  "incident_number": 142,
+                  "incident_state": "Reported",
+                  "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "accuracy_m": 8,
+                  "device_reported_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Incident" }
               }
@@ -81311,8 +81168,8 @@
           "content": {
             "application/json": {
               "example": {
-                "expected_state": "Active",
-                "to_state": "In Review",
+                "expected_state": "Reported",
+                "to_state": "Dispatched",
                 "reason": "Client approved the revised scope."
               },
               "schema": { "$ref": "#/components/schemas/IncidentTransitionRequest" }
@@ -81338,15 +81195,18 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "incident_number": "INC-0042",
-                  "severity": "Critical",
                   "title": "Guest Fall Near North Bar",
                   "occurred_at": "2026-10-08T14:30:00Z",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "latitude": 25.7617,
                   "longitude": -80.1918,
-                  "incident_state": "Active",
-                  "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "severity_enum_id": "ENM-097",
+                  "incident_number": 142,
+                  "incident_state": "Reported",
+                  "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "accuracy_m": 8,
+                  "device_reported_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Incident" }
               }
@@ -81369,7 +81229,7 @@
         "x-xos-capability": "safety.incident.close",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
         "summary": "Close an incident",
-        "description": "Closes the incident with sign-off. A critical incident cannot be relabeled and closed in one request. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Closes a contained incident with sign-off through app.close_incident; the caller is recorded as the person signing off. The reporter of a critical incident cannot sign off its closure (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -81385,6 +81245,15 @@
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "note": "Area inspected and safe." },
+              "schema": { "$ref": "#/components/schemas/IncidentCloseRequest" }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The result.",
@@ -81404,15 +81273,18 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "incident_number": "INC-0042",
-                  "severity": "Critical",
                   "title": "Guest Fall Near North Bar",
                   "occurred_at": "2026-10-08T14:30:00Z",
                   "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "latitude": 25.7617,
                   "longitude": -80.1918,
-                  "incident_state": "Active",
-                  "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "severity_enum_id": "ENM-097",
+                  "incident_number": 142,
+                  "incident_state": "Reported",
+                  "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "accuracy_m": 8,
+                  "device_reported_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Incident" }
               }
@@ -81465,8 +81337,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "involvement": "Witness",
-                      "name_if_unknown": "Guest, name withheld"
+                      "description": "Witness"
                     }
                   ],
                   "next_cursor": null
@@ -81496,8 +81367,7 @@
               "example": {
                 "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "involvement": "Witness",
-                "name_if_unknown": "Guest, name withheld"
+                "description": "Witness"
               },
               "schema": { "$ref": "#/components/schemas/IncidentPartyCreate" }
             }
@@ -81523,8 +81393,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "involvement": "Witness",
-                  "name_if_unknown": "Guest, name withheld"
+                  "description": "Witness"
                 },
                 "schema": { "$ref": "#/components/schemas/IncidentParty" }
               }
@@ -81582,8 +81451,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "involvement": "Witness",
-                  "name_if_unknown": "Guest, name withheld"
+                  "description": "Witness"
                 },
                 "schema": { "$ref": "#/components/schemas/IncidentParty" }
               }
@@ -81624,8 +81492,7 @@
             "application/json": {
               "example": {
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "involvement": "Witness",
-                "name_if_unknown": "Guest, name withheld"
+                "description": "Witness"
               },
               "schema": { "$ref": "#/components/schemas/IncidentPartyUpdate" }
             }
@@ -81651,8 +81518,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "involvement": "Witness",
-                  "name_if_unknown": "Guest, name withheld"
+                  "description": "Witness"
                 },
                 "schema": { "$ref": "#/components/schemas/IncidentParty" }
               }
@@ -81735,7 +81601,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "media_uri": "org/incidents/gate.jpg",
+                      "captured_at": "2026-10-08T14:30:00Z",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -81764,7 +81632,8 @@
             "application/json": {
               "example": {
                 "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "media_uri": "org/incidents/gate.jpg",
+                "captured_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/IncidentMediaCreate" }
             }
@@ -81789,7 +81658,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "media_uri": "org/incidents/gate.jpg",
+                  "captured_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/IncidentMedia" }
               }
@@ -81846,7 +81717,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "media_uri": "org/incidents/gate.jpg",
+                  "captured_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/IncidentMedia" }
               }
@@ -81926,10 +81799,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "responder_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "dispatched_at": "2026-10-08T14:30:00Z",
                       "arrived_at": "2026-10-08T14:30:00Z",
-                      "cleared_at": "2026-10-08T14:30:00Z"
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -81958,10 +81830,8 @@
             "application/json": {
               "example": {
                 "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "responder_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "dispatched_at": "2026-10-08T14:30:00Z",
                 "arrived_at": "2026-10-08T14:30:00Z",
-                "cleared_at": "2026-10-08T14:30:00Z"
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/DispatchAssignmentCreate" }
             }
@@ -81986,10 +81856,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "responder_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "dispatched_at": "2026-10-08T14:30:00Z",
                   "arrived_at": "2026-10-08T14:30:00Z",
-                  "cleared_at": "2026-10-08T14:30:00Z"
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/DispatchAssignment" }
               }
@@ -82046,10 +81915,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "responder_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "dispatched_at": "2026-10-08T14:30:00Z",
                   "arrived_at": "2026-10-08T14:30:00Z",
-                  "cleared_at": "2026-10-08T14:30:00Z"
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/DispatchAssignment" }
               }
@@ -82088,12 +81956,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "responder_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "dispatched_at": "2026-10-08T14:30:00Z",
-                "arrived_at": "2026-10-08T14:30:00Z",
-                "cleared_at": "2026-10-08T14:30:00Z"
-              },
+              "example": { "arrived_at": "2026-10-08T14:30:00Z" },
               "schema": { "$ref": "#/components/schemas/DispatchAssignmentUpdate" }
             }
           }
@@ -82117,10 +81980,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "responder_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "dispatched_at": "2026-10-08T14:30:00Z",
                   "arrived_at": "2026-10-08T14:30:00Z",
-                  "cleared_at": "2026-10-08T14:30:00Z"
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/DispatchAssignment" }
               }
@@ -82173,9 +82035,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "treated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "disposition": "Treated And Released",
-                      "notes": "Abrasion to the left knee, cleaned and dressed."
+                      "patient_description": "Guest, adult",
+                      "treatment_notes": "Abrasion to the left knee, cleaned and dressed.",
+                      "disposition": "Released"
                     }
                   ],
                   "next_cursor": null
@@ -82204,9 +82066,9 @@
             "application/json": {
               "example": {
                 "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "treated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "disposition": "Treated And Released",
-                "notes": "Abrasion to the left knee, cleaned and dressed."
+                "patient_description": "Guest, adult",
+                "treatment_notes": "Abrasion to the left knee, cleaned and dressed.",
+                "disposition": "Released"
               },
               "schema": { "$ref": "#/components/schemas/MedicalEncounterCreate" }
             }
@@ -82231,9 +82093,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "treated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "disposition": "Treated And Released",
-                  "notes": "Abrasion to the left knee, cleaned and dressed."
+                  "patient_description": "Guest, adult",
+                  "treatment_notes": "Abrasion to the left knee, cleaned and dressed.",
+                  "disposition": "Released"
                 },
                 "schema": { "$ref": "#/components/schemas/MedicalEncounter" }
               }
@@ -82290,9 +82152,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "treated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "disposition": "Treated And Released",
-                  "notes": "Abrasion to the left knee, cleaned and dressed."
+                  "patient_description": "Guest, adult",
+                  "treatment_notes": "Abrasion to the left knee, cleaned and dressed.",
+                  "disposition": "Released"
                 },
                 "schema": { "$ref": "#/components/schemas/MedicalEncounter" }
               }
@@ -82332,9 +82194,9 @@
           "content": {
             "application/json": {
               "example": {
-                "treated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "disposition": "Treated And Released",
-                "notes": "Abrasion to the left knee, cleaned and dressed."
+                "patient_description": "Guest, adult",
+                "treatment_notes": "Abrasion to the left knee, cleaned and dressed.",
+                "disposition": "Released"
               },
               "schema": { "$ref": "#/components/schemas/MedicalEncounterUpdate" }
             }
@@ -82359,9 +82221,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "incident_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "treated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "disposition": "Treated And Released",
-                  "notes": "Abrasion to the left knee, cleaned and dressed."
+                  "patient_description": "Guest, adult",
+                  "treatment_notes": "Abrasion to the left knee, cleaned and dressed.",
+                  "disposition": "Released"
                 },
                 "schema": { "$ref": "#/components/schemas/MedicalEncounter" }
               }
@@ -82414,10 +82276,10 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "message": "Weather hold: clear the north lawn.",
                       "issued_at": "2026-10-08T14:30:00Z",
-                      "cleared_at": "2026-10-08T14:30:00Z"
+                      "ended_at": "2026-10-08T14:30:00Z",
+                      "emergency_code": "CODE_RED"
                     }
                   ],
                   "next_cursor": null
@@ -82446,10 +82308,9 @@
             "application/json": {
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "message": "Weather hold: clear the north lawn.",
-                "issued_at": "2026-10-08T14:30:00Z",
-                "cleared_at": "2026-10-08T14:30:00Z"
+                "ended_at": "2026-10-08T14:30:00Z",
+                "emergency_code": "CODE_RED"
               },
               "schema": { "$ref": "#/components/schemas/CrisisAlertCreate" }
             }
@@ -82474,10 +82335,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "message": "Weather hold: clear the north lawn.",
                   "issued_at": "2026-10-08T14:30:00Z",
-                  "cleared_at": "2026-10-08T14:30:00Z"
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "emergency_code": "CODE_RED"
                 },
                 "schema": { "$ref": "#/components/schemas/CrisisAlert" }
               }
@@ -82534,10 +82395,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "message": "Weather hold: clear the north lawn.",
                   "issued_at": "2026-10-08T14:30:00Z",
-                  "cleared_at": "2026-10-08T14:30:00Z"
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "emergency_code": "CODE_RED"
                 },
                 "schema": { "$ref": "#/components/schemas/CrisisAlert" }
               }
@@ -82593,10 +82454,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "emergency_code_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "message": "Weather hold: clear the north lawn.",
                   "issued_at": "2026-10-08T14:30:00Z",
-                  "cleared_at": "2026-10-08T14:30:00Z"
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "emergency_code": "CODE_RED"
                 },
                 "schema": { "$ref": "#/components/schemas/CrisisAlert" }
               }
@@ -82615,12 +82476,12 @@
       "get": {
         "operationId": "emergencyCodes.list",
         "tags": ["Safety"],
-        "x-xos-table": "app.emergency_codes",
+        "x-xos-table": "xpms.emergency_code",
         "x-xos-capability": "safety.incident.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
-        "x-xos-order": { "by": ["code"], "numeric": true },
+        "x-xos-order": { "by": ["sort_order"], "numeric": true },
         "summary": "List emergency code rows",
-        "description": "An org emergency code, seeded from the Standard Library and listed in numeric order. Returns a cursor page of emergency code rows the caller may see. Coded list: the default order is numeric code order by `code`. Supports sparse fieldsets and the filter grammar.",
+        "description": "An org emergency code, seeded from the Standard Library and listed in numeric order. Returns a cursor page of emergency code rows the caller may see. Coded list: the default order is numeric code order by `sort_order`. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -82641,26 +82502,18 @@
                 "example": {
                   "data": [
                     {
-                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "created_at": "2026-10-08T14:30:00Z",
-                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "updated_at": "2026-10-08T14:30:00Z",
-                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "code": "10",
-                      "name": "Medical Assist",
-                      "response": "Dispatch the medical team to the location."
+                      "code": "CODE_RED",
+                      "label": "Code Red",
+                      "emergency": "Fire Emergency",
+                      "swatch": "ecode-red",
+                      "sort_order": 1
                     },
                     {
-                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "created_at": "2026-10-08T14:30:00Z",
-                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "updated_at": "2026-10-08T14:30:00Z",
-                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "code": "20",
-                      "name": "Medical Assist",
-                      "response": "Dispatch the medical team to the location."
+                      "code": "CODE_RED",
+                      "label": "Code Red",
+                      "emergency": "Fire Emergency",
+                      "swatch": "ecode-red",
+                      "sort_order": 2
                     }
                   ],
                   "next_cursor": null
@@ -82673,68 +82526,13 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
-      },
-      "post": {
-        "operationId": "emergencyCodes.create",
-        "tags": ["Safety"],
-        "x-xos-table": "app.emergency_codes",
-        "x-xos-capability": "safety.emergency_code.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
-        "summary": "Create an emergency code",
-        "description": "An org emergency code, seeded from the Standard Library and listed in numeric order. Creates an emergency code. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "code": "10",
-                "name": "Medical Assist",
-                "response": "Dispatch the medical team to the location."
-              },
-              "schema": { "$ref": "#/components/schemas/EmergencyCodeCreate" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The created emergency code.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "code": "10",
-                  "name": "Medical Assist",
-                  "response": "Dispatch the medical team to the location."
-                },
-                "schema": { "$ref": "#/components/schemas/EmergencyCode" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
       }
     },
-    "/emergency-codes/{id}": {
+    "/emergency-codes/{code}": {
       "get": {
         "operationId": "emergencyCodes.get",
         "tags": ["Safety"],
-        "x-xos-table": "app.emergency_codes",
+        "x-xos-table": "xpms.emergency_code",
         "x-xos-capability": "safety.incident.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
         "summary": "Get an emergency code",
@@ -82743,13 +82541,13 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the emergency code.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+              "description": "Code token.",
+              "example": "CODE_RED"
             },
             "required": true,
-            "description": "Identifier of the emergency code.",
-            "name": "id",
+            "description": "Code token.",
+            "name": "code",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -82766,15 +82564,11 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "code": "10",
-                  "name": "Medical Assist",
-                  "response": "Dispatch the medical team to the location."
+                  "code": "CODE_RED",
+                  "label": "Code Red",
+                  "emergency": "Fire Emergency",
+                  "swatch": "ecode-red",
+                  "sort_order": 1
                 },
                 "schema": { "$ref": "#/components/schemas/EmergencyCode" }
               }
@@ -82783,107 +82577,6 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "patch": {
-        "operationId": "emergencyCodes.update",
-        "tags": ["Safety"],
-        "x-xos-table": "app.emergency_codes",
-        "x-xos-capability": "safety.emergency_code.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
-        "summary": "Update an emergency code",
-        "description": "An org emergency code, seeded from the Standard Library and listed in numeric order. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the emergency code.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the emergency code.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IfMatch" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "code": "10",
-                "name": "Medical Assist",
-                "response": "Dispatch the medical team to the location."
-              },
-              "schema": { "$ref": "#/components/schemas/EmergencyCodeUpdate" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The updated emergency code.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "code": "10",
-                  "name": "Medical Assist",
-                  "response": "Dispatch the medical team to the location."
-                },
-                "schema": { "$ref": "#/components/schemas/EmergencyCode" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "412": { "$ref": "#/components/responses/PreconditionFailed" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "428": { "$ref": "#/components/responses/PreconditionRequired" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "delete": {
-        "operationId": "emergencyCodes.delete",
-        "tags": ["Safety"],
-        "x-xos-table": "app.emergency_codes",
-        "x-xos-capability": "safety.emergency_code.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
-        "summary": "Delete an emergency code",
-        "description": "An org emergency code, seeded from the Standard Library and listed in numeric order. Soft-deletes the emergency code: it moves to Trash and can be restored for its table's retention period.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the emergency code.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the emergency code.",
-            "name": "id",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "204": { "description": "The emergency code moved to Trash." },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -82895,9 +82588,9 @@
         "x-xos-table": "app.radio_channels",
         "x-xos-capability": "safety.incident.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
-        "x-xos-order": { "by": ["channel"], "numeric": true },
+        "x-xos-order": { "by": ["channel_number"], "numeric": true },
         "summary": "List radio channel rows",
-        "description": "A radio channel in the org radio plan, listed in numeric order. Returns a cursor page of radio channel rows the caller may see. Coded list: the default order is numeric code order by `channel`. Supports sparse fieldsets and the filter grammar.",
+        "description": "A radio channel in the org radio plan, listed in numeric order. Returns a cursor page of radio channel rows the caller may see. Coded list: the default order is numeric code order by `channel_number`. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -82924,10 +82617,10 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "channel": 1,
+                      "channel_number": 1,
                       "name": "Production",
-                      "frequency_mhz": 462.5625,
-                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     },
                     {
                       "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
@@ -82936,10 +82629,10 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "channel": 2,
+                      "channel_number": 2,
                       "name": "Production",
-                      "frequency_mhz": 462.5625,
-                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -82967,10 +82660,10 @@
           "content": {
             "application/json": {
               "example": {
-                "channel": 1,
+                "channel_number": 1,
                 "name": "Production",
-                "frequency_mhz": 462.5625,
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/RadioChannelCreate" }
             }
@@ -82994,10 +82687,10 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "channel": 1,
+                  "channel_number": 1,
                   "name": "Production",
-                  "frequency_mhz": 462.5625,
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RadioChannel" }
               }
@@ -83053,10 +82746,10 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "channel": 1,
+                  "channel_number": 1,
                   "name": "Production",
-                  "frequency_mhz": 462.5625,
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RadioChannel" }
               }
@@ -83096,10 +82789,9 @@
           "content": {
             "application/json": {
               "example": {
-                "channel": 1,
+                "channel_number": 1,
                 "name": "Production",
-                "frequency_mhz": 462.5625,
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/RadioChannelUpdate" }
             }
@@ -83123,10 +82815,10 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "channel": 1,
+                  "channel_number": 1,
                   "name": "Production",
-                  "frequency_mhz": 462.5625,
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RadioChannel" }
               }

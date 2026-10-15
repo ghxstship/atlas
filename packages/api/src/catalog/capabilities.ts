@@ -475,6 +475,10 @@ export function canonRule(op: string): CapabilityRule | undefined {
  * fails when a capability is neither used nor listed here.
  */
 export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
+  "safety.emergency_code.write":
+    "Emergency codes are one global canon list (decision D15, xpms.emergency_code); no operation writes them (ADR 0023).",
+  "people.certification.verify":
+    "The person who records a certification holder is its verifier (private.guard_certification_holder, 0352); recording needs people.certification.verify through row level security, and there is no later verify step (ADR 0023).",
   "org.separation_of_duties.write":
     "The separation of duties rules are the platform's, read through the view app.separation_of_duties_rules (0320); no operation writes them (ADR 0023).",
   "procurement.bid.unseal":

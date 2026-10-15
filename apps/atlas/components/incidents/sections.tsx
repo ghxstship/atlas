@@ -416,7 +416,7 @@ function ZoneSelect({
       label={page.t("incidents.zone")}
       options={[
         { value: "", label: page.t("incidents.noZone") },
-        ...zones.map((z) => ({ value: z.id, label: joined(z.code, z.name) })),
+        ...zones.map((z) => ({ value: z.id, label: joined(z.code, z.name, z.venueName) })),
       ]}
       defaultValue={defaultValue ?? ""}
     />

@@ -63,7 +63,9 @@ test.describe("Credentials and the access grid (journey 18)", () => {
     await page.goto(`/${ORG}/credentials/access-grid?project=${PROJECT}&view=spreadsheet`);
     await expectAccessibleInBothThemes(page);
     await page.locator("#grid-category").selectOption({ label: `${code} · Journey ${id}` });
-    await page.locator("#grid-zone").selectOption({ label: "LAWN · Festival Lawn" });
+    await page
+      .locator("#grid-zone")
+      .selectOption({ label: "LAWN · Festival Lawn · Bayside Festival Grounds" });
     await page.locator("#grid-level").selectOption({ index: 0 });
     await page.getByRole("button", { name: "Grant access" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Access granted." })).toBeVisible();
@@ -84,13 +86,17 @@ test.describe("Credentials and the access grid (journey 18)", () => {
 
     await page.goto(`/${ORG}/credentials/scan-log?project=${PROJECT}`);
     await expectAccessibleInBothThemes(page);
-    await page.locator("#scan-zone").selectOption({ label: "LAWN · Festival Lawn" });
+    await page
+      .locator("#scan-zone")
+      .selectOption({ label: "LAWN · Festival Lawn · Bayside Festival Grounds" });
     await page.locator("#scan-number").fill(number);
     await page.getByRole("button", { name: "Check credential" }).click();
     await expect(page.getByRole("status").filter({ hasText: `${number}` })).toContainText(
       "access granted",
     );
-    await page.locator("#scan-zone").selectOption({ label: "VIP · VIP Terrace" });
+    await page
+      .locator("#scan-zone")
+      .selectOption({ label: "VIP · VIP Terrace · Bayside Festival Grounds" });
     await page.locator("#scan-number").fill(number);
     await page.getByRole("button", { name: "Check credential" }).click();
     await expect(page.getByRole("status").filter({ hasText: `${number}` })).toContainText(
@@ -141,7 +147,9 @@ test.describe("Safety incidents (journey 16, Atlas)", () => {
     await expectAccessibleInBothThemes(page);
     await page.locator("#incident-title").fill(title);
     await page.locator("#incident-severity").selectOption({ index: 0 });
-    await page.locator("#incident-zone").selectOption({ label: "LAWN · Festival Lawn" });
+    await page
+      .locator("#incident-zone")
+      .selectOption({ label: "LAWN · Festival Lawn · Bayside Festival Grounds" });
     await page.getByRole("button", { name: "File report" }).click();
     await expect(
       page.getByRole("status").filter({ hasText: /Incident filed as number \d+\./ }),

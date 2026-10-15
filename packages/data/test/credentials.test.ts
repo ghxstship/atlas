@@ -89,15 +89,28 @@ describe("projects and zones", () => {
     expect((await operationsProjectByKey(db, "o1", "NWL")).ok).toBe(false);
   });
 
-  it("lists a venue's zones, or every zone without a venue", async () => {
-    const zone = { id: "z1", code: "FOH", name: "Front of House", venue_id: "v1" };
-    const { db, calls } = client({ "from:zones": [okResponse([zone]), okResponse([]), down] });
-    expect((await listProjectZones(db, "o1", "v1")).ok && calls[0]?.steps).toContainEqual([
-      "eq",
-      ["venue_id", "v1"],
-    ]);
-    await listProjectZones(db, "o1", null);
-    expect(calls[1]?.steps.some(([m, a]) => m === "eq" && a[0] === "venue_id")).toBe(false);
+  it("offers every org zone, the project venue first", async () => {
+    const zone = (id: string, code: string, venue: string, name: string | null) => ({
+      id,
+      code,
+      name: code,
+      venue_id: venue,
+      venue: name === null ? null : { name },
+    });
+    const { db } = client({
+      "from:zones": [
+        okResponse([
+          zone("z1", "GATE-A", "v2", "Northwind Pier"),
+          zone("z2", "LAWN", "v1", "Bayside Festival Grounds"),
+          zone("z3", "BACK", "v2", "Northwind Pier"),
+          zone("z4", "ANNEX", "v3", null),
+        ]),
+        down,
+      ],
+    });
+    const listed = await listProjectZones(db, "o1", "v1");
+    expect(listed.ok && listed.data.map((z) => z.id)).toEqual(["z2", "z4", "z3", "z1"]);
+    expect(listed.ok && listed.data[1]?.venueName).toBe("");
     expect((await listProjectZones(db, "o1", null)).ok).toBe(false);
   });
 });
