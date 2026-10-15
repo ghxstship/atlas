@@ -307,7 +307,7 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     entity: "Incidents with dispatch",
     operations: [...crud("incidents"), ...crud("dispatchAssignments")],
   },
-  { module: "Safety", entity: "Emergency codes", operations: crud("emergencyCodes") },
+  { module: "Safety", entity: "Emergency codes", operations: read("emergencyCodes") },
   { module: "Safety", entity: "Radio plan", operations: crud("radioChannels") },
   {
     module: "Canon",
