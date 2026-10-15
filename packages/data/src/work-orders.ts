@@ -31,6 +31,9 @@ export interface WorkOrder {
   readonly scheduledEndsAt: string | null;
   readonly estimatedHours: number | null;
   readonly bidDueAt: string | null;
+  /** Minor units of currencyCode; NULL is unbudgeted, never zero. */
+  readonly budgetMinor: number | null;
+  readonly currencyCode: string;
   readonly awardedBidId: string | null;
   readonly state: string;
   readonly createdBy: string | null;
@@ -68,6 +71,8 @@ interface WorkOrderRow {
   scheduled_ends_at: string | null;
   estimated_hours: number | string | null;
   bid_due_at: string | null;
+  budget_minor: number | string | null;
+  currency_code: string;
   awarded_bid_id: string | null;
   work_order_state: string;
   created_by: string | null;
@@ -94,7 +99,7 @@ interface WorkOrderRow {
 }
 
 const WORK_ORDER_COLUMNS =
-  "id, work_order_number, project_id, scope_node_id, record_id, title, scope_of_work, urid, location_text, scheduled_starts_at, scheduled_ends_at, estimated_hours, bid_due_at, awarded_bid_id, work_order_state, created_by, created_at, updated_at, project:projects!inner(project_key, name, time_zone), bids:work_order_bids!work_order_bids_work_order_id_fkey(id, work_order_id, bidder_organization_id, bidder_person_id, amount_minor, currency_code, estimated_hours, note, submitted_at, withdrawn_at, deleted_at, organization:organizations!work_order_bids_bidder_organization_id_fkey(name), person:people!work_order_bids_bidder_person_id_fkey(full_name))";
+  "id, work_order_number, project_id, scope_node_id, record_id, title, scope_of_work, urid, location_text, scheduled_starts_at, scheduled_ends_at, estimated_hours, bid_due_at, budget_minor, currency_code, awarded_bid_id, work_order_state, created_by, created_at, updated_at, project:projects!inner(project_key, name, time_zone), bids:work_order_bids!work_order_bids_work_order_id_fkey(id, work_order_id, bidder_organization_id, bidder_person_id, amount_minor, currency_code, estimated_hours, note, submitted_at, withdrawn_at, deleted_at, organization:organizations!work_order_bids_bidder_organization_id_fkey(name), person:people!work_order_bids_bidder_person_id_fkey(full_name))";
 
 const num = (v: number | string | null): number | null => (v === null ? null : Number(v));
 
@@ -118,6 +123,8 @@ function toWorkOrder(row: WorkOrderRow): WorkOrder {
     scheduledEndsAt: row.scheduled_ends_at,
     estimatedHours: num(row.estimated_hours),
     bidDueAt: row.bid_due_at,
+    budgetMinor: num(row.budget_minor),
+    currencyCode: row.currency_code,
     awardedBidId: row.awarded_bid_id,
     state: row.work_order_state,
     createdBy: row.created_by,
@@ -206,6 +213,8 @@ export interface WorkOrderInput {
   readonly scheduledEndsAt?: string | null;
   readonly estimatedHours?: number | null;
   readonly bidDueAt?: string | null;
+  readonly budgetMinor?: number | null;
+  readonly currencyCode?: string;
 }
 
 function workOrderRow(input: Partial<WorkOrderInput>): Record<string, unknown> {
@@ -220,6 +229,8 @@ function workOrderRow(input: Partial<WorkOrderInput>): Record<string, unknown> {
   if (input.scheduledEndsAt !== undefined) row["scheduled_ends_at"] = input.scheduledEndsAt;
   if (input.estimatedHours !== undefined) row["estimated_hours"] = input.estimatedHours;
   if (input.bidDueAt !== undefined) row["bid_due_at"] = input.bidDueAt;
+  if (input.budgetMinor !== undefined) row["budget_minor"] = input.budgetMinor;
+  if (input.currencyCode !== undefined) row["currency_code"] = input.currencyCode;
   return row;
 }
 
@@ -295,6 +306,40 @@ export async function deleteWorkOrder(db: XosClient, id: string): Promise<Result
     .select("id");
   if (error) return fail(toDataError(error));
   return (data as unknown[]).length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+export interface WorkOrderStateEntry {
+  readonly id: string;
+  readonly from: string | null;
+  readonly to: string;
+  readonly reason: string;
+  readonly at: string;
+  readonly byName: string | null;
+}
+
+/** A work order's state ledger, oldest first. */
+export async function listWorkOrderHistory(
+  db: XosClient,
+  workOrderId: string,
+): Promise<Result<WorkOrderStateEntry[]>> {
+  const { data, error } = await db
+    .from("work_order_state_transitions")
+    .select(
+      "id, from_state, to_state, reason, created_at, actor:people!work_order_state_transitions_created_by_fkey(full_name)",
+    )
+    .eq("work_order_id", workOrderId)
+    .order("created_at");
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((e) => ({
+      id: e.id,
+      from: e.from_state,
+      to: e.to_state,
+      reason: e.reason,
+      at: e.created_at,
+      byName: e.actor?.full_name ?? null,
+    })),
+  );
 }
 
 // Bids --------------------------------------------------------------------------------------------------

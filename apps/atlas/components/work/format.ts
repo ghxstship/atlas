@@ -113,6 +113,20 @@ export function fromLocalInput(value: string | null | undefined, timeZone: strin
   return new Date(guess - offsetAt(first)).toISOString();
 }
 
+/**
+ * How far a date moved, for the replan log and baseline variance: whole days from 12 hours up
+ * (so a daylight saving change never shows as 1.96 days), hours below that, and null for no move.
+ */
+export function slipAmount(
+  ms: number | null,
+): { readonly late: boolean; readonly n: number; readonly unit: "days" | "hours" } | null {
+  if (ms === null || ms === 0) return null;
+  const hours = Math.abs(ms) / 3_600_000;
+  if (hours >= 12) return { late: ms > 0, n: Math.round(hours / 24), unit: "days" };
+  const n = Math.round(hours);
+  return n === 0 ? null : { late: ms > 0, n, unit: "hours" };
+}
+
 /** Builds a URL of the current page with some query parameters set or removed. */
 export function withQuery(
   pathname: string,

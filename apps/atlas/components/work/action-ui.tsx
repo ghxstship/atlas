@@ -50,7 +50,7 @@ export function ActionErrorAlert({ error }: { error: ActionError | null }) {
   const t = useCopy("work");
   if (!error) return null;
   return (
-    <div role="alert">
+    <div>
       <InlineAlert tone="danger" title={t(`errors.${error.key}`)}>
         {error.detail ?? t("errors.next")}
       </InlineAlert>

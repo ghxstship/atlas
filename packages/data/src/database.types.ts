@@ -3614,6 +3614,20 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "agreements_offer_id_fkey";
+            columns: ["offer_id"];
+            isOneToOne: false;
+            referencedRelation: "application_board";
+            referencedColumns: ["offer_id"];
+          },
+          {
+            foreignKeyName: "agreements_offer_id_fkey";
+            columns: ["offer_id"];
+            isOneToOne: false;
+            referencedRelation: "offers";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "agreements_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
@@ -20586,8 +20600,9 @@ export type Database = {
           currency_code: string;
           day: string;
           deleted_at: string | null;
+          engagement_id: string | null;
           id: string;
-          membership_id: string;
+          membership_id: string | null;
           org_id: string;
           project_id: string;
           updated_at: string;
@@ -20601,8 +20616,9 @@ export type Database = {
           currency_code: string;
           day: string;
           deleted_at?: string | null;
+          engagement_id?: string | null;
           id?: string;
-          membership_id: string;
+          membership_id?: string | null;
           org_id: string;
           project_id: string;
           updated_at?: string;
@@ -20615,8 +20631,9 @@ export type Database = {
           currency_code?: string;
           day?: string;
           deleted_at?: string | null;
+          engagement_id?: string | null;
           id?: string;
-          membership_id?: string;
+          membership_id?: string | null;
           org_id?: string;
           project_id?: string;
           updated_at?: string;
@@ -20636,6 +20653,27 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "currencies";
             referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "per_diems_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "per_diems_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "per_diems_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "per_diems_membership_id_fkey";
@@ -39389,7 +39427,16 @@ export type Database = {
       scan_result: "Granted" | "Denied";
       scan_status: "Pending Upload" | "Scanning" | "Clean" | "Infected" | "Scan Failed";
       scan_symbology:
-        "QR Code" | "Code 128" | "Code 39" | "EAN-13" | "UPC-A" | "Data Matrix" | "PDF417" | "NFC";
+        | "QR Code"
+        | "Code 128"
+        | "Code 39"
+        | "EAN-13"
+        | "EAN-8"
+        | "UPC-A"
+        | "ITF-14"
+        | "Data Matrix"
+        | "PDF417"
+        | "NFC";
       schedule_cadence: "Daily" | "Weekly" | "Monthly";
       scope_kind: "Engagement Root" | "Standing Venue" | "Show";
       setting_scope: "Organization" | "Workspace" | "Team" | "Project";
@@ -45575,7 +45622,9 @@ export const Constants = {
         "Code 128",
         "Code 39",
         "EAN-13",
+        "EAN-8",
         "UPC-A",
+        "ITF-14",
         "Data Matrix",
         "PDF417",
         "NFC",
