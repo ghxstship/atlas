@@ -375,21 +375,79 @@ describe("stores", () => {
     await expect(webhookStore(db).claim(1)).rejects.toBeInstanceOf(PlatformDbError);
   });
 
-  it("kiosk punches go through app.kiosk_punch and return its refusal codes", async () => {
+  it("kiosk punches go through app.kiosk_punch with the record_punch fields and return its refusal codes", async () => {
     const { db, calls } = fakeDb({
       kiosk_punch: (args) => [
         args["p_pin"] === "4821"
-          ? { time_entry_id: "te1", punch: "Clock In", refusal: null }
-          : { time_entry_id: null, punch: null, refusal: "kiosk_pin_rejected" },
+          ? {
+              punch_id: args["p_punch_id"],
+              time_entry_id: "te1",
+              punch_kind: args["p_punch_kind"],
+              effective_at: "2026-10-14T11:59:30Z",
+              skew_flagged: true,
+              refusal: null,
+            }
+          : {
+              punch_id: args["p_punch_id"],
+              time_entry_id: null,
+              punch_kind: "Mystery",
+              effective_at: null,
+              skew_flagged: null,
+              refusal: "kiosk_pin_rejected",
+            },
       ],
     });
+    const deviceAt = new Date("2026-10-14T12:00:00Z");
     await expect(
-      kioskPunch(db, { deviceKey: "xkio_1", membershipId: "m1", pin: "4821" }),
-    ).resolves.toEqual({ timeEntryId: "te1", punch: "Clock In", refusal: null });
+      kioskPunch(db, {
+        deviceKey: "xkio_1",
+        membershipId: "m1",
+        pin: "4821",
+        punchId: "01a13cc9-7c52-7d3e-8f31-e2d62d58f18a",
+        punchKind: "Break Start",
+        deviceAt,
+        monotonicOffsetMs: 30000,
+        photoUri: "storage://attachments/org/kiosk/p.jpg",
+      }),
+    ).resolves.toEqual({
+      punchId: "01a13cc9-7c52-7d3e-8f31-e2d62d58f18a",
+      timeEntryId: "te1",
+      punchKind: "Break Start",
+      effectiveAt: "2026-10-14T11:59:30Z",
+      skewFlagged: true,
+      refusal: null,
+    });
+    expect(calls[0]?.args).toEqual({
+      p_device_key: "xkio_1",
+      p_membership_id: "m1",
+      p_pin: "4821",
+      p_punch_id: "01a13cc9-7c52-7d3e-8f31-e2d62d58f18a",
+      p_punch_kind: "Break Start",
+      p_device_time: "2026-10-14T12:00:00.000Z",
+      p_monotonic_offset_ms: 30000,
+      p_photo_uri: "storage://attachments/org/kiosk/p.jpg",
+      p_project_id: null,
+    });
     await expect(
-      kioskPunch(db, { deviceKey: "xkio_1", membershipId: "m1", pin: "0000", projectId: "p" }),
-    ).resolves.toEqual({ timeEntryId: null, punch: null, refusal: "kiosk_pin_rejected" });
+      kioskPunch(db, {
+        deviceKey: "xkio_1",
+        membershipId: "m1",
+        pin: "0000",
+        punchId: "x",
+        punchKind: "In",
+        deviceAt,
+        projectId: "p",
+      }),
+    ).resolves.toEqual({
+      punchId: "x",
+      timeEntryId: null,
+      punchKind: null,
+      effectiveAt: null,
+      skewFlagged: null,
+      refusal: "kiosk_pin_rejected",
+    });
     expect(calls[1]?.args["p_project_id"]).toBe("p");
+    expect(calls[1]?.args["p_monotonic_offset_ms"]).toBeNull();
   });
 
   it("supabaseDb calls the app schema and surfaces errors", async () => {

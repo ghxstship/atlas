@@ -232,34 +232,68 @@ export function inboundStore(db: PlatformDb): InboundStore {
   };
 }
 
+/** Punch kinds of app.punch_kind (A03F, migration 0365). */
+export const PUNCH_KINDS = ["In", "Break Start", "Break End", "Out"] as const;
+export type PunchKind = (typeof PUNCH_KINDS)[number];
+
+export interface KioskPunchInput {
+  readonly deviceKey: string;
+  readonly membershipId: string;
+  readonly pin: string;
+  /** Client punch id (UUID v7): replaying it returns the stored punch. */
+  readonly punchId: string;
+  readonly punchKind: PunchKind;
+  /** Device wall-clock time the punch was made at. */
+  readonly deviceAt: Date;
+  /** For punches queued offline: milliseconds the device's monotonic clock counted since the punch. */
+  readonly monotonicOffsetMs?: number;
+  /** Photo taken at the punch, as a storage:// or https:// URI. */
+  readonly photoUri?: string;
+  readonly projectId?: string;
+}
+
 export interface KioskPunchResult {
+  readonly punchId: string | null;
   readonly timeEntryId: string | null;
-  readonly punch: "Clock In" | "Clock Out" | null;
+  readonly punchKind: PunchKind | null;
+  /** Time the punch counts at, after skew correction. */
+  readonly effectiveAt: string | null;
+  /** True when the device time was not trusted and the entry needs review. */
+  readonly skewFlagged: boolean | null;
+  /** Refusal code (PIN, rate limit, project, photo or a record_punch rule), or null on success. */
   readonly refusal: string | null;
 }
 
-/** The kiosk PIN service (A03 carry-over): one punch through app.kiosk_punch. */
+function isPunchKind(value: string | null): value is PunchKind {
+  return value !== null && (PUNCH_KINDS as readonly string[]).includes(value);
+}
+
+/** The kiosk PIN service for A17 Compass: one punch through app.kiosk_punch, which calls app.record_punch. */
 export async function kioskPunch(
   db: PlatformDb,
-  input: {
-    readonly deviceKey: string;
-    readonly membershipId: string;
-    readonly pin: string;
-    readonly projectId?: string;
-  },
+  input: KioskPunchInput,
 ): Promise<KioskPunchResult> {
   const row = rows(
     await db.rpc("kiosk_punch", {
       p_device_key: input.deviceKey,
       p_membership_id: input.membershipId,
       p_pin: input.pin,
+      p_punch_id: input.punchId,
+      p_punch_kind: input.punchKind,
+      p_device_time: input.deviceAt.toISOString(),
+      p_monotonic_offset_ms: input.monotonicOffsetMs ?? null,
+      p_photo_uri: input.photoUri ?? null,
       p_project_id: input.projectId ?? null,
     }),
   )[0];
-  const punch = optionalText(row, "punch");
+  const kind = optionalText(row, "punch_kind");
+  const skew = row?.["skew_flagged"];
   return {
+    punchId: optionalText(row, "punch_id"),
     timeEntryId: optionalText(row, "time_entry_id"),
-    punch: punch === "Clock In" || punch === "Clock Out" ? punch : null,
+    punchKind: isPunchKind(kind) ? kind : null,
+    effectiveAt: optionalText(row, "effective_at"),
+    skewFlagged: typeof skew === "boolean" ? skew : null,
     refusal: optionalText(row, "refusal"),
   };
 }
