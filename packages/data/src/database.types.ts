@@ -39427,7 +39427,16 @@ export type Database = {
       scan_result: "Granted" | "Denied";
       scan_status: "Pending Upload" | "Scanning" | "Clean" | "Infected" | "Scan Failed";
       scan_symbology:
-        "QR Code" | "Code 128" | "Code 39" | "EAN-13" | "UPC-A" | "Data Matrix" | "PDF417" | "NFC";
+        | "QR Code"
+        | "Code 128"
+        | "Code 39"
+        | "EAN-13"
+        | "EAN-8"
+        | "UPC-A"
+        | "ITF-14"
+        | "Data Matrix"
+        | "PDF417"
+        | "NFC";
       schedule_cadence: "Daily" | "Weekly" | "Monthly";
       scope_kind: "Engagement Root" | "Standing Venue" | "Show";
       setting_scope: "Organization" | "Workspace" | "Team" | "Project";
@@ -45613,7 +45622,9 @@ export const Constants = {
         "Code 128",
         "Code 39",
         "EAN-13",
+        "EAN-8",
         "UPC-A",
+        "ITF-14",
         "Data Matrix",
         "PDF417",
         "NFC",
