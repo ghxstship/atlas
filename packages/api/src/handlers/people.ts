@@ -5,5 +5,9 @@
  * handlers are a separate block owned by the offers agent.
  */
 import { defineHandlers } from "../runtime/handler.ts";
+import { offerHandlers } from "./people/offers.ts";
 
-export const handlers = defineHandlers("People", {});
+export const handlers = defineHandlers("People", {
+  // Offers (A04P): a separate block; see ./people/offers.ts.
+  ...offerHandlers,
+});

@@ -52,6 +52,13 @@ function orMatches(row: Row, filter: string): boolean {
     if (op === "lt") return c < 0;
     if (op === "gte") return c >= 0;
     if (op === "lte") return c <= 0;
+    if (op === "ilike") {
+      const needle = raw.replace(/^\*|\*$/g, "").toLowerCase();
+      return String(value ?? "")
+        .toLowerCase()
+        .includes(needle);
+    }
+    if (op === "is") return String(value ?? "null") === raw;
     return false;
   };
   return split(filter).some(term);
@@ -66,7 +73,7 @@ export interface MemoryDb {
   /** Answers the next call on `target` (`table`, `schema.table` or `rpc:name`) with `error`. */
   fail(target: string, error: DbError): void;
   from(table: string): unknown;
-  schema(name: string): { from(table: string): unknown };
+  schema(name: string): { from(table: string): unknown; rpc(fn: string, args?: Row): unknown };
   rpc(name: string, args?: Row): unknown;
 }
 
@@ -88,7 +95,10 @@ export function memoryDb(
       failures.set(target, [...(failures.get(target) ?? []), error]);
     },
     from: (table: string) => query("app", table),
-    schema: (name: string) => ({ from: (table: string) => query(name, table) }),
+    schema: (name: string) => ({
+      from: (table: string) => query(name, table),
+      rpc: (fn: string, args?: Row) => db.rpc(`${name}.${fn}`, args),
+    }),
     rpc(name: string, args: Row = {}) {
       db.calls.push({ name, args });
       const failure = takeFailure(`rpc:${name}`);

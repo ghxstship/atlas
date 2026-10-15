@@ -1,0 +1,5 @@
+# Icons the Places and Safety pages (A09) draw by name that no other registry lists: tree nodes,
+# empty states and the Safety landing tiles. One lucide-react name per line.
+ClipboardCheck
+FileBadge
+Square

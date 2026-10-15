@@ -937,8 +937,9 @@ export interface Components {
     membership_id: string;
     last_accessed_at: string | null;
   };
-  CalendarFeedCreate: { project_id?: string | null; membership_id: string };
+  CalendarFeedCreate: { project_id?: string | null };
   CalendarFeedPage: { data: Array<Components["CalendarFeed"]>; next_cursor: string | null };
+  CalendarFeedToken: { calendar_feed_id: string; feed_token: string };
   CalendarPage: { data: Array<Components["Calendar"]>; next_cursor: string | null };
   CalendarUpdate: { name?: string; time_zone?: string; project_id?: string | null };
   CallSheet: {
@@ -1012,7 +1013,7 @@ export interface Components {
     item: string;
     common_name: string | null;
     kind: string;
-    unit_basis: Components["UnitCode"];
+    unit_basis: string;
     xyz: Components["Xyz"];
     xyz_basis: string;
     grade: string;
@@ -1249,7 +1250,7 @@ export interface Components {
     role_code: Components["RoleCode"];
     role: string;
     dept_code: Components["DeptCode"];
-    staffing_ratio: string | null;
+    staffing_ratio: number | null;
     ratio_basis: string | null;
     kit_basis: string | null;
     job_title: string | null;
@@ -1298,11 +1299,7 @@ export interface Components {
     next_cursor: string | null;
   };
   CanonTouchpointPage: { data: Array<Components["CanonTouchpoint"]>; next_cursor: string | null };
-  CanonUnitAlias: {
-    alias: string;
-    unit_code: Components["UnitCode"];
-    dimension_code: string | null;
-  };
+  CanonUnitAlias: { alias: string; unit_code: string; dimension_code: string | null };
   CanonUnitAliasPage: { data: Array<Components["CanonUnitAlias"]>; next_cursor: string | null };
   CanonUnitDimension: { dimension_code: string; name: string };
   CanonUnitDimensionPage: {
@@ -1654,7 +1651,7 @@ export interface Components {
   CrosswalkCoverage: {
     cat_urid: Components["Urid"] | null;
     element_count: number;
-    category: string | null;
+    category: string;
     unspsc_element_count: number | null;
     gtin_element_count: number | null;
     gtin_count: number | null;
@@ -2102,8 +2099,8 @@ export interface Components {
   EarningCodeUpdate: { code?: string; name?: string; is_overtime?: boolean };
   ElementEconomics: {
     element_id: Components["ItemId"];
-    currency_code: string;
-    effective_confidence: Components["AssertionLabel"] & (string | null);
+    currency_code: string | null;
+    effective_confidence: string | null;
     item: string | null;
     urid: Components["Urid"] | null;
     unit_basis: string | null;
@@ -2295,7 +2292,11 @@ export interface Components {
     row_count: number | null;
     expires_at: string | null;
   };
-  ExportJobCreate: { source_label: string; export_format: Components["ExportFormat"] };
+  ExportJobCreate: {
+    source_label: string;
+    export_format: Components["ExportFormat"];
+    columns: Array<string>;
+  };
   ExportJobPage: { data: Array<Components["ExportJob"]>; next_cursor: string | null };
   ExternalRoleType:
     | "Client"
@@ -5466,7 +5467,7 @@ export interface Components {
     person_id: string;
     membership_id: string;
   };
-  ServiceAccountCreate: { name: string; owner_person_id: string; expires_at?: string | null };
+  ServiceAccountCreate: { name: string; expires_at?: string | null; role_id: string };
   ServiceAccountPage: { data: Array<Components["ServiceAccount"]>; next_cursor: string | null };
   ServiceAccountUpdate: { name?: string; owner_person_id?: string; expires_at?: string | null };
   SettingDefinition: {
@@ -6486,6 +6487,7 @@ export interface Components {
   };
   WebhookEndpointCreate: { url: string; events: Array<string>; description?: string | null };
   WebhookEndpointPage: { data: Array<Components["WebhookEndpoint"]>; next_cursor: string | null };
+  WebhookEndpointSecret: { webhook_endpoint_id: string; signing_secret: string };
   WebhookEndpointUpdate: {
     url?: string;
     events?: Array<string>;
@@ -18255,7 +18257,7 @@ export interface Operations {
     params: Record<string, never>;
     query: Record<string, never>;
     body: Components["ApiKeyCreate"];
-    responses: { 201: Components["ApiKey"] };
+    responses: { 201: Components["ApiKeySecret"] };
   };
   "apiKeys.get": {
     module: "Settings";
@@ -18501,7 +18503,7 @@ export interface Operations {
     params: Record<string, never>;
     query: Record<string, never>;
     body: Components["WebhookEndpointCreate"];
-    responses: { 201: Components["WebhookEndpoint"] };
+    responses: { 201: Components["WebhookEndpointSecret"] };
   };
   "webhookEndpoints.get": {
     module: "Settings";
@@ -20088,7 +20090,7 @@ export interface Operations {
     params: Record<string, never>;
     query: Record<string, never>;
     body: Components["CalendarFeedCreate"];
-    responses: { 201: Components["CalendarFeed"] };
+    responses: { 201: Components["CalendarFeedToken"] };
   };
   "calendarFeeds.get": {
     module: "Platform";
