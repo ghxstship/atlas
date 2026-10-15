@@ -181,6 +181,7 @@ export const TABLE_RULES: readonly TableRule[] = [
     ],
   },
   { table: "sops", anyOf: [internalOrg] },
+  { table: "zones", anyOf: [internalOrg] },
   { table: "kiosk_roster", anyOf: [internalProject] },
   { table: "emergency_codes", anyOf: [], global: true },
   { table: "incident_severities", anyOf: [], global: true },

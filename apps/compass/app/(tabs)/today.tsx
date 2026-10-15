@@ -183,28 +183,26 @@ export default function TodayScreen(): ReactElement {
       {canClock && projectId ? <ClockCard /> : null}
       {blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (
         upcoming.length > 0 ? (
-          upcoming
-            .slice(0, 3)
-            .map((s) => (
-              <ShiftCard
-                key={s.id}
-                testID={`shift-${s.id}`}
-                state={s.shift_state === "Accepted" ? "active" : "scheduled"}
-                stateLabel={t(
-                  s.shift_state === "Accepted"
-                    ? "compass.schedule.accepted"
-                    : "compass.schedule.published",
-                )}
-                role={s.job_title ?? s.role_code ?? ""}
-                date={formatDay(s.starts_at, s.time_zone)}
-                time={t("compass.schedule.timeRange", {
-                  start: formatTime(s.starts_at, s.time_zone),
-                  end: formatTime(s.ends_at, s.time_zone),
-                })}
-                place={t("compass.schedule.noPlace")}
-                onPress={() => router.push("/schedule")}
-              />
-            ))
+          upcoming.slice(0, 3).map((s) => (
+            <ShiftCard
+              key={s.id}
+              testID={`shift-${s.id}`}
+              state={s.shift_state === "Accepted" ? "active" : "scheduled"}
+              stateLabel={t(
+                s.shift_state === "Accepted"
+                  ? "compass.schedule.accepted"
+                  : "compass.schedule.published",
+              )}
+              role={s.job_title ?? s.role_code ?? ""}
+              date={formatDay(s.starts_at, s.time_zone)}
+              time={t("compass.schedule.timeRange", {
+                start: formatTime(s.starts_at, s.time_zone),
+                end: formatTime(s.ends_at, s.time_zone),
+              })}
+              place={t("compass.schedule.noPlace")}
+              onPress={() => router.push("/schedule")}
+            />
+          ))
         ) : (
           <EmptyState
             testID="today-no-shifts"

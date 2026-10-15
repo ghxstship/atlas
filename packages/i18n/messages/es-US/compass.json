@@ -191,7 +191,11 @@
     "badgeEmpty": "Aún no tienes credencial para este proyecto. Tu organización las emite antes del show.",
     "partyBadges": "Credenciales del grupo",
     "brightness": "El brillo sube mientras se muestra tu credencial.",
-    "nfc": "Tocar etiqueta NFC"
+    "nfc": "Tocar etiqueta NFC",
+    "enterCode": "Escribe un código",
+    "submitCode": "Buscar",
+    "vendorEmpty": "Aún no tienes entregas reservadas en este proyecto. Los turnos de muelle aparecen aquí al reservarse.",
+    "assignedEmpty": "Aún no tienes equipo asignado. Los artículos aparecen aquí cuando tu jefe de equipo te los entrega."
   },
   "incidents": {
     "title": "Incidentes",

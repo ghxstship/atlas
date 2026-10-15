@@ -135,6 +135,26 @@ const INTERNAL_SOURCES: readonly Source[] = [
     relation: "sops",
     select: "id,org_id,code,title,body,version,published_at",
   },
+  { table: "zones", schema: "app", relation: "zones", select: "id,org_id,venue_id,code,name" },
+  {
+    table: "asset_units",
+    schema: "app",
+    relation: "asset_units",
+    select: "id,org_id,asset_class_id,asset_tag,asset_state",
+  },
+  {
+    table: "asset_identifiers",
+    schema: "app",
+    relation: "asset_identifiers",
+    select: "id,org_id,asset_unit_id,scheme,value",
+  },
+  {
+    table: "asset_custody",
+    schema: "app",
+    relation: "asset_custody",
+    select:
+      "id,org_id,asset_unit_id,custodian_membership_id,custodian_engagement_id,project_id,venue_id,created_at",
+  },
 ];
 
 const EXTERNAL_SOURCES: readonly Source[] = [

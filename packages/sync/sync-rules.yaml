@@ -68,6 +68,7 @@ bucket_definitions:
       - SELECT * FROM asset_identifiers WHERE org_id = bucket.org_id
       - SELECT * FROM asset_custody WHERE org_id = bucket.org_id
       - SELECT * FROM sops WHERE org_id = bucket.org_id
+      - SELECT * FROM zones WHERE org_id = bucket.org_id
 
   external_engagement:
     parameters: >-

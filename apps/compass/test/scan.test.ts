@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buildAccessScan,
-  buildAssetScan,
+  buildHandOver,
+  custodyBlocked,
+  resolveAsset,
   buildIntake,
   classify,
   ContinuousScan,
@@ -303,20 +305,91 @@ describe("intake and custody", () => {
     expect(serverSymbology("nfc")).toBe("NFC");
   });
 
-  it("queues a custody scan keyed by its event id", () => {
-    const m = buildAssetScan(
-      { orgId: "o1", code: "AUD-0042", action: "check-out", custodianMembershipId: "m1" },
+  it("resolves assets by tag, GTIN, serial and custody, and queues hand-overs", () => {
+    const units = [
+      { id: "u1", asset_tag: "AUD-0042", asset_state: "Available" },
+      { id: "u2", asset_tag: "AUD-0043", asset_state: "Damaged" },
+      { id: "u3", asset_tag: "LX-0001", asset_state: "Available" },
+    ];
+    const identifiers = [
+      { asset_unit_id: "u1", scheme: "gtin14", value: "09501101530003" },
+      { asset_unit_id: "u3", scheme: "gtin14", value: "09501101530003" },
+      { asset_unit_id: "u3", scheme: "serial", value: "SN-1" },
+      { asset_unit_id: "u2", scheme: "serial", value: "PLAIN-SERIAL" },
+    ];
+    const custody = [
+      {
+        id: "c1",
+        asset_unit_id: "u1",
+        custodian_membership_id: "m1",
+        venue_id: null,
+        created_at: "2026-10-14T10:00:00Z",
+      },
+      {
+        id: "c2",
+        asset_unit_id: "u1",
+        custodian_membership_id: null,
+        venue_id: "v1",
+        created_at: "2026-10-15T10:00:00Z",
+      },
+    ];
+    const byTag = resolveAsset({ kind: "code", value: "aud-0042" }, units, identifiers, custody);
+    expect(byTag).toMatchObject({ kind: "unit", unit: { id: "u1" }, custody: { id: "c2" } });
+    expect(
+      resolveAsset({ kind: "code", value: "PLAIN-SERIAL" }, units, identifiers, custody),
+    ).toMatchObject({ kind: "unit", unit: { id: "u2" }, custody: null });
+    expect(
+      resolveAsset({ kind: "gtin", gtin14: "09501101530003" }, units, identifiers, custody).kind,
+    ).toBe("ambiguous");
+    expect(
+      resolveAsset(
+        { kind: "gtin", gtin14: "09501101530003", serial: "SN-1" },
+        units,
+        identifiers,
+        custody,
+      ),
+    ).toMatchObject({ kind: "unit", unit: { id: "u3" } });
+    expect(resolveAsset({ kind: "code", value: "NOPE" }, units, identifiers, custody)).toEqual({
+      kind: "unknown",
+    });
+    expect(resolveAsset({ kind: "lot", lotId: "x" }, units, identifiers, custody)).toEqual({
+      kind: "unknown",
+    });
+    expect(custodyBlocked(units[1] as (typeof units)[number])).toBe(true);
+    const m = buildHandOver(
+      {
+        orgId: "o1",
+        unitId: "u1",
+        custodianMembershipId: "m1",
+        custodianEngagementId: null,
+        venueId: null,
+        projectId: "p1",
+        note: null,
+      },
       0,
-      () => "ev1",
+      () => "h1",
     );
     expect(m).toMatchObject({
-      op: "rpc",
-      target: "apply_asset_scan_event",
-      rowId: "ev1",
+      op: "insert",
+      table: "asset_custody",
+      rowId: "h1",
       policy: "append",
+      payload: { asset_unit_id: "u1", custodian_membership_id: "m1" },
     });
-    expect(m.payload).toMatchObject({ eventId: "ev1", code: "AUD-0042", action: "check-out" });
-    expect(buildAssetScan({ orgId: "o", code: "c", action: "check-in" }, 0).rowId).toMatch(/-7/);
+    expect(
+      buildHandOver(
+        {
+          orgId: "o",
+          unitId: "u",
+          custodianMembershipId: null,
+          custodianEngagementId: "e1",
+          venueId: null,
+          projectId: null,
+          note: "x",
+        },
+        0,
+      ).payload,
+    ).toMatchObject({ custodian_engagement_id: "e1" });
   });
 
   it("limits crew to gear assigned to them", () => {

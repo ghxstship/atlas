@@ -191,7 +191,11 @@
     "badgeEmpty": "No badge is issued to you for this project yet. Your organization issues badges before the show.",
     "partyBadges": "Party Badges",
     "brightness": "Brightness is raised while your badge shows.",
-    "nfc": "Tap NFC Tag"
+    "nfc": "Tap NFC Tag",
+    "enterCode": "Type a code",
+    "submitCode": "Look Up",
+    "vendorEmpty": "No deliveries booked for you on this project yet. Dock slots appear here once booked.",
+    "assignedEmpty": "No gear is assigned to you yet. Items appear here when your crew lead hands them over."
   },
   "incidents": {
     "title": "Incidents",

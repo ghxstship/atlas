@@ -398,36 +398,122 @@ export function buildIntake(
 
 // Asset custody --------------------------------------------------------------------------------------------
 
-export type CustodyAction = "check-out" | "check-in" | "transfer";
+export interface AssetUnitRow {
+  readonly id: string;
+  readonly asset_tag: string;
+  readonly asset_state: string;
+}
 
-export interface AssetScanEvent {
+export interface AssetIdentifierRow {
+  readonly asset_unit_id: string;
+  readonly scheme: string;
+  readonly value: string;
+}
+
+export interface CustodyRow {
+  readonly id: string;
+  readonly asset_unit_id: string;
+  readonly custodian_membership_id: string | null;
+  readonly custodian_engagement_id?: string | null;
+  readonly venue_id: string | null;
+  readonly created_at?: string;
+}
+
+export type AssetResolution =
+  | { readonly kind: "unit"; readonly unit: AssetUnitRow; readonly custody: CustodyRow | null }
+  | { readonly kind: "unknown" }
+  | { readonly kind: "ambiguous"; readonly units: readonly AssetUnitRow[] };
+
+/**
+ * Resolves a scan to an asset unit on device: asset tag first, then an identifier (GTIN normalized to 14
+ * digits, serial, other schemes), then the latest custody row. Mirrors the server lookup order (A12).
+ */
+export function resolveAsset(
+  code: ScanCode,
+  units: readonly AssetUnitRow[],
+  identifiers: readonly AssetIdentifierRow[],
+  custody: readonly CustodyRow[],
+): AssetResolution {
+  const byId = new Map(units.map((u) => [u.id, u]));
+  let matches: AssetUnitRow[] = [];
+  if (code.kind === "code") {
+    const tag = code.value.toUpperCase();
+    matches = units.filter((u) => u.asset_tag === tag);
+    if (matches.length === 0) {
+      matches = identifiers
+        .filter((i) => i.value === code.value)
+        .flatMap((i) => byId.get(i.asset_unit_id) ?? []);
+    }
+  } else if (code.kind === "gtin") {
+    const ids = identifiers.filter(
+      (i) =>
+        (i.scheme === "gtin14" && i.value === code.gtin14) ||
+        (code.serial !== undefined && i.scheme === "serial" && i.value === code.serial),
+    );
+    const units14 = [...new Set(ids.map((i) => i.asset_unit_id))].flatMap(
+      (id) => byId.get(id) ?? [],
+    );
+    const serialMatch =
+      code.serial === undefined
+        ? []
+        : ids.filter((i) => i.scheme === "serial").flatMap((i) => byId.get(i.asset_unit_id) ?? []);
+    matches = serialMatch.length > 0 ? serialMatch : units14;
+  }
+  const unique = [...new Map(matches.map((u) => [u.id, u])).values()];
+  if (unique.length === 0) return { kind: "unknown" };
+  if (unique.length > 1) return { kind: "ambiguous", units: unique };
+  const unit = unique[0] as AssetUnitRow;
+  const latest =
+    custody
+      .filter((c) => c.asset_unit_id === unit.id)
+      .sort((a, b) => (b.created_at ?? b.id).localeCompare(a.created_at ?? a.id))[0] ?? null;
+  return { kind: "unit", unit, custody: latest };
+}
+
+/** Units in these states cannot change hands from the field. */
+const UNAVAILABLE_STATES = new Set(["Proposed", "In Maintenance", "Damaged", "Lost", "Retired"]);
+
+export function custodyBlocked(unit: AssetUnitRow): boolean {
+  return UNAVAILABLE_STATES.has(unit.asset_state);
+}
+
+export interface HandOver {
   readonly orgId: string;
-  readonly code: string;
-  readonly action: CustodyAction;
-  readonly custodianMembershipId?: string | null;
-  readonly custodianEngagementId?: string | null;
-  readonly venueId?: string | null;
-  readonly projectId?: string | null;
-  readonly note?: string | null;
+  readonly unitId: string;
+  readonly custodianMembershipId: string | null;
+  readonly custodianEngagementId: string | null;
+  readonly venueId: string | null;
+  readonly projectId: string | null;
+  readonly note: string | null;
 }
 
 /**
- * Queues a custody scan through A12's applyAssetScanEvent. The event id is the custody row id, so a replay
- * is a duplicate and never a second hand-over. The server wins a state conflict (asset_scan_state_conflict).
+ * Queues a hand-over as a new row of the append-only custody ledger (app.asset_custody). The client id is
+ * the row id, so a replay is a duplicate and never a second hand-over.
  */
-export function buildAssetScan(
-  event: AssetScanEvent,
+export function buildHandOver(
+  h: HandOver,
   nowMs: number,
   newId: (ms: number) => string = uuidv7,
 ): MutationInput {
-  const eventId = newId(nowMs);
+  const id = newId(nowMs);
+  const row = {
+    id,
+    org_id: h.orgId,
+    asset_unit_id: h.unitId,
+    custodian_membership_id: h.custodianMembershipId,
+    ...(h.custodianEngagementId ? { custodian_engagement_id: h.custodianEngagementId } : {}),
+    venue_id: h.venueId,
+    project_id: h.projectId,
+    note: h.note,
+  };
   return {
-    op: "rpc",
-    target: "apply_asset_scan_event",
+    op: "insert",
     table: "asset_custody",
-    rowId: eventId,
-    payload: { eventId, ...event },
+    rowId: id,
+    payload: row,
     policy: "append",
+    optimistic: { ...row, created_at: new Date(nowMs).toISOString() },
   };
 }
 
