@@ -10,7 +10,7 @@ import { SettingField, type SettingFieldProps } from "./setting-field";
 type Translate = Awaited<ReturnType<typeof getTranslate>>;
 
 /** Option lists for settings whose text comes from a reference list. */
-async function referenceOptions(
+export async function referenceOptions(
   ctx: OrgContext,
   defs: readonly SettingDefinition[],
 ): Promise<Map<string, { value: string; label: string }[]>> {
@@ -19,7 +19,7 @@ async function referenceOptions(
     if (def.input === "time_zone") {
       out.set(
         def.key,
-        Intl.supportedValuesOf("timeZone").map((z) => ({
+        ["UTC", ...Intl.supportedValuesOf("timeZone").filter((z) => z !== "UTC")].map((z) => ({
           value: z,
           label: z.replaceAll("_", " "),
         })),
@@ -137,7 +137,9 @@ export async function RegistrySection({
       <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
         {fields.map((f) => (
           <li key={f.def.key}>
-            <SettingField {...f} />
+            {/* Keyed by the saved value: React resets a form after its action, so the
+                controls remount with the new value as their default. */}
+            <SettingField key={`${f.initial}:${String(f.locked)}`} {...f} />
           </li>
         ))}
       </ul>

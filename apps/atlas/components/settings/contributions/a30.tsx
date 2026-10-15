@@ -6,7 +6,6 @@ import {
   listOrgDomains,
   listOrgLegalAcceptances,
   listSettingValues,
-  resolveSettings,
   type OrgDomain,
 } from "@xos/data/settings";
 import { GeneralForm } from "@/components/settings/forms";
@@ -18,6 +17,15 @@ import {
   ModulesForm,
   RemoveDomainButton,
 } from "@/components/settings/identity-forms";
+import {
+  AutoJoinPanel,
+  JoiningPanel,
+  OffboardingPanel,
+  OrgProfilePanel,
+  PrivacyPanel,
+  ProfilePanel,
+} from "@/components/settings/profile-panels";
+import { referenceOptions } from "@/components/settings/registry-section";
 import { SettingField } from "@/components/settings/setting-field";
 import { InlineAlert } from "@/components/ui";
 import { defaultAccent } from "@/lib/brand/contrast";
@@ -67,6 +75,7 @@ async function BrandPanel({ ctx }: SettingsPanelProps) {
       <section aria-labelledby="brand-heading" className="flex flex-col gap-12">
         <Heading id="brand-heading">{t("settings.brand.title")}</Heading>
         <BrandForm
+          key={JSON.stringify(b)}
           org={ctx.org.slug}
           canEdit={canEdit}
           whiteLabelInPlan={planHasFeature(subscription.data.planCode, "white_label")}
@@ -311,77 +320,81 @@ async function LegalPanel({ ctx }: SettingsPanelProps) {
 
 async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
   const t = await getTranslate();
-  const [workspaces, stored] = await Promise.all([
+  const defs = workspaceSettings();
+  const [workspaces, stored, refs] = await Promise.all([
     listWorkspaces(ctx.viewer.db, ctx.org.id),
     listSettingValues(ctx.viewer.db, ctx.org.id),
+    referenceOptions(ctx, defs),
   ]);
   if (!workspaces.ok || !stored.ok) return <LoadFailed message={t("settings.loadFailed")} />;
   if (workspaces.data.length === 0) {
     return <p className="m-0 text-text-13 text-text-secondary">{t("settings.workspaces.none")}</p>;
   }
-  const defs = workspaceSettings();
   return (
     <>
-      {await Promise.all(
-        workspaces.data.map(async (w) => {
-          const resolved = await resolveSettings(ctx.viewer.db, {
-            orgId: ctx.org.id,
-            workspaceId: w.id,
-          });
-          if (!resolved.ok) return <LoadFailed key={w.id} message={t("settings.loadFailed")} />;
-          return (
-            <section
-              key={w.id}
-              aria-labelledby={`ws-${w.id}`}
-              className="flex max-w-layout-form flex-col"
-            >
-              <Heading id={`ws-${w.id}`}>
-                {t("settings.workspaces.overrides", { name: w.name })}
-              </Heading>
-              <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-                {defs.map((def) => {
-                  const here = stored.data.find(
-                    (v) => v.key === def.key && v.scopeKind === "Workspace" && v.scopeId === w.id,
-                  );
-                  const orgLocked = stored.data.some(
-                    (v) => v.key === def.key && v.scopeKind === "Organization" && v.locked,
-                  );
-                  const r = resolved.data.get(def.key);
-                  const source =
-                    r?.source === "Personal" ? "Organization" : (r?.source ?? "Default");
-                  return (
-                    <li key={def.key}>
-                      <SettingField
-                        org={ctx.org.slug}
-                        group="org"
-                        def={def}
-                        label={t(def.label)}
-                        help={def.help ? t(def.help) : null}
-                        options={def.choices.map((c) => ({
-                          value: c,
-                          label: t(choiceLabelKey(def.key, c)),
-                        }))}
-                        initial={here ? formText(here.value) : r ? formText(r.value) : ""}
-                        sourceText={
-                          orgLocked
-                            ? t("settings.source.organizationLocked")
-                            : t(`settings.source.workspace${source}`)
-                        }
-                        setHere={here !== undefined}
-                        locked={false}
-                        lockedByOrg={orgLocked}
-                        canEdit={ctx.capabilities.has(def.capability)}
-                        scopeKind="Workspace"
-                        scopeId={w.id}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          );
-        }),
-      )}
+      {workspaces.data.map((w) => (
+        <section
+          key={w.id}
+          aria-labelledby={`ws-${w.id}`}
+          className="flex max-w-layout-form flex-col"
+        >
+          <Heading id={`ws-${w.id}`}>
+            {t("settings.workspaces.overrides", { name: w.name })}
+          </Heading>
+          <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
+            {defs.map((def) => {
+              // The workspace value, else the org value, else the platform default (Section 4.5.6).
+              const here = stored.data.find(
+                (v) => v.key === def.key && v.scopeKind === "Workspace" && v.scopeId === w.id,
+              );
+              const org = stored.data.find(
+                (v) => v.key === def.key && v.scopeKind === "Organization",
+              );
+              const orgLocked = org?.locked === true;
+              const initial = here
+                ? formText(here.value)
+                : org
+                  ? formText(org.value)
+                  : def.default === null
+                    ? ""
+                    : formText(def.default);
+              const source = here ? "Workspace" : org ? "Organization" : "Default";
+              return (
+                <li key={def.key}>
+                  <SettingField
+                    key={`${initial}:${String(orgLocked)}`}
+                    org={ctx.org.slug}
+                    group="org"
+                    def={def}
+                    label={t(def.label)}
+                    help={def.help ? t(def.help) : null}
+                    options={
+                      def.type === "choice"
+                        ? def.choices.map((c) => ({
+                            value: c,
+                            label: t(choiceLabelKey(def.key, c)),
+                          }))
+                        : (refs.get(def.key) ?? [])
+                    }
+                    initial={initial}
+                    sourceText={
+                      orgLocked
+                        ? t("settings.source.organizationLocked")
+                        : t(`settings.source.workspace${source}`)
+                    }
+                    setHere={here !== undefined}
+                    locked={false}
+                    lockedByOrg={orgLocked}
+                    canEdit={ctx.capabilities.has(def.capability)}
+                    scopeKind="Workspace"
+                    scopeId={w.id}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
     </>
   );
 }
@@ -445,4 +458,10 @@ export const contributions: readonly SettingsContribution[] = [
   { node: "settings.workspaces", order: 10, Panel: WorkspaceOverridesPanel },
   { node: "settings.teams", order: 10, Panel: TeamsPanel },
   { node: "settings.roles-and-capabilities", order: 10, Panel: RolesPanel },
+  { node: "settings.organization-profile", order: 10, Panel: OrgProfilePanel },
+  { node: "settings.members", order: 10, Panel: JoiningPanel },
+  { node: "settings.members", order: 20, Panel: OffboardingPanel },
+  { node: "me.profile", order: 10, Panel: ProfilePanel },
+  { node: "me.profile-privacy", order: 10, Panel: PrivacyPanel },
+  { node: "me.organizations", order: 10, Panel: AutoJoinPanel },
 ];
