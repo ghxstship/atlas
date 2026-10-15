@@ -7,16 +7,21 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./testing": "./src/testing/index.ts",
     "./openapi/v1.json": "./openapi/v1.json"
   },
   "scripts": {
     "generate": "node --experimental-strip-types --no-warnings scripts/generate-openapi.ts",
+    "generate:handlers": "node --experimental-strip-types --no-warnings scripts/generate-handlers.ts",
+    "check:handlers": "node --experimental-strip-types --no-warnings scripts/generate-handlers.ts --check",
+    "coverage:operations": "node --experimental-strip-types --no-warnings scripts/operation-coverage.ts",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage"
   },
   "dependencies": {
     "@hono/zod-openapi": "1.6.3",
+    "@xos/data": "workspace:*",
     "@xos/schemas": "workspace:*",
     "hono": "4.13.13",
     "zod": "4.6.5"

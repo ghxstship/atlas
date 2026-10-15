@@ -44,6 +44,9 @@ importers:
       '@xos/icons':
         specifier: workspace:*
         version: link:../../packages/icons
+      '@xos/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       '@xos/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
@@ -123,22 +126,64 @@ importers:
 
   apps/gateway:
     dependencies:
+      '@supabase/ssr':
+        specifier: 0.12.7
+        version: 0.12.7(@supabase/supabase-js@2.117.3)
+      '@supabase/supabase-js':
+        specifier: 2.117.3
+        version: 2.117.3
+      '@xos/data':
+        specifier: workspace:*
+        version: link:../../packages/data
       '@xos/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@xos/ia':
+        specifier: workspace:*
+        version: link:../../packages/ia
+      '@xos/icons':
+        specifier: workspace:*
+        version: link:../../packages/icons
+      '@xos/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
+      '@xos/tokens':
+        specifier: workspace:*
+        version: link:../../packages/tokens
+      '@xos/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       next:
         specifier: 16.4.0
         version: 16.4.0(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next-intl:
+        specifier: 4.14.9
+        version: 4.14.9(@swc/helpers@0.5.23)(@types/react@19.3.0)(next@16.4.0(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
       react:
         specifier: 19.3.0
         version: 19.3.0
       react-dom:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
     devDependencies:
+      '@axe-core/playwright':
+        specifier: 4.13.0
+        version: 4.13.0(playwright-core@1.64.0)
+      '@playwright/test':
+        specifier: 1.64.0
+        version: 1.64.0
+      '@tailwindcss/postcss':
+        specifier: 4.3.3
+        version: 4.3.3
       '@types/node':
         specifier: 22.20.5
         version: 22.20.5
+      '@types/pg':
+        specifier: 8.23.1
+        version: 8.23.1
       '@types/react':
         specifier: 19.3.0
         version: 19.3.0
@@ -148,15 +193,21 @@ importers:
       '@xos/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@xos/ia':
-        specifier: workspace:*
-        version: link:../../packages/ia
       eslint:
         specifier: 10.12.0
         version: 10.12.0(jiti@2.7.0)
       eslint-config-next:
         specifier: 16.4.0
         version: 16.4.0(eslint@10.12.0(jiti@2.7.0))(typescript@6.0.3)
+      pg:
+        specifier: 8.23.1
+        version: 8.23.1
+      prettier:
+        specifier: 3.9.9
+        version: 3.9.9
+      tailwindcss:
+        specifier: 4.3.3
+        version: 4.3.3
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -166,6 +217,9 @@ importers:
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@22.20.5)(@vitest/coverage-v8@5.0.3)(jsdom@29.1.1)(vite@8.3.3(@types/node@22.20.5)(jiti@2.7.0)(yaml@2.9.1))
+      yaml:
+        specifier: 2.9.1
+        version: 2.9.1
 
   canon/import:
     dependencies:
@@ -209,6 +263,9 @@ importers:
       '@hono/zod-openapi':
         specifier: 1.6.3
         version: 1.6.3(hono@4.13.13)(zod@4.6.5)
+      '@xos/data':
+        specifier: workspace:*
+        version: link:../data
       '@xos/schemas':
         specifier: workspace:*
         version: link:../schemas
@@ -446,6 +503,9 @@ importers:
       eslint:
         specifier: 10.12.0
         version: 10.12.0(jiti@2.7.0)
+      prettier:
+        specifier: 3.9.9
+        version: 3.9.9
       react:
         specifier: 19.3.0
         version: 19.3.0
@@ -689,6 +749,52 @@ importers:
       tailwindcss:
         specifier: 4.3.3
         version: 4.3.3
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@22.20.5)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@22.20.5)(@vitest/coverage-v8@5.0.3)(jsdom@29.1.1)(vite@8.3.3(@types/node@22.20.5)(jiti@2.7.0)(yaml@2.9.1))
+
+  packages/ui-native:
+    dependencies:
+      '@xos/icons':
+        specifier: workspace:*
+        version: link:../icons
+      '@xos/tokens':
+        specifier: workspace:*
+        version: link:../tokens
+    devDependencies:
+      '@types/node':
+        specifier: 22.20.5
+        version: 22.20.5
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitest/coverage-v8':
+        specifier: 5.0.3
+        version: 5.0.3(vitest@5.0.3)
+      '@xos/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: 10.12.0
+        version: 10.12.0(jiti@2.7.0)
+      prettier:
+        specifier: 3.9.9
+        version: 3.9.9
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+      react-dom:
+        specifier: 19.3.0
+        version: 19.3.0(react@19.3.0)
       typescript:
         specifier: 6.0.3
         version: 6.0.3

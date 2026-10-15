@@ -1,4 +1,4 @@
-import { getNode, isNodeVisible } from "@xos/ia";
+import { getNode, isNodeVisible, routeParams } from "@xos/ia";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,13 +6,14 @@ import { EmptyStateLink, PageHeader } from "@/components/ui";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import {
   emptyStateHref,
-  namesDataRow,
   navigableChildren,
   nodeHref,
   pageCopyKey,
   sitemap,
 } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { getProjectContextFor } from "@/lib/projects/context";
+import { DATA_PARAMS } from "@/ia/routes.config";
 
 type Params = Readonly<Record<string, string>>;
 
@@ -26,10 +27,15 @@ export async function requireNode(node: string, params: Params): Promise<OrgCont
   const ctx = slug === undefined ? null : await getOrgContext(slug);
   if (!ctx || !isNodeVisible(sitemap, node, ctx.nav)) notFound();
   const route = getNode(sitemap, node).node.route ?? "";
-  // The pages that name a data row belong to their module agents: projects and their tabs (A07,
-  // on app.projects), records (A08, on app.records), saved views (A31) and custom objects (A18).
-  // Each owner replaces its page with a lookup; until then these routes answer 404.
-  if (namesDataRow(route)) notFound();
+  // Routes naming a project resolve it through A07's project context: a project the viewer may
+  // not read answers 404 (invariant 2). Routes naming another data row belong to their module
+  // agents: records (A08), saved views (A31) and custom objects (A18). Each owner replaces its
+  // page with a lookup; until then those routes answer 404.
+  const rowParams = routeParams(route).filter((p) =>
+    (DATA_PARAMS as readonly string[]).includes(p),
+  );
+  if (rowParams.some((p) => p !== "projectKey")) notFound();
+  if (rowParams.includes("projectKey") && !(await getProjectContextFor(params))) notFound();
   return ctx;
 }
 
