@@ -1,7 +1,8 @@
 import { listMembers } from "@xos/data";
 import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
-import type { MoneyTotal } from "@xos/data/hospitality";
+import type { XosClient } from "@xos/data";
+import { listCurrencies, toMajor, type MoneyTotal } from "@xos/data/hospitality";
 import {
   findOperationsProject,
   getOperationsAccess,
@@ -11,7 +12,7 @@ import {
 } from "@xos/data/logistics";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
-import type { ReactNode } from "react";
+import { cache, type ReactNode } from "react";
 import { requireNode } from "@/components/shell/sitemap-page";
 import type { OrgContext } from "@/lib/shell/context";
 import { CollabPanels } from "./collab";
@@ -138,6 +139,11 @@ export async function getZonedFormat() {
             dateStyle: "medium",
             timeZone: "UTC",
           }),
+    /** Minor units in their currency and exponent, or null when unpriced (never shown as zero). */
+    money: (amountMinor: number | null, currency: string | null, exponent = 2) =>
+      amountMinor === null || currency === null
+        ? null
+        : format.number(toMajor(amountMinor, exponent), { style: "currency", currency }),
     weekday: (isoDate: string) =>
       format.dateTime(new Date(`${isoDate}T12:00:00Z`), { weekday: "short", timeZone: "UTC" }),
   };
@@ -171,17 +177,47 @@ export function calendarMonth(search: SearchParams, now: Date = new Date()) {
   };
 }
 
+/** Minor unit exponents by currency code, read once per request from the currency reference. */
+export const getCurrencyExponents = cache(async (db: XosClient): Promise<Map<string, number>> => {
+  const currencies = await listCurrencies(db);
+  if (!currencies.ok)
+    throw new Error(`Cannot read currencies: ${JSON.stringify(currencies.error)}`);
+  return new Map(currencies.data.map((c) => [c.code, c.exponent]));
+});
+
+/**
+ * An amount stored in minor units, shown in its currency with that currency's exponent; Unpriced
+ * when NULL (Section 3.7), never zero.
+ */
+export async function Amount({
+  db,
+  minor,
+  currency,
+}: {
+  db: XosClient;
+  minor: number | null;
+  currency: string | null;
+}) {
+  const t = await getTranslations("logistics.common");
+  const exponents = await getCurrencyExponents(db);
+  return (
+    <Money
+      amount={
+        minor === null || currency === null ? null : toMajor(minor, exponents.get(currency) ?? 2)
+      }
+      {...(currency ? { currency } : {})}
+      unpricedLabel={t("unpriced")}
+    />
+  );
+}
+
 /** A NULL-aware total: the amount, Unpriced when nothing is priced, and the unpriced count beside it. */
-export async function TotalValue({ total }: { total: MoneyTotal }) {
+export async function TotalValue({ db, total }: { db: XosClient; total: MoneyTotal }) {
   const t = await getTranslations("logistics.common");
   if (total.mixedCurrencies) return <span>{t("mixedCurrencies")}</span>;
   return (
     <span className="inline-flex flex-wrap items-baseline gap-6">
-      <Money
-        amount={total.amountMinor}
-        {...(total.currencyCode ? { currency: total.currencyCode } : {})}
-        unpricedLabel={t("unpriced")}
-      />
+      <Amount db={db} minor={total.amountMinor} currency={total.currencyCode} />
       {total.unpricedCount > 0 && total.amountMinor !== null ? (
         <span className="text-text-12 text-text-secondary">
           {t("unpricedCount", { count: total.unpricedCount })}

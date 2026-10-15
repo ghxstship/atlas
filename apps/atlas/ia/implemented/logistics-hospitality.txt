@@ -3,3 +3,7 @@ logistics.shipments
 logistics.dock-schedule
 logistics.marshalling-yard-log
 project.logistics
+hospitality.fulfillments
+hospitality.beos
+hospitality.accommodation-blocks
+project.hospitality

@@ -68,7 +68,9 @@
       "accommodation_block_deleted": "Este bloque está en la papelera. Restáuralo antes de asignar habitaciones.",
       "accommodation_assignment_outside_block": "La estadía debe caer entre las fechas de entrada y salida del bloque.",
       "accommodation_assignment_duplicate": "Este huésped ya tiene una habitación en el bloque esas noches.",
-      "fileScanning": "El archivo todavía se está analizando. Inténtalo de nuevo en un minuto."
+      "fileScanning": "El archivo todavía se está analizando. Inténtalo de nuevo en un minuto.",
+      "travel_fulfillment_kind": "Un tramo de viaje pertenece a un servicio de viaje. Elige uno de esos.",
+      "time_zone_unknown": "Esa zona horaria no se reconoce. Elige una zona de la lista."
     },
     "fieldErrors": {
       "required": "Completa este campo.",

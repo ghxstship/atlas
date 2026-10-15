@@ -44,6 +44,8 @@ const KNOWN_RULES = new Set([
   "accommodation_block_deleted",
   "accommodation_assignment_outside_block",
   "accommodation_assignment_duplicate",
+  "travel_fulfillment_kind",
+  "time_zone_unknown",
 ]);
 
 export function errorKey(error: DataError): string {
@@ -126,18 +128,6 @@ export function zonedInstant(
   const raw = field(form, name).trim();
   if (raw === "") return null;
   return localToInstant(raw, timeZone) ?? undefined;
-}
-
-/**
- * Money typed in major units ("189.00") as integer minor units, null when blank (unpriced, never
- * zero), or undefined when it is not an amount. USD-style exponent 2 covers the currencies offered.
- */
-export function minorUnits(raw: string): number | null | undefined {
-  const text = raw.trim().replace(/,/g, "");
-  if (text === "") return null;
-  if (!/^\d+(\.\d{1,2})?$/.test(text)) return undefined;
-  const [whole, fraction = ""] = text.split(".");
-  return Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
 }
 
 /** A positive decimal quantity, or undefined when the text is not one. */
