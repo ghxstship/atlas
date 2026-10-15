@@ -439,6 +439,9 @@ importers:
       '@hono/zod-openapi':
         specifier: 1.6.3
         version: 1.6.3(hono@4.13.13)(zod@4.6.5)
+      '@xos/ai':
+        specifier: workspace:*
+        version: link:../ai
       '@xos/data':
         specifier: workspace:*
         version: link:../data
