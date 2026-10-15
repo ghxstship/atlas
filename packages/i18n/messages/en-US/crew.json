@@ -543,5 +543,11 @@
       "Infected": "Blocked: malware found",
       "Scan Failed": "Scan failed, upload again"
     }
+  },
+  "segment": {
+    "loading": "Loading the page",
+    "errorTitle": "This page did not load",
+    "errorBody": "The list could not be read just now. Your data is safe; try again, and if it keeps failing, share the reference with support.",
+    "retry": "Try again"
   }
 }

@@ -543,5 +543,11 @@
       "Infected": "Bloqueado: se encontró malware",
       "Scan Failed": "Falló el análisis, súbalo de nuevo"
     }
+  },
+  "segment": {
+    "loading": "Cargando la página",
+    "errorTitle": "Esta página no se cargó",
+    "errorBody": "No se pudo leer la lista en este momento. Sus datos están seguros; inténtelo de nuevo y, si sigue fallando, comparta la referencia con soporte.",
+    "retry": "Intentar de nuevo"
   }
 }
