@@ -1,0 +1,338 @@
+{
+  "views": {
+    "label": "Vista",
+    "list": "Lista",
+    "table": "Tabla",
+    "board": "Tablero",
+    "matrix": "Matriz"
+  },
+  "common": {
+    "openFull": "Abrir página completa",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saved": "Guardado.",
+    "project": "Proyecto",
+    "allProjects": "Todos los proyectos",
+    "state": "Estado",
+    "allStates": "Todos los estados",
+    "noDue": "Sin fecha límite",
+    "clearFilter": "Quitar el filtro",
+    "viewProjects": "Ver proyectos",
+    "person": "Persona",
+    "counterparty": "Organización",
+    "properties": "Propiedades",
+    "created": "Creado",
+    "loading": "Cargando avances.",
+    "error": {
+      "title": "Avances no se cargó",
+      "sentence": "Tus paquetes y respuestas están a salvo. Inténtalo de nuevo; si sigue fallando, comparte la referencia con soporte.",
+      "action": "Intentar de nuevo"
+    }
+  },
+  "states": {
+    "Draft": "Borrador",
+    "Awaiting": "Esperando respuestas",
+    "Overdue": "Vencido",
+    "InReview": "En revisión",
+    "Complete": "Completo"
+  },
+  "errors": {
+    "title": "No se pudo completar",
+    "advance_packet_send": "Los paquetes se envían con Enviar paquete, que primero revisa secciones y destinatarios.",
+    "advance_packet_sent": "Este paquete ya se envió. Los destinatarios responden la versión enviada.",
+    "advance_packet_no_sections": "Agrega al menos una sección antes de enviar.",
+    "advance_packet_no_recipients": "Agrega al menos un destinatario antes de enviar.",
+    "advance_send_authority": "Enviar paquetes y emitir enlaces requiere autoridad de envío en este proyecto. Pide a un productor que lo envíe.",
+    "advance_packet_sections_fixed": "Las secciones de un paquete enviado son fijas. Aún puedes corregir su redacción.",
+    "advance_packet_unsent": "Envía primero el paquete; recibe respuestas y enlaces una vez enviado.",
+    "advance_section_open": "Esa sección se eliminó o su paquete se archivó.",
+    "advance_recipient_duplicate": "Esta parte ya recibe el paquete.",
+    "advance_recipient_packet": "Solo un destinatario de este paquete puede responder sus secciones.",
+    "advance_submission_immutable": "Una respuesta nunca cambia después de llegar. Devuélvela para que el destinatario responda de nuevo.",
+    "advance_submission_reviewed": "Alguien ya revisó esta respuesta. Actualiza para ver la revisión.",
+    "advance_review_person": "Inicia sesión de nuevo para revisar respuestas.",
+    "sod_advance_submitter": "Tú registraste esta respuesta, así que otra persona debe revisarla.",
+    "advance_token_email": "Ingresa un correo electrónico válido para el enlace.",
+    "advance_token_validity": "Un enlace es válido de 1 a 90 días.",
+    "reconciliation_no_requirements": "Este proyecto aún no tiene requisitos. Agrégalos en la pestaña Alcance del proyecto y luego concilia.",
+    "refused": "La base de datos rechazó este cambio. Actualiza e inténtalo de nuevo, o pregunta a un administrador por tu acceso.",
+    "not-found": "Este elemento ya no existe o ya no tienes acceso. Actualiza la página.",
+    "conflict": "Ya existe algo con los mismos datos.",
+    "invalid": "Revisa los campos marcados e inténtalo de nuevo.",
+    "unexpected": "Algo salió mal de nuestro lado. Inténtalo de nuevo en un momento."
+  },
+  "blocked": {
+    "commentsTitle": "Los comentarios están en camino",
+    "comments": "Los comentarios en hilos con menciones llegan con el servicio compartido de comentarios. Mientras tanto, usa la revisión de respuestas y los motivos de devolución para hablar con los destinatarios.",
+    "attachmentsTitle": "Los adjuntos están en camino",
+    "attachments": "Los archivos adjuntos llegan con el servicio compartido de adjuntos. Mientras tanto, guarda los archivos en Conocimiento > Documentos y nómbralos en una sección."
+  },
+  "projectTab": {
+    "scope": "Avances de {key} · {name}.",
+    "sections": "Secciones de avances"
+  },
+  "packets": {
+    "progress": "{answered} de {expected} respondidas",
+    "reviewed": "{reviewed} de {expected} aceptadas",
+    "readOnly": "Aquí puedes leer los paquetes. Productores y coordinadores los crean y envían.",
+    "emptyFiltered": "Ningún paquete está en {state}. Quita el filtro para ver todos los paquetes.",
+    "emptyNoProjects": "Los paquetes de avance pertenecen a un proyecto. Crea primero un proyecto.",
+    "empty": "Aún no hay paquetes de avance. Crea uno para reunir lo que aporta cada parte.",
+    "emptyReadOnly": "Aún no hay paquetes de avance. Aparecen aquí cuando un coordinador crea uno.",
+    "back": "Volver a paquetes",
+    "sentAt": "Enviado",
+    "notSent": "Aún no enviado",
+    "columns": {
+      "title": "Paquete",
+      "due": "Vence",
+      "recipients": "Destinatarios",
+      "progress": "Progreso"
+    },
+    "create": {
+      "title": "Nuevo paquete de avance",
+      "description": "Nombra el paquete y fija cuándo vencen las respuestas. Luego agregas secciones y destinatarios.",
+      "open": "Nuevo paquete",
+      "submit": "Crear paquete",
+      "project": "Proyecto",
+      "projectChoose": "Elige un proyecto",
+      "projectError": "Elige el proyecto que avanza este paquete.",
+      "name": "Nombre del paquete",
+      "nameHelp": "Por ejemplo, Avance del artista principal o Avance del proveedor de escenario.",
+      "nameError": "Ingresa un nombre de 1 a 200 caracteres.",
+      "due": "Respuestas para",
+      "dueHelp": "Opcional. Después de esta hora, un paquete sin responder aparece como Vencido.",
+      "dueError": "Ingresa una fecha y hora válidas."
+    },
+    "details": {
+      "title": "Detalles",
+      "name": "Nombre del paquete",
+      "nameError": "Ingresa un nombre de 1 a 200 caracteres.",
+      "due": "Respuestas para"
+    },
+    "send": {
+      "action": "Enviar paquete",
+      "confirmTitle": "¿Enviar {title}?",
+      "confirmSentence": "{count, plural, one {El destinatario puede responder en cuanto emitas su enlace. Las secciones quedan fijas al enviar.} other {Los # destinatarios pueden responder en cuanto emitas sus enlaces. Las secciones quedan fijas al enviar.}}",
+      "needsAuthority": "Enviar requiere autoridad de envío en este proyecto. Pide a un productor que envíe el paquete cuando esté listo."
+    },
+    "archive": {
+      "action": "Archivar",
+      "confirmTitle": "¿Archivar {title}?",
+      "confirmSentence": "El paquete sale de todas las listas. Sus secciones, destinatarios y respuestas quedan en el registro."
+    }
+  },
+  "sections": {
+    "title": "Secciones",
+    "name": "Nombre de la sección",
+    "nameError": "Ingresa un nombre de 1 a 200 caracteres.",
+    "prompt": "Qué se le pregunta al destinatario",
+    "promptHelp": "Opcional. Por ejemplo, hora de llegada, tamaño del grupo y vehículos.",
+    "numbered": "{position}. {title}",
+    "edit": "Editar {title}",
+    "moveUp": "Subir {title}",
+    "moveDown": "Bajar {title}",
+    "remove": "Quitar {title}",
+    "empty": "Aún no hay secciones.",
+    "emptyEditable": "Aún no hay secciones. Agrega lo primero que necesitas saber, como la llegada o el backline.",
+    "fixedAfterSend": "Este paquete se envió, así que sus secciones son fijas. Aún puedes corregir su redacción.",
+    "newName": "Nueva sección",
+    "newNameHelp": "Por ejemplo, Llegada, Backline u Hospitalidad.",
+    "add": "Agregar sección"
+  },
+  "recipients": {
+    "title": "Destinatarios y enlaces",
+    "noParties": "Aún no hay a quién agregar. Agrega personas en Personas > Directorio o proveedores en Proveedores > Directorio.",
+    "party": "Agregar un destinatario",
+    "partyChoose": "Elige una persona u organización",
+    "partyError": "Elige quién recibe el paquete.",
+    "add": "Agregar destinatario",
+    "remove": "Quitar a {name}",
+    "none": "Aún no hay destinatarios.",
+    "emptyEditable": "Aún no hay destinatarios. Agrega al talento, representante o proveedor que responde este paquete.",
+    "removed": "Destinatario quitado"
+  },
+  "links": {
+    "email": "Correo de {name}",
+    "emailError": "Ingresa un correo electrónico válido.",
+    "validFor": "Válido por",
+    "days": "{count, plural, one {# día} other {# días}}",
+    "issue": "Emitir enlace",
+    "issuedTitle": "Enlace emitido",
+    "issuedSentence": "Comparte este enlace de Gateway y el código de acceso con el destinatario. Solo se muestran ahora.",
+    "accessCode": "Código de acceso:",
+    "expires": "Vence el {date}",
+    "copy": "Copiar enlace y código",
+    "copied": "Copiado",
+    "revoke": "Revocar",
+    "revokeTitle": "¿Revocar este enlace?",
+    "revokeSentence": "El destinatario ya no podrá responder con él. Las respuestas ya dadas quedan en el registro.",
+    "afterSend": "Envía el paquete para emitir enlaces de Gateway a sus destinatarios.",
+    "status": {
+      "Live": "Activo",
+      "Used": "Respondido por enlace",
+      "Expired": "Vencido",
+      "Revoked": "Revocado",
+      "Locked": "Bloqueado por códigos incorrectos"
+    }
+  },
+  "answers": {
+    "title": "Respuestas",
+    "unsent": "Las respuestas llegan después de enviar el paquete.",
+    "none": "Aún no hay respuestas. Los destinatarios responden con su enlace de Gateway.",
+    "removedSection": "Sección quitada",
+    "viaLink": "Por enlace de Gateway"
+  },
+  "review": {
+    "accept": "Aceptar",
+    "returnStart": "Devolver",
+    "return": "Devolver al destinatario",
+    "back": "Atrás",
+    "reason": "Por qué se devuelve",
+    "reasonHelp": "El destinatario lo lee en el formulario de avance, así que di qué agregar o cambiar.",
+    "reasonError": "Explica el motivo en hasta 1,000 caracteres.",
+    "awaiting": "Esperando revisión",
+    "needsAuthority": "Revisar respuestas requiere autoridad de revisión en este proyecto.",
+    "returnedBecause": "Devuelta: {reason}",
+    "outcomes": {
+      "Accepted": "Aceptada",
+      "Returned": "Devuelta"
+    }
+  },
+  "record": {
+    "title": "Registrar una respuesta dada por teléfono o correo",
+    "section": "Sección",
+    "sectionChoose": "Elige una sección",
+    "sectionError": "Elige la sección respondida.",
+    "recipient": "Destinatario",
+    "recipientChoose": "Elige un destinatario",
+    "recipientError": "Elige quién respondió.",
+    "body": "Respuesta",
+    "bodyHelp": "Registra lo que dijo el destinatario. Otra persona revisa las respuestas que registras.",
+    "bodyError": "Ingresa la respuesta, hasta 20,000 caracteres.",
+    "submit": "Registrar respuesta"
+  },
+  "submissions": {
+    "filter": "Mostrar",
+    "filters": {
+      "unreviewed": "Esperando revisión",
+      "reviewed": "Revisadas",
+      "all": "Todas las respuestas"
+    },
+    "empty": {
+      "unreviewed": "Nada por revisar. Las respuestas nuevas aparecen aquí cuando los destinatarios responden.",
+      "reviewed": "Aún no hay respuestas revisadas. Revisa respuestas desde la cola.",
+      "all": "Aún no hay respuestas. Llegan cuando los destinatarios responden un paquete enviado."
+    },
+    "viewPackets": "Ver paquetes",
+    "queue": "Respuestas",
+    "from": "De {name}, {date}",
+    "superseded": "Una respuesta más reciente a esta sección reemplazó a esta.",
+    "openPacket": "Abrir {title}"
+  },
+  "riders": {
+    "noParty": "Sin parte indicada",
+    "fulfilled": "{fulfilled} de {total} cumplidas",
+    "emptyNoProjects": "Los riders pertenecen a un proyecto. Crea primero un proyecto.",
+    "empty": "Aún no hay riders. Registra un rider para seguir cada solicitud hasta cumplirla.",
+    "emptyReadOnly": "Aún no hay riders. Aparecen aquí cuando un coordinador registra uno.",
+    "back": "Volver a riders",
+    "columns": {
+      "title": "Rider",
+      "party": "De",
+      "lines": "Solicitudes"
+    },
+    "states": {
+      "Entering": "En captura",
+      "Open": "Abierto",
+      "Fulfilled": "Cumplido"
+    },
+    "create": {
+      "title": "Nuevo rider",
+      "description": "Registra un rider técnico o de hospitalidad. Luego agregas sus solicitudes.",
+      "open": "Nuevo rider",
+      "submit": "Crear rider",
+      "project": "Proyecto",
+      "projectChoose": "Elige un proyecto",
+      "projectError": "Elige el proyecto al que pertenece este rider.",
+      "name": "Nombre del rider",
+      "nameHelp": "Por ejemplo, Rider técnico o Rider de hospitalidad.",
+      "nameError": "Ingresa un nombre de 1 a 200 caracteres.",
+      "party": "De",
+      "noParty": "Sin organización"
+    },
+    "details": {
+      "title": "Detalles",
+      "name": "Nombre del rider",
+      "nameError": "Ingresa un nombre de 1 a 200 caracteres.",
+      "party": "De",
+      "noParty": "Sin organización"
+    },
+    "archive": {
+      "action": "Archivar",
+      "confirmTitle": "¿Archivar {title}?",
+      "confirmSentence": "El rider sale de todas las listas. Sus solicitudes y su cumplimiento quedan en el registro."
+    }
+  },
+  "lines": {
+    "title": "Solicitudes",
+    "description": "Solicitud",
+    "descriptionError": "Describe la solicitud en hasta 500 caracteres.",
+    "quantity": "Cantidad",
+    "quantityHelp": "Déjala en blanco cuando no se pueda contar.",
+    "quantityError": "Ingresa un número de cero o más, o déjalo en blanco.",
+    "element": "Elemento del catálogo",
+    "elementHelp": "ID de elemento opcional.",
+    "add": "Agregar solicitud",
+    "noQuantity": "Sin cantidad",
+    "quantityValue": "Cantidad {count}",
+    "fulfill": "Marcar cumplida",
+    "reopen": "Reabrir",
+    "edit": "Editar {description}",
+    "remove": "Quitar {description}",
+    "empty": "Aún no hay solicitudes.",
+    "emptyEditable": "Aún no hay solicitudes. Agrega cada artículo que pide el rider.",
+    "fulfilledOn": "Cumplida el {date}"
+  },
+  "extraction": {
+    "title": "Solicitudes propuestas",
+    "sentence": "El asistente leyó el rider y propone estas solicitudes. No se guarda nada hasta que elijas y confirmes.",
+    "confidence": "Confianza {value}",
+    "confirm": "{count, plural, one {Agregar # solicitud} other {Agregar # solicitudes}}",
+    "hint": "El asistente también puede proponer solicitudes desde un documento de rider cuando Aurora AI está activo; tú confirmas cada una."
+  },
+  "reconciliation": {
+    "empty": "Aún no hay conciliaciones. Concilia un proyecto para ver qué requisitos cumplen su sede y proveedores.",
+    "emptyReadOnly": "Aún no hay conciliaciones. Aparecen aquí cuando un coordinador concilia un proyecto.",
+    "viewRiders": "Ver riders",
+    "matrixCaption": "Última conciliación de cada proyecto por resultado",
+    "matrixNote": "{count, plural, one {Última ejecución de # proyecto.} other {Última ejecución de cada uno de # proyectos.}}",
+    "gate3": "Brechas de la compuerta 3",
+    "back": "Volver a conciliación",
+    "note": "Nota",
+    "lines": "Requisitos",
+    "critical": "Crítico",
+    "runTitle": "Conciliación del {date}",
+    "gate3Title": "La compuerta 3 está bloqueada",
+    "gate3Sentence": "{count, plural, one {# requisito es una brecha o un desconocido crítico. Resuélvelo con la sede o el proveedor y vuelve a conciliar.} other {# requisitos son brechas o desconocidos críticos. Resuélvelos con la sede o los proveedores y vuelve a conciliar.}}",
+    "columns": {
+      "when": "Conciliado"
+    },
+    "results": {
+      "met": "Cumplido",
+      "gap": "Brecha",
+      "unknown": "Desconocido"
+    },
+    "states": {
+      "Gaps": "Bloquea la compuerta 3",
+      "Unknowns": "Desconocidos por confirmar",
+      "Clear": "Todo cumplido"
+    },
+    "run": {
+      "project": "Proyecto",
+      "projectChoose": "Elige un proyecto",
+      "projectError": "Elige el proyecto a conciliar.",
+      "note": "Nota",
+      "action": "Conciliar ahora"
+    }
+  }
+}

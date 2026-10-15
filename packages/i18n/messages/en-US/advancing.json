@@ -1,0 +1,338 @@
+{
+  "views": {
+    "label": "View",
+    "list": "List",
+    "table": "Table",
+    "board": "Board",
+    "matrix": "Matrix"
+  },
+  "common": {
+    "openFull": "Open full page",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Saved.",
+    "project": "Project",
+    "allProjects": "All projects",
+    "state": "State",
+    "allStates": "All states",
+    "noDue": "No due date",
+    "clearFilter": "Clear the filter",
+    "viewProjects": "View projects",
+    "person": "Person",
+    "counterparty": "Organization",
+    "properties": "Properties",
+    "created": "Created",
+    "loading": "Loading advancing.",
+    "error": {
+      "title": "Advancing did not load",
+      "sentence": "Your packets and answers are safe. Try again; if it keeps failing, share the reference with support.",
+      "action": "Try again"
+    }
+  },
+  "states": {
+    "Draft": "Draft",
+    "Awaiting": "Awaiting answers",
+    "Overdue": "Overdue",
+    "InReview": "In review",
+    "Complete": "Complete"
+  },
+  "errors": {
+    "title": "That did not go through",
+    "advance_packet_send": "Packets are sent with Send packet, which checks sections and recipients first.",
+    "advance_packet_sent": "This packet was already sent. Recipients answer the sent version.",
+    "advance_packet_no_sections": "Add at least one section before sending.",
+    "advance_packet_no_recipients": "Add at least one recipient before sending.",
+    "advance_send_authority": "Sending packets and issuing links needs send authority on this project. Ask a producer to send it.",
+    "advance_packet_sections_fixed": "The sections of a sent packet are fixed. You can still correct their wording.",
+    "advance_packet_unsent": "Send the packet first; it takes answers and links once it is sent.",
+    "advance_section_open": "That section was removed or its packet was archived.",
+    "advance_recipient_duplicate": "This party already receives the packet.",
+    "advance_recipient_packet": "Only a recipient of this packet can answer its sections.",
+    "advance_submission_immutable": "An answer never changes after it arrives. Return it so the recipient answers again.",
+    "advance_submission_reviewed": "Someone already reviewed this answer. Refresh to see the review.",
+    "advance_review_person": "Sign in again to review answers.",
+    "sod_advance_submitter": "You recorded this answer, so someone else must review it.",
+    "advance_token_email": "Enter a valid email address for the link.",
+    "advance_token_validity": "A link is valid for 1 to 90 days.",
+    "reconciliation_no_requirements": "This project has no requirements yet. Add them in the project's Scope tab, then reconcile.",
+    "refused": "The database refused this change. Refresh and try again, or ask an admin about your access.",
+    "not-found": "This item is gone or you no longer have access to it. Refresh the page.",
+    "conflict": "Something with the same details already exists.",
+    "invalid": "Check the highlighted fields and try again.",
+    "unexpected": "Something went wrong on our side. Try again in a moment."
+  },
+  "blocked": {
+    "commentsTitle": "Comments are on the way",
+    "comments": "Threaded comments with mentions arrive with the shared comment service. Until then, use the answer review and return reasons to talk with recipients.",
+    "attachmentsTitle": "Attachments are on the way",
+    "attachments": "File attachments arrive with the shared attachment service. Until then, keep files in Knowledge > Documents and name them in a section."
+  },
+  "projectTab": {
+    "scope": "Advancing for {key} · {name}.",
+    "sections": "Advancing sections"
+  },
+  "packets": {
+    "progress": "{answered} of {expected} answered",
+    "reviewed": "{reviewed} of {expected} accepted",
+    "readOnly": "You can read packets here. Producers and coordinators create and send them.",
+    "emptyFiltered": "No packets are {state}. Clear the filter to see every packet.",
+    "emptyNoProjects": "Advance packets belong to a project. Create a project first.",
+    "empty": "No advance packets yet. Create one to collect what each party brings.",
+    "emptyReadOnly": "No advance packets yet. They appear here when a coordinator creates one.",
+    "back": "Back to packets",
+    "sentAt": "Sent",
+    "notSent": "Not sent yet",
+    "columns": {
+      "title": "Packet",
+      "due": "Due",
+      "recipients": "Recipients",
+      "progress": "Progress"
+    },
+    "create": {
+      "title": "New advance packet",
+      "description": "Name the packet and set when answers are due. You add sections and recipients next.",
+      "open": "New packet",
+      "submit": "Create packet",
+      "project": "Project",
+      "projectChoose": "Choose a project",
+      "projectError": "Choose the project this packet advances.",
+      "name": "Packet name",
+      "nameHelp": "For example, Headliner Advance or Staging Vendor Advance.",
+      "nameError": "Enter a name of 1 to 200 characters.",
+      "due": "Answers due",
+      "dueHelp": "Optional. Past this time an unanswered packet shows as Overdue.",
+      "dueError": "Enter a valid date and time."
+    },
+    "details": {
+      "title": "Details",
+      "name": "Packet name",
+      "nameError": "Enter a name of 1 to 200 characters.",
+      "due": "Answers due"
+    },
+    "send": {
+      "action": "Send packet",
+      "confirmTitle": "Send {title}?",
+      "confirmSentence": "{count, plural, one {The recipient can answer as soon as you issue their link. Sections are fixed once sent.} other {The # recipients can answer as soon as you issue their links. Sections are fixed once sent.}}",
+      "needsAuthority": "Sending needs send authority on this project. Ask a producer to send the packet when it is ready."
+    },
+    "archive": {
+      "action": "Archive",
+      "confirmTitle": "Archive {title}?",
+      "confirmSentence": "The packet leaves every list. Its sections, recipients and answers stay on record."
+    }
+  },
+  "sections": {
+    "title": "Sections",
+    "name": "Section name",
+    "nameError": "Enter a name of 1 to 200 characters.",
+    "prompt": "What the recipient is asked",
+    "promptHelp": "Optional. For example, arrival time, party size and vehicles.",
+    "numbered": "{position}. {title}",
+    "edit": "Edit {title}",
+    "moveUp": "Move {title} up",
+    "moveDown": "Move {title} down",
+    "remove": "Remove {title}",
+    "empty": "No sections yet.",
+    "emptyEditable": "No sections yet. Add the first thing you need to know, such as arrival or backline.",
+    "fixedAfterSend": "This packet was sent, so its sections are fixed. You can still correct their wording.",
+    "newName": "New section",
+    "newNameHelp": "For example, Arrival, Backline or Hospitality.",
+    "add": "Add section"
+  },
+  "recipients": {
+    "title": "Recipients and links",
+    "noParties": "There is nobody to add yet. Add people in People > Directory or vendors in Vendors > Directory.",
+    "party": "Add a recipient",
+    "partyChoose": "Choose a person or organization",
+    "partyError": "Choose who receives the packet.",
+    "add": "Add recipient",
+    "remove": "Remove {name}",
+    "none": "No recipients yet.",
+    "emptyEditable": "No recipients yet. Add the talent, representative or vendor who answers this packet.",
+    "removed": "Removed recipient"
+  },
+  "links": {
+    "email": "Email for {name}",
+    "emailError": "Enter a valid email address.",
+    "validFor": "Valid for",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "issue": "Issue link",
+    "issuedTitle": "Link issued",
+    "issuedSentence": "Share this Gateway link and the access code with the recipient. They are shown only now.",
+    "accessCode": "Access code:",
+    "expires": "Expires {date}",
+    "copy": "Copy link and code",
+    "copied": "Copied",
+    "revoke": "Revoke",
+    "revokeTitle": "Revoke this link?",
+    "revokeSentence": "The recipient can no longer answer with it. Answers already given stay on record.",
+    "afterSend": "Send the packet to issue Gateway links to its recipients.",
+    "status": {
+      "Live": "Live",
+      "Used": "Answered through",
+      "Expired": "Expired",
+      "Revoked": "Revoked",
+      "Locked": "Locked after wrong codes"
+    }
+  },
+  "answers": {
+    "title": "Answers",
+    "unsent": "Answers arrive after the packet is sent.",
+    "none": "No answers yet. Recipients answer through their Gateway link.",
+    "removedSection": "Removed section",
+    "viaLink": "Through Gateway link"
+  },
+  "review": {
+    "accept": "Accept",
+    "returnStart": "Return",
+    "return": "Return to recipient",
+    "back": "Back",
+    "reason": "Why it is returned",
+    "reasonHelp": "The recipient reads this on the advance form, so say what to add or change.",
+    "reasonError": "Say why, in up to 1,000 characters.",
+    "awaiting": "Awaiting review",
+    "needsAuthority": "Reviewing answers needs review authority on this project.",
+    "returnedBecause": "Returned: {reason}",
+    "outcomes": {
+      "Accepted": "Accepted",
+      "Returned": "Returned"
+    }
+  },
+  "record": {
+    "title": "Record an answer given by phone or email",
+    "section": "Section",
+    "sectionChoose": "Choose a section",
+    "sectionError": "Choose the section answered.",
+    "recipient": "Recipient",
+    "recipientChoose": "Choose a recipient",
+    "recipientError": "Choose who answered.",
+    "body": "Answer",
+    "bodyHelp": "Record what the recipient said. Someone else reviews answers you record.",
+    "bodyError": "Enter the answer, up to 20,000 characters.",
+    "submit": "Record answer"
+  },
+  "submissions": {
+    "filter": "Show",
+    "filters": {
+      "unreviewed": "Awaiting review",
+      "reviewed": "Reviewed",
+      "all": "All answers"
+    },
+    "empty": {
+      "unreviewed": "Nothing to review. New answers appear here as recipients respond.",
+      "reviewed": "No reviewed answers yet. Review answers from the queue.",
+      "all": "No answers yet. They arrive when recipients answer a sent packet."
+    },
+    "viewPackets": "View packets",
+    "queue": "Answers",
+    "from": "From {name}, {date}",
+    "superseded": "A newer answer to this section replaced this one.",
+    "openPacket": "Open {title}"
+  },
+  "riders": {
+    "noParty": "No party named",
+    "fulfilled": "{fulfilled} of {total} fulfilled",
+    "emptyNoProjects": "Riders belong to a project. Create a project first.",
+    "empty": "No riders yet. Record a rider to track each ask until it is fulfilled.",
+    "emptyReadOnly": "No riders yet. They appear here when a coordinator records one.",
+    "back": "Back to riders",
+    "columns": {
+      "title": "Rider",
+      "party": "From",
+      "lines": "Asks"
+    },
+    "states": {
+      "Entering": "Being entered",
+      "Open": "Open",
+      "Fulfilled": "Fulfilled"
+    },
+    "create": {
+      "title": "New rider",
+      "description": "Record a technical or hospitality rider. You add its asks next.",
+      "open": "New rider",
+      "submit": "Create rider",
+      "project": "Project",
+      "projectChoose": "Choose a project",
+      "projectError": "Choose the project this rider belongs to.",
+      "name": "Rider name",
+      "nameHelp": "For example, Technical Rider or Hospitality Rider.",
+      "nameError": "Enter a name of 1 to 200 characters.",
+      "party": "From",
+      "noParty": "No organization"
+    },
+    "details": {
+      "title": "Details",
+      "name": "Rider name",
+      "nameError": "Enter a name of 1 to 200 characters.",
+      "party": "From",
+      "noParty": "No organization"
+    },
+    "archive": {
+      "action": "Archive",
+      "confirmTitle": "Archive {title}?",
+      "confirmSentence": "The rider leaves every list. Its asks and their fulfillment stay on record."
+    }
+  },
+  "lines": {
+    "title": "Asks",
+    "description": "Ask",
+    "descriptionError": "Describe the ask in up to 500 characters.",
+    "quantity": "Quantity",
+    "quantityHelp": "Leave blank when it is not countable.",
+    "quantityError": "Enter a number of zero or more, or leave it blank.",
+    "element": "Catalog element",
+    "elementHelp": "Optional element ID.",
+    "add": "Add ask",
+    "noQuantity": "No quantity",
+    "quantityValue": "Quantity {count}",
+    "fulfill": "Mark fulfilled",
+    "reopen": "Reopen",
+    "edit": "Edit {description}",
+    "remove": "Remove {description}",
+    "empty": "No asks yet.",
+    "emptyEditable": "No asks yet. Add each item the rider asks for.",
+    "fulfilledOn": "Fulfilled {date}"
+  },
+  "extraction": {
+    "title": "Proposed asks",
+    "sentence": "The assistant read the rider and proposes these asks. Nothing is saved until you choose and confirm.",
+    "confidence": "Confidence {value}",
+    "confirm": "{count, plural, one {Add # ask} other {Add # asks}}",
+    "hint": "Asks can also be proposed by the assistant from a rider document when Aurora AI is on; you confirm each one."
+  },
+  "reconciliation": {
+    "empty": "No reconciliations yet. Reconcile a project to see which requirements its venue and vendors meet.",
+    "emptyReadOnly": "No reconciliations yet. They appear here when a coordinator reconciles a project.",
+    "viewRiders": "View riders",
+    "matrixCaption": "Latest reconciliation of each project by result",
+    "matrixNote": "{count, plural, one {Latest run of # project.} other {Latest run of each of # projects.}}",
+    "gate3": "Gate 3 gaps",
+    "back": "Back to reconciliation",
+    "note": "Note",
+    "lines": "Requirements",
+    "critical": "Critical",
+    "runTitle": "Reconciliation of {date}",
+    "gate3Title": "Gate 3 is blocked",
+    "gate3Sentence": "{count, plural, one {# requirement is a gap or a critical unknown. Resolve it with the venue or vendor, then reconcile again.} other {# requirements are gaps or critical unknowns. Resolve them with the venue or vendors, then reconcile again.}}",
+    "columns": {
+      "when": "Reconciled"
+    },
+    "results": {
+      "met": "Met",
+      "gap": "Gap",
+      "unknown": "Unknown"
+    },
+    "states": {
+      "Gaps": "Blocks gate 3",
+      "Unknowns": "Unknowns to confirm",
+      "Clear": "All met"
+    },
+    "run": {
+      "project": "Project",
+      "projectChoose": "Choose a project",
+      "projectError": "Choose the project to reconcile.",
+      "note": "Note",
+      "action": "Reconcile now"
+    }
+  }
+}

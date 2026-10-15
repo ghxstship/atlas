@@ -1,0 +1,6 @@
+# Hand-written Atlas pages owned by A10 (Advancing). One sitemap node id per line.
+advancing.packets
+advancing.submissions
+advancing.riders
+advancing.reconciliation
+project.advancing
