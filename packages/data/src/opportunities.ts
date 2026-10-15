@@ -1,5 +1,5 @@
-import type { Database, XosClient } from "./client";
-import { fail, ok, toDataError, type Result } from "./result";
+import type { Database, XosClient } from "./client.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Opportunities repository (Section 4.2 Opportunities, Section 4.4.3 and 4.4.4): the org side of the engagement
@@ -1436,13 +1436,11 @@ export async function verifyOnboardingItem(
   db: XosClient,
   input: { itemId: string; outcome: VerificationOutcome; note?: string | null },
 ): Promise<Result<null>> {
-  const { error } = await db
-    .from("onboarding_verifications")
-    .insert({
-      onboarding_item_id: input.itemId,
-      outcome: input.outcome,
-      note: input.note ?? null,
-    } as unknown as Database["app"]["Tables"]["onboarding_verifications"]["Insert"]);
+  const { error } = await db.from("onboarding_verifications").insert({
+    onboarding_item_id: input.itemId,
+    outcome: input.outcome,
+    note: input.note ?? null,
+  } as unknown as Database["app"]["Tables"]["onboarding_verifications"]["Insert"]);
   if (error) return fail(toDataError(error));
   return ok(null);
 }
@@ -1536,14 +1534,12 @@ export async function rateParty(
   db: XosClient,
   input: { engagementId: string; score: number; comment?: string | null },
 ): Promise<Result<null>> {
-  const { error } = await db
-    .from("ratings")
-    .insert({
-      engagement_id: input.engagementId,
-      rater_side: "Organization",
-      score: input.score,
-      comment: input.comment ?? null,
-    } as unknown as Database["app"]["Tables"]["ratings"]["Insert"]);
+  const { error } = await db.from("ratings").insert({
+    engagement_id: input.engagementId,
+    rater_side: "Organization",
+    score: input.score,
+    comment: input.comment ?? null,
+  } as unknown as Database["app"]["Tables"]["ratings"]["Insert"]);
   if (error) return fail(toDataError(error));
   return ok(null);
 }
@@ -1554,12 +1550,10 @@ export async function replyToRating(
   ratingId: string,
   body: string,
 ): Promise<Result<null>> {
-  const { error } = await db
-    .from("rating_replies")
-    .insert({
-      rating_id: ratingId,
-      body,
-    } as unknown as Database["app"]["Tables"]["rating_replies"]["Insert"]);
+  const { error } = await db.from("rating_replies").insert({
+    rating_id: ratingId,
+    body,
+  } as unknown as Database["app"]["Tables"]["rating_replies"]["Insert"]);
   if (error) return fail(toDataError(error));
   return ok(null);
 }

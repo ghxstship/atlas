@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { committedSpend, countMyRecords, orgBaseCurrency } from "../src/home";
+import { committedSpend, countMyRecords, orgBaseCurrency } from "../src/home.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
 describe("home summary", () => {

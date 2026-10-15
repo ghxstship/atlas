@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import * as repo from "../src/opportunities";
-import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client";
+import * as repo from "../src/opportunities.ts";
+import { errorResponse, fakeClient, okResponse, type Response } from "./fake-client.ts";
 
 /** A fake client that also answers `schema("xpms").from(...)` from `xpms:<table>` queues. */
 function client(queues: Record<string, Response[]>) {
