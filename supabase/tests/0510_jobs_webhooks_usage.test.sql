@@ -5,7 +5,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(60);
+select plan(56);
 
 -- Job queue -------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
@@ -151,20 +151,7 @@ select is((select quantity from app.usage_rollups where org_id = pg_temp.id('org
 select is((select count(*)::integer from app.job_queue where job_kind = 'usage.report'), 1, 'metered totals are queued for Stripe');
 select throws_ok($$update app.usage_rollups set quantity = 1$$, 'XR001', null, 'a closed total never changes');
 
--- Kiosk PIN service and certificate rate limit ------------------------------------------------------------------------------
-select pg_temp.as_user('bob');
-create temporary table kiosk_key as select * from app.register_kiosk_device(pg_temp.id('org_a'), 'Dock Gate Kiosk', pg_temp.id('prj_a'));
-grant select on kiosk_key to public;
-select app.set_kiosk_pin(pg_temp.id('frank@org_a'), '4821');
-select ok(not has_function_privilege('authenticated', 'app.kiosk_punch(text, uuid, text, uuid)', 'execute')
-  and has_function_privilege('service_role', 'app.kiosk_punch(text, uuid, text, uuid)', 'execute'), 'only the kiosk service may punch');
-select pg_temp.as_platform();
-select results_eq($$select punch, refusal from app.kiosk_punch((select device_key from kiosk_key), pg_temp.id('frank@org_a'), '4821')$$,
-  $$values ('Clock In'::app.kiosk_punch, null::text)$$, 'the kiosk service clocks a member in');
-select is((select source from app.time_entries where membership_id = pg_temp.id('frank@org_a')), 'Kiosk'::app.time_entry_source,
-  'the entry is recorded as a Kiosk punch');
-select is((select refusal from app.kiosk_punch((select device_key from kiosk_key), pg_temp.id('frank@org_a'), '0000')), 'kiosk_pin_rejected',
-  'a wrong PIN is refused and counted');
+-- Certificate rate limit (the kiosk PIN service is covered in 0592) ------------------------------------------------------------------------------
 select pg_temp.as_anon();
 select is((select count(*)::integer from api_public.verify_certification('no-such-code')), 0, 'an unknown code verifies nothing');
 select pg_temp.as_platform();

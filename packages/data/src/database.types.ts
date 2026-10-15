@@ -34502,13 +34502,21 @@ export type Database = {
       kiosk_punch: {
         Args: {
           p_device_key: string;
+          p_device_time: string;
           p_membership_id: string;
+          p_monotonic_offset_ms?: number;
+          p_photo_uri?: string;
           p_pin: string;
           p_project_id?: string;
+          p_punch_id: string;
+          p_punch_kind: Database["app"]["Enums"]["punch_kind"];
         };
         Returns: {
-          punch: Database["app"]["Enums"]["kiosk_punch"];
+          effective_at: string;
+          punch_id: string;
+          punch_kind: Database["app"]["Enums"]["punch_kind"];
           refusal: string;
+          skew_flagged: boolean;
           time_entry_id: string;
         }[];
       };
@@ -35379,7 +35387,6 @@ export type Database = {
       invoice_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
       job_status: "Queued" | "Running" | "Succeeded" | "Failed" | "Canceled";
       journal_state: "Proposed" | "Posted" | "Canceled";
-      kiosk_punch: "Clock In" | "Clock Out";
       listing_report_reason:
         | "Illegal Content"
         | "Discrimination"
@@ -41517,7 +41524,6 @@ export const Constants = {
       invoice_state: ["Proposed", "Issued", "Approved", "Disputed", "Canceled"],
       job_status: ["Queued", "Running", "Succeeded", "Failed", "Canceled"],
       journal_state: ["Proposed", "Posted", "Canceled"],
-      kiosk_punch: ["Clock In", "Clock Out"],
       listing_report_reason: [
         "Illegal Content",
         "Discrimination",
