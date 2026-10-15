@@ -142,6 +142,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const [lastRefresh, setLastRefresh] = useState<DownloadReport | null>(null);
   const [identityAttempt, setIdentityAttempt] = useState(0);
   const orgRef = useRef<string | null>(null);
+  const storeRef = useRef<LocalStore | null>(null);
 
   // Settings and the remembered project per device (Section 4.5.7: Compass remembers the last context).
   useEffect(() => {
@@ -184,6 +185,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
         clock: deviceClock,
         uploadFile: fieldMediaUploader(client),
       });
+      storeRef.current = opened;
       setStore(opened);
       setEngine(new SyncEngine({ store: opened, uploader }));
     })();
@@ -213,8 +215,11 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     });
     const { data } = client.auth.onAuthStateChange((_event, next) => {
       setSession(next);
-      if (!next) setPhase({ kind: "signed-out" });
-      else if (engine) void engine.authRestored();
+      if (!next) {
+        // Signed out here or remotely from Atlas (the refresh token was revoked): wipe the local store (Section 13).
+        void storeRef.current?.wipe();
+        setPhase({ kind: "signed-out" });
+      } else if (engine) void engine.authRestored();
     });
     return () => data.subscription.unsubscribe();
   }, [client, engine]);

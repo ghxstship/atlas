@@ -311,7 +311,9 @@
     "title": "Más",
     "pendingTitle": "{page} está en Gateway",
     "pending": "Abre Gateway para ver {page}. Compass lo mostrará aquí en una versión próxima.",
-    "aurora": "Asistente"
+    "aurora": "Asistente",
+    "pendingAtlasTitle": "{page} está en Atlas",
+    "pendingAtlas": "Abre Atlas para trabajar en {page}. Compass lo mostrará aquí en una versión próxima."
   },
   "reference": {
     "title": "Referencia",
@@ -362,5 +364,20 @@
   "photo": {
     "take": "Tomar foto",
     "failed": "La foto no se guardó: {reason}. Vuelve a intentarlo."
+  },
+  "record": {
+    "sentence": "{key} se abre en la web por ahora."
+  },
+  "audience": {
+    "field": "Campo",
+    "field-supervisor": "Supervisor de campo",
+    "client": "Cliente",
+    "vendor": "Proveedor",
+    "contractor": "Contratista",
+    "crew": "Equipo técnico",
+    "staff": "Personal",
+    "artist": "Artista",
+    "artist-representative": "Representante de artista",
+    "sponsor": "Patrocinador"
   }
 }

@@ -311,7 +311,9 @@
     "title": "More",
     "pendingTitle": "{page} is in Gateway",
     "pending": "Open Gateway to see {page}. Compass shows it here in a later release.",
-    "aurora": "Assistant"
+    "aurora": "Assistant",
+    "pendingAtlasTitle": "{page} is in Atlas",
+    "pendingAtlas": "Open Atlas to work on {page}. Compass shows it here in a later release."
   },
   "reference": {
     "title": "Reference",
@@ -362,5 +364,20 @@
   "photo": {
     "take": "Take Photo",
     "failed": "The photo did not save: {reason}. Try again."
+  },
+  "record": {
+    "sentence": "{key} opens on the web for now."
+  },
+  "audience": {
+    "field": "Field",
+    "field-supervisor": "Field Supervisor",
+    "client": "Client",
+    "vendor": "Vendor",
+    "contractor": "Contractor",
+    "crew": "Crew",
+    "staff": "Staff",
+    "artist": "Artist",
+    "artist-representative": "Artist Representative",
+    "sponsor": "Sponsor"
   }
 }
