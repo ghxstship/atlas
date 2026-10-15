@@ -4,6 +4,25 @@ import type { SettingDefinition } from "./model.ts";
 
 export const SETTINGS: readonly SettingDefinition[] = [
   {
+    key: "finance.self_billing_enabled",
+    contributor: "a15",
+    type: "boolean",
+    scopes: ["organization", "project"],
+    capability: "finance.invoice.approve",
+    lockable: true,
+    default: false,
+    choices: [],
+    min: null,
+    max: null,
+    maxLength: null,
+    input: "text",
+    label: "finance.settings.selfBilling.label",
+    help: "finance.settings.selfBilling.help",
+    pages: {
+      org: "settings.legal-entities-and-fiscal",
+    },
+  },
+  {
     key: "org.legal_name",
     contributor: "a30",
     type: "text",

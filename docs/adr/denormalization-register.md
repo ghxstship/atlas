@@ -2,7 +2,14 @@
 
 Section 3.15 allows a materialized view or stored derived value only for measured performance. Each one is listed here. The schema lint fails on any stored total or materialized view missing from this table.
 
-| Object | Source | Refresh rule | Measured reason | ADR |
-| ------ | ------ | ------------ | --------------- | --- |
-
-The register has no entries as of the Wave 0 foundation.
+| Object                              | Source                                                                      | Refresh rule                                                     | Measured reason                                                                       | ADR  |
+| ----------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ---- |
+| `app.cues.project_id`               | `app.run_of_show.project_id`                                                | Stamped by trigger on insert; never updated (migration 0412)     | Compass PowerSync filters rows by project without a join (Section 13)                 | 0022 |
+| `app.inspection_results.project_id` | `app.inspections.project_id`                                                | Stamped by trigger on insert (0420)                              | PowerSync project filter, as above                                                    | 0022 |
+| `app.shift_swaps.project_id`        | `app.shifts.project_id`                                                     | Stamped by trigger on insert (0462)                              | PowerSync project filter, as above                                                    | 0022 |
+| `app.credentials.project_id`        | `app.credential_categories.project_id`                                      | Stamped by trigger; changing it is refused (0470)                | PowerSync project filter, as above                                                    | 0022 |
+| `app.access_grid.project_id`        | `app.credential_categories.project_id`                                      | Stamped by trigger; changing it is refused (0470)                | PowerSync project filter, as above                                                    | 0022 |
+| `app.access_scans.project_id`       | `app.credentials.project_id`                                                | Stamped by trigger; changing it is refused (0470)                | PowerSync project filter, as above                                                    | 0022 |
+| `app.incident_media.project_id`     | `app.incidents.project_id`                                                  | Stamped by trigger; changing it is refused (0470)                | PowerSync project filter, as above                                                    | 0022 |
+| `app.usage_rollups`                 | `app.usage_events`                                                          | Written once per closed month by the monthly rollup job (0510)   | Billing reads closed months without scanning partitioned usage events                 | 0021 |
+| `private.sync_scope_grants`         | Membership, assignment, shift and engagement tables through the RLS helpers | Triggers on each source table plus a nightly full refresh (0942) | PowerSync parameter queries cannot call RLS helpers or join (gate 17 benchmark, A03F) | 0022 |

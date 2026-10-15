@@ -24,6 +24,7 @@ import {
 } from "../Field/Field.tsx";
 import { ScrollRegion } from "../Layout/Layout.tsx";
 import { isRecordKind } from "@xos/icons";
+import { ratio } from "@xos/tokens/ratio";
 
 type Filter = ReferenceFilterBuilderProps["filters"][number];
 
@@ -92,24 +93,9 @@ export function parseQuickAdd(text: string, referenceDate: Date = new Date()): Q
   return { title: title.replace(/\s+/g, " ").trim(), tokens };
 }
 
-/** WCAG 2.2 contrast ratio between two hex colors, the same arithmetic as the @xos/tokens contrast gate. */
+/** WCAG 2.2 contrast ratio between two hex colors: the @xos/tokens contrast gate arithmetic itself. */
 export function contrastRatio(a: string, b: string): number {
-  const lum = (hex: string) => {
-    let h = hex.replace("#", "");
-    if (h.length === 3) h = h.replace(/./g, "$&$&");
-    const lin = (c: number) => {
-      const v = c / 255;
-      return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-    };
-    return (
-      0.2126 * lin(parseInt(h.substring(0, 2), 16)) +
-      0.7152 * lin(parseInt(h.substring(2, 4), 16)) +
-      0.0722 * lin(parseInt(h.substring(4, 6), 16))
-    );
-  };
-  const x = lum(a);
-  const y = lum(b);
-  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  return ratio(a, b);
 }
 
 /** Filters as chips: each opens its editor, removes with its button, and the set saves as a view. */

@@ -54,6 +54,23 @@
   --ui-settings-nav: calc(var(--space-20) * 11);
   --ui-outline: calc(var(--space-20) * 9);
   --ui-gateway-aside: calc(var(--space-20) * 19);
+
+  /* Compass: a 390 pt phone column with 16 pt gutters, 96 pt thumb controls. */
+  --ui-compass-card: calc(var(--ui-tabbar) - var(--space-32));
+  --ui-compass-thumb: calc(var(--space-48) * 2);
+  --ui-compass-card-min: calc(var(--space-40) * 4);
+  --ui-scan-view: calc(var(--space-20) * 15);
+  --ui-photo-view: calc(var(--space-20) * 21);
+  --ui-reticle-inline: calc(var(--space-20) * 11);
+  --ui-reticle-block: calc(var(--space-20) * 7);
+  --ui-grabber-inline: calc(var(--space-32) + var(--space-4));
+  --ui-grabber-block: calc(var(--space-4) + var(--stroke-width-hairline));
+  --ui-thumb: calc(var(--space-48) + var(--space-8));
+  --ui-shutter: calc(var(--space-64) + var(--space-8));
+  --ui-widget: calc(var(--space-40) * 4);
+  --ui-sigpad: calc(var(--space-40) * 3);
+  --ui-daysheet-time: calc(var(--space-64) + var(--space-8));
+  --ui-timer: var(--space-32);
 }
 
 @layer base {

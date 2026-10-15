@@ -29,6 +29,7 @@ export interface NativeBaseProps {
 export interface TextProps extends NativeBaseProps {
   /** Typography token; text16 is the Compass body size. */
   variant?:
+    | "text11"
     | "text12"
     | "text13"
     | "text14"
@@ -405,6 +406,9 @@ export interface ScanResult {
 
 export interface ScanSheetProps extends NativeBaseProps {
   mode: "asset" | "receiving" | "credential";
+  /** Mode switch options, already translated; the switch shows when this and onModeChange are set. */
+  modes?: { value: ScanSheetProps["mode"]; label: string }[];
+  onModeChange?: (mode: ScanSheetProps["mode"]) => void;
   hint: string;
   /** Running count in continuous mode. */
   count: number;
@@ -422,6 +426,8 @@ export interface OfflineBannerProps extends NativeBaseProps {
   message: string;
   /** Writes waiting to upload. */
   queued: number;
+  /** The count as words for assistive technology ("3 queued"); the number alone is shown. */
+  queuedLabel?: string;
   viewLabel?: string;
   onView?: () => void;
 }
@@ -522,6 +528,9 @@ export interface LiveActivityProps extends NativeBaseProps {
   /** On break: the first action becomes End Break. */
   onBreak?: boolean;
   labels: { break: string; endBreak: string; clockOut: string };
+  /** Break, or End Break while on break. */
+  onToggleBreak?: () => void;
+  onClockOut?: () => void;
 }
 
 export interface ForceUpdateScreenProps extends NativeBaseProps {

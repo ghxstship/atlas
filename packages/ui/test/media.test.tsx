@@ -123,7 +123,7 @@ describe("MapView", () => {
       />,
     );
     expect(screen.getByRole("img", { name: "Site plan" }).getAttribute("class")).not.toContain(
-      "invisible",
+      "opacity-0",
     );
   });
 

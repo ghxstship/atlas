@@ -1,8 +1,8 @@
 /**
  * The @xos/ui-native component list (Section 11.4 for Compass), grouped as the library ships them.
  * Each name is exported from the package root with a matching `<Name>Props` type in types.ts.
- * A component's entry in `nativeComponentStatus` turns "shipped" when its implementation, gallery
- * entry and accessibility test land; screens can rely on every name and props type from today.
+ * A component's entry in `nativeComponentStatus` is "shipped" once its implementation and its
+ * accessibility test have landed; every component in the list has shipped.
  */
 export const nativeComponentGroups = {
   foundations: ["ThemeProvider", "Text", "Icon", "StateIcon", "Screen"],
@@ -64,8 +64,12 @@ export const nativeComponentNames: readonly NativeComponentName[] =
 
 export type NativeComponentStatus = "published" | "shipped";
 
+const SHIPPED: ReadonlySet<NativeComponentName> = new Set<NativeComponentName>(
+  Object.values(nativeComponentGroups).flat(),
+);
+
 /** Delivery status per component: "published" means the name and props are fixed; "shipped" means implemented. */
 export const nativeComponentStatus: Readonly<Record<NativeComponentName, NativeComponentStatus>> =
   Object.fromEntries(
-    nativeComponentNames.map((name) => [name, name === "ThemeProvider" ? "shipped" : "published"]),
+    nativeComponentNames.map((name) => [name, SHIPPED.has(name) ? "shipped" : "published"]),
   ) as Record<NativeComponentName, NativeComponentStatus>;

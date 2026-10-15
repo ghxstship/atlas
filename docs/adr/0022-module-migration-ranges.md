@@ -50,4 +50,5 @@ ADR 0004 gave all domain schema to A03 (0300 to 0499). In Wave 3 every module ag
 ## Consequences
 
 - Schema requests no longer queue behind one agent.
+- A31 (views, help and support) owns 0640 to 0649, the end of A19's original 0600 to 0649 integration range; A19 keeps 0600 to 0639.
 - `api_external` projections still belong to A28. Views over late-slot columns go in A28's post-late range, 1000 to 1009, which sorts after 0999 as text and as a number.
