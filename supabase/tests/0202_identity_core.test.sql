@@ -42,7 +42,10 @@ select is(
      and t.table_name not in ('capabilities', 'capability_modules', 'plans', 'subscription_state_transition_rules',
        'organizations', 'people',
        -- person-owned: one row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920)
-       'active_org_selections')
+       'active_org_selections',
+       -- person-owned profile rows keyed by person_id, read by others only through api_public (A30, migration 0860)
+       'person_profiles', 'profile_section_visibility', 'person_skills', 'person_languages', 'person_links',
+       'portfolio_items', 'person_references', 'person_certifications')
      and (select count(*) from information_schema.columns c
           where c.table_schema = 'app' and c.table_name = t.table_name
             and c.column_name in ('org_id', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at')) <> 6),
