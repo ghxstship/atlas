@@ -359,7 +359,8 @@
       "unexpected": "Something went wrong on our side. Try again in a moment.",
       "fields": "Fix the highlighted fields, then save again.",
       "approvalPending": "Your approval is recorded. A second approver is needed before it takes effect.",
-      "fileScanning": "The file is still being scanned for threats. Try again in a minute."
+      "fileScanning": "The file is still being scanned for threats. Try again in a minute.",
+      "editedElsewhere": "Someone saved a newer version while you were editing. Copy your changes, refresh, and apply them again."
     },
     "openFull": "Open full page",
     "properties": "Properties",
@@ -390,7 +391,8 @@
       "range": "Extensions use .50 to .99 in the discipline or category segment.",
       "parent": "The code must start with its parent code.",
       "quantity": "Enter a quantity greater than zero.",
-      "lines": "Add at least one line with a quantity."
+      "lines": "Add at least one line with a quantity.",
+      "sopCode": "Use SOP- and three to five digits, for example SOP-007."
     },
     "loadError": {
       "title": "This did not load",

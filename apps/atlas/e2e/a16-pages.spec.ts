@@ -33,6 +33,33 @@ const PAGES: { path: string; heading: string; row?: string; noComments?: boolean
   { path: "procurement/receipts", heading: "Goods receipts", row: "Demo Staging Supply" },
   { path: "procurement/invoice-matching", heading: "Invoice matching" },
   { path: "procurement/catalog", heading: "Catalog", row: "DEMOPR" },
+  {
+    path: "knowledge/sops",
+    heading: "Standard operating procedures",
+    row: "Load-in and staging sequence",
+  },
+  { path: "knowledge/documents", heading: "Documents", row: "Bayfront Pier site safety plan" },
+  {
+    path: "knowledge/verbiage-library",
+    heading: "Verbiage library",
+    row: "Run of Show",
+    noComments: true,
+  },
+  { path: "canon/departments", heading: "Departments", row: "1000", noComments: true },
+  { path: "canon/disciplines", heading: "Disciplines", row: "Drone Light Shows", noComments: true },
+  { path: "canon/categories", heading: "Categories", row: "1000.01.01", noComments: true },
+  { path: "canon/elements", heading: "Elements", row: "0000", noComments: true },
+  { path: "canon/phases-and-gates", heading: "Phases and gates", row: "SCP", noComments: true },
+  { path: "canon/record-kinds", heading: "Record kinds", row: "Task", noComments: true },
+  { path: "canon/roles", heading: "Roles", row: "1000", noComments: true },
+  {
+    path: "canon/jurisdictions-and-permit-rules",
+    heading: "Jurisdictions and permit rules",
+    row: "US-FL-MIAMI-DADE",
+    noComments: true,
+  },
+  { path: "canon/metrics", heading: "Metrics", row: "", noComments: true },
+  { path: "canon/org-extensions", heading: "Org extensions", row: "Drone Light Shows" },
 ];
 
 for (const p of PAGES) {
@@ -41,7 +68,7 @@ for (const p of PAGES) {
     await page.goto(`/${ORG}/${p.path}`);
     await expect(page.getByRole("heading", { level: 1, name: p.heading })).toBeVisible();
     await expectAccessibleInBothThemes(page);
-    if (!p.row) return;
+    if (p.row === undefined) return;
     await page.goto(`/${ORG}/${p.path}?view=list`);
     const row = page.getByRole("row").filter({ hasText: p.row }).first();
     await row.getByRole("button", { name: "Open" }).click();

@@ -11,3 +11,17 @@ procurement.receipts
 procurement.invoice-matching
 procurement.catalog
 project.procurement
+knowledge.sops
+knowledge.documents
+knowledge.verbiage-library
+canon.departments
+canon.disciplines
+canon.categories
+canon.elements
+canon.phases-and-gates
+canon.record-kinds
+canon.roles
+canon.jurisdictions-and-permit-rules
+canon.metrics
+canon.org-extensions
+project.documents

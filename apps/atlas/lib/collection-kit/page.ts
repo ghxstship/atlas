@@ -23,7 +23,8 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Row ids are UUIDs, or canon codes such as 1000.01 or G1.BUDGET_ENVELOPE on the canon browser. */
+const ROW_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,79}$/;
 
 export function collectionState(
   params: SearchParams,
@@ -45,7 +46,7 @@ export function collectionState(
   }
   return {
     view,
-    peek: peek && UUID.test(peek) ? peek : null,
+    peek: peek && ROW_ID.test(peek) ? peek : null,
     full: first(params["full"]) === "1",
     create: first(params["create"]) === "1",
     edit: first(params["edit"]) === "1",

@@ -5,7 +5,7 @@ import type { RecordState } from "@xos/ui";
  * repository results with every label already translated, so the client components only render.
  */
 
-export type ViewKind = "table" | "list" | "board" | "gallery" | "calendar" | "chart";
+export type ViewKind = "table" | "list" | "board" | "gallery" | "calendar" | "chart" | "tree";
 
 export interface KitState {
   readonly state: RecordState;
@@ -74,4 +74,12 @@ export const LIFECYCLE_TO_RECORD_STATE: Readonly<Record<string, RecordState>> = 
 
 export function recordStateOf(lifecycle: string): RecordState {
   return LIFECYCLE_TO_RECORD_STATE[lifecycle] ?? "proposed";
+}
+
+/** A node of the tree view; `id` opens that row's peek when it is a row of the collection. */
+export interface KitTreeNode {
+  readonly id: string;
+  readonly label: string;
+  readonly meta?: string;
+  readonly children?: readonly KitTreeNode[];
 }

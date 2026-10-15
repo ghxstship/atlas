@@ -30,7 +30,7 @@ export function fromDataError(error: DataError): ActionState {
     case "not-found":
       return { error: "notFound" };
     case "conflict":
-      return { error: "conflict" };
+      return { error: error.message === "sop_edited_elsewhere" ? "editedElsewhere" : "conflict" };
     case "invalid":
       return { error: "invalid" };
     default:

@@ -1,0 +1,172 @@
+{
+  "what": "the canon",
+  "empty": "Canon has no rows here. Refresh; if it stays empty, the canon import has not run on this stack.",
+  "readOnly": "Canon is read-only and shared by every organization. Your org extends it under Org extensions.",
+  "back": "Back to {page}",
+  "yes": "Yes",
+  "no": "No",
+  "none": "None",
+  "inherited": "From the parent jurisdiction",
+  "neutral": "Jurisdiction neutral",
+  "orgExtension": "Your org's extension",
+  "fields": {
+    "code": "Code",
+    "name": "Name",
+    "department": "Department",
+    "discipline": "Discipline",
+    "source": "Source",
+    "extension": "Extension range",
+    "urid": "URID",
+    "state": "State"
+  },
+  "xyz": {
+    "X": "X: resource",
+    "Y": "Y: process",
+    "Z": "Z: timeline"
+  },
+  "departments": {
+    "title": "Departments",
+    "coreFunction": "Core function",
+    "scope": "Scope",
+    "disciplines": "Disciplines",
+    "disciplineCount": "{count, plural, one {# discipline} other {# disciplines}}"
+  },
+  "disciplines": {
+    "title": "Disciplines",
+    "categories": "Categories"
+  },
+  "categories": {
+    "title": "Categories",
+    "xyz": "Schema family"
+  },
+  "elements": {
+    "title": "Elements",
+    "search": "Search elements",
+    "uridPrefix": "URID starts with",
+    "apply": "Search",
+    "pageStatus": "Page {page} of {pages}, {total, plural, one {# element} other {# elements}}",
+    "previous": "Previous page",
+    "next": "Next page",
+    "noMatches": "No element matches. Clear the search or try a shorter URID prefix.",
+    "itemId": "Item ID",
+    "commonName": "Common name",
+    "unit": "Unit",
+    "grade": "Grade",
+    "tier": "Tier",
+    "leadTime": "Lead time",
+    "hours": "{hours, plural, one {# hour} other {# hours}}",
+    "description": "Description"
+  },
+  "phases": {
+    "title": "Phases and gates",
+    "gate": "Gate",
+    "act": "Act",
+    "criteria": "Gate criteria",
+    "exit": "Gate exit",
+    "definition": "Definition",
+    "statement": "Criterion",
+    "blocking": "Blocking",
+    "gateLine": "Gate {gate}, act {act}"
+  },
+  "recordKinds": {
+    "title": "Record kinds",
+    "kind": "Kind",
+    "class": "Class",
+    "subtypes": "Subtypes",
+    "definition": "Definition",
+    "done": "Definition of done",
+    "grammar": "Title grammar"
+  },
+  "roles": {
+    "title": "Roles",
+    "function": "Function",
+    "jobTitle": "Job title",
+    "ratio": "Staffing ratio",
+    "ratioLine": "{ratio} {basis}"
+  },
+  "jurisdictions": {
+    "title": "Jurisdictions and permit rules",
+    "level": "Level",
+    "levels": {
+      "country": "Country",
+      "region": "Region",
+      "ahj": "Authority having jurisdiction"
+    },
+    "parent": "Parent",
+    "status": "Status",
+    "statuses": {
+      "populated": "Populated",
+      "declared-unpopulated": "Declared, not populated"
+    },
+    "rules": "Permit rules",
+    "rule": "Rule",
+    "permit": "Permit",
+    "ahj": "Authority",
+    "leadTime": "Lead time",
+    "condition": "When it applies",
+    "currency": "Currency",
+    "units": "Unit system",
+    "note": "Note",
+    "unpopulated": "Canon declares this jurisdiction but has no rules for it yet, so it answers no permit question.",
+    "noRules": "No permit rules for this jurisdiction."
+  },
+  "metrics": {
+    "title": "Metrics",
+    "domain": "Domain",
+    "item": "Metric",
+    "value": "Value",
+    "qualifier": "Qualifier",
+    "source": "Source",
+    "jurisdiction": "Jurisdiction",
+    "provenance": "Provenance"
+  },
+  "extensions": {
+    "title": "Org extensions",
+    "what": "the org extensions",
+    "create": "Propose extension",
+    "createHelp": "Extensions use .50 to .99 in the discipline or category segment. Someone other than you approves the proposal.",
+    "empty": "No extensions yet. Propose a discipline or category your org needs that canon does not have.",
+    "emptyRead": "Your org has no canon extensions.",
+    "level": "Level",
+    "levels": {
+      "Department": "department",
+      "Discipline": "Discipline",
+      "Category": "Category"
+    },
+    "parent": "Parent",
+    "parentHelp": "A department for a new discipline, or a discipline for a new category.",
+    "chooseParent": "Choose the parent",
+    "code": "Code",
+    "codeHelp": "DDDD.DD for a discipline, DDDD.DD.DD for a category.",
+    "label": "Label",
+    "labelHelp": "Title Case, for example Drone Light Shows.",
+    "rationale": "Why the org needs it",
+    "proposed": "Proposed",
+    "decided": "Decided",
+    "notDecided": "Not decided yet",
+    "ownProposal": "You proposed this, so someone else has to approve or reject it.",
+    "edit": "Edit proposal",
+    "save": "Save proposal",
+    "states": {
+      "Proposed": "Proposed",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "Withdrawn": "Withdrawn"
+    },
+    "moves": {
+      "Approved": "Approve",
+      "Rejected": "Reject",
+      "Withdrawn": "Withdraw"
+    }
+  },
+  "refusals": {
+    "canon_extension_exists": "That code is already canon. Choose another code in .50 to .99.",
+    "canon_extension_parent": "The parent is neither canon nor one of your approved extensions.",
+    "canon_extension_immutable": "A proposal keeps its level, parent and code. Withdraw it and propose again.",
+    "canon_extension_locked": "A decided proposal never changes.",
+    "canon_extension_decide_rpc": "Decide proposals with the Approve and Reject buttons.",
+    "canon_extension_transition_not_allowed": "That move is not allowed from the current state.",
+    "sod_approval_requester": "Separation of duties: the person who proposed this cannot decide it.",
+    "transition_reason_required": "Every decision needs a reason."
+  }
+}

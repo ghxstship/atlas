@@ -15,13 +15,15 @@ import {
   SegmentedControl,
   StateChip,
   TemplateCollection,
+  TreeView,
+  type TreeNode,
   type RecordState,
 } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { useCopy } from "./use-copy";
-import type { KitBoardColumn, KitChart, KitColumn, KitRow, ViewKind } from "./types";
+import type { KitBoardColumn, KitChart, KitColumn, KitRow, KitTreeNode, ViewKind } from "./types";
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
@@ -37,7 +39,9 @@ export function CollectionView({
   rows,
   board,
   chart,
+  tree,
   month,
+  searchable = true,
   empty,
   actions,
   filters,
@@ -50,6 +54,9 @@ export function CollectionView({
   rows: readonly KitRow[];
   board?: readonly KitBoardColumn[];
   chart?: KitChart;
+  tree?: readonly KitTreeNode[];
+  /** False when the page searches on the server (large canon tables) instead of filtering rows here. */
+  searchable?: boolean;
   /** First day of the calendar month shown, YYYY-MM-01. */
   month?: string;
   /** The empty state when the collection has no rows at all. */
@@ -101,7 +108,7 @@ export function CollectionView({
     ) : null;
 
   const searchBox =
-    rows.length > 0 ? (
+    searchable && rows.length > 0 ? (
       <div className="w-full max-w-[min(100%,calc(var(--space-40)*8))]">
         <Input
           id="collection-search"
@@ -206,6 +213,23 @@ export function CollectionView({
         onEventSelect={(e) => {
           const row = dated.find((r) => `${r.key} ${r.title}` === e.label && r.date === e.date);
           if (row) open(row.id);
+        }}
+      />
+    );
+  } else if (view === "tree" && tree) {
+    const rowIds = new Set(rows.map((r) => r.id));
+    const toNode = (n: KitTreeNode): TreeNode => ({
+      id: n.id,
+      label: n.label,
+      ...(n.meta ? { meta: n.meta } : {}),
+      ...(n.children && n.children.length > 0 ? { children: n.children.map(toNode) } : {}),
+    });
+    body = (
+      <TreeView
+        label={title}
+        nodes={tree.map(toNode)}
+        onSelect={(node) => {
+          if (node.id && rowIds.has(node.id)) open(node.id);
         }}
       />
     );

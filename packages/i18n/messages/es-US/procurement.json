@@ -359,7 +359,8 @@
       "unexpected": "Algo salió mal de nuestro lado. Inténtelo de nuevo en un momento.",
       "fields": "Corrija los campos marcados y guarde de nuevo.",
       "approvalPending": "Su aprobación quedó registrada. Se necesita un segundo aprobador para que tenga efecto.",
-      "fileScanning": "El archivo todavía se está analizando en busca de amenazas. Inténtelo en un minuto."
+      "fileScanning": "El archivo todavía se está analizando en busca de amenazas. Inténtelo en un minuto.",
+      "editedElsewhere": "Alguien guardó una versión más reciente mientras usted editaba. Copie sus cambios, actualice y vuelva a aplicarlos."
     },
     "openFull": "Abrir página completa",
     "properties": "Propiedades",
@@ -390,7 +391,8 @@
       "range": "Las extensiones usan .50 a .99 en el segmento de disciplina o de categoría.",
       "parent": "El código debe empezar con el código de su nivel superior.",
       "quantity": "Escriba una cantidad mayor que cero.",
-      "lines": "Agregue al menos una línea con cantidad."
+      "lines": "Agregue al menos una línea con cantidad.",
+      "sopCode": "Use SOP- y de tres a cinco dígitos, por ejemplo SOP-007."
     },
     "loadError": {
       "title": "No se pudo cargar",

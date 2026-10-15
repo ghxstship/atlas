@@ -3,6 +3,7 @@
 
 import enUS_activity from "../messages/en-US/activity.json" with { type: "json" };
 import enUS_advancing from "../messages/en-US/advancing.json" with { type: "json" };
+import enUS_canonBrowser from "../messages/en-US/canonBrowser.json" with { type: "json" };
 import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
@@ -11,6 +12,7 @@ import enUS_gateway from "../messages/en-US/gateway.json" with { type: "json" };
 import enUS_home from "../messages/en-US/home.json" with { type: "json" };
 import enUS_hospitality from "../messages/en-US/hospitality.json" with { type: "json" };
 import enUS_incidents from "../messages/en-US/incidents.json" with { type: "json" };
+import enUS_knowledge from "../messages/en-US/knowledge.json" with { type: "json" };
 import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
@@ -29,6 +31,7 @@ import enUS_vendors from "../messages/en-US/vendors.json" with { type: "json" };
 import enUS_work from "../messages/en-US/work.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json" };
+import esUS_canonBrowser from "../messages/es-US/canonBrowser.json" with { type: "json" };
 import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
@@ -37,6 +40,7 @@ import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
 import esUS_home from "../messages/es-US/home.json" with { type: "json" };
 import esUS_hospitality from "../messages/es-US/hospitality.json" with { type: "json" };
 import esUS_incidents from "../messages/es-US/incidents.json" with { type: "json" };
+import esUS_knowledge from "../messages/es-US/knowledge.json" with { type: "json" };
 import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
@@ -57,6 +61,7 @@ import esUS_work from "../messages/es-US/work.json" with { type: "json" };
 export const enUS = {
   activity: enUS_activity,
   advancing: enUS_advancing,
+  canonBrowser: enUS_canonBrowser,
   compass: enUS_compass,
   credentials: enUS_credentials,
   crew: enUS_crew,
@@ -65,6 +70,7 @@ export const enUS = {
   home: enUS_home,
   hospitality: enUS_hospitality,
   incidents: enUS_incidents,
+  knowledge: enUS_knowledge,
   logistics: enUS_logistics,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
@@ -86,6 +92,7 @@ export const enUS = {
 export const esUS = {
   activity: esUS_activity,
   advancing: esUS_advancing,
+  canonBrowser: esUS_canonBrowser,
   compass: esUS_compass,
   credentials: esUS_credentials,
   crew: esUS_crew,
@@ -94,6 +101,7 @@ export const esUS = {
   home: esUS_home,
   hospitality: esUS_hospitality,
   incidents: esUS_incidents,
+  knowledge: esUS_knowledge,
   logistics: esUS_logistics,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
