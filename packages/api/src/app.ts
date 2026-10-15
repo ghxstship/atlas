@@ -101,13 +101,30 @@ export const DOCUMENT_INFO = {
 export interface ApiDeps extends MountOptions {
   /** Module handler sets; defaults to every file in `src/handlers`. */
   readonly handlers?: readonly AnyModuleHandlers[];
+  /** Mount prefix stripped before routing, such as `/api/v1` in Atlas. */
+  readonly basePath?: string;
 }
 
 export function createApiApp(
   deps?: ApiDeps,
   specs: readonly ResourceSpec[] = catalog,
 ): OpenAPIHono {
-  const app = new OpenAPIHono({ defaultHook: validationHook });
+  const base = deps?.basePath?.replace(/\/$/, "") ?? "";
+  const app = new OpenAPIHono({
+    defaultHook: validationHook,
+    ...(base === ""
+      ? {}
+      : {
+          getPath: (request: Request) => {
+            const path = new URL(request.url).pathname;
+            return path === base
+              ? "/"
+              : path.startsWith(`${base}/`)
+                ? path.slice(base.length)
+                : path;
+          },
+        }),
+  });
   const registry = app.openAPIRegistry;
   registerSecuritySchemes(registry, loadCapabilityRegistry());
   registerHeaders(registry);

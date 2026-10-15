@@ -3,7 +3,8 @@
  * - `Authorization: Bearer <Supabase session JWT>` for first-party clients;
  * - the Atlas session cookie (`xos-auth`, written by `@supabase/ssr`) for Atlas pages, with a
  *   same-origin check on state-changing methods because cookies ride along cross-site;
- * - `Authorization: Bearer xos_live_...` API keys (see `apiKeys` below).
+ * - `Authorization: Bearer xos_live_...` API keys, exchanged for a short-lived JWT acting as the
+ *   key's service account (`createApiKeyExchange`), limited to the key's scopes.
  *
  * The token is verified with Supabase Auth, and every query runs through a client carrying that
  * token, so RLS decides access. The service role is never used for a user request.
@@ -13,6 +14,7 @@
  * the org Atlas last opened on this device; the person's only active membership. A candidate is
  * always checked against the caller's active memberships, read through RLS.
  */
+import { createHash } from "node:crypto";
 import { getCurrentPerson, listMyOrganizations } from "@xos/data";
 import { createCallerClient } from "@xos/data/client";
 import type { XosClient } from "@xos/data";
@@ -33,6 +35,9 @@ export interface SupabaseAuthOptions {
   readonly lastOrgCookie?: string;
   readonly locales?: readonly string[];
   readonly fetch?: typeof fetch;
+  /** The api-token Edge Function; defaults to `${url}/functions/v1/api-token`. */
+  readonly tokenExchangeUrl?: string;
+  readonly now?: () => number;
 }
 
 /** Cookie header to a name-to-value map. */
@@ -169,43 +174,93 @@ async function resolveOrg(
   return only === undefined ? null : { id: only.id, slug: only.slug };
 }
 
+interface ExchangedToken {
+  readonly accessToken: string;
+  readonly orgId: string;
+  readonly scopes: readonly string[];
+  readonly expiresAt: number;
+}
+
 /**
- * Verifies an API key with `app.authenticate_api_key` (migration 0921). A valid key is still
- * answered 401: queries must run as an identity RLS understands, and no API key identity exists
- * in the database yet (reported as blocked). An unknown, revoked or expired key returns null.
+ * API keys go through the api-token Edge Function (supabase/functions/api-token), which resolves the
+ * key with `app.exchange_api_key` and signs a short-lived JWT for the key's service account. The
+ * runtime never holds a service role key or a signing key. Tokens are cached in this process,
+ * keyed by the SHA-256 of the key, until 30 seconds before they expire.
  */
-async function checkApiKey(secret: string, options: SupabaseAuthOptions): Promise<void> {
-  const db = createCallerClient({
-    url: options.url,
-    anonKey: options.anonKey,
-    accessToken: options.anonKey,
-    ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
-  });
-  // app.authenticate_api_key is newer than the generated database types; call it untyped.
-  const untyped = db as unknown as {
-    rpc(
-      name: string,
-      args: Record<string, unknown>,
-    ): PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>;
+export function createApiKeyExchange(options: SupabaseAuthOptions) {
+  const cache = new Map<string, ExchangedToken>();
+  const fetcher = options.fetch ?? fetch;
+  const url =
+    options.tokenExchangeUrl ?? `${options.url.replace(/\/$/, "")}/functions/v1/api-token`;
+  const now = options.now ?? Date.now;
+  return async (secret: string): Promise<ExchangedToken | null> => {
+    const id = createHash("sha256").update(secret).digest("hex");
+    const cached = cache.get(id);
+    if (cached !== undefined && cached.expiresAt - 30_000 > now()) return cached;
+    cache.delete(id);
+    const response = await fetcher(url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secret}`, apikey: options.anonKey },
+    });
+    if (response.status === 401) return null;
+    const body = (await response.json()) as {
+      access_token?: string;
+      expires_in?: number;
+      org_id?: string;
+      scopes?: string[];
+      detail?: string;
+    };
+    if (response.status === 422) {
+      throw unauthorized(body.detail ?? "This API key cannot call the API.");
+    }
+    if (!response.ok || body.access_token === undefined || body.org_id === undefined) {
+      throw new Error(`The API key exchange answered ${response.status}.`);
+    }
+    const token: ExchangedToken = {
+      accessToken: body.access_token,
+      orgId: body.org_id,
+      scopes: body.scopes ?? [],
+      expiresAt: now() + (body.expires_in ?? 0) * 1000,
+    };
+    if (cache.size >= 10_000) cache.clear();
+    cache.set(id, token);
+    return token;
   };
-  const { data, error } = await untyped.rpc("authenticate_api_key", { p_secret: secret });
-  if (error !== null) throw new Error(`Cannot verify the API key: ${error.message}`);
-  if ((data ?? []).length > 0) {
-    throw unauthorized(
-      "This API key is valid, but API key access to data is not open yet. Use a Supabase session token.",
-    );
-  }
 }
 
 /** The `Authenticate` dependency for Supabase sessions. */
 export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authenticate {
   const locales = options.locales ?? SUPPORTED_LOCALES;
+  const exchange = createApiKeyExchange(options);
   return async (request, requestId): Promise<RequestContext | null> => {
     const credential = readCredential(request, options);
     if (credential === null) return null;
     if (credential.kind === "api-key") {
-      await checkApiKey(credential.token, options);
-      return null;
+      const token = await exchange(credential.token);
+      if (token === null) return null;
+      const db = createCallerClient({
+        url: options.url,
+        anonKey: options.anonKey,
+        accessToken: token.accessToken,
+        ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
+      });
+      const userId = String(jwtClaims(token.accessToken)["sub"] ?? "");
+      const person = await getCurrentPerson(db, userId);
+      if (!person.ok) {
+        throw new Error(
+          `Cannot read the service account's person: ${JSON.stringify(person.error)}`,
+        );
+      }
+      return {
+        user: { id: userId, email: null },
+        personId: person.data.id,
+        org: await resolveOrg(db, person.data.id, [{ id: token.orgId }]),
+        locale: negotiateLocale(request.headers.get("accept-language"), locales),
+        db,
+        credential: "api_key",
+        scopes: token.scopes,
+        requestId,
+      };
     }
     const db = createCallerClient({
       url: options.url,

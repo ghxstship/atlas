@@ -14,6 +14,7 @@
     "generate": "node --experimental-strip-types --no-warnings scripts/generate-openapi.ts",
     "generate:handlers": "node --experimental-strip-types --no-warnings scripts/generate-handlers.ts",
     "check:handlers": "node --experimental-strip-types --no-warnings scripts/generate-handlers.ts --check",
+    "coverage:operations": "node --experimental-strip-types --no-warnings scripts/operation-coverage.ts",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage"

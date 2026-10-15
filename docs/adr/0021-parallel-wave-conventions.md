@@ -18,7 +18,9 @@ Waves 3 to 5 run more than twenty agents at once. They share four files that eve
    - An agent with its own migration range runs its own Postgres-only stack, started with `supabase start -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor`. Each stack gets its own `project_id` and port block, set in the agent's uncommitted `supabase/config.toml`.
    - Agents without migrations share the orchestrator's stack `xos4-shared` on ports 560xx. They never reset it. The orchestrator resets it after merging migrations and tells the agents.
 6. **Generated files.** `database.types.ts`, `openapi/v1.json`, `plans.generated.ts`, `catalogs.generated.ts` and the generated route pages are never resolved by hand. On a conflict, take either side and rerun the generator.
-7. **The finish guard** skips files that are deleted on disk but whose deletion is not yet staged.
+7. **Settings.** Each contributor declares its settings in `packages/schemas/settings/<agent>.yaml`. Running `generate:settings` writes the registry, and `settings:sql <agent>` prints the `private.define_setting` statements for the contributor's own migration. Custom panels live in `apps/atlas/components/settings/contributions/<agent>.tsx`. A30 owns every settings and me page; other agents contribute panels, never pages.
+8. **Icons by name.** Icons drawn by name are listed in `packages/icons/registry/<owner>.txt`, and `generate:registry` writes the registry. Named imports from lucide-react need no entry; `import *` from it is forbidden.
+9. **The finish guard** skips files that are deleted on disk but whose deletion is not yet staged.
 
 ## Consequences
 

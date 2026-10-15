@@ -14,10 +14,12 @@ import {
 import { requireOrg, requirePerson } from "../src/runtime/context.ts";
 import type { RequestContext } from "../src/runtime/context.ts";
 import { ApiProblem } from "../src/problem.ts";
+import { defineHandlers, ok } from "../src/runtime/handler.ts";
 
 const USER_ID = "11111111-1111-4111-8111-111111111111";
 const PERSON_ID = "22222222-2222-4222-8222-222222222222";
 const ORG_A = { id: "33333333-3333-4333-8333-333333333333", slug: "alpha", name: "Alpha" };
+const SA_USER_ID = "66666666-6666-4666-8666-666666666666";
 const ORG_B = { id: "44444444-4444-4444-8444-444444444444", slug: "bravo", name: "Bravo" };
 
 function jwt(claims: Record<string, unknown>): string {
@@ -29,6 +31,7 @@ const VALID = jwt({});
 
 function fakeSupabase(orgs: (typeof ORG_A)[], options: { person?: boolean } = {}) {
   const calls: string[] = [];
+  const exchanges: string[] = [];
   const fetcher: typeof fetch = async (input, init) => {
     const url = new URL(typeof input === "string" ? input : (input as Request).url);
     const headers = new Headers(init?.headers ?? (input as Request).headers);
@@ -44,14 +47,25 @@ function fakeSupabase(orgs: (typeof ORG_A)[], options: { person?: boolean } = {}
         return json({ id: USER_ID, email: "ada@example.com", aud: "authenticated" });
       return json({ code: 401, msg: "invalid JWT" }, 401);
     }
-    if (url.pathname === "/rest/v1/rpc/authenticate_api_key") {
-      const body = JSON.parse(String(init?.body)) as { p_secret: string };
-      if (body.p_secret === "xos_live_broken") return json({ message: "boom" }, 500);
-      return json(
-        body.p_secret === "xos_live_valid"
-          ? [{ api_key_id: "k", org_id: ORG_A.id, scopes: ["org"], service_account_id: null }]
-          : [],
-      );
+    if (url.pathname === "/functions/v1/api-token") {
+      exchanges.push(headers.get("authorization") ?? "");
+      const key = headers.get("authorization")?.replace("Bearer ", "");
+      if (key === "xos_live_broken") return json({ detail: "boom" }, 500);
+      if (key === "xos_live_nosa") {
+        return json(
+          { detail: "Attach this key to a service account before calling the API with it." },
+          422,
+        );
+      }
+      if (key === "xos_live_bare") return json({ detail: "Refused." }, 422);
+      if (key !== "xos_live_valid") return json({ detail: "unknown" }, 401);
+      return json({
+        access_token: jwt({ sub: SA_USER_ID, org_id: ORG_A.id }),
+        token_type: "bearer",
+        expires_in: 300,
+        org_id: ORG_A.id,
+        scopes: ["canon"],
+      });
     }
     if (url.pathname === "/rest/v1/people") {
       return json(options.person === false ? [] : [{ id: PERSON_ID, full_name: "Ada" }]);
@@ -73,7 +87,7 @@ function fakeSupabase(orgs: (typeof ORG_A)[], options: { person?: boolean } = {}
     siteOrigin: "https://atlas.test",
     fetch: fetcher,
   });
-  return { authenticate, calls };
+  return { authenticate, calls, exchanges };
 }
 
 function sessionCookie(token: string, chunked = false): string {
@@ -126,12 +140,6 @@ describe("bearer session tokens", () => {
       ApiProblem,
     );
     expect(await resolve(authenticate, { authorization: "Bearer xos_live_abcdef" })).toBeNull();
-    await expect(resolve(authenticate, { authorization: "Bearer xos_live_valid" })).rejects.toThrow(
-      /not open yet/,
-    );
-    await expect(
-      resolve(authenticate, { authorization: "Bearer xos_live_broken" }),
-    ).rejects.toThrow(/Cannot verify/);
     expect(await resolve(authenticate, {})).toBeNull();
   });
 
@@ -142,6 +150,49 @@ describe("bearer session tokens", () => {
     expect(context?.org).toBeNull();
     expect(() => requireOrg(context as RequestContext)).toThrow(ApiProblem);
     expect(() => requirePerson(context as RequestContext)).toThrow(ApiProblem);
+  });
+});
+
+describe("API keys", () => {
+  it("exchanges a key for a service account token, caches it and limits it to its scopes", async () => {
+    const { authenticate, calls, exchanges } = fakeSupabase([ORG_A]);
+    const context = await resolve(authenticate, { authorization: "Bearer xos_live_valid" });
+    expect(context?.credential).toBe("api_key");
+    expect(context?.user.id).toBe(SA_USER_ID);
+    expect(context?.org?.id).toBe(ORG_A.id);
+    expect(context?.scopes).toEqual(["canon"]);
+    const minted = jwt({ sub: SA_USER_ID, org_id: ORG_A.id });
+    expect(calls.filter((c) => c.startsWith("/rest/")).every((c) => c.endsWith(minted))).toBe(true);
+    await resolve(authenticate, { authorization: "Bearer xos_live_valid" });
+    expect(exchanges).toHaveLength(1);
+
+    const app = createApiApp({ authenticate, rateLimiter: false });
+    // A path no module ever handles, so this stays a 404 as module agents add handlers.
+    const outOfScope = await app.request("/no-such-resource", {
+      headers: { authorization: "Bearer xos_live_valid" },
+    });
+    expect(outOfScope.status).toBe(404);
+    const denied = defineHandlers("Projects", {
+      "projects.list": async () => ok({ data: [], next_cursor: null } as never),
+    });
+    const scoped = createApiApp({ authenticate, handlers: [denied], rateLimiter: false });
+    const res = await scoped.request("/projects", {
+      headers: { authorization: "Bearer xos_live_valid" },
+    });
+    expect(res.status).toBe(401);
+    expect(((await res.json()) as { detail: string }).detail).toMatch(
+      /scopes do not include projects/,
+    );
+  });
+
+  it("refuses keys the exchange refuses and surfaces exchange failures", async () => {
+    const { authenticate } = fakeSupabase([ORG_A]);
+    await expect(resolve(authenticate, { authorization: "Bearer xos_live_nosa" })).rejects.toThrow(
+      /service account/,
+    );
+    await expect(
+      resolve(authenticate, { authorization: "Bearer xos_live_broken" }),
+    ).rejects.toThrow(/answered 500/);
   });
 });
 
