@@ -119,7 +119,8 @@
     "required": "Completa este campo para continuar.",
     "invalid": "Revisa este valor: no tiene el formato esperado.",
     "dneReason": "Indica el motivo de No contratar; queda interno.",
-    "dneReview": "Fija una fecha de revisión para No contratar."
+    "dneReview": "Fija una fecha de revisión para No contratar.",
+    "payNeedsRate": "Elige Por hora, Por día, Tarifa fija o Por hito para publicar un rango de pago."
   },
   "errors": {
     "notFound": "Este registro ya no existe o ya no puedes verlo. Vuelve a cargar la página.",

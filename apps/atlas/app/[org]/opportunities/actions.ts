@@ -60,7 +60,13 @@ function fieldErrors(error: z.ZodError, values: Record<string, string>): Opportu
   const errors: Record<string, string> = {};
   for (const issue of error.issues) {
     const name = String(issue.path[0] ?? "form");
-    errors[name] ??= issue.code === "too_small" && values[name] === "" ? "required" : "invalid";
+    // Custom issues carry their own catalog key under opportunities.fieldErrors.
+    errors[name] ??=
+      issue.code === "custom"
+        ? issue.message
+        : issue.code === "too_small" && values[name] === ""
+          ? "required"
+          : "invalid";
   }
   return { fieldErrors: errors, values };
 }
@@ -126,6 +132,10 @@ const opportunitySchema = z
     const max = parseMoney(v.payMax, v.currencyCode);
     if (Number.isNaN(min)) ctx.addIssue({ code: "custom", path: ["payMin"], message: "invalid" });
     if (Number.isNaN(max)) ctx.addIssue({ code: "custom", path: ["payMax"], message: "invalid" });
+    // Posted pay needs a rate type other than Bid (opportunities_pay_needs_terms).
+    if ((min !== null || max !== null) && (v.rateType === "" || v.rateType === "Bid")) {
+      ctx.addIssue({ code: "custom", path: ["rateType"], message: "payNeedsRate" });
+    }
     return { ...v, min, max };
   });
 
@@ -342,7 +352,7 @@ const termsSchema = z
     if (Number.isNaN(amount))
       ctx.addIssue({ code: "custom", path: ["amount"], message: "invalid" });
     if (amount !== null && v.rateType === "")
-      ctx.addIssue({ code: "custom", path: ["rateType"], message: "invalid" });
+      ctx.addIssue({ code: "custom", path: ["rateType"], message: "payNeedsRate" });
     return {
       rateType: v.rateType === "" ? null : (v.rateType as repo.RateType),
       amountMinor: amount,
