@@ -8914,6 +8914,7 @@ var procurement_default$1 = {
     transition_reason_required: "Every state change needs a reason.",
     display_number_immutable: "Display numbers never change.",
     cross_org_reference: "That item belongs to another organization.",
+    rfq_response_lines_required: "Add at least one quoted line to the response.",
   },
   kit: {
     views: "View",
@@ -20618,6 +20619,7 @@ var procurement_default = {
     transition_reason_required: "Cada cambio de estado necesita un motivo.",
     display_number_immutable: "Los números visibles nunca cambian.",
     cross_org_reference: "Ese elemento pertenece a otra organización.",
+    rfq_response_lines_required: "Agregue al menos una línea cotizada a la respuesta.",
   },
   kit: {
     views: "Vista",
