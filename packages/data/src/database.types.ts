@@ -4130,6 +4130,7 @@ export type Database = {
           asset_unit_id: string;
           created_at: string;
           created_by: string | null;
+          custodian_engagement_id: string | null;
           custodian_membership_id: string | null;
           deleted_at: string | null;
           id: string;
@@ -4145,6 +4146,7 @@ export type Database = {
           asset_unit_id: string;
           created_at?: string;
           created_by?: string | null;
+          custodian_engagement_id?: string | null;
           custodian_membership_id?: string | null;
           deleted_at?: string | null;
           id?: string;
@@ -4159,6 +4161,7 @@ export type Database = {
           asset_unit_id?: string;
           created_at?: string;
           created_by?: string | null;
+          custodian_engagement_id?: string | null;
           custodian_membership_id?: string | null;
           deleted_at?: string | null;
           id?: string;
@@ -4182,6 +4185,27 @@ export type Database = {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_custody_custodian_engagement_id_fkey";
+            columns: ["custodian_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "asset_custody_custodian_engagement_id_fkey";
+            columns: ["custodian_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "asset_custody_custodian_engagement_id_fkey";
+            columns: ["custodian_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
             referencedColumns: ["id"];
           },
           {
@@ -4417,6 +4441,126 @@ export type Database = {
           },
           {
             foreignKeyName: "asset_identifiers_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      asset_lot_movements: {
+        Row: {
+          asset_lot_id: string;
+          created_at: string;
+          created_by: string | null;
+          custodian_membership_id: string | null;
+          deleted_at: string | null;
+          delta: number;
+          id: string;
+          movement_kind: Database["app"]["Enums"]["asset_lot_movement_kind"];
+          note: string | null;
+          org_id: string;
+          project_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          asset_lot_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          custodian_membership_id?: string | null;
+          deleted_at?: string | null;
+          delta: number;
+          id?: string;
+          movement_kind: Database["app"]["Enums"]["asset_lot_movement_kind"];
+          note?: string | null;
+          org_id: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          asset_lot_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          custodian_membership_id?: string | null;
+          deleted_at?: string | null;
+          delta?: number;
+          id?: string;
+          movement_kind?: Database["app"]["Enums"]["asset_lot_movement_kind"];
+          note?: string | null;
+          org_id?: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "asset_lot_movements_asset_lot_id_fkey";
+            columns: ["asset_lot_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_lot_balances";
+            referencedColumns: ["asset_lot_id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_asset_lot_id_fkey";
+            columns: ["asset_lot_id"];
+            isOneToOne: false;
+            referencedRelation: "asset_lots";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_custodian_membership_id_fkey";
+            columns: ["custodian_membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -35988,6 +36132,36 @@ export type Database = {
           },
         ];
       };
+      asset_lot_balances: {
+        Row: {
+          asset_lot_id: string | null;
+          on_hand: number | null;
+          opening_quantity: number | null;
+          org_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          asset_lot_id?: string | null;
+          on_hand?: never;
+          opening_quantity?: number | null;
+          org_id?: string | null;
+        };
+        Update: {
+          asset_lot_id?: string | null;
+          on_hand?: never;
+          opening_quantity?: number | null;
+          org_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "asset_lots_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       bid_totals: {
         Row: {
           application_id: string | null;
@@ -38254,6 +38428,28 @@ export type Database = {
         Returns: string;
       };
       agree_self_billing: { Args: { p_engagement_id: string }; Returns: string };
+      apply_asset_scan: {
+        Args: {
+          p_action: Database["app"]["Enums"]["asset_scan_action"];
+          p_code: string;
+          p_custodian_engagement_id?: string;
+          p_custodian_membership_id?: string;
+          p_event_id: string;
+          p_note?: string;
+          p_org_id: string;
+          p_project_id?: string;
+          p_quantity?: number;
+          p_venue_id?: string;
+        };
+        Returns: {
+          asset_state: Database["app"]["Enums"]["asset_state"];
+          ledger_id: string;
+          on_hand: number;
+          outcome: string;
+          subject_id: string;
+          subject_kind: string;
+        }[];
+      };
       apply_sync_mutation: {
         Args: {
           p_args?: Json;
@@ -38462,6 +38658,10 @@ export type Database = {
       };
       complete_offboarding: { Args: { p_offboarding_id: string }; Returns: undefined };
       consent_to_case_study: { Args: { p_case_study_id: string }; Returns: undefined };
+      count_asset_lot: {
+        Args: { p_asset_lot_id: string; p_counted: number; p_note?: string };
+        Returns: string;
+      };
       counter_offer: {
         Args: {
           p_amount_minor: number;
@@ -39148,6 +39348,26 @@ export type Database = {
         Returns: string;
       };
       request_to_join: { Args: { p_message?: string; p_org_id: string }; Returns: string };
+      resolve_asset_code: {
+        Args: { p_code: string; p_org_id: string };
+        Returns: {
+          asset_state: Database["app"]["Enums"]["asset_state"];
+          asset_tag: string;
+          class_name: string;
+          custodian_engagement_id: string;
+          custodian_membership_id: string;
+          custody_project_id: string;
+          custody_since: string;
+          custody_venue_id: string;
+          home_venue_id: string;
+          lot_venue_id: string;
+          on_hand: number;
+          reason: string;
+          refusal: string;
+          subject_id: string;
+          subject_kind: string;
+        }[];
+      };
       resolve_scan_intake: {
         Args: {
           p_note?: string;
@@ -39208,6 +39428,16 @@ export type Database = {
         Args: {
           p_format: Database["app"]["Enums"]["export_format"];
           p_report_definition_id: string;
+        };
+        Returns: string;
+      };
+      save_geofence: {
+        Args: {
+          p_boundary_geojson: Json;
+          p_id: string;
+          p_name: string;
+          p_venue_id: string;
+          p_zone_id: string;
         };
         Returns: string;
       };
@@ -39682,6 +39912,8 @@ export type Database = {
         | "Withdrawn"
         | "Not Selected";
       approval_decision: "Approved" | "Rejected";
+      asset_lot_movement_kind: "Count" | "Check Out" | "Check In";
+      asset_scan_action: "check-out" | "check-in" | "transfer";
       asset_state:
         | "Proposed"
         | "Received"
@@ -45846,6 +46078,8 @@ export const Constants = {
         "Not Selected",
       ],
       approval_decision: ["Approved", "Rejected"],
+      asset_lot_movement_kind: ["Count", "Check Out", "Check In"],
+      asset_scan_action: ["check-out", "check-in", "transfer"],
       asset_state: [
         "Proposed",
         "Received",

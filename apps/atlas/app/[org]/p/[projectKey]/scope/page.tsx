@@ -7,6 +7,7 @@ import {
 } from "@xos/data/projects";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { ReconciliationPanel } from "@/components/places/reconciliation/reconciliation-panel";
 import { ScopeView } from "@/components/projects/scope-view";
 import { PageHeader } from "@/components/projects/ui";
 import { requireNode } from "@/components/shell/sitemap-page";
@@ -52,6 +53,7 @@ export default async function ScopePage({
         phases={must(phases, "phases").map((p) => ({ code: p.code, gate: p.gate }))}
         cells={must(cells, "coordinate matrix")}
       />
+      <ReconciliationPanel ctx={ctx.org} projectId={ctx.project.id} />
     </>
   );
 }

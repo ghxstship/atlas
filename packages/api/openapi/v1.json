@@ -4891,38 +4891,25 @@
             "description": "Venue name.",
             "example": "Harborfront Lawn"
           },
-          "address_line1": {
-            "type": "string",
+          "street_address": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Street address.",
             "example": "100 Harbor Way"
           },
           "locality": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "City.",
             "example": "Miami"
           },
-          "region": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "State or region.",
-            "example": "FL"
-          },
           "postal_code": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Postal code.",
             "example": "33132"
-          },
-          "country": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}$",
-            "description": "ISO 3166-1 alpha-2 country code.",
-            "example": "US"
           },
           "jurisdiction_id": { "$ref": "#/components/schemas/JurisdictionId" },
           "time_zone": {
@@ -4954,11 +4941,9 @@
           "updated_at",
           "updated_by",
           "name",
-          "address_line1",
+          "street_address",
           "locality",
-          "region",
           "postal_code",
-          "country",
           "jurisdiction_id",
           "time_zone",
           "latitude",
@@ -4976,38 +4961,25 @@
             "description": "Venue name.",
             "example": "Harborfront Lawn"
           },
-          "address_line1": {
-            "type": "string",
+          "street_address": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Street address.",
             "example": "100 Harbor Way"
           },
           "locality": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "City.",
             "example": "Miami"
           },
-          "region": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "State or region.",
-            "example": "FL"
-          },
           "postal_code": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Postal code.",
             "example": "33132"
-          },
-          "country": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}$",
-            "description": "ISO 3166-1 alpha-2 country code.",
-            "example": "US"
           },
           "jurisdiction_id": { "$ref": "#/components/schemas/JurisdictionId" },
           "time_zone": {
@@ -5031,15 +5003,7 @@
             "example": -80.1918
           }
         },
-        "required": [
-          "name",
-          "address_line1",
-          "locality",
-          "region",
-          "postal_code",
-          "country",
-          "time_zone"
-        ],
+        "required": ["name", "jurisdiction_id", "time_zone"],
         "description": "Fields accepted when creating a Venue."
       },
       "VenueUpdate": {
@@ -5052,38 +5016,25 @@
             "description": "Venue name.",
             "example": "Harborfront Lawn"
           },
-          "address_line1": {
-            "type": "string",
+          "street_address": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "Street address.",
             "example": "100 Harbor Way"
           },
           "locality": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 300,
             "description": "City.",
             "example": "Miami"
           },
-          "region": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "State or region.",
-            "example": "FL"
-          },
           "postal_code": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Postal code.",
             "example": "33132"
-          },
-          "country": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}$",
-            "description": "ISO 3166-1 alpha-2 country code.",
-            "example": "US"
           },
           "jurisdiction_id": { "$ref": "#/components/schemas/JurisdictionId" },
           "time_zone": {
@@ -5188,7 +5139,8 @@
             "type": ["number", "null"],
             "description": "Floor area in square feet.",
             "example": 18000
-          }
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
         },
         "required": [
           "id",
@@ -5200,9 +5152,16 @@
           "venue_id",
           "name",
           "capacity",
-          "area_sq_ft"
+          "area_sq_ft",
+          "urid"
         ],
         "description": "A space within a venue."
+      },
+      "Urid": {
+        "type": "string",
+        "pattern": "^[0-9]000\\.[0-9]{2}\\.[0-9]{2}$",
+        "description": "Category URID `DDDD.DD.DD` from `xpms.dim_category` (Section 3.3). There is no fourth segment.",
+        "example": "4000.01.01"
       },
       "SpaceCreate": {
         "type": "object",
@@ -5230,7 +5189,8 @@
             "type": ["number", "null"],
             "description": "Floor area in square feet.",
             "example": 18000
-          }
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
         },
         "required": ["venue_id", "name"],
         "description": "Fields accepted when creating a Space."
@@ -5255,7 +5215,8 @@
             "type": ["number", "null"],
             "description": "Floor area in square feet.",
             "example": 18000
-          }
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
         },
         "description": "Fields accepted when updating a Space. Omitted fields are unchanged."
       },
@@ -5316,9 +5277,9 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "space_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the space.",
+            "description": "Identifier of the space the zone sits in.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "name": {
@@ -5328,11 +5289,17 @@
             "description": "Zone name.",
             "example": "Backstage"
           },
-          "zone_code": {
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Zone code used on credentials.",
             "example": "BS"
+          },
+          "venue_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the venue.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -5344,7 +5311,8 @@
           "updated_by",
           "space_id",
           "name",
-          "zone_code"
+          "code",
+          "venue_id"
         ],
         "description": "An access or operations zone within a space."
       },
@@ -5352,9 +5320,9 @@
         "type": "object",
         "properties": {
           "space_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the space.",
+            "description": "Identifier of the space the zone sits in.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "name": {
@@ -5364,14 +5332,20 @@
             "description": "Zone name.",
             "example": "Backstage"
           },
-          "zone_code": {
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Zone code used on credentials.",
             "example": "BS"
+          },
+          "venue_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the venue.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["space_id", "name", "zone_code"],
+        "required": ["name", "code", "venue_id"],
         "description": "Fields accepted when creating a Zone."
       },
       "ZoneUpdate": {
@@ -5384,11 +5358,17 @@
             "description": "Zone name.",
             "example": "Backstage"
           },
-          "zone_code": {
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Zone code used on credentials.",
             "example": "BS"
+          },
+          "space_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the space the zone sits in.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a Zone. Omitted fields are unchanged."
@@ -5455,12 +5435,6 @@
             "description": "Identifier of the venue.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "document_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "valid_from": {
             "type": "string",
             "format": "date",
@@ -5477,6 +5451,20 @@
             "type": "boolean",
             "description": "Whether the document is frozen.",
             "example": false
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Document title.",
+            "example": "Tech Pack 2027"
+          },
+          "document_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Where the document is stored.",
+            "example": "https://docs.example.com/tech-pack.pdf"
           }
         },
         "required": [
@@ -5487,10 +5475,11 @@
           "updated_at",
           "updated_by",
           "venue_id",
-          "document_id",
           "valid_from",
           "valid_to",
-          "frozen"
+          "frozen",
+          "title",
+          "document_uri"
         ],
         "description": "A venue capability document with a validity window. A frozen document cannot change."
       },
@@ -5503,12 +5492,6 @@
             "description": "Identifier of the venue.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "document_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "valid_from": {
             "type": "string",
             "format": "date",
@@ -5520,20 +5503,28 @@
             "format": "date",
             "description": "Last day the document is valid.",
             "example": "2026-10-08"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Document title.",
+            "example": "Tech Pack 2027"
+          },
+          "document_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Where the document is stored.",
+            "example": "https://docs.example.com/tech-pack.pdf"
           }
         },
-        "required": ["venue_id", "document_id", "valid_from"],
+        "required": ["venue_id", "valid_from", "title", "document_uri"],
         "description": "Fields accepted when creating a CapabilityDocument."
       },
       "CapabilityDocumentUpdate": {
         "type": "object",
         "properties": {
-          "document_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "valid_from": {
             "type": "string",
             "format": "date",
@@ -5545,6 +5536,20 @@
             "format": "date",
             "description": "Last day the document is valid.",
             "example": "2026-10-08"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Document title.",
+            "example": "Tech Pack 2027"
+          },
+          "document_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Where the document is stored.",
+            "example": "https://docs.example.com/tech-pack.pdf"
           }
         },
         "description": "Fields accepted when updating a CapabilityDocument. Omitted fields are unchanged."
@@ -5606,9 +5611,9 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "venue_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the venue.",
+            "description": "Identifier of the venue drawn.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "title": {
@@ -5618,11 +5623,18 @@
             "description": "Site plan title.",
             "example": "Festival Layout"
           },
-          "document_id": {
+          "project_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the drawing document.",
+            "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "image_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Where the drawing is stored.",
+            "example": "plans/ground.png"
           }
         },
         "required": [
@@ -5634,7 +5646,8 @@
           "updated_by",
           "venue_id",
           "title",
-          "document_id"
+          "project_id",
+          "image_uri"
         ],
         "description": "A site plan drawing for a venue."
       },
@@ -5642,9 +5655,9 @@
         "type": "object",
         "properties": {
           "venue_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the venue.",
+            "description": "Identifier of the venue drawn.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "title": {
@@ -5654,14 +5667,21 @@
             "description": "Site plan title.",
             "example": "Festival Layout"
           },
-          "document_id": {
+          "project_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the drawing document.",
+            "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "image_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Where the drawing is stored.",
+            "example": "plans/ground.png"
           }
         },
-        "required": ["venue_id", "title", "document_id"],
+        "required": ["title", "project_id", "image_uri"],
         "description": "Fields accepted when creating a SitePlan."
       },
       "SitePlanUpdate": {
@@ -5674,11 +5694,18 @@
             "description": "Site plan title.",
             "example": "Festival Layout"
           },
-          "document_id": {
-            "type": "string",
+          "venue_id": {
+            "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the drawing document.",
+            "description": "Identifier of the venue drawn.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "image_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Where the drawing is stored.",
+            "example": "plans/ground.png"
           }
         },
         "description": "Fields accepted when updating a SitePlan. Omitted fields are unchanged."
@@ -5753,7 +5780,19 @@
             "example": "First Aid"
           },
           "x": { "type": "number", "description": "Horizontal position, 0 to 1.", "example": 0.42 },
-          "y": { "type": "number", "description": "Vertical position, 0 to 1.", "example": 0.71 }
+          "y": { "type": "number", "description": "Vertical position, 0 to 1.", "example": 0.71 },
+          "zone_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the zone the pin marks.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the record the pin marks.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
         },
         "required": [
           "id",
@@ -5765,7 +5804,9 @@
           "site_plan_id",
           "label",
           "x",
-          "y"
+          "y",
+          "zone_id",
+          "record_id"
         ],
         "description": "A pin on a site plan."
       },
@@ -5786,7 +5827,19 @@
             "example": "First Aid"
           },
           "x": { "type": "number", "description": "Horizontal position, 0 to 1.", "example": 0.42 },
-          "y": { "type": "number", "description": "Vertical position, 0 to 1.", "example": 0.71 }
+          "y": { "type": "number", "description": "Vertical position, 0 to 1.", "example": 0.71 },
+          "zone_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the zone the pin marks.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the record the pin marks.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
         },
         "required": ["site_plan_id", "label", "x", "y"],
         "description": "Fields accepted when creating a SitePlanPin."
@@ -5802,7 +5855,19 @@
             "example": "First Aid"
           },
           "x": { "type": "number", "description": "Horizontal position, 0 to 1.", "example": 0.42 },
-          "y": { "type": "number", "description": "Vertical position, 0 to 1.", "example": 0.71 }
+          "y": { "type": "number", "description": "Vertical position, 0 to 1.", "example": 0.71 },
+          "zone_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the zone the pin marks.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the record the pin marks.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
         },
         "description": "Fields accepted when updating a SitePlanPin. Omitted fields are unchanged."
       },
@@ -5870,31 +5935,18 @@
             "example": "Harborfront Site"
           },
           "venue_id": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "uuid",
             "description": "Identifier of the venue.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "latitude": {
-            "type": "number",
-            "minimum": -90,
-            "maximum": 90,
-            "description": "WGS 84 latitude.",
-            "example": 25.7617
+          "zone_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the zone the geofence outlines.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "longitude": {
-            "type": "number",
-            "minimum": -180,
-            "maximum": 180,
-            "description": "WGS 84 longitude.",
-            "example": -80.1918
-          },
-          "radius_m": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Radius in meters.",
-            "example": 250
-          }
+          "boundary": { "$ref": "#/components/schemas/GeoJsonPolygon" }
         },
         "required": [
           "id",
@@ -5905,11 +5957,41 @@
           "updated_by",
           "name",
           "venue_id",
-          "latitude",
-          "longitude",
-          "radius_m"
+          "zone_id",
+          "boundary"
         ],
         "description": "A geofence used for Compass clock in."
+      },
+      "GeoJsonPolygon": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["Polygon"] },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [{ "type": "number" }, { "type": "number" }]
+              },
+              "minItems": 1
+            },
+            "minItems": 1
+          }
+        },
+        "required": ["type", "coordinates"],
+        "description": "A GeoJSON Polygon in WGS 84 (RFC 7946): rings of [longitude, latitude] positions.",
+        "example": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [-80.19, 25.77],
+              [-80.18, 25.77],
+              [-80.18, 25.78],
+              [-80.19, 25.77]
+            ]
+          ]
+        }
       },
       "GeofenceCreate": {
         "type": "object",
@@ -5922,33 +6004,20 @@
             "example": "Harborfront Site"
           },
           "venue_id": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "uuid",
             "description": "Identifier of the venue.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "latitude": {
-            "type": "number",
-            "minimum": -90,
-            "maximum": 90,
-            "description": "WGS 84 latitude.",
-            "example": 25.7617
+          "zone_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the zone the geofence outlines.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "longitude": {
-            "type": "number",
-            "minimum": -180,
-            "maximum": 180,
-            "description": "WGS 84 longitude.",
-            "example": -80.1918
-          },
-          "radius_m": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Radius in meters.",
-            "example": 250
-          }
+          "boundary": { "$ref": "#/components/schemas/GeoJsonPolygon" }
         },
-        "required": ["name", "latitude", "longitude", "radius_m"],
+        "required": ["name", "venue_id", "boundary"],
         "description": "Fields accepted when creating a Geofence."
       },
       "GeofenceUpdate": {
@@ -5961,32 +6030,13 @@
             "description": "Geofence name.",
             "example": "Harborfront Site"
           },
-          "venue_id": {
+          "zone_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the venue.",
+            "description": "Identifier of the zone the geofence outlines.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "latitude": {
-            "type": "number",
-            "minimum": -90,
-            "maximum": 90,
-            "description": "WGS 84 latitude.",
-            "example": 25.7617
-          },
-          "longitude": {
-            "type": "number",
-            "minimum": -180,
-            "maximum": 180,
-            "description": "WGS 84 longitude.",
-            "example": -80.1918
-          },
-          "radius_m": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Radius in meters.",
-            "example": 250
-          }
+          "boundary": { "$ref": "#/components/schemas/GeoJsonPolygon" }
         },
         "description": "Fields accepted when updating a Geofence. Omitted fields are unchanged."
       },
@@ -6046,9 +6096,14 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "direction": { "$ref": "#/components/schemas/Direction" },
+          "direction": {
+            "type": "string",
+            "enum": ["Require", "Provide"],
+            "description": "Require for a requirement of the project, Provide for a capability a venue or counterparty offers.",
+            "example": "Require"
+          },
           "project_id": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "uuid",
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -6060,7 +6115,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "statement": {
+          "description": {
             "type": "string",
             "minLength": 1,
             "maxLength": 20000,
@@ -6072,17 +6127,23 @@
             "description": "Quantity required or provided.",
             "example": 1
           },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
-          "critical": {
+          "unit_basis": { "$ref": "#/components/schemas/UnitCode" },
+          "is_critical": {
             "type": "boolean",
             "description": "Whether the requirement is critical.",
             "example": true
           },
-          "assertion_rank": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Assertion rank of the claim, 0 to 4.",
-            "example": 3
+          "counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the counterparty that provides a capability.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "assertion_word": {
+            "type": "string",
+            "enum": ["CERTIFIED", "DOCUMENTED", "CLAIMED", "INFERRED", "UNKNOWN"],
+            "description": "Canon capability assertion word (Bible tab 22); silence is UNKNOWN, which reconciles as Unknown.",
+            "example": "DOCUMENTED"
           }
         },
         "required": [
@@ -6096,19 +6157,14 @@
           "project_id",
           "venue_id",
           "urid",
-          "statement",
+          "description",
           "quantity",
-          "unit",
-          "critical",
-          "assertion_rank"
+          "unit_basis",
+          "is_critical",
+          "counterparty_id",
+          "assertion_word"
         ],
         "description": "A requirement or a capability: one shape with a direction facet, so reconciliation is a join."
-      },
-      "Direction": {
-        "type": "string",
-        "enum": ["require", "provide"],
-        "description": "Require (a requirement) or provide (a capability).",
-        "example": "require"
       },
       "UnitCode": {
         "type": ["string", "null"],
@@ -6119,9 +6175,14 @@
       "RequirementCreate": {
         "type": "object",
         "properties": {
-          "direction": { "$ref": "#/components/schemas/Direction" },
+          "direction": {
+            "type": "string",
+            "enum": ["Require", "Provide"],
+            "description": "Require for a requirement of the project, Provide for a capability a venue or counterparty offers.",
+            "example": "Require"
+          },
           "project_id": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "uuid",
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
@@ -6133,7 +6194,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "statement": {
+          "description": {
             "type": "string",
             "minLength": 1,
             "maxLength": 20000,
@@ -6145,32 +6206,31 @@
             "description": "Quantity required or provided.",
             "example": 1
           },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
-          "critical": {
+          "unit_basis": { "$ref": "#/components/schemas/UnitCode" },
+          "is_critical": {
             "type": "boolean",
             "description": "Whether the requirement is critical.",
             "example": true
           },
-          "assertion_rank": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Assertion rank of the claim, 0 to 4.",
-            "example": 3
+          "counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the counterparty that provides a capability.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "assertion_word": {
+            "type": "string",
+            "enum": ["CERTIFIED", "DOCUMENTED", "CLAIMED", "INFERRED", "UNKNOWN"],
+            "description": "Canon capability assertion word (Bible tab 22); silence is UNKNOWN, which reconciles as Unknown.",
+            "example": "DOCUMENTED"
           }
         },
-        "required": ["direction", "urid", "statement", "critical", "assertion_rank"],
+        "required": ["direction", "project_id", "urid", "description"],
         "description": "Fields accepted when creating a Requirement."
       },
       "RequirementUpdate": {
         "type": "object",
         "properties": {
-          "direction": { "$ref": "#/components/schemas/Direction" },
-          "project_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the project.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "venue_id": {
             "type": ["string", "null"],
             "format": "uuid",
@@ -6178,7 +6238,7 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" },
-          "statement": {
+          "description": {
             "type": "string",
             "minLength": 1,
             "maxLength": 20000,
@@ -6190,17 +6250,23 @@
             "description": "Quantity required or provided.",
             "example": 1
           },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
-          "critical": {
+          "unit_basis": { "$ref": "#/components/schemas/UnitCode" },
+          "is_critical": {
             "type": "boolean",
             "description": "Whether the requirement is critical.",
             "example": true
           },
-          "assertion_rank": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Assertion rank of the claim, 0 to 4.",
-            "example": 3
+          "counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the counterparty that provides a capability.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "assertion_word": {
+            "type": "string",
+            "enum": ["CERTIFIED", "DOCUMENTED", "CLAIMED", "INFERRED", "UNKNOWN"],
+            "description": "Canon capability assertion word (Bible tab 22); silence is UNKNOWN, which reconciles as Unknown.",
+            "example": "DOCUMENTED"
           }
         },
         "description": "Fields accepted when updating a Requirement. Omitted fields are unchanged."
@@ -6267,12 +6333,6 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "venue_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the venue.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "run_at": {
             "type": "string",
             "format": "date-time",
@@ -6296,6 +6356,13 @@
             "minimum": 0,
             "description": "Requirements with an unknown result.",
             "example": 1
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Notes on the run.",
+            "example": "Venue walk."
           }
         },
         "required": [
@@ -6306,11 +6373,11 @@
           "updated_at",
           "updated_by",
           "project_id",
-          "venue_id",
           "run_at",
           "met_count",
           "gap_count",
-          "unknown_count"
+          "unknown_count",
+          "note"
         ],
         "description": "A reconciliation run of requirements against capabilities."
       },
@@ -6323,11 +6390,12 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "venue_id": {
+          "note": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the venue.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Notes on the run.",
+            "example": "Venue walk."
           }
         },
         "required": ["project_id"],
@@ -9005,12 +9073,6 @@
         "pattern": "^[0-9]000\\.[0-9]{2}\\.[0-9]{2}-[A-Z0-9]+-[0-9]+$",
         "description": "Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).",
         "example": "4000.01.01-XPMS-001"
-      },
-      "Urid": {
-        "type": "string",
-        "pattern": "^[0-9]000\\.[0-9]{2}\\.[0-9]{2}$",
-        "description": "Category URID `DDDD.DD.DD` from `xpms.dim_category` (Section 3.3). There is no fourth segment.",
-        "example": "4000.01.01"
       },
       "AssetClassCreate": {
         "type": "object",
@@ -21213,8 +21275,7 @@
             "maxLength": 300,
             "description": "Template name.",
             "example": "Daily Stage Walk"
-          },
-          "tag_id": { "$ref": "#/components/schemas/TagId" }
+          }
         },
         "required": [
           "id",
@@ -21223,8 +21284,7 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "name",
-          "tag_id"
+          "name"
         ],
         "description": "A template for an inspection walk."
       },
@@ -21237,8 +21297,7 @@
             "maxLength": 300,
             "description": "Template name.",
             "example": "Daily Stage Walk"
-          },
-          "tag_id": { "$ref": "#/components/schemas/TagId" }
+          }
         },
         "required": ["name"],
         "description": "Fields accepted when creating a InspectionTemplate."
@@ -21252,8 +21311,7 @@
             "maxLength": 300,
             "description": "Template name.",
             "example": "Daily Stage Walk"
-          },
-          "tag_id": { "$ref": "#/components/schemas/TagId" }
+          }
         },
         "description": "Fields accepted when updating a InspectionTemplate. Omitted fields are unchanged."
       },
@@ -21332,9 +21390,9 @@
             "description": "What to check.",
             "example": "Guardrails secured on all stage edges"
           },
-          "requires_photo": {
+          "is_critical": {
             "type": "boolean",
-            "description": "Whether a photo is required.",
+            "description": "Whether a failure of this item stops use.",
             "example": true
           }
         },
@@ -21348,7 +21406,7 @@
           "inspection_template_id",
           "position",
           "prompt",
-          "requires_photo"
+          "is_critical"
         ],
         "description": "An item of an inspection template."
       },
@@ -21374,13 +21432,13 @@
             "description": "What to check.",
             "example": "Guardrails secured on all stage edges"
           },
-          "requires_photo": {
+          "is_critical": {
             "type": "boolean",
-            "description": "Whether a photo is required.",
+            "description": "Whether a failure of this item stops use.",
             "example": true
           }
         },
-        "required": ["inspection_template_id", "position", "prompt", "requires_photo"],
+        "required": ["inspection_template_id", "position", "prompt"],
         "description": "Fields accepted when creating a InspectionItem."
       },
       "InspectionItemUpdate": {
@@ -21399,9 +21457,9 @@
             "description": "What to check.",
             "example": "Guardrails secured on all stage edges"
           },
-          "requires_photo": {
+          "is_critical": {
             "type": "boolean",
-            "description": "Whether a photo is required.",
+            "description": "Whether a failure of this item stops use.",
             "example": true
           }
         },
@@ -21475,23 +21533,11 @@
             "description": "Identifier of the inspection template.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "zone_id": {
+          "inspector_person_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the zone.",
+            "description": "Identifier of the inspector, from the session.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "inspector_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the inspector.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "inspection_state": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Inspection state. A Title Case value from the lifecycle's database enum.",
-            "example": "Active"
           },
           "signed_off_by": {
             "type": ["string", "null"],
@@ -21504,6 +21550,18 @@
             "format": "date-time",
             "description": "When it was signed off.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Inspection record of the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "inspected_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the inspection took place.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -21515,11 +21573,11 @@
           "updated_by",
           "project_id",
           "inspection_template_id",
-          "zone_id",
-          "inspector_id",
-          "inspection_state",
+          "inspector_person_id",
           "signed_off_by",
-          "signed_off_at"
+          "signed_off_at",
+          "record_id",
+          "inspected_at"
         ],
         "description": "An inspection performed from a template, with sign-off."
       },
@@ -21538,35 +21596,29 @@
             "description": "Identifier of the inspection template.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "zone_id": {
+          "record_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the zone.",
+            "description": "Identifier of the Inspection record of the same project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "inspector_id": {
+          "inspected_at": {
             "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the inspector.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "format": "date-time",
+            "description": "When the inspection took place.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["project_id", "inspection_template_id", "inspector_id"],
+        "required": ["project_id", "inspection_template_id"],
         "description": "Fields accepted when creating a Inspection."
       },
       "InspectionUpdate": {
         "type": "object",
         "properties": {
-          "zone_id": {
+          "record_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the zone.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "inspector_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the inspector.",
+            "description": "Identifier of the Inspection record of the same project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -21640,22 +21692,30 @@
             "description": "Identifier of the inspection item.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "passed": {
-            "type": "boolean",
-            "description": "Whether the item passed.",
-            "example": true
-          },
-          "notes": {
+          "note": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
             "description": "Notes.",
             "example": "Left rail tightened on site."
           },
-          "photo_document_id": {
+          "result_enum_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Row of the canon Inspection Result enumeration, for example ENM-084 (Failed).",
+            "example": "ENM-084"
+          },
+          "photo_uri": {
             "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Object name of the finding's photo in the field-media bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/inspections/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/rail.jpg"
+          },
+          "project_id": {
+            "type": "string",
             "format": "uuid",
-            "description": "Identifier of the photo.",
+            "description": "Identifier of the project, from the inspection.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -21668,9 +21728,10 @@
           "updated_by",
           "inspection_id",
           "inspection_item_id",
-          "passed",
-          "notes",
-          "photo_document_id"
+          "note",
+          "result_enum_id",
+          "photo_uri",
+          "project_id"
         ],
         "description": "Pass or fail for one inspection item."
       },
@@ -21689,48 +21750,52 @@
             "description": "Identifier of the inspection item.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "passed": {
-            "type": "boolean",
-            "description": "Whether the item passed.",
-            "example": true
-          },
-          "notes": {
+          "note": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
             "description": "Notes.",
             "example": "Left rail tightened on site."
           },
-          "photo_document_id": {
+          "result_enum_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Row of the canon Inspection Result enumeration, for example ENM-084 (Failed).",
+            "example": "ENM-084"
+          },
+          "photo_uri": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the photo.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Object name of the finding's photo in the field-media bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/inspections/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/rail.jpg"
           }
         },
-        "required": ["inspection_id", "inspection_item_id", "passed"],
+        "required": ["inspection_id", "inspection_item_id", "result_enum_id"],
         "description": "Fields accepted when creating a InspectionResult."
       },
       "InspectionResultUpdate": {
         "type": "object",
         "properties": {
-          "passed": {
-            "type": "boolean",
-            "description": "Whether the item passed.",
-            "example": true
-          },
-          "notes": {
+          "note": {
             "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
             "description": "Notes.",
             "example": "Left rail tightened on site."
           },
-          "photo_document_id": {
+          "result_enum_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Row of the canon Inspection Result enumeration, for example ENM-084 (Failed).",
+            "example": "ENM-084"
+          },
+          "photo_uri": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the photo.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Object name of the finding's photo in the field-media bucket.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/inspections/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/rail.jpg"
           }
         },
         "description": "Fields accepted when updating a InspectionResult. Omitted fields are unchanged."
@@ -21819,17 +21884,30 @@
             "description": "Authority having jurisdiction.",
             "example": "City Building and Fire"
           },
-          "due_on": {
-            "type": ["string", "null"],
-            "format": "date",
-            "description": "Latest filing date from the lead time.",
-            "example": "2026-10-08"
-          },
           "permit_state": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
             "description": "Permit state. A Title Case value from the lifecycle's database enum.",
             "example": "Proposed"
+          },
+          "lead_time": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Lead time as canon states it.",
+            "example": "4-6 wks"
+          },
+          "trigger_type": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "What triggers the canon rule: threshold, project, element or condition.",
+            "example": "project"
+          },
+          "record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Permit record tracking the requirement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -21844,8 +21922,10 @@
           "jurisdiction_id",
           "permit",
           "ahj",
-          "due_on",
-          "permit_state"
+          "permit_state",
+          "lead_time",
+          "trigger_type",
+          "record_id"
         ],
         "description": "A permit requirement generated by the jurisdiction permit engine. An unpopulated jurisdiction returns no answer."
       },
@@ -21884,6 +21964,18 @@
         },
         "required": ["expected_state", "to_state"],
         "description": "Request to move a lifecycle to another state."
+      },
+      "PermitTrackRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Record title; defaults to the canon permit text.",
+            "example": "Special Events Permit"
+          }
+        }
       },
       "IncidentPage": {
         "type": "object",
@@ -50745,11 +50837,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Harborfront Lawn",
-                      "address_line1": "100 Harbor Way",
+                      "street_address": "100 Harbor Way",
                       "locality": "Miami",
-                      "region": "FL",
                       "postal_code": "33132",
-                      "country": "US",
                       "jurisdiction_id": "US-FL",
                       "time_zone": "America/New_York",
                       "latitude": 25.7617,
@@ -50782,11 +50872,9 @@
             "application/json": {
               "example": {
                 "name": "Harborfront Lawn",
-                "address_line1": "100 Harbor Way",
+                "street_address": "100 Harbor Way",
                 "locality": "Miami",
-                "region": "FL",
                 "postal_code": "33132",
-                "country": "US",
                 "jurisdiction_id": "US-FL",
                 "time_zone": "America/New_York",
                 "latitude": 25.7617,
@@ -50815,11 +50903,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Harborfront Lawn",
-                  "address_line1": "100 Harbor Way",
+                  "street_address": "100 Harbor Way",
                   "locality": "Miami",
-                  "region": "FL",
                   "postal_code": "33132",
-                  "country": "US",
                   "jurisdiction_id": "US-FL",
                   "time_zone": "America/New_York",
                   "latitude": 25.7617,
@@ -50880,11 +50966,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Harborfront Lawn",
-                  "address_line1": "100 Harbor Way",
+                  "street_address": "100 Harbor Way",
                   "locality": "Miami",
-                  "region": "FL",
                   "postal_code": "33132",
-                  "country": "US",
                   "jurisdiction_id": "US-FL",
                   "time_zone": "America/New_York",
                   "latitude": 25.7617,
@@ -50929,11 +51013,9 @@
             "application/json": {
               "example": {
                 "name": "Harborfront Lawn",
-                "address_line1": "100 Harbor Way",
+                "street_address": "100 Harbor Way",
                 "locality": "Miami",
-                "region": "FL",
                 "postal_code": "33132",
-                "country": "US",
                 "jurisdiction_id": "US-FL",
                 "time_zone": "America/New_York",
                 "latitude": 25.7617,
@@ -50962,11 +51044,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Harborfront Lawn",
-                  "address_line1": "100 Harbor Way",
+                  "street_address": "100 Harbor Way",
                   "locality": "Miami",
-                  "region": "FL",
                   "postal_code": "33132",
-                  "country": "US",
                   "jurisdiction_id": "US-FL",
                   "time_zone": "America/New_York",
                   "latitude": 25.7617,
@@ -51055,7 +51135,8 @@
                       "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "North Lawn",
                       "capacity": 2500,
-                      "area_sq_ft": 18000
+                      "area_sq_ft": 18000,
+                      "urid": "4000.01.01"
                     }
                   ],
                   "next_cursor": null
@@ -51086,7 +51167,8 @@
                 "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "name": "North Lawn",
                 "capacity": 2500,
-                "area_sq_ft": 18000
+                "area_sq_ft": 18000,
+                "urid": "4000.01.01"
               },
               "schema": { "$ref": "#/components/schemas/SpaceCreate" }
             }
@@ -51113,7 +51195,8 @@
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "North Lawn",
                   "capacity": 2500,
-                  "area_sq_ft": 18000
+                  "area_sq_ft": 18000,
+                  "urid": "4000.01.01"
                 },
                 "schema": { "$ref": "#/components/schemas/Space" }
               }
@@ -51172,7 +51255,8 @@
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "North Lawn",
                   "capacity": 2500,
-                  "area_sq_ft": 18000
+                  "area_sq_ft": 18000,
+                  "urid": "4000.01.01"
                 },
                 "schema": { "$ref": "#/components/schemas/Space" }
               }
@@ -51211,7 +51295,12 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "North Lawn", "capacity": 2500, "area_sq_ft": 18000 },
+              "example": {
+                "name": "North Lawn",
+                "capacity": 2500,
+                "area_sq_ft": 18000,
+                "urid": "4000.01.01"
+              },
               "schema": { "$ref": "#/components/schemas/SpaceUpdate" }
             }
           }
@@ -51237,7 +51326,8 @@
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "North Lawn",
                   "capacity": 2500,
-                  "area_sq_ft": 18000
+                  "area_sq_ft": 18000,
+                  "urid": "4000.01.01"
                 },
                 "schema": { "$ref": "#/components/schemas/Space" }
               }
@@ -51321,7 +51411,8 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Backstage",
-                      "zone_code": "BS"
+                      "code": "BS",
+                      "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -51351,7 +51442,8 @@
               "example": {
                 "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "name": "Backstage",
-                "zone_code": "BS"
+                "code": "BS",
+                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/ZoneCreate" }
             }
@@ -51377,7 +51469,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Backstage",
-                  "zone_code": "BS"
+                  "code": "BS",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Zone" }
               }
@@ -51435,7 +51528,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Backstage",
-                  "zone_code": "BS"
+                  "code": "BS",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Zone" }
               }
@@ -51474,7 +51568,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Backstage", "zone_code": "BS" },
+              "example": {
+                "name": "Backstage",
+                "code": "BS",
+                "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
               "schema": { "$ref": "#/components/schemas/ZoneUpdate" }
             }
           }
@@ -51499,7 +51597,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Backstage",
-                  "zone_code": "BS"
+                  "code": "BS",
+                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Zone" }
               }
@@ -51582,10 +51681,11 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "valid_from": "2026-10-08",
                       "valid_to": "2026-10-08",
-                      "frozen": false
+                      "frozen": false,
+                      "title": "Tech Pack 2027",
+                      "document_uri": "https://docs.example.com/tech-pack.pdf"
                     }
                   ],
                   "next_cursor": null
@@ -51614,9 +51714,10 @@
             "application/json": {
               "example": {
                 "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "valid_from": "2026-10-08",
-                "valid_to": "2026-10-08"
+                "valid_to": "2026-10-08",
+                "title": "Tech Pack 2027",
+                "document_uri": "https://docs.example.com/tech-pack.pdf"
               },
               "schema": { "$ref": "#/components/schemas/CapabilityDocumentCreate" }
             }
@@ -51641,10 +51742,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08",
                   "valid_to": "2026-10-08",
-                  "frozen": false
+                  "frozen": false,
+                  "title": "Tech Pack 2027",
+                  "document_uri": "https://docs.example.com/tech-pack.pdf"
                 },
                 "schema": { "$ref": "#/components/schemas/CapabilityDocument" }
               }
@@ -51701,10 +51803,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08",
                   "valid_to": "2026-10-08",
-                  "frozen": false
+                  "frozen": false,
+                  "title": "Tech Pack 2027",
+                  "document_uri": "https://docs.example.com/tech-pack.pdf"
                 },
                 "schema": { "$ref": "#/components/schemas/CapabilityDocument" }
               }
@@ -51744,9 +51847,10 @@
           "content": {
             "application/json": {
               "example": {
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "valid_from": "2026-10-08",
-                "valid_to": "2026-10-08"
+                "valid_to": "2026-10-08",
+                "title": "Tech Pack 2027",
+                "document_uri": "https://docs.example.com/tech-pack.pdf"
               },
               "schema": { "$ref": "#/components/schemas/CapabilityDocumentUpdate" }
             }
@@ -51771,10 +51875,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08",
                   "valid_to": "2026-10-08",
-                  "frozen": false
+                  "frozen": false,
+                  "title": "Tech Pack 2027",
+                  "document_uri": "https://docs.example.com/tech-pack.pdf"
                 },
                 "schema": { "$ref": "#/components/schemas/CapabilityDocument" }
               }
@@ -51863,10 +51968,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08",
                   "valid_to": "2026-10-08",
-                  "frozen": false
+                  "frozen": false,
+                  "title": "Tech Pack 2027",
+                  "document_uri": "https://docs.example.com/tech-pack.pdf"
                 },
                 "schema": { "$ref": "#/components/schemas/CapabilityDocument" }
               }
@@ -51919,7 +52025,8 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "title": "Festival Layout",
-                      "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "image_uri": "plans/ground.png"
                     }
                   ],
                   "next_cursor": null
@@ -51949,7 +52056,8 @@
               "example": {
                 "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "title": "Festival Layout",
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "image_uri": "plans/ground.png"
               },
               "schema": { "$ref": "#/components/schemas/SitePlanCreate" }
             }
@@ -51975,7 +52083,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Festival Layout",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "image_uri": "plans/ground.png"
                 },
                 "schema": { "$ref": "#/components/schemas/SitePlan" }
               }
@@ -52033,7 +52142,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Festival Layout",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "image_uri": "plans/ground.png"
                 },
                 "schema": { "$ref": "#/components/schemas/SitePlan" }
               }
@@ -52074,7 +52184,8 @@
             "application/json": {
               "example": {
                 "title": "Festival Layout",
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "image_uri": "plans/ground.png"
               },
               "schema": { "$ref": "#/components/schemas/SitePlanUpdate" }
             }
@@ -52100,7 +52211,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "title": "Festival Layout",
-                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "image_uri": "plans/ground.png"
                 },
                 "schema": { "$ref": "#/components/schemas/SitePlan" }
               }
@@ -52185,7 +52297,9 @@
                       "site_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "label": "First Aid",
                       "x": 0.42,
-                      "y": 0.71
+                      "y": 0.71,
+                      "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -52216,7 +52330,9 @@
                 "site_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "label": "First Aid",
                 "x": 0.42,
-                "y": 0.71
+                "y": 0.71,
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/SitePlanPinCreate" }
             }
@@ -52243,7 +52359,9 @@
                   "site_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "label": "First Aid",
                   "x": 0.42,
-                  "y": 0.71
+                  "y": 0.71,
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/SitePlanPin" }
               }
@@ -52302,7 +52420,9 @@
                   "site_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "label": "First Aid",
                   "x": 0.42,
-                  "y": 0.71
+                  "y": 0.71,
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/SitePlanPin" }
               }
@@ -52341,7 +52461,13 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "label": "First Aid", "x": 0.42, "y": 0.71 },
+              "example": {
+                "label": "First Aid",
+                "x": 0.42,
+                "y": 0.71,
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
               "schema": { "$ref": "#/components/schemas/SitePlanPinUpdate" }
             }
           }
@@ -52367,7 +52493,9 @@
                   "site_plan_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "label": "First Aid",
                   "x": 0.42,
-                  "y": 0.71
+                  "y": 0.71,
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/SitePlanPin" }
               }
@@ -52451,9 +52579,18 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Harborfront Site",
                       "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "latitude": 25.7617,
-                      "longitude": -80.1918,
-                      "radius_m": 250
+                      "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "boundary": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [-80.19, 25.77],
+                            [-80.18, 25.77],
+                            [-80.18, 25.78],
+                            [-80.19, 25.77]
+                          ]
+                        ]
+                      }
                     }
                   ],
                   "next_cursor": null
@@ -52483,9 +52620,18 @@
               "example": {
                 "name": "Harborfront Site",
                 "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "latitude": 25.7617,
-                "longitude": -80.1918,
-                "radius_m": 250
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "boundary": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [-80.19, 25.77],
+                      [-80.18, 25.77],
+                      [-80.18, 25.78],
+                      [-80.19, 25.77]
+                    ]
+                  ]
+                }
               },
               "schema": { "$ref": "#/components/schemas/GeofenceCreate" }
             }
@@ -52511,9 +52657,18 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Harborfront Site",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "latitude": 25.7617,
-                  "longitude": -80.1918,
-                  "radius_m": 250
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "boundary": {
+                    "type": "Polygon",
+                    "coordinates": [
+                      [
+                        [-80.19, 25.77],
+                        [-80.18, 25.77],
+                        [-80.18, 25.78],
+                        [-80.19, 25.77]
+                      ]
+                    ]
+                  }
                 },
                 "schema": { "$ref": "#/components/schemas/Geofence" }
               }
@@ -52571,9 +52726,18 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Harborfront Site",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "latitude": 25.7617,
-                  "longitude": -80.1918,
-                  "radius_m": 250
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "boundary": {
+                    "type": "Polygon",
+                    "coordinates": [
+                      [
+                        [-80.19, 25.77],
+                        [-80.18, 25.77],
+                        [-80.18, 25.78],
+                        [-80.19, 25.77]
+                      ]
+                    ]
+                  }
                 },
                 "schema": { "$ref": "#/components/schemas/Geofence" }
               }
@@ -52614,10 +52778,18 @@
             "application/json": {
               "example": {
                 "name": "Harborfront Site",
-                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "latitude": 25.7617,
-                "longitude": -80.1918,
-                "radius_m": 250
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "boundary": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [-80.19, 25.77],
+                      [-80.18, 25.77],
+                      [-80.18, 25.78],
+                      [-80.19, 25.77]
+                    ]
+                  ]
+                }
               },
               "schema": { "$ref": "#/components/schemas/GeofenceUpdate" }
             }
@@ -52643,9 +52815,18 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Harborfront Site",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "latitude": 25.7617,
-                  "longitude": -80.1918,
-                  "radius_m": 250
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "boundary": {
+                    "type": "Polygon",
+                    "coordinates": [
+                      [
+                        [-80.19, 25.77],
+                        [-80.18, 25.77],
+                        [-80.18, 25.78],
+                        [-80.19, 25.77]
+                      ]
+                    ]
+                  }
                 },
                 "schema": { "$ref": "#/components/schemas/Geofence" }
               }
@@ -52695,7 +52876,7 @@
       "get": {
         "operationId": "requirements.list",
         "tags": ["Places"],
-        "x-xos-table": "app.requirements",
+        "x-xos-table": "app.capability_statements",
         "x-xos-capability": "projects.project.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -52727,15 +52908,16 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "direction": "require",
+                      "direction": "Require",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "urid": "4000.01",
-                      "statement": "Three-phase 400 A power at stage left.",
+                      "description": "Three-phase 400 A power at stage left.",
                       "quantity": 1,
-                      "unit": "each",
-                      "critical": true,
-                      "assertion_rank": 3
+                      "unit_basis": "each",
+                      "is_critical": true,
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "assertion_word": "DOCUMENTED"
                     }
                   ],
                   "next_cursor": null
@@ -52752,7 +52934,7 @@
       "post": {
         "operationId": "requirements.create",
         "tags": ["Places"],
-        "x-xos-table": "app.requirements",
+        "x-xos-table": "app.capability_statements",
         "x-xos-capability": "projects.scope.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "summary": "Create a requirement",
@@ -52763,15 +52945,16 @@
           "content": {
             "application/json": {
               "example": {
-                "direction": "require",
+                "direction": "Require",
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "urid": "4000.01",
-                "statement": "Three-phase 400 A power at stage left.",
+                "description": "Three-phase 400 A power at stage left.",
                 "quantity": 1,
-                "unit": "each",
-                "critical": true,
-                "assertion_rank": 3
+                "unit_basis": "each",
+                "is_critical": true,
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "assertion_word": "DOCUMENTED"
               },
               "schema": { "$ref": "#/components/schemas/RequirementCreate" }
             }
@@ -52795,15 +52978,16 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "direction": "require",
+                  "direction": "Require",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "urid": "4000.01",
-                  "statement": "Three-phase 400 A power at stage left.",
+                  "description": "Three-phase 400 A power at stage left.",
                   "quantity": 1,
-                  "unit": "each",
-                  "critical": true,
-                  "assertion_rank": 3
+                  "unit_basis": "each",
+                  "is_critical": true,
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "assertion_word": "DOCUMENTED"
                 },
                 "schema": { "$ref": "#/components/schemas/Requirement" }
               }
@@ -52821,7 +53005,7 @@
       "get": {
         "operationId": "requirements.get",
         "tags": ["Places"],
-        "x-xos-table": "app.requirements",
+        "x-xos-table": "app.capability_statements",
         "x-xos-capability": "projects.project.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "summary": "Get a requirement",
@@ -52859,15 +53043,16 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "direction": "require",
+                  "direction": "Require",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "urid": "4000.01",
-                  "statement": "Three-phase 400 A power at stage left.",
+                  "description": "Three-phase 400 A power at stage left.",
                   "quantity": 1,
-                  "unit": "each",
-                  "critical": true,
-                  "assertion_rank": 3
+                  "unit_basis": "each",
+                  "is_critical": true,
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "assertion_word": "DOCUMENTED"
                 },
                 "schema": { "$ref": "#/components/schemas/Requirement" }
               }
@@ -52882,7 +53067,7 @@
       "patch": {
         "operationId": "requirements.update",
         "tags": ["Places"],
-        "x-xos-table": "app.requirements",
+        "x-xos-table": "app.capability_statements",
         "x-xos-capability": "projects.scope.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "summary": "Update a requirement",
@@ -52907,15 +53092,14 @@
           "content": {
             "application/json": {
               "example": {
-                "direction": "require",
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "urid": "4000.01",
-                "statement": "Three-phase 400 A power at stage left.",
+                "description": "Three-phase 400 A power at stage left.",
                 "quantity": 1,
-                "unit": "each",
-                "critical": true,
-                "assertion_rank": 3
+                "unit_basis": "each",
+                "is_critical": true,
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "assertion_word": "DOCUMENTED"
               },
               "schema": { "$ref": "#/components/schemas/RequirementUpdate" }
             }
@@ -52939,15 +53123,16 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "direction": "require",
+                  "direction": "Require",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "urid": "4000.01",
-                  "statement": "Three-phase 400 A power at stage left.",
+                  "description": "Three-phase 400 A power at stage left.",
                   "quantity": 1,
-                  "unit": "each",
-                  "critical": true,
-                  "assertion_rank": 3
+                  "unit_basis": "each",
+                  "is_critical": true,
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "assertion_word": "DOCUMENTED"
                 },
                 "schema": { "$ref": "#/components/schemas/Requirement" }
               }
@@ -52965,7 +53150,7 @@
       "delete": {
         "operationId": "requirements.delete",
         "tags": ["Places"],
-        "x-xos-table": "app.requirements",
+        "x-xos-table": "app.capability_statements",
         "x-xos-capability": "projects.scope.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "summary": "Delete a requirement",
@@ -53030,11 +53215,11 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "run_at": "2026-10-08T14:30:00Z",
                       "met_count": 18,
                       "gap_count": 2,
-                      "unknown_count": 1
+                      "unknown_count": 1,
+                      "note": "Venue walk."
                     }
                   ],
                   "next_cursor": null
@@ -53063,7 +53248,7 @@
             "application/json": {
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "note": "Venue walk."
               },
               "schema": { "$ref": "#/components/schemas/ReconciliationCreate" }
             }
@@ -53088,11 +53273,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "run_at": "2026-10-08T14:30:00Z",
                   "met_count": 18,
                   "gap_count": 2,
-                  "unknown_count": 1
+                  "unknown_count": 1,
+                  "note": "Venue walk."
                 },
                 "schema": { "$ref": "#/components/schemas/Reconciliation" }
               }
@@ -53149,11 +53334,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "run_at": "2026-10-08T14:30:00Z",
                   "met_count": 18,
                   "gap_count": 2,
-                  "unknown_count": 1
+                  "unknown_count": 1,
+                  "note": "Venue walk."
                 },
                 "schema": { "$ref": "#/components/schemas/Reconciliation" }
               }
@@ -78881,8 +79066,7 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "name": "Daily Stage Walk",
-                      "tag_id": "TAG-002"
+                      "name": "Daily Stage Walk"
                     }
                   ],
                   "next_cursor": null
@@ -78909,7 +79093,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Daily Stage Walk", "tag_id": "TAG-002" },
+              "example": { "name": "Daily Stage Walk" },
               "schema": { "$ref": "#/components/schemas/InspectionTemplateCreate" }
             }
           }
@@ -78932,8 +79116,7 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "Daily Stage Walk",
-                  "tag_id": "TAG-002"
+                  "name": "Daily Stage Walk"
                 },
                 "schema": { "$ref": "#/components/schemas/InspectionTemplate" }
               }
@@ -78989,8 +79172,7 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "Daily Stage Walk",
-                  "tag_id": "TAG-002"
+                  "name": "Daily Stage Walk"
                 },
                 "schema": { "$ref": "#/components/schemas/InspectionTemplate" }
               }
@@ -79029,7 +79211,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Daily Stage Walk", "tag_id": "TAG-002" },
+              "example": { "name": "Daily Stage Walk" },
               "schema": { "$ref": "#/components/schemas/InspectionTemplateUpdate" }
             }
           }
@@ -79052,8 +79234,7 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "name": "Daily Stage Walk",
-                  "tag_id": "TAG-002"
+                  "name": "Daily Stage Walk"
                 },
                 "schema": { "$ref": "#/components/schemas/InspectionTemplate" }
               }
@@ -79138,7 +79319,7 @@
                       "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "position": 1,
                       "prompt": "Guardrails secured on all stage edges",
-                      "requires_photo": true
+                      "is_critical": true
                     }
                   ],
                   "next_cursor": null
@@ -79169,7 +79350,7 @@
                 "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "position": 1,
                 "prompt": "Guardrails secured on all stage edges",
-                "requires_photo": true
+                "is_critical": true
               },
               "schema": { "$ref": "#/components/schemas/InspectionItemCreate" }
             }
@@ -79196,7 +79377,7 @@
                   "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 1,
                   "prompt": "Guardrails secured on all stage edges",
-                  "requires_photo": true
+                  "is_critical": true
                 },
                 "schema": { "$ref": "#/components/schemas/InspectionItem" }
               }
@@ -79255,7 +79436,7 @@
                   "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 1,
                   "prompt": "Guardrails secured on all stage edges",
-                  "requires_photo": true
+                  "is_critical": true
                 },
                 "schema": { "$ref": "#/components/schemas/InspectionItem" }
               }
@@ -79297,7 +79478,7 @@
               "example": {
                 "position": 1,
                 "prompt": "Guardrails secured on all stage edges",
-                "requires_photo": true
+                "is_critical": true
               },
               "schema": { "$ref": "#/components/schemas/InspectionItemUpdate" }
             }
@@ -79324,7 +79505,7 @@
                   "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "position": 1,
                   "prompt": "Guardrails secured on all stage edges",
-                  "requires_photo": true
+                  "is_critical": true
                 },
                 "schema": { "$ref": "#/components/schemas/InspectionItem" }
               }
@@ -79408,11 +79589,11 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "inspector_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "inspection_state": "Active",
+                      "inspector_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "signed_off_at": "2026-10-08T14:30:00Z"
+                      "signed_off_at": "2026-10-08T14:30:00Z",
+                      "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "inspected_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -79442,8 +79623,8 @@
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "inspector_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "inspected_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/InspectionCreate" }
             }
@@ -79469,11 +79650,11 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspector_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspection_state": "Active",
+                  "inspector_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "signed_off_at": "2026-10-08T14:30:00Z"
+                  "signed_off_at": "2026-10-08T14:30:00Z",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "inspected_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Inspection" }
               }
@@ -79531,11 +79712,11 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspector_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspection_state": "Active",
+                  "inspector_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "signed_off_at": "2026-10-08T14:30:00Z"
+                  "signed_off_at": "2026-10-08T14:30:00Z",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "inspected_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Inspection" }
               }
@@ -79574,10 +79755,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "inspector_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-              },
+              "example": { "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
               "schema": { "$ref": "#/components/schemas/InspectionUpdate" }
             }
           }
@@ -79602,11 +79780,11 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspector_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspection_state": "Active",
+                  "inspector_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "signed_off_at": "2026-10-08T14:30:00Z"
+                  "signed_off_at": "2026-10-08T14:30:00Z",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "inspected_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Inspection" }
               }
@@ -79666,11 +79844,11 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspector_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspection_state": "Active",
+                  "inspector_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "signed_off_at": "2026-10-08T14:30:00Z"
+                  "signed_off_at": "2026-10-08T14:30:00Z",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "inspected_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Inspection" }
               }
@@ -79723,9 +79901,10 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "inspection_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "inspection_item_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "passed": true,
-                      "notes": "Left rail tightened on site.",
-                      "photo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "note": "Left rail tightened on site.",
+                      "result_enum_id": "ENM-084",
+                      "photo_uri": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/inspections/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/rail.jpg",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -79755,9 +79934,9 @@
               "example": {
                 "inspection_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "inspection_item_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "passed": true,
-                "notes": "Left rail tightened on site.",
-                "photo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "note": "Left rail tightened on site.",
+                "result_enum_id": "ENM-084",
+                "photo_uri": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/inspections/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/rail.jpg"
               },
               "schema": { "$ref": "#/components/schemas/InspectionResultCreate" }
             }
@@ -79783,9 +79962,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "inspection_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "inspection_item_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "passed": true,
-                  "notes": "Left rail tightened on site.",
-                  "photo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "note": "Left rail tightened on site.",
+                  "result_enum_id": "ENM-084",
+                  "photo_uri": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/inspections/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/rail.jpg",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/InspectionResult" }
               }
@@ -79843,9 +80023,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "inspection_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "inspection_item_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "passed": true,
-                  "notes": "Left rail tightened on site.",
-                  "photo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "note": "Left rail tightened on site.",
+                  "result_enum_id": "ENM-084",
+                  "photo_uri": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/inspections/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/rail.jpg",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/InspectionResult" }
               }
@@ -79885,9 +80066,9 @@
           "content": {
             "application/json": {
               "example": {
-                "passed": true,
-                "notes": "Left rail tightened on site.",
-                "photo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "note": "Left rail tightened on site.",
+                "result_enum_id": "ENM-084",
+                "photo_uri": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/inspections/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/rail.jpg"
               },
               "schema": { "$ref": "#/components/schemas/InspectionResultUpdate" }
             }
@@ -79913,9 +80094,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "inspection_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "inspection_item_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "passed": true,
-                  "notes": "Left rail tightened on site.",
-                  "photo_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "note": "Left rail tightened on site.",
+                  "result_enum_id": "ENM-084",
+                  "photo_uri": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/inspections/0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/rail.jpg",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/InspectionResult" }
               }
@@ -79972,8 +80154,10 @@
                       "jurisdiction_id": "US-FL",
                       "permit": "Certificate of occupancy",
                       "ahj": "City Building and Fire",
-                      "due_on": "2026-10-08",
-                      "permit_state": "Proposed"
+                      "permit_state": "Proposed",
+                      "lead_time": "4-6 wks",
+                      "trigger_type": "project",
+                      "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -80035,8 +80219,10 @@
                   "jurisdiction_id": "US-FL",
                   "permit": "Certificate of occupancy",
                   "ahj": "City Building and Fire",
-                  "due_on": "2026-10-08",
-                  "permit_state": "Proposed"
+                  "permit_state": "Proposed",
+                  "lead_time": "4-6 wks",
+                  "trigger_type": "project",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/PermitRequirement" }
               }
@@ -80092,8 +80278,10 @@
                       "jurisdiction_id": "US-FL",
                       "permit": "Certificate of occupancy",
                       "ahj": "City Building and Fire",
-                      "due_on": "2026-10-08",
-                      "permit_state": "Proposed"
+                      "permit_state": "Proposed",
+                      "lead_time": "4-6 wks",
+                      "trigger_type": "project",
+                      "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -80170,8 +80358,84 @@
                   "jurisdiction_id": "US-FL",
                   "permit": "Certificate of occupancy",
                   "ahj": "City Building and Fire",
-                  "due_on": "2026-10-08",
-                  "permit_state": "Proposed"
+                  "permit_state": "Proposed",
+                  "lead_time": "4-6 wks",
+                  "trigger_type": "project",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/PermitRequirement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/permit-requirements/{id}/track": {
+      "post": {
+        "operationId": "permitRequirements.track",
+        "tags": ["Safety"],
+        "x-xos-table": "app.permit_requirements",
+        "x-xos-capability": "safety.permit.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
+        "summary": "Track a permit requirement",
+        "description": "Opens the Permit record that tracks the requirement (app.track_permit_requirement), titled with the canon permit, in one transaction. A requirement already tracked returns a 422 `permit_requirement_tracked` refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the permit requirement.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the permit requirement.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "title": "Special Events Permit" },
+              "schema": { "$ref": "#/components/schemas/PermitTrackRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "rule": "Assembly occupancy",
+                  "jurisdiction_id": "US-FL",
+                  "permit": "Certificate of occupancy",
+                  "ahj": "City Building and Fire",
+                  "permit_state": "Proposed",
+                  "lead_time": "4-6 wks",
+                  "trigger_type": "project",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/PermitRequirement" }
               }
