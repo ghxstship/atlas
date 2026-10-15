@@ -363,5 +363,20 @@ export const additions = defineAdditions("Identity", {
         "Offboarding checklists are app.offboardings (0861); there is no app.offboarding_checklists table. The A30 handlers already read it.",
       apply: setTable("app.offboardings"),
     },
+    {
+      id: "organization-create-returns-corrected-read",
+      since: "1.0.0-draft.2",
+      resources: ["organizations"],
+      change:
+        "`organizations.create` answers with the corrected Organization read shape (with `organization_type`, without `legal_name`, `is_tenant`, `base_currency` and `country`), and its example follows.",
+      reason:
+        "The action named the frozen read shape explicitly, so `organization-type` left its runtime response schema and example on columns app.organizations (0202) does not have; the created row is read back from app.organizations.",
+      apply: (spec) => ({
+        ...spec,
+        actions: spec.actions.map((a) =>
+          a.verb === "create" ? { ...a, response: spec.def.read } : a,
+        ),
+      }),
+    },
   ],
 });

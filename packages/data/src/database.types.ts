@@ -33520,6 +33520,177 @@ export type Database = {
           },
         ];
       };
+      travel_segments: {
+        Row: {
+          arrives_at: string | null;
+          arrives_at_place: string;
+          arrives_time_zone: string;
+          confirmation_identifier: string | null;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string | null;
+          deleted_at: string | null;
+          departs_at: string;
+          departs_from: string;
+          departs_time_zone: string;
+          engagement_id: string | null;
+          fulfillment_id: string | null;
+          id: string;
+          operator_name: string | null;
+          org_id: string;
+          person_id: string;
+          price_minor: number | null;
+          project_id: string;
+          service_identifier: string | null;
+          travel_mode: Database["app"]["Enums"]["travel_mode"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          arrives_at?: string | null;
+          arrives_at_place: string;
+          arrives_time_zone: string;
+          confirmation_identifier?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          departs_at: string;
+          departs_from: string;
+          departs_time_zone: string;
+          engagement_id?: string | null;
+          fulfillment_id?: string | null;
+          id?: string;
+          operator_name?: string | null;
+          org_id: string;
+          person_id: string;
+          price_minor?: number | null;
+          project_id: string;
+          service_identifier?: string | null;
+          travel_mode: Database["app"]["Enums"]["travel_mode"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          arrives_at?: string | null;
+          arrives_at_place?: string;
+          arrives_time_zone?: string;
+          confirmation_identifier?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string | null;
+          deleted_at?: string | null;
+          departs_at?: string;
+          departs_from?: string;
+          departs_time_zone?: string;
+          engagement_id?: string | null;
+          fulfillment_id?: string | null;
+          id?: string;
+          operator_name?: string | null;
+          org_id?: string;
+          person_id?: string;
+          price_minor?: number | null;
+          project_id?: string;
+          service_identifier?: string | null;
+          travel_mode?: Database["app"]["Enums"]["travel_mode"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "travel_segments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "travel_segments_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "travel_segments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "travel_segments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "travel_segments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "travel_segments_fulfillment_id_fkey";
+            columns: ["fulfillment_id"];
+            isOneToOne: false;
+            referencedRelation: "fulfillments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "travel_segments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "travel_segments_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "travel_segments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "travel_segments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "travel_segments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "travel_segments_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "travel_segments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       union_local_rates: {
         Row: {
           created_at: string;
@@ -37894,6 +38065,18 @@ export type Database = {
         Args: { p_engagement_id: string; p_record_id: string };
         Returns: string;
       };
+      add_incident_media: {
+        Args: { p_captured_at?: string; p_id?: string; p_incident_id: string; p_media_uri: string };
+        Returns: string;
+      };
+      add_incident_party: {
+        Args: { p_description: string; p_id?: string; p_incident_id: string; p_person_id?: string };
+        Returns: string;
+      };
+      add_marshalling_entry: {
+        Args: { p_entry: string; p_project_id: string; p_shipment_id?: string; p_zone_id?: string };
+        Returns: string;
+      };
       agree_self_billing: { Args: { p_engagement_id: string }; Returns: string };
       apply_sync_mutation: {
         Args: {
@@ -38000,6 +38183,7 @@ export type Database = {
         Args: { p_certification_holder_id: string };
         Returns: string;
       };
+      check_in_dock_slot: { Args: { p_dock_slot_id: string }; Returns: string };
       claim_advance_token: {
         Args: { p_token: string };
         Returns: {
@@ -38308,6 +38492,10 @@ export type Database = {
         Returns: string;
       };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
+      dispatch_responder: {
+        Args: { p_id?: string; p_incident_id: string; p_membership_id: string };
+        Returns: string;
+      };
       end_account_membership: { Args: { p_account_membership_id: string }; Returns: undefined };
       end_membership: { Args: { p_membership_id: string }; Returns: undefined };
       engaged_person_name: { Args: { p_engagement_id: string }; Returns: string };
@@ -38393,6 +38581,7 @@ export type Database = {
       };
       leave_organization: { Args: { p_org_id: string }; Returns: undefined };
       lock_baseline: { Args: { p_baseline_id: string }; Returns: number };
+      mark_dispatch_arrived: { Args: { p_dispatch_assignment_id: string }; Returns: string };
       mark_notifications_read: { Args: { p_before?: string; p_org_id: string }; Returns: number };
       mark_thread_read: {
         Args: { p_engagement_thread_id: string; p_party_thread_id: string };
@@ -38414,6 +38603,13 @@ export type Database = {
       my_capabilities_on_project: {
         Args: { p_capabilities: string[]; p_project_id: string };
         Returns: string[];
+      };
+      operations_project_capabilities: {
+        Args: { p_org_id: string };
+        Returns: {
+          capability_code: string;
+          project_id: string;
+        }[];
       };
       org_feature_flags: {
         Args: { p_org_id: string };
@@ -38538,6 +38734,10 @@ export type Database = {
           p_reason: Database["app"]["Enums"]["suppression_reason"];
         };
         Returns: undefined;
+      };
+      record_gate_arrival: {
+        Args: { p_project_id: string; p_shipment_id?: string; p_vehicle_identifier: string };
+        Returns: string;
       };
       record_import_row: {
         Args: {
@@ -38703,11 +38903,32 @@ export type Database = {
       };
       reject_expense: { Args: { p_expense_id: string; p_reason: string }; Returns: string };
       reject_requisition: { Args: { p_reason: string; p_requisition_id: string }; Returns: string };
+      release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
       reply_address_local_part: {
         Args: { p_person_id: string; p_subject_id: string };
         Returns: string;
+      };
+      report_incident: {
+        Args: {
+          p_accuracy_m?: number;
+          p_device_reported_at?: string;
+          p_id?: string;
+          p_latitude?: number;
+          p_longitude?: number;
+          p_occurred_at: string;
+          p_project_id: string;
+          p_severity_enum_id: string;
+          p_title: string;
+          p_zone_id?: string;
+        };
+        Returns: {
+          id: string;
+          incident_number: number;
+          incident_state: Database["app"]["Enums"]["incident_state"];
+          replayed: boolean;
+        }[];
       };
       request_client_approval: {
         Args: {
@@ -39540,6 +39761,7 @@ export type Database = {
       time_entry_source: "Web" | "Mobile" | "Kiosk";
       time_off_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
       timesheet_state: "Proposed" | "Submitted" | "Approved" | "Rejected";
+      travel_mode: "Flight" | "Ground";
       undo_outcome: "Reverted" | "Kept";
       vendor_state: "Prospect" | "Onboarded" | "Active" | "Blocked" | "Canceled";
       verification_method: "Automatic" | "Reviewer";
@@ -45733,6 +45955,7 @@ export const Constants = {
       time_entry_source: ["Web", "Mobile", "Kiosk"],
       time_off_state: ["Proposed", "Approved", "Rejected", "Canceled"],
       timesheet_state: ["Proposed", "Submitted", "Approved", "Rejected"],
+      travel_mode: ["Flight", "Ground"],
       undo_outcome: ["Reverted", "Kept"],
       vendor_state: ["Prospect", "Onboarded", "Active", "Blocked", "Canceled"],
       verification_method: ["Automatic", "Reviewer"],

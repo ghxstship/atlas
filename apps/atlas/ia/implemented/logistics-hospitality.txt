@@ -1,0 +1,5 @@
+# Hand-written Logistics and Hospitality pages owned by A11 (RRR-23). One sitemap node id per line.
+logistics.shipments
+logistics.dock-schedule
+logistics.marshalling-yard-log
+project.logistics

@@ -52,6 +52,13 @@ function orMatches(row: Row, filter: string): boolean {
     if (op === "lt") return c < 0;
     if (op === "gte") return c >= 0;
     if (op === "lte") return c <= 0;
+    if (op === "ilike") {
+      const needle = raw.replace(/^\*|\*$/g, "").toLowerCase();
+      return String(value ?? "")
+        .toLowerCase()
+        .includes(needle);
+    }
+    if (op === "is") return String(value ?? "null") === raw;
     return false;
   };
   return split(filter).some(term);

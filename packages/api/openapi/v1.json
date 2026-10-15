@@ -95955,12 +95955,9 @@
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "name": "Northwind Live",
-                  "legal_name": "Northwind Live LLC",
                   "slug": "northwind-live",
                   "parent_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "is_tenant": true,
-                  "base_currency": "USD",
-                  "country": "US"
+                  "organization_type": "For-Profit"
                 },
                 "schema": { "$ref": "#/components/schemas/Organization" }
               }
