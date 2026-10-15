@@ -69,6 +69,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         <CrewRecord
           crew={crew}
           mode={search["full"] === "1" ? "full" : "peek"}
+          subject={{ table: "app.pay_periods", id: p.id }}
           kindLabel={t("crew.kinds.payPeriod")}
           recordKey={p.startsOn}
           title={range(p.startsOn, p.endsOn)}
