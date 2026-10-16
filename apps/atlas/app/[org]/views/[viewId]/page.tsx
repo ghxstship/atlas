@@ -1,5 +1,6 @@
 import { isNodeVisible } from "@xos/ia";
 import { getSavedView, myMembershipId } from "@xos/data/views";
+import type { Route } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { EmptyStateLink, PageHeader } from "@/components/ui";
@@ -36,7 +37,7 @@ export default async function SavedViewPage({ params }: PageProps<"/[org]/views/
   }
   const target = savedViewTarget(sitemap, view.data, ctx.org.slug, ctx.nav);
   if (target.kind === "none") notFound();
-  if (target.kind === "page") redirect(target.href);
+  if (target.kind === "page") redirect(target.href as Route);
   const t = await getTranslations("views.open");
   return (
     <>
