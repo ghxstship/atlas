@@ -6,6 +6,7 @@ import { useActionState, useState } from "react";
 import { OutcomeAlert } from "@/components/actions/action-button";
 import { counterOfferAction, type CounterState } from "@/lib/actions/offers";
 
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** Counter an offer with new terms (Section 4.4.4: accepted, countered or declined). */
@@ -31,6 +32,7 @@ export function CounterForm(props: {
   return (
     <form
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       className="flex w-full flex-col gap-12 rounded-control bg-bg-surface p-12"
       aria-label={t("title")}
     >

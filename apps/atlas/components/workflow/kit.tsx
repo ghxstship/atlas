@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { INITIAL_STATE, type WorkflowActionState } from "@/lib/workflow/state";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**
  * Client building blocks of A33's pages: the `workflow` translator, outcome feedback that names a
  * refusal's rule in catalog copy, a form bound to a server action, and the empty, error, refusal and
@@ -93,6 +94,7 @@ export function ActionForm({
     <form
       ref={ref}
       action={formAction}
+      onSubmit={keepInputOnSubmit(formAction)}
       aria-label={label}
       className={inline ? "flex flex-wrap items-end gap-8" : "flex flex-col gap-12"}
     >

@@ -15,6 +15,7 @@ import {
 } from "@/app/[org]/settings/identity-actions";
 import type { AccentCheck } from "@/lib/brand/contrast";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** Catalog lookups with keys built at run time (refusal rules, choices); next-intl types only literals. */
@@ -88,7 +89,12 @@ export function BrandForm(props: BrandFormProps) {
   const disabled = !props.canEdit;
 
   return (
-    <form action={action} className="flex max-w-layout-form flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex max-w-layout-form flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={props.org} />
       <FormStatus state={state} />
       <Input
@@ -263,6 +269,7 @@ export function BrandAssetForm({
   return (
     <form
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       className="flex flex-col gap-8 rounded-card border border-border-subtle p-12"
     >
       <input type="hidden" name="org" value={org} />
@@ -314,7 +321,12 @@ export function AddDomainForm({
   const tErr = useCopy("settings.errors");
   const [state, action, pending] = useActionState(addDomainAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-12" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <FormStatus state={state} />
       <div className="flex flex-wrap items-end gap-12">
@@ -369,7 +381,7 @@ export function RemoveDomainButton({
   const t = useCopy("settings.domains");
   const [state, action, pending] = useActionState(removeDomainAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-4">
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="domainId" value={domainId} />
       <Button
@@ -400,7 +412,11 @@ export function ModulesForm({
   const t = useCopy("settings.modules");
   const [state, action, pending] = useActionState(saveModulesAction, INITIAL);
   return (
-    <form action={action} className="flex max-w-layout-form flex-col gap-12">
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex max-w-layout-form flex-col gap-12"
+    >
       <input type="hidden" name="org" value={org} />
       <FormStatus state={state} />
       <fieldset className="m-0 flex flex-col divide-y divide-border-subtle border-0 p-0">
@@ -443,7 +459,7 @@ export function AcceptLegalForm({
   const t = useCopy("settings.legal");
   const [state, action, pending] = useActionState(acceptLegalAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-12">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-12">
       <input type="hidden" name="org" value={org} />
       {documents.map((d) => (
         <input key={d.slug} type="hidden" name="document" value={d.slug} />

@@ -37,6 +37,7 @@ import {
 import { parsePastedLines } from "@/lib/finance/paste";
 import { ActionFeedback, fieldError, useFinanceT } from "./kit";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**
  * The budget grid editor (Section 11.6 Grid editor, Section 11.11 Finance): spreadsheet-speed editing
  * of a budget's lines with NULL-aware totals. Each cell edit saves its line against the version it
@@ -676,7 +677,11 @@ function CatalogDialog(props: Props & { onClose: () => void }) {
     >
       <p className="m-0 text-text-13 text-text-secondary">{t("budgets.catalogSentence")}</p>
       <div className="flex flex-col gap-12">
-        <form action={run} className="flex flex-wrap items-end gap-8">
+        <form
+          action={run}
+          onSubmit={keepInputOnSubmit(run)}
+          className="flex flex-wrap items-end gap-8"
+        >
           <input type="hidden" name="org" value={props.org} />
           <Input
             id="catalog-search"
@@ -904,7 +909,12 @@ function DrawDialog(props: Props & { lines: readonly BudgetLine[]; onClose: () =
       }
     >
       <p className="m-0 text-text-13 text-text-secondary">{t("budgets.drawSentence")}</p>
-      <form id="draw-contingency" action={action} className="flex flex-col gap-12">
+      <form
+        id="draw-contingency"
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-12"
+      >
         <input type="hidden" name="org" value={props.org} />
         <input type="hidden" name="currency" value={props.currency} />
         <Select

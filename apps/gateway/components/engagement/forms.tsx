@@ -23,6 +23,7 @@ import {
   type FormResult,
 } from "@/lib/actions/operations";
 
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 export function useCopy(): Translate {
@@ -59,7 +60,12 @@ export function FormShell({
       </p>
     );
   return (
-    <form action={action} className="flex w-full flex-col gap-12" aria-label={label}>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex w-full flex-col gap-12"
+      aria-label={label}
+    >
       {state.fieldError ? (
         <InlineAlert tone="danger">{t(`errors.${state.fieldError}`)}</InlineAlert>
       ) : null}
@@ -424,7 +430,13 @@ export function MessageComposer(props: { threadId: string; action?: "engagement"
     }
   }, [state.sent, router]);
   return (
-    <form ref={ref} action={action} className="flex flex-col gap-8" aria-label={t("message.label")}>
+    <form
+      ref={ref}
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-8"
+      aria-label={t("message.label")}
+    >
       <OutcomeAlert outcome={state.outcome} />
       <input type="hidden" name="threadId" value={props.threadId} />
       <input type="hidden" name="kind" value={props.action ?? "engagement"} />
@@ -457,6 +469,7 @@ export function RatingForm(props: { engagementId: string; org: string }) {
   return (
     <form
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       className="flex flex-col gap-12"
       aria-label={t("rating.title", { org: props.org })}
     >
@@ -514,7 +527,12 @@ export function ReplyForm(props: { ratingId: string }) {
       </p>
     );
   return (
-    <form action={action} className="flex flex-col gap-8" aria-label={t("reply.label")}>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-8"
+      aria-label={t("reply.label")}
+    >
       <OutcomeAlert outcome={state.outcome} />
       <input type="hidden" name="ratingId" value={props.ratingId} />
       <Textarea

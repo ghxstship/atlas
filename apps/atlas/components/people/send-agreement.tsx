@@ -10,6 +10,7 @@ import {
   type PeopleActionState,
 } from "@/app/[org]/people/actions";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**
  * Sends an agreement for signature and shows its signing link and access code once (invariant 8):
  * they are stored only as hashes, so this dialog is the only place they ever appear. The signer gets
@@ -75,7 +76,12 @@ export function SendAgreementButton(props: { org: string; id: string }) {
               />
             </div>
           ) : (
-            <form id={`send-${props.id}`} action={action} className="flex flex-col gap-12">
+            <form
+              id={`send-${props.id}`}
+              action={action}
+              onSubmit={keepInputOnSubmit(action)}
+              className="flex flex-col gap-12"
+            >
               <input type="hidden" name="org" value={props.org} />
               <input type="hidden" name="id" value={props.id} />
               {state.error ? (
@@ -124,6 +130,7 @@ export function SignAgreementForm(props: { org: string; id: string }) {
   return (
     <form
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       className="flex flex-col gap-8 rounded-card border border-border-subtle p-12"
     >
       <input type="hidden" name="org" value={props.org} />

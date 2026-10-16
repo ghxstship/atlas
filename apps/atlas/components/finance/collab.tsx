@@ -14,6 +14,7 @@ import {
 } from "@/lib/finance/collab-actions";
 import { ActionFeedback, InlineActionButton, fieldError, useFinanceT } from "./kit";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**
  * Comments and attachments on a finance document (Section 19.6), on A18's unified comment system and
  * attachment service. Anyone who can read the document may comment; uploads are offered to people who
@@ -83,7 +84,12 @@ export function FinanceComments({
           ))}
         </ol>
       )}
-      <form ref={form} action={action} className="flex flex-col gap-8">
+      <form
+        ref={form}
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-8"
+      >
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="subjectTable" value={subjectTable} />
         <input type="hidden" name="subjectId" value={subjectId} />
@@ -177,7 +183,11 @@ export function FinanceAttachments({
         </ul>
       )}
       {canUpload ? (
-        <form action={action} className="flex flex-wrap items-end gap-8">
+        <form
+          action={action}
+          onSubmit={keepInputOnSubmit(action)}
+          className="flex flex-wrap items-end gap-8"
+        >
           <input type="hidden" name="org" value={org} />
           <input type="hidden" name="subjectTable" value={subjectTable} />
           <input type="hidden" name="subjectId" value={subjectId} />

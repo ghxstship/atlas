@@ -15,6 +15,7 @@ import { useCopy } from "@/components/collection-kit/use-copy";
 import type { ActionState } from "@/lib/collection-kit/forms";
 import { submitFormAction } from "@/lib/workforce/actions";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 const control =
   "w-full max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-13 focus-visible:outline-(length:--stroke-width-focus) focus-visible:outline-focus-ring";
 
@@ -101,6 +102,7 @@ export function FormFiller({
   return (
     <form
       action={formAction}
+      onSubmit={keepInputOnSubmit(formAction)}
       className="flex max-w-[min(100%,var(--layout-reading))] flex-col gap-16"
       noValidate
     >

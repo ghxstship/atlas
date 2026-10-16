@@ -12,6 +12,7 @@ import {
   type SettingsState,
 } from "@/app/[org]/settings/actions";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /** Client forms for the org settings pages; each keeps typed input after a failed submit. */
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -35,7 +36,12 @@ export function GeneralForm({ org, name }: { org: string; name: string }) {
   const auth = useCopy("shell.auth.errors");
   const [state, action, pending] = useActionState(renameOrganizationAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <MemberError state={state} />
       <Input
@@ -94,7 +100,12 @@ export function InviteForm({
       <h2 id="invite-heading" className="m-0 text-heading-16 font-semibold">
         {t("invite.title")}
       </h2>
-      <form action={action} className="flex flex-col gap-12" noValidate>
+      <form
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <MemberError state={state} />
         <Input
@@ -246,7 +257,7 @@ export function RemoveMemberButton({
         </>
       }
     >
-      <form id={`remove-${membershipId}`} action={action}>
+      <form id={`remove-${membershipId}`} action={action} onSubmit={keepInputOnSubmit(action)}>
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="membershipId" value={membershipId} />
         <MemberError state={state} />
@@ -259,7 +270,7 @@ export function RevokeInviteButton({ org, inviteId }: { org: string; inviteId: s
   const t = useCopy("shell.settings.members");
   const [state, action, pending] = useActionState(revokeInviteAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-4">
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="inviteId" value={inviteId} />
       <Button type="submit" variant="ghost" size="sm" loading={pending}>

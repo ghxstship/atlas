@@ -23,6 +23,7 @@ import {
 } from "@/app/[org]/finance/actions";
 import { ActionFeedback, fieldError, useAfterSave, useFinanceT, type Option } from "./kit";
 
+import { keepInputOnSubmit, useKeepInput } from "@/components/collection-kit/keep-input";
 /**
  * Create and edit forms for every finance document (A15). Each keeps typed input after a failed
  * submit, names the field at fault (Section 11.10 rule 11), and shows database refusals with their
@@ -63,7 +64,12 @@ export function BudgetForm({
   const [state, action, pending] = useActionState(saveBudgetAction, INITIAL);
   useAfterSave(state, budget ? "edit" : "create");
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       {budget ? <input type="hidden" name="id" value={budget.id} /> : null}
       {!budget ? (
@@ -144,7 +150,12 @@ export function ExpenseForm({
   const [lineId, setLineId] = useState(expense?.budgetLineId ?? "");
   const currency = expense?.currency ?? lines.find((l) => l.value === lineId)?.currency ?? "";
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="currency" value={currency} />
       {expense ? <input type="hidden" name="id" value={expense.id} /> : null}
@@ -225,7 +236,12 @@ export function ChangeOrderForm({
   const [budgetId, setBudgetId] = useState(budgets.length === 1 ? (budgets[0]?.value ?? "") : "");
   const projectId = budgets.find((b) => b.value === budgetId)?.projectId ?? "";
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       {order ? (
         <input type="hidden" name="id" value={order.id} />
@@ -295,6 +311,7 @@ export function ChangeOrderLineForm({
     <form
       key={state.ok ? String(state.at) : "draft"}
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       className="flex flex-col gap-12"
       noValidate
       aria-label={t("changeOrders.addLine")}
@@ -373,7 +390,12 @@ export function InvoiceForm({
   const [state, action, pending] = useActionState(saveInvoiceAction, INITIAL);
   useAfterSave(state, invoice ? "edit" : "create");
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       {invoice ? (
         <input type="hidden" name="id" value={invoice.id} />
@@ -466,6 +488,7 @@ export function InvoiceLineForm({
     <form
       key={state.ok ? String(state.at) : "draft"}
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       className="flex flex-col gap-12"
       noValidate
       aria-label={t("invoices.addLine")}
@@ -529,7 +552,12 @@ export function PaymentForm({
   const [state, action, pending] = useActionState(savePaymentAction, INITIAL);
   useAfterSave(state, "create");
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <Select
         id="payment-counterparty"
@@ -600,9 +628,11 @@ export function ApplyPaymentForm({
 }) {
   const t = useFinanceT();
   const [state, action, pending] = useActionState(applyPaymentAction, INITIAL);
+  const keep = useKeepInput(state, action, (saved) => Boolean(saved.ok));
   return (
     <form
       action={action}
+      {...keep}
       className="flex flex-col gap-12"
       noValidate
       aria-label={t("payments.apply")}
@@ -647,7 +677,12 @@ export function PeriodForm({
   const [state, action, pending] = useActionState(createPeriodAction, INITIAL);
   useAfterSave(state, "create");
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <div className="flex flex-wrap gap-12">
         <Input
@@ -732,7 +767,12 @@ export function JournalForm({
     })),
   );
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="lines" value={payload} />
       <Select
@@ -882,7 +922,12 @@ export function CostCenterForm({
   useAfterSave(state, center ? "edit" : "create");
   const [kind, setKind] = useState(center?.kind ?? "Standing");
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       {center ? <input type="hidden" name="id" value={center.id} /> : null}
       <Input
@@ -946,9 +991,16 @@ export function FxRateForm({
 }) {
   const t = useFinanceT();
   const [state, action, pending] = useActionState(createFxRateAction, INITIAL);
+  const keep = useKeepInput(state, action, (saved) => Boolean(saved.ok));
   const options = currencies.map((c) => ({ value: c, label: c }));
   return (
-    <form action={action} className="flex flex-col gap-12" noValidate aria-label={t("fx.add")}>
+    <form
+      action={action}
+      {...keep}
+      className="flex flex-col gap-12"
+      noValidate
+      aria-label={t("fx.add")}
+    >
       <input type="hidden" name="org" value={org} />
       <div className="flex flex-wrap gap-12">
         <Select
@@ -1028,6 +1080,7 @@ export function UplExportForm({
   return (
     <form
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       className="flex flex-wrap items-end gap-12"
       noValidate
       aria-label={t("upl.export")}
@@ -1072,7 +1125,12 @@ export function SettlementForm({
   const [state, action, pending] = useActionState(saveSettlementAction, INITIAL);
   useAfterSave(state, "create");
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <Select
         id="settlement-engagement"
@@ -1129,6 +1187,7 @@ export function SettlementLineForm({
     <form
       key={state.ok ? String(state.at) : "draft"}
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       className="flex flex-col gap-12"
       noValidate
       aria-label={t("settlements.addLine")}
@@ -1178,7 +1237,12 @@ export function SelfBillForm({
   const [state, action, pending] = useActionState(selfBillAction, INITIAL);
   useAfterSave(state, "selfbill");
   return (
-    <form action={action} className="flex flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <p className="m-0 text-text-13 text-text-secondary">{t("invoices.selfBillSentence")}</p>
       <Select

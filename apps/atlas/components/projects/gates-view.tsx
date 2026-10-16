@@ -34,6 +34,7 @@ import { ActionError, echoed, fieldError, useClosingAction } from "./action-erro
 import { CollectionViews } from "@/components/views/collection-views";
 import { CanonTerm } from "@/components/help/canon-term";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 type GateView = "list" | "board";
 
 interface Hidden {
@@ -365,7 +366,7 @@ function EvidenceItem({
             </>
           }
         >
-          <form id={`withdraw-${evidence.id}`} action={action}>
+          <form id={`withdraw-${evidence.id}`} action={action} onSubmit={keepInputOnSubmit(action)}>
             <HiddenFields org={org} projectKey={projectKey} />
             <input type="hidden" name="evidenceId" value={evidence.id} />
             <ActionError state={state} />
@@ -412,7 +413,13 @@ function AttestDialog({
         </>
       }
     >
-      <form id={id} action={action} className="flex flex-col gap-12" noValidate>
+      <form
+        id={id}
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <HiddenFields org={org} projectKey={projectKey} />
         <input type="hidden" name="criterionId" value={criterion.id} />
         <ActionError state={state} />
@@ -483,7 +490,13 @@ function PassGateDialog({
         </>
       }
     >
-      <form id="pass-gate" action={action} className="flex flex-col gap-12" noValidate>
+      <form
+        id="pass-gate"
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <HiddenFields org={org} projectKey={projectKey} />
         <input type="hidden" name="expectedPhase" value={code} />
         <ActionError state={state} />

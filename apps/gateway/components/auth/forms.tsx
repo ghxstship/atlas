@@ -5,6 +5,7 @@ import { useActionState, type ReactNode } from "react";
 import { sendMagicLink, signInWithPassword, signUp, type FormState } from "@/app/auth/actions";
 import { Button, InlineAlert, Input } from "@xos/ui";
 
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 /** Auth forms (Auth template). Each keeps typed input after a failed submit (Section 11.7). */
 
 type Translate = (key: string, values?: Record<string, string>) => string;
@@ -45,7 +46,12 @@ export function PasswordSignInForm({ next }: { next: string }) {
   const t = useAuthCopy();
   const [state, action, pending] = useActionState(signInWithPassword, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-12" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
       <Input
@@ -78,7 +84,12 @@ export function MagicLinkForm({ next, intent }: { next: string; intent: "sign-in
   const t = useAuthCopy();
   const [state, action, pending] = useActionState(sendMagicLink, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-12" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
       <input type="hidden" name="intent" value={intent} />
@@ -102,7 +113,12 @@ export function SignUpForm({ next }: { next: string }) {
   const t = useAuthCopy();
   const [state, action, pending] = useActionState(signUp, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-12" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
       <Input

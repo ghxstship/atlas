@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useState } from "react";
 import type { CrewActionState } from "@/lib/crew/action-state";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**
  * The form kit for People and Crew: a field-spec form inside a Drawer for create and edit
  * (`?create=1`, `?edit=<id>`), and a confirm button that asks for the reason every state change
@@ -136,7 +137,12 @@ export function DrawerForm(props: {
       open
       onOpenChange={(open) => (open ? undefined : router.push(close))}
     >
-      <form action={action} className="flex flex-col gap-16" noValidate>
+      <form
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-16"
+        noValidate
+      >
         {state.error ? (
           <InlineAlert tone="danger" title={t("refused")}>
             {state.error}
@@ -222,7 +228,13 @@ export function ConfirmButton(props: {
             </>
           }
         >
-          <form id={formId} action={action} className="flex flex-col gap-12" noValidate>
+          <form
+            id={formId}
+            action={action}
+            onSubmit={keepInputOnSubmit(action)}
+            className="flex flex-col gap-12"
+            noValidate
+          >
             {Object.entries(props.hidden).map(([k, v]) => (
               <input key={k} type="hidden" name={k} value={v} />
             ))}
@@ -272,7 +284,7 @@ export function DownloadButton(props: {
     URL.revokeObjectURL(url);
   }, [state, router]);
   return (
-    <form action={action} className="flex flex-col gap-8">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-8">
       {Object.entries(props.hidden).map(([k, v]) => (
         <input key={k} type="hidden" name={k} value={v} />
       ))}

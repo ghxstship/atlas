@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef } from "react";
 import { OutcomeAlert } from "@/components/actions/action-button";
+import { keepInputOnSubmit } from "./keep-input";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -77,7 +78,14 @@ export function SimpleForm({
     }
   }, [state, resetOnDone, router]);
   return (
-    <form ref={ref} action={run} className="flex flex-col gap-12" aria-label={label} noValidate>
+    <form
+      ref={ref}
+      action={run}
+      onSubmit={keepInputOnSubmit(run)}
+      className="flex flex-col gap-12"
+      aria-label={label}
+      noValidate
+    >
       {state.fieldError ? <InlineAlert tone="danger">{te(state.fieldError)}</InlineAlert> : null}
       <OutcomeAlert outcome={state.outcome} />
       {state.done && !resetOnDone ? (

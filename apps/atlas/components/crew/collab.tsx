@@ -15,6 +15,7 @@ import {
 } from "@/app/[org]/crew/collab-actions";
 import type { CrewActionState } from "@/lib/crew/action-state";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 type Action = (state: CrewActionState, form: FormData) => Promise<CrewActionState>;
 
 /** Runs an action, refreshes the page on success and keeps the latest error to show. */
@@ -106,7 +107,7 @@ export function CrewCollab(props: {
                   <p className="m-0 whitespace-pre-wrap text-text-13">{c.body}</p>
                 )}
                 {c.authorPersonId === props.me && !c.deletedAt ? (
-                  <form action={remove}>
+                  <form action={remove} onSubmit={keepInputOnSubmit(remove)}>
                     <input type="hidden" name="org" value={props.org} />
                     <input type="hidden" name="commentId" value={c.id} />
                     <Button type="submit" size="sm" variant="ghost">
@@ -118,7 +119,12 @@ export function CrewCollab(props: {
             ))}
           </ol>
         )}
-        <form ref={composer} action={post} className="flex flex-col gap-8">
+        <form
+          ref={composer}
+          action={post}
+          onSubmit={keepInputOnSubmit(post)}
+          className="flex flex-col gap-8"
+        >
           {subject}
           <Error state={posted} />
           <Textarea
@@ -161,7 +167,7 @@ export function CrewCollab(props: {
                     {t(`scan.${scan(a)}`)}
                   </Tag>
                   {a.current ? (
-                    <form action={link}>
+                    <form action={link} onSubmit={keepInputOnSubmit(link)}>
                       {subject}
                       <input type="hidden" name="attachmentId" value={a.id} />
                       <Button type="submit" size="sm">
@@ -170,7 +176,7 @@ export function CrewCollab(props: {
                     </form>
                   ) : null}
                   {a.createdBy === props.me ? (
-                    <form action={drop}>
+                    <form action={drop} onSubmit={keepInputOnSubmit(drop)}>
                       <input type="hidden" name="org" value={props.org} />
                       <input type="hidden" name="attachmentId" value={a.id} />
                       <Button type="submit" size="sm" variant="ghost">
@@ -183,7 +189,12 @@ export function CrewCollab(props: {
             ))}
           </ul>
         )}
-        <form ref={files} action={upload} className="flex flex-wrap items-end gap-8">
+        <form
+          ref={files}
+          action={upload}
+          onSubmit={keepInputOnSubmit(upload)}
+          className="flex flex-wrap items-end gap-8"
+        >
           {subject}
           <Error state={uploaded} />
           <label className="flex flex-col gap-4 text-text-12">

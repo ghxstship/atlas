@@ -27,6 +27,7 @@ import { useActionState, useEffect, useMemo, useState, useTransition, type React
 import { transitionAction, type ActionState } from "@/app/[org]/finance/actions";
 import { CollectionViews } from "@/components/views/collection-views";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**
  * Client building blocks the Finance and Reports pages share (A15): the view switcher and filter bar
  * that keep view state in the query string (Section 4.5.3), the table, list and board views, the
@@ -495,7 +496,12 @@ export function TransitionButton({
             </>
           }
         >
-          <form id={`transition-${id}-${nextKey}`} action={action} className="flex flex-col gap-12">
+          <form
+            id={`transition-${id}-${nextKey}`}
+            action={action}
+            onSubmit={keepInputOnSubmit(action)}
+            className="flex flex-col gap-12"
+          >
             <input type="hidden" name="org" value={org} />
             <input type="hidden" name="lifecycle" value={lifecycle} />
             <input type="hidden" name="id" value={id} />
