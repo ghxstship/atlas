@@ -966,13 +966,10 @@ const CounterCreateRequest = z
     project_id: fields.uuid("Project."),
     name: z.string().min(1).max(120).meta({ description: "Counter name.", example: "Main Floor" }),
     space_id: fields.uuid("Space counted.").optional(),
-    metric_item: z
-      .string()
-      .optional()
-      .meta({
-        description: "Bible occupant load factor sizing the space.",
-        example: "Assembly - standing space",
-      }),
+    metric_item: z.string().optional().meta({
+      description: "Bible occupant load factor sizing the space.",
+      example: "Assembly - standing space",
+    }),
     permitted_load: z
       .number()
       .int()
@@ -1364,12 +1361,10 @@ export const additions = defineAdditions("Workforce", {
           rpc: "app.respond_to_survey",
           body: z
             .object({
-              answers: z
-                .record(z.string(), z.union([z.string(), z.number()]))
-                .meta({
-                  description: "Answers keyed by question id.",
-                  example: { "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f": 4 },
-                }),
+              answers: z.record(z.string(), z.union([z.string(), z.number()])).meta({
+                description: "Answers keyed by question id.",
+                example: { "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f": 4 },
+              }),
             })
             .meta({ id: "SurveyResponseRequest", description: "Survey answers." }),
           response: z
@@ -1518,12 +1513,10 @@ export const additions = defineAdditions("Workforce", {
           rpc: "app.complete_training",
           body: z
             .object({
-              answers: z
-                .record(z.string(), z.number().int().min(1).max(6))
-                .meta({
-                  description: "Option numbers keyed by question id.",
-                  example: { "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f": 1 },
-                }),
+              answers: z.record(z.string(), z.number().int().min(1).max(6)).meta({
+                description: "Option numbers keyed by question id.",
+                example: { "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f": 1 },
+              }),
             })
             .meta({ id: "CompleteTrainingRequest", description: "Quiz answers." }),
           response: TrainingCompletion.read,

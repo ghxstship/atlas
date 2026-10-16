@@ -1,0 +1,14 @@
+# A29 Workforce Suite (Section 4.9).
+knowledge.feed
+knowledge.handbook
+knowledge.forms
+knowledge.training
+schedule.events
+people.groups
+people.chat
+people.recognition
+people.help-desk
+site-ops.occupancy
+site-ops.weather
+site-ops.guest-check-in
+site-ops.lost-and-found

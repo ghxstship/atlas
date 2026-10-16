@@ -35,6 +35,13 @@ const SUBJECT_TABLES = [
   "app.sops",
   "app.documents",
   "app.canon_extension_proposals",
+  // A29 workforce subjects (0801, 0807).
+  "app.feed_posts",
+  "app.groups",
+  "app.workforce_events",
+  "app.form_submissions",
+  "app.handbook_articles",
+  "app.lost_found_items",
 ] as const;
 
 const subjectSchema = z.object({ table: z.enum(SUBJECT_TABLES), id: z.uuid() });
