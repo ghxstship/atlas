@@ -1,4 +1,6 @@
 # Hand-written Atlas pages owned by A31 (Views, Help and Support). One sitemap node id per line.
-# A31 claims no page of its own: the help panel lives in the shell, the help center in apps/docs (A20),
-# and support appears on Settings, Help and support and on Me, Account and Me, Preferences through
-# settings contributions (components/settings/contributions/a31.tsx, ADR 0021 item 7).
+# The help panel lives in the shell, the help center in apps/docs (A20), and support appears on
+# Settings, Help and support and on Me, Account and Me, Preferences through settings contributions
+# (components/settings/contributions/a31.tsx, ADR 0021 item 7). The saved view link page opens a
+# view on its collection's page (A35, RRR-79).
+saved-view
