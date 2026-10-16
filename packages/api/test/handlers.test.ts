@@ -108,8 +108,10 @@ describe("mounting", () => {
     expect(handledOperations()).toEqual(
       expect.arrayContaining(["canonDepartments.list", "canonDepartments.get"]),
     );
-    expect(handledOperations().every((op) => catalogOperationIds().includes(op))).toBe(true);
-    expect(catalogOperationIds().length).toBeGreaterThan(1000);
+    // catalogOperationIds() builds every route, so compute it once rather than per operation.
+    const ids = new Set(catalogOperationIds());
+    expect(handledOperations().every((op) => ids.has(op))).toBe(true);
+    expect(ids.size).toBeGreaterThan(1000);
   });
 
   it("refuses a handler for an unknown operation or another module", () => {

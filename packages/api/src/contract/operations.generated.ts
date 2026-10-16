@@ -307,6 +307,27 @@ export interface Components {
     person_id?: string | null;
     counterparty_id?: string | null;
   };
+  AiFeature: "assistant" | "plain_language" | "extraction" | "drafting" | "summaries" | "mapping";
+  AiRequest: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    person_id: string;
+    feature: Components["AiFeature"];
+    model: string;
+    subject_table: string | null;
+    subject_id: string | null;
+    outcome: Components["AiRequestOutcome"];
+    prompt_redacted: string | null;
+    output_redacted: string | null;
+    failure_code: string | null;
+    completed_at: string | null;
+  };
+  AiRequestOutcome: "Pending" | "Answered" | "No Answer" | "Failed";
+  AiRequestPage: { data: Array<Components["AiRequest"]>; next_cursor: string | null };
   AiSettings: {
     id: string;
     org_id: string;
@@ -317,13 +338,71 @@ export interface Components {
     assistant_enabled: boolean;
     extraction_enabled: boolean;
     drafting_enabled: boolean;
+    plain_language_enabled: boolean;
+    summaries_enabled: boolean;
+    mapping_enabled: boolean;
   };
   AiSettingsPage: { data: Array<Components["AiSettings"]>; next_cursor: string | null };
+  AiSettingsSaveRequest: {
+    assistant_enabled: boolean;
+    plain_language_enabled: boolean;
+    extraction_enabled: boolean;
+    drafting_enabled: boolean;
+    summaries_enabled: boolean;
+    mapping_enabled: boolean;
+  };
   AiSettingsUpdate: {
     assistant_enabled?: boolean;
     extraction_enabled?: boolean;
     drafting_enabled?: boolean;
+    plain_language_enabled?: boolean;
+    summaries_enabled?: boolean;
+    mapping_enabled?: boolean;
   };
+  AiSuggestion: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    request_id: string;
+    operation_id: string;
+    target_id: string | null;
+    summary: string;
+    suggestion_state: Components["AiSuggestionState"];
+    expires_at: string;
+    applied_id: string | null;
+    proposed_fields: Array<Components["AiSuggestionField"]>;
+  };
+  AiSuggestionApplyRequest: { applied_id: string; reason: string };
+  AiSuggestionConfirmRequest: { reason: string };
+  AiSuggestionField: {
+    field_path: string;
+    proposed_value?: unknown;
+    confidence: number | null;
+    refusal: "NO_ANSWER" | null;
+    missing: string | null;
+    source_excerpt: string | null;
+    provenance: "agent";
+  };
+  AiSuggestionPage: { data: Array<Components["AiSuggestion"]>; next_cursor: string | null };
+  AiSuggestionRejectRequest: { reason: string };
+  AiSuggestionReopenRequest: { reason: string };
+  AiSuggestionState: "Proposed" | "Confirmed" | "Applied" | "Rejected" | "Expired";
+  AiUsage: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    request_id: string;
+    metered_at: string;
+    input_tokens: number | null;
+    output_tokens: number | null;
+  };
+  AiUsagePage: { data: Array<Components["AiUsage"]>; next_cursor: string | null };
   ApiKey: {
     id: string;
     org_id: string;
@@ -678,6 +757,54 @@ export interface Components {
     redacted_at: string | null;
   };
   AuditEventPage: { data: Array<Components["AuditEvent"]>; next_cursor: string | null };
+  AuroraAskRequest: { question: string; history?: Array<{ question: string; answer: string }> };
+  AuroraBindCodeRequest: {
+    code: string;
+    description: string | null;
+    candidates: Array<{ element_id: string; name: string; urid: string }>;
+  };
+  AuroraDraftRequest: {
+    kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
+    instructions: string;
+    context?: Array<{ collection: string; id: string }>;
+    verbiage?: Array<{ term: string; preferred: string }>;
+  };
+  AuroraExtractRequest: {
+    kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+    document_id: string;
+    media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+    content_base64: string;
+    file_name: string;
+  };
+  AuroraFilterRequest: { sentence: string; collections: Array<string>; time_zone: string };
+  AuroraMapColumnsRequest: {
+    collection: string;
+    columns: Array<{ header: string; samples: Array<string> }>;
+    fields: Array<{ name: string; description: string }>;
+  };
+  AuroraProposal: { suggestion_id: string; operation_id: string; summary: string };
+  AuroraResult: {
+    outcome: "answer" | "no_answer" | "failed";
+    ai_generated: true;
+    request_id: string | null;
+    model: string | null;
+    missing: string | null;
+    failure_code: string | null;
+    answer?: unknown;
+    suggestions: Array<Components["AuroraProposal"]>;
+  };
+  AuroraStatus: {
+    enabled_features: Array<Components["AiFeature"]>;
+    used: number;
+    allowance: number | null;
+    plan_includes_aurora: boolean;
+  };
+  AuroraSummarizeRequest: {
+    kind: "record_activity" | "project_week" | "gate_readiness";
+    subject_collection: string;
+    subject_id: string;
+    items: Array<{ collection: string; id: string }>;
+  };
   AvailabilityBlock: {
     id: string;
     created_at: string;
@@ -19262,6 +19389,15 @@ export interface Operations {
     body: Components["AiSettingsUpdate"];
     responses: { 200: Components["AiSettings"] };
   };
+  "aiSettings.save": {
+    module: "Settings";
+    method: "post";
+    path: "/ai-settings/save";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AiSettingsSaveRequest"];
+    responses: { 200: Components["AiSettings"] };
+  };
   "reportDefinitions.list": {
     module: "Reports";
     method: "get";
@@ -20693,6 +20829,177 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
   };
+  "aurora.status": {
+    module: "Settings";
+    method: "get";
+    path: "/aurora/status";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["AuroraStatus"] };
+  };
+  "aurora.ask": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/ask";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraAskRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.filter": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/filter";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraFilterRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.extract": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/extract";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraExtractRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.draft": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/draft";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraDraftRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.summarize": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/summarize";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraSummarizeRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.mapColumns": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/map-columns";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraMapColumnsRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.bindCode": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/bind-code";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraBindCodeRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aiSuggestions.list": {
+    module: "Settings";
+    method: "get";
+    path: "/ai-suggestions";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AiSuggestionPage"] };
+  };
+  "aiSuggestions.get": {
+    module: "Settings";
+    method: "get";
+    path: "/ai-suggestions/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AiSuggestion"] };
+  };
+  "aiSuggestions.confirm": {
+    module: "Settings";
+    method: "post";
+    path: "/ai-suggestions/{id}/confirm";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AiSuggestionConfirmRequest"];
+    responses: { 200: Components["AiSuggestion"] };
+  };
+  "aiSuggestions.reject": {
+    module: "Settings";
+    method: "post";
+    path: "/ai-suggestions/{id}/reject";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AiSuggestionRejectRequest"];
+    responses: { 200: Components["AiSuggestion"] };
+  };
+  "aiSuggestions.apply": {
+    module: "Settings";
+    method: "post";
+    path: "/ai-suggestions/{id}/apply";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AiSuggestionApplyRequest"];
+    responses: { 200: Components["AiSuggestion"] };
+  };
+  "aiSuggestions.reopen": {
+    module: "Settings";
+    method: "post";
+    path: "/ai-suggestions/{id}/reopen";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AiSuggestionReopenRequest"];
+    responses: { 200: Components["AiSuggestion"] };
+  };
+  "aiRequests.list": {
+    module: "Settings";
+    method: "get";
+    path: "/ai-requests";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AiRequestPage"] };
+  };
+  "aiRequests.get": {
+    module: "Settings";
+    method: "get";
+    path: "/ai-requests/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AiRequest"] };
+  };
+  "aiUsage.list": {
+    module: "Settings";
+    method: "get";
+    path: "/ai-usage";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AiUsagePage"] };
+  };
   "savedViewShares.list": {
     module: "Platform";
     method: "get";
@@ -22042,7 +22349,25 @@ export interface ModuleOperations {
     | "orgExports.get"
     | "aiSettings.list"
     | "aiSettings.get"
-    | "aiSettings.update";
+    | "aiSettings.update"
+    | "aiSettings.save"
+    | "aurora.status"
+    | "aurora.ask"
+    | "aurora.filter"
+    | "aurora.extract"
+    | "aurora.draft"
+    | "aurora.summarize"
+    | "aurora.mapColumns"
+    | "aurora.bindCode"
+    | "aiSuggestions.list"
+    | "aiSuggestions.get"
+    | "aiSuggestions.confirm"
+    | "aiSuggestions.reject"
+    | "aiSuggestions.apply"
+    | "aiSuggestions.reopen"
+    | "aiRequests.list"
+    | "aiRequests.get"
+    | "aiUsage.list";
   Gateway:
     | "marketplace.search"
     | "savedSearches.list"

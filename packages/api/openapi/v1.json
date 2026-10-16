@@ -40340,7 +40340,14 @@
             "description": "Document extraction.",
             "example": false
           },
-          "drafting_enabled": { "type": "boolean", "description": "Drafting.", "example": false }
+          "drafting_enabled": { "type": "boolean", "description": "Drafting.", "example": false },
+          "plain_language_enabled": {
+            "type": "boolean",
+            "description": "Ask in plain language.",
+            "example": false
+          },
+          "summaries_enabled": { "type": "boolean", "description": "Summaries.", "example": false },
+          "mapping_enabled": { "type": "boolean", "description": "Mapping help.", "example": false }
         },
         "required": [
           "id",
@@ -40351,7 +40358,10 @@
           "updated_by",
           "assistant_enabled",
           "extraction_enabled",
-          "drafting_enabled"
+          "drafting_enabled",
+          "plain_language_enabled",
+          "summaries_enabled",
+          "mapping_enabled"
         ],
         "description": "AI feature switches. Every feature is off until an Admin turns it on."
       },
@@ -40364,9 +40374,60 @@
             "description": "Document extraction.",
             "example": false
           },
-          "drafting_enabled": { "type": "boolean", "description": "Drafting.", "example": false }
+          "drafting_enabled": { "type": "boolean", "description": "Drafting.", "example": false },
+          "plain_language_enabled": {
+            "type": "boolean",
+            "description": "Ask in plain language.",
+            "example": false
+          },
+          "summaries_enabled": { "type": "boolean", "description": "Summaries.", "example": false },
+          "mapping_enabled": { "type": "boolean", "description": "Mapping help.", "example": false }
         },
         "description": "Fields accepted when updating a AiSettings. Omitted fields are unchanged."
+      },
+      "AiSettingsSaveRequest": {
+        "type": "object",
+        "properties": {
+          "assistant_enabled": {
+            "type": "boolean",
+            "description": "assistant switch.",
+            "example": false
+          },
+          "plain_language_enabled": {
+            "type": "boolean",
+            "description": "plain_language switch.",
+            "example": false
+          },
+          "extraction_enabled": {
+            "type": "boolean",
+            "description": "extraction switch.",
+            "example": false
+          },
+          "drafting_enabled": {
+            "type": "boolean",
+            "description": "drafting switch.",
+            "example": false
+          },
+          "summaries_enabled": {
+            "type": "boolean",
+            "description": "summaries switch.",
+            "example": false
+          },
+          "mapping_enabled": {
+            "type": "boolean",
+            "description": "mapping switch.",
+            "example": false
+          }
+        },
+        "required": [
+          "assistant_enabled",
+          "plain_language_enabled",
+          "extraction_enabled",
+          "drafting_enabled",
+          "summaries_enabled",
+          "mapping_enabled"
+        ],
+        "description": "Every AI feature switch."
       },
       "ReportDefinitionPage": {
         "type": "object",
@@ -44953,6 +45014,901 @@
         },
         "required": ["outcome"],
         "description": "Decision on a requested guest."
+      },
+      "AuroraStatus": {
+        "type": "object",
+        "properties": {
+          "enabled_features": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AiFeature" },
+            "description": "Features the caller may use now.",
+            "example": ["assistant", "extraction"]
+          },
+          "used": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Requests the org made this UTC month.",
+            "example": 12
+          },
+          "allowance": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Monthly allowance; null when the plan sets no limit.",
+            "example": 500
+          },
+          "plan_includes_aurora": {
+            "type": "boolean",
+            "description": "Whether the plan includes Aurora AI.",
+            "example": true
+          }
+        },
+        "required": ["enabled_features", "used", "allowance", "plan_includes_aurora"],
+        "description": "What Aurora can do for the caller now: the features an Admin turned on that the plan includes, and this month's use of the allowance."
+      },
+      "AiFeature": {
+        "type": "string",
+        "enum": ["assistant", "plain_language", "extraction", "drafting", "summaries", "mapping"],
+        "description": "An Aurora AI feature (Section 4.7).",
+        "example": "assistant"
+      },
+      "AuroraResult": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": ["answer", "no_answer", "failed"],
+            "description": "answer, no_answer (the data does not support an answer; `missing` says why) or failed (the model call failed and was logged).",
+            "example": "answer"
+          },
+          "ai_generated": {
+            "type": "boolean",
+            "enum": [true],
+            "description": "Always true: the content is AI-generated and is labeled so (EU AI Act Article 50).",
+            "example": true
+          },
+          "request_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the logged AI request; null when no model was called.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "model": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Model that answered.",
+            "example": "claude-sonnet-5-5"
+          },
+          "missing": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "What the data lacks, for no_answer.",
+            "example": "No budget lines exist yet."
+          },
+          "failure_code": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Why the request failed.",
+            "example": "model_error"
+          },
+          "answer": {
+            "description": "The feature's answer for outcome answer, shaped per operation; null otherwise.",
+            "example": { "text": "One permit is blocked: Fire Marshal Permit.", "citations": [] }
+          },
+          "suggestions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AuroraProposal" },
+            "description": "Changes stored for confirmation.",
+            "example": [
+              {
+                "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "operation_id": "savedViews.create",
+                "summary": "Save the view Blocked Miami Permits."
+              }
+            ]
+          }
+        },
+        "required": [
+          "outcome",
+          "ai_generated",
+          "request_id",
+          "model",
+          "missing",
+          "failure_code",
+          "suggestions"
+        ],
+        "description": "The result of one Aurora request."
+      },
+      "AuroraProposal": {
+        "type": "object",
+        "properties": {
+          "suggestion_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the stored suggestion.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "operation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Public API operation the change would call.",
+            "example": "savedViews.create"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "What will change.",
+            "example": "Save the view Blocked Miami Permits."
+          }
+        },
+        "required": ["suggestion_id", "operation_id", "summary"],
+        "description": "A change waiting for confirmation."
+      },
+      "AuroraAskRequest": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "The question.",
+            "example": "Which permits are blocked?"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question": { "type": "string", "maxLength": 4000 },
+                "answer": { "type": "string", "maxLength": 8000 }
+              },
+              "required": ["question", "answer"]
+            },
+            "maxItems": 10,
+            "default": [],
+            "description": "Earlier turns of this conversation, oldest first.",
+            "example": [
+              { "question": "Which permits are blocked?", "answer": "One: Fire Marshal Permit." }
+            ]
+          }
+        },
+        "required": ["question"],
+        "description": "A question for the assistant."
+      },
+      "AuroraFilterRequest": {
+        "type": "object",
+        "properties": {
+          "sentence": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "The sentence to turn into a filter.",
+            "example": "blocked permits for Miami shows this month"
+          },
+          "collections": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+            "minItems": 1,
+            "maxItems": 20,
+            "description": "Collections the filter may target.",
+            "example": ["permits"]
+          },
+          "time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone the local time was entered in.",
+            "example": "America/New_York"
+          }
+        },
+        "required": ["sentence", "collections", "time_zone"],
+        "description": "A sentence to turn into a saved view."
+      },
+      "AuroraExtractRequest": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["rider", "insurance_certificate", "invoice", "receipt", "quote"],
+            "description": "What the document is.",
+            "example": "insurance_certificate"
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the stored document to read.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "media_type": {
+            "type": "string",
+            "enum": ["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"],
+            "description": "Media type of the content.",
+            "example": "application/pdf"
+          },
+          "content_base64": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 14000000,
+            "description": "The document content in base64, read by the caller from storage.",
+            "example": "JVBERi0xLjcK"
+          },
+          "file_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "File name shown in the log.",
+            "example": "coi-atlantic.pdf"
+          }
+        },
+        "required": ["kind", "document_id", "media_type", "content_base64", "file_name"],
+        "description": "A document to extract into proposed fields."
+      },
+      "AuroraDraftRequest": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["sop", "advance_packet", "email", "day_sheet", "change_order_description"],
+            "description": "What to draft.",
+            "example": "sop"
+          },
+          "instructions": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "What the draft should say.",
+            "example": "Write the load-in SOP for the main stage."
+          },
+          "context": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "collection": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+                "id": { "type": "string", "format": "uuid" }
+              },
+              "required": ["collection", "id"]
+            },
+            "maxItems": 20,
+            "default": [],
+            "description": "Records to draft from, read with the caller's permissions.",
+            "example": [{ "collection": "venues", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }]
+          },
+          "verbiage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "term": { "type": "string", "minLength": 1, "maxLength": 100 },
+                "preferred": { "type": "string", "minLength": 1, "maxLength": 200 }
+              },
+              "required": ["term", "preferred"]
+            },
+            "maxItems": 200,
+            "default": [],
+            "description": "The org's verbiage library entries to apply.",
+            "example": [{ "term": "loading dock", "preferred": "Dock" }]
+          }
+        },
+        "required": ["kind", "instructions"],
+        "description": "Instructions for a draft."
+      },
+      "AuroraSummarizeRequest": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["record_activity", "project_week", "gate_readiness"],
+            "description": "What to summarize.",
+            "example": "project_week"
+          },
+          "subject_collection": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "Collection of the record or project summarized.",
+            "example": "projects"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the record or project summarized.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "collection": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+                "id": { "type": "string", "format": "uuid" }
+              },
+              "required": ["collection", "id"]
+            },
+            "maxItems": 100,
+            "description": "Activity and records to summarize, read with the caller's permissions.",
+            "example": [
+              { "collection": "activity-events", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
+            ]
+          }
+        },
+        "required": ["kind", "subject_collection", "subject_id", "items"],
+        "description": "What to summarize."
+      },
+      "AuroraMapColumnsRequest": {
+        "type": "object",
+        "properties": {
+          "collection": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "Import target.",
+            "example": "people"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "header": { "type": "string", "maxLength": 200 },
+                "samples": {
+                  "type": "array",
+                  "items": { "type": "string", "maxLength": 200 },
+                  "maxItems": 5
+                }
+              },
+              "required": ["header", "samples"]
+            },
+            "minItems": 1,
+            "maxItems": 200,
+            "description": "Import columns with sample values.",
+            "example": [{ "header": "E-mail", "samples": ["crew@example.com"] }]
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "maxLength": 100 },
+                "description": { "type": "string", "maxLength": 300 }
+              },
+              "required": ["name", "description"]
+            },
+            "minItems": 1,
+            "maxItems": 200,
+            "description": "Target fields of the collection.",
+            "example": [{ "name": "email", "description": "Email address." }]
+          }
+        },
+        "required": ["collection", "columns", "fields"],
+        "description": "Import columns to map onto fields."
+      },
+      "AuroraBindCodeRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "The scanned code.",
+            "example": "0012345678905"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What the label said.",
+            "example": "LED PANEL 500MM"
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "element_id": { "type": "string", "maxLength": 100 },
+                "name": { "type": "string", "maxLength": 300 },
+                "urid": { "type": "string", "maxLength": 20 }
+              },
+              "required": ["element_id", "name", "urid"]
+            },
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Catalog elements found for the code.",
+            "example": [
+              {
+                "element_id": "9000.02.03-NWL-0001",
+                "name": "LED Wall Panel",
+                "urid": "9000.02.03"
+              }
+            ]
+          }
+        },
+        "required": ["code", "description", "candidates"],
+        "description": "An unknown scanned code to bind."
+      },
+      "AiSuggestionPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AiSuggestion" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AiSuggestion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the ai suggestion.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the AI request that proposed the change.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "operation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Public API operation that performs the change.",
+            "example": "insuranceCertificates.create"
+          },
+          "target_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the record the change updates; null when it creates one.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "What will change, shown on the confirmation step.",
+            "example": "Add the Atlantic Mutual general liability certificate."
+          },
+          "suggestion_state": { "$ref": "#/components/schemas/AiSuggestionState" },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "After this time the suggestion can no longer be confirmed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "applied_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the record the public API wrote, once Applied.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "proposed_fields": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AiSuggestionField" },
+            "description": "Proposed fields in confirmation order.",
+            "example": [
+              {
+                "field_path": "expires_on",
+                "proposed_value": "2027-03-31",
+                "confidence": 0.91,
+                "refusal": null,
+                "missing": null,
+                "source_excerpt": "Policy expiration 03/31/2027",
+                "provenance": "agent"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "request_id",
+          "operation_id",
+          "target_id",
+          "summary",
+          "suggestion_state",
+          "expires_at",
+          "applied_id",
+          "proposed_fields"
+        ],
+        "description": "A change an Aurora feature proposes, waiting for the confirmation of the person who asked. The summary says exactly what will change; nothing is written until they confirm."
+      },
+      "AiSuggestionState": {
+        "type": "string",
+        "enum": ["Proposed", "Confirmed", "Applied", "Rejected", "Expired"],
+        "description": "Proposed and waiting for the person who asked, Confirmed by them, Applied once the public API accepted the write, Rejected, or Expired unanswered.",
+        "example": "Proposed"
+      },
+      "AiSuggestionField": {
+        "type": "object",
+        "properties": {
+          "field_path": {
+            "type": "string",
+            "description": "API field the value is for.",
+            "example": "expires_on"
+          },
+          "proposed_value": {
+            "description": "Proposed value as JSON; null when the field is NO_ANSWER.",
+            "example": "2027-03-31"
+          },
+          "confidence": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Confidence from 0 to 1; null when the field is NO_ANSWER.",
+            "example": 0.91
+          },
+          "refusal": {
+            "type": ["string", "null"],
+            "enum": ["NO_ANSWER", null],
+            "description": "NO_ANSWER when the source does not support a value.",
+            "example": null
+          },
+          "missing": {
+            "type": ["string", "null"],
+            "description": "What the source lacks, when the field is NO_ANSWER.",
+            "example": null
+          },
+          "source_excerpt": {
+            "type": ["string", "null"],
+            "description": "The passage the value was read from, redacted.",
+            "example": "Policy expiration 03/31/2027"
+          },
+          "provenance": {
+            "type": "string",
+            "enum": ["agent"],
+            "description": "Every AI-proposed value carries provenance agent (rank 40, Section 3.8).",
+            "example": "agent"
+          }
+        },
+        "required": [
+          "field_path",
+          "confidence",
+          "refusal",
+          "missing",
+          "source_excerpt",
+          "provenance"
+        ],
+        "description": "One proposed field of an AI suggestion."
+      },
+      "AiSuggestionConfirmRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why, recorded in the suggestion ledger.",
+            "example": "Checked against the certificate."
+          }
+        },
+        "required": ["reason"],
+        "description": "Confirmation of an AI suggestion."
+      },
+      "AiSuggestionRejectRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why, recorded in the suggestion ledger.",
+            "example": "Checked against the certificate."
+          }
+        },
+        "required": ["reason"],
+        "description": "Rejection of an AI suggestion."
+      },
+      "AiSuggestionApplyRequest": {
+        "type": "object",
+        "properties": {
+          "applied_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the record the public API wrote or updated.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "What was written.",
+            "example": "Written by insuranceCertificates.create."
+          }
+        },
+        "required": ["applied_id", "reason"],
+        "description": "The record a confirmed suggestion wrote."
+      },
+      "AiSuggestionReopenRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why, recorded in the suggestion ledger.",
+            "example": "Checked against the certificate."
+          }
+        },
+        "required": ["reason"],
+        "description": "Why the write was refused."
+      },
+      "AiRequestPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AiRequest" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AiRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the ai request.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who asked.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "feature": { "$ref": "#/components/schemas/AiFeature" },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Model identifier from configuration.",
+            "example": "claude-sonnet-5-5"
+          },
+          "subject_table": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Table of the record the request was about.",
+            "example": "app.documents"
+          },
+          "subject_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the record the request was about.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "outcome": { "$ref": "#/components/schemas/AiRequestOutcome" },
+          "prompt_redacted": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Prompt as sent, redacted.",
+            "example": "Who is the vendor contact?"
+          },
+          "output_redacted": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Model output, redacted.",
+            "example": "Ivy Chen, [phone]."
+          },
+          "failure_code": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Why a Failed request failed.",
+            "example": "model_error"
+          },
+          "completed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the request finished.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "person_id",
+          "feature",
+          "model",
+          "subject_table",
+          "subject_id",
+          "outcome",
+          "prompt_redacted",
+          "output_redacted",
+          "failure_code",
+          "completed_at"
+        ],
+        "description": "One Aurora model call: who asked, for which feature, with which configured model, and the prompt and output with personal data redacted. Restricted fields and medical records are never in it."
+      },
+      "AiRequestOutcome": {
+        "type": "string",
+        "enum": ["Pending", "Answered", "No Answer", "Failed"],
+        "description": "How a model call ended. No Answer is the silence rule (Section 3.7).",
+        "example": "Answered"
+      },
+      "AiUsagePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AiUsage" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AiUsage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the ai usage.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the AI request metered.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "metered_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the request was authorized and counted.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "input_tokens": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Input tokens the model reported.",
+            "example": 812
+          },
+          "output_tokens": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Output tokens the model reported.",
+            "example": 96
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "request_id",
+          "metered_at",
+          "input_tokens",
+          "output_tokens"
+        ],
+        "description": "Aurora metering (ADR 0020): one row per authorized request. The monthly allowance aurora_requests_per_month counts these rows by UTC month."
       },
       "SavedViewSharePage": {
         "type": "object",
@@ -111589,7 +112545,10 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "assistant_enabled": false,
                       "extraction_enabled": false,
-                      "drafting_enabled": false
+                      "drafting_enabled": false,
+                      "plain_language_enabled": false,
+                      "summaries_enabled": false,
+                      "mapping_enabled": false
                     }
                   ],
                   "next_cursor": null
@@ -111648,7 +112607,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "assistant_enabled": false,
                   "extraction_enabled": false,
-                  "drafting_enabled": false
+                  "drafting_enabled": false,
+                  "plain_language_enabled": false,
+                  "summaries_enabled": false,
+                  "mapping_enabled": false
                 },
                 "schema": { "$ref": "#/components/schemas/AiSettings" }
               }
@@ -111690,7 +112652,10 @@
               "example": {
                 "assistant_enabled": false,
                 "extraction_enabled": false,
-                "drafting_enabled": false
+                "drafting_enabled": false,
+                "plain_language_enabled": false,
+                "summaries_enabled": false,
+                "mapping_enabled": false
               },
               "schema": { "$ref": "#/components/schemas/AiSettingsUpdate" }
             }
@@ -111716,7 +112681,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "assistant_enabled": false,
                   "extraction_enabled": false,
-                  "drafting_enabled": false
+                  "drafting_enabled": false,
+                  "plain_language_enabled": false,
+                  "summaries_enabled": false,
+                  "mapping_enabled": false
                 },
                 "schema": { "$ref": "#/components/schemas/AiSettings" }
               }
@@ -111728,6 +112696,69 @@
           "412": { "$ref": "#/components/responses/PreconditionFailed" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ai-settings/save": {
+      "post": {
+        "operationId": "aiSettings.save",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "org.ai.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Save the AI feature switches",
+        "description": "Creates or updates the caller's org switches in one call (org.ai.write). Turning a feature on while the plan lacks aurora_ai is a 422 refusal, aurora_not_in_plan. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "assistant_enabled": false,
+                "plain_language_enabled": false,
+                "extraction_enabled": false,
+                "drafting_enabled": false,
+                "summaries_enabled": false,
+                "mapping_enabled": false
+              },
+              "schema": { "$ref": "#/components/schemas/AiSettingsSaveRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "assistant_enabled": false,
+                  "extraction_enabled": false,
+                  "drafting_enabled": false,
+                  "plain_language_enabled": false,
+                  "summaries_enabled": false,
+                  "mapping_enabled": false
+                },
+                "schema": { "$ref": "#/components/schemas/AiSettings" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -119450,6 +120481,1161 @@
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/status": {
+      "get": {
+        "operationId": "aurora.status",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Read what Aurora can do now",
+        "description": "Features the caller may use (turned on by an Admin and included in the plan) and this month's use of the org's allowance. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "enabled_features": ["assistant", "extraction"],
+                  "used": 12,
+                  "allowance": 500,
+                  "plan_includes_aurora": true
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraStatus" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/ask": {
+      "post": {
+        "operationId": "aurora.ask",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Ask the assistant",
+        "description": "Answers a question from records the caller can read through this API, citing them. Returns no_answer with what is missing when the records do not support an answer. Changes it proposes are stored as suggestions for confirmation; nothing is written. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "question": "Which permits are blocked?",
+                "history": [
+                  {
+                    "question": "Which permits are blocked?",
+                    "answer": "One: Fire Marshal Permit."
+                  }
+                ]
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraAskRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "answer",
+                  "ai_generated": true,
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "model": "claude-sonnet-5-5",
+                  "missing": "No budget lines exist yet.",
+                  "failure_code": "model_error",
+                  "answer": {
+                    "text": "One permit is blocked: Fire Marshal Permit.",
+                    "citations": []
+                  },
+                  "suggestions": [
+                    {
+                      "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "operation_id": "savedViews.create",
+                      "summary": "Save the view Blocked Miami Permits."
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/filter": {
+      "post": {
+        "operationId": "aurora.filter",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Turn a sentence into a filter",
+        "description": "Builds a filter on one collection from a sentence, shows it as an ADR 0003 query string and proposes a saved view (`savedViews.create`) for confirmation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "sentence": "blocked permits for Miami shows this month",
+                "collections": ["permits"],
+                "time_zone": "America/New_York"
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraFilterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "answer",
+                  "ai_generated": true,
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "model": "claude-sonnet-5-5",
+                  "missing": "No budget lines exist yet.",
+                  "failure_code": "model_error",
+                  "answer": {
+                    "text": "One permit is blocked: Fire Marshal Permit.",
+                    "citations": []
+                  },
+                  "suggestions": [
+                    {
+                      "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "operation_id": "savedViews.create",
+                      "summary": "Save the view Blocked Miami Permits."
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/extract": {
+      "post": {
+        "operationId": "aurora.extract",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Extract a document",
+        "description": "Reads a rider, insurance certificate, invoice, receipt or quote into proposed fields with a confidence each and provenance agent. A price, date or quantity the document does not show is NO_ANSWER. Nothing is written until the caller confirms. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "kind": "insurance_certificate",
+                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "media_type": "application/pdf",
+                "content_base64": "JVBERi0xLjcK",
+                "file_name": "coi-atlantic.pdf"
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraExtractRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "answer",
+                  "ai_generated": true,
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "model": "claude-sonnet-5-5",
+                  "missing": "No budget lines exist yet.",
+                  "failure_code": "model_error",
+                  "answer": {
+                    "text": "One permit is blocked: Fire Marshal Permit.",
+                    "citations": []
+                  },
+                  "suggestions": [
+                    {
+                      "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "operation_id": "savedViews.create",
+                      "summary": "Save the view Blocked Miami Permits."
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/draft": {
+      "post": {
+        "operationId": "aurora.draft",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Draft text",
+        "description": "Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "kind": "sop",
+                "instructions": "Write the load-in SOP for the main stage.",
+                "context": [
+                  { "collection": "venues", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
+                ],
+                "verbiage": [{ "term": "loading dock", "preferred": "Dock" }]
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraDraftRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "answer",
+                  "ai_generated": true,
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "model": "claude-sonnet-5-5",
+                  "missing": "No budget lines exist yet.",
+                  "failure_code": "model_error",
+                  "answer": {
+                    "text": "One permit is blocked: Fire Marshal Permit.",
+                    "citations": []
+                  },
+                  "suggestions": [
+                    {
+                      "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "operation_id": "savedViews.create",
+                      "summary": "Save the view Blocked Miami Permits."
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/summarize": {
+      "post": {
+        "operationId": "aurora.summarize",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Summarize activity",
+        "description": "Summarizes a record's activity, a project's week or gate readiness, citing the items each point comes from. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "kind": "project_week",
+                "subject_collection": "projects",
+                "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "items": [
+                  { "collection": "activity-events", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
+                ]
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraSummarizeRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "answer",
+                  "ai_generated": true,
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "model": "claude-sonnet-5-5",
+                  "missing": "No budget lines exist yet.",
+                  "failure_code": "model_error",
+                  "answer": {
+                    "text": "One permit is blocked: Fire Marshal Permit.",
+                    "citations": []
+                  },
+                  "suggestions": [
+                    {
+                      "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "operation_id": "savedViews.create",
+                      "summary": "Save the view Blocked Miami Permits."
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/map-columns": {
+      "post": {
+        "operationId": "aurora.mapColumns",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Suggest import column mappings",
+        "description": "Suggests a target field for each import column. The import wizard shows the suggestions for the caller to accept or change. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "collection": "people",
+                "columns": [{ "header": "E-mail", "samples": ["crew@example.com"] }],
+                "fields": [{ "name": "email", "description": "Email address." }]
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraMapColumnsRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "answer",
+                  "ai_generated": true,
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "model": "claude-sonnet-5-5",
+                  "missing": "No budget lines exist yet.",
+                  "failure_code": "model_error",
+                  "answer": {
+                    "text": "One permit is blocked: Fire Marshal Permit.",
+                    "citations": []
+                  },
+                  "suggestions": [
+                    {
+                      "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "operation_id": "savedViews.create",
+                      "summary": "Save the view Blocked Miami Permits."
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/bind-code": {
+      "post": {
+        "operationId": "aurora.bindCode",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Suggest a catalog binding",
+        "description": "Suggests the catalog element an unknown scanned code identifies, only from the candidates given, and proposes `catalogBindings.create` for confirmation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "code": "0012345678905",
+                "description": "LED PANEL 500MM",
+                "candidates": [
+                  {
+                    "element_id": "9000.02.03-NWL-0001",
+                    "name": "LED Wall Panel",
+                    "urid": "9000.02.03"
+                  }
+                ]
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraBindCodeRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "answer",
+                  "ai_generated": true,
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "model": "claude-sonnet-5-5",
+                  "missing": "No budget lines exist yet.",
+                  "failure_code": "model_error",
+                  "answer": {
+                    "text": "One permit is blocked: Fire Marshal Permit.",
+                    "citations": []
+                  },
+                  "suggestions": [
+                    {
+                      "suggestion_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "operation_id": "savedViews.create",
+                      "summary": "Save the view Blocked Miami Permits."
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ai-suggestions": {
+      "get": {
+        "operationId": "aiSuggestions.list",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_suggestions",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List AI suggestion rows",
+        "description": "A change an Aurora feature proposes, waiting for the confirmation of the person who asked. The summary says exactly what will change; nothing is written until they confirm. Returns a cursor page of AI suggestion rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of AI suggestion rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "operation_id": "insuranceCertificates.create",
+                      "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "summary": "Add the Atlantic Mutual general liability certificate.",
+                      "suggestion_state": "Proposed",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "applied_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "proposed_fields": [
+                        {
+                          "field_path": "expires_on",
+                          "proposed_value": "2027-03-31",
+                          "confidence": 0.91,
+                          "refusal": null,
+                          "missing": null,
+                          "source_excerpt": "Policy expiration 03/31/2027",
+                          "provenance": "agent"
+                        }
+                      ]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AiSuggestionPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ai-suggestions/{id}": {
+      "get": {
+        "operationId": "aiSuggestions.get",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_suggestions",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Get an AI suggestion",
+        "description": "A change an Aurora feature proposes, waiting for the confirmation of the person who asked. The summary says exactly what will change; nothing is written until they confirm. Returns one AI suggestion with its `ETag`. A AI suggestion the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ai suggestion.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ai suggestion.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The AI suggestion.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "operation_id": "insuranceCertificates.create",
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "summary": "Add the Atlantic Mutual general liability certificate.",
+                  "suggestion_state": "Proposed",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "applied_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "proposed_fields": [
+                    {
+                      "field_path": "expires_on",
+                      "proposed_value": "2027-03-31",
+                      "confidence": 0.91,
+                      "refusal": null,
+                      "missing": null,
+                      "source_excerpt": "Policy expiration 03/31/2027",
+                      "provenance": "agent"
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AiSuggestion" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ai-suggestions/{id}/confirm": {
+      "post": {
+        "operationId": "aiSuggestions.confirm",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_suggestions",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Confirm an AI suggestion",
+        "description": "Records the confirmation of the person who asked. The caller then performs the named operation with its own credential and reports the result with `apply` or `reopen`. Refused after expiry. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ai suggestion.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ai suggestion.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "Checked against the certificate." },
+              "schema": { "$ref": "#/components/schemas/AiSuggestionConfirmRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "operation_id": "insuranceCertificates.create",
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "summary": "Add the Atlantic Mutual general liability certificate.",
+                  "suggestion_state": "Proposed",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "applied_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "proposed_fields": [
+                    {
+                      "field_path": "expires_on",
+                      "proposed_value": "2027-03-31",
+                      "confidence": 0.91,
+                      "refusal": null,
+                      "missing": null,
+                      "source_excerpt": "Policy expiration 03/31/2027",
+                      "provenance": "agent"
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AiSuggestion" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ai-suggestions/{id}/reject": {
+      "post": {
+        "operationId": "aiSuggestions.reject",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_suggestions",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Reject an AI suggestion",
+        "description": "Rejects a Proposed suggestion; nothing is written. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ai suggestion.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ai suggestion.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "Checked against the certificate." },
+              "schema": { "$ref": "#/components/schemas/AiSuggestionRejectRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "operation_id": "insuranceCertificates.create",
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "summary": "Add the Atlantic Mutual general liability certificate.",
+                  "suggestion_state": "Proposed",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "applied_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "proposed_fields": [
+                    {
+                      "field_path": "expires_on",
+                      "proposed_value": "2027-03-31",
+                      "confidence": 0.91,
+                      "refusal": null,
+                      "missing": null,
+                      "source_excerpt": "Policy expiration 03/31/2027",
+                      "provenance": "agent"
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AiSuggestion" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ai-suggestions/{id}/apply": {
+      "post": {
+        "operationId": "aiSuggestions.apply",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_suggestions",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Record the write of a confirmed suggestion",
+        "description": "Marks a Confirmed suggestion Applied with the record the public API wrote. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ai suggestion.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ai suggestion.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "applied_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "reason": "Written by insuranceCertificates.create."
+              },
+              "schema": { "$ref": "#/components/schemas/AiSuggestionApplyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "operation_id": "insuranceCertificates.create",
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "summary": "Add the Atlantic Mutual general liability certificate.",
+                  "suggestion_state": "Proposed",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "applied_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "proposed_fields": [
+                    {
+                      "field_path": "expires_on",
+                      "proposed_value": "2027-03-31",
+                      "confidence": 0.91,
+                      "refusal": null,
+                      "missing": null,
+                      "source_excerpt": "Policy expiration 03/31/2027",
+                      "provenance": "agent"
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AiSuggestion" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ai-suggestions/{id}/reopen": {
+      "post": {
+        "operationId": "aiSuggestions.reopen",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_suggestions",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Return a confirmed suggestion to Proposed",
+        "description": "Returns a Confirmed suggestion to Proposed when the public API refused the write, naming the refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ai suggestion.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ai suggestion.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "Checked against the certificate." },
+              "schema": { "$ref": "#/components/schemas/AiSuggestionReopenRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "operation_id": "insuranceCertificates.create",
+                  "target_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "summary": "Add the Atlantic Mutual general liability certificate.",
+                  "suggestion_state": "Proposed",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "applied_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "proposed_fields": [
+                    {
+                      "field_path": "expires_on",
+                      "proposed_value": "2027-03-31",
+                      "confidence": 0.91,
+                      "refusal": null,
+                      "missing": null,
+                      "source_excerpt": "Policy expiration 03/31/2027",
+                      "provenance": "agent"
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AiSuggestion" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ai-requests": {
+      "get": {
+        "operationId": "aiRequests.list",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_requests",
+        "x-xos-capability": "audit.log.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["audit"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List AI request rows",
+        "description": "One Aurora model call: who asked, for which feature, with which configured model, and the prompt and output with personal data redacted. Restricted fields and medical records are never in it. Returns a cursor page of AI request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of AI request rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "feature": "assistant",
+                      "model": "claude-sonnet-5-5",
+                      "subject_table": "app.documents",
+                      "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "outcome": "Answered",
+                      "prompt_redacted": "Who is the vendor contact?",
+                      "output_redacted": "Ivy Chen, [phone].",
+                      "failure_code": "model_error",
+                      "completed_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AiRequestPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ai-requests/{id}": {
+      "get": {
+        "operationId": "aiRequests.get",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_requests",
+        "x-xos-capability": "audit.log.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["audit"] }],
+        "summary": "Get an AI request",
+        "description": "One Aurora model call: who asked, for which feature, with which configured model, and the prompt and output with personal data redacted. Restricted fields and medical records are never in it. Returns one AI request with its `ETag`. A AI request the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ai request.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ai request.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The AI request.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "feature": "assistant",
+                  "model": "claude-sonnet-5-5",
+                  "subject_table": "app.documents",
+                  "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "outcome": "Answered",
+                  "prompt_redacted": "Who is the vendor contact?",
+                  "output_redacted": "Ivy Chen, [phone].",
+                  "failure_code": "model_error",
+                  "completed_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/AiRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ai-usage": {
+      "get": {
+        "operationId": "aiUsage.list",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_usage",
+        "x-xos-capability": "org.usage.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["metered_at"], "numeric": false },
+        "summary": "List AI usage rows",
+        "description": "Aurora metering (ADR 0020): one row per authorized request. The monthly allowance aurora_requests_per_month counts these rows by UTC month. Returns a cursor page of AI usage rows the caller may see. The default order is `metered_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of AI usage rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "metered_at": "2026-10-08T14:30:00Z",
+                      "input_tokens": 812,
+                      "output_tokens": 96
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AiUsagePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
