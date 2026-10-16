@@ -4447,300 +4447,9 @@ var gateway_default$1 = {
     orgFilter: "Showing {org} only",
     clearFilter: "Show every organization",
   },
-  engagement: {
-    tabs: "Engagement sections",
-    representing: "Acting for {artist}",
-    messagesAction: "Message the organization",
-    onboardingAction: "See onboarding",
-    trainingAction: "See training",
-    shiftsAction: "See shifts",
-    invoicesAction: "See invoices",
-    documentsAction: "See documents",
-    poAction: "See purchase orders",
-    changeOrdersAction: "See change orders",
-    scheduleAction: "See schedule",
-    scopeAction: "See scope",
-    advanceAction: "Open the advance",
-    operationalClosed: "This opens once the engagement is Active. Finish onboarding to get there.",
-    due: "Due {date}",
-    overview: {
-      next: "Your next steps",
-      stages: "Where this engagement is",
-      stage: {
-        offer: "Offer",
-        onboarding: "Onboarding",
-        engaged: "Engaged",
-        closeOut: "Close-out",
-      },
-      blocked:
-        "This engagement is blocked until every required onboarding step passes. Open Onboarding to see what is left.",
-      rate: "Your rate",
-      rateHidden: "Shown while money is open on this engagement",
-      payBasis: "Pay basis",
-      rated: "Thanks. Both ratings appear once the organization rates too, or after 14 days.",
-    },
-    documents: {
-      empty: "No documents yet. Contracts and forms the organization shares appear here.",
-      emptyKind:
-        "Nothing of this kind has been shared yet. Ask the organization if you expected it.",
-      expires: "Expires {date}",
-    },
-    onboarding: {
-      empty: "No onboarding steps. The organization adds any it needs before you start.",
-      progress: "{n} of {total} verified",
-      blocking: "Required before you start",
-      standing: {
-        verified: "Verified",
-        review: "In review",
-        todo: "To do",
-        expired: "Expired",
-      },
-      signHint: "Sign it under Documents; the step completes when the organization countersigns.",
-      backgroundHint:
-        "The organization's screening provider emails you a secure link for consent and details. Nothing about the check is stored here except the result.",
-      payoutHint:
-        "Add your payout details under Settings, Payout and tax. Only the last four digits are ever shown.",
-    },
-    messages: {
-      empty: "No conversations yet. Start one below; the organization answers here.",
-      org: "The organization",
-      new: "Start a conversation",
-    },
-    invoices: {
-      closed: "Invoices open once money is open on this engagement, at Active.",
-      empty: "No invoices yet. Submit one below when your work is done.",
-      submitTitle: "Submit an invoice",
-      selfBilling: "Self-billing",
-      selfBillingBody:
-        "With self-billing on, the organization raises your invoices from approved timesheets. You can stop it at any time.",
-      selfBillingOn: "Self-billing on",
-      selfBillingAgree: "Agree to self-billing",
-      selfBillingStop: "Stop self-billing",
-    },
-    shifts: {
-      empty: "No shifts yet. Published shifts appear here for you to accept.",
-      accept: "Accept shift",
-    },
-    positions: { empty: "No positions assigned yet. They follow once training is done." },
-    timesheets: {
-      empty: "No timesheets yet. Your clocked shifts collect into timesheets here.",
-      hours: "{n} hours",
-      submitted: "Submitted {date}",
-      submit: "Submit",
-      entries: "Time entries",
-    },
-    time: {
-      empty: "No time recorded yet. Clock in from Compass when you start.",
-      out: "Out {time}",
-      open: "Still clocked in",
-      break: "{n} min break",
-    },
-    travel: {
-      empty: "No travel or lodging arranged yet. Message the organization if you need it.",
-      lodging: "Lodging",
-      travel: "Travel",
-    },
-    perDiem: {
-      empty:
-        "No per diem or allowances listed yet. They appear here once the organization sets them.",
-      quantity: "{n} per day",
-    },
-    credentials: {
-      empty: "No credentials issued yet. They are issued once onboarding passes.",
-      valid: "Valid",
-      revoked: "Revoked",
-    },
-    training: {
-      empty: "No training to complete. Briefings and acknowledgments show here when assigned.",
-      sessions: "Training sessions",
-    },
-    bid: {
-      empty: "You have no bid with this organization. Purchase orders arrive once a bid wins.",
-      summary: "Sealed bid sent {date}, total {total}",
-      quantity: "Quantity {n}",
-    },
-    po: {
-      empty: "No purchase orders yet. They arrive here when the organization sends one.",
-      number: "PO {n}",
-      sent: "Sent {date}",
-      acknowledged: "Acknowledged {date}",
-      acknowledge: "Acknowledge",
-      line: "{n}. {description}",
-    },
-    deliveries: {
-      empty: "No deliveries or dock slots yet. Your dock times appear here once booked.",
-      docks: "Dock slots",
-      shipments: "Shipments",
-    },
-    submittals: {
-      empty: "No submittals requested yet. Requests for drawings and specs appear here.",
-    },
-    advance: {
-      empty: "No advance packet yet. When the organization sends one, answer each section here.",
-      awaitingReview: "Awaiting review",
-    },
-    compliance: {
-      empty: "No compliance items yet. Insurance and prequalification appear here.",
-      insurance: "Insurance certificates",
-      noInsurance: "No insurance certificate on file. Upload one under Onboarding.",
-      current: "Current",
-      expired: "Expired",
-      prequalification: "Prequalification",
-      validTo: "Valid to {date}",
-      items: "Compliance steps",
-    },
-    approvals: {
-      empty: "Nothing waits for your approval. Requests from the organization appear here.",
-      requested: "Requested {date}",
-      waiting: "Waiting for you",
-    },
-    changeOrders: {
-      empty: "No change orders yet. Changes to scope or cost appear here for review.",
-      noCost: "No cost",
-    },
-    schedule: {
-      empty: "Nothing on the shared schedule yet. Dates appear once the organization shares them.",
-    },
-    reports: { empty: "No reports shared yet. Reports the organization shares appear here." },
-    activation: {
-      empty: "No activation dates shared yet. They appear once the organization schedules them.",
-    },
-    runOfShow: {
-      empty: "No run of show shared yet. It appears here once the organization shares it.",
-      called: "Called {time}",
-      mySet: "Your set",
-    },
-    scope: {
-      statement: "Statement of work",
-      noStatement: "No statement of work shared yet. Ask the organization for it in Messages.",
-      milestones: "Milestones",
-      noMilestones: "No milestones shared yet.",
-    },
-    deliverables: {
-      empty: "No deliverables yet. They come from your scope once the organization adds them.",
-      submitted: "Submitted {date}",
-    },
-    entitlements: {
-      empty: "No entitlements listed yet. Your package's entitlements appear here.",
-      quantity: "Quantity {n}",
-      fulfilled: "Fulfilled {date}",
-      done: "Fulfilled",
-      overdue: "Overdue",
-      open: "Open",
-    },
-    rider: {
-      empty: "No rider yet. Send your rider through the advance.",
-      quantity: "Quantity {n}",
-      fulfilled: "Confirmed",
-      pending: "Pending",
-    },
-    setTimes: {
-      empty: "No set times yet. They appear once the run of show is shared.",
-      daySheets: "Day sheets",
-    },
-    hospitality: { empty: "No hospitality arranged yet. Ask for what you need in the advance." },
-    guestList: {
-      unavailable:
-        "Guest lists are not connected yet. Put your guests in the advance packet, and the organization confirms them there.",
-    },
-    roster: {
-      empty:
-        "You do not represent any artists yet. Propose a representation from Company settings.",
-      action: "Representation settings",
-      noEngagements: "No engagements for this artist yet.",
-    },
-    forms: {
-      errors: {
-        answer: "Write an answer before sending.",
-        decision: "Choose approve or reject.",
-        reason: "Say why you reject it, so the organization can fix it.",
-        deliverable: "Choose the document and write a short message.",
-        header: "Fill in the invoice number and both dates.",
-        dates: "The due date must be on or after the issue date.",
-        lines: "Each line needs an item, a quantity above zero and a unit price.",
-        file: "Choose a file to upload.",
-        fileType: "Upload a PDF, JPEG, PNG, HEIC or WebP file.",
-        fileSize: "The file is larger than 25 MB. Upload a smaller scan or photo.",
-        tin: "Enter the tax identifier with 4 to 30 letters and digits.",
-        subject: "Give the conversation a subject.",
-      },
-      advance: {
-        answer: "Your answer",
-        submit: "Send answer",
-        done: "Answer sent. The organization reviews it next.",
-      },
-      approval: {
-        decision: "Decision",
-        approve: "Approve",
-        reject: "Reject",
-        reason: "Why you reject it",
-        note: "Note to the organization",
-        done: "Decision sent.",
-      },
-      deliverable: {
-        document: "Document",
-        message: "Message",
-        submit: "Submit deliverable",
-        done: "Submitted. The organization accepts or returns it.",
-        noDocuments:
-          "Share the file in Messages first; it then becomes a document you can submit here.",
-      },
-      invoice: {
-        title: "Invoice",
-        number: "Invoice number",
-        issuedOn: "Issue date",
-        dueOn: "Due date",
-        currency: "Amounts in {currency}",
-        description: "Item or service",
-        quantity: "Quantity",
-        unitPrice: "Unit price",
-        addLine: "Add line",
-        removeLine: "Remove line {n}",
-        submit: "Submit invoice",
-        done: "Invoice submitted. Follow it on the payment tracker.",
-      },
-      upload: {
-        file: "File or photo",
-        help: "PDF or photo up to 25 MB. On a phone you can take the photo now.",
-        submit: "Upload",
-        done: "Uploaded. The organization verifies it next.",
-      },
-      tax: {
-        title: "Tax form",
-        kind: "Form",
-        tin: "Taxpayer identification number",
-        tinHelp: "Stored encrypted. Only the last four characters are ever shown.",
-        withholding: "I am a foreign performer subject to withholding",
-        submit: "Submit tax form",
-        done: "Tax form submitted.",
-      },
-      thread: {
-        title: "New conversation",
-        subject: "Subject",
-        submit: "Start conversation",
-        done: "Conversation started.",
-      },
-      message: {
-        label: "Reply",
-        body: "Message",
-        send: "Send",
-      },
-      rating: {
-        title: "Rate {org}",
-        score: "Score",
-        stars: "{n, plural, one {# star} other {# stars}}",
-        comment: "Public comment",
-        release: "Both ratings appear together once both sides rate, or after 14 days.",
-        submit: "Send rating",
-        done: "Rating sent. It appears when the organization rates too, or after 14 days.",
-      },
-      reply: {
-        label: "Public reply",
-        submit: "Reply",
-        done: "Reply posted.",
-      },
-    },
-  },
+  engagement: /* @__PURE__ */ JSON.parse(
+    '{"tabs":"Engagement sections","representing":"Acting for {artist}","messagesAction":"Message the organization","onboardingAction":"See onboarding","trainingAction":"See training","shiftsAction":"See shifts","invoicesAction":"See invoices","documentsAction":"See documents","poAction":"See purchase orders","changeOrdersAction":"See change orders","scheduleAction":"See schedule","scopeAction":"See scope","advanceAction":"Open the advance","operationalClosed":"This opens once the engagement is Active. Finish onboarding to get there.","due":"Due {date}","overview":{"next":"Your next steps","stages":"Where this engagement is","stage":{"offer":"Offer","onboarding":"Onboarding","engaged":"Engaged","closeOut":"Close-out"},"blocked":"This engagement is blocked until every required onboarding step passes. Open Onboarding to see what is left.","rate":"Your rate","rateHidden":"Shown while money is open on this engagement","payBasis":"Pay basis","rated":"Thanks. Both ratings appear once the organization rates too, or after 14 days."},"documents":{"empty":"No documents yet. Contracts and forms the organization shares appear here.","emptyKind":"Nothing of this kind has been shared yet. Ask the organization if you expected it.","expires":"Expires {date}"},"onboarding":{"empty":"No onboarding steps. The organization adds any it needs before you start.","progress":"{n} of {total} verified","blocking":"Required before you start","standing":{"verified":"Verified","review":"In review","todo":"To do","expired":"Expired"},"signHint":"Sign it under Documents; the step completes when the organization countersigns.","backgroundHint":"The organization\'s screening provider emails you a secure link for consent and details. Nothing about the check is stored here except the result.","payoutHint":"Add your payout details under Settings, Payout and tax. Only the last four digits are ever shown."},"messages":{"empty":"No conversations yet. Start one below; the organization answers here.","org":"The organization","new":"Start a conversation"},"invoices":{"closed":"Invoices open once money is open on this engagement, at Active.","empty":"No invoices yet. Submit one below when your work is done.","submitTitle":"Submit an invoice","selfBilling":"Self-billing","selfBillingBody":"With self-billing on, the organization raises your invoices from approved timesheets. You can stop it at any time.","selfBillingOn":"Self-billing on","selfBillingAgree":"Agree to self-billing","selfBillingStop":"Stop self-billing"},"shifts":{"empty":"No shifts yet. Published shifts appear here for you to accept.","accept":"Accept shift"},"positions":{"empty":"No positions assigned yet. They follow once training is done."},"timesheets":{"empty":"No timesheets yet. Your clocked shifts collect into timesheets here.","hours":"{n} hours","submitted":"Submitted {date}","submit":"Submit","entries":"Time entries"},"time":{"empty":"No time recorded yet. Clock in from Compass when you start.","out":"Out {time}","open":"Still clocked in","break":"{n} min break"},"travel":{"empty":"No travel or lodging arranged yet. Message the organization if you need it.","lodging":"Lodging","travel":"Travel","itinerary":"Itinerary","route":"{from} to {to}","departs":"Departs {time}","arrives":"Arrives {time}","confirmation":"Confirmation {code}"},"perDiem":{"empty":"No per diem or allowances listed yet. They appear here once the organization sets them.","quantity":"{n} per day","allowances":"Allowances","amenities":"Amenities","total":"Total: {amount}"},"credentials":{"empty":"No credentials issued yet. They are issued once onboarding passes.","valid":"Valid","revoked":"Revoked"},"training":{"empty":"No training to complete. Briefings and acknowledgments show here when assigned.","sessions":"Training sessions"},"bid":{"empty":"You have no bid with this organization. Purchase orders arrive once a bid wins.","summary":"Sealed bid sent {date}, total {total}","quantity":"Quantity {n}"},"po":{"empty":"No purchase orders yet. They arrive here when the organization sends one.","number":"PO {n}","sent":"Sent {date}","acknowledged":"Acknowledged {date}","acknowledge":"Acknowledge","line":"{n}. {description}"},"deliveries":{"empty":"No deliveries or dock slots yet. Your dock times appear here once booked.","docks":"Dock slots","shipments":"Shipments"},"submittals":{"empty":"No submittals requested yet. Requests for drawings and specs appear here."},"advance":{"empty":"No advance packet yet. When the organization sends one, answer each section here.","awaitingReview":"Awaiting review"},"compliance":{"empty":"No compliance items yet. Insurance and prequalification appear here.","insurance":"Insurance certificates","noInsurance":"No insurance certificate on file. Upload one under Onboarding.","current":"Current","expired":"Expired","prequalification":"Prequalification","validTo":"Valid to {date}","items":"Compliance steps"},"approvals":{"empty":"Nothing waits for your approval. Requests from the organization appear here.","requested":"Requested {date}","waiting":"Waiting for you"},"changeOrders":{"empty":"No change orders yet. Changes to scope or cost appear here for review.","noCost":"No cost"},"schedule":{"empty":"Nothing on the shared schedule yet. Dates appear once the organization shares them."},"reports":{"empty":"No reports shared yet. Reports the organization shares appear here.","shared":"Shared reports","ranAt":"Run {time}","rows":"{n} rows","unpriced":"{n} rows still unpriced","expires":"Shared until {date}","noRecords":"No report records shared yet. Ask the organization if you expect one."},"activation":{"empty":"No activation dates shared yet. They appear once the organization schedules them."},"runOfShow":{"empty":"No run of show shared yet. It appears here once the organization shares it.","called":"Called {time}","mySet":"Your set"},"scope":{"statement":"Statement of work","noStatement":"No statement of work shared yet. Ask the organization for it in Messages.","milestones":"Milestones","noMilestones":"No milestones shared yet."},"deliverables":{"empty":"No deliverables yet. They come from your scope once the organization adds them.","submitted":"Submitted {date}"},"entitlements":{"empty":"No entitlements listed yet. Your package\'s entitlements appear here.","quantity":"Quantity {n}","fulfilled":"Fulfilled {date}","done":"Fulfilled","overdue":"Overdue","open":"Open"},"rider":{"empty":"No rider yet. Send your rider through the advance.","quantity":"Quantity {n}","fulfilled":"Confirmed","pending":"Pending"},"setTimes":{"empty":"No set times yet. They appear once the run of show is shared.","daySheets":"Day sheets"},"hospitality":{"empty":"No hospitality arranged yet. Ask for what you need in the advance."},"guestList":{"empty":"No guests on your list yet. Add a guest below, and the production confirms each one before the show.","request":"Add a guest","listLabel":"Guest list, {n} people in total","plusOnes":"Plus {n}","checkedIn":"Checked in {time}"},"roster":{"empty":"You do not represent any artists yet. Propose a representation from Company settings.","action":"Representation settings","noEngagements":"No engagements for this artist yet."},"forms":{"errors":{"answer":"Write an answer before sending.","decision":"Choose approve or reject.","reason":"Say why you reject it, so the organization can fix it.","deliverable":"Choose the document and write a short message.","header":"Fill in the invoice number and both dates.","dates":"The due date must be on or after the issue date.","lines":"Each line needs an item, a quantity above zero and a unit price.","file":"Choose a file to upload.","fileType":"Upload a PDF, JPEG, PNG, HEIC or WebP file.","fileSize":"The file is larger than 25 MB. Upload a smaller scan or photo.","tin":"Enter the tax identifier with 4 to 30 letters and digits.","subject":"Give the conversation a subject.","guestName":"Write the guest\'s name before adding them.","plusOnes":"Plus-ones run from 0 to 20.","settlementReason":"Write a short note or reason before answering."},"advance":{"answer":"Your answer","submit":"Send answer","done":"Answer sent. The organization reviews it next."},"approval":{"decision":"Decision","approve":"Approve","reject":"Reject","reason":"Why you reject it","note":"Note to the organization","done":"Decision sent."},"deliverable":{"document":"Document","message":"Message","submit":"Submit deliverable","done":"Submitted. The organization accepts or returns it.","noDocuments":"Share the file in Messages first; it then becomes a document you can submit here."},"invoice":{"title":"Invoice","number":"Invoice number","issuedOn":"Issue date","dueOn":"Due date","currency":"Amounts in {currency}","description":"Item or service","quantity":"Quantity","unitPrice":"Unit price","addLine":"Add line","removeLine":"Remove line {n}","submit":"Submit invoice","done":"Invoice submitted. Follow it on the payment tracker."},"upload":{"file":"File or photo","help":"PDF or photo up to 25 MB. On a phone you can take the photo now.","submit":"Upload","done":"Uploaded. The organization verifies it next."},"tax":{"title":"Tax form","kind":"Form","tin":"Taxpayer identification number","tinHelp":"Stored encrypted. Only the last four characters are ever shown.","withholding":"I am a foreign performer subject to withholding","submit":"Submit tax form","done":"Tax form submitted."},"thread":{"title":"New conversation","subject":"Subject","submit":"Start conversation","done":"Conversation started."},"message":{"label":"Reply","body":"Message","send":"Send"},"rating":{"title":"Rate {org}","score":"Score","stars":"{n, plural, one {# star} other {# stars}}","comment":"Public comment","release":"Both ratings appear together once both sides rate, or after 14 days.","submit":"Send rating","done":"Rating sent. It appears when the organization rates too, or after 14 days."},"reply":{"label":"Public reply","submit":"Reply","done":"Reply posted."},"guest":{"title":"Add a guest","name":"Guest name","plusOnes":"Plus-ones","note":"Note for the production (optional)","submit":"Add guest","done":"Guest added. The production confirms them before the show."},"settlement":{"decision":"Your answer","accept":"Accept settlement","dispute":"Dispute settlement","note":"Note","reason":"What should change","done":"Answer sent. The organization sees it now."}},"settlement":{"submitted":"Sent to you {date}","lines":"Lines of {title}","unpriced":"Amount to be confirmed","less":"Less {amount}","net":"Net to you: {amount}","netUnpriced":"The net shows once every line has an amount.","none":"No settlement has been sent to you yet. The organization sends it after the show; settlement documents appear below."}}',
+  ),
   enums: {
     externalRoleType: {
       client: "Client",
@@ -5026,6 +4735,32 @@ var gateway_default$1 = {
     ratingSide: {
       organization: "Organization",
       party: "Party",
+    },
+    guestEntryState: {
+      requested: "Requested",
+      approved: "Approved",
+      declined: "Declined",
+      checkedIn: "Checked in",
+    },
+    settlementState: {
+      proposed: "Draft",
+      submitted: "Waiting on you",
+      accepted: "Accepted",
+      disputed: "Disputed",
+      paid: "Paid",
+      canceled: "Canceled",
+    },
+    settlementLineKind: {
+      guarantee: "Guarantee",
+      bonus: "Bonus",
+      split: "Split",
+      expense: "Expense",
+      deduction: "Deduction",
+      withholding: "Withholding",
+    },
+    travelMode: {
+      flight: "Flight",
+      ground: "Ground transport",
     },
   },
   explore: {
@@ -11092,6 +10827,52 @@ var shell_default$1 = {
     },
   },
 };
+var shipmentTracking_default$1 = {
+  title: "Carrier tracking",
+  notTracked:
+    "Not tracked yet. Choose the carrier to follow this shipment's scans and delivery here.",
+  notTrackedReadOnly:
+    "Not tracked. Someone who manages this project's shipments can start tracking.",
+  noCarriers:
+    "No carrier is connected. Connect UPS, FedEx or DHL in Settings, Integrations, then start tracking here.",
+  carrier: "Carrier",
+  number: "Tracking number",
+  numberValue: "Tracking number {number}",
+  numberFromShipment: "Leave blank to use the shipment's number, {number}.",
+  numberHint: "Add the carrier's tracking number, 6 to 40 letters and digits.",
+  start: "Start tracking",
+  stop: "Stop tracking",
+  estimated: "Expected {time}",
+  delivered: "Delivered {time}",
+  checked: "Last checked {time}",
+  notCheckedYet: "The carrier has not been asked yet; scans appear after the next check.",
+  noScans: "No scans from the carrier yet.",
+  scans: "Carrier scans, newest first",
+  status: {
+    labelCreated: "Label created",
+    inTransit: "In transit",
+    outForDelivery: "Out for delivery",
+    delivered: "Delivered",
+    exception: "Exception",
+    returned: "Returned",
+    unknown: "Not yet known",
+  },
+  errors: {
+    carrierRequired: "Choose the carrier that carries this shipment.",
+    numberFormat:
+      "Tracking numbers are 6 to 40 letters and digits. Check the number and try again.",
+    tracking_number_required:
+      "Add the carrier tracking number to the shipment, or type it here, before tracking it.",
+    integration_not_connected:
+      "That carrier connection is not connected. Reconnect it in Settings, Integrations, then try again.",
+    integration_category_mismatch: "Choose a carrier connection: UPS, FedEx or DHL.",
+    alreadyTracked: "This shipment is already tracked. Reload the page to see it.",
+    notFound: "That tracker is no longer open to you. Reload the page to see what is current.",
+    refused:
+      "The organization's rules did not allow that. Check with whoever manages this project's shipments.",
+    unexpected: "Something went wrong on our side. Try again in a moment.",
+  },
+};
 var show_default$1 = {
   runs: {
     label: "Running orders",
@@ -16738,7 +16519,7 @@ var gateway_default = {
     clearFilter: "Mostrar todas las organizaciones",
   },
   engagement: /* @__PURE__ */ JSON.parse(
-    '{"tabs":"Secciones de la contratación","representing":"Actuando por {artist}","messagesAction":"Escribir a la organización","onboardingAction":"Ver incorporación","trainingAction":"Ver capacitación","shiftsAction":"Ver turnos","invoicesAction":"Ver facturas","documentsAction":"Ver documentos","poAction":"Ver órdenes de compra","changeOrdersAction":"Ver órdenes de cambio","scheduleAction":"Ver calendario","scopeAction":"Ver alcance","advanceAction":"Abrir el avance","operationalClosed":"Esto se abre cuando la contratación está activa. Termina la incorporación para llegar ahí.","due":"Vence {date}","overview":{"next":"Tus próximos pasos","stages":"En qué etapa está","stage":{"offer":"Oferta","onboarding":"Incorporación","engaged":"En curso","closeOut":"Cierre"},"blocked":"Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios de incorporación. Abre Incorporación para ver lo pendiente.","rate":"Tu tarifa","rateHidden":"Se muestra mientras el área de pagos esté abierta","payBasis":"Base de pago","rated":"Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."},"documents":{"empty":"Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.","emptyKind":"Aún no se compartió nada de este tipo. Pregunta a la organización si lo esperabas.","expires":"Vence {date}"},"onboarding":{"empty":"No hay pasos de incorporación. La organización agrega los que necesite antes de que empieces.","progress":"{n} de {total} verificados","blocking":"Obligatorio antes de empezar","standing":{"verified":"Verificado","review":"En revisión","todo":"Pendiente","expired":"Vencido"},"signHint":"Fírmalo en Documentos; el paso se completa cuando la organización firme.","backgroundHint":"El proveedor de verificación de la organización te envía un enlace seguro para tu consentimiento y datos. Aquí solo se guarda el resultado.","payoutHint":"Agrega tus datos de pago en Configuración, Pagos e impuestos. Solo se muestran los últimos cuatro dígitos."},"messages":{"empty":"Aún no hay conversaciones. Empieza una abajo; la organización responde aquí.","org":"La organización","new":"Iniciar una conversación"},"invoices":{"closed":"Las facturas se abren cuando el área de pagos esté abierta, al quedar activa.","empty":"Aún no hay facturas. Envía una abajo cuando termines tu trabajo.","submitTitle":"Enviar una factura","selfBilling":"Autofacturación","selfBillingBody":"Con la autofacturación activa, la organización genera tus facturas a partir de las hojas de horas aprobadas. Puedes detenerla cuando quieras.","selfBillingOn":"Autofacturación activa","selfBillingAgree":"Aceptar autofacturación","selfBillingStop":"Detener autofacturación"},"shifts":{"empty":"Aún no hay turnos. Los turnos publicados aparecen aquí para que los aceptes.","accept":"Aceptar turno"},"positions":{"empty":"Aún no tienes puestos asignados. Llegan cuando termines la capacitación."},"timesheets":{"empty":"Aún no hay hojas de horas. Tus turnos registrados se reúnen aquí.","hours":"{n} horas","submitted":"Enviada el {date}","submit":"Enviar","entries":"Registros de tiempo"},"time":{"empty":"Aún no hay tiempo registrado. Marca tu entrada desde Compass al empezar.","out":"Salida {time}","open":"Aún con entrada marcada","break":"{n} min de descanso"},"travel":{"empty":"Aún no hay viaje ni hospedaje. Escribe a la organización si lo necesitas.","lodging":"Hospedaje","travel":"Viaje"},"perDiem":{"empty":"Aún no hay viáticos ni asignaciones. Aparecen aquí cuando la organización los defina.","quantity":"{n} por día"},"credentials":{"empty":"Aún no hay credenciales. Se emiten cuando pasa la incorporación.","valid":"Vigente","revoked":"Revocada"},"training":{"empty":"No hay capacitación pendiente. Las sesiones y confirmaciones aparecen aquí al asignarse.","sessions":"Sesiones de capacitación"},"bid":{"empty":"No tienes ofertas con esta organización. Las órdenes de compra llegan cuando una oferta gana.","summary":"Oferta sellada enviada el {date}, total {total}","quantity":"Cantidad {n}"},"po":{"empty":"Aún no hay órdenes de compra. Llegan aquí cuando la organización envía una.","number":"OC {n}","sent":"Enviada el {date}","acknowledged":"Confirmada el {date}","acknowledge":"Confirmar recepción","line":"{n}. {description}"},"deliveries":{"empty":"Aún no hay entregas ni turnos de muelle. Tus horarios aparecen aquí al reservarse.","docks":"Turnos de muelle","shipments":"Envíos"},"submittals":{"empty":"Aún no hay entregables técnicos solicitados. Las solicitudes de planos y especificaciones aparecen aquí."},"advance":{"empty":"Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.","awaitingReview":"En espera de revisión"},"compliance":{"empty":"Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.","insurance":"Certificados de seguro","noInsurance":"No hay certificado de seguro registrado. Súbelo en Incorporación.","current":"Vigente","expired":"Vencido","prequalification":"Precalificación","validTo":"Vigente hasta {date}","items":"Pasos de cumplimiento"},"approvals":{"empty":"Nada espera tu aprobación. Las solicitudes de la organización aparecen aquí.","requested":"Solicitada el {date}","waiting":"Te espera"},"changeOrders":{"empty":"Aún no hay órdenes de cambio. Los cambios de alcance o costo aparecen aquí para revisión.","noCost":"Sin costo"},"schedule":{"empty":"Aún no hay nada en el calendario compartido. Las fechas aparecen cuando la organización las comparte."},"reports":{"empty":"Aún no hay informes compartidos. Los informes que comparta la organización aparecen aquí."},"activation":{"empty":"Aún no hay fechas de activación. Aparecen cuando la organización las programe."},"runOfShow":{"empty":"Aún no se comparte el guion del show. Aparece aquí cuando la organización lo comparta.","called":"Llamado {time}","mySet":"Tu presentación"},"scope":{"statement":"Declaración de trabajo","noStatement":"Aún no se comparte la declaración de trabajo. Pídela a la organización en Mensajes.","milestones":"Hitos","noMilestones":"Aún no hay hitos compartidos."},"deliverables":{"empty":"Aún no hay entregables. Salen de tu alcance cuando la organización los agregue.","submitted":"Entregado el {date}"},"entitlements":{"empty":"Aún no hay beneficios. Los beneficios de tu paquete aparecen aquí.","quantity":"Cantidad {n}","fulfilled":"Cumplido el {date}","done":"Cumplido","overdue":"Atrasado","open":"Abierto"},"rider":{"empty":"Aún no hay rider. Envía tu rider mediante el avance.","quantity":"Cantidad {n}","fulfilled":"Confirmado","pending":"Pendiente"},"setTimes":{"empty":"Aún no hay horarios de presentación. Aparecen cuando se comparte el guion del show.","daySheets":"Hojas del día"},"hospitality":{"empty":"Aún no hay hospitalidad. Pide lo que necesites en el avance."},"guestList":{"unavailable":"Las listas de invitados aún no están conectadas. Pon a tus invitados en el paquete de avance y la organización los confirma ahí."},"roster":{"empty":"Aún no representas a ningún artista. Propón una representación desde Configuración de empresa.","action":"Configuración de representación","noEngagements":"Aún no hay contrataciones para este artista."},"forms":{"errors":{"answer":"Escribe una respuesta antes de enviar.","decision":"Elige aprobar o rechazar.","reason":"Di por qué lo rechazas para que la organización pueda corregirlo.","deliverable":"Elige el documento y escribe un mensaje breve.","header":"Completa el número de factura y ambas fechas.","dates":"La fecha de vencimiento debe ser igual o posterior a la de emisión.","lines":"Cada línea necesita un artículo, una cantidad mayor que cero y un precio unitario.","file":"Elige un archivo para subir.","fileType":"Sube un archivo PDF, JPEG, PNG, HEIC o WebP.","fileSize":"El archivo supera 25 MB. Sube un escaneo o foto más pequeño.","tin":"Escribe el identificador fiscal con 4 a 30 letras y dígitos.","subject":"Ponle un asunto a la conversación."},"advance":{"answer":"Tu respuesta","submit":"Enviar respuesta","done":"Respuesta enviada. La organización la revisa después."},"approval":{"decision":"Decisión","approve":"Aprobar","reject":"Rechazar","reason":"Por qué lo rechazas","note":"Nota para la organización","done":"Decisión enviada."},"deliverable":{"document":"Documento","message":"Mensaje","submit":"Entregar","done":"Entregado. La organización lo acepta o lo devuelve.","noDocuments":"Primero comparte el archivo en Mensajes; luego será un documento que puedes entregar aquí."},"invoice":{"title":"Factura","number":"Número de factura","issuedOn":"Fecha de emisión","dueOn":"Fecha de vencimiento","currency":"Montos en {currency}","description":"Artículo o servicio","quantity":"Cantidad","unitPrice":"Precio unitario","addLine":"Agregar línea","removeLine":"Quitar línea {n}","submit":"Enviar factura","done":"Factura enviada. Síguela en el rastreador de pagos."},"upload":{"file":"Archivo o foto","help":"PDF o foto de hasta 25 MB. En el teléfono puedes tomar la foto ahora.","submit":"Subir","done":"Subido. La organización lo verifica después."},"tax":{"title":"Formulario fiscal","kind":"Formulario","tin":"Número de identificación fiscal","tinHelp":"Se guarda cifrado. Solo se muestran los últimos cuatro caracteres.","withholding":"Soy artista extranjero sujeto a retención","submit":"Enviar formulario fiscal","done":"Formulario fiscal enviado."},"thread":{"title":"Nueva conversación","subject":"Asunto","submit":"Iniciar conversación","done":"Conversación iniciada."},"message":{"label":"Responder","body":"Mensaje","send":"Enviar"},"rating":{"title":"Califica a {org}","score":"Puntuación","stars":"{n, plural, one {# estrella} other {# estrellas}}","comment":"Comentario público","release":"Ambas calificaciones aparecen juntas cuando ambas partes califiquen, o después de 14 días.","submit":"Enviar calificación","done":"Calificación enviada. Aparece cuando la organización también califique, o después de 14 días."},"reply":{"label":"Respuesta pública","submit":"Responder","done":"Respuesta publicada."}}}',
+    '{"tabs":"Secciones de la contratación","representing":"Actuando por {artist}","messagesAction":"Escribir a la organización","onboardingAction":"Ver incorporación","trainingAction":"Ver capacitación","shiftsAction":"Ver turnos","invoicesAction":"Ver facturas","documentsAction":"Ver documentos","poAction":"Ver órdenes de compra","changeOrdersAction":"Ver órdenes de cambio","scheduleAction":"Ver calendario","scopeAction":"Ver alcance","advanceAction":"Abrir el avance","operationalClosed":"Esto se abre cuando la contratación está activa. Termina la incorporación para llegar ahí.","due":"Vence {date}","overview":{"next":"Tus próximos pasos","stages":"En qué etapa está","stage":{"offer":"Oferta","onboarding":"Incorporación","engaged":"En curso","closeOut":"Cierre"},"blocked":"Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios de incorporación. Abre Incorporación para ver lo pendiente.","rate":"Tu tarifa","rateHidden":"Se muestra mientras el área de pagos esté abierta","payBasis":"Base de pago","rated":"Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."},"documents":{"empty":"Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.","emptyKind":"Aún no se compartió nada de este tipo. Pregunta a la organización si lo esperabas.","expires":"Vence {date}"},"onboarding":{"empty":"No hay pasos de incorporación. La organización agrega los que necesite antes de que empieces.","progress":"{n} de {total} verificados","blocking":"Obligatorio antes de empezar","standing":{"verified":"Verificado","review":"En revisión","todo":"Pendiente","expired":"Vencido"},"signHint":"Fírmalo en Documentos; el paso se completa cuando la organización firme.","backgroundHint":"El proveedor de verificación de la organización te envía un enlace seguro para tu consentimiento y datos. Aquí solo se guarda el resultado.","payoutHint":"Agrega tus datos de pago en Configuración, Pagos e impuestos. Solo se muestran los últimos cuatro dígitos."},"messages":{"empty":"Aún no hay conversaciones. Empieza una abajo; la organización responde aquí.","org":"La organización","new":"Iniciar una conversación"},"invoices":{"closed":"Las facturas se abren cuando el área de pagos esté abierta, al quedar activa.","empty":"Aún no hay facturas. Envía una abajo cuando termines tu trabajo.","submitTitle":"Enviar una factura","selfBilling":"Autofacturación","selfBillingBody":"Con la autofacturación activa, la organización genera tus facturas a partir de las hojas de horas aprobadas. Puedes detenerla cuando quieras.","selfBillingOn":"Autofacturación activa","selfBillingAgree":"Aceptar autofacturación","selfBillingStop":"Detener autofacturación"},"shifts":{"empty":"Aún no hay turnos. Los turnos publicados aparecen aquí para que los aceptes.","accept":"Aceptar turno"},"positions":{"empty":"Aún no tienes puestos asignados. Llegan cuando termines la capacitación."},"timesheets":{"empty":"Aún no hay hojas de horas. Tus turnos registrados se reúnen aquí.","hours":"{n} horas","submitted":"Enviada el {date}","submit":"Enviar","entries":"Registros de tiempo"},"time":{"empty":"Aún no hay tiempo registrado. Marca tu entrada desde Compass al empezar.","out":"Salida {time}","open":"Aún con entrada marcada","break":"{n} min de descanso"},"travel":{"empty":"Aún no hay viaje ni hospedaje. Escribe a la organización si lo necesitas.","lodging":"Hospedaje","travel":"Viaje","itinerary":"Itinerario","route":"{from} a {to}","departs":"Sale {time}","arrives":"Llega {time}","confirmation":"Confirmación {code}"},"perDiem":{"empty":"Aún no hay viáticos ni asignaciones. Aparecen aquí cuando la organización los defina.","quantity":"{n} por día","allowances":"Viáticos","amenities":"Comodidades","total":"Total: {amount}"},"credentials":{"empty":"Aún no hay credenciales. Se emiten cuando pasa la incorporación.","valid":"Vigente","revoked":"Revocada"},"training":{"empty":"No hay capacitación pendiente. Las sesiones y confirmaciones aparecen aquí al asignarse.","sessions":"Sesiones de capacitación"},"bid":{"empty":"No tienes ofertas con esta organización. Las órdenes de compra llegan cuando una oferta gana.","summary":"Oferta sellada enviada el {date}, total {total}","quantity":"Cantidad {n}"},"po":{"empty":"Aún no hay órdenes de compra. Llegan aquí cuando la organización envía una.","number":"OC {n}","sent":"Enviada el {date}","acknowledged":"Confirmada el {date}","acknowledge":"Confirmar recepción","line":"{n}. {description}"},"deliveries":{"empty":"Aún no hay entregas ni turnos de muelle. Tus horarios aparecen aquí al reservarse.","docks":"Turnos de muelle","shipments":"Envíos"},"submittals":{"empty":"Aún no hay entregables técnicos solicitados. Las solicitudes de planos y especificaciones aparecen aquí."},"advance":{"empty":"Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.","awaitingReview":"En espera de revisión"},"compliance":{"empty":"Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.","insurance":"Certificados de seguro","noInsurance":"No hay certificado de seguro registrado. Súbelo en Incorporación.","current":"Vigente","expired":"Vencido","prequalification":"Precalificación","validTo":"Vigente hasta {date}","items":"Pasos de cumplimiento"},"approvals":{"empty":"Nada espera tu aprobación. Las solicitudes de la organización aparecen aquí.","requested":"Solicitada el {date}","waiting":"Te espera"},"changeOrders":{"empty":"Aún no hay órdenes de cambio. Los cambios de alcance o costo aparecen aquí para revisión.","noCost":"Sin costo"},"schedule":{"empty":"Aún no hay nada en el calendario compartido. Las fechas aparecen cuando la organización las comparte."},"reports":{"empty":"Aún no hay informes compartidos. Los informes que comparta la organización aparecen aquí.","shared":"Informes compartidos","ranAt":"Generado {time}","rows":"{n} filas","unpriced":"{n} filas aún sin precio","expires":"Compartido hasta el {date}","noRecords":"Aún no hay registros de informes compartidos. Pregunta a la organización si esperas uno."},"activation":{"empty":"Aún no hay fechas de activación. Aparecen cuando la organización las programe."},"runOfShow":{"empty":"Aún no se comparte el guion del show. Aparece aquí cuando la organización lo comparta.","called":"Llamado {time}","mySet":"Tu presentación"},"scope":{"statement":"Declaración de trabajo","noStatement":"Aún no se comparte la declaración de trabajo. Pídela a la organización en Mensajes.","milestones":"Hitos","noMilestones":"Aún no hay hitos compartidos."},"deliverables":{"empty":"Aún no hay entregables. Salen de tu alcance cuando la organización los agregue.","submitted":"Entregado el {date}"},"entitlements":{"empty":"Aún no hay beneficios. Los beneficios de tu paquete aparecen aquí.","quantity":"Cantidad {n}","fulfilled":"Cumplido el {date}","done":"Cumplido","overdue":"Atrasado","open":"Abierto"},"rider":{"empty":"Aún no hay rider. Envía tu rider mediante el avance.","quantity":"Cantidad {n}","fulfilled":"Confirmado","pending":"Pendiente"},"setTimes":{"empty":"Aún no hay horarios de presentación. Aparecen cuando se comparte el guion del show.","daySheets":"Hojas del día"},"hospitality":{"empty":"Aún no hay hospitalidad. Pide lo que necesites en el avance."},"guestList":{"empty":"Aún no hay invitados en tu lista. Agrega un invitado abajo y la producción confirma a cada uno antes del show.","request":"Agregar un invitado","listLabel":"Lista de invitados, {n} personas en total","plusOnes":"Más {n}","checkedIn":"Registrado {time}"},"roster":{"empty":"Aún no representas a ningún artista. Propón una representación desde Configuración de empresa.","action":"Configuración de representación","noEngagements":"Aún no hay contrataciones para este artista."},"forms":{"errors":{"answer":"Escribe una respuesta antes de enviar.","decision":"Elige aprobar o rechazar.","reason":"Di por qué lo rechazas para que la organización pueda corregirlo.","deliverable":"Elige el documento y escribe un mensaje breve.","header":"Completa el número de factura y ambas fechas.","dates":"La fecha de vencimiento debe ser igual o posterior a la de emisión.","lines":"Cada línea necesita un artículo, una cantidad mayor que cero y un precio unitario.","file":"Elige un archivo para subir.","fileType":"Sube un archivo PDF, JPEG, PNG, HEIC o WebP.","fileSize":"El archivo supera 25 MB. Sube un escaneo o foto más pequeño.","tin":"Escribe el identificador fiscal con 4 a 30 letras y dígitos.","subject":"Ponle un asunto a la conversación.","guestName":"Escribe el nombre del invitado antes de agregarlo.","plusOnes":"Los acompañantes van de 0 a 20.","settlementReason":"Escribe una nota o un motivo breve antes de responder."},"advance":{"answer":"Tu respuesta","submit":"Enviar respuesta","done":"Respuesta enviada. La organización la revisa después."},"approval":{"decision":"Decisión","approve":"Aprobar","reject":"Rechazar","reason":"Por qué lo rechazas","note":"Nota para la organización","done":"Decisión enviada."},"deliverable":{"document":"Documento","message":"Mensaje","submit":"Entregar","done":"Entregado. La organización lo acepta o lo devuelve.","noDocuments":"Primero comparte el archivo en Mensajes; luego será un documento que puedes entregar aquí."},"invoice":{"title":"Factura","number":"Número de factura","issuedOn":"Fecha de emisión","dueOn":"Fecha de vencimiento","currency":"Montos en {currency}","description":"Artículo o servicio","quantity":"Cantidad","unitPrice":"Precio unitario","addLine":"Agregar línea","removeLine":"Quitar línea {n}","submit":"Enviar factura","done":"Factura enviada. Síguela en el rastreador de pagos."},"upload":{"file":"Archivo o foto","help":"PDF o foto de hasta 25 MB. En el teléfono puedes tomar la foto ahora.","submit":"Subir","done":"Subido. La organización lo verifica después."},"tax":{"title":"Formulario fiscal","kind":"Formulario","tin":"Número de identificación fiscal","tinHelp":"Se guarda cifrado. Solo se muestran los últimos cuatro caracteres.","withholding":"Soy artista extranjero sujeto a retención","submit":"Enviar formulario fiscal","done":"Formulario fiscal enviado."},"thread":{"title":"Nueva conversación","subject":"Asunto","submit":"Iniciar conversación","done":"Conversación iniciada."},"message":{"label":"Responder","body":"Mensaje","send":"Enviar"},"rating":{"title":"Califica a {org}","score":"Puntuación","stars":"{n, plural, one {# estrella} other {# estrellas}}","comment":"Comentario público","release":"Ambas calificaciones aparecen juntas cuando ambas partes califiquen, o después de 14 días.","submit":"Enviar calificación","done":"Calificación enviada. Aparece cuando la organización también califique, o después de 14 días."},"reply":{"label":"Respuesta pública","submit":"Responder","done":"Respuesta publicada."},"guest":{"title":"Agregar un invitado","name":"Nombre del invitado","plusOnes":"Acompañantes","note":"Nota para la producción (opcional)","submit":"Agregar invitado","done":"Invitado agregado. La producción lo confirma antes del show."},"settlement":{"decision":"Tu respuesta","accept":"Aceptar liquidación","dispute":"Disputar liquidación","note":"Nota","reason":"Qué debe cambiar","done":"Respuesta enviada. La organización ya la ve."}},"settlement":{"submitted":"Enviada el {date}","lines":"Líneas de {title}","unpriced":"Monto por confirmar","less":"Menos {amount}","net":"Neto para ti: {amount}","netUnpriced":"El neto aparece cuando cada línea tiene un monto.","none":"Aún no te han enviado una liquidación. La organización la envía después del show; los documentos de liquidación aparecen abajo."}}',
   ),
   enums: {
     externalRoleType: {
@@ -17025,6 +16806,32 @@ var gateway_default = {
     ratingSide: {
       organization: "Organización",
       party: "Contraparte",
+    },
+    guestEntryState: {
+      requested: "Solicitado",
+      approved: "Aprobado",
+      declined: "Rechazado",
+      checkedIn: "Registrado",
+    },
+    settlementState: {
+      proposed: "Borrador",
+      submitted: "Espera tu respuesta",
+      accepted: "Aceptada",
+      disputed: "Disputada",
+      paid: "Pagada",
+      canceled: "Cancelada",
+    },
+    settlementLineKind: {
+      guarantee: "Garantía",
+      bonus: "Bono",
+      split: "Reparto",
+      expense: "Gasto",
+      deduction: "Deducción",
+      withholding: "Retención",
+    },
+    travelMode: {
+      flight: "Vuelo",
+      ground: "Transporte terrestre",
     },
   },
   explore: {
@@ -23257,6 +23064,52 @@ var shell_default = {
     },
   },
 };
+var shipmentTracking_default = {
+  title: "Rastreo del transportista",
+  notTracked:
+    "Aún sin rastreo. Elige el transportista para seguir aquí los escaneos y la entrega de este envío.",
+  notTrackedReadOnly: "Sin rastreo. Quien gestiona los envíos de este proyecto puede iniciarlo.",
+  noCarriers:
+    "No hay transportistas conectados. Conecta UPS, FedEx o DHL en Configuración, Integraciones, y luego inicia el rastreo aquí.",
+  carrier: "Transportista",
+  number: "Número de rastreo",
+  numberValue: "Número de rastreo {number}",
+  numberFromShipment: "Déjalo en blanco para usar el número del envío, {number}.",
+  numberHint: "Agrega el número de rastreo del transportista, de 6 a 40 letras y dígitos.",
+  start: "Iniciar rastreo",
+  stop: "Detener rastreo",
+  estimated: "Previsto {time}",
+  delivered: "Entregado {time}",
+  checked: "Última consulta {time}",
+  notCheckedYet:
+    "Aún no se consultó al transportista; los escaneos aparecen tras la próxima consulta.",
+  noScans: "Aún no hay escaneos del transportista.",
+  scans: "Escaneos del transportista, del más reciente al más antiguo",
+  status: {
+    labelCreated: "Etiqueta creada",
+    inTransit: "En tránsito",
+    outForDelivery: "En reparto",
+    delivered: "Entregado",
+    exception: "Incidencia",
+    returned: "Devuelto",
+    unknown: "Aún desconocido",
+  },
+  errors: {
+    carrierRequired: "Elige el transportista que lleva este envío.",
+    numberFormat:
+      "Los números de rastreo tienen de 6 a 40 letras y dígitos. Revisa el número e inténtalo de nuevo.",
+    tracking_number_required:
+      "Agrega el número de rastreo al envío, o escríbelo aquí, antes de rastrearlo.",
+    integration_not_connected:
+      "Esa conexión del transportista no está conectada. Reconéctala en Configuración, Integraciones, e inténtalo de nuevo.",
+    integration_category_mismatch: "Elige una conexión de transportista: UPS, FedEx o DHL.",
+    alreadyTracked: "Este envío ya tiene rastreo. Recarga la página para verlo.",
+    notFound: "Ese rastreo ya no está disponible para ti. Recarga la página para ver lo actual.",
+    refused:
+      "Las reglas de la organización no lo permitieron. Consulta con quien gestiona los envíos de este proyecto.",
+    unexpected: "Algo salió mal de nuestro lado. Inténtalo de nuevo en un momento.",
+  },
+};
 var show_default = {
   runs: {
     label: "Órdenes de show",
@@ -25171,6 +25024,7 @@ var enUS = {
   schedule: schedule_default$1,
   settings: settings_default$1,
   shell: shell_default$1,
+  shipmentTracking: shipmentTracking_default$1,
   show: show_default$1,
   support: support_default$1,
   ui: ui_default$1,
@@ -25210,6 +25064,7 @@ var esUS = {
   schedule: schedule_default,
   settings: settings_default,
   shell: shell_default,
+  shipmentTracking: shipmentTracking_default,
   show: show_default,
   support: support_default,
   ui: ui_default,
