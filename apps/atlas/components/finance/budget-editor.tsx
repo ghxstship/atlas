@@ -360,8 +360,8 @@ export function BudgetEditor(props: Props) {
       {sheet === "draw" ? (
         <DrawDialog {...props} lines={lines} onClose={() => setSheet(null)} />
       ) : null}
-      {undo ? (
-        <ToastRegion label={t("common.notifications")}>
+      <ToastRegion label={t("common.notifications")}>
+        {undo ? (
           <UndoToast
             key={undo.ids.join(",")}
             message={undo.message}
@@ -379,8 +379,8 @@ export function BudgetEditor(props: Props) {
             }}
             onExpire={() => setUndo(null)}
           />
-        </ToastRegion>
-      ) : null}
+        ) : null}
+      </ToastRegion>
     </div>
   );
 }
