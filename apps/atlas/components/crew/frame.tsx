@@ -1,11 +1,11 @@
 import { getNode, isNodeVisible } from "@xos/ia";
 import Link from "next/link";
-import type { Route } from "next";
 import type { ReactNode } from "react";
 import { PageHeader, TemplateCollection } from "./ui";
-import { withParams, type CrewContext, type SearchParams } from "@/lib/crew/context";
+import type { CrewContext, SearchParams } from "@/lib/crew/context";
 import { navigableChildren, nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /**
  * The Collection template (Section 11.6) for every People and Crew page: the module's page tabs, the
@@ -43,7 +43,6 @@ export async function CrewFrame(props: FrameProps) {
   const t = await getTranslate();
   const entry = getNode(sitemap, props.node).node;
   const title = t(entry.label);
-  const base = nodeHref(props.node, props.params) ?? "/";
   const views = entry.list?.views ?? [];
   const pages = navigableChildren(getNode(sitemap, props.module).node)
     .filter((c) => isNodeVisible(sitemap, c.id, props.crew.ctx.nav))
@@ -54,25 +53,11 @@ export async function CrewFrame(props: FrameProps) {
 
   const switcher =
     views.length > 1 ? (
-      <nav aria-label={t("crew.frame.views")} className="flex flex-wrap gap-2">
-        {views.map((v) => {
-          const current = v === props.view;
-          return (
-            <Link
-              key={v}
-              href={withParams(base, props.search, { view: v, peek: null, full: null }) as Route}
-              aria-current={current ? "page" : undefined}
-              className={
-                current
-                  ? "inline-flex h-control-md items-center rounded-control bg-bg-hover px-8 text-text-12 font-medium text-text-primary"
-                  : "inline-flex h-control-md items-center rounded-control px-8 text-text-12 text-text-secondary hover:bg-bg-hover hover:text-text-primary"
-              }
-            >
-              {t(`crew.views.${v}`)}
-            </Link>
-          );
-        })}
-      </nav>
+      <CollectionViews
+        label={t("crew.frame.views")}
+        value={props.view}
+        options={views.map((v) => ({ value: v, label: t(`crew.views.${v}`) }))}
+      />
     ) : undefined;
 
   return (

@@ -216,12 +216,10 @@ describe("rfqs", () => {
 
   it("records a response with its lines and refuses an empty one", async () => {
     const { db, calls } = commercialClient({
-      "from:rfq_responses": [
-        okResponse({ id: "s1" }),
+      "rpc:record_rfq_response": [
+        okResponse("s1"),
         errorResponse("XR001", "rfq_not_open: Closed.", "rfq_not_open"),
-        okResponse({ id: "s3" }),
       ],
-      "from:rfq_response_lines": [okResponse([{ id: "l1" }]), errorResponse("23514", "bad")],
     });
     const input = {
       rfqId: "r1",
@@ -231,20 +229,22 @@ describe("rfqs", () => {
       lines: [{ description: " Mics ", quantity: 4, unitPriceMinor: null, elementId: "" }],
     };
     expect(await recordRfqResponse(db, input)).toEqual({ ok: true, data: { id: "s1" } });
-    expect(calls[1]?.steps[0]?.[1]).toEqual([
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
       [
         {
-          rfq_response_id: "s1",
-          description: "Mics",
-          element_id: null,
-          quantity: 4,
-          unit_price_minor: null,
-          currency_code: "USD",
+          p_rfq_id: "r1",
+          p_vendor_id: "v1",
+          p_valid_until: null,
+          p_currency_code: "USD",
+          p_lines: [{ description: "Mics", element_id: null, quantity: 4, unit_price_minor: null }],
         },
       ],
     ]);
-    expect((await recordRfqResponse(db, input)).ok).toBe(false);
-    expect((await recordRfqResponse(db, input)).ok).toBe(false);
+    expect(await recordRfqResponse(db, input)).toEqual({
+      ok: false,
+      error: expect.objectContaining({ kind: "refusal", rule: "rfq_not_open" }),
+    });
     expect(await recordRfqResponse(db, { ...input, lines: [] })).toEqual({
       ok: false,
       error: { kind: "invalid", message: "lines" },

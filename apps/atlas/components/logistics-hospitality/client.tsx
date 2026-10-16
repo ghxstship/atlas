@@ -24,6 +24,7 @@ import {
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /** The URL of the current page with some query parameters replaced or removed. */
 export function useHrefWith(): (changes: Record<string, string | null>) => string {
@@ -54,7 +55,7 @@ export function ViewSwitcher({
   const hrefWith = useHrefWith();
   if (options.length < 2) return null;
   return (
-    <SegmentedControl
+    <CollectionViews
       label={label}
       value={current}
       options={[...options]}

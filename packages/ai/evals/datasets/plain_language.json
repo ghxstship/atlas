@@ -1,0 +1,80 @@
+{
+  "feature": "plain_language",
+  "description": "Fixed test set for ask in plain language: the built conditions must equal the expected set, or the case must refuse.",
+  "today": "2026-10-14",
+  "timeZone": "America/New_York",
+  "catalog": [
+    {
+      "collection": "permits",
+      "fields": [
+        {
+          "name": "permit_state",
+          "type": "enum",
+          "values": ["Proposed", "Submitted", "Blocked", "Issued", "Canceled"]
+        },
+        { "name": "city", "type": "string" },
+        { "name": "due_on", "type": "date" },
+        { "name": "fee_minor", "type": "number" }
+      ]
+    },
+    {
+      "collection": "shifts",
+      "fields": [
+        {
+          "name": "shift_state",
+          "type": "enum",
+          "values": ["Open", "Assigned", "Complete", "Canceled"]
+        },
+        { "name": "starts_at", "type": "date" },
+        { "name": "role_name", "type": "string" }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "blocked-miami-month",
+      "sentence": "blocked permits for Miami shows this month",
+      "collection": "permits",
+      "conditions": [
+        ["permit_state", "eq", "Blocked"],
+        ["city", "eq", "Miami"],
+        ["due_on", "gte", "2026-10-01"],
+        ["due_on", "lte", "2026-10-31"]
+      ]
+    },
+    {
+      "id": "issued-permits",
+      "sentence": "issued permits",
+      "collection": "permits",
+      "conditions": [["permit_state", "eq", "Issued"]]
+    },
+    {
+      "id": "open-shifts",
+      "sentence": "open shifts",
+      "collection": "shifts",
+      "conditions": [["shift_state", "eq", "Open"]]
+    },
+    {
+      "id": "permits-not-canceled",
+      "sentence": "permits that aren't canceled",
+      "collection": "permits",
+      "conditions": [["permit_state", "ne", "Canceled"]]
+    },
+    {
+      "id": "submitted-or-blocked",
+      "sentence": "submitted or blocked permits",
+      "collection": "permits",
+      "conditions": [["permit_state", "in", "Submitted,Blocked"]]
+    },
+    {
+      "id": "weather-refused",
+      "sentence": "permits where it will rain",
+      "refuse": true
+    },
+    {
+      "id": "unknown-collection-refused",
+      "sentence": "unpaid invoices from Bluewater",
+      "refuse": true
+    }
+  ]
+}

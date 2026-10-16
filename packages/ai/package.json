@@ -1,0 +1,33 @@
+{
+  "name": "@xos/ai",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Aurora AI: Claude models through the Anthropic API, with prompts, tools, redaction, the silence rule and evals (Section 4.7).",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./anthropic": "./src/anthropic.ts",
+    "./config/models.json": "./config/models.json"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "evals": "node --experimental-strip-types --no-warnings evals/run.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.132.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.0.3",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "prettier": "3.9.9",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

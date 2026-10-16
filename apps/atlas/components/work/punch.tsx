@@ -12,7 +12,6 @@ import {
   PageHeader,
   RecordList,
   RecordRow,
-  SegmentedControl,
   Select,
   Tag,
   TemplateCollection,
@@ -24,6 +23,7 @@ import { useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { formatWhen, fromLocalInput, stateToken, withQuery } from "./format";
 import { createPunchItemAction } from "./work-order-actions";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /**
  * Work > Punch lists (Section 4.5.5): punch items, each a Task record of subtype Execute titled
@@ -78,7 +78,7 @@ export function PunchCollection({
       count={items.length}
       views={
         views.length > 1 ? (
-          <SegmentedControl
+          <CollectionViews
             label={t("collection.views")}
             value={view}
             options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}

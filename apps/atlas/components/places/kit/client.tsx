@@ -5,7 +5,6 @@ import {
   Calendar,
   DataTable,
   Drawer,
-  SegmentedControl,
   TreeView,
   type BoardProps,
   type CalendarProps,
@@ -17,6 +16,7 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, type ReactNode } from "react";
 import type { ViewType } from "./views";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /**
  * Client pieces shared by the Places and Safety collections. Navigation state (view, peek, create,
@@ -57,7 +57,7 @@ export function ViewSwitcher({
   const navigate = useQueryNavigation();
   if (offered.length < 2) return null;
   return (
-    <SegmentedControl
+    <CollectionViews
       label={t("views.label")}
       value={current}
       options={offered.map((v) => ({ value: v, label: t(`views.${v}`) }))}

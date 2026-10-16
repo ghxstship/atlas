@@ -16,7 +16,6 @@ import {
   PropertyList,
   RecordList,
   RecordRow,
-  SegmentedControl,
   StateChip,
   TemplateCollection,
   Timeline,
@@ -29,6 +28,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { phaseCode, stateIcon } from "@/lib/projects/format";
 import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
+import { CollectionViews } from "@/components/views/collection-views";
 
 export type ProjectView = "table" | "list" | "board" | "gallery" | "timeline" | "calendar";
 
@@ -124,7 +124,7 @@ export function ProjectCollection({
       count={shown.length}
       views={
         views.length > 1 ? (
-          <SegmentedControl
+          <CollectionViews
             label={t("views.label")}
             value={view}
             options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}

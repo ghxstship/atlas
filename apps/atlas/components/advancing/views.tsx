@@ -6,7 +6,6 @@ import {
   DataTable,
   Drawer,
   PropertyList,
-  SegmentedControl,
   Select,
   StateChip,
   type DataTableColumn,
@@ -16,6 +15,7 @@ import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useCopy } from "./use-copy";
+import { CollectionViews } from "@/components/views/collection-views";
 
 /**
  * Client pieces of the Advancing collection pages. Every view keeps its state in the query string
@@ -44,7 +44,7 @@ export function ViewSwitcher({ views, current }: { views: readonly string[]; cur
   const href = useQueryHref();
   if (views.length < 2) return null;
   return (
-    <SegmentedControl
+    <CollectionViews
       label={t("label")}
       value={current}
       options={views.map((v) => ({ value: v, label: t(v) }))}

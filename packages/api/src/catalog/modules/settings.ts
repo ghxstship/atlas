@@ -10,6 +10,12 @@ import { all, editShape, orNull, putActions, removeVerbs, setTable } from "../co
 import { collectionAction } from "../define.ts";
 import type { ResourceSpec } from "../types.ts";
 import {
+  aiSettingsActions,
+  auroraCapabilities,
+  auroraCorrections,
+  auroraResources,
+} from "./parts/aurora.ts";
+import {
   integrationActions,
   integrationCapabilities,
   integrationCorrections,
@@ -78,7 +84,12 @@ const WebhookEndpointSecret = z
   });
 
 export const additions = defineAdditions("Settings", {
+  // Aurora AI (A25): see ./parts/aurora.ts.
+  resources: [...auroraResources],
+  actions: { aiSettings: aiSettingsActions, ...integrationActions },
+  capabilities: { ...auroraCapabilities, ...integrationCapabilities },
   corrections: [
+    ...auroraCorrections,
     {
       id: "subscription-state-and-stripe-fields",
       since: "1.0.0-draft.2",
@@ -867,6 +878,4 @@ export const additions = defineAdditions("Settings", {
     },
     ...integrationCorrections,
   ],
-  actions: { ...integrationActions },
-  capabilities: { ...integrationCapabilities },
 });

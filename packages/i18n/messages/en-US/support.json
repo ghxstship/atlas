@@ -1,0 +1,125 @@
+{
+  "categories": {
+    "Question": "Question",
+    "Problem": "Problem",
+    "Access": "Access",
+    "Billing": "Billing",
+    "Account": "Account",
+    "Feature Request": "Feature request"
+  },
+  "severities": {
+    "Severity 1": "Severity 1: production is down",
+    "Severity 2": "Severity 2: a major feature is broken",
+    "Severity 3": "Severity 3: a problem with a workaround",
+    "Severity 4": "Severity 4: a question"
+  },
+  "states": {
+    "Open": "Open",
+    "Waiting": "Waiting on requester",
+    "Resolved": "Resolved",
+    "Closed": "Closed"
+  },
+  "channels": {
+    "In App": "In app",
+    "Email": "Email, first response within 2 business days",
+    "Chat": "Email and in-app chat, first response within 1 business day",
+    "Priority Queue": "Priority queue, first response within 8 business hours",
+    "Dedicated Channel": "Dedicated channel, 1 hour for severity 1"
+  },
+  "queues": {
+    "Organization": "Organization",
+    "Platform": "Platform"
+  },
+  "columns": {
+    "number": "Request",
+    "subject": "Subject",
+    "requester": "Asked by",
+    "queue": "Queue",
+    "state": "State",
+    "opened": "Opened",
+    "due": "First response due"
+  },
+  "bestEffort": "Best effort",
+  "platformTeam": "Platform support team",
+  "unknownPerson": "A member",
+  "org": {
+    "title": "Support requests",
+    "description": "Requests from members to the admins, and requests the admins sent to the platform team.",
+    "filter": "Show",
+    "filters": {
+      "open": "Open and waiting",
+      "Organization": "Organization queue",
+      "Platform": "Platform queue",
+      "all": "All requests"
+    },
+    "empty": "No support requests yet. Members send requests from Help, Contact support.",
+    "emptyFiltered": "No requests match this filter. Choose All requests to see every request.",
+    "contactPlatform": "Contact platform support",
+    "noPlatform": "Your plan includes the help center and community forum. Upgrade to Core or above to contact platform support.",
+    "terms": "Your plan: {terms}",
+    "readOnly": "You can see support requests but not answer them. Ask an admin with Help and support access."
+  },
+  "mine": {
+    "title": "My support requests",
+    "description": "Requests you sent to your organization's admins or to the platform team.",
+    "empty": "You have not sent a support request. Press ? and choose Contact support when you need help."
+  },
+  "ticket": {
+    "title": "{number}: {subject}",
+    "open": "Open {number}",
+    "close": "Close request",
+    "details": "Details",
+    "diagnostics": "Diagnostics",
+    "consented": "Sent with consent on {date}",
+    "noDiagnostics": "No diagnostics were attached.",
+    "conversation": "Conversation",
+    "noMessages": "No replies yet.",
+    "reply": "Reply",
+    "replyHint": "Write a reply",
+    "send": "Send reply",
+    "closedNote": "This request is closed. Send a new request if you still need help.",
+    "move": "Change state",
+    "reason": "Reason",
+    "reasonHint": "Why the state changes",
+    "moveTo": "Move to {state}",
+    "loading": "Loading the request",
+    "notFound": "This request no longer exists or you can no longer see it.",
+    "loadFailed": "The request could not be loaded. Close it and try again.",
+    "replied": "Reply sent.",
+    "moved": "Moved to {state}.",
+    "fields": {
+      "route": "Page",
+      "appVersion": "App version",
+      "device": "Browser and device",
+      "recentErrors": "Recent errors"
+    }
+  },
+  "errors": {
+    "denied": "You cannot do that on this request. Only the requester and its responders can.",
+    "closed": "This request is closed and takes no more replies.",
+    "invalid": "Something is missing. Write a reply or a reason first.",
+    "conflict": "The request changed while you were looking at it. Reload to see its current state.",
+    "unexpected": "Support could not be reached. Try again in a moment.",
+    "loadFailed": "Support requests could not be loaded. Reload the page to try again.",
+    "notFound": "This request no longer exists or you can no longer see it. Reload to see current requests."
+  },
+  "preferences": {
+    "title": "Tours and tips",
+    "description": "Guided tours are offered once and tips are shown once. Replay a tour or show every tip again.",
+    "tour": "{title}",
+    "state": {
+      "none": "Not offered yet",
+      "Offered": "Offered",
+      "Started": "Started",
+      "Completed": "Completed",
+      "Dismissed": "Not taken"
+    },
+    "replay": "Replay",
+    "resetTips": "Show all tips again",
+    "tipsDismissed": "{count, plural, =0 {No tips dismissed} one {# tip dismissed} other {# tips dismissed}}",
+    "resetDone": "Tips will show again on the pages they belong to.",
+    "replayReady": "The tour starts when you open its page.",
+    "resetFailed": "Tips could not be reset. Try again in a moment."
+  },
+  "openHelp": "Open help"
+}

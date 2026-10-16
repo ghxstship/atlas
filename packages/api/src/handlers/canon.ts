@@ -9,14 +9,20 @@
  * Playbook library mirrors other than emergency codes, canonStdRoles, canonStdLaborRateCards,
  * canonProductionTemplates, canonSupersessions, canonRatifications, canonIntake, canonExtensions
  * and canonUrns, whose shapes wait on the open owner decisions of ADR 0014.
+ *
+ * canonExtensions.propose (A16) records the org's proposal in app.canon_extension_proposals (0490):
+ * a discipline under its department or a category under its discipline, in the .50 to .99 range.
+ * The proposal is decided in Atlas by someone other than the proposer; xpms is never written.
  */
 import type { Components } from "../contract/operations.generated.ts";
 import { notFound, refused } from "../problem.ts";
 import type { HandlerSet } from "../runtime/handler.ts";
-import { defineHandlers, ok } from "../runtime/handler.ts";
+import { proposeCanonExtension } from "@xos/data/canon";
+import { requireOrg } from "../runtime/context.ts";
+import { created, defineHandlers, ok } from "../runtime/handler.ts";
 import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
-import { from, handlersFor, run, tableResource } from "./support/table.ts";
+import { from, handlersFor, run, tableResource, unwrap } from "./support/table.ts";
 import type { TableOptions } from "./support/table.ts";
 
 type Department = Components["CanonDepartment"];
@@ -123,6 +129,43 @@ export const handlers = defineHandlers("Canon", {
       );
     }
     return ok(best);
+  },
+
+  "canonExtensions.propose": async ({ body }, context) => {
+    const org = requireOrg(context);
+    const input = body as {
+      proposed_kind: string;
+      proposed_code: string;
+      proposed_label: string;
+      rationale: string;
+    };
+    const kind = input.proposed_kind.toLowerCase();
+    if (kind !== "discipline" && kind !== "category") {
+      throw refused("REFUSE", "Propose a discipline or a category.", "canon_extension_kind");
+    }
+    const level = kind === "discipline" ? "Discipline" : "Category";
+    const code = input.proposed_code;
+    const parentCode = level === "Discipline" ? code.slice(0, 4) : code.slice(0, 7);
+    const proposal = unwrap(
+      await proposeCanonExtension(context.db, org.id, {
+        level,
+        parentCode,
+        proposedCode: code,
+        label: input.proposed_label,
+        rationale: input.rationale,
+      }),
+    );
+    const at = new Date().toISOString();
+    return created({
+      id: proposal.id,
+      created_at: at,
+      updated_at: at,
+      proposed_kind: kind,
+      proposed_code: code,
+      proposed_label: input.proposed_label,
+      rationale: input.rationale,
+      intake_state: "Proposed",
+    } as never);
   },
 
   "canonElementGtins.resolve": async ({ query }, { db }) => {
