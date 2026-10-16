@@ -10,6 +10,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
+import { RiderExtraction } from "@/components/aurora/rider-extraction";
 import { EmptyStateLink } from "@/components/ui";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
@@ -332,6 +333,7 @@ async function RiderPage({
           </ul>
         )}
         {can.rider ? <AddRiderLineForm org={org} riderId={rider.id} /> : null}
+        {can.rider ? <RiderExtraction org={org} riderId={rider.id} /> : null}
         <p className="m-0 text-text-12 text-text-tertiary">{t("advancing.extraction.hint")}</p>
       </Panel>
       <RecordCollab actx={actx} table="app.riders" id={rider.id} canUpload={can.rider} />

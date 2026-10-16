@@ -13,3 +13,5 @@ export * from "./features/drafting.ts";
 export * from "./features/summaries.ts";
 export * from "./features/mapping.ts";
 export { GUARDRAILS } from "./features/shared.ts";
+export * from "./client.ts";
+export * from "./conversation.ts";

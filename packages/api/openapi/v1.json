@@ -45217,9 +45217,9 @@
             "example": "insurance_certificate"
           },
           "document_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the stored document to read.",
+            "description": "Identifier of the stored document read, when the file is one.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "media_type": {
@@ -45243,7 +45243,7 @@
             "example": "coi-atlantic.pdf"
           }
         },
-        "required": ["kind", "document_id", "media_type", "content_base64", "file_name"],
+        "required": ["kind", "media_type", "content_base64", "file_name"],
         "description": "A document to extract into proposed fields."
       },
       "AuroraDraftRequest": {
@@ -45624,6 +45624,12 @@
             "maxLength": 500,
             "description": "Why, recorded in the suggestion ledger.",
             "example": "Checked against the certificate."
+          },
+          "values": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Field values to send instead of, or in addition to, the proposed ones: corrections the person made and context ids such as `document_id`.",
+            "example": { "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
           }
         },
         "required": ["reason"],
@@ -121135,7 +121141,7 @@
         "x-xos-capability": "home.dashboard.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
         "summary": "Confirm an AI suggestion",
-        "description": "Records the confirmation of the person who asked. The caller then performs the named operation with its own credential and reports the result with `apply` or `reopen`. Refused after expiry. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Records the confirmation of the person who asked, then performs the named public operation as the caller with the proposed values and any `values` the caller changed or added. On success the suggestion is Applied with the record written. When the operation refuses, the suggestion returns to Proposed and the answer is that 422 refusal. Refused after expiry. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -121155,7 +121161,10 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "reason": "Checked against the certificate." },
+              "example": {
+                "reason": "Checked against the certificate.",
+                "values": { "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
+              },
               "schema": { "$ref": "#/components/schemas/AiSuggestionConfirmRequest" }
             }
           }

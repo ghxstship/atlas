@@ -74,6 +74,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       locale={locale}
       theme={themeFromCookie(cookieStore.get(THEME_COOKIE)?.value)}
       email={ctx.viewer.email}
+      canManageAi={ctx.capabilities.has("org.ai.write")}
     >
       {children}
     </ShellFrame>
