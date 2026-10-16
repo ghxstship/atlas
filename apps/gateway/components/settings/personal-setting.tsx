@@ -50,13 +50,13 @@ export function PersonalSetting(props: PersonalSettingProps) {
           {props.label}
         </label>
       ) : props.type === "choice" || props.input === "time_zone" ? (
-        <label htmlFor={id} className="flex flex-col gap-4 text-text-13">
+        <label htmlFor={id} className="flex min-w-0 flex-col gap-4 text-text-13">
           <span className="font-medium">{props.label}</span>
           <select
             id={id}
             name="value"
             defaultValue={props.initial}
-            className="min-h-touch-min rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
+            className="min-h-touch-min w-full min-w-0 max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
           >
             {props.options.map((o) => (
               <option key={o.value} value={o.value}>

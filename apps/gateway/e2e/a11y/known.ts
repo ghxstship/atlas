@@ -22,12 +22,6 @@ export const KNOWN_PROBLEMS: readonly KnownProblem[] = [
     routes: ["settings.out-of-office"],
     viewports: ["phone-375"],
   },
-  {
-    finding: "A23-013",
-    pattern: /^overflow: page scrolls horizontally/,
-    routes: ["settings", "settings.profile"],
-    viewports: ["phone-375"],
-  },
 ];
 
 export interface Triage {

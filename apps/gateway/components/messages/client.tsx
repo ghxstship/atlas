@@ -44,7 +44,7 @@ export function StartConversationForm({ orgs }: { orgs: readonly { id: string; n
         <select
           name="orgId"
           required
-          className="min-h-touch-min rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
+          className="min-h-touch-min min-w-0 max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
         >
           {orgs.map((o) => (
             <option key={o.id} value={o.id}>

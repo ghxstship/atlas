@@ -306,7 +306,7 @@ export function ReportListing({
             <select
               name="reason"
               required
-              className="min-h-touch-min rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
+              className="min-h-touch-min min-w-0 max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
             >
               {reasons.map((r) => (
                 <option key={r.value} value={r.value}>
