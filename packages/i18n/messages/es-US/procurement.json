@@ -393,7 +393,10 @@
       "parent": "El código debe empezar con el código de su nivel superior.",
       "quantity": "Escriba una cantidad mayor que cero.",
       "lines": "Agregue al menos una línea con cantidad.",
-      "sopCode": "Use SOP- y de tres a cinco dígitos, por ejemplo SOP-007."
+      "sopCode": "Use SOP- y de tres a cinco dígitos, por ejemplo SOP-007.",
+      "lineFormat": "Revisa el formato: una entrada por línea, como indica la ayuda debajo del campo.",
+      "quizCorrect": "Escribe el número de la opción correcta, del 1 a la cantidad de opciones.",
+      "httpsUrl": "Escribe una dirección web que empiece con https://."
     },
     "loadError": {
       "title": "No se pudo cargar",

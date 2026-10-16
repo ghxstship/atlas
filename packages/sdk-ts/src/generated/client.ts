@@ -348,6 +348,41 @@ import {
   SupportTicketsResource,
   SupportTicketMessagesResource,
   SupportTicketDiagnosticsResource,
+  WorkforceGroupsResource,
+  WorkforceGroupMembersResource,
+  ConversationsResource,
+  ChatMessagesResource,
+  DirectoryEntriesResource,
+  FeedPostsResource,
+  PollsResource,
+  SurveysResource,
+  SurveyQuestionsResource,
+  RecognitionsResource,
+  WorkforceEventsResource,
+  EventRsvpsResource,
+  EventCheckInsResource,
+  FormTemplatesResource,
+  FormSubmissionsResource,
+  TrainingCoursesResource,
+  TrainingLessonsResource,
+  TrainingQuizQuestionsResource,
+  TrainingQuizKeysResource,
+  TrainingAssignmentsResource,
+  TrainingCompletionsResource,
+  HandbookSectionsResource,
+  HandbookArticlesResource,
+  KnowledgeSourcesResource,
+  HelpDeskTeamsResource,
+  HelpDeskTeamMembersResource,
+  HelpDeskRequestsResource,
+  OccupancyCountersResource,
+  WeatherThresholdsResource,
+  WeatherAlertRolesResource,
+  WeatherReadingsResource,
+  WeatherAlertsResource,
+  GuestCheckInsResource,
+  LostFoundItemsResource,
+  LostFoundClaimsResource,
 } from "./resources.ts";
 
 /**
@@ -1140,4 +1175,78 @@ export class XosClient extends XosClientCore {
   /** Platform: operations on `supportTicketDiagnostics`. */
   readonly supportTicketDiagnostics: SupportTicketDiagnosticsResource =
     new SupportTicketDiagnosticsResource(this);
+  /** Workforce: operations on `workforceGroups`. */
+  readonly workforceGroups: WorkforceGroupsResource = new WorkforceGroupsResource(this);
+  /** Workforce: operations on `workforceGroupMembers`. */
+  readonly workforceGroupMembers: WorkforceGroupMembersResource = new WorkforceGroupMembersResource(
+    this,
+  );
+  /** Workforce: operations on `conversations`. */
+  readonly conversations: ConversationsResource = new ConversationsResource(this);
+  /** Workforce: operations on `chatMessages`. */
+  readonly chatMessages: ChatMessagesResource = new ChatMessagesResource(this);
+  /** Workforce: operations on `directoryEntries`. */
+  readonly directoryEntries: DirectoryEntriesResource = new DirectoryEntriesResource(this);
+  /** Workforce: operations on `feedPosts`. */
+  readonly feedPosts: FeedPostsResource = new FeedPostsResource(this);
+  /** Workforce: operations on `polls`. */
+  readonly polls: PollsResource = new PollsResource(this);
+  /** Workforce: operations on `surveys`. */
+  readonly surveys: SurveysResource = new SurveysResource(this);
+  /** Workforce: operations on `surveyQuestions`. */
+  readonly surveyQuestions: SurveyQuestionsResource = new SurveyQuestionsResource(this);
+  /** Workforce: operations on `recognitions`. */
+  readonly recognitions: RecognitionsResource = new RecognitionsResource(this);
+  /** Workforce: operations on `workforceEvents`. */
+  readonly workforceEvents: WorkforceEventsResource = new WorkforceEventsResource(this);
+  /** Workforce: operations on `eventRsvps`. */
+  readonly eventRsvps: EventRsvpsResource = new EventRsvpsResource(this);
+  /** Workforce: operations on `eventCheckIns`. */
+  readonly eventCheckIns: EventCheckInsResource = new EventCheckInsResource(this);
+  /** Workforce: operations on `formTemplates`. */
+  readonly formTemplates: FormTemplatesResource = new FormTemplatesResource(this);
+  /** Workforce: operations on `formSubmissions`. */
+  readonly formSubmissions: FormSubmissionsResource = new FormSubmissionsResource(this);
+  /** Workforce: operations on `trainingCourses`. */
+  readonly trainingCourses: TrainingCoursesResource = new TrainingCoursesResource(this);
+  /** Workforce: operations on `trainingLessons`. */
+  readonly trainingLessons: TrainingLessonsResource = new TrainingLessonsResource(this);
+  /** Workforce: operations on `trainingQuizQuestions`. */
+  readonly trainingQuizQuestions: TrainingQuizQuestionsResource = new TrainingQuizQuestionsResource(
+    this,
+  );
+  /** Workforce: operations on `trainingQuizKeys`. */
+  readonly trainingQuizKeys: TrainingQuizKeysResource = new TrainingQuizKeysResource(this);
+  /** Workforce: operations on `trainingAssignments`. */
+  readonly trainingAssignments: TrainingAssignmentsResource = new TrainingAssignmentsResource(this);
+  /** Workforce: operations on `trainingCompletions`. */
+  readonly trainingCompletions: TrainingCompletionsResource = new TrainingCompletionsResource(this);
+  /** Workforce: operations on `handbookSections`. */
+  readonly handbookSections: HandbookSectionsResource = new HandbookSectionsResource(this);
+  /** Workforce: operations on `handbookArticles`. */
+  readonly handbookArticles: HandbookArticlesResource = new HandbookArticlesResource(this);
+  /** Workforce: operations on `knowledgeSources`. */
+  readonly knowledgeSources: KnowledgeSourcesResource = new KnowledgeSourcesResource(this);
+  /** Workforce: operations on `helpDeskTeams`. */
+  readonly helpDeskTeams: HelpDeskTeamsResource = new HelpDeskTeamsResource(this);
+  /** Workforce: operations on `helpDeskTeamMembers`. */
+  readonly helpDeskTeamMembers: HelpDeskTeamMembersResource = new HelpDeskTeamMembersResource(this);
+  /** Workforce: operations on `helpDeskRequests`. */
+  readonly helpDeskRequests: HelpDeskRequestsResource = new HelpDeskRequestsResource(this);
+  /** Workforce: operations on `occupancyCounters`. */
+  readonly occupancyCounters: OccupancyCountersResource = new OccupancyCountersResource(this);
+  /** Workforce: operations on `weatherThresholds`. */
+  readonly weatherThresholds: WeatherThresholdsResource = new WeatherThresholdsResource(this);
+  /** Workforce: operations on `weatherAlertRoles`. */
+  readonly weatherAlertRoles: WeatherAlertRolesResource = new WeatherAlertRolesResource(this);
+  /** Workforce: operations on `weatherReadings`. */
+  readonly weatherReadings: WeatherReadingsResource = new WeatherReadingsResource(this);
+  /** Workforce: operations on `weatherAlerts`. */
+  readonly weatherAlerts: WeatherAlertsResource = new WeatherAlertsResource(this);
+  /** Workforce: operations on `guestCheckIns`. */
+  readonly guestCheckIns: GuestCheckInsResource = new GuestCheckInsResource(this);
+  /** Workforce: operations on `lostFoundItems`. */
+  readonly lostFoundItems: LostFoundItemsResource = new LostFoundItemsResource(this);
+  /** Workforce: operations on `lostFoundClaims`. */
+  readonly lostFoundClaims: LostFoundClaimsResource = new LostFoundClaimsResource(this);
 }

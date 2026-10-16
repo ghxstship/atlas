@@ -94,6 +94,60 @@
         "subject": "Your organization is read-only",
         "body": "Your payment is overdue, so your organization is read-only until the payment method is updated. No data has been deleted."
       }
+    },
+    "message": {
+      "received": {
+        "subject": "New message from {actorName}",
+        "body": "{actorName} sent you a message. Open XOS to read and reply."
+      }
+    },
+    "announcement": {
+      "posted": {
+        "subject": "New post: {title}",
+        "body": "{actorName} posted {title} to your feed."
+      }
+    },
+    "survey": {
+      "opened": {
+        "subject": "Survey open: {title}",
+        "body": "{actorName} asked for your answers to {title}."
+      }
+    },
+    "recognition": {
+      "received": {
+        "subject": "You were recognized",
+        "body": "{actorName} recognized you: {title}"
+      }
+    },
+    "event": {
+      "invited": {
+        "subject": "You are invited: {title}",
+        "body": "{actorName} invited you to {title} on {startsAt, date, full} at {startsAt, time, short}."
+      }
+    },
+    "training": {
+      "assigned": {
+        "subject": "Training assigned: {title}",
+        "body": "{actorName} assigned you the course {title}."
+      }
+    },
+    "help_request": {
+      "assigned": {
+        "subject": "Help request: {title}",
+        "body": "A help desk request needs your team: {title}."
+      }
+    },
+    "occupancy": {
+      "threshold": {
+        "subject": "{title} is at {percent}% of its permitted load",
+        "body": "{title} has {count} people inside, {percent}% of the permitted load of {permitted_load}."
+      }
+    },
+    "weather": {
+      "alert": {
+        "subject": "Weather alert: {level}",
+        "body": "A {hazard} reading of {reading} met the {level} threshold. Follow the emergency plan."
+      }
     }
   },
   "notification": {

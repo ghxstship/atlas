@@ -94,6 +94,60 @@
         "subject": "Tu organización está en modo de solo lectura",
         "body": "Tu pago está vencido, así que tu organización queda en modo de solo lectura hasta que actualices el método de pago. No se eliminó ningún dato."
       }
+    },
+    "message": {
+      "received": {
+        "subject": "Nuevo mensaje de {actorName}",
+        "body": "{actorName} te envió un mensaje. Abre XOS para leerlo y responder."
+      }
+    },
+    "announcement": {
+      "posted": {
+        "subject": "Nueva publicación: {title}",
+        "body": "{actorName} publicó {title} en tus novedades."
+      }
+    },
+    "survey": {
+      "opened": {
+        "subject": "Encuesta abierta: {title}",
+        "body": "{actorName} pidió tus respuestas para {title}."
+      }
+    },
+    "recognition": {
+      "received": {
+        "subject": "Te reconocieron",
+        "body": "{actorName} te reconoció: {title}"
+      }
+    },
+    "event": {
+      "invited": {
+        "subject": "Estás invitado: {title}",
+        "body": "{actorName} te invitó a {title} el {startsAt, date, full} a las {startsAt, time, short}."
+      }
+    },
+    "training": {
+      "assigned": {
+        "subject": "Capacitación asignada: {title}",
+        "body": "{actorName} te asignó el curso {title}."
+      }
+    },
+    "help_request": {
+      "assigned": {
+        "subject": "Solicitud de ayuda: {title}",
+        "body": "Una solicitud de la mesa de ayuda necesita a tu equipo: {title}."
+      }
+    },
+    "occupancy": {
+      "threshold": {
+        "subject": "{title} está al {percent} % de su aforo permitido",
+        "body": "{title} tiene {count} personas adentro, el {percent} % del aforo permitido de {permitted_load}."
+      }
+    },
+    "weather": {
+      "alert": {
+        "subject": "Alerta de clima: {level}",
+        "body": "Una lectura de {hazard} de {reading} alcanzó el umbral de {level}. Sigue el plan de emergencia."
+      }
     }
   },
   "notification": {

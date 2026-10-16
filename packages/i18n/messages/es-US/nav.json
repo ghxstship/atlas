@@ -22,7 +22,8 @@
         "timeline": "Cronología",
         "calendar": "Calendario",
         "milestones": "Hitos",
-        "baselines": "Líneas base"
+        "baselines": "Líneas base",
+        "events": "Eventos"
       },
       "work": {
         "allRecords": "Todos los registros",
@@ -87,7 +88,11 @@
         "requisitions": "Requisiciones",
         "offers": "Ofertas",
         "agreements": "Acuerdos",
-        "certifications": "Certificaciones"
+        "certifications": "Certificaciones",
+        "groups": "Grupos",
+        "chat": "Chat",
+        "recognition": "Reconocimientos",
+        "helpDesk": "Mesa de ayuda"
       },
       "opportunities": {
         "requisitions": "Requisiciones",
@@ -140,7 +145,11 @@
       "knowledge": {
         "sops": "Procedimientos operativos",
         "documents": "Documentos",
-        "verbiageLibrary": "Biblioteca de terminología"
+        "verbiageLibrary": "Biblioteca de terminología",
+        "feed": "Novedades",
+        "handbook": "Manual",
+        "forms": "Formularios",
+        "training": "Capacitación"
       },
       "reports": {
         "gateReadiness": "Preparación de compuertas",
@@ -168,6 +177,12 @@
       "activity": {
         "feed": "Actividad de la organización",
         "auditLog": "Registro de auditoría"
+      },
+      "siteOps": {
+        "occupancy": "Aforo",
+        "weather": "Clima",
+        "guestCheckIn": "Registro de invitados",
+        "lostAndFound": "Objetos perdidos"
       }
     },
     "items": {
@@ -196,7 +211,8 @@
       "canon": "Canon",
       "activity": "Actividad",
       "settings": "Configuración",
-      "personalSettings": "Configuración personal"
+      "personalSettings": "Configuración personal",
+      "siteOps": "Operaciones del sitio"
     },
     "projectTabs": {
       "overview": "Resumen",
