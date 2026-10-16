@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import axe from "axe-core";
+import { expectAccessible } from "./expect-accessible.ts";
 import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -27,17 +27,6 @@ import {
   nativeComponentStatus,
   type HapticKind,
 } from "../src/index.ts";
-
-async function expectAccessible(node: Element): Promise<void> {
-  const results = await axe.run(node, {
-    rules: { "color-contrast": { enabled: false } },
-    resultTypes: ["violations"],
-  });
-  const blocking = results.violations
-    .filter((v) => v.impact === "serious" || v.impact === "critical")
-    .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`);
-  expect(blocking).toEqual([]);
-}
 
 function withHaptics(ui: ReactElement, onHaptic: (k: HapticKind) => void) {
   return render(

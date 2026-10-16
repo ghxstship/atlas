@@ -60,7 +60,9 @@ jobs:
 
   visual:
     name: Storybook axe and visual baselines (${{ matrix.shard }}/8)
-    runs-on: ubuntu-latest
+    # Pinned: the committed baselines are Ubuntu 24.04 Chromium renders, and ubuntu-latest moves to
+    # a newer image whose fonts would shift every screenshot.
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     # Every story in four modes across three engines is several thousand tests; one runner cannot
     # finish them in time, so Playwright shards them.
@@ -77,16 +79,14 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @xos/ui exec playwright install --with-deps chromium firefox webkit
-      # Axe (gate 8) blocks from the first run. Until the Linux baselines are committed, missing
-      # screenshots are written and uploaded instead of compared (gate 9); remove the env then.
+      # Axe (gate 8) and the screenshot baselines (gate 9) both block. On an intended visual change,
+      # regenerate the baselines in mcr.microsoft.com/playwright at the pinned version.
       - run: pnpm turbo run test:visual --filter=@xos/ui -- --shard=${{ matrix.shard }}/8
-        env:
-          VISUAL_UPDATE_SNAPSHOTS: missing
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: visual-baselines-${{ matrix.shard }}
-          path: packages/ui/test/visual/__screenshots__
+          name: visual-results-${{ matrix.shard }}
+          path: node_modules/.cache/playwright-visual
           if-no-files-found: ignore
 
   ai-evals:
