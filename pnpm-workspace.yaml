@@ -2,6 +2,7 @@ packages:
   - apps/*
   - packages/*
   - canon/import
+  - infra
 
 onlyBuiltDependencies:
   - unrs-resolver
