@@ -424,6 +424,7 @@ export function ModulesForm({
         {modules.map((m) => (
           <div key={m.module} className="py-8">
             <input type="hidden" name="module" value={m.module} />
+            <input type="hidden" name={`was-${m.module}`} value={m.enabled ? "on" : "off"} />
             <Checkbox
               id={`module-${m.module}`}
               name="enabled"

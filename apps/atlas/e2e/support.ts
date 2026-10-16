@@ -14,6 +14,9 @@ export const PASSWORD = `E2e-${"passphrase"}-9431`;
 
 /** axe-core on the current page: zero serious or critical findings (Section 18, gate 8). */
 export async function expectAccessible(page: Page): Promise<void> {
+  // axe measures the resting state; a pointer left on a button after a click would measure its hover
+  // colors instead (hover contrast is tracked separately, finding A24-004).
+  await page.mouse.move(0, 0);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();

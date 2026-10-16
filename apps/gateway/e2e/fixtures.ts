@@ -73,6 +73,39 @@ export async function publishCrewOpportunity(
   return { id, key: toDisplayKey("opportunity", id), title, question };
 }
 
+/** The demo vendor's company (seed 0010), the external account that bids. */
+export const DEMO_VENDOR_ACCOUNT = "01920000-0000-7000-8000-000000000301";
+
+/**
+ * An invited vendor Bid posting (Section 4.4.3, journey 4's Gateway half), published to the demo
+ * vendor's company; bids stay sealed until the deadline.
+ */
+export async function publishVendorBidOpportunity(): Promise<{
+  id: string;
+  key: string;
+  title: string;
+}> {
+  const title = `Delay Tower Audio ${suffix()}`;
+  const [row] = await sql<{ id: string }>(
+    `insert into app.opportunities (project_id, role_type, role_code, title, description, visibility, rate_type,
+       currency_code, starts_on, deadline_at)
+     values ($1, 'Vendor', '9000.50.02', $2, 'Two delay towers with line arrays for June 5 and 6. Line-item bids.',
+       'Invited', 'Bid', 'USD', '2027-06-05', now() + interval '30 days')
+     returning id`,
+    [DEMO.project, title],
+    DEMO.owner,
+  );
+  const id = row?.id as string;
+  await sql(
+    `insert into app.opportunity_invitations (opportunity_id, organization_id) values ($1, $2)`,
+    [id, DEMO_VENDOR_ACCOUNT],
+    DEMO.owner,
+  );
+  await transitionOpportunity(id, "Draft", "Pending Approval", "Ready for approval.");
+  await transitionOpportunity(id, "Pending Approval", "Published", "Approved for the vendor.");
+  return { id, key: toDisplayKey("opportunity", id), title };
+}
+
 /** An agreement on the crew engagement, sent for signature. */
 export async function sendCrewAgreement(): Promise<{ id: string; title: string }> {
   const title = `Crew Addendum ${suffix()}`;

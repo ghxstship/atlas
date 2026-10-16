@@ -165,6 +165,12 @@ test("journey 69: a gate chip shows its canon definition on hover and on focus",
 });
 
 test("help panel and saved views work right to left at phone width", async ({ page }) => {
+  // The pseudo-locales (gate 16) ship only in development builds (i18n/negotiate.ts); a run against
+  // a production build sets E2E_PRODUCTION_BUILD=1 and covers this journey on next dev instead.
+  test.skip(
+    process.env["E2E_PRODUCTION_BUILD"] === "1",
+    "ar-XB is offered only by development builds",
+  );
   await page.setViewportSize({ width: 375, height: 812 });
   await signIn(page, "producer@example.com");
   await page.context().addCookies([{ name: "xos-locale", value: "ar-XB", url: page.url() }]);

@@ -22,6 +22,18 @@ async function peekOf(page: Page) {
   return dialog;
 }
 
+/** Approves the step an order's approval waits on, as the signed-in approver, from Approvals. */
+async function decideStep(page: Page, poNumber: string, step: string) {
+  await page.goto(`/${ORG}/approvals`);
+  const heading = page.getByRole("heading", { name: `Purchase order ${poNumber}`, exact: true });
+  const item = page.getByRole("listitem").filter({ has: heading });
+  await expect(item.getByText(step).first()).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  await item.getByRole("button", { name: "Approve step" }).click();
+  // The decided approval leaves the waiting list (A24-001: its confirmation leaves with it).
+  await expect(item.getByRole("button", { name: "Approve step" })).toHaveCount(0);
+}
+
 test("journeys 4, 30 and 5: RFQ to purchase order, approval by another person, receipt", async ({
   page,
   browser,
@@ -81,15 +93,20 @@ test("journeys 4, 30 and 5: RFQ to purchase order, approval by another person, r
   await expect(comparison.getByText("Bayline Audio Rentals")).toBeVisible();
   await act(page, page.locator("header"), "Award", "Lowest fully priced quote.");
   await act(page, page.locator("main"), "Create order from Demo Staging Supply");
-  await page.waitForLoadState("networkidle");
+  // The confirmation closes once the order exists; listing orders before that would miss it.
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 
-  // The new order is the newest draft for Demo Staging Supply.
+  // The new order is the draft for Demo Staging Supply at the awarded total (4 at $4,200.00); the
+  // demo seed holds another draft for the same vendor.
   await page.goto(`/${ORG}/procurement/purchase-orders?view=list`);
   const draftRow = page
     .getByRole("row")
     .filter({ hasText: "Demo Staging Supply" })
     .filter({ hasText: "Draft" })
+    .filter({ hasText: "$16,800.00" })
     .first();
+  const poNumber = /PO(\d+)/.exec(await draftRow.innerText())?.[1] ?? "";
+  expect(poNumber).not.toBe("");
   await draftRow.getByRole("button", { name: "Open" }).click();
   await (await peekOf(page)).getByRole("link", { name: "Open full page" }).click();
   await expect(page.getByRole("heading", { level: 2, name: "Lines" })).toBeVisible();
@@ -105,8 +122,22 @@ test("journeys 4, 30 and 5: RFQ to purchase order, approval by another person, r
   ).toBeVisible();
   await page.keyboard.press("Escape");
 
+  // The demo tenant's approval policy (A33, seed 1030) routes every order through Finance review
+  // (an Admin) and Owner sign-off before anyone may approve it under spend authority.
+  await page.goto(`/${ORG}/approvals`);
+  const submit = page.getByRole("form", { name: "Submit a document for approval" });
+  const document = `Purchase order: NWS PO ${poNumber} (NWS)`;
+  await submit.getByLabel("Document").selectOption({ label: document });
+  await submit.getByRole("button", { name: "Submit for approval" }).click();
+  await expect(page.getByRole("option", { name: document })).toHaveCount(0);
+
   const admin = await (await browser.newContext()).newPage();
   await signIn(admin, "admin@example.com");
+  await decideStep(admin, poNumber, "Finance review");
+  const owner = await (await browser.newContext()).newPage();
+  await signIn(owner, "owner@example.com");
+  await decideStep(owner, poNumber, "Owner sign-off");
+
   await admin.goto(orderUrl);
   await act(admin, admin.locator("header"), "Approve", "Within budget and spend authority.");
   await expect(admin.getByText("Approved", { exact: true }).first()).toBeVisible();

@@ -17,7 +17,7 @@ test("invite a member, accept as them, and hide what their role may not see", as
   await expectAccessible(page);
   await page.getByLabel("Email", { exact: true }).fill(inviteeEmail);
   await page.getByRole("button", { name: "Create invite" }).click();
-  const link = page.getByLabel("Invitation link");
+  const link = page.getByRole("textbox", { name: "Invitation link", exact: true });
   await expect(link).toHaveValue(/\/auth\/invite\/xinv_/);
   const inviteUrl = new URL(await link.inputValue());
   await expect(page.getByText(inviteeEmail, { exact: true })).toBeVisible();

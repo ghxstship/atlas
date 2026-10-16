@@ -125,7 +125,8 @@ test.describe("Opportunities, org side", () => {
     // A signing link for the Sent agreement, shown once.
     await page.getByLabel("Recipient email").fill("crew@example.com");
     await page.getByRole("button", { name: "Issue signing link" }).click();
-    await expect(page.getByText(/^\/sign\/xdoc_/)).toBeVisible();
+    // The link shows in full when GATEWAY_SITE_URL names Gateway, as a path otherwise.
+    await expect(page.getByText(/^(https?:\/\/[^/\s]+)?\/sign\/xdoc_/)).toBeVisible();
     await expect(page.getByText(/Access code: \d{6}/)).toBeVisible();
     await expectAccessible(page);
   });
