@@ -1390,6 +1390,32 @@ nodes:
           collaborator: hidden
           field: hidden
           viewer: hidden
+      - id: approvals
+        kind: page
+        label: nav.atlas.routes.approvals
+        route: "/{org}/approvals"
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: full
+          collaborator: full
+          field: full
+          viewer: read
+        list: { views: [list, table], default: list }
+      - id: trash
+        kind: page
+        label: nav.atlas.routes.trash
+        route: "/{org}/trash"
+        visibility:
+          owner: full
+          admin: full
+          manager: full
+          member: full
+          collaborator: hidden
+          field: hidden
+          viewer: hidden
+        list: { views: [table, list], default: table }
       - id: custom-object
         kind: page
         label: nav.atlas.routes.customObject
