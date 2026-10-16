@@ -512,6 +512,7 @@ export interface Components {
       | "Not Selected";
     reason?: string;
   };
+  ApprovalCancelRequest: { reason: string };
   ApprovalDecision: {
     id: string;
     org_id: string;
@@ -524,6 +525,7 @@ export interface Components {
     comment: string | null;
     approver_id: string;
     decided_at: string;
+    step_order: number;
   };
   ApprovalDecisionCreate: {
     approval_instance_id: string;
@@ -539,11 +541,34 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     approval_policy_id: string;
-    subject_urn: string;
     requested_by: string;
-    approval_state: string;
+    approval_state: "In Review" | "Approved" | "Rejected" | "Canceled";
+    document_type:
+      | "Purchase Order"
+      | "Change Order"
+      | "Expense"
+      | "Invoice Approval"
+      | "Payroll Run"
+      | "Requisition";
+    document_id: string;
+    subject_table: string;
+    subject_reference: string | null;
+    project_id: string | null;
+    amount_minor: number | null;
+    currency_code: string;
+    current_step: number;
+    decided_at: string | null;
   };
-  ApprovalInstanceCreate: { approval_policy_id: string; subject_urn: string };
+  ApprovalInstanceCreate: {
+    document_type:
+      | "Purchase Order"
+      | "Change Order"
+      | "Expense"
+      | "Invoice Approval"
+      | "Payroll Run"
+      | "Requisition";
+    document_id: string;
+  };
   ApprovalInstancePage: { data: Array<Components["ApprovalInstance"]>; next_cursor: string | null };
   ApprovalPolicy: {
     id: string;
@@ -553,11 +578,70 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    document_type: Components["SpendDocumentType"];
+    document_type:
+      | "Purchase Order"
+      | "Change Order"
+      | "Expense"
+      | "Invoice Approval"
+      | "Payroll Run"
+      | "Requisition";
+    description: string | null;
+    currency_code: string | null;
+    applies_above_minor: number | null;
+    policy_state: "Draft" | "Active" | "Retired";
   };
-  ApprovalPolicyCreate: { name: string; document_type: Components["SpendDocumentType"] };
+  ApprovalPolicyCreate: {
+    name: string;
+    document_type:
+      | "Purchase Order"
+      | "Change Order"
+      | "Expense"
+      | "Invoice Approval"
+      | "Payroll Run"
+      | "Requisition";
+    description?: string | null;
+    currency_code?: string | null;
+    applies_above_minor?: number | null;
+  };
   ApprovalPolicyPage: { data: Array<Components["ApprovalPolicy"]>; next_cursor: string | null };
-  ApprovalPolicyUpdate: { name?: string; document_type?: Components["SpendDocumentType"] };
+  ApprovalPolicyTransitionRequest: {
+    expected_state: "Draft" | "Active" | "Retired";
+    to_state: "Draft" | "Active" | "Retired";
+    reason?: string;
+  };
+  ApprovalPolicyUpdate: {
+    name?: string;
+    description?: string | null;
+    currency_code?: string | null;
+    applies_above_minor?: number | null;
+  };
+  ApprovalStep: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    approval_policy_id: string;
+    step_order: number;
+    name: string;
+    approver_role_id: string | null;
+    approver_membership_id: string | null;
+  };
+  ApprovalStepCreate: {
+    approval_policy_id: string;
+    step_order: number;
+    name: string;
+    approver_role_id?: string | null;
+    approver_membership_id?: string | null;
+  };
+  ApprovalStepPage: { data: Array<Components["ApprovalStep"]>; next_cursor: string | null };
+  ApprovalStepUpdate: {
+    step_order?: number;
+    name?: string;
+    approver_role_id?: string | null;
+    approver_membership_id?: string | null;
+  };
   AssertionLabel: string;
   AssetClass: {
     id: string;
@@ -5222,6 +5306,14 @@ export interface Components {
     shared?: boolean;
     custom_object_type_id?: string | null;
   };
+  ReportMetricRow: {
+    dimension: string;
+    project_id: string | null;
+    measure: string;
+    unit: "Hours" | "Count";
+    value: number;
+  };
+  ReportMetricRowPage: { data: Array<Components["ReportMetricRow"]>; next_cursor: string | null };
   ReportRow: {
     dimension: string;
     budget: Components["MoneyTotal"];
@@ -5465,7 +5557,13 @@ export interface Components {
     vendor_id: string;
     valid_until: string | null;
   };
-  RfqResponseCreate: { rfq_id: string; vendor_id: string; valid_until?: string | null };
+  RfqResponseCreate: {
+    rfq_id: string;
+    vendor_id: string;
+    valid_until?: string | null;
+    currency_code: string;
+    lines: Array<Components["RfqResponseQuotedLine"]>;
+  };
   RfqResponseLine: {
     id: string;
     org_id: string;
@@ -5497,6 +5595,19 @@ export interface Components {
     element_id?: string | null;
   };
   RfqResponsePage: { data: Array<Components["RfqResponse"]>; next_cursor: string | null };
+  RfqResponseQuotedLine: {
+    description: string;
+    element_id?: string;
+    quantity?: number;
+    unit_price_minor: number | null;
+  };
+  RfqResponseReceipt: {
+    rfq_response_id: string;
+    rfq_id: string;
+    vendor_id: string;
+    line_count: number;
+    sealed: boolean;
+  };
   RfqUpdate: { title?: string; responses_due_at?: string | null };
   Rider: {
     id: string;
@@ -6167,8 +6278,6 @@ export interface Components {
     valid_from?: string;
     valid_to?: string | null;
   };
-  SpendDocumentType:
-    "Purchase Order" | "Change Order" | "Expense" | "Invoice Approval" | "Contract" | "Payroll Run";
   SponsorEntitlement: {
     id: string;
     org_id: string;
@@ -6436,6 +6545,8 @@ export interface Components {
     updated_by: string | null;
     name: string;
     current_version_id: string | null;
+    description: string | null;
+    template_kind: "Project";
   };
   TemplateApplication: {
     id: string;
@@ -6446,15 +6557,105 @@ export interface Components {
     updated_by: string | null;
     template_id: string;
     project_id: string;
+    template_version_id: string;
+    scope_nodes_created: number;
+    records_created: number;
   };
-  TemplateApplicationCreate: { template_id: string };
+  TemplateApplicationCreate: {
+    template_id: string;
+    project_key: string;
+    name: string;
+    time_zone?: string;
+    starts_on?: string;
+    venue_id?: string;
+  };
   TemplateApplicationPage: {
     data: Array<Components["TemplateApplication"]>;
     next_cursor: string | null;
   };
-  TemplateCreate: { name: string };
+  TemplateCreate: { name: string; description?: string | null; template_kind?: "Project" };
+  TemplateFromProjectRequest: { project_id: string; name: string; description?: string };
+  TemplateItem: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    template_version_id: string;
+    item_kind: "Scope Node" | "Record";
+    sort_order: number;
+    name: string;
+    scope_kind: "Standing Venue" | "Show" | null;
+    scope_code_suffix: string | null;
+    record_kind: string | null;
+    xyz: "X" | "Y" | "Z" | null;
+    phase_code: string | null;
+    due_offset_days: number | null;
+  };
+  TemplateItemCreate: {
+    template_version_id: string;
+    item_kind: "Scope Node" | "Record";
+    sort_order: number;
+    name: string;
+    scope_kind?: "Standing Venue" | "Show" | null;
+    scope_code_suffix?: string | null;
+    record_kind?: string | null;
+    xyz?: "X" | "Y" | "Z" | null;
+    phase_code?: string | null;
+    due_offset_days?: number | null;
+  };
+  TemplateItemPage: { data: Array<Components["TemplateItem"]>; next_cursor: string | null };
+  TemplateItemUpdate: {
+    sort_order?: number;
+    name?: string;
+    scope_kind?: "Standing Venue" | "Show" | null;
+    scope_code_suffix?: string | null;
+    record_kind?: string | null;
+    xyz?: "X" | "Y" | "Z" | null;
+    phase_code?: string | null;
+    due_offset_days?: number | null;
+  };
   TemplatePage: { data: Array<Components["Template"]>; next_cursor: string | null };
-  TemplateUpdate: { name?: string };
+  TemplateUpdate: { name?: string; description?: string | null; template_kind?: "Project" };
+  TemplateVersion: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    template_id: string;
+    version_number: number;
+    notes: string | null;
+    default_time_zone: string | null;
+    default_tier_code: string | null;
+    default_region_code: string | null;
+    default_jurisdiction_id: string | null;
+    default_currency_code: string | null;
+    duration_days: number | null;
+    published_at: string | null;
+  };
+  TemplateVersionCreate: {
+    template_id: string;
+    notes?: string | null;
+    default_time_zone?: string | null;
+    default_tier_code?: string | null;
+    default_region_code?: string | null;
+    default_jurisdiction_id?: string | null;
+    default_currency_code?: string | null;
+    duration_days?: number | null;
+  };
+  TemplateVersionPage: { data: Array<Components["TemplateVersion"]>; next_cursor: string | null };
+  TemplateVersionUpdate: {
+    notes?: string | null;
+    default_time_zone?: string | null;
+    default_tier_code?: string | null;
+    default_region_code?: string | null;
+    default_jurisdiction_id?: string | null;
+    default_currency_code?: string | null;
+    duration_days?: number | null;
+  };
   TierCode: string;
   TimeEntry: {
     id: string;
@@ -6633,8 +6834,24 @@ export interface Components {
     tour_state?: "Offered" | "Started" | "Completed" | "Dismissed";
     step?: number;
   };
-  TrashItem: { subject_urn: string; deleted_at: string; purge_after: string };
+  TrashItem: {
+    subject_urn: string;
+    deleted_at: string;
+    purge_after: string;
+    subject_table: string;
+    subject_id: string;
+    org_id: string;
+    project_id: string | null;
+    title: string | null;
+    deleted_by: string | null;
+  };
   TrashItemPage: { data: Array<Components["TrashItem"]>; next_cursor: string | null };
+  TrashRestoreResult: {
+    subject_urn: string;
+    subject_table: string;
+    subject_id: string;
+    rows_restored: number;
+  };
   UnionLocalRate: {
     id: string;
     org_id: string;
@@ -12550,7 +12767,7 @@ export interface Operations {
     params: Record<string, never>;
     query: Record<string, never>;
     body: Components["RfqResponseCreate"];
-    responses: { 201: Components["RfqResponse"] };
+    responses: { 201: Components["RfqResponseReceipt"] };
   };
   "rfqResponses.get": {
     module: "Procurement";
@@ -19718,9 +19935,9 @@ export interface Operations {
     method: "get";
     path: "/reports/labor-cost";
     params: Record<string, never>;
-    query: Record<string, never>;
+    query: { project_id?: string };
     body: undefined;
-    responses: { 200: Components["ReportRowPage"] };
+    responses: { 200: Components["ReportMetricRowPage"] };
   };
   "reports.poExposure": {
     module: "Reports";
@@ -19736,9 +19953,9 @@ export interface Operations {
     method: "get";
     path: "/reports/incident-rates";
     params: Record<string, never>;
-    query: Record<string, never>;
+    query: { project_id?: string; from?: string; to?: string };
     body: undefined;
-    responses: { 200: Components["ReportRowPage"] };
+    responses: { 200: Components["ReportMetricRowPage"] };
   };
   "reports.finalCostReport": {
     module: "Reports";
@@ -19754,9 +19971,9 @@ export interface Operations {
     method: "get";
     path: "/reports/gate-readiness";
     params: Record<string, never>;
-    query: Record<string, never>;
+    query: { project_id?: string };
     body: undefined;
-    responses: { 200: Components["ReportRowPage"] };
+    responses: { 200: Components["ReportMetricRowPage"] };
   };
   "customObjectTypes.list": {
     module: "Platform";
@@ -20433,6 +20650,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "approvalPolicies.transition": {
+    module: "Platform";
+    method: "post";
+    path: "/approval-policies/{id}/transitions";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ApprovalPolicyTransitionRequest"];
+    responses: { 200: Components["ApprovalPolicy"] };
+  };
   "approvalInstances.list": {
     module: "Platform";
     method: "get";
@@ -20464,6 +20690,15 @@ export interface Operations {
     params: { id: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
+    responses: { 200: Components["ApprovalInstance"] };
+  };
+  "approvalInstances.cancel": {
+    module: "Platform";
+    method: "post";
+    path: "/approval-instances/{id}/cancel";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ApprovalCancelRequest"];
     responses: { 200: Components["ApprovalInstance"] };
   };
   "approvalDecisions.list": {
@@ -20740,7 +20975,7 @@ export interface Operations {
     params: Record<string, never>;
     query: Record<string, never>;
     body: Components["RestoreRequest"];
-    responses: { 200: Components["TrashItem"] };
+    responses: { 200: Components["TrashRestoreResult"] };
   };
   "templates.list": {
     module: "Platform";
@@ -20792,6 +21027,15 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "templates.createFromProject": {
+    module: "Platform";
+    method: "post";
+    path: "/templates/from-project";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TemplateFromProjectRequest"];
+    responses: { 201: Components["Template"] };
   };
   "templateApplications.list": {
     module: "Platform";
@@ -21332,6 +21576,168 @@ export interface Operations {
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["SupportTicketDiagnostics"] };
+  };
+  "approvalSteps.list": {
+    module: "Platform";
+    method: "get";
+    path: "/approval-steps";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ApprovalStepPage"] };
+  };
+  "approvalSteps.create": {
+    module: "Platform";
+    method: "post";
+    path: "/approval-steps";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ApprovalStepCreate"];
+    responses: { 201: Components["ApprovalStep"] };
+  };
+  "approvalSteps.get": {
+    module: "Platform";
+    method: "get";
+    path: "/approval-steps/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ApprovalStep"] };
+  };
+  "approvalSteps.update": {
+    module: "Platform";
+    method: "patch";
+    path: "/approval-steps/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ApprovalStepUpdate"];
+    responses: { 200: Components["ApprovalStep"] };
+  };
+  "approvalSteps.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/approval-steps/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "templateVersions.list": {
+    module: "Platform";
+    method: "get";
+    path: "/template-versions";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TemplateVersionPage"] };
+  };
+  "templateVersions.create": {
+    module: "Platform";
+    method: "post";
+    path: "/template-versions";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TemplateVersionCreate"];
+    responses: { 201: Components["TemplateVersion"] };
+  };
+  "templateVersions.get": {
+    module: "Platform";
+    method: "get";
+    path: "/template-versions/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TemplateVersion"] };
+  };
+  "templateVersions.update": {
+    module: "Platform";
+    method: "patch";
+    path: "/template-versions/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["TemplateVersionUpdate"];
+    responses: { 200: Components["TemplateVersion"] };
+  };
+  "templateVersions.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/template-versions/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "templateVersions.publish": {
+    module: "Platform";
+    method: "post";
+    path: "/template-versions/{id}/publish";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["TemplateVersion"] };
+  };
+  "templateItems.list": {
+    module: "Platform";
+    method: "get";
+    path: "/template-items";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TemplateItemPage"] };
+  };
+  "templateItems.create": {
+    module: "Platform";
+    method: "post";
+    path: "/template-items";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TemplateItemCreate"];
+    responses: { 201: Components["TemplateItem"] };
+  };
+  "templateItems.get": {
+    module: "Platform";
+    method: "get";
+    path: "/template-items/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TemplateItem"] };
+  };
+  "templateItems.update": {
+    module: "Platform";
+    method: "patch";
+    path: "/template-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["TemplateItemUpdate"];
+    responses: { 200: Components["TemplateItem"] };
+  };
+  "templateItems.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/template-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
   };
 }
 
@@ -22651,9 +23057,11 @@ export interface ModuleOperations {
     | "approvalPolicies.get"
     | "approvalPolicies.update"
     | "approvalPolicies.delete"
+    | "approvalPolicies.transition"
     | "approvalInstances.list"
     | "approvalInstances.create"
     | "approvalInstances.get"
+    | "approvalInstances.cancel"
     | "approvalDecisions.list"
     | "approvalDecisions.create"
     | "approvalDecisions.get"
@@ -22685,6 +23093,7 @@ export interface ModuleOperations {
     | "templates.get"
     | "templates.update"
     | "templates.delete"
+    | "templates.createFromProject"
     | "templateApplications.list"
     | "templateApplications.create"
     | "templateApplications.get"
@@ -22712,5 +23121,21 @@ export interface ModuleOperations {
     | "supportTicketMessages.list"
     | "supportTicketMessages.get"
     | "supportTicketDiagnostics.list"
-    | "supportTicketDiagnostics.get";
+    | "supportTicketDiagnostics.get"
+    | "approvalSteps.list"
+    | "approvalSteps.create"
+    | "approvalSteps.get"
+    | "approvalSteps.update"
+    | "approvalSteps.delete"
+    | "templateVersions.list"
+    | "templateVersions.create"
+    | "templateVersions.get"
+    | "templateVersions.update"
+    | "templateVersions.delete"
+    | "templateVersions.publish"
+    | "templateItems.list"
+    | "templateItems.create"
+    | "templateItems.get"
+    | "templateItems.update"
+    | "templateItems.delete";
 }

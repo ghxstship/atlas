@@ -19302,6 +19302,42 @@
         ],
         "description": "A sealed RFQ response. A bidder sees only their own response."
       },
+      "RfqResponseReceipt": {
+        "type": "object",
+        "properties": {
+          "rfq_response_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the recorded response.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "rfq_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the RFQ.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "vendor_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the responding vendor.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "line_count": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Lines recorded.",
+            "example": 3
+          },
+          "sealed": {
+            "type": "boolean",
+            "description": "True while the RFQ is not Closed: the response stays unreadable until it closes.",
+            "example": true
+          }
+        },
+        "required": ["rfq_response_id", "rfq_id", "vendor_id", "line_count", "sealed"],
+        "description": "A recorded RFQ response. The response itself stays sealed until the RFQ closes."
+      },
       "RfqResponseCreate": {
         "type": "object",
         "properties": {
@@ -19322,10 +19358,53 @@
             "format": "date",
             "description": "Last day the quoted prices hold.",
             "example": "2026-10-08"
+          },
+          "currency_code": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of every quoted line.",
+            "example": "USD"
+          },
+          "lines": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RfqResponseQuotedLine" },
+            "minItems": 1,
+            "description": "Lines quoted, at least one."
           }
         },
-        "required": ["rfq_id", "vendor_id"],
+        "required": ["rfq_id", "vendor_id", "currency_code", "lines"],
         "description": "Fields accepted when creating a RfqResponse."
+      },
+      "RfqResponseQuotedLine": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Line description.",
+            "example": "Line array, 12 boxes per side"
+          },
+          "element_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Catalog element quoted.",
+            "example": "0000.01.01-XOS-001"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity; 1 when omitted.",
+            "example": 2
+          },
+          "unit_price_minor": {
+            "type": ["integer", "null"],
+            "description": "Unit price quoted. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 1800000,
+            "format": "int64"
+          }
+        },
+        "required": ["description", "unit_price_minor"],
+        "description": "A line quoted in an RFQ response."
       },
       "RfqResponseLinePage": {
         "type": "object",
@@ -41381,6 +41460,58 @@
         "required": ["dimension", "budget", "actual"],
         "description": "A row of a built-in analytics report. Money columns are NULL-aware totals."
       },
+      "ReportMetricRowPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReportMetricRow" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ReportMetricRow": {
+        "type": "object",
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "description": "Grouping value: a project key, a project key and gate, or a severity.",
+            "example": "NWL"
+          },
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project the row is about, when it is about one.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "measure": {
+            "type": "string",
+            "pattern": "^[a-z][a-z_]*$",
+            "description": "What is measured: worked_hours, timesheets and open_entries (labor), incidents and open_incidents (incident rates), blocking_met, blocking_total, other_met, other_total and ready (gate readiness).",
+            "example": "worked_hours"
+          },
+          "unit": {
+            "type": "string",
+            "enum": ["Hours", "Count"],
+            "description": "Unit of the value.",
+            "example": "Hours"
+          },
+          "value": {
+            "type": "number",
+            "description": "The measure: hours to two decimals, or a whole count (ready is 1 or 0).",
+            "example": 312.5
+          }
+        },
+        "required": ["dimension", "project_id", "measure", "unit", "value"],
+        "description": "One measure of a built-in report row, in hours or a count. Reports that total money answer ReportRow instead."
+      },
       "CustomObjectTypePage": {
         "type": "object",
         "properties": {
@@ -43695,7 +43826,44 @@
             "description": "Policy name.",
             "example": "PO Over Limit"
           },
-          "document_type": { "$ref": "#/components/schemas/SpendDocumentType" }
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "Purchase Order",
+              "Change Order",
+              "Expense",
+              "Invoice Approval",
+              "Payroll Run",
+              "Requisition"
+            ],
+            "description": "Spend document type the policy gates.",
+            "example": "Purchase Order"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the policy is for.",
+            "example": "Every purchase order goes to finance."
+          },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of applies_above_minor; null for every amount.",
+            "example": "USD"
+          },
+          "applies_above_minor": {
+            "type": ["integer", "null"],
+            "description": "The policy applies above this amount in currency_code, and to every amount in another currency; null for every document of the type. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 1000000,
+            "format": "int64"
+          },
+          "policy_state": {
+            "type": "string",
+            "enum": ["Draft", "Active", "Retired"],
+            "description": "Policy state.",
+            "example": "Active"
+          }
         },
         "required": [
           "id",
@@ -43705,22 +43873,13 @@
           "updated_at",
           "updated_by",
           "name",
-          "document_type"
+          "document_type",
+          "description",
+          "currency_code",
+          "applies_above_minor",
+          "policy_state"
         ],
         "description": "An approval policy with ordered steps."
-      },
-      "SpendDocumentType": {
-        "type": "string",
-        "enum": [
-          "Purchase Order",
-          "Change Order",
-          "Expense",
-          "Invoice Approval",
-          "Contract",
-          "Payroll Run"
-        ],
-        "description": "Document type a spend limit applies to.",
-        "example": "Purchase Order"
       },
       "ApprovalPolicyCreate": {
         "type": "object",
@@ -43732,7 +43891,38 @@
             "description": "Policy name.",
             "example": "PO Over Limit"
           },
-          "document_type": { "$ref": "#/components/schemas/SpendDocumentType" }
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "Purchase Order",
+              "Change Order",
+              "Expense",
+              "Invoice Approval",
+              "Payroll Run",
+              "Requisition"
+            ],
+            "description": "Spend document type the policy gates.",
+            "example": "Purchase Order"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the policy is for.",
+            "example": "Every purchase order goes to finance."
+          },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of applies_above_minor; null for every amount.",
+            "example": "USD"
+          },
+          "applies_above_minor": {
+            "type": ["integer", "null"],
+            "description": "The policy applies above this amount in currency_code, and to every amount in another currency; null for every document of the type. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 1000000,
+            "format": "int64"
+          }
         },
         "required": ["name", "document_type"],
         "description": "Fields accepted when creating a ApprovalPolicy."
@@ -43747,9 +43937,52 @@
             "description": "Policy name.",
             "example": "PO Over Limit"
           },
-          "document_type": { "$ref": "#/components/schemas/SpendDocumentType" }
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the policy is for.",
+            "example": "Every purchase order goes to finance."
+          },
+          "currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of applies_above_minor; null for every amount.",
+            "example": "USD"
+          },
+          "applies_above_minor": {
+            "type": ["integer", "null"],
+            "description": "The policy applies above this amount in currency_code, and to every amount in another currency; null for every document of the type. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 1000000,
+            "format": "int64"
+          }
         },
         "description": "Fields accepted when updating a ApprovalPolicy. Omitted fields are unchanged."
+      },
+      "ApprovalPolicyTransitionRequest": {
+        "type": "object",
+        "properties": {
+          "expected_state": {
+            "type": "string",
+            "enum": ["Draft", "Active", "Retired"],
+            "description": "The state the caller believes the row is in (compare-and-set).",
+            "example": "Draft"
+          },
+          "to_state": {
+            "type": "string",
+            "enum": ["Draft", "Active", "Retired"],
+            "description": "Target state.",
+            "example": "Active"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Reason, required by some transitions.",
+            "example": "Client approved the revised scope."
+          }
+        },
+        "required": ["expected_state", "to_state"],
+        "description": "Request to move a lifecycle to another state."
       },
       "ApprovalInstancePage": {
         "type": "object",
@@ -43813,13 +44046,6 @@
             "description": "Identifier of the approval policy.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "subject_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the subject.",
-            "example": "urn:xpms:purchase_order:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "requested_by": {
             "type": "string",
             "format": "uuid",
@@ -43828,9 +44054,71 @@
           },
           "approval_state": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Approval state. A Title Case value from the lifecycle's database enum.",
+            "enum": ["In Review", "Approved", "Rejected", "Canceled"],
+            "description": "Approval state.",
             "example": "In Review"
+          },
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "Purchase Order",
+              "Change Order",
+              "Expense",
+              "Invoice Approval",
+              "Payroll Run",
+              "Requisition"
+            ],
+            "description": "Spend document type.",
+            "example": "Purchase Order"
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the spend document submitted for approval.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "subject_table": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Table of the document.",
+            "example": "purchase_orders"
+          },
+          "subject_reference": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "The document's own number or name.",
+            "example": "17"
+          },
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project of the document.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "amount_minor": {
+            "type": ["integer", "null"],
+            "description": "Amount submitted; the approval covers the document while its amount stays at or below it. Never null: an unpriced document is not submitted. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 4000000,
+            "format": "int64"
+          },
+          "currency_code": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency of the amount.",
+            "example": "USD"
+          },
+          "current_step": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Step the approval waits on; the last step once decided.",
+            "example": 1
+          },
+          "decided_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was approved, rejected or canceled.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -43841,31 +44129,59 @@
           "updated_at",
           "updated_by",
           "approval_policy_id",
-          "subject_urn",
           "requested_by",
-          "approval_state"
+          "approval_state",
+          "document_type",
+          "document_id",
+          "subject_table",
+          "subject_reference",
+          "project_id",
+          "amount_minor",
+          "currency_code",
+          "current_step",
+          "decided_at"
         ],
         "description": "An approval in flight for one subject."
       },
       "ApprovalInstanceCreate": {
         "type": "object",
         "properties": {
-          "approval_policy_id": {
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "Purchase Order",
+              "Change Order",
+              "Expense",
+              "Invoice Approval",
+              "Payroll Run",
+              "Requisition"
+            ],
+            "description": "Spend document type.",
+            "example": "Purchase Order"
+          },
+          "document_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the approval policy.",
+            "description": "Identifier of the spend document submitted for approval.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "subject_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the subject.",
-            "example": "urn:xpms:purchase_order:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["approval_policy_id", "subject_urn"],
+        "required": ["document_type", "document_id"],
         "description": "Fields accepted when creating a ApprovalInstance."
+      },
+      "ApprovalCancelRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why the approval is withdrawn.",
+            "example": "Submitted against the wrong order."
+          }
+        },
+        "required": ["reason"],
+        "description": "Request to the approval is withdrawn."
       },
       "ApprovalDecisionPage": {
         "type": "object",
@@ -43952,6 +44268,12 @@
             "format": "date-time",
             "description": "When it was decided.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "step_order": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Step decided.",
+            "example": 1
           }
         },
         "required": [
@@ -43965,7 +44287,8 @@
           "approved",
           "comment",
           "approver_id",
-          "decided_at"
+          "decided_at",
+          "step_order"
         ],
         "description": "A decision by an eligible approver, never the requester."
       },
@@ -44721,10 +45044,86 @@
             "format": "date-time",
             "description": "When it will be purged.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "subject_table": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Table of the deleted row.",
+            "example": "budgets"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the deleted row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the org of the deleted row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project of the deleted row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What the row is called.",
+            "example": "Summer Series Budget"
+          },
+          "deleted_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who deleted it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["subject_urn", "deleted_at", "purge_after"],
+        "required": [
+          "subject_urn",
+          "deleted_at",
+          "purge_after",
+          "subject_table",
+          "subject_id",
+          "org_id",
+          "project_id",
+          "title",
+          "deleted_by"
+        ],
         "description": "A soft-deleted row, restorable for its table's retention period. A view, not a copy."
+      },
+      "TrashRestoreResult": {
+        "type": "object",
+        "properties": {
+          "subject_urn": {
+            "type": "string",
+            "description": "URN of the restored row.",
+            "example": "urn:xpms:budgets:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "subject_table": {
+            "type": "string",
+            "description": "Table of the restored row.",
+            "example": "budgets"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the restored row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "rows_restored": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Rows restored: the row and the rows that reference it and were deleted with it.",
+            "example": 2
+          }
+        },
+        "required": ["subject_urn", "subject_table", "subject_id", "rows_restored"],
+        "description": "What a restore from Trash brought back."
       },
       "RestoreRequest": {
         "type": "object",
@@ -44805,6 +45204,19 @@
             "format": "uuid",
             "description": "Identifier of the current version.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "When to use the template.",
+            "example": "Outdoor weekend shows."
+          },
+          "template_kind": {
+            "type": "string",
+            "enum": ["Project"],
+            "description": "What the template creates.",
+            "example": "Project"
           }
         },
         "required": [
@@ -44815,7 +45227,9 @@
           "updated_at",
           "updated_by",
           "name",
-          "current_version_id"
+          "current_version_id",
+          "description",
+          "template_kind"
         ],
         "description": "A project or record template, including the XOS 4.0 Production Template copy."
       },
@@ -44828,6 +45242,19 @@
             "maxLength": 300,
             "description": "Template name.",
             "example": "Three-Day Festival"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "When to use the template.",
+            "example": "Outdoor weekend shows."
+          },
+          "template_kind": {
+            "type": "string",
+            "enum": ["Project"],
+            "description": "What the template creates.",
+            "example": "Project"
           }
         },
         "required": ["name"],
@@ -44842,9 +45269,49 @@
             "maxLength": 300,
             "description": "Template name.",
             "example": "Three-Day Festival"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "When to use the template.",
+            "example": "Outdoor weekend shows."
+          },
+          "template_kind": {
+            "type": "string",
+            "enum": ["Project"],
+            "description": "What the template creates.",
+            "example": "Project"
           }
         },
         "description": "Fields accepted when updating a Template. Omitted fields are unchanged."
+      },
+      "TemplateFromProjectRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project saved as a template.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Template name.",
+            "example": "Three-Day Festival"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "When to use the template.",
+            "example": "Outdoor weekend shows."
+          }
+        },
+        "required": ["project_id", "name"],
+        "description": "A project to save as a template."
       },
       "TemplateApplicationPage": {
         "type": "object",
@@ -44913,6 +45380,24 @@
             "format": "uuid",
             "description": "Identifier of the created project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "template_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the published version applied.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "scope_nodes_created": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Scope nodes created.",
+            "example": 1
+          },
+          "records_created": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Records created.",
+            "example": 4
           }
         },
         "required": [
@@ -44923,7 +45408,10 @@
           "updated_at",
           "updated_by",
           "template_id",
-          "project_id"
+          "project_id",
+          "template_version_id",
+          "scope_nodes_created",
+          "records_created"
         ],
         "description": "A template applied to create a project and its records."
       },
@@ -44935,9 +45423,40 @@
             "format": "uuid",
             "description": "Identifier of the template.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Key of the project to create.",
+            "example": "NWT"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name of the project to create.",
+            "example": "Tidewater Weekend"
+          },
+          "time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone; defaults to the version's.",
+            "example": "America/New_York"
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Start date; records are due relative to it.",
+            "example": "2026-10-08"
+          },
+          "venue_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the venue of the project and its shows.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["template_id"],
+        "required": ["template_id", "project_key", "name"],
         "description": "Fields accepted when creating a TemplateApplication."
       },
       "GuestListEntryPage": {
@@ -46992,6 +47511,688 @@
           "screenshot_path"
         ],
         "description": "Diagnostics the requester chose to attach to a support request (0643), with the moment they consented. Append-only."
+      },
+      "ApprovalStepPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ApprovalStep" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ApprovalStep": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the approval step.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "approval_policy_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the approval policy.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "step_order": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Position of the step, 1 first; steps are decided in order.",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Step name.",
+            "example": "Department head"
+          },
+          "approver_role_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the role whose holders decide the step.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "approver_membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the the one member who decides the step.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "approval_policy_id",
+          "step_order",
+          "name",
+          "approver_role_id",
+          "approver_membership_id"
+        ],
+        "description": "An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422)."
+      },
+      "ApprovalStepCreate": {
+        "type": "object",
+        "properties": {
+          "approval_policy_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the approval policy.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "step_order": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Position of the step, 1 first; steps are decided in order.",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Step name.",
+            "example": "Department head"
+          },
+          "approver_role_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the role whose holders decide the step.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "approver_membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the the one member who decides the step.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["approval_policy_id", "step_order", "name"],
+        "description": "Fields accepted when creating a ApprovalStep."
+      },
+      "ApprovalStepUpdate": {
+        "type": "object",
+        "properties": {
+          "step_order": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Position of the step, 1 first; steps are decided in order.",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Step name.",
+            "example": "Department head"
+          },
+          "approver_role_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the role whose holders decide the step.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "approver_membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the the one member who decides the step.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "description": "Fields accepted when updating a ApprovalStep. Omitted fields are unchanged."
+      },
+      "TemplateVersionPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TemplateVersion" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "TemplateVersion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the template version.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "template_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the template.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "version_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Version number, issued in order, 1 first.",
+            "example": 1
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What changed in this version.",
+            "example": "Adds the load-out records."
+          },
+          "default_time_zone": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone a new project starts with.",
+            "example": "America/New_York"
+          },
+          "default_tier_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon tier a new project starts with.",
+            "example": "05"
+          },
+          "default_region_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon region a new project starts with.",
+            "example": "SE"
+          },
+          "default_jurisdiction_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon jurisdiction a new project starts with.",
+            "example": "US-FL-MIAMI-DADE"
+          },
+          "default_currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency a new project starts with.",
+            "example": "USD"
+          },
+          "duration_days": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Length of the project in days.",
+            "example": 3
+          },
+          "published_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the version was published; null while a draft.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "template_id",
+          "version_number",
+          "notes",
+          "default_time_zone",
+          "default_tier_code",
+          "default_region_code",
+          "default_jurisdiction_id",
+          "default_currency_code",
+          "duration_days",
+          "published_at"
+        ],
+        "description": "A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version."
+      },
+      "TemplateVersionCreate": {
+        "type": "object",
+        "properties": {
+          "template_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the template.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What changed in this version.",
+            "example": "Adds the load-out records."
+          },
+          "default_time_zone": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone a new project starts with.",
+            "example": "America/New_York"
+          },
+          "default_tier_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon tier a new project starts with.",
+            "example": "05"
+          },
+          "default_region_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon region a new project starts with.",
+            "example": "SE"
+          },
+          "default_jurisdiction_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon jurisdiction a new project starts with.",
+            "example": "US-FL-MIAMI-DADE"
+          },
+          "default_currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency a new project starts with.",
+            "example": "USD"
+          },
+          "duration_days": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Length of the project in days.",
+            "example": 3
+          }
+        },
+        "required": ["template_id"],
+        "description": "Fields accepted when creating a TemplateVersion."
+      },
+      "TemplateVersionUpdate": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What changed in this version.",
+            "example": "Adds the load-out records."
+          },
+          "default_time_zone": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone a new project starts with.",
+            "example": "America/New_York"
+          },
+          "default_tier_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon tier a new project starts with.",
+            "example": "05"
+          },
+          "default_region_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon region a new project starts with.",
+            "example": "SE"
+          },
+          "default_jurisdiction_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon jurisdiction a new project starts with.",
+            "example": "US-FL-MIAMI-DADE"
+          },
+          "default_currency_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency a new project starts with.",
+            "example": "USD"
+          },
+          "duration_days": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Length of the project in days.",
+            "example": 3
+          }
+        },
+        "description": "Fields accepted when updating a TemplateVersion. Omitted fields are unchanged."
+      },
+      "TemplateItemPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TemplateItem" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "TemplateItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the template item.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "template_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the template version.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "item_kind": {
+            "type": "string",
+            "enum": ["Scope Node", "Record"],
+            "description": "What the item creates.",
+            "example": "Scope Node"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Position in the version, 1 first.",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Scope node name, or record title.",
+            "example": "Opening Night"
+          },
+          "scope_kind": {
+            "type": ["string", "null"],
+            "enum": ["Standing Venue", "Show", null],
+            "description": "For a scope node: Show or Standing Venue.",
+            "example": "Show"
+          },
+          "scope_code_suffix": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "For a scope node: code after the project key.",
+            "example": "E02"
+          },
+          "record_kind": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "For a record: canon record kind.",
+            "example": "Inspection"
+          },
+          "xyz": {
+            "type": ["string", "null"],
+            "enum": ["X", "Y", "Z", null],
+            "description": "For a record: declared schema family tag.",
+            "example": "X"
+          },
+          "phase_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "For a record: canon phase.",
+            "example": "SCP"
+          },
+          "due_offset_days": {
+            "type": ["integer", "null"],
+            "minimum": -3660,
+            "maximum": 3660,
+            "description": "For a record: due this many days after the project start; null for none.",
+            "example": 3
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "template_version_id",
+          "item_kind",
+          "sort_order",
+          "name",
+          "scope_kind",
+          "scope_code_suffix",
+          "record_kind",
+          "xyz",
+          "phase_code",
+          "due_offset_days"
+        ],
+        "description": "An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422)."
+      },
+      "TemplateItemCreate": {
+        "type": "object",
+        "properties": {
+          "template_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the template version.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "item_kind": {
+            "type": "string",
+            "enum": ["Scope Node", "Record"],
+            "description": "What the item creates.",
+            "example": "Scope Node"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Position in the version, 1 first.",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Scope node name, or record title.",
+            "example": "Opening Night"
+          },
+          "scope_kind": {
+            "type": ["string", "null"],
+            "enum": ["Standing Venue", "Show", null],
+            "description": "For a scope node: Show or Standing Venue.",
+            "example": "Show"
+          },
+          "scope_code_suffix": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "For a scope node: code after the project key.",
+            "example": "E02"
+          },
+          "record_kind": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "For a record: canon record kind.",
+            "example": "Inspection"
+          },
+          "xyz": {
+            "type": ["string", "null"],
+            "enum": ["X", "Y", "Z", null],
+            "description": "For a record: declared schema family tag.",
+            "example": "X"
+          },
+          "phase_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "For a record: canon phase.",
+            "example": "SCP"
+          },
+          "due_offset_days": {
+            "type": ["integer", "null"],
+            "minimum": -3660,
+            "maximum": 3660,
+            "description": "For a record: due this many days after the project start; null for none.",
+            "example": 3
+          }
+        },
+        "required": ["template_version_id", "item_kind", "sort_order", "name"],
+        "description": "Fields accepted when creating a TemplateItem."
+      },
+      "TemplateItemUpdate": {
+        "type": "object",
+        "properties": {
+          "sort_order": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Position in the version, 1 first.",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Scope node name, or record title.",
+            "example": "Opening Night"
+          },
+          "scope_kind": {
+            "type": ["string", "null"],
+            "enum": ["Standing Venue", "Show", null],
+            "description": "For a scope node: Show or Standing Venue.",
+            "example": "Show"
+          },
+          "scope_code_suffix": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "For a scope node: code after the project key.",
+            "example": "E02"
+          },
+          "record_kind": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "For a record: canon record kind.",
+            "example": "Inspection"
+          },
+          "xyz": {
+            "type": ["string", "null"],
+            "enum": ["X", "Y", "Z", null],
+            "description": "For a record: declared schema family tag.",
+            "example": "X"
+          },
+          "phase_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "For a record: canon phase.",
+            "example": "SCP"
+          },
+          "due_offset_days": {
+            "type": ["integer", "null"],
+            "minimum": -3660,
+            "maximum": 3660,
+            "description": "For a record: due this many days after the project start; null for none.",
+            "example": 3
+          }
+        },
+        "description": "Fields accepted when updating a TemplateItem. Omitted fields are unchanged."
       }
     },
     "parameters": {
@@ -77793,8 +78994,9 @@
         "x-xos-table": "app.rfq_responses",
         "x-xos-capability": "procurement.rfq.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
-        "summary": "Create a RFQ response",
-        "description": "A sealed RFQ response. A bidder sees only their own response. Creates a RFQ response. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "x-xos-rpc": "app.record_rfq_response",
+        "summary": "Record an RFQ response",
+        "description": "Records a sealed response and its quoted lines in one call (app.record_rfq_response) for a holder of procurement.rfq.write on the project. Only an invited vendor responds while the RFQ is Issued (rfq_not_invited, 422) and a response quotes at least one line (rfq_response_lines_required, 422). Answers 201 with a receipt: the response stays unreadable until the RFQ closes. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -77803,7 +79005,16 @@
               "example": {
                 "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "valid_until": "2026-10-08"
+                "valid_until": "2026-10-08",
+                "currency_code": "USD",
+                "lines": [
+                  {
+                    "description": "Line array, 12 boxes per side",
+                    "element_id": "0000.01.01-XOS-001",
+                    "quantity": 2,
+                    "unit_price_minor": 1800000
+                  }
+                ]
               },
               "schema": { "$ref": "#/components/schemas/RfqResponseCreate" }
             }
@@ -77811,9 +79022,8 @@
         },
         "responses": {
           "201": {
-            "description": "The created RFQ response.",
+            "description": "The result.",
             "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
               "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
@@ -77821,18 +79031,13 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "rfq_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "submitted_at": "2026-10-08T14:30:00Z",
                   "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "valid_until": "2026-10-08"
+                  "line_count": 3,
+                  "sealed": true
                 },
-                "schema": { "$ref": "#/components/schemas/RfqResponse" }
+                "schema": { "$ref": "#/components/schemas/RfqResponseReceipt" }
               }
             }
           },
@@ -114522,8 +115727,21 @@
         "x-xos-table": "app.mv_reports",
         "x-xos-capability": "data.restricted.read.payroll",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
-        "summary": "Labor cost",
-        "description": "Labor cost by role and department from approved timesheets. Restricted pay columns are masked without the capability. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "summary": "Labor",
+        "description": "Worked hours, timesheets and timesheets with an open entry, per readable project, from submitted time (app.timesheet_hours). Pay is Restricted and never reported here. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Only this project; every visible project when omitted."
+            },
+            "required": false,
+            "description": "Only this project; every visible project when omitted.",
+            "name": "project_id",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "The result.",
@@ -114537,14 +115755,16 @@
                 "example": {
                   "data": [
                     {
-                      "dimension": "5400",
-                      "budget": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                      "actual": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 }
+                      "dimension": "NWL",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "measure": "worked_hours",
+                      "unit": "Hours",
+                      "value": 312.5
                     }
                   ],
                   "next_cursor": null
                 },
-                "schema": { "$ref": "#/components/schemas/ReportRowPage" }
+                "schema": { "$ref": "#/components/schemas/ReportMetricRowPage" }
               }
             }
           },
@@ -114616,7 +115836,44 @@
         "x-xos-capability": "safety.incident.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["safety"] }],
         "summary": "Incident rates",
-        "description": "Incident counts and rates by severity and project. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Incidents and open incidents per canon severity, optionally for one project and a window of occurrence. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Only this project; every visible project when omitted."
+            },
+            "required": false,
+            "description": "Only this project; every visible project when omitted.",
+            "name": "project_id",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Occurred on or after this day.",
+              "example": "2026-10-08"
+            },
+            "required": false,
+            "description": "Occurred on or after this day.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Occurred on or before this day.",
+              "example": "2026-10-08"
+            },
+            "required": false,
+            "description": "Occurred on or before this day.",
+            "name": "to",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "The result.",
@@ -114630,14 +115887,16 @@
                 "example": {
                   "data": [
                     {
-                      "dimension": "5400",
-                      "budget": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                      "actual": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 }
+                      "dimension": "NWL",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "measure": "worked_hours",
+                      "unit": "Hours",
+                      "value": 312.5
                     }
                   ],
                   "next_cursor": null
                 },
-                "schema": { "$ref": "#/components/schemas/ReportRowPage" }
+                "schema": { "$ref": "#/components/schemas/ReportMetricRowPage" }
               }
             }
           },
@@ -114709,7 +115968,20 @@
         "x-xos-capability": "projects.gate.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
         "summary": "Gate readiness",
-        "description": "Gate readiness across projects, one row per project and gate. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Criteria with evidence against the next gate of each readable project: blocking and other criteria met and in total, and whether the gate is ready. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Only this project; every visible project when omitted."
+            },
+            "required": false,
+            "description": "Only this project; every visible project when omitted.",
+            "name": "project_id",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "The result.",
@@ -114723,14 +115995,16 @@
                 "example": {
                   "data": [
                     {
-                      "dimension": "5400",
-                      "budget": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                      "actual": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 }
+                      "dimension": "NWL",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "measure": "worked_hours",
+                      "unit": "Hours",
+                      "value": 312.5
                     }
                   ],
                   "next_cursor": null
                 },
-                "schema": { "$ref": "#/components/schemas/ReportRowPage" }
+                "schema": { "$ref": "#/components/schemas/ReportMetricRowPage" }
               }
             }
           },
@@ -118238,7 +119512,11 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "PO Over Limit",
-                      "document_type": "Purchase Order"
+                      "document_type": "Purchase Order",
+                      "description": "Every purchase order goes to finance.",
+                      "currency_code": "USD",
+                      "applies_above_minor": 1000000,
+                      "policy_state": "Active"
                     }
                   ],
                   "next_cursor": null
@@ -118265,7 +119543,13 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "PO Over Limit", "document_type": "Purchase Order" },
+              "example": {
+                "name": "PO Over Limit",
+                "document_type": "Purchase Order",
+                "description": "Every purchase order goes to finance.",
+                "currency_code": "USD",
+                "applies_above_minor": 1000000
+              },
               "schema": { "$ref": "#/components/schemas/ApprovalPolicyCreate" }
             }
           }
@@ -118289,7 +119573,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "PO Over Limit",
-                  "document_type": "Purchase Order"
+                  "document_type": "Purchase Order",
+                  "description": "Every purchase order goes to finance.",
+                  "currency_code": "USD",
+                  "applies_above_minor": 1000000,
+                  "policy_state": "Active"
                 },
                 "schema": { "$ref": "#/components/schemas/ApprovalPolicy" }
               }
@@ -118346,7 +119634,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "PO Over Limit",
-                  "document_type": "Purchase Order"
+                  "document_type": "Purchase Order",
+                  "description": "Every purchase order goes to finance.",
+                  "currency_code": "USD",
+                  "applies_above_minor": 1000000,
+                  "policy_state": "Active"
                 },
                 "schema": { "$ref": "#/components/schemas/ApprovalPolicy" }
               }
@@ -118385,7 +119677,12 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "PO Over Limit", "document_type": "Purchase Order" },
+              "example": {
+                "name": "PO Over Limit",
+                "description": "Every purchase order goes to finance.",
+                "currency_code": "USD",
+                "applies_above_minor": 1000000
+              },
               "schema": { "$ref": "#/components/schemas/ApprovalPolicyUpdate" }
             }
           }
@@ -118409,7 +119706,11 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "PO Over Limit",
-                  "document_type": "Purchase Order"
+                  "document_type": "Purchase Order",
+                  "description": "Every purchase order goes to finance.",
+                  "currency_code": "USD",
+                  "applies_above_minor": 1000000,
+                  "policy_state": "Active"
                 },
                 "schema": { "$ref": "#/components/schemas/ApprovalPolicy" }
               }
@@ -118455,6 +119756,82 @@
         }
       }
     },
+    "/approval-policies/{id}/transitions": {
+      "post": {
+        "operationId": "approvalPolicies.transition",
+        "tags": ["Platform"],
+        "x-xos-table": "app.approval_policies",
+        "x-xos-capability": "org.approval_policies.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "transition_approval_policy",
+        "summary": "Activate or retire an approval policy",
+        "description": "Moves a policy Draft to Active, Draft to Retired or Active to Retired with compare-and-set (app.transition_approval_policy). Activation needs a step (approval_policy_no_steps) and no other Active policy of the document type (approval_policy_active_exists). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the approval policy.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the approval policy.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expected_state": "Draft",
+                "to_state": "Active",
+                "reason": "Client approved the revised scope."
+              },
+              "schema": { "$ref": "#/components/schemas/ApprovalPolicyTransitionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "PO Over Limit",
+                  "document_type": "Purchase Order",
+                  "description": "Every purchase order goes to finance.",
+                  "currency_code": "USD",
+                  "applies_above_minor": 1000000,
+                  "policy_state": "Active"
+                },
+                "schema": { "$ref": "#/components/schemas/ApprovalPolicy" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/approval-instances": {
       "get": {
         "operationId": "approvalInstances.list",
@@ -118492,9 +119869,17 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "approval_policy_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "subject_urn": "urn:xpms:purchase_order:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "approval_state": "In Review"
+                      "approval_state": "In Review",
+                      "document_type": "Purchase Order",
+                      "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "subject_table": "purchase_orders",
+                      "subject_reference": "17",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "amount_minor": 4000000,
+                      "currency_code": "USD",
+                      "current_step": 1,
+                      "decided_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -118522,8 +119907,8 @@
           "content": {
             "application/json": {
               "example": {
-                "approval_policy_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "subject_urn": "urn:xpms:purchase_order:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "document_type": "Purchase Order",
+                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/ApprovalInstanceCreate" }
             }
@@ -118548,9 +119933,17 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "approval_policy_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "subject_urn": "urn:xpms:purchase_order:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "approval_state": "In Review"
+                  "approval_state": "In Review",
+                  "document_type": "Purchase Order",
+                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject_table": "purchase_orders",
+                  "subject_reference": "17",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "amount_minor": 4000000,
+                  "currency_code": "USD",
+                  "current_step": 1,
+                  "decided_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ApprovalInstance" }
               }
@@ -118607,9 +120000,17 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "approval_policy_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "subject_urn": "urn:xpms:purchase_order:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "approval_state": "In Review"
+                  "approval_state": "In Review",
+                  "document_type": "Purchase Order",
+                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject_table": "purchase_orders",
+                  "subject_reference": "17",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "amount_minor": 4000000,
+                  "currency_code": "USD",
+                  "current_step": 1,
+                  "decided_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ApprovalInstance" }
               }
@@ -118618,6 +120019,84 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/approval-instances/{id}/cancel": {
+      "post": {
+        "operationId": "approvalInstances.cancel",
+        "tags": ["Platform"],
+        "x-xos-table": "app.approval_instances",
+        "x-xos-capability": "inbox.notifications.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["inbox"] }],
+        "x-xos-rpc": "cancel_approval",
+        "summary": "Withdraw an approval",
+        "description": "Withdraws an approval in review, or an Approved one the document has not used (app.cancel_approval): the requester, when approvals.requester_may_cancel allows it (approval_requester_cancel_off: 422), or a holder of org.approval_policies.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the approval instance.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the approval instance.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "Submitted against the wrong order." },
+              "schema": { "$ref": "#/components/schemas/ApprovalCancelRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "approval_policy_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "approval_state": "In Review",
+                  "document_type": "Purchase Order",
+                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject_table": "purchase_orders",
+                  "subject_reference": "17",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "amount_minor": 4000000,
+                  "currency_code": "USD",
+                  "current_step": 1,
+                  "decided_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/ApprovalInstance" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -118662,7 +120141,8 @@
                       "approved": true,
                       "comment": "Within budget.",
                       "approver_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "decided_at": "2026-10-08T14:30:00Z"
+                      "decided_at": "2026-10-08T14:30:00Z",
+                      "step_order": 1
                     }
                   ],
                   "next_cursor": null
@@ -118720,7 +120200,8 @@
                   "approved": true,
                   "comment": "Within budget.",
                   "approver_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "decided_at": "2026-10-08T14:30:00Z"
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "step_order": 1
                 },
                 "schema": { "$ref": "#/components/schemas/ApprovalDecision" }
               }
@@ -118780,7 +120261,8 @@
                   "approved": true,
                   "comment": "Within budget.",
                   "approver_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "decided_at": "2026-10-08T14:30:00Z"
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "step_order": 1
                 },
                 "schema": { "$ref": "#/components/schemas/ApprovalDecision" }
               }
@@ -119977,7 +121459,13 @@
                     {
                       "subject_urn": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "deleted_at": "2026-10-08T14:30:00Z",
-                      "purge_after": "2026-10-08T14:30:00Z"
+                      "purge_after": "2026-10-08T14:30:00Z",
+                      "subject_table": "budgets",
+                      "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "title": "Summer Series Budget",
+                      "deleted_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -119999,8 +121487,9 @@
         "x-xos-table": "app.trash_items",
         "x-xos-capability": "work.record.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["work"] }],
+        "x-xos-rpc": "restore_trash_item",
         "summary": "Restore a deleted item",
-        "description": "Restores a soft-deleted row within its retention period. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Restores a soft-deleted row within its retention period, as the caller (app.restore_trash_item): the table's own update rules decide. Rows that reference it and were deleted with it come back too. A row past retention answers 422 (trash_restore_expired), a live row 422 (trash_not_deleted). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -120022,11 +121511,12 @@
             "content": {
               "application/json": {
                 "example": {
-                  "subject_urn": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "deleted_at": "2026-10-08T14:30:00Z",
-                  "purge_after": "2026-10-08T14:30:00Z"
+                  "subject_urn": "urn:xpms:budgets:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject_table": "budgets",
+                  "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "rows_restored": 2
                 },
-                "schema": { "$ref": "#/components/schemas/TrashItem" }
+                "schema": { "$ref": "#/components/schemas/TrashRestoreResult" }
               }
             }
           },
@@ -120075,7 +121565,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Three-Day Festival",
-                      "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "description": "Outdoor weekend shows.",
+                      "template_kind": "Project"
                     }
                   ],
                   "next_cursor": null
@@ -120102,7 +121594,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Three-Day Festival" },
+              "example": {
+                "name": "Three-Day Festival",
+                "description": "Outdoor weekend shows.",
+                "template_kind": "Project"
+              },
               "schema": { "$ref": "#/components/schemas/TemplateCreate" }
             }
           }
@@ -120126,7 +121622,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Three-Day Festival",
-                  "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "description": "Outdoor weekend shows.",
+                  "template_kind": "Project"
                 },
                 "schema": { "$ref": "#/components/schemas/Template" }
               }
@@ -120183,7 +121681,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Three-Day Festival",
-                  "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "description": "Outdoor weekend shows.",
+                  "template_kind": "Project"
                 },
                 "schema": { "$ref": "#/components/schemas/Template" }
               }
@@ -120222,7 +121722,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Three-Day Festival" },
+              "example": {
+                "name": "Three-Day Festival",
+                "description": "Outdoor weekend shows.",
+                "template_kind": "Project"
+              },
               "schema": { "$ref": "#/components/schemas/TemplateUpdate" }
             }
           }
@@ -120246,7 +121750,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Three-Day Festival",
-                  "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "description": "Outdoor weekend shows.",
+                  "template_kind": "Project"
                 },
                 "schema": { "$ref": "#/components/schemas/Template" }
               }
@@ -120292,6 +121798,65 @@
         }
       }
     },
+    "/templates/from-project": {
+      "post": {
+        "operationId": "templates.createFromProject",
+        "tags": ["Platform"],
+        "x-xos-table": "app.templates",
+        "x-xos-capability": "projects.template.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "create_template_from_project",
+        "summary": "Save a project as a template",
+        "description": "Creates a template from a project as the caller (app.create_template_from_project): its defaults, show and standing venue scope nodes and open records become a published first version. Needs projects.template.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "name": "Three-Day Festival",
+                "description": "Outdoor weekend shows."
+              },
+              "schema": { "$ref": "#/components/schemas/TemplateFromProjectRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Three-Day Festival",
+                  "current_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "description": "Outdoor weekend shows.",
+                  "template_kind": "Project"
+                },
+                "schema": { "$ref": "#/components/schemas/Template" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/template-applications": {
       "get": {
         "operationId": "templateApplications.list",
@@ -120329,7 +121894,10 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "scope_nodes_created": 1,
+                      "records_created": 4
                     }
                   ],
                   "next_cursor": null
@@ -120356,7 +121924,14 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "example": {
+                "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "project_key": "NWT",
+                "name": "Tidewater Weekend",
+                "time_zone": "America/New_York",
+                "starts_on": "2026-10-08",
+                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
               "schema": { "$ref": "#/components/schemas/TemplateApplicationCreate" }
             }
           }
@@ -120380,7 +121955,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_nodes_created": 1,
+                  "records_created": 4
                 },
                 "schema": { "$ref": "#/components/schemas/TemplateApplication" }
               }
@@ -120437,7 +122015,10 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scope_nodes_created": 1,
+                  "records_created": 4
                 },
                 "schema": { "$ref": "#/components/schemas/TemplateApplication" }
               }
@@ -123440,6 +125021,959 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/approval-steps": {
+      "get": {
+        "operationId": "approvalSteps.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.approval_steps",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["approval_policy_id", "step_order"], "numeric": false },
+        "summary": "List approval step rows",
+        "description": "An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Returns a cursor page of approval step rows the caller may see. The default order is `approval_policy_id`, then `step_order` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of approval step rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "approval_policy_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "step_order": 1,
+                      "name": "Department head",
+                      "approver_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "approver_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ApprovalStepPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "approvalSteps.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.approval_steps",
+        "x-xos-capability": "org.approval_policies.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Create an approval step",
+        "description": "An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Creates an approval step. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "approval_policy_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "step_order": 1,
+                "name": "Department head",
+                "approver_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "approver_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/ApprovalStepCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created approval step.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "approval_policy_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "step_order": 1,
+                  "name": "Department head",
+                  "approver_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "approver_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ApprovalStep" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/approval-steps/{id}": {
+      "get": {
+        "operationId": "approvalSteps.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.approval_steps",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get an approval step",
+        "description": "An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Returns one approval step with its `ETag`. A approval step the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the approval step.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the approval step.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The approval step.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "approval_policy_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "step_order": 1,
+                  "name": "Department head",
+                  "approver_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "approver_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ApprovalStep" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "approvalSteps.update",
+        "tags": ["Platform"],
+        "x-xos-table": "app.approval_steps",
+        "x-xos-capability": "org.approval_policies.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Update an approval step",
+        "description": "An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the approval step.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the approval step.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "step_order": 1,
+                "name": "Department head",
+                "approver_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "approver_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/ApprovalStepUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated approval step.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "approval_policy_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "step_order": 1,
+                  "name": "Department head",
+                  "approver_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "approver_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ApprovalStep" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "approvalSteps.delete",
+        "tags": ["Platform"],
+        "x-xos-table": "app.approval_steps",
+        "x-xos-capability": "org.approval_policies.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Delete an approval step",
+        "description": "An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Soft-deletes the approval step: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the approval step.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the approval step.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The approval step moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/template-versions": {
+      "get": {
+        "operationId": "templateVersions.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_versions",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["template_id", "version_number"], "numeric": false },
+        "summary": "List template version rows",
+        "description": "A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Returns a cursor page of template version rows the caller may see. The default order is `template_id`, then `version_number` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of template version rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "version_number": 1,
+                      "notes": "Adds the load-out records.",
+                      "default_time_zone": "America/New_York",
+                      "default_tier_code": "05",
+                      "default_region_code": "SE",
+                      "default_jurisdiction_id": "US-FL-MIAMI-DADE",
+                      "default_currency_code": "USD",
+                      "duration_days": 3,
+                      "published_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/TemplateVersionPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "templateVersions.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_versions",
+        "x-xos-capability": "projects.template.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Create a template version",
+        "description": "A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Creates a template version. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "notes": "Adds the load-out records.",
+                "default_time_zone": "America/New_York",
+                "default_tier_code": "05",
+                "default_region_code": "SE",
+                "default_jurisdiction_id": "US-FL-MIAMI-DADE",
+                "default_currency_code": "USD",
+                "duration_days": 3
+              },
+              "schema": { "$ref": "#/components/schemas/TemplateVersionCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created template version.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "version_number": 1,
+                  "notes": "Adds the load-out records.",
+                  "default_time_zone": "America/New_York",
+                  "default_tier_code": "05",
+                  "default_region_code": "SE",
+                  "default_jurisdiction_id": "US-FL-MIAMI-DADE",
+                  "default_currency_code": "USD",
+                  "duration_days": 3,
+                  "published_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/TemplateVersion" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/template-versions/{id}": {
+      "get": {
+        "operationId": "templateVersions.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_versions",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a template version",
+        "description": "A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Returns one template version with its `ETag`. A template version the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the template version.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the template version.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The template version.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "version_number": 1,
+                  "notes": "Adds the load-out records.",
+                  "default_time_zone": "America/New_York",
+                  "default_tier_code": "05",
+                  "default_region_code": "SE",
+                  "default_jurisdiction_id": "US-FL-MIAMI-DADE",
+                  "default_currency_code": "USD",
+                  "duration_days": 3,
+                  "published_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/TemplateVersion" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "templateVersions.update",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_versions",
+        "x-xos-capability": "projects.template.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Update a template version",
+        "description": "A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the template version.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the template version.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "notes": "Adds the load-out records.",
+                "default_time_zone": "America/New_York",
+                "default_tier_code": "05",
+                "default_region_code": "SE",
+                "default_jurisdiction_id": "US-FL-MIAMI-DADE",
+                "default_currency_code": "USD",
+                "duration_days": 3
+              },
+              "schema": { "$ref": "#/components/schemas/TemplateVersionUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated template version.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "version_number": 1,
+                  "notes": "Adds the load-out records.",
+                  "default_time_zone": "America/New_York",
+                  "default_tier_code": "05",
+                  "default_region_code": "SE",
+                  "default_jurisdiction_id": "US-FL-MIAMI-DADE",
+                  "default_currency_code": "USD",
+                  "duration_days": 3,
+                  "published_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/TemplateVersion" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "templateVersions.delete",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_versions",
+        "x-xos-capability": "projects.template.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Delete a template version",
+        "description": "A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Soft-deletes the template version: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the template version.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the template version.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The template version moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/template-versions/{id}/publish": {
+      "post": {
+        "operationId": "templateVersions.publish",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_versions",
+        "x-xos-capability": "projects.template.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "publish_template_version",
+        "summary": "Publish a template version",
+        "description": "Publishes a draft version (app.publish_template_version, projects.template.write): freezes it and makes it the template's current version. A published version answers 422 (template_version_published). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the template version.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the template version.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "version_number": 1,
+                  "notes": "Adds the load-out records.",
+                  "default_time_zone": "America/New_York",
+                  "default_tier_code": "05",
+                  "default_region_code": "SE",
+                  "default_jurisdiction_id": "US-FL-MIAMI-DADE",
+                  "default_currency_code": "USD",
+                  "duration_days": 3,
+                  "published_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/TemplateVersion" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/template-items": {
+      "get": {
+        "operationId": "templateItems.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_items",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["template_version_id", "sort_order"], "numeric": false },
+        "summary": "List template item rows",
+        "description": "An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Returns a cursor page of template item rows the caller may see. The default order is `template_version_id`, then `sort_order` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of template item rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "item_kind": "Scope Node",
+                      "sort_order": 1,
+                      "name": "Opening Night",
+                      "scope_kind": "Show",
+                      "scope_code_suffix": "E02",
+                      "record_kind": "Inspection",
+                      "xyz": "X",
+                      "phase_code": "SCP",
+                      "due_offset_days": 3
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/TemplateItemPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "templateItems.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_items",
+        "x-xos-capability": "projects.template.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Create a template item",
+        "description": "An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Creates a template item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "item_kind": "Scope Node",
+                "sort_order": 1,
+                "name": "Opening Night",
+                "scope_kind": "Show",
+                "scope_code_suffix": "E02",
+                "record_kind": "Inspection",
+                "xyz": "X",
+                "phase_code": "SCP",
+                "due_offset_days": 3
+              },
+              "schema": { "$ref": "#/components/schemas/TemplateItemCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created template item.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "item_kind": "Scope Node",
+                  "sort_order": 1,
+                  "name": "Opening Night",
+                  "scope_kind": "Show",
+                  "scope_code_suffix": "E02",
+                  "record_kind": "Inspection",
+                  "xyz": "X",
+                  "phase_code": "SCP",
+                  "due_offset_days": 3
+                },
+                "schema": { "$ref": "#/components/schemas/TemplateItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/template-items/{id}": {
+      "get": {
+        "operationId": "templateItems.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_items",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a template item",
+        "description": "An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Returns one template item with its `ETag`. A template item the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the template item.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the template item.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The template item.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "item_kind": "Scope Node",
+                  "sort_order": 1,
+                  "name": "Opening Night",
+                  "scope_kind": "Show",
+                  "scope_code_suffix": "E02",
+                  "record_kind": "Inspection",
+                  "xyz": "X",
+                  "phase_code": "SCP",
+                  "due_offset_days": 3
+                },
+                "schema": { "$ref": "#/components/schemas/TemplateItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "templateItems.update",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_items",
+        "x-xos-capability": "projects.template.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Update a template item",
+        "description": "An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the template item.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the template item.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "sort_order": 1,
+                "name": "Opening Night",
+                "scope_kind": "Show",
+                "scope_code_suffix": "E02",
+                "record_kind": "Inspection",
+                "xyz": "X",
+                "phase_code": "SCP",
+                "due_offset_days": 3
+              },
+              "schema": { "$ref": "#/components/schemas/TemplateItemUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated template item.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "template_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "item_kind": "Scope Node",
+                  "sort_order": 1,
+                  "name": "Opening Night",
+                  "scope_kind": "Show",
+                  "scope_code_suffix": "E02",
+                  "record_kind": "Inspection",
+                  "xyz": "X",
+                  "phase_code": "SCP",
+                  "due_offset_days": 3
+                },
+                "schema": { "$ref": "#/components/schemas/TemplateItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "templateItems.delete",
+        "tags": ["Platform"],
+        "x-xos-table": "app.template_items",
+        "x-xos-capability": "projects.template.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Delete a template item",
+        "description": "An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Soft-deletes the template item: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the template item.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the template item.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The template item moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

@@ -9,6 +9,7 @@ import { fields, platform as pf } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { editShape, orNull, putActions } from "../correct.ts";
 import { collectionQuery } from "../define.ts";
+import { reportMetricCorrections } from "./parts/report-metrics.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -19,6 +20,7 @@ const projectFilter = (description: string) => z.uuid().optional().meta({ descri
 
 export const additions = defineAdditions("Reports", {
   corrections: [
+    ...reportMetricCorrections,
     {
       id: "report-definition-columns",
       since: SINCE,

@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(78);
+select plan(80);
 
 -- World -----------------------------------------------------------------------------------------------
 select pg_temp.as_user('alice');
@@ -41,6 +41,9 @@ insert into app.po_lines (purchase_order_id, line_number, description, budget_li
 with x as (insert into app.requisitions (project_id, role_code, worker_classification, pay_basis, arrangement, headcount, units_per_head, rate_minor, currency_code, justification)
   values (pg_temp.id('prj_a'), '5000.50.01', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Retainer', 1, 4, 60000, 'USD', 'Production manager.') returning id)
   insert into world select 'req', id from x;
+with x as (insert into app.requisitions (project_id, role_code, worker_classification, pay_basis, arrangement, headcount, units_per_head, rate_minor, currency_code, justification)
+  values (pg_temp.id('prj_a'), '5000.50.01', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Retainer', 50, 10, 60000, 'USD', 'Fifty stagehands.') returning id)
+  insert into world select 'req_big', id from x;
 select pg_temp.as_user('alice');
 insert into app.spend_authorities (org_id, role_id, document_type, currency_code, limit_minor)
   values (pg_temp.id('org_a'), pg_temp.system_role('admin'), 'Purchase Order', 'USD', 1000000),
@@ -90,7 +93,7 @@ select throws_ok($$insert into app.approval_steps (approval_policy_id, step_orde
 select throws_ok($$insert into app.approval_steps (approval_policy_id, step_order, name, approver_role_id) values ((select id from world where key = 'pol'), 1, 'Again', pg_temp.system_role('admin'))$$,
   '23505', null, 'step orders are unique within a policy');
 select is((select org_id from app.approval_steps where approval_policy_id = pg_temp.id('pol') limit 1), pg_temp.id('org_a'), 'a step''s org is derived from its policy');
-insert into app.approval_steps (approval_policy_id, step_order, name, approver_role_id) values (pg_temp.id('pol_req'), 1, 'Admin review', pg_temp.system_role('admin'));
+insert into app.approval_steps (approval_policy_id, step_order, name, approver_membership_id) values (pg_temp.id('pol_req'), 1, 'Viewer sign-off', pg_temp.id('gina@org_a'));
 select pg_temp.as_user('carol');
 select throws_ok($$insert into app.approval_steps (approval_policy_id, step_order, name, approver_role_id) values ((select id from world where key = 'pol'), 3, 'Manager', pg_temp.system_role('manager'))$$,
   '42501', null, 'a Manager cannot add steps');
@@ -236,6 +239,16 @@ select throws_ok($$select app.approve_purchase_order((select id from world where
 select pg_temp.as_user('carol');
 select lives_ok($$insert into world values ('ai5', app.request_approval('Purchase Order', (select id from world where key = 'po3')))$$, 'the grown order is submitted again');
 select is((select approval_state::text from app.approval_instances where id = pg_temp.id('ai4')), 'Canceled', 'the outgrown approval is superseded');
+
+-- A step's approver also needs the document's approval capability (A22-003) ------------------------------------
+select pg_temp.as_user('carol');
+insert into world values ('ai_req', app.request_approval('Requisition', pg_temp.id('req_big')));
+select pg_temp.as_user('gina');
+select throws_ok($$select app.decide_approval((select id from world where key = 'ai_req'), true, null)$$,
+  'XR001', 'approval_approver_capability: Approving this document needs its approval capability; a step''s approver must also hold it.',
+  'a Viewer named on a step cannot approve without the approval capability');
+select is((select count(*)::int from app.approval_decisions where approval_instance_id = pg_temp.id('ai_req')), 0, 'and no decision is recorded');
+select pg_temp.as_platform();
 
 -- Threshold: below it, no policy applies -------------------------------------------------------------------
 select pg_temp.as_user('bob');

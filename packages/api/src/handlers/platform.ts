@@ -6,7 +6,8 @@
  * app.post_comment, exports requested through app.request_export (which classifies the columns),
  * import batches undone through app.undo_import_batch, notifications marked read through
  * app.mark_notifications_read and calendar feeds created through app.create_calendar_feed, which
- * returns the feed token once. Validating and committing an import is the import pipeline's work
+ * returns the feed token once. Approvals, Trash, templates and org state labels are A33's
+ * (handlers/parts/workflow.ts). Validating and committing an import is the import pipeline's work
  * (service role), so those two actions stay document-only.
  */
 import type { XosClient } from "@xos/data";
@@ -21,6 +22,7 @@ import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import type { ListQuery } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { viewsHelpSupportHandlers } from "./parts/views-help-support.ts";
+import { workflowHandlers } from "./parts/workflow.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap } from "./support/table.ts";
 import type { Row } from "./support/table.ts";
 
@@ -252,6 +254,7 @@ export const handlers = defineHandlers("Platform", {
 
   ...handlersFor("Platform", tableResource("savedViews")),
   ...(viewsHelpSupportHandlers as unknown as HandlerSet<"Platform">),
+  ...(workflowHandlers as unknown as HandlerSet<"Platform">),
 
   ...handlersFor("Platform", commentThreads),
   "commentThreads.update": async ({ params, body, ifMatch }, context) => {

@@ -13,7 +13,9 @@ import {
   type PoState,
   type RfqState,
 } from "@xos/data/procurement";
+import type { HandlerSet } from "../runtime/handler.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
+import { rfqSealedResponseHandlers } from "./parts/rfq-sealed-responses.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap, type Row } from "./support/table.ts";
 
 interface TransitionBody {
@@ -66,7 +68,11 @@ const invoiceMatches = tableResource("invoiceMatches", {
 export const handlers = defineHandlers("Procurement", {
   ...handlersFor("Procurement", rfqs),
   ...handlersFor("Procurement", tableResource("rfqInvitations")),
-  ...handlersFor("Procurement", tableResource("rfqResponses", { orgColumn: true })),
+  ...handlersFor(
+    "Procurement",
+    tableResource("rfqResponses", { orgColumn: true, verbs: ["list", "get"] }),
+  ),
+  ...(rfqSealedResponseHandlers as unknown as HandlerSet<"Procurement">),
   ...handlersFor("Procurement", tableResource("rfqResponseLines")),
   ...handlersFor("Procurement", purchaseOrders),
   ...handlersFor("Procurement", poLines),

@@ -13,6 +13,12 @@ import {
   viewsHelpSupportCapabilities,
   viewsHelpSupportResources,
 } from "./parts/views-help-support.ts";
+import {
+  workflowActions,
+  workflowCapabilities,
+  workflowCorrections,
+  workflowResources,
+} from "./parts/workflow.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -59,9 +65,11 @@ const createAnswering =
   };
 
 export const additions = defineAdditions("Platform", {
-  resources: [...viewsHelpSupportResources],
-  capabilities: { ...viewsHelpSupportCapabilities },
+  resources: [...viewsHelpSupportResources, ...workflowResources],
+  actions: { ...workflowActions },
+  capabilities: { ...viewsHelpSupportCapabilities, ...workflowCapabilities },
   corrections: [
+    ...workflowCorrections,
     {
       id: "custom-object-type-default-view",
       since: "1.0.0-draft.2",

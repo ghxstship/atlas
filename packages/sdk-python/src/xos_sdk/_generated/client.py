@@ -354,6 +354,9 @@ from .resources import (
     SupportTicketsResource,
     SupportTicketMessagesResource,
     SupportTicketDiagnosticsResource,
+    ApprovalStepsResource,
+    TemplateVersionsResource,
+    TemplateItemsResource,
 )
 
 
@@ -716,6 +719,9 @@ class XosClient(XosClientCore):
     support_tickets: SupportTicketsResource
     support_ticket_messages: SupportTicketMessagesResource
     support_ticket_diagnostics: SupportTicketDiagnosticsResource
+    approval_steps: ApprovalStepsResource
+    template_versions: TemplateVersionsResource
+    template_items: TemplateItemsResource
 
     def __init__(self, base_url: str, **kwargs: Any) -> None:
         super().__init__(base_url, **kwargs)
@@ -1066,3 +1072,6 @@ class XosClient(XosClientCore):
         self.support_tickets = SupportTicketsResource(self)
         self.support_ticket_messages = SupportTicketMessagesResource(self)
         self.support_ticket_diagnostics = SupportTicketDiagnosticsResource(self)
+        self.approval_steps = ApprovalStepsResource(self)
+        self.template_versions = TemplateVersionsResource(self)
+        self.template_items = TemplateItemsResource(self)

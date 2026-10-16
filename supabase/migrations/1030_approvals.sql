@@ -407,7 +407,8 @@ returns table (
   subject_reference text,
   amount_minor bigint,
   currency_code char(3),
-  write_capability text
+  write_capability text,
+  approve_capability text
 )
 language plpgsql
 stable
@@ -419,36 +420,36 @@ begin
     when 'Purchase Order' then
       return query
         select po.org_id, po.project_id, 'purchase_orders'::text, po.po_number::text,
-               private.purchase_order_total(po.id), po.currency_code, 'procurement.po.write'::text
+               private.purchase_order_total(po.id), po.currency_code, 'procurement.po.write'::text, 'finance.po.approve'::text
         from app.purchase_orders po where po.id = p_document_id and po.deleted_at is null;
       if not found then
         return query
           select c.org_id, po.project_id, 'po_change_orders'::text, po.po_number::text || ': ' || left(c.description, 200),
-                 abs(c.amount_delta_minor), po.currency_code, 'procurement.po.write'::text
+                 abs(c.amount_delta_minor), po.currency_code, 'procurement.po.write'::text, 'finance.po.approve'::text
           from app.po_change_orders c join app.purchase_orders po on po.id = c.purchase_order_id
           where c.id = p_document_id and c.deleted_at is null;
       end if;
     when 'Change Order' then
       return query
         select c.org_id, c.project_id, 'change_orders'::text, c.change_order_number::text || ': ' || c.title,
-               greatest(private.change_order_total(c.id), 0), b.currency_code, 'finance.change_order.write'::text
+               greatest(private.change_order_total(c.id), 0), b.currency_code, 'finance.change_order.write'::text, 'finance.change_order.approve'::text
         from app.change_orders c join app.budgets b on b.id = c.budget_id
         where c.id = p_document_id and c.deleted_at is null;
     when 'Invoice Approval' then
       return query
         select i.org_id, i.project_id, 'invoices'::text, i.invoice_number::text,
-               private.invoice_total(i.id), i.currency_code, 'finance.invoice.write'::text
+               private.invoice_total(i.id), i.currency_code, 'finance.invoice.write'::text, 'finance.invoice.approve'::text
         from app.invoices i where i.id = p_document_id and i.deleted_at is null and i.direction = 'Payable';
     when 'Requisition' then
       return query
         select r.org_id, r.project_id, 'requisitions'::text, r.role_code,
                private.requisition_amount(r.headcount, r.units_per_head, r.rate_minor), r.currency_code,
-               'people.requisition.write'::text
+               'people.requisition.write'::text, 'people.requisition.approve'::text
         from app.requisitions r where r.id = p_document_id and r.deleted_at is null;
     when 'Expense' then
       return query
         select e.org_id, b.project_id, 'expenses'::text, left(e.description, 200),
-               e.amount_minor, e.currency_code, 'finance.expense.write'::text
+               e.amount_minor, e.currency_code, 'finance.expense.write'::text, 'finance.expense.approve'::text
         from app.expenses e
         join app.budget_lines bl on bl.id = e.budget_line_id
         join app.budgets b on b.id = bl.budget_id
@@ -458,7 +459,7 @@ begin
         select r.org_id, null::uuid, 'payroll_runs'::text, null::text,
                (select coalesce(sum(private.extended_minor(l.hours, l.rate_minor)), 0)::bigint
                 from app.payroll_lines l where l.payroll_run_id = r.id and l.deleted_at is null),
-               r.currency_code, 'crew.pay_period.manage'::text
+               r.currency_code, 'crew.pay_period.manage'::text, 'crew.pay_period.manage'::text
         from app.payroll_runs r where r.id = p_document_id and r.deleted_at is null;
     else
       return;
@@ -466,7 +467,7 @@ begin
 end;
 $$;
 
-comment on function private.spend_document_facts(app.spend_document_type, uuid) is 'Org, project, table, display reference, amount (as its approval RPC computes it, NULL while unpriced), currency and the capability that prepares a spend document. No row for an unknown document or a Contract.';
+comment on function private.spend_document_facts(app.spend_document_type, uuid) is 'Org, project, table, display reference, amount (as its approval RPC computes it, NULL while unpriced), currency, and the capabilities that prepare and approve a spend document. No row for an unknown document or a Contract.';
 revoke all on function private.spend_document_facts(app.spend_document_type, uuid) from public, anon, authenticated;
 
 create or replace function private.applicable_approval_policy(
@@ -690,6 +691,7 @@ declare
   v_next smallint;
   v_decision uuid;
   v_title text;
+  v_capability text;
 begin
   select * into v_instance from app.approval_instances i
   where i.id = p_approval_instance_id and i.deleted_at is null for update;
@@ -704,6 +706,13 @@ begin
   where s.approval_policy_id = v_instance.approval_policy_id and s.step_order = v_instance.current_step and s.deleted_at is null;
   if v_step.id is null or not private.is_step_approver(v_instance.org_id, v_step.approver_role_id, v_step.approver_membership_id) then
     perform private.refuse('approval_not_step_approver', 'You are not an approver of the step this approval is waiting on.');
+  end if;
+  select f.approve_capability into v_capability from private.spend_document_facts(v_instance.document_type, v_instance.document_id) f;
+  if v_capability is null
+     or (v_instance.project_id is not null and not private.can_on_project(v_instance.project_id, v_capability))
+     or (v_instance.project_id is null and not private.has_capability(v_instance.org_id, v_capability)) then
+    perform private.refuse('approval_approver_capability',
+      'Approving this document needs its approval capability; a step''s approver must also hold it.');
   end if;
   if exists (select 1 from app.approval_decisions d where d.approval_instance_id = v_instance.id and d.approver_id = v_person) then
     perform private.refuse('approval_one_step_per_approver', 'You already decided a step of this approval; the next step needs another approver.');
@@ -742,7 +751,7 @@ begin
 end;
 $$;
 
-comment on function app.decide_approval(uuid, boolean, text) is 'Decides the step an approval is waiting on: an eligible approver of that step, never the requester (sod_approval_requester), one step per person, with a reason when rejecting. Approving the last step approves the instance; a rejection rejects it. Notifies the next step''s approvers, or the requester once decided. Returns the decision id.';
+comment on function app.decide_approval(uuid, boolean, text) is 'Decides the step an approval is waiting on: an eligible approver of that step who also holds the document''s approval capability (finance.po.approve and so on, on its project), never the requester (sod_approval_requester), one step per person, with a reason when rejecting. Approving the last step approves the instance; a rejection rejects it. Notifies the next step''s approvers, or the requester once decided. Returns the decision id.';
 revoke all on function app.decide_approval(uuid, boolean, text) from public, anon;
 grant execute on function app.decide_approval(uuid, boolean, text) to authenticated, service_role;
 

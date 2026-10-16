@@ -3,8 +3,8 @@
  * read as the caller, and a run is queued through app.run_report for the caller's membership. The
  * built-in reports reuse A15's report queries (packages/data/src/reports.ts), so the API and Atlas
  * show the same numbers; money is a `MoneyTotal` per row (the priced inputs summed, the unpriced
- * ones counted, never coerced to zero). Labor cost, incident rates and gate readiness stay
- * document-only: their rows are hours and counts, which the money-shaped `ReportRow` cannot carry.
+ * ones counted, never coerced to zero). Labor cost, incident rates and gate readiness answer
+ * ReportMetricRow, hours and counts (A33, handlers/parts/report-metrics.ts).
  */
 import {
   budgetVersusActual,
@@ -15,8 +15,10 @@ import {
 } from "@xos/data/reports";
 import { refused } from "../problem.ts";
 import { requireOrg } from "../runtime/context.ts";
+import type { HandlerSet } from "../runtime/handler.ts";
 import { created, defineHandlers, ok } from "../runtime/handler.ts";
 import { moneyTotal } from "./finance.ts";
+import { reportMetricHandlers } from "./parts/report-metrics.ts";
 import { handlersFor, tableResource, unwrap } from "./support/table.ts";
 
 const reportDefinitions = tableResource("reportDefinitions", { verbs: ["list", "get"] });
@@ -34,6 +36,7 @@ const total = (minor: number | null, currency: string, unpriced: number) => ({
 export const handlers = defineHandlers("Reports", {
   ...handlersFor("Reports", reportDefinitions),
   ...handlersFor("Reports", reportRuns),
+  ...(reportMetricHandlers as unknown as HandlerSet<"Reports">),
 
   "reportRuns.create": async ({ body }, context) => {
     const run = unwrap(
