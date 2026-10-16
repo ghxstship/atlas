@@ -154,11 +154,19 @@
     "travel": {
       "empty": "Aún no hay viaje ni hospedaje. Escribe a la organización si lo necesitas.",
       "lodging": "Hospedaje",
-      "travel": "Viaje"
+      "travel": "Viaje",
+      "itinerary": "Itinerario",
+      "route": "{from} a {to}",
+      "departs": "Sale {time}",
+      "arrives": "Llega {time}",
+      "confirmation": "Confirmación {code}"
     },
     "perDiem": {
       "empty": "Aún no hay viáticos ni asignaciones. Aparecen aquí cuando la organización los defina.",
-      "quantity": "{n} por día"
+      "quantity": "{n} por día",
+      "allowances": "Viáticos",
+      "amenities": "Comodidades",
+      "total": "Total: {amount}"
     },
     "credentials": {
       "empty": "Aún no hay credenciales. Se emiten cuando pasa la incorporación.",
@@ -217,7 +225,13 @@
       "empty": "Aún no hay nada en el calendario compartido. Las fechas aparecen cuando la organización las comparte."
     },
     "reports": {
-      "empty": "Aún no hay informes compartidos. Los informes que comparta la organización aparecen aquí."
+      "empty": "Aún no hay informes compartidos. Los informes que comparta la organización aparecen aquí.",
+      "shared": "Informes compartidos",
+      "ranAt": "Generado {time}",
+      "rows": "{n} filas",
+      "unpriced": "{n} filas aún sin precio",
+      "expires": "Compartido hasta el {date}",
+      "noRecords": "Aún no hay registros de informes compartidos. Pregunta a la organización si esperas uno."
     },
     "activation": {
       "empty": "Aún no hay fechas de activación. Aparecen cuando la organización las programe."
@@ -259,7 +273,11 @@
       "empty": "Aún no hay hospitalidad. Pide lo que necesites en el avance."
     },
     "guestList": {
-      "unavailable": "Las listas de invitados aún no están conectadas. Pon a tus invitados en el paquete de avance y la organización los confirma ahí."
+      "empty": "Aún no hay invitados en tu lista. Agrega un invitado abajo y la producción confirma a cada uno antes del show.",
+      "request": "Agregar un invitado",
+      "listLabel": "Lista de invitados, {n} personas en total",
+      "plusOnes": "Más {n}",
+      "checkedIn": "Registrado {time}"
     },
     "roster": {
       "empty": "Aún no representas a ningún artista. Propón una representación desde Configuración de empresa.",
@@ -279,7 +297,10 @@
         "fileType": "Sube un archivo PDF, JPEG, PNG, HEIC o WebP.",
         "fileSize": "El archivo supera 25 MB. Sube un escaneo o foto más pequeño.",
         "tin": "Escribe el identificador fiscal con 4 a 30 letras y dígitos.",
-        "subject": "Ponle un asunto a la conversación."
+        "subject": "Ponle un asunto a la conversación.",
+        "guestName": "Escribe el nombre del invitado antes de agregarlo.",
+        "plusOnes": "Los acompañantes van de 0 a 20.",
+        "settlementReason": "Escribe una nota o un motivo breve antes de responder."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -354,7 +375,32 @@
         "label": "Respuesta pública",
         "submit": "Responder",
         "done": "Respuesta publicada."
+      },
+      "guest": {
+        "title": "Agregar un invitado",
+        "name": "Nombre del invitado",
+        "plusOnes": "Acompañantes",
+        "note": "Nota para la producción (opcional)",
+        "submit": "Agregar invitado",
+        "done": "Invitado agregado. La producción lo confirma antes del show."
+      },
+      "settlement": {
+        "decision": "Tu respuesta",
+        "accept": "Aceptar liquidación",
+        "dispute": "Disputar liquidación",
+        "note": "Nota",
+        "reason": "Qué debe cambiar",
+        "done": "Respuesta enviada. La organización ya la ve."
       }
+    },
+    "settlement": {
+      "submitted": "Enviada el {date}",
+      "lines": "Líneas de {title}",
+      "unpriced": "Monto por confirmar",
+      "less": "Menos {amount}",
+      "net": "Neto para ti: {amount}",
+      "netUnpriced": "El neto aparece cuando cada línea tiene un monto.",
+      "none": "Aún no te han enviado una liquidación. La organización la envía después del show; los documentos de liquidación aparecen abajo."
     }
   },
   "enums": {
@@ -642,6 +688,32 @@
     "ratingSide": {
       "organization": "Organización",
       "party": "Contraparte"
+    },
+    "guestEntryState": {
+      "requested": "Solicitado",
+      "approved": "Aprobado",
+      "declined": "Rechazado",
+      "checkedIn": "Registrado"
+    },
+    "settlementState": {
+      "proposed": "Borrador",
+      "submitted": "Espera tu respuesta",
+      "accepted": "Aceptada",
+      "disputed": "Disputada",
+      "paid": "Pagada",
+      "canceled": "Cancelada"
+    },
+    "settlementLineKind": {
+      "guarantee": "Garantía",
+      "bonus": "Bono",
+      "split": "Reparto",
+      "expense": "Gasto",
+      "deduction": "Deducción",
+      "withholding": "Retención"
+    },
+    "travelMode": {
+      "flight": "Vuelo",
+      "ground": "Transporte terrestre"
     }
   },
   "explore": {

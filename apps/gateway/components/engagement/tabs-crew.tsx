@@ -8,7 +8,7 @@ import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
 import { acceptShiftAction, submitTimesheetAction } from "@/lib/actions/operations";
 import { hasArea, tabHref } from "@/lib/engagement";
-import { formatDate, formatDateRange, formatDateTime } from "@/lib/format";
+import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import { RowList, TabEmpty } from "./rows";
@@ -263,18 +263,22 @@ export async function TimeTab({ view, t, locale, engagementKey }: TabProps) {
 
 export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational")) return <NotOpen t={t} engagementKey={engagementKey} />;
-  const [lodging, travel] = await Promise.all([
+  const [lodging, segments, travel] = await Promise.all([
     readView(view.ctx.db, "lodging", {
       eq: { project_id: view.engagement.projectId },
       order: ["check_in_on", "asc"],
+    }),
+    readView(view.ctx.db, "travel", {
+      eq: { engagement_id: view.engagement.id },
+      order: ["departs_at", "asc"],
     }),
     readView(view.ctx.db, "hospitality", {
       eq: { project_id: view.engagement.projectId, fulfillment_kind: "Travel" },
       order: ["starts_at", "asc"],
     }),
   ]);
-  if (!lodging.ok || !travel.ok) return <RegionError />;
-  if (lodging.data.length === 0 && travel.data.length === 0) {
+  if (!lodging.ok || !segments.ok || !travel.ok) return <RegionError />;
+  if (lodging.data.length === 0 && segments.data.length === 0 && travel.data.length === 0) {
     return (
       <TabEmpty
         icon="BedDouble"
@@ -286,6 +290,46 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
   }
   return (
     <div className="flex flex-col gap-16">
+      {segments.data.length > 0 ? (
+        <Section title={t("gateway.engagement.travel.itinerary")}>
+          <RowList
+            label={t("gateway.engagement.travel.itinerary")}
+            items={segments.data.map((s) => ({
+              id: s.id ?? "",
+              title: t("gateway.engagement.travel.route", {
+                from: s.departs_from ?? "",
+                to: s.arrives_at_place ?? "",
+              }),
+              meta: [
+                [s.operator_name, s.service_identifier].filter(Boolean).join(" "),
+                s.departs_at
+                  ? t("gateway.engagement.travel.departs", {
+                      time: formatDateTime(locale, s.departs_at, s.departs_time_zone),
+                    })
+                  : null,
+                s.arrives_at
+                  ? t("gateway.engagement.travel.arrives", {
+                      time: formatDateTime(locale, s.arrives_at, s.arrives_time_zone),
+                    })
+                  : null,
+                s.confirmation_identifier
+                  ? t("gateway.engagement.travel.confirmation", {
+                      code: s.confirmation_identifier,
+                    })
+                  : null,
+              ],
+              ...(s.travel_mode
+                ? {
+                    tag: {
+                      label: t(enumLabelKey("travelMode", s.travel_mode)),
+                      tone: "neutral" as const,
+                    },
+                  }
+                : {}),
+            }))}
+          />
+        </Section>
+      ) : null}
       {lodging.data.length > 0 ? (
         <Section title={t("gateway.engagement.travel.lodging")}>
           <RowList
@@ -314,15 +358,21 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
   );
 }
 
-/** Per diem: the hospitality amenities and allowances the org arranged for this project. */
+/** Per diem: the allowances paid through the engagement (A13 0981), then listed amenities. */
 export async function PerDiemTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational")) return <NotOpen t={t} engagementKey={engagementKey} />;
-  const amenities = await readView(view.ctx.db, "hospitality", {
-    eq: { project_id: view.engagement.projectId, fulfillment_kind: "Amenity" },
-    order: ["starts_at", "asc"],
-  });
-  if (!amenities.ok) return <RegionError />;
-  if (amenities.data.length === 0) {
+  const [allowances, amenities] = await Promise.all([
+    readView(view.ctx.db, "per_diems", {
+      eq: { engagement_id: view.engagement.id },
+      order: ["day", "asc"],
+    }),
+    readView(view.ctx.db, "hospitality", {
+      eq: { project_id: view.engagement.projectId, fulfillment_kind: "Amenity" },
+      order: ["starts_at", "asc"],
+    }),
+  ]);
+  if (!allowances.ok || !amenities.ok) return <RegionError />;
+  if (allowances.data.length === 0 && amenities.data.length === 0) {
     return (
       <TabEmpty
         icon="Wallet"
@@ -337,18 +387,48 @@ export async function PerDiemTab({ view, t, locale, engagementKey }: TabProps) {
       />
     );
   }
+  const totals = new Map<string, number>();
+  for (const a of allowances.data) {
+    if (a.currency_code && a.amount_minor !== null)
+      totals.set(a.currency_code, (totals.get(a.currency_code) ?? 0) + a.amount_minor);
+  }
   return (
-    <RowList
-      label={t("nav.gateway.engagementTabs.perDiem")}
-      items={amenities.data.map((h) => ({
-        id: h.id ?? "",
-        title: h.title ?? h.description ?? "",
-        meta: [
-          formatDateRange(locale, h.starts_at, h.ends_at),
-          h.quantity ? t("gateway.engagement.perDiem.quantity", { n: h.quantity }) : null,
-        ],
-      }))}
-    />
+    <div className="flex flex-col gap-16">
+      {allowances.data.length > 0 ? (
+        <Section title={t("gateway.engagement.perDiem.allowances")}>
+          <RowList
+            label={t("gateway.engagement.perDiem.allowances")}
+            items={allowances.data.map((a) => ({
+              id: a.id ?? "",
+              title: a.day ? formatDate(locale, a.day) : "",
+              meta: [formatMoney(locale, a.amount_minor, a.currency_code), a.project_name],
+            }))}
+          />
+          <p className="m-0 text-text-14 font-medium">
+            {t("gateway.engagement.perDiem.total", {
+              amount: [...totals]
+                .map(([currency, minor]) => formatMoney(locale, minor, currency))
+                .join(", "),
+            })}
+          </p>
+        </Section>
+      ) : null}
+      {amenities.data.length > 0 ? (
+        <Section title={t("gateway.engagement.perDiem.amenities")}>
+          <RowList
+            label={t("gateway.engagement.perDiem.amenities")}
+            items={amenities.data.map((h) => ({
+              id: h.id ?? "",
+              title: h.title ?? h.description ?? "",
+              meta: [
+                formatDateRange(locale, h.starts_at, h.ends_at),
+                h.quantity ? t("gateway.engagement.perDiem.quantity", { n: h.quantity }) : null,
+              ],
+            }))}
+          />
+        </Section>
+      ) : null}
+    </div>
   );
 }
 

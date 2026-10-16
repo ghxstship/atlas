@@ -154,11 +154,19 @@
     "travel": {
       "empty": "No travel or lodging arranged yet. Message the organization if you need it.",
       "lodging": "Lodging",
-      "travel": "Travel"
+      "travel": "Travel",
+      "itinerary": "Itinerary",
+      "route": "{from} to {to}",
+      "departs": "Departs {time}",
+      "arrives": "Arrives {time}",
+      "confirmation": "Confirmation {code}"
     },
     "perDiem": {
       "empty": "No per diem or allowances listed yet. They appear here once the organization sets them.",
-      "quantity": "{n} per day"
+      "quantity": "{n} per day",
+      "allowances": "Allowances",
+      "amenities": "Amenities",
+      "total": "Total: {amount}"
     },
     "credentials": {
       "empty": "No credentials issued yet. They are issued once onboarding passes.",
@@ -217,7 +225,13 @@
       "empty": "Nothing on the shared schedule yet. Dates appear once the organization shares them."
     },
     "reports": {
-      "empty": "No reports shared yet. Reports the organization shares appear here."
+      "empty": "No reports shared yet. Reports the organization shares appear here.",
+      "shared": "Shared reports",
+      "ranAt": "Run {time}",
+      "rows": "{n} rows",
+      "unpriced": "{n} rows still unpriced",
+      "expires": "Shared until {date}",
+      "noRecords": "No report records shared yet. Ask the organization if you expect one."
     },
     "activation": {
       "empty": "No activation dates shared yet. They appear once the organization schedules them."
@@ -259,7 +273,11 @@
       "empty": "No hospitality arranged yet. Ask for what you need in the advance."
     },
     "guestList": {
-      "unavailable": "Guest lists are not connected yet. Put your guests in the advance packet, and the organization confirms them there."
+      "empty": "No guests on your list yet. Add a guest below, and the production confirms each one before the show.",
+      "request": "Add a guest",
+      "listLabel": "Guest list, {n} people in total",
+      "plusOnes": "Plus {n}",
+      "checkedIn": "Checked in {time}"
     },
     "roster": {
       "empty": "You do not represent any artists yet. Propose a representation from Company settings.",
@@ -279,7 +297,10 @@
         "fileType": "Upload a PDF, JPEG, PNG, HEIC or WebP file.",
         "fileSize": "The file is larger than 25 MB. Upload a smaller scan or photo.",
         "tin": "Enter the tax identifier with 4 to 30 letters and digits.",
-        "subject": "Give the conversation a subject."
+        "subject": "Give the conversation a subject.",
+        "guestName": "Write the guest's name before adding them.",
+        "plusOnes": "Plus-ones run from 0 to 20.",
+        "settlementReason": "Write a short note or reason before answering."
       },
       "advance": {
         "answer": "Your answer",
@@ -354,7 +375,32 @@
         "label": "Public reply",
         "submit": "Reply",
         "done": "Reply posted."
+      },
+      "guest": {
+        "title": "Add a guest",
+        "name": "Guest name",
+        "plusOnes": "Plus-ones",
+        "note": "Note for the production (optional)",
+        "submit": "Add guest",
+        "done": "Guest added. The production confirms them before the show."
+      },
+      "settlement": {
+        "decision": "Your answer",
+        "accept": "Accept settlement",
+        "dispute": "Dispute settlement",
+        "note": "Note",
+        "reason": "What should change",
+        "done": "Answer sent. The organization sees it now."
       }
+    },
+    "settlement": {
+      "submitted": "Sent to you {date}",
+      "lines": "Lines of {title}",
+      "unpriced": "Amount to be confirmed",
+      "less": "Less {amount}",
+      "net": "Net to you: {amount}",
+      "netUnpriced": "The net shows once every line has an amount.",
+      "none": "No settlement has been sent to you yet. The organization sends it after the show; settlement documents appear below."
     }
   },
   "enums": {
@@ -642,6 +688,32 @@
     "ratingSide": {
       "organization": "Organization",
       "party": "Party"
+    },
+    "guestEntryState": {
+      "requested": "Requested",
+      "approved": "Approved",
+      "declined": "Declined",
+      "checkedIn": "Checked in"
+    },
+    "settlementState": {
+      "proposed": "Draft",
+      "submitted": "Waiting on you",
+      "accepted": "Accepted",
+      "disputed": "Disputed",
+      "paid": "Paid",
+      "canceled": "Canceled"
+    },
+    "settlementLineKind": {
+      "guarantee": "Guarantee",
+      "bonus": "Bonus",
+      "split": "Split",
+      "expense": "Expense",
+      "deduction": "Deduction",
+      "withholding": "Withholding"
+    },
+    "travelMode": {
+      "flight": "Flight",
+      "ground": "Ground transport"
     }
   },
   "explore": {

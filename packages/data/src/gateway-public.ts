@@ -178,6 +178,8 @@ export async function getPublicPersonProfile(
 }
 
 export interface PublicOrganizationProfile {
+  /** The organization's id (0934), so its open opportunities are matched by org, never by name. */
+  readonly org_id: string;
   readonly handle: string;
   readonly redirected: boolean;
   readonly name: string;
