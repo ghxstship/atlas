@@ -1,7 +1,15 @@
 // Shared plumbing for the XOS Edge Functions (Deno). Logic lives in @xos/platform; this file only reads
 // the environment, builds the service-role database seam and shapes responses.
 import { createClient } from "@supabase/supabase-js";
-import { supabaseDb, type PlatformDb } from "../_vendor/xos-platform.js";
+import {
+  createLogger,
+  edgeFunctionName,
+  identityFromEnv,
+  internalErrorResponse,
+  requestIdFor,
+  supabaseDb,
+  type PlatformDb,
+} from "../_vendor/xos-platform.js";
 
 /** A required environment variable, or a thrown error naming it. */
 export function env(name: string): string {
@@ -38,20 +46,18 @@ export function hasBearer(request: Request, secret: string): boolean {
   return header.startsWith("Bearer ") && constantTimeEqual(header.slice(7), secret);
 }
 
-/** Wraps a handler so an unexpected error becomes a 500 with its message, never a silent failure. */
+/**
+ * Wraps a handler so an unexpected error becomes a 500 problem carrying only a request id (A22-013).
+ * The error itself is logged with that id through the infra/observability redactor, never returned.
+ */
 export function serve(handler: (request: Request) => Promise<Response>): void {
   Deno.serve(async (request) => {
     try {
       return await handler(request);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error(JSON.stringify({ level: "error", message }));
-      return json(500, {
-        type: "/problems/internal",
-        title: "Internal error",
-        status: 500,
-        detail: message,
-      });
+      const fn = edgeFunctionName(request.url);
+      const logger = createLogger(identityFromEnv(`edge.${fn}`, Deno.env.toObject()));
+      return internalErrorResponse(error, { requestId: requestIdFor(request), logger, fn });
     }
   });
 }

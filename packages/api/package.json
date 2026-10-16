@@ -18,7 +18,8 @@
     "audit:contract": "node --experimental-strip-types --no-warnings scripts/contract-audit.ts",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --coverage"
+    "test": "vitest run --coverage",
+    "test:security": "vitest run test/security"
   },
   "dependencies": {
     "@hono/zod-openapi": "1.6.3",

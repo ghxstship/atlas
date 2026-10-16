@@ -49,11 +49,11 @@ scope.
 | Chapter                                 | Level 1 and 2 requirements | Verified (test) | Verified (review) | Documented | Inherited | Not Applicable | Gap |
 | --------------------------------------- | -------------------------- | --------------- | ----------------- | ---------- | --------- | -------------- | --- |
 | V1 Encoding and Sanitization            | 27                         | 5               | 13                | 0          | 0         | 9              | 0   |
-| V2 Validation and Business Logic        | 11                         | 7               | 0                 | 3          | 0         | 0              | 1   |
-| V3 Web Frontend Security                | 19                         | 11              | 5                 | 1          | 0         | 0              | 2   |
+| V2 Validation and Business Logic        | 11                         | 8               | 0                 | 3          | 0         | 0              | 0   |
+| V3 Web Frontend Security                | 19                         | 13              | 5                 | 1          | 0         | 0              | 0   |
 | V4 API and Web Service                  | 10                         | 1               | 0                 | 0          | 3         | 6              | 0   |
-| V5 File Handling                        | 9                          | 3               | 2                 | 1          | 0         | 0              | 3   |
-| V6 Authentication                       | 35                         | 5               | 4                 | 5          | 11        | 2              | 8   |
+| V5 File Handling                        | 9                          | 6               | 2                 | 1          | 0         | 0              | 0   |
+| V6 Authentication                       | 35                         | 11              | 4                 | 7          | 11        | 2              | 0   |
 | V7 Session Management                   | 18                         | 2               | 1                 | 9          | 6         | 0              | 0   |
 | V8 Authorization                        | 7                          | 5               | 0                 | 2          | 0         | 0              | 0   |
 | V9 Self-contained Tokens                | 7                          | 3               | 0                 | 0          | 4         | 0              | 0   |
@@ -63,9 +63,9 @@ scope.
 | V13 Configuration                       | 13                         | 4               | 4                 | 1          | 3         | 0              | 1   |
 | V14 Data Protection                     | 9                          | 2               | 3                 | 4          | 0         | 0              | 0   |
 | V15 Secure Coding and Architecture      | 13                         | 4               | 5                 | 3          | 1         | 0              | 0   |
-| V16 Security Logging and Error Handling | 16                         | 5               | 3                 | 5          | 2         | 0              | 1   |
+| V16 Security Logging and Error Handling | 16                         | 6               | 3                 | 5          | 2         | 0              | 0   |
 | V17 WebRTC                              | 7                          | 0               | 0                 | 0          | 0         | 7              | 0   |
-| Total                                   | 253                        | 61              | 49                | 38         | 48        | 27             | 30  |
+| Total                                   | 253                        | 74              | 49                | 40         | 48        | 27             | 15  |
 
 ## V1 Encoding and Sanitization
 
@@ -113,7 +113,7 @@ scope.
 | V2.3.2      | L2    | Business Logic Security                     | Verified (test) | pgTAP invariant suites (Section 7.5), for example 0310, 0320 and 0330                                                              |
 | V2.3.3      | L2    | Business Logic Security                     | Verified (test) | pgTAP invariant suites (Section 7.5), for example 0310, 0320 and 0330                                                              |
 | V2.3.4      | L2    | Business Logic Security                     | Verified (test) | `private.transition_lifecycle` compare-and-set (ADR 0016); lifecycle pgTAP suites                                                  |
-| V2.4.1      | L2    | Anti-automation                             | Gap             | Gap: finding [A22-012](findings/A22-012.md)                                                                                        |
+| V2.4.1      | L2    | Anti-automation                             | Verified (test) | `1040_shared_api_rate_limits.test.sql`, `test/security/shared-rate-limit.test.ts`; [A22-012](findings/A22-012.md) fixed            |
 
 ## V3 Web Frontend Security
 
@@ -121,9 +121,9 @@ scope.
 | ----------- | ----- | ------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | V3.2.1      | L1    | Unintended Content Interpretation     | Verified (test)   | `apps/atlas/test/security.test.ts`; `apps/atlas/e2e/security.spec.ts`; `apps/*/lib/security/headers.ts`                                                    |
 | V3.2.2      | L1    | Unintended Content Interpretation     | Verified (review) | `apps/atlas/test/security.test.ts`; `apps/atlas/e2e/security.spec.ts`; `apps/*/lib/security/headers.ts`                                                    |
-| V3.3.1      | L1    | Cookie Setup                          | Gap               | Gap: finding [A22-014](findings/A22-014.md)                                                                                                                |
+| V3.3.1      | L1    | Cookie Setup                          | Verified (test)   | `apps/atlas/test/env.test.ts`, `apps/gateway/test/cookies.test.ts`, `packages/api/test/auth.test.ts`; [A22-014](findings/A22-014.md) fixed                 |
 | V3.3.2      | L2    | Cookie Setup                          | Verified (test)   | `apps/atlas/lib/supabase/cookies.ts` (httpOnly, SameSite=Lax, Secure on https)                                                                             |
-| V3.3.3      | L2    | Cookie Setup                          | Gap               | Gap: finding [A22-014](findings/A22-014.md)                                                                                                                |
+| V3.3.3      | L2    | Cookie Setup                          | Verified (test)   | `apps/atlas/test/env.test.ts`, `apps/gateway/test/cookies.test.ts`, `packages/api/test/auth.test.ts`; [A22-014](findings/A22-014.md) fixed                 |
 | V3.3.4      | L2    | Cookie Setup                          | Verified (test)   | `apps/atlas/lib/supabase/cookies.ts` (httpOnly, SameSite=Lax, Secure on https)                                                                             |
 | V3.4.1      | L1    | Browser Security Mechanism Headers    | Verified (test)   | `apps/atlas/test/security.test.ts`; `apps/atlas/e2e/security.spec.ts`; `apps/*/lib/security/headers.ts`                                                    |
 | V3.4.2      | L1    | Browser Security Mechanism Headers    | Verified (review) | `apps/atlas/test/security.test.ts`; `apps/atlas/e2e/security.spec.ts`; `apps/*/lib/security/headers.ts`                                                    |
@@ -156,57 +156,57 @@ scope.
 
 ## V5 File Handling
 
-| Requirement | Level | Section                     | State             | Evidence                                                                          |
-| ----------- | ----- | --------------------------- | ----------------- | --------------------------------------------------------------------------------- |
-| V5.1.1      | L2    | File Handling Documentation | Documented        | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites |
-| V5.2.1      | L1    | File Upload and Content     | Verified (test)   | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites |
-| V5.2.2      | L1    | File Upload and Content     | Gap               | Gap: finding [A22-011](findings/A22-011.md)                                       |
-| V5.2.3      | L2    | File Upload and Content     | Gap               | Gap: finding [A22-011](findings/A22-011.md)                                       |
-| V5.3.1      | L1    | File Storage                | Verified (test)   | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites |
-| V5.3.2      | L1    | File Storage                | Verified (test)   | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites |
-| V5.4.1      | L2    | File Download               | Verified (review) | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites |
-| V5.4.2      | L2    | File Download               | Verified (review) | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites |
-| V5.4.3      | L2    | File Download               | Gap               | Gap: finding [A22-011](findings/A22-011.md)                                       |
+| Requirement | Level | Section                     | State             | Evidence                                                                                                                 |
+| ----------- | ----- | --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| V5.1.1      | L2    | File Handling Documentation | Documented        | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites                                        |
+| V5.2.1      | L1    | File Upload and Content     | Verified (test)   | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites                                        |
+| V5.2.2      | L1    | File Upload and Content     | Verified (test)   | `packages/platform/test/scanning.test.ts` (type, extension and magic bytes); [A22-011](findings/A22-011.md) fixed        |
+| V5.2.3      | L2    | File Upload and Content     | Verified (test)   | `packages/platform/test/scanning.test.ts` (zip limits, nested archives); [A22-011](findings/A22-011.md) fixed            |
+| V5.3.1      | L1    | File Storage                | Verified (test)   | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites                                        |
+| V5.3.2      | L1    | File Storage                | Verified (test)   | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites                                        |
+| V5.4.1      | L2    | File Download               | Verified (review) | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites                                        |
+| V5.4.2      | L2    | File Download               | Verified (review) | Bucket type allowlists and size caps; `supabase/tests/9908`; 0590 and 0860 suites                                        |
+| V5.4.3      | L2    | File Download               | Verified (test)   | `packages/platform/test/scanning.test.ts` (EICAR), `1041_upload_scanning.test.sql`; [A22-011](findings/A22-011.md) fixed |
 
 ## V6 Authentication
 
-| Requirement | Level | Section                                          | State             | Evidence                                                                                                |
-| ----------- | ----- | ------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------- |
-| V6.1.1      | L1    | Authentication Documentation                     | Documented        | `legal/security/threat-model.md`                                                                        |
-| V6.1.2      | L2    | Authentication Documentation                     | Gap               | Gap: finding [A22-010](findings/A22-010.md)                                                             |
-| V6.1.3      | L2    | Authentication Documentation                     | Documented        | `legal/security/threat-model.md`                                                                        |
-| V6.2.1      | L1    | Password Security                                | Gap               | Gap: finding [A22-010](findings/A22-010.md)                                                             |
-| V6.2.2      | L1    | Password Security                                | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.2.3      | L1    | Password Security                                | Gap               | Gap: finding [A22-010](findings/A22-010.md)                                                             |
-| V6.2.4      | L1    | Password Security                                | Gap               | Gap: finding [A22-010](findings/A22-010.md)                                                             |
-| V6.2.5      | L1    | Password Security                                | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.2.6      | L1    | Password Security                                | Verified (review) | `apps/atlas/test/security.test.ts`; `apps/atlas/e2e/security.spec.ts`; `apps/*/lib/security/headers.ts` |
-| V6.2.7      | L1    | Password Security                                | Verified (review) | `apps/atlas/test/security.test.ts`; `apps/atlas/e2e/security.spec.ts`; `apps/*/lib/security/headers.ts` |
-| V6.2.8      | L1    | Password Security                                | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.2.9      | L2    | Password Security                                | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.2.10     | L2    | Password Security                                | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.2.11     | L2    | Password Security                                | Gap               | Gap: finding [A22-010](findings/A22-010.md)                                                             |
-| V6.2.12     | L2    | Password Security                                | Gap               | Gap: finding [A22-010](findings/A22-010.md)                                                             |
-| V6.3.1      | L1    | General Authentication Security                  | Gap               | Gap: finding [A22-012](findings/A22-012.md)                                                             |
-| V6.3.2      | L1    | General Authentication Security                  | Verified (review) | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.3.3      | L2    | General Authentication Security                  | Gap               | Gap: finding [A22-010](findings/A22-010.md)                                                             |
-| V6.3.4      | L2    | General Authentication Security                  | Documented        | `legal/security/threat-model.md`                                                                        |
-| V6.4.1      | L1    | Authentication Factor Lifecycle and Recovery     | Verified (test)   | Token RPCs store hashes only, with access codes and lockout (0361, 0430, 0769 suites)                   |
-| V6.4.2      | L1    | Authentication Factor Lifecycle and Recovery     | Verified (review) | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.4.3      | L2    | Authentication Factor Lifecycle and Recovery     | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.4.4      | L2    | Authentication Factor Lifecycle and Recovery     | Documented        | `legal/policies/access-control.md`                                                                      |
-| V6.5.1      | L2    | General Multi-factor authentication requirements | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.5.2      | L2    | General Multi-factor authentication requirements | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.5.3      | L2    | General Multi-factor authentication requirements | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.5.4      | L2    | General Multi-factor authentication requirements | Verified (test)   | Token RPCs store hashes only, with access codes and lockout (0361, 0430, 0769 suites)                   |
-| V6.5.5      | L2    | General Multi-factor authentication requirements | Verified (test)   | Token RPCs store hashes only, with access codes and lockout (0361, 0430, 0769 suites)                   |
-| V6.6.1      | L2    | Out-of-Band authentication mechanisms            | Not Applicable    | Not Applicable: SMS is used for notifications, not for authentication codes                             |
-| V6.6.2      | L2    | Out-of-Band authentication mechanisms            | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.6.3      | L2    | Out-of-Band authentication mechanisms            | Verified (test)   | Token RPCs store hashes only, with access codes and lockout (0361, 0430, 0769 suites)                   |
-| V6.8.1      | L2    | Authentication with an Identity Provider         | Verified (test)   | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.8.2      | L2    | Authentication with an Identity Provider         | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                             |
-| V6.8.3      | L2    | Authentication with an Identity Provider         | Not Applicable    | Not Applicable until Enterprise SAML ships; Supabase Auth validates assertions when it does             |
-| V6.8.4      | L2    | Authentication with an Identity Provider         | Documented        | `legal/security/threat-model.md`                                                                        |
+| Requirement | Level | Section                                          | State             | Evidence                                                                                                                |
+| ----------- | ----- | ------------------------------------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| V6.1.1      | L1    | Authentication Documentation                     | Documented        | `legal/security/threat-model.md`                                                                                        |
+| V6.1.2      | L2    | Authentication Documentation                     | Verified (test)   | `apps/atlas/test/password.test.ts`, `apps/gateway/test/password.test.ts`; [A22-010](findings/A22-010.md) fixed          |
+| V6.1.3      | L2    | Authentication Documentation                     | Documented        | `legal/security/threat-model.md`                                                                                        |
+| V6.2.1      | L1    | Password Security                                | Verified (test)   | `infra/security/test/auth-config.test.ts`, `apps/*/test/password.test.ts`; [A22-010](findings/A22-010.md) fixed         |
+| V6.2.2      | L1    | Password Security                                | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.2.3      | L1    | Password Security                                | Verified (test)   | `infra/security/test/auth-config.test.ts` (`secure_password_change`); [A22-010](findings/A22-010.md) fixed              |
+| V6.2.4      | L1    | Password Security                                | Documented        | `infra/runbooks/hosted-security-settings.md` (hosted leaked password protection); [A22-010](findings/A22-010.md)        |
+| V6.2.5      | L1    | Password Security                                | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.2.6      | L1    | Password Security                                | Verified (review) | `apps/atlas/test/security.test.ts`; `apps/atlas/e2e/security.spec.ts`; `apps/*/lib/security/headers.ts`                 |
+| V6.2.7      | L1    | Password Security                                | Verified (review) | `apps/atlas/test/security.test.ts`; `apps/atlas/e2e/security.spec.ts`; `apps/*/lib/security/headers.ts`                 |
+| V6.2.8      | L1    | Password Security                                | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.2.9      | L2    | Password Security                                | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.2.10     | L2    | Password Security                                | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.2.11     | L2    | Password Security                                | Verified (test)   | `apps/atlas/test/password.test.ts`, `apps/gateway/test/password.test.ts`; [A22-010](findings/A22-010.md) fixed          |
+| V6.2.12     | L2    | Password Security                                | Documented        | `infra/runbooks/hosted-security-settings.md` (hosted leaked password protection); [A22-010](findings/A22-010.md)        |
+| V6.3.1      | L1    | General Authentication Security                  | Verified (test)   | `1040_shared_api_rate_limits.test.sql`, `test/security/shared-rate-limit.test.ts`; [A22-012](findings/A22-012.md) fixed |
+| V6.3.2      | L1    | General Authentication Security                  | Verified (review) | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.3.3      | L2    | General Authentication Security                  | Verified (test)   | `infra/security/test/auth-config.test.ts` (TOTP, WebAuthn, passkeys); [A22-010](findings/A22-010.md) fixed              |
+| V6.3.4      | L2    | General Authentication Security                  | Documented        | `legal/security/threat-model.md`                                                                                        |
+| V6.4.1      | L1    | Authentication Factor Lifecycle and Recovery     | Verified (test)   | Token RPCs store hashes only, with access codes and lockout (0361, 0430, 0769 suites)                                   |
+| V6.4.2      | L1    | Authentication Factor Lifecycle and Recovery     | Verified (review) | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.4.3      | L2    | Authentication Factor Lifecycle and Recovery     | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.4.4      | L2    | Authentication Factor Lifecycle and Recovery     | Documented        | `legal/policies/access-control.md`                                                                                      |
+| V6.5.1      | L2    | General Multi-factor authentication requirements | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.5.2      | L2    | General Multi-factor authentication requirements | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.5.3      | L2    | General Multi-factor authentication requirements | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.5.4      | L2    | General Multi-factor authentication requirements | Verified (test)   | Token RPCs store hashes only, with access codes and lockout (0361, 0430, 0769 suites)                                   |
+| V6.5.5      | L2    | General Multi-factor authentication requirements | Verified (test)   | Token RPCs store hashes only, with access codes and lockout (0361, 0430, 0769 suites)                                   |
+| V6.6.1      | L2    | Out-of-Band authentication mechanisms            | Not Applicable    | Not Applicable: SMS is used for notifications, not for authentication codes                                             |
+| V6.6.2      | L2    | Out-of-Band authentication mechanisms            | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.6.3      | L2    | Out-of-Band authentication mechanisms            | Verified (test)   | Token RPCs store hashes only, with access codes and lockout (0361, 0430, 0769 suites)                                   |
+| V6.8.1      | L2    | Authentication with an Identity Provider         | Verified (test)   | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.8.2      | L2    | Authentication with an Identity Provider         | Inherited         | Inherited from Supabase Auth (GoTrue); configured in `supabase/config.toml`                                             |
+| V6.8.3      | L2    | Authentication with an Identity Provider         | Not Applicable    | Not Applicable until Enterprise SAML ships; Supabase Auth validates assertions when it does                             |
+| V6.8.4      | L2    | Authentication with an Identity Provider         | Documented        | `legal/security/threat-model.md`                                                                                        |
 
 ## V7 Session Management
 
@@ -389,7 +389,7 @@ scope.
 | V16.4.1     | L2    | Log Protection                 | Verified (review) | `app.audit_events` append-only ledger; 0501 suite                              |
 | V16.4.2     | L2    | Log Protection                 | Verified (test)   | `app.audit_events` append-only ledger; 0501 suite                              |
 | V16.4.3     | L2    | Log Protection                 | Documented        | `legal/policies/incident-response.md`                                          |
-| V16.5.1     | L2    | Error Handling                 | Gap               | Gap: finding [A22-013](findings/A22-013.md)                                    |
+| V16.5.1     | L2    | Error Handling                 | Verified (test)   | `packages/platform/test/failure.test.ts`; [A22-013](findings/A22-013.md) fixed |
 | V16.5.2     | L2    | Error Handling                 | Verified (review) | `legal/policies/secure-development.md`                                         |
 | V16.5.3     | L2    | Error Handling                 | Verified (test)   | `supabase/tests/9900_security_catalog.test.sql`                                |
 

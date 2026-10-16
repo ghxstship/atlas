@@ -51,6 +51,8 @@ select throws_ok(format($$insert into storage.objects (bucket_id, name) values (
   '42501', null, 'anon deny');
 select pg_temp.as_platform();
 
+-- The scanner reports the file Clean first: only the uploader reads an unscanned file (A22-011, 1041).
+update private.object_scans set scan_status = 'Clean', scanned_at = now() where bucket_id = 'onboarding-uploads';
 select is(pg_temp.n('ivy', $$select 1 from storage.objects where bucket_id = 'onboarding-uploads'$$), 1, 'the party reads their upload');
 select is(pg_temp.n('carol', $$select 1 from storage.objects where bucket_id = 'onboarding-uploads'$$), 1, 'same tenant: a Manager reads the upload');
 select is(pg_temp.n('xavier', $$select 1 from storage.objects where bucket_id = 'onboarding-uploads'$$), 0, 'cross tenant: another org reads none');

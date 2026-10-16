@@ -46,6 +46,10 @@ select lives_ok(format($$insert into storage.objects (bucket_id, name) values ('
   'Harbor Lights uploads to its own incident');
 
 -- Reads -----------------------------------------------------------------------------------------------------------
+-- The scanner reports every file Clean first: only the uploader reads an unscanned file (A22-011, 1041).
+select pg_temp.as_platform();
+update private.object_scans set scan_status = 'Clean', scanned_at = now() where bucket_id = 'field-media';
+select pg_temp.as_user('xavier');
 select is((select count(*)::int from storage.objects where bucket_id = 'field-media'), 1, 'another org reads only its own media');
 select pg_temp.as_user('carol');
 select is((select count(*)::int from storage.objects where bucket_id = 'field-media'), 2, 'an incident and inspection reader reads both files of the project');

@@ -1,7 +1,8 @@
 /**
  * Credentials for the public API (ADR 0003, ADR 0007 item 1):
  * - `Authorization: Bearer <Supabase session JWT>` for first-party clients;
- * - the Atlas session cookie (`xos-auth`, written by `@supabase/ssr`) for Atlas pages, with a
+ * - the Atlas session cookie (`__Host-xos-auth` over https, `xos-auth` on local http; written by
+ *   `@supabase/ssr`) for Atlas pages, with a
  *   same-origin check on state-changing methods because cookies ride along cross-site;
  * - `Authorization: Bearer xos_live_...` API keys, exchanged for a short-lived JWT acting as the
  *   key's service account (`createApiKeyExchange`), limited to the key's scopes.
@@ -21,7 +22,15 @@ import type { XosClient } from "@xos/data";
 import { unauthorized } from "../problem.ts";
 import type { Authenticate, RequestContext, RequestOrg } from "./context.ts";
 
+/** Session cookie name on local http development; browsers refuse prefixed cookies without Secure. */
 export const SESSION_COOKIE = "xos-auth";
+/** Session cookie name over https: the __Host- prefix pins it to this host (A22-014). */
+export const SECURE_SESSION_COOKIE = "__Host-xos-auth";
+
+/** The session cookie name Atlas writes for a site origin: prefixed whenever the site is https. */
+export function sessionCookieName(siteOrigin: string): string {
+  return new URL(siteOrigin).protocol === "https:" ? SECURE_SESSION_COOKIE : SESSION_COOKIE;
+}
 export const LAST_ORG_COOKIE = "xos-last-org";
 export const API_KEY_PREFIX = "xos_live_";
 export const SUPPORTED_LOCALES = ["en-US", "es-US"] as const;
@@ -144,7 +153,10 @@ function readCredential(request: Request, options: SupabaseAuthOptions): Credent
       cookies,
     };
   }
-  const token = sessionTokenFromCookies(cookies, options.sessionCookie ?? SESSION_COOKIE);
+  const token = sessionTokenFromCookies(
+    cookies,
+    options.sessionCookie ?? sessionCookieName(options.siteOrigin),
+  );
   if (token === null) return null;
   if (!SAFE_METHODS.has(request.method.toUpperCase())) {
     const origin = request.headers.get("origin");

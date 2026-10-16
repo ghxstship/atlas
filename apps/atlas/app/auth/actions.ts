@@ -14,6 +14,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { authErrorKey } from "@/lib/auth/errors";
+import { newPassword, passwordHasContextWords } from "@/lib/auth/password";
 import { clientIp, signupAcceptances } from "@/lib/auth/legal";
 import { isOAuthProvider } from "@/lib/auth/providers";
 import { safeNext, siteUrl } from "@/lib/auth/redirect";
@@ -39,7 +40,6 @@ export interface FormState {
 }
 
 const email = z.email().max(320);
-const password = z.string().min(8).max(256);
 
 function text(form: FormData, name: string): string {
   const value = form.get(name);
@@ -120,9 +120,12 @@ export async function reauthenticate(_: FormState, form: FormData): Promise<Form
 export async function signUp(_: FormState, form: FormData): Promise<FormState> {
   const values = { fullName: text(form, "fullName"), email: text(form, "email") };
   const parsed = z
-    .object({ fullName: z.string().min(1).max(200), email, password })
+    .object({ fullName: z.string().min(1).max(200), email, password: newPassword })
     .safeParse({ ...values, password: form.get("password") });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
+  if (passwordHasContextWords(parsed.data.password, parsed.data)) {
+    return { fieldErrors: { password: "passwordContext" }, values };
+  }
   const next = safeNext(form.get("next"), "/auth/organization");
   const db = await createServerSupabase();
   const { data, error } = await db.auth.signUp({

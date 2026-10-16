@@ -70,8 +70,9 @@ pnpm --filter @xos/atlas start
 | `XOS_APP_URL` and `XOS_POSTAL_ADDRESS`          | `notification-dispatch`, for links and the postal address in email                               |
 | `XOS_INBOUND_SECRET` and `XOS_INBOUND_DOMAIN`   | `inbound-email`                                                                                  |
 | `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` | `stripe-webhook`, only if you bill through Stripe                                                |
+| `CLAMD_HOST` and `CLAMD_PORT`                   | `upload-scan`, the ClamAV daemon that scans uploads (`infra/scanning`)                           |
 
-`webhook-dispatch` and `notification-dispatch` run on a schedule with the service role key; schedule them with your platform's cron.
+`webhook-dispatch`, `notification-dispatch` and `upload-scan` run on a schedule with the service role key; schedule them with your platform's cron. Until `upload-scan` runs, attachments cannot be downloaded and field and onboarding uploads reach only the person who uploaded them.
 
 ## Verify the deployment
 

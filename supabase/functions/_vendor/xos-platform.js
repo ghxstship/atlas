@@ -5582,7 +5582,8 @@ var gateway_default$1 = {
       fullName: "Full name",
       email: "Email",
       password: "Password",
-      passwordHelp: "At least 8 characters.",
+      passwordHelp:
+        "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
     },
     or: "or",
     signIn: {
@@ -5632,7 +5633,8 @@ var gateway_default$1 = {
         "That email and password do not match. Check both, or use a sign-in link instead.",
       email_not_confirmed: "Confirm your email first: open the link we sent you, then sign in.",
       user_already_exists: "An account with this email already exists. Sign in instead.",
-      weak_password: "Choose a stronger password: at least 8 characters that are hard to guess.",
+      weak_password:
+        "Choose a different password: this one is too weak or appears in a known data breach. Use at least 12 characters with letters and numbers.",
       over_email_send_rate_limit:
         "We sent too many emails to this address. Wait a few minutes, then try again.",
       over_request_rate_limit: "Too many attempts. Wait a minute, then try again.",
@@ -5641,7 +5643,9 @@ var gateway_default$1 = {
       unexpected: "Something went wrong on our side. Try again in a moment.",
       fullName: "Enter your full name.",
       email: "Enter an email address like name@company.com.",
-      password: "Enter a password of at least 8 characters.",
+      password: "Enter a password of at least 12 characters with letters and numbers.",
+      passwordContext:
+        "Choose a password that does not contain your name, your email or a product name such as Gateway.",
     },
   },
   work: {
@@ -10801,7 +10805,8 @@ var shell_default$1 = {
       fullName: "Full name",
       email: "Email",
       password: "Password",
-      passwordHelp: "At least 8 characters.",
+      passwordHelp:
+        "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
       orgName: "Organization name",
       orgSlug: "Web address",
       orgSlugHelp: "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}.",
@@ -10866,7 +10871,8 @@ var shell_default$1 = {
         "That email and password do not match. Check both, or use a sign-in link instead.",
       email_not_confirmed: "Confirm your email first: open the link we sent you, then sign in.",
       user_already_exists: "An account with this email already exists. Sign in instead.",
-      weak_password: "Choose a stronger password: at least 8 characters that are hard to guess.",
+      weak_password:
+        "Choose a different password: this one is too weak or appears in a known data breach. Use at least 12 characters with letters and numbers.",
       over_email_send_rate_limit:
         "We sent too many emails to this address. Wait a few minutes, then try again.",
       over_request_rate_limit: "Too many attempts. Wait a minute, then try again.",
@@ -10875,7 +10881,9 @@ var shell_default$1 = {
       unexpected: "Something went wrong on our side. Try again in a moment.",
       fullName: "Enter your full name.",
       email: "Enter an email address like name@company.com.",
-      password: "Enter a password of at least 8 characters.",
+      password: "Enter a password of at least 12 characters with letters and numbers.",
+      passwordContext:
+        "Choose a password that does not contain your name, your email or a product name such as Atlas.",
       orgName: "Enter your organization's name.",
       orgSlug: "Use 2 to 48 lowercase letters, numbers and single hyphens.",
       accept: "Accept the Terms of Service and the Data Processing Agreement to continue.",
@@ -19652,7 +19660,8 @@ var gateway_default = {
       fullName: "Nombre completo",
       email: "Correo electrónico",
       password: "Contraseña",
-      passwordHelp: "Al menos 8 caracteres.",
+      passwordHelp:
+        "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
     },
     or: "o",
     signIn: {
@@ -19705,7 +19714,7 @@ var gateway_default = {
         "Primero confirma tu correo: abre el enlace que te enviamos y luego inicia sesión.",
       user_already_exists: "Ya existe una cuenta con este correo. Inicia sesión.",
       weak_password:
-        "Elige una contraseña más segura: al menos 8 caracteres difíciles de adivinar.",
+        "Elige otra contraseña: esta es demasiado débil o aparece en una filtración de datos conocida. Usa al menos 12 caracteres con letras y números.",
       over_email_send_rate_limit:
         "Enviamos demasiados correos a esta dirección. Espera unos minutos y vuelve a intentarlo.",
       over_request_rate_limit: "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
@@ -19714,7 +19723,9 @@ var gateway_default = {
       unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       fullName: "Escribe tu nombre completo.",
       email: "Escribe un correo como nombre@empresa.com.",
-      password: "Escribe una contraseña de al menos 8 caracteres.",
+      password: "Escribe una contraseña de al menos 12 caracteres con letras y números.",
+      passwordContext:
+        "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Gateway.",
     },
   },
   work: {
@@ -25015,7 +25026,8 @@ var shell_default = {
       fullName: "Nombre completo",
       email: "Correo electrónico",
       password: "Contraseña",
-      passwordHelp: "Al menos 8 caracteres.",
+      passwordHelp:
+        "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
       orgName: "Nombre de la organización",
       orgSlug: "Dirección web",
       orgSlugHelp: "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}.",
@@ -25083,7 +25095,7 @@ var shell_default = {
         "Primero confirma tu correo: abre el enlace que te enviamos y luego inicia sesión.",
       user_already_exists: "Ya existe una cuenta con este correo. Inicia sesión.",
       weak_password:
-        "Elige una contraseña más segura: al menos 8 caracteres difíciles de adivinar.",
+        "Elige otra contraseña: esta es demasiado débil o aparece en una filtración de datos conocida. Usa al menos 12 caracteres con letras y números.",
       over_email_send_rate_limit:
         "Enviamos demasiados correos a esta dirección. Espera unos minutos y vuelve a intentarlo.",
       over_request_rate_limit: "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
@@ -25092,7 +25104,9 @@ var shell_default = {
       unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       fullName: "Escribe tu nombre completo.",
       email: "Escribe un correo como nombre@empresa.com.",
-      password: "Escribe una contraseña de al menos 8 caracteres.",
+      password: "Escribe una contraseña de al menos 12 caracteres con letras y números.",
+      passwordContext:
+        "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Atlas.",
       orgName: "Escribe el nombre de tu organización.",
       orgSlug: "Usa de 2 a 48 letras minúsculas, números y guiones sencillos.",
       accept:
@@ -29848,7 +29862,7 @@ function layout(name) {
   return named(layoutTokens, name, "layout");
 }
 /** A type style such as text-14, as inline style properties. */
-function text$1(name) {
+function text$2(name) {
   const style = typeStyles.find((s) => s.name === name);
   if (style === void 0) throw new Error(`Unknown type style ${name}`);
   return {
@@ -29877,12 +29891,12 @@ var styles = {
     padding: space("space-32"),
   },
   heading: {
-    ...text$1("heading-20"),
+    ...text$2("heading-20"),
     color: color("text-primary"),
     margin: `0 0 ${space("space-16")}`,
   },
   button: {
-    ...text$1("label-13"),
+    ...text$2("label-13"),
     backgroundColor: color("accent-default"),
     borderRadius: radius("radius-control"),
     color: color("accent-text-on"),
@@ -29894,7 +29908,7 @@ var styles = {
     margin: `${space("space-24")} 0`,
   },
   footer: {
-    ...text$1("text-12"),
+    ...text$2("text-12"),
     color: color("text-secondary"),
     margin: `0 0 ${space("space-8")}`,
   },
@@ -29904,7 +29918,7 @@ var styles = {
 function Paragraph({ children }) {
   return /* @__PURE__ */ jsx(Text, {
     style: {
-      ...text$1("text-14"),
+      ...text$2("text-14"),
       color: color("text-primary"),
       margin: `0 0 ${space("space-16")}`,
     },
@@ -30070,7 +30084,7 @@ var templates = {
                     {
                       children: /* @__PURE__ */ jsx(Text, {
                         style: {
-                          ...text$1("text-14"),
+                          ...text$2("text-14"),
                           color: color("text-primary"),
                           margin: `0 0 ${space("space-8")}`,
                         },
@@ -30505,16 +30519,16 @@ function supabaseDb(client) {
     },
   };
 }
-function rows(data) {
+function rows$1(data) {
   return Array.isArray(data) ? data : [];
 }
-function text(row, key) {
+function text$1(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
   return value;
 }
-function optionalText(row, key) {
+function optionalText$1(row, key) {
   const value = row?.[key];
   return typeof value === "string" ? value : null;
 }
@@ -30522,7 +30536,7 @@ function optionalText(row, key) {
 function billingStore(db) {
   return {
     async recordStripeEvent(event) {
-      const row = rows(
+      const row = rows$1(
         await db.rpc("record_stripe_event", {
           p_stripe_event_id: event.id,
           p_event_type: event.type,
@@ -30532,12 +30546,12 @@ function billingStore(db) {
           p_org_id: event.orgId,
         }),
       )[0];
-      const rowId = text(row, "stripe_event_row_id");
+      const rowId = text$1(row, "stripe_event_row_id");
       const stored = await db.selectOne("stripe_events", "processed_at", { id: rowId });
       return {
         rowId,
         isNew: row?.["is_new"] === true,
-        processed: optionalText(stored ?? void 0, "processed_at") !== null,
+        processed: optionalText$1(stored ?? void 0, "processed_at") !== null,
       };
     },
     async finishStripeEvent(rowId, error) {
@@ -30547,7 +30561,7 @@ function billingStore(db) {
       });
     },
     async orgForCustomer(customerId) {
-      return optionalText(
+      return optionalText$1(
         (await db.selectOne("stripe_subscription_links", "org_id", {
           stripe_customer_id: customerId,
         })) ?? void 0,
@@ -30573,12 +30587,12 @@ function billingStore(db) {
 function webhookStore(db) {
   return {
     async claim(limit) {
-      return rows(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
-        deliveryId: text(row, "delivery_id"),
-        url: text(row, "url"),
-        eventType: text(row, "event_type"),
-        body: text(row, "body"),
-        signature: text(row, "signature"),
+      return rows$1(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
+        deliveryId: text$1(row, "delivery_id"),
+        url: text$1(row, "url"),
+        eventType: text$1(row, "event_type"),
+        body: text$1(row, "body"),
+        signature: text$1(row, "signature"),
       }));
     },
     async record(deliveryId, responseStatus, error) {
@@ -30595,30 +30609,30 @@ function webhookStore(db) {
 /** NotificationStore over the 0520 RPCs and identity reads. */
 function notificationStore(db, options) {
   const orgSlug = async (orgId) =>
-    text((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
+    text$1((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
   return {
     async claimEmail(limit) {
-      return rows(
+      return rows$1(
         await db.rpc("claim_notification_deliveries", {
           p_channel: "Email",
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text(row, "delivery_id"),
-        orgId: text(row, "org_id"),
-        recipientPersonId: text(row, "recipient_person_id"),
-        address: text(row, "address"),
-        kind: text(row, "kind"),
-        emailTemplateCode: text(row, "email_template_code"),
+        deliveryId: text$1(row, "delivery_id"),
+        orgId: text$1(row, "org_id"),
+        recipientPersonId: text$1(row, "recipient_person_id"),
+        address: text$1(row, "address"),
+        kind: text$1(row, "kind"),
+        emailTemplateCode: text$1(row, "email_template_code"),
         messageArgs: row["message_args"] ?? {},
-        subjectTable: optionalText(row, "subject_table"),
-        subjectId: optionalText(row, "subject_id"),
+        subjectTable: optionalText$1(row, "subject_table"),
+        subjectId: optionalText$1(row, "subject_id"),
       }));
     },
     async senderFor(orgId, personId) {
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
-      const slug = text(org, "slug");
-      const name = text(org, "name");
+      const slug = text$1(org, "slug");
+      const name = text$1(org, "name");
       return {
         orgName: name,
         postalAddress: options.postalAddress,
@@ -30630,7 +30644,7 @@ function notificationStore(db, options) {
     async recipient(personId) {
       return {
         name:
-          optionalText(
+          optionalText$1(
             (await db.selectOne("people", "full_name", { id: personId })) ?? void 0,
             "full_name",
           ) ?? "",
@@ -30683,7 +30697,7 @@ function isPunchKind(value) {
 }
 /** The kiosk PIN service for A17 Compass: one punch through app.kiosk_punch, which calls app.record_punch. */
 async function kioskPunch(db, input) {
-  const row = rows(
+  const row = rows$1(
     await db.rpc("kiosk_punch", {
       p_device_key: input.deviceKey,
       p_membership_id: input.membershipId,
@@ -30696,15 +30710,1096 @@ async function kioskPunch(db, input) {
       p_project_id: input.projectId ?? null,
     }),
   )[0];
-  const kind = optionalText(row, "punch_kind");
+  const kind = optionalText$1(row, "punch_kind");
   const skew = row?.["skew_flagged"];
   return {
-    punchId: optionalText(row, "punch_id"),
-    timeEntryId: optionalText(row, "time_entry_id"),
+    punchId: optionalText$1(row, "punch_id"),
+    timeEntryId: optionalText$1(row, "time_entry_id"),
     punchKind: isPunchKind(kind) ? kind : null,
-    effectiveAt: optionalText(row, "effective_at"),
+    effectiveAt: optionalText$1(row, "effective_at"),
     skewFlagged: typeof skew === "boolean" ? skew : null,
-    refusal: optionalText(row, "refusal"),
+    refusal: optionalText$1(row, "refusal"),
+  };
+}
+//#endregion
+//#region src/http/failure.ts
+var REQUEST_ID = /^[A-Za-z0-9._:-]{8,128}$/;
+/** The caller's X-Request-Id when it is well formed, otherwise a new UUID. */
+function requestIdFor(request, generate = () => crypto.randomUUID()) {
+  const given = request.headers.get("X-Request-Id");
+  return given !== null && REQUEST_ID.test(given) ? given : generate();
+}
+/** The function name from an Edge Function URL (`/functions/v1/<name>/...` or `/<name>/...`). */
+function edgeFunctionName(url) {
+  const segments = new URL(url).pathname.split("/").filter((segment) => segment.length > 0);
+  const name = segments[0] === "functions" && segments[1] === "v1" ? segments[2] : segments[0];
+  return name !== void 0 && /^[a-z0-9-]{1,64}$/.test(name) ? name : "unknown";
+}
+/**
+ * Logs the error with the request id and returns a 500 problem that carries only the request id.
+ * Never throws: logging failures cannot turn into a second unhandled error.
+ */
+function internalErrorResponse(error, options) {
+  try {
+    options.logger.error("edge function failed", {
+      request_id: options.requestId,
+      function: options.fn ?? "unknown",
+      error,
+    });
+  } catch (logError) {
+    console.error(
+      JSON.stringify({
+        level: "error",
+        message: "edge function failure could not be logged",
+        request_id: options.requestId,
+        reason: logError instanceof Error ? logError.name : typeof logError,
+      }),
+    );
+  }
+  return new Response(
+    JSON.stringify({
+      type: "/problems/internal",
+      title: "Internal error",
+      status: 500,
+      detail: `The request could not be completed. Quote request id ${options.requestId} to support.`,
+      request_id: options.requestId,
+    }),
+    {
+      status: 500,
+      headers: {
+        "Content-Type": "application/problem+json",
+        "X-Request-Id": options.requestId,
+      },
+    },
+  );
+}
+//#endregion
+//#region src/scanning/scanner.ts
+/** The scanner could not be reached or did not answer with a verdict; the scan is retried. */
+var ScannerUnavailableError = class extends Error {
+  constructor(message, options) {
+    super(message, options);
+    this.name = "ScannerUnavailableError";
+  }
+};
+//#endregion
+//#region src/scanning/clamav.ts
+var COMMAND = new TextEncoder().encode("zINSTREAM\0");
+function lengthPrefix(length) {
+  const prefix = /* @__PURE__ */ new Uint8Array(4);
+  new DataView(prefix.buffer).setUint32(0, length, false);
+  return prefix;
+}
+/** Reads clamd's reply into a verdict. Anything that is not OK or FOUND is not a verdict. */
+function parseClamdReply(reply) {
+  const text = reply.replace(/\0+$/, "").trim();
+  if (text.endsWith(": OK")) return { clean: true };
+  const found = /^.*?:\s+(.+)\s+FOUND$/.exec(text);
+  if (found !== null)
+    return {
+      clean: false,
+      signature: (found[1] ?? "").slice(0, 200),
+    };
+  throw new ScannerUnavailableError(`clamd gave no verdict: ${text.slice(0, 200)}`);
+}
+function clamavScanner(options) {
+  const chunkSize = options.chunkSize ?? 65536;
+  return {
+    async scan(bytes) {
+      let connection;
+      try {
+        connection = await options.connect();
+      } catch (error) {
+        throw new ScannerUnavailableError("clamd is unreachable", { cause: error });
+      }
+      try {
+        await connection.write(COMMAND);
+        for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+          const chunk = bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length));
+          await connection.write(lengthPrefix(chunk.length));
+          await connection.write(chunk);
+        }
+        await connection.write(lengthPrefix(0));
+        return parseClamdReply(new TextDecoder().decode(await connection.readReply()));
+      } catch (error) {
+        if (error instanceof ScannerUnavailableError) throw error;
+        throw new ScannerUnavailableError("clamd stopped answering", { cause: error });
+      } finally {
+        connection.close();
+      }
+    },
+  };
+}
+//#endregion
+//#region src/scanning/content.ts
+/** Zip limits: unpacked size, entries and compression ratio, so an archive cannot be a zip bomb. */
+var ZIP_LIMITS = {
+  maxUnpackedBytes: 104857600,
+  maxEntries: 1e3,
+  maxRatio: 100,
+};
+/** Every type an upload bucket accepts, with the byte signature families and extensions it may have. */
+var TYPES = {
+  "application/pdf": {
+    families: ["pdf"],
+    extensions: ["pdf"],
+  },
+  "image/jpeg": {
+    families: ["jpeg"],
+    extensions: ["jpg", "jpeg"],
+  },
+  "image/png": {
+    families: ["png"],
+    extensions: ["png"],
+  },
+  "image/gif": {
+    families: ["gif"],
+    extensions: ["gif"],
+  },
+  "image/webp": {
+    families: ["webp"],
+    extensions: ["webp"],
+  },
+  "image/heic": {
+    families: ["heic"],
+    extensions: ["heic", "heif"],
+  },
+  "image/x-icon": {
+    families: ["ico"],
+    extensions: ["ico"],
+  },
+  "image/vnd.microsoft.icon": {
+    families: ["ico"],
+    extensions: ["ico"],
+  },
+  "text/plain": {
+    families: ["text"],
+    extensions: ["txt", "text", "log", "md"],
+  },
+  "text/csv": {
+    families: ["text"],
+    extensions: ["csv"],
+  },
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+    families: ["zip"],
+    extensions: ["docx"],
+  },
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+    families: ["zip"],
+    extensions: ["xlsx"],
+  },
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
+    families: ["zip"],
+    extensions: ["pptx"],
+  },
+  "application/msword": {
+    families: ["ole"],
+    extensions: ["doc"],
+  },
+  "application/vnd.ms-excel": {
+    families: ["ole"],
+    extensions: ["xls"],
+  },
+  "application/vnd.ms-powerpoint": {
+    families: ["ole"],
+    extensions: ["ppt"],
+  },
+  "video/mp4": {
+    families: ["mp4"],
+    extensions: ["mp4", "m4v"],
+  },
+  "video/quicktime": {
+    families: ["mp4"],
+    extensions: ["mov", "qt"],
+  },
+  "audio/mpeg": {
+    families: ["mp3"],
+    extensions: ["mp3"],
+  },
+  "application/zip": {
+    families: ["zip"],
+    extensions: ["zip"],
+  },
+};
+/** Types that are zip containers by design: inspected for limits, but may embed other containers. */
+var OFFICE_ZIPS = /* @__PURE__ */ new Set([
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+]);
+var NESTED_ARCHIVE =
+  /\.(zip|zipx|jar|war|apk|7z|rar|gz|tgz|tar|bz2|tbz2|xz|txz|zst|lz|lzma|cab|iso|dmg|arj|z)$/i;
+function startsWith(bytes, signature, offset = 0) {
+  if (bytes.length < offset + signature.length) return false;
+  return signature.every((value, index) => bytes[offset + index] === value);
+}
+function ascii(bytes, offset, length) {
+  return String.fromCharCode(...bytes.subarray(offset, offset + length));
+}
+function looksLikeText(bytes) {
+  const sample = bytes.subarray(0, 8192);
+  if (sample.includes(0)) return false;
+  try {
+    new TextDecoder("utf-8", { fatal: true }).decode(
+      sample.length === bytes.length ? sample : bytes,
+    );
+    return true;
+  } catch (error) {
+    if (error instanceof TypeError) return false;
+    throw error;
+  }
+}
+/** The signature families the leading bytes match. */
+function sniffFamilies(bytes) {
+  const found = [];
+  if (startsWith(bytes, [37, 80, 68, 70, 45])) found.push("pdf");
+  if (startsWith(bytes, [255, 216, 255])) found.push("jpeg");
+  if (startsWith(bytes, [137, 80, 78, 71, 13, 10, 26, 10])) found.push("png");
+  if (["GIF87a", "GIF89a"].includes(ascii(bytes, 0, 6))) found.push("gif");
+  if (ascii(bytes, 0, 4) === "RIFF" && ascii(bytes, 8, 4) === "WEBP") found.push("webp");
+  if (ascii(bytes, 4, 4) === "ftyp") {
+    const brand = ascii(bytes, 8, 4);
+    if (["heic", "heix", "hevc", "hevx", "mif1", "msf1", "heim", "heis"].includes(brand))
+      found.push("heic");
+    else found.push("mp4");
+  }
+  if (startsWith(bytes, [73, 68, 51]) || (bytes[0] === 255 && ((bytes[1] ?? 0) & 224) === 224))
+    found.push("mp3");
+  if (startsWith(bytes, [80, 75, 3, 4]) || startsWith(bytes, [80, 75, 5, 6])) found.push("zip");
+  if (startsWith(bytes, [208, 207, 17, 224, 161, 177, 26, 225])) found.push("ole");
+  if (startsWith(bytes, [0, 0, 1, 0])) found.push("ico");
+  if (found.length === 0 && looksLikeText(bytes)) found.push("text");
+  return found;
+}
+function extensionOf(filename) {
+  return (/\.([^./\\]+)$/.exec(filename)?.[1] ?? "").toLowerCase();
+}
+/** Reads a zip's central directory. Returns a reason string when the archive cannot be read safely. */
+function readZipDirectory(bytes) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const minEnd = Math.max(0, bytes.length - 22 - 65535);
+  let end = -1;
+  for (let i = bytes.length - 22; i >= minEnd; i -= 1)
+    if (view.getUint32(i, true) === 101010256) {
+      end = i;
+      break;
+    }
+  if (end < 0) return "The archive has no zip directory.";
+  const count = view.getUint16(end + 10, true);
+  const size = view.getUint32(end + 12, true);
+  const offset = view.getUint32(end + 16, true);
+  if (count === 65535 || size === 4294967295 || offset === 4294967295)
+    return "ZIP64 archives are not accepted.";
+  if (offset + size > end) return "The zip directory is damaged.";
+  const entries = [];
+  let at = offset;
+  for (let i = 0; i < count; i += 1) {
+    if (at + 46 > end || view.getUint32(at, true) !== 33639248)
+      return "The zip directory is damaged.";
+    const flags = view.getUint16(at + 8, true);
+    const compressedSize = view.getUint32(at + 20, true);
+    const uncompressedSize = view.getUint32(at + 24, true);
+    const nameLength = view.getUint16(at + 28, true);
+    const extraLength = view.getUint16(at + 30, true);
+    const commentLength = view.getUint16(at + 32, true);
+    if (compressedSize === 4294967295 || uncompressedSize === 4294967295)
+      return "ZIP64 archives are not accepted.";
+    const name = new TextDecoder().decode(bytes.subarray(at + 46, at + 46 + nameLength));
+    entries.push({
+      name,
+      compressedSize,
+      uncompressedSize,
+      encrypted: (flags & 1) === 1,
+    });
+    at += 46 + nameLength + extraLength + commentLength;
+  }
+  return entries;
+}
+/** Applies the zip limits; nested archives are refused unless the type is an Office container. */
+function checkZip(bytes, allowNested) {
+  const entries = readZipDirectory(bytes);
+  if (typeof entries === "string")
+    return {
+      ok: false,
+      reason: entries,
+    };
+  if (entries.length > ZIP_LIMITS.maxEntries)
+    return {
+      ok: false,
+      reason: `The archive has more than ${ZIP_LIMITS.maxEntries} entries.`,
+    };
+  let total = 0;
+  for (const entry of entries) {
+    if (entry.encrypted)
+      return {
+        ok: false,
+        reason: "Encrypted archive entries cannot be scanned.",
+      };
+    if (entry.name.startsWith("/") || entry.name.split(/[/\\]/).includes(".."))
+      return {
+        ok: false,
+        reason: "The archive has an entry outside its own folder.",
+      };
+    if (!allowNested && NESTED_ARCHIVE.test(entry.name))
+      return {
+        ok: false,
+        reason: "Archives inside archives are not accepted.",
+      };
+    if (
+      entry.compressedSize > 0 &&
+      entry.uncompressedSize / entry.compressedSize > ZIP_LIMITS.maxRatio
+    )
+      return {
+        ok: false,
+        reason: "An archive entry is compressed beyond the allowed ratio.",
+      };
+    if (entry.compressedSize === 0 && entry.uncompressedSize > 0)
+      return {
+        ok: false,
+        reason: "An archive entry declares content with no stored bytes.",
+      };
+    total += entry.uncompressedSize;
+    if (total > ZIP_LIMITS.maxUnpackedBytes)
+      return {
+        ok: false,
+        reason: "The archive unpacks to more than 100 MiB.",
+      };
+  }
+  return { ok: true };
+}
+/** Checks the bytes against the declared type, the file name's extension and, for zips, the limits. */
+function checkContent(input) {
+  const type = (input.contentType ?? "").toLowerCase().split(";")[0]?.trim() ?? "";
+  const rule = TYPES[type];
+  if (rule === void 0)
+    return {
+      ok: false,
+      reason: `Files of type ${type || "unknown"} are not accepted.`,
+    };
+  if (input.bytes.length === 0)
+    return {
+      ok: false,
+      reason: "The file is empty.",
+    };
+  if (!rule.extensions.includes(extensionOf(input.filename)))
+    return {
+      ok: false,
+      reason: `The file name does not end in an extension for ${type}.`,
+    };
+  const families = sniffFamilies(input.bytes);
+  if (!rule.families.some((family) => families.includes(family)))
+    return {
+      ok: false,
+      reason: `The file's content is not ${type}.`,
+    };
+  if (rule.families.includes("zip")) return checkZip(input.bytes, OFFICE_ZIPS.has(type));
+  return { ok: true };
+}
+//#endregion
+//#region src/scanning/worker.ts
+/**
+ * The upload scan worker (A22-011): one pass claims due scans, checks each file's bytes against its
+ * declared type and checksum, scans it, and records the verdict.
+ *
+ * - Attachments: the A18 job `attachment.scan` (migration 0590), claimed from the job queue; the
+ *   verdict goes to `app.record_attachment_scan`, so a Clean version becomes downloadable.
+ * - The field-media, onboarding-uploads, profile-media and org-brand buckets: `app.claim_object_scans`
+ *   and `app.record_object_scan` (migration 1041).
+ *
+ * An infected or refused file is removed from storage after its verdict is recorded. When the scanner
+ * or storage cannot answer, the scan is retried with backoff and recorded as Scan Failed after
+ * `MAX_SCAN_ATTEMPTS`, so a file never stays in Scanning for ever and is never served unscanned.
+ */
+var ATTACHMENT_SCAN_JOB = "attachment.scan";
+/** Matches private.job_kinds.max_attempts for attachment.scan and app.release_object_scan. */
+var MAX_SCAN_ATTEMPTS = 5;
+/** Storage could not return or delete an object; the scan is retried. */
+var StorageUnavailableError = class extends Error {
+  constructor(message, options) {
+    super(message, options);
+    this.name = "StorageUnavailableError";
+  }
+};
+async function sha256Hex(bytes) {
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+function fileNameOf(objectName) {
+  return objectName.split("/").at(-1) ?? objectName;
+}
+/** Checks and scans one file. Throws only when the scanner or storage could not answer. */
+async function judge(options, file) {
+  let bytes;
+  try {
+    bytes = await options.storage.download(file.bucket, file.objectName);
+  } catch (error) {
+    throw new StorageUnavailableError(`could not download ${file.bucket} object`, { cause: error });
+  }
+  if (
+    file.checksum !== void 0 &&
+    file.checksum !== null &&
+    (await sha256Hex(bytes)) !== file.checksum
+  )
+    return {
+      result: "refused",
+      detail: "The stored file does not match the checksum given at upload.",
+    };
+  const content = checkContent({
+    bytes,
+    contentType: file.contentType,
+    filename: file.filename,
+  });
+  if (!content.ok)
+    return {
+      result: "refused",
+      detail: content.reason,
+    };
+  const verdict = await options.scanner.scan(bytes);
+  return verdict.clean
+    ? { result: "clean" }
+    : {
+        result: "infected",
+        detail: verdict.signature,
+      };
+}
+function transient(error) {
+  return error instanceof ScannerUnavailableError || error instanceof StorageUnavailableError;
+}
+function describe(error) {
+  const cause = error.cause instanceof Error ? `: ${error.cause.message}` : "";
+  return `${error.message}${cause}`.slice(0, 500);
+}
+async function removeQuietly(options, bucket, name) {
+  try {
+    await options.storage.remove(bucket, name);
+    return;
+  } catch (error) {
+    return `The file stays in storage: ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
+async function scanAttachment(options, job) {
+  const id = job.attachmentVersionId;
+  const version = await options.store.attachmentVersion(id);
+  if (version === null || version.scanStatus !== "Scanning") {
+    await options.store.finishJob(job.jobId, true, null);
+    return {
+      kind: "attachment",
+      id,
+      result: "skipped",
+    };
+  }
+  let verdict;
+  try {
+    verdict = await judge(options, {
+      bucket: "attachments",
+      objectName: version.objectName,
+      filename: version.filename,
+      contentType: version.contentType,
+      checksum: version.checksumSha256,
+    });
+  } catch (error) {
+    if (!transient(error)) throw error;
+    const detail = describe(error);
+    if (job.attempts >= 5) {
+      await options.store.recordAttachmentScan(id, null, detail);
+      await options.store.finishJob(job.jobId, true, null);
+      return {
+        kind: "attachment",
+        id,
+        result: "failed",
+        detail,
+      };
+    }
+    await options.store.finishJob(job.jobId, false, detail);
+    return {
+      kind: "attachment",
+      id,
+      result: "retrying",
+      detail,
+    };
+  }
+  if (verdict.result === "clean") {
+    await options.store.recordAttachmentScan(id, true, null);
+    await options.store.finishJob(job.jobId, true, null);
+    return {
+      kind: "attachment",
+      id,
+      result: "clean",
+    };
+  }
+  await options.store.recordAttachmentScan(
+    id,
+    verdict.result === "infected" ? false : null,
+    verdict.detail,
+  );
+  const leftover = await removeQuietly(options, "attachments", version.objectName);
+  await options.store.finishJob(job.jobId, true, null);
+  return {
+    kind: "attachment",
+    id,
+    result: verdict.result,
+    detail: leftover ?? verdict.detail,
+  };
+}
+async function scanObject(options, scan) {
+  const id = scan.objectScanId;
+  let verdict;
+  try {
+    verdict = await judge(options, {
+      bucket: scan.bucketId,
+      objectName: scan.objectName,
+      filename: fileNameOf(scan.objectName),
+      contentType: scan.contentType,
+    });
+  } catch (error) {
+    if (!transient(error)) throw error;
+    const detail = describe(error);
+    return {
+      kind: "object",
+      id,
+      result:
+        (await options.store.releaseObjectScan(id, detail)) === "Scan Failed"
+          ? "failed"
+          : "retrying",
+      detail,
+    };
+  }
+  if (verdict.result === "clean") {
+    await options.store.recordObjectScan(id, true, null);
+    return {
+      kind: "object",
+      id,
+      result: "clean",
+    };
+  }
+  await options.store.recordObjectScan(
+    id,
+    verdict.result === "infected" ? false : null,
+    verdict.detail,
+  );
+  const leftover = await removeQuietly(options, scan.bucketId, scan.objectName);
+  return {
+    kind: "object",
+    id,
+    result: verdict.result,
+    detail: leftover ?? verdict.detail,
+  };
+}
+/** One pass of the worker over attachments and the scanned buckets. */
+async function runUploadScans(options) {
+  const limit = options.limit ?? 10;
+  const outcomes = [];
+  for (const job of await options.store.claimAttachmentScans(options.worker, limit))
+    try {
+      outcomes.push(await scanAttachment(options, job));
+    } catch (error) {
+      const detail = error instanceof Error ? error.message.slice(0, 500) : String(error);
+      await options.store.finishJob(job.jobId, false, detail);
+      outcomes.push({
+        kind: "attachment",
+        id: job.attachmentVersionId,
+        result: "retrying",
+        detail,
+      });
+    }
+  for (const scan of await options.store.claimObjectScans(options.worker, limit))
+    try {
+      outcomes.push(await scanObject(options, scan));
+    } catch (error) {
+      const detail = error instanceof Error ? error.message.slice(0, 500) : String(error);
+      const status = await options.store.releaseObjectScan(scan.objectScanId, detail);
+      outcomes.push({
+        kind: "object",
+        id: scan.objectScanId,
+        result: status === "Scan Failed" ? "failed" : "retrying",
+        detail,
+      });
+    }
+  return outcomes;
+}
+//#endregion
+//#region src/scanning/stores.ts
+function rows(data) {
+  return Array.isArray(data) ? data : [];
+}
+function text(row, key) {
+  const value = row?.[key];
+  if (typeof value !== "string")
+    throw new PlatformDbError(key, "expected text in the database response");
+  return value;
+}
+function optionalText(row, key) {
+  const value = row?.[key];
+  return typeof value === "string" ? value : null;
+}
+function count(row, key) {
+  const value = row[key];
+  return typeof value === "number" ? value : Number(value ?? 0);
+}
+/** ScanStore over the 0510 job queue, the 0590 attachment RPC and the 1041 object scan RPCs. */
+function scanStore(db) {
+  return {
+    async claimAttachmentScans(worker, limit) {
+      return rows(
+        await db.rpc("claim_jobs", {
+          p_worker: worker,
+          p_job_kind: ATTACHMENT_SCAN_JOB,
+          p_limit: limit,
+        }),
+      ).map((row) => ({
+        jobId: text(row, "id"),
+        attachmentVersionId: text(row, "subject_id"),
+        attempts: count(row, "attempts"),
+      }));
+    },
+    async attachmentVersion(attachmentVersionId) {
+      const row = await db.selectOne(
+        "attachment_versions",
+        "object_name, filename, content_type, checksum_sha256, scan_status",
+        { id: attachmentVersionId },
+      );
+      if (row === null) return null;
+      return {
+        objectName: text(row, "object_name"),
+        filename: text(row, "filename"),
+        contentType: text(row, "content_type"),
+        checksumSha256: optionalText(row, "checksum_sha256"),
+        scanStatus: text(row, "scan_status"),
+      };
+    },
+    async recordAttachmentScan(attachmentVersionId, clean, detail) {
+      return String(
+        await db.rpc("record_attachment_scan", {
+          p_attachment_version_id: attachmentVersionId,
+          p_clean: clean,
+          p_detail: detail,
+        }),
+      );
+    },
+    async finishJob(jobId, succeeded, error) {
+      return String(
+        await db.rpc("finish_job", {
+          p_job_id: jobId,
+          p_succeeded: succeeded,
+          p_error: error,
+        }),
+      );
+    },
+    async claimObjectScans(worker, limit) {
+      return rows(
+        await db.rpc("claim_object_scans", {
+          p_worker: worker,
+          p_limit: limit,
+        }),
+      ).map((row) => ({
+        objectScanId: text(row, "object_scan_id"),
+        bucketId: text(row, "bucket_id"),
+        objectName: text(row, "object_name"),
+        contentType: optionalText(row, "content_type"),
+        attempts: count(row, "attempts"),
+      }));
+    },
+    async recordObjectScan(objectScanId, clean, detail) {
+      return String(
+        await db.rpc("record_object_scan", {
+          p_object_scan_id: objectScanId,
+          p_clean: clean,
+          p_detail: detail,
+        }),
+      );
+    },
+    async releaseObjectScan(objectScanId, error) {
+      return String(
+        await db.rpc("release_object_scan", {
+          p_object_scan_id: objectScanId,
+          p_error: error,
+        }),
+      );
+    },
+  };
+}
+/** ObjectStorage over a service-role Supabase client's Storage API. */
+function supabaseStorage(client) {
+  return {
+    async download(bucket, name) {
+      const { data, error } = await client.storage.from(bucket).download(name);
+      if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
+      return new Uint8Array(await data.arrayBuffer());
+    },
+    async remove(bucket, name) {
+      const { error } = await client.storage.from(bucket).remove([name]);
+      if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
+    },
+  };
+}
+//#endregion
+//#region ../../infra/observability/src/redact.ts
+/**
+ * Personal data redaction for logs, span attributes and error reports (Section 9, Section 14.3).
+ *
+ * Every value that leaves a process for a telemetry backend passes through `redact`. Two layers apply:
+ *   1. Keys. A field whose name says it holds a credential or personal data is replaced whole,
+ *      whatever its value looks like (`email`, `phone`, `authorization`, `tax_id`, `latitude`).
+ *   2. Values. Strings are scanned for shapes that are personal data or credentials wherever they
+ *      appear (an email inside an error message, a bearer token inside a URL).
+ *
+ * Pseudonymous identifiers (UUIDs for orgs, people, requests) are kept: incident response needs
+ * them, and they reveal nothing without database access (proposed ADR, see infra/README.md).
+ *
+ * The module has no runtime dependencies and no Node built-ins, so Atlas, Gateway (Node and Edge
+ * runtimes) and Supabase Edge Functions (Deno) import the same file.
+ */
+var REDACTED = "[redacted]";
+/** Normalized key names (lowercase letters and digits only) that are always replaced. */
+var EXACT_KEYS = /* @__PURE__ */ new Set([
+  "ip",
+  "pin",
+  "dob",
+  "ssn",
+  "sin",
+  "tin",
+  "ein",
+  "lat",
+  "lng",
+  "lon",
+  "zip",
+  "otp",
+  "cvc",
+  "cvv",
+  "pan",
+  "iban",
+  "cookie",
+  "cookies",
+  "session",
+  "notes",
+  "street",
+  "address",
+  "latitude",
+  "longitude",
+  "geolocation",
+  "location",
+  "birthdate",
+  "dateofbirth",
+  "postalcode",
+  "postcode",
+  "zipcode",
+  "passport",
+  "diagnosis",
+  "medical",
+  "signature",
+  "xforwardedfor",
+  "xrealip",
+  "forwarded",
+  "remoteaddr",
+  "useragent",
+]);
+/** Normalized key suffixes that are always replaced (`contact_email`, `x-api-key`, `refreshToken`). */
+var KEY_SUFFIXES = [
+  "password",
+  "passwd",
+  "passphrase",
+  "secret",
+  "token",
+  "apikey",
+  "authorization",
+  "credential",
+  "credentials",
+  "privatekey",
+  "setcookie",
+  "sessionid",
+  "recoverycode",
+  "totp",
+  "email",
+  "emailaddress",
+  "phone",
+  "phonenumber",
+  "mobile",
+  "firstname",
+  "lastname",
+  "fullname",
+  "givenname",
+  "familyname",
+  "displayname",
+  "legalname",
+  "personname",
+  "middlename",
+  "streetaddress",
+  "addressline1",
+  "addressline2",
+  "taxid",
+  "taxidentifier",
+  "nationalid",
+  "governmentid",
+  "driverslicense",
+  "bankaccount",
+  "accountnumber",
+  "routingnumber",
+  "cardnumber",
+  "ipaddress",
+  "clientip",
+  "remoteip",
+  "freetext",
+];
+function normalizeKey(key) {
+  return key.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+function isSensitiveKey(key) {
+  const k = normalizeKey(key);
+  if (k.length === 0) return false;
+  if (EXACT_KEYS.has(k)) return true;
+  return KEY_SUFFIXES.some((suffix) => k.endsWith(suffix));
+}
+function luhnValid(digits) {
+  let sum = 0;
+  let double = false;
+  for (let i = digits.length - 1; i >= 0; i -= 1) {
+    let d = digits.charCodeAt(i) - 48;
+    if (double) {
+      d *= 2;
+      if (d > 9) d -= 9;
+    }
+    sum += d;
+    double = !double;
+  }
+  return sum % 10 === 0;
+}
+/** Ordered: credentials first, so a token that contains an email-like run is replaced whole. */
+var VALUE_PATTERNS = [
+  {
+    pattern: /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+/g,
+    replace: "[jwt]",
+  },
+  {
+    pattern: /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/-]+=*/gi,
+    replace: (_m, scheme) => `${scheme} ${REDACTED}`,
+  },
+  {
+    pattern: /\bxos_(?:live|test)_[A-Za-z0-9_]+/g,
+    replace: "[api-key]",
+  },
+  {
+    pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g,
+    replace: "[api-key]",
+  },
+  {
+    pattern:
+      /([?&;](?:token|access_token|refresh_token|id_token|code|key|apikey|api_key|signature|sig|password|email|phone|token_hash)=)[^&#\s"']+/gi,
+    replace: (_m, prefix) => `${prefix}${REDACTED}`,
+  },
+  {
+    pattern: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
+    replace: "[email]",
+  },
+  {
+    pattern: /\b\d{3}-\d{2}-\d{4}\b/g,
+    replace: "[ssn]",
+  },
+  {
+    pattern: /(?<![\w-])\d{4}(?:[ -]?\d{4}){2,3}(?:[ -]?\d{1,3})?(?![\w-])/g,
+    replace: (match) => {
+      const digits = match.replace(/[ -]/g, "");
+      return digits.length >= 13 && digits.length <= 19 && luhnValid(digits) ? "[card]" : match;
+    },
+  },
+  {
+    pattern: /(?<![\w+])\+\d{8,15}\b/g,
+    replace: "[phone]",
+  },
+  {
+    pattern: /(?<![\w-])\(?\d{3}\)?[-. ]\d{3}[-. ]\d{4}(?![\w-])/g,
+    replace: "[phone]",
+  },
+  {
+    pattern: /\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b/g,
+    replace: "[ip]",
+  },
+  {
+    pattern: /\b(?:[0-9a-f]{1,4}:){3,7}[0-9a-f]{1,4}\b/gi,
+    replace: "[ip]",
+  },
+];
+var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var DEFAULT_MAX_DEPTH = 8;
+var DEFAULT_MAX_STRING = 4096;
+function redactString(input, maxLength = DEFAULT_MAX_STRING) {
+  if (UUID.test(input)) return input;
+  let out = input;
+  for (const { pattern, replace } of VALUE_PATTERNS) {
+    pattern.lastIndex = 0;
+    out =
+      typeof replace === "string" ? out.replace(pattern, replace) : out.replace(pattern, replace);
+  }
+  if (out.length > maxLength)
+    out = `${out.slice(0, maxLength)}[truncated ${out.length - maxLength}]`;
+  return out;
+}
+/** Removes the query string and fragment from a URL or path, keeping only the path. */
+function redactUrl(input) {
+  const cut = input.search(/[?#]/);
+  return redactString(cut === -1 ? input : input.slice(0, cut));
+}
+/**
+ * Returns a deep copy of `value` with personal data and credentials replaced. Never throws and
+ * never mutates its input. Cycles become `[circular]`.
+ */
+function redact(value, options = {}) {
+  const allow = new Set((options.allowKeys ?? []).map(normalizeKey));
+  const maxDepth = options.maxDepth ?? DEFAULT_MAX_DEPTH;
+  const maxString = options.maxStringLength ?? DEFAULT_MAX_STRING;
+  const seen = /* @__PURE__ */ new WeakSet();
+  const walk = (v, depth) => {
+    if (v === null || v === void 0) return v;
+    switch (typeof v) {
+      case "string":
+        return redactString(v, maxString);
+      case "number":
+      case "boolean":
+        return v;
+      case "bigint":
+        return v.toString();
+      case "symbol":
+        return v.toString();
+      case "function":
+        return;
+    }
+    const obj = v;
+    if (depth >= maxDepth) return "[depth]";
+    if (seen.has(obj)) return "[circular]";
+    seen.add(obj);
+    try {
+      if (obj instanceof Date) return Number.isNaN(obj.getTime()) ? null : obj.toISOString();
+      if (obj instanceof Error) return redactError(obj, walk, depth);
+      if (obj instanceof URL) return redactUrl(obj.toString());
+      if (ArrayBuffer.isView(obj) || obj instanceof ArrayBuffer)
+        return `[binary ${obj.byteLength} bytes]`;
+      if (obj instanceof Map) return walk(Object.fromEntries(obj), depth);
+      if (obj instanceof Set) return walk([...obj], depth);
+      if (Array.isArray(obj)) return obj.map((item) => walk(item, depth + 1));
+      const out = {};
+      for (const [key, child] of Object.entries(obj)) {
+        if (!allow.has(normalizeKey(key)) && isSensitiveKey(key)) {
+          out[key] = child === null || child === void 0 ? child : REDACTED;
+          continue;
+        }
+        const copied = walk(child, depth + 1);
+        if (copied !== void 0) out[key] = copied;
+      }
+      return out;
+    } finally {
+      seen.delete(obj);
+    }
+  };
+  return walk(value, 0);
+}
+function redactError(error, walk, depth) {
+  const out = {
+    name: error.name,
+    message: redactString(error.message),
+  };
+  if (error.stack) out["stack"] = redactString(error.stack, 8192);
+  const code = error.code;
+  if (typeof code === "string" || typeof code === "number") out["code"] = code;
+  if (error.cause !== void 0) out["cause"] = walk(error.cause, depth + 1);
+  return out;
+}
+//#endregion
+//#region ../../infra/observability/src/logger.ts
+/**
+ * Structured JSON logging (Section 5: structured JSON logs). One line per event on stdout, which
+ * Vercel and Supabase collect and forward through their log drains. Every field passes through
+ * `redact` before it is serialized, so personal data never reaches a log store.
+ */
+var LEVEL_RANK = {
+  debug: 10,
+  info: 20,
+  warn: 30,
+  error: 40,
+};
+/** Keys the logger owns; caller fields with these names are nested under `fields` instead. */
+var RESERVED = /* @__PURE__ */ new Set([
+  "timestamp",
+  "level",
+  "message",
+  "service",
+  "environment",
+  "release",
+  "region",
+]);
+function defaultSink(line, level) {
+  if (level === "error" || level === "warn") console.error(line);
+  else console.log(line);
+}
+function createLogger(options) {
+  const threshold = LEVEL_RANK[options.level ?? "info"];
+  const sink = options.sink ?? defaultSink;
+  const now = options.now ?? (() => /* @__PURE__ */ new Date());
+  const identity = {
+    service: options.service,
+    environment: options.environment,
+    ...(options.release ? { release: options.release } : {}),
+    ...(options.region ? { region: options.region } : {}),
+  };
+  const build = (bound) => {
+    const write = (level, message, fields) => {
+      if (LEVEL_RANK[level] < threshold) return;
+      const merged = redact(
+        {
+          ...bound,
+          ...fields,
+        },
+        options.redaction,
+      );
+      const record = {
+        timestamp: now().toISOString(),
+        level,
+        message: redactString(message, 1024),
+        ...identity,
+      };
+      const nested = {};
+      for (const [key, value] of Object.entries(merged))
+        if (RESERVED.has(key)) nested[key] = value;
+        else record[key] = value;
+      if (Object.keys(nested).length > 0) record["fields"] = nested;
+      sink(safeStringify(record), level);
+    };
+    return {
+      identity,
+      debug: (m, f) => write("debug", m, f),
+      info: (m, f) => write("info", m, f),
+      warn: (m, f) => write("warn", m, f),
+      error: (m, f) => write("error", m, f),
+      child: (fields) =>
+        build({
+          ...bound,
+          ...fields,
+        }),
+    };
+  };
+  return build({});
+}
+/** JSON.stringify that never throws: values it cannot encode are described instead. */
+function safeStringify(value) {
+  try {
+    return JSON.stringify(value);
+  } catch (error) {
+    return JSON.stringify({
+      level: "error",
+      message: "log record could not be serialized",
+      reason: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+/** Reads the service identity from the environment variables Vercel and Supabase set. */
+function identityFromEnv(service, env) {
+  const environment =
+    env["XOS_ENVIRONMENT"] ?? env["VERCEL_ENV"] ?? env["NODE_ENV"] ?? "development";
+  const release = env["XOS_RELEASE"] ?? env["VERCEL_GIT_COMMIT_SHA"];
+  const region = env["VERCEL_REGION"] ?? env["SB_REGION"];
+  return {
+    service,
+    environment,
+    ...(release ? { release } : {}),
+    ...(region ? { region } : {}),
   };
 }
 //#endregion
@@ -30713,42 +31808,63 @@ async function kioskPunch(db, input) {
  * Entry of the Edge Function bundle (supabase/functions/_vendor/xos-platform.js). The Supabase Edge
  * runtime can only load files inside supabase/functions, so the workspace code the functions use is
  * bundled here, with every npm package left external and mapped to an npm: specifier in deno.json.
- * The plan registry is embedded from packages/schemas/plans.yaml, its single source.
+ * The plan registry is embedded from packages/schemas/plans.yaml, its single source. The structured
+ * logger with personal data redaction comes from infra/observability, so every function logs through
+ * the same redactor as Atlas and the API (A22-013).
  */
 /** The plan registry the bundle was built from. */
 var planRegistry = parsePlanRegistry(plans_default);
 //#endregion
 export {
+  ATTACHMENT_SCAN_JOB,
   BillingNotConfiguredError,
+  MAX_SCAN_ATTEMPTS,
   PUNCH_KINDS,
   PlatformDbError,
   PriceNotFoundError,
+  ScannerUnavailableError,
+  StorageUnavailableError,
   StripeSignatureError,
+  ZIP_LIMITS,
   billingEnvSchema,
   billingStore,
+  checkContent,
+  checkZip,
+  clamavScanner,
   createCheckoutSession,
+  createLogger,
   createPortalSession,
   createStripeClient,
   createTransport,
   dispatchEmail,
   dispatchWebhooks,
+  edgeFunctionName,
   handleStripeWebhook,
+  identityFromEnv,
   inboundStore,
+  internalErrorResponse,
   isPublicAddress,
   isTestKey,
   kioskPunch,
   localPartFor,
   lookupKeyFor,
   notificationStore,
+  parseClamdReply,
   planForLookupKey,
   planRegistry,
   readBillingEnv,
   readEmailEnv,
+  readZipDirectory,
   receiveInbound,
+  requestIdFor,
   resolvePriceId,
+  runUploadScans,
+  scanStore,
   signWebhook,
+  sniffFamilies,
   stripQuotedText,
   supabaseDb,
+  supabaseStorage,
   verifyWebhook,
   webhookStore,
 };

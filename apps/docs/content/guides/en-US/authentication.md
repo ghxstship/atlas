@@ -1,6 +1,6 @@
 ---
 title: Authentication
-summary: API keys for servers, OAuth 2.1 with PKCE for apps that act for a person, and session tokens for the XOS apps.
+summary: API keys for servers and session tokens for the XOS apps. Delegated OAuth access is not available yet.
 section: start
 order: 2
 ---
@@ -20,9 +20,9 @@ The API exchanges the key for a short-lived token for its service account on eac
 
 > Keep keys on servers. Never ship one in a browser or a mobile app, and never commit one to source control.
 
-## OAuth 2.1 with PKCE
+## Apps that act for a person
 
-Use OAuth when your app acts for a person who signs in. The flow is the authorization code flow with PKCE (S256), at `/oauth/authorize` and `/oauth/token`. Scopes map one to one to capability groups, and the person grants them for one organization.
+Delegated access for third-party apps, through OAuth 2.1 with PKCE, is not available yet: XOS does not serve an authorization or token endpoint today. Until it does, build server integrations with an API key. This guide will describe the flow when it is live.
 
 ## Session tokens
 

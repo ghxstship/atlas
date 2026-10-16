@@ -142,7 +142,7 @@ export function SignUpForm({ next }: { next: string }) {
         name="password"
         type="password"
         autoComplete="new-password"
-        minLength={8}
+        minLength={12}
         required
         label={t("fields.password")}
         help={t("fields.passwordHelp")}

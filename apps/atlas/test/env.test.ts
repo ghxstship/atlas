@@ -38,4 +38,10 @@ describe("auth cookies", () => {
     });
     expect(authCookieOptions(false).secure).toBe(false);
   });
+
+  it("carry the __Host- prefix over https and keep local http working (A22-014)", () => {
+    expect(authCookieOptions(true)).toMatchObject({ name: "__Host-xos-auth", path: "/" });
+    expect(authCookieOptions(true)).not.toHaveProperty("domain");
+    expect(authCookieOptions(false).name).toBe("xos-auth");
+  });
 });

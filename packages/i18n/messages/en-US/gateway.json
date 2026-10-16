@@ -1352,7 +1352,7 @@
       "fullName": "Full name",
       "email": "Email",
       "password": "Password",
-      "passwordHelp": "At least 8 characters."
+      "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names."
     },
     "or": "or",
     "signIn": {
@@ -1400,7 +1400,7 @@
       "invalid_credentials": "That email and password do not match. Check both, or use a sign-in link instead.",
       "email_not_confirmed": "Confirm your email first: open the link we sent you, then sign in.",
       "user_already_exists": "An account with this email already exists. Sign in instead.",
-      "weak_password": "Choose a stronger password: at least 8 characters that are hard to guess.",
+      "weak_password": "Choose a different password: this one is too weak or appears in a known data breach. Use at least 12 characters with letters and numbers.",
       "over_email_send_rate_limit": "We sent too many emails to this address. Wait a few minutes, then try again.",
       "over_request_rate_limit": "Too many attempts. Wait a minute, then try again.",
       "provider_disabled": "That sign-in method is not turned on for Gateway yet. Use email instead.",
@@ -1408,7 +1408,8 @@
       "unexpected": "Something went wrong on our side. Try again in a moment.",
       "fullName": "Enter your full name.",
       "email": "Enter an email address like name@company.com.",
-      "password": "Enter a password of at least 8 characters."
+      "password": "Enter a password of at least 12 characters with letters and numbers.",
+      "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway."
     }
   },
   "work": {

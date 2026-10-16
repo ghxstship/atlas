@@ -68,3 +68,44 @@ export {
   type NotificationStoreOptions,
   type PlatformDb,
 } from "./stores.ts";
+export {
+  edgeFunctionName,
+  internalErrorResponse,
+  requestIdFor,
+  type FailureLogger,
+} from "./http/failure.ts";
+export {
+  ScannerUnavailableError,
+  type ScanVerdict,
+  type VirusScanner,
+} from "./scanning/scanner.ts";
+export {
+  clamavScanner,
+  parseClamdReply,
+  type ClamavOptions,
+  type ClamdConnect,
+  type ClamdConnection,
+} from "./scanning/clamav.ts";
+export {
+  ZIP_LIMITS,
+  checkContent,
+  checkZip,
+  readZipDirectory,
+  sniffFamilies,
+  type ContentCheck,
+} from "./scanning/content.ts";
+export {
+  ATTACHMENT_SCAN_JOB,
+  MAX_SCAN_ATTEMPTS,
+  StorageUnavailableError,
+  runUploadScans,
+  type AttachmentVersionToScan,
+  type ClaimedAttachmentScan,
+  type ClaimedObjectScan,
+  type ObjectStorage,
+  type ScanOutcome,
+  type ScanResult,
+  type ScanRunOptions,
+  type ScanStore,
+} from "./scanning/worker.ts";
+export { scanStore, supabaseStorage } from "./scanning/stores.ts";
