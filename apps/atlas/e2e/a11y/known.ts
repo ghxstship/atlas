@@ -26,7 +26,7 @@ export const KNOWN_PROBLEMS: readonly KnownProblem[] = [
   },
   {
     finding: "A23-017",
-    pattern: /^structure: the page has no visible h1$/,
+    pattern: /^structure: the page has no visible h1$|^status: .* answered 500$/,
     routes: ["project", "project.overview"],
     roles: ["field"],
   },

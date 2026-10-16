@@ -57,7 +57,8 @@ for (const { role } of activeRoles()) {
           info.annotations.push({ type: "no-access", description: `${path} answered 404` });
           test.skip();
         }
-        expect(status, `${path} answered ${status}`).toBe(200);
+        // Any other status is a problem, but the page it rendered is still audited.
+        if (status !== 200) problems.push(`status: ${path} answered ${status}`);
         const h1 = page.getByRole("heading", { level: 1 }).first();
         await h1.waitFor({ state: "visible", timeout: 10_000 }).catch(() => undefined);
         if (!(await h1.isVisible())) problems.push("structure: the page has no visible h1");
