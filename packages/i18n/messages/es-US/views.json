@@ -73,5 +73,9 @@
     "notFound": "La vista ya no existe o ya no se comparte con usted. Vuelva a cargar para ver las vistas actuales.",
     "unexpected": "No se pudo acceder a las vistas guardadas. Inténtelo de nuevo en un momento.",
     "loadFailed": "No se pudieron cargar las vistas guardadas. La página sigue funcionando; vuelva a abrir el menú en breve."
+  },
+  "open": {
+    "projectSentence": "Esta vista se abre dentro de un proyecto. Abre el proyecto y elige la vista en su menú de vistas.",
+    "projectAction": "Abrir proyectos"
   }
 }

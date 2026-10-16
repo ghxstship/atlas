@@ -213,15 +213,17 @@ export interface QRCodeProps extends NativeBaseProps {
 
 /* Feedback */
 
-export interface BannerProps extends NativeBaseProps {
+/** A dismissible banner names its dismiss button (A23-010): `dismissLabel` comes with `onDismiss`. */
+export type BannerProps = NativeBaseProps & {
   tone?: AlertTone;
   icon?: IconName;
   message: string;
   actionLabel?: string;
   onAction?: () => void;
-  onDismiss?: () => void;
-  dismissLabel?: string;
-}
+} & (
+    | { onDismiss?: undefined; dismissLabel?: undefined }
+    | { onDismiss: () => void; dismissLabel: string }
+  );
 
 export interface InlineAlertProps extends NativeBaseProps {
   tone?: AlertTone;
@@ -366,6 +368,8 @@ export interface RunOfShowLiveProps extends NativeBaseProps {
   /** Show mode: large type, dark, screen kept awake, haptic before each cue. */
   showMode?: boolean;
   nextLabel: string;
+  /** What a screen reader says for the countdown, such as "2 min 10 s to Doors" (A23-009). */
+  countdownLabel?: string;
 }
 
 export interface CredentialBadgeProps extends NativeBaseProps {
@@ -454,7 +458,8 @@ export interface QuickIncidentSheetProps extends NativeBaseProps {
   /** Critical types use hold to confirm. */
   holdHint: string;
   onSubmit: () => void;
-  labels: { step: string; location: string; change: string };
+  /** `typeGroup` names the step 1 type grid for assistive technology (A23-006). */
+  labels: { step: string; location: string; change: string; typeGroup?: string };
 }
 
 export interface ChecklistItem {

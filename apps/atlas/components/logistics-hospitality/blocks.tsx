@@ -273,7 +273,12 @@ export async function BlocksSection({
             }
           >
             <Section id={`nights-${b.id}`} title={t("blocks.nights.title")}>
-              <div className="overflow-x-auto rounded-card border border-border-subtle">
+              <div
+                role="region"
+                aria-label={t("blocks.nights.title")}
+                tabIndex={0}
+                className="overflow-x-auto rounded-card border border-border-subtle"
+              >
                 <table className="w-full border-collapse text-text-13">
                   <caption className="sr-only">{t("blocks.nights.title")}</caption>
                   <thead>

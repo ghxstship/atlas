@@ -12,6 +12,7 @@ import { parsePlanRegistry, type PlanRegistry } from "@xos/schemas/plans";
 export * from "../src/index.ts";
 export { createTransport, readEmailEnv } from "@xos/email";
 export { createLogger, identityFromEnv } from "../../../infra/observability/src/logger.ts";
+export * from "./reports.ts";
 
 /** The plan registry the bundle was built from. */
 export const planRegistry: PlanRegistry = parsePlanRegistry(plansYaml);

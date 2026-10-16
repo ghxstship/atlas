@@ -115,6 +115,7 @@ export function AppShell({
               ref={menuButton}
               type="button"
               aria-label={t("shell.menu")}
+              title={t("shell.menu")}
               aria-expanded={open}
               aria-controls={sideId}
               onClick={() => setOpen((v) => !v)}
@@ -259,7 +260,10 @@ export function ScrollRegion({
     if (typeof outer === "function") outer(el);
     else if (outer) outer.current = el;
   };
-  const [overflows, setOverflows] = useState(false);
+  // Server rendered markup cannot measure, so the region starts in the tab order and leaves it once
+  // the first measure finds nothing to scroll. Starting out of it left wide content unreachable by
+  // keyboard until hydration (A23-015).
+  const [overflows, setOverflows] = useState(true);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return undefined;

@@ -253,6 +253,13 @@ export function ShellFrame(props: ShellFrameProps) {
 
   return (
     <div data-focus={focus ? "true" : undefined} className="xos-shell h-dvh">
+      {/* Bypass blocks (2.4.1): the first stop skips the sidebar and header to the page (A23-011). */}
+      <a
+        href="#content"
+        className="sr-only focus:not-sr-only focus:fixed focus:start-8 focus:top-8 focus:z-popover focus:rounded-control focus:bg-bg-raised focus:px-12 focus:py-8 focus:text-text-primary focus:shadow-menu"
+      >
+        {t("shell.page.skipToContent")}
+      </a>
       {focus ? (
         <p className="sr-only" role="status">
           {t("shell.chrome.focusModeOn")}
@@ -305,7 +312,13 @@ export function ShellFrame(props: ShellFrameProps) {
           />
         }
       >
-        {props.children}
+        <div
+          id="content"
+          tabIndex={-1}
+          className="flex min-w-0 flex-col gap-16 outline-none [&>*]:shrink-0"
+        >
+          {props.children}
+        </div>
       </AppShell>
       <CommandMenu
         open={commandOpen}

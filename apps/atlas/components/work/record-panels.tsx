@@ -941,8 +941,8 @@ export function TrashControls({
         </Button>
       </div>
       <ActionErrorAlert error={error} />
-      {undo ? (
-        <ToastRegion label={t("trash.notifications")}>
+      <ToastRegion label={t("trash.notifications")}>
+        {undo ? (
           <UndoToast
             message={t("trash.moved", { key: record.key })}
             onUndo={() =>
@@ -956,8 +956,8 @@ export function TrashControls({
               onTrashed?.();
             }}
           />
-        </ToastRegion>
-      ) : null}
+        ) : null}
+      </ToastRegion>
     </div>
   );
 }

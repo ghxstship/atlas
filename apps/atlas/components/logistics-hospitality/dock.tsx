@@ -468,7 +468,12 @@ export async function DockSection({
     body = (
       <>
         {weekNav}
-        <div className="overflow-x-auto rounded-card border border-border-subtle">
+        <div
+          role="region"
+          aria-label={t("dock.weekOf", { date: format.date(days[0] ?? "") ?? "" })}
+          tabIndex={0}
+          className="overflow-x-auto rounded-card border border-border-subtle"
+        >
           <table className="w-full min-w-(--layout-reading) border-collapse text-text-13">
             <caption className="sr-only">
               {t("dock.weekOf", { date: format.date(days[0] ?? "") ?? "" })}

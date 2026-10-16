@@ -18,7 +18,7 @@ import type {
   TagProps,
   ToastProps,
 } from "@xos/ui-native";
-import { announce } from "@xos/ui-native";
+import { announce, useReducedMotion } from "@xos/ui-native";
 import { useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
 import { useEffect, type ReactElement } from "react";
 import { Modal, Pressable, RefreshControl, ScrollView, View } from "react-native";
@@ -353,7 +353,7 @@ export function Banner({
         <Button label={actionLabel} variant="ghost" onPress={onAction} />
       ) : null}
       {onDismiss ? (
-        <Button label={dismissLabel ?? ""} variant="ghost" icon="x" onPress={onDismiss} />
+        <Button label={dismissLabel} variant="ghost" icon="x" onPress={onDismiss} />
       ) : null}
     </View>
   );
@@ -498,8 +498,15 @@ export function Sheet({
 }: SheetProps): ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  // Reduce Motion: the sheet fades in instead of sliding up (A23-008).
+  const still = useReducedMotion();
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible={open}
+      animationType={still ? "fade" : "slide"}
+      transparent
+      onRequestClose={onClose}
+    >
       <Pressable
         accessibilityLabel={closeLabel}
         onPress={onClose}

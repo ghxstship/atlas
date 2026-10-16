@@ -806,6 +806,12 @@
       "title": "Atlas did not load",
       "body": "Something went wrong before the page could load. Reload to try again.",
       "action": "Reload"
+    },
+    "pageError": {
+      "title": "This page did not load",
+      "body": "Atlas could not read what this page shows. Try again, or go to Home and open the page from the sidebar.",
+      "retry": "Try again",
+      "home": "Go to Home"
     }
   },
   "page": {

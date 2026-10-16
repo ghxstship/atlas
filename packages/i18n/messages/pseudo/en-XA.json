@@ -484,7 +484,8 @@
       "milestone": "[mîléstöñé ···]",
       "record": "[Réçörd ··]",
       "start": "[Stàrt ·]",
-      "state": "[Stàté ·]"
+      "state": "[Stàté ·]",
+      "scroll": "[{label}, dàýs ·····]"
     },
     "tooltip": {
       "withShortcut": "[{label} ({shortcut}) ·······]"
@@ -521,6 +522,17 @@
     "widget": {
       "label": "[Hömé sçrééñ wîdgét ·······]",
       "nextShift": "[Ñéxt shîft ···]"
+    },
+    "recordList": {
+      "columns": {
+        "state": "[Stàté ··]",
+        "key": "[Kéý ··]",
+        "title": "[Réçörd ···]",
+        "labels": "[Làbéls ···]",
+        "next": "[Ñéxt dàté ····]",
+        "owner": "[Öwñér ··]",
+        "action": "[Àçtîöñ ···]"
+      }
     }
   }
 }

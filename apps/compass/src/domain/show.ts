@@ -74,6 +74,34 @@ export function formatCountdown(ms: number): string {
   return late ? `+${body}` : body;
 }
 
+/** Seconds before a cue at which the countdown is spoken; 0 is the cue itself (A23-009). */
+export const COUNTDOWN_ANNOUNCE_AT_S: readonly number[] = [60, 30, 10, 0];
+
+/**
+ * The point the countdown crossed between two ticks, to speak once, or null. The countdown re-renders
+ * every 500 ms, so it never sits in a live region; it is announced only at these points.
+ */
+export function countdownAnnouncement(
+  previousMsToNext: number | null,
+  msToNext: number | null,
+): number | null {
+  if (previousMsToNext === null || msToNext === null) return null;
+  const crossed = COUNTDOWN_ANNOUNCE_AT_S.filter(
+    (s) => previousMsToNext > s * 1000 && msToNext <= s * 1000,
+  );
+  return crossed.length === 0 ? null : Math.min(...crossed);
+}
+
+/** Whole minutes and seconds of a countdown, for the spoken label ("2 min 10 s to Doors"). */
+export function countdownParts(ms: number): {
+  readonly late: boolean;
+  readonly minutes: number;
+  readonly seconds: number;
+} {
+  const total = Math.floor(Math.abs(ms) / 1000);
+  return { late: ms < 0, minutes: Math.floor(total / 60), seconds: total % 60 };
+}
+
 /**
  * Calling a cue stamps it once (private.guard_cue). Two operators calling the same cue is not a conflict:
  * the first call stands, so the policy is append and a stale answer is taken as applied.

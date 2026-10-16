@@ -92,15 +92,15 @@ export function ClockButton({
         })}
       >
         <NativeText
-          maxFontSizeMultiplier={1.6}
-          style={[typography(theme, "heading24"), { color: fg }]}
+          maxFontSizeMultiplier={2}
+          style={[typography(theme, "heading24"), { color: fg, textAlign: "center" }]}
         >
           {label}
         </NativeText>
         {timer ? (
           <NativeText
             testID={testID ? `${testID}-timer` : undefined}
-            maxFontSizeMultiplier={1.6}
+            maxFontSizeMultiplier={2}
             style={[typography(theme, "heading32"), { color: fg, fontVariant: ["tabular-nums"] }]}
           >
             {timer}
@@ -244,7 +244,11 @@ export function QuickIncidentSheet({
         {labels.step}
       </Text>
       {step === 1 ? (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.space["12"] }}>
+        <View
+          accessibilityRole="radiogroup"
+          accessibilityLabel={labels.typeGroup ?? labels.step}
+          style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.space["12"] }}
+        >
           {types.map((type) => {
             const isSelected = type.key === selected;
             return (
@@ -252,7 +256,7 @@ export function QuickIncidentSheet({
                 key={type.key}
                 testID={`incident-type-${type.key}`}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: isSelected }}
+                accessibilityState={{ checked: isSelected }}
                 accessibilityLabel={type.label}
                 onPress={() => onSelectType(type.key)}
                 style={{
@@ -383,6 +387,7 @@ export function RunOfShowLive({
   nextInSeconds,
   showMode,
   nextLabel,
+  countdownLabel,
   testID,
 }: RunOfShowLiveProps): ReactElement {
   const theme = useTheme();
@@ -403,20 +408,26 @@ export function RunOfShowLive({
         </Card>
       ) : null}
       {next ? (
-        <View style={{ gap: theme.space["8"] }} accessibilityLiveRegion="polite">
-          <Text variant="label13" tone="accent">
-            {nextLabel}
-          </Text>
-          <Text variant={big} testID="next-cue-title">
-            {next.title}
-          </Text>
-          <Text
-            variant="heading32"
-            tone={nextInSeconds < 0 ? "danger" : "primary"}
-            testID="next-cue-countdown"
-          >
-            {countdown}
-          </Text>
+        <View style={{ gap: theme.space["8"] }}>
+          {/* Only the cue changes the live region. The countdown re-renders twice a second, so it
+              stays out of it and is spoken at set points by the screen (A23-009). */}
+          <View style={{ gap: theme.space["8"] }} accessibilityLiveRegion="polite">
+            <Text variant="label13" tone="accent">
+              {nextLabel}
+            </Text>
+            <Text variant={big} testID="next-cue-title">
+              {next.title}
+            </Text>
+          </View>
+          <View accessible accessibilityLabel={countdownLabel ?? countdown}>
+            <Text
+              variant="heading32"
+              tone={nextInSeconds < 0 ? "danger" : "primary"}
+              testID="next-cue-countdown"
+            >
+              {countdown}
+            </Text>
+          </View>
         </View>
       ) : null}
       {cues.slice(current + 2, current + 5).map((cue) => (

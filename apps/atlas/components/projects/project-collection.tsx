@@ -448,7 +448,7 @@ function PortfolioTimeline({
   const index = (ms: number) => Math.max(0, Math.min(count - 1, Math.round((ms - first) / DAY)));
   const todayIndex = Math.round((time(today) - first) / DAY);
   return (
-    <div className="overflow-x-auto">
+    <div className="min-w-0">
       <Timeline
         label={label}
         days={days}

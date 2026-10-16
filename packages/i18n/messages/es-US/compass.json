@@ -237,7 +237,8 @@
       "Closed": "Cerrado"
     },
     "dispatchReason": "Despachado desde Compass.",
-    "containReason": "Marcado como contenido desde Compass."
+    "containReason": "Marcado como contenido desde Compass.",
+    "typeGroup": "Tipo de incidente"
   },
   "inspections": {
     "title": "Inspecciones",
@@ -276,7 +277,11 @@
     "exitShowMode": "Salir del modo show",
     "progress": "{called} de {total} cues llamados",
     "readOnly": "Puedes seguir el orden del show; los cues los llama el jefe de escena.",
-    "mySet": "Tu set"
+    "mySet": "Tu set",
+    "countdownLabel": "{minutes} min {seconds} s para {cue}",
+    "countdownLate": "{minutes} min {seconds} s de retraso en {cue}",
+    "countdownSoon": "{cue} en {seconds} segundos",
+    "countdownGo": "{cue}: ya"
   },
   "kiosk": {
     "title": "Quiosco",
@@ -305,7 +310,9 @@
     },
     "exit": "Salir del quiosco",
     "digit": "Dígito {digit}",
-    "backspace": "Borrar dígito"
+    "backspace": "Borrar dígito",
+    "pinProgressOne": "{count} dígito ingresado",
+    "pinProgressOther": "{count} dígitos ingresados"
   },
   "inbox": {
     "title": "Bandeja",

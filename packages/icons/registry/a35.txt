@@ -1,0 +1,23 @@
+# Icons Atlas pages draw by name that were missing from the registry, so they rendered as blank
+# boxes (A35, RRR-79): found by the accessibility sweep (Folder, ListPlus, ListVideo, Table2) and by a
+# scan of every icon="..." prop in Atlas, Gateway and @xos/ui. One lucide-react name per line.
+Award
+CheckCircle2
+CloudLightning
+Copy
+FileOutput
+Filter
+Folder
+FolderOpen
+LayoutTemplate
+Link
+ListPlus
+ListVideo
+PackageSearch
+Palmtree
+Scale
+ScrollText
+ShieldAlert
+Siren
+Table2
+UserMinus

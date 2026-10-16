@@ -1,4 +1,12 @@
-import { useEffect, useState, type CSSProperties, type ReactElement, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type CSSProperties,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import type {
   BannerProps as ReferenceBannerProps,
   EmptyStateProps as ReferenceEmptyStateProps,
@@ -180,6 +188,12 @@ export function Banner({
   );
 }
 
+/*
+ * Inside a ToastRegion the region is the live region, mounted before any toast arrives, so a toast
+ * added later is announced (4.1.3, A23-014). A toast outside one keeps its own status role.
+ */
+const InToastRegion = createContext(false);
+
 const toastClass = cx(
   "xos-anim-fade relative inline-flex items-center gap-12 overflow-hidden py-8 ps-12 pe-8",
   "rounded-card bg-bg-raised shadow-menu print:hidden forced-colors:border",
@@ -193,8 +207,9 @@ export function Toast({
   shortcut,
   onAction,
 }: ToastProps): ReactElement {
+  const inRegion = useContext(InToastRegion);
   return (
-    <div className={toastClass} role="status">
+    <div className={toastClass} {...(inRegion ? {} : { role: "status" })}>
       <span>{message}</span>
       {actionLabel ? (
         <Button
@@ -222,6 +237,7 @@ export function UndoToast({
   onExpire,
 }: UndoToastProps): ReactElement {
   const t = useT();
+  const inRegion = useContext(InToastRegion);
   const [done, setDone] = useState(false);
   useEffect(() => {
     if (done) return undefined;
@@ -243,7 +259,7 @@ export function UndoToast({
     };
   }, [done, seconds, onUndo, onExpire]);
   return (
-    <div className={toastClass} role="status">
+    <div className={toastClass} {...(inRegion ? {} : { role: "status" })}>
       <span>{message}</span>
       <Button
         size="sm"
@@ -267,20 +283,26 @@ export function UndoToast({
   );
 }
 
-/** A polite live region that stacks toasts at the bottom of the viewport. */
+/**
+ * A polite live region that stacks toasts at the bottom of the viewport. Mount it for the life of
+ * the page and render toasts into it: a live region added together with its content is often not
+ * announced.
+ */
 export function ToastRegion({
   label,
   children,
 }: {
   label: string;
-  children: ReactNode;
+  children?: ReactNode;
 }): ReactElement {
   return (
     <section
       aria-label={label}
+      aria-live="polite"
+      aria-atomic="false"
       className="fixed bottom-16 end-16 z-toast flex flex-col items-end gap-8 max-w-[calc(100vw-var(--space-32))]"
     >
-      {children}
+      <InToastRegion.Provider value={true}>{children}</InToastRegion.Provider>
     </section>
   );
 }

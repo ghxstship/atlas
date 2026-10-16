@@ -5,7 +5,7 @@
  */
 export * from "./theme/index.ts";
 export * from "./components.ts";
-export { announce } from "./a11y.ts";
+export { announce, useReducedMotion } from "./a11y.ts";
 export type * from "./types.ts";
 export { Text, Icon, StateIcon } from "./components/foundations.tsx";
 export { Button, IconButton, SegmentedControl } from "./components/primitives.tsx";

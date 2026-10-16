@@ -19,6 +19,7 @@ import {
   type RosterEntry,
 } from "../src/domain/kiosk";
 import { useCompass, useRows } from "../src/runtime/CompassProvider";
+import { countKey } from "../src/runtime/i18n";
 import { deviceClock } from "../src/runtime/platform";
 
 import { Gate } from "../src/screens/common";
@@ -84,9 +85,16 @@ function PinPad({
   const digits = step.kind === "pin" ? step.digits.length : 0;
   return (
     <View style={{ gap: theme.space["16"] }}>
-      <Text variant="heading32" testID="kiosk-pin-dots">
-        {"•".repeat(digits) || " "}
-      </Text>
+      {/* The dots read as "bullet bullet" (A23-010), so assistive technology hears the count. */}
+      <View
+        accessible
+        accessibilityLabel={t(countKey("compass.kiosk.pinProgress", digits), { count: digits })}
+        testID="kiosk-pin-progress"
+      >
+        <Text variant="heading32" testID="kiosk-pin-dots">
+          {"•".repeat(digits) || " "}
+        </Text>
+      </View>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.space["12"] }}>
         {keys.map((k, i) =>
           k === "" ? (
