@@ -1,0 +1,29 @@
+# The XOS Python SDK. Runtime code is hand-written in src/xos_sdk/_runtime; src/xos_sdk/_generated
+# is produced from packages/api/openapi/v1.json by `pnpm --filter @xos/sdk generate` and never edited.
+# Standard library only: no runtime dependencies.
+
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xos-sdk"
+version = "0.0.0"
+description = "Python SDK for the XOS public API."
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+dependencies = []
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Source = "https://github.com/ghxstship/atlas/tree/main/packages/sdk-python"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+xos_sdk = ["py.typed"]

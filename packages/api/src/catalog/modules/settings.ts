@@ -15,6 +15,11 @@ import {
   auroraCorrections,
   auroraResources,
 } from "./parts/aurora.ts";
+import {
+  integrationActions,
+  integrationCapabilities,
+  integrationCorrections,
+} from "./parts/settings-integrations.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -81,8 +86,8 @@ const WebhookEndpointSecret = z
 export const additions = defineAdditions("Settings", {
   // Aurora AI (A25): see ./parts/aurora.ts.
   resources: [...auroraResources],
-  actions: { aiSettings: aiSettingsActions },
-  capabilities: { ...auroraCapabilities },
+  actions: { aiSettings: aiSettingsActions, ...integrationActions },
+  capabilities: { ...auroraCapabilities, ...integrationCapabilities },
   corrections: [
     ...auroraCorrections,
     {
@@ -871,5 +876,6 @@ export const additions = defineAdditions("Settings", {
         },
       }),
     },
+    ...integrationCorrections,
   ],
 });

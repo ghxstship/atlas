@@ -22,3 +22,29 @@ regexTarget = "secret"
 regexes = [
   '''^atlvs_plan_(core|pro|team|enterprise)(_unlimited_(monthly|annual))?_v3$''',
 ]
+
+[[allowlists]]
+description = "Reviewed fake and public values in fixtures and API examples (2026-10-16)"
+regexTarget = "secret"
+regexes = [
+  # OpenAPI document examples (generated from the catalog) and an identity test fixture
+  '''^whsec_5Jk2pQ8xL1nV7cR3$''',
+  '''^cal_9fQ2mX4vT7kL1pR8$''',
+  '''^xos-verify=6f1c2d$''',
+  '''^xos-verify-7d1c$''',
+  # The public anon key of every local Supabase stack (issuer supabase-demo), used by Playwright locally
+  '''^eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9\.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0$''',
+  # The jwt.io sample token in the log redaction test
+  '''^eyJhbGciOiJIUzI1NiJ9\.eyJzdWIiOiIxMjM0NTY3ODkwIn0\.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U$''',
+  # A fake Stripe test key in the billing unit test
+  '''^sk_test_abcdefghij$''',
+  # A TypeScript type name the Dropbox rule mistakes for a token
+  '''^StorageProvider$''',
+]
+
+[[allowlists]]
+description = "SHA-256 digests of the frozen v1 contract (gate 20), not secrets"
+paths = ['''^packages/api/src/catalog/frozen-v1\.digest\.json$''']
+regexTarget = "secret"
+regexes = ['''^[0-9a-f]{64}$''']
+

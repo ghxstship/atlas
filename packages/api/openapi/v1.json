@@ -38282,6 +38282,12 @@
             "format": "uuid",
             "description": "Identifier of the team.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "identity_provider_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the identity provider.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -38293,7 +38299,8 @@
           "updated_by",
           "idp_group",
           "role_id",
-          "team_id"
+          "team_id",
+          "identity_provider_id"
         ],
         "description": "An identity-provider group mapped to a role or team."
       },
@@ -38318,9 +38325,15 @@
             "format": "uuid",
             "description": "Identifier of the team.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "identity_provider_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the identity provider.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["idp_group"],
+        "required": ["idp_group", "identity_provider_id"],
         "description": "Fields accepted when creating a ScimGroupMapping."
       },
       "ScimGroupMappingUpdate": {
@@ -38994,28 +39007,62 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "provider": {
+          "provider_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Provider.",
             "example": "xero"
-          },
-          "enabled": {
-            "type": "boolean",
-            "description": "Whether the integration is on.",
-            "example": true
-          },
-          "sync_status": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Integration sync status. A Title Case value from the lifecycle's database enum.",
-            "example": "Healthy"
           },
           "last_synced_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "Last successful sync.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Name the org gives the connection.",
+            "example": "Northwind Xero"
+          },
+          "external_account_id": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Provider tenant, company or workspace id.",
+            "example": "tenant-nwl"
+          },
+          "connection_state": {
+            "type": "string",
+            "enum": ["Pending", "Connected", "Error", "Paused", "Disconnected"],
+            "description": "Connection state; changes through the transitions action.",
+            "example": "Connected"
+          },
+          "credential_kind": {
+            "type": ["string", "null"],
+            "enum": ["OAuth Token", "API Key", "Service Account", null],
+            "description": "Kind of the stored Vault credential.",
+            "example": "OAuth Token"
+          },
+          "credential_expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the stored credential expires.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "last_error_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Rule code of the last connection error.",
+            "example": "credential_refused"
+          },
+          "last_error_message": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Provider message of the last connection error.",
+            "example": "Xero refused the token."
           }
         },
         "required": [
@@ -39025,41 +39072,163 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "provider",
-          "enabled",
-          "sync_status",
-          "last_synced_at"
+          "provider_code",
+          "last_synced_at",
+          "display_name",
+          "external_account_id",
+          "connection_state",
+          "credential_kind",
+          "credential_expires_at",
+          "last_error_code",
+          "last_error_message"
         ],
-        "description": "An integration connection. Credentials are Vault references and never returned."
+        "description": "An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned."
       },
       "IntegrationCreate": {
         "type": "object",
         "properties": {
-          "provider": {
+          "provider_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Provider.",
             "example": "xero"
           },
-          "enabled": {
-            "type": "boolean",
-            "description": "Whether the integration is on.",
-            "example": true
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Name the org gives the connection.",
+            "example": "Northwind Xero"
+          },
+          "external_account_id": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Provider tenant, company or workspace id.",
+            "example": "tenant-nwl"
           }
         },
-        "required": ["provider", "enabled"],
+        "required": ["provider_code", "display_name"],
         "description": "Fields accepted when creating a Integration."
       },
       "IntegrationUpdate": {
         "type": "object",
         "properties": {
-          "enabled": {
-            "type": "boolean",
-            "description": "Whether the integration is on.",
-            "example": true
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Name the org gives the connection.",
+            "example": "Northwind Xero"
+          },
+          "external_account_id": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Provider tenant, company or workspace id.",
+            "example": "tenant-nwl"
           }
         },
         "description": "Fields accepted when updating a Integration. Omitted fields are unchanged."
+      },
+      "IntegrationTransition": {
+        "type": "object",
+        "properties": {
+          "expected_state": {
+            "type": "string",
+            "enum": ["Pending", "Connected", "Error", "Paused", "Disconnected"],
+            "description": "State the connection is in now (compare-and-set).",
+            "example": "Connected"
+          },
+          "next_state": {
+            "type": "string",
+            "enum": ["Pending", "Connected", "Error", "Paused", "Disconnected"],
+            "description": "State to move to.",
+            "example": "Connected"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why the connection changes state.",
+            "example": "Authorized in Xero."
+          }
+        },
+        "required": ["expected_state", "next_state", "reason"],
+        "description": "A connection state change with compare-and-set."
+      },
+      "IntegrationCredential": {
+        "type": "object",
+        "properties": {
+          "secret": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16384,
+            "description": "The provider secret or OAuth token set. Write-only: stored in Vault, never returned.",
+            "example": "{\"access_token\":\"...\"}"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["OAuth Token", "API Key", "Service Account"],
+            "description": "Kind of secret.",
+            "example": "OAuth Token"
+          },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the secret expires, when the provider says.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["secret", "kind"],
+        "description": "A credential to store in Vault for a connection."
+      },
+      "IntegrationSyncQueued": {
+        "type": "object",
+        "properties": {
+          "sync_run_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the sync run.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["sync_run_id"],
+        "description": "The queued sync run."
+      },
+      "IntegrationSyncRequest": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "Ledger Export",
+              "Payment Sync",
+              "Calendar Sync",
+              "File Import",
+              "Notification Delivery",
+              "Payroll Export",
+              "Tracking Refresh",
+              "Attendance Import"
+            ],
+            "description": "What to sync; must belong to the connection's category.",
+            "example": "Ledger Export"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["Inbound", "Outbound", "Two Way"],
+            "description": "Direction of the sync.",
+            "example": "Outbound"
+          },
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["scope", "direction"],
+        "description": "A sync run to queue. The Idempotency-Key makes queueing safe to repeat."
       },
       "WebhookEndpointPage": {
         "type": "object",
@@ -115800,7 +115969,8 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "idp_group": "event-finance",
                       "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "identity_provider_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -115830,7 +116000,8 @@
               "example": {
                 "idp_group": "event-finance",
                 "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "identity_provider_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/ScimGroupMappingCreate" }
             }
@@ -115856,7 +116027,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "idp_group": "event-finance",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "identity_provider_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ScimGroupMapping" }
               }
@@ -115914,7 +116086,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "idp_group": "event-finance",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "identity_provider_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ScimGroupMapping" }
               }
@@ -115982,7 +116155,8 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "idp_group": "event-finance",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "identity_provider_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ScimGroupMapping" }
               }
@@ -117077,12 +117251,12 @@
       "get": {
         "operationId": "integrations.list",
         "tags": ["Settings"],
-        "x-xos-table": "app.integrations",
+        "x-xos-table": "app.integration_connections",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
         "summary": "List integration rows",
-        "description": "An integration connection. Credentials are Vault references and never returned. Returns a cursor page of integration rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Returns a cursor page of integration rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -117109,10 +117283,15 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "provider": "xero",
-                      "enabled": true,
-                      "sync_status": "Healthy",
-                      "last_synced_at": "2026-10-08T14:30:00Z"
+                      "provider_code": "xero",
+                      "last_synced_at": "2026-10-08T14:30:00Z",
+                      "display_name": "Northwind Xero",
+                      "external_account_id": "tenant-nwl",
+                      "connection_state": "Connected",
+                      "credential_kind": "OAuth Token",
+                      "credential_expires_at": "2026-10-08T14:30:00Z",
+                      "last_error_code": "credential_refused",
+                      "last_error_message": "Xero refused the token."
                     }
                   ],
                   "next_cursor": null
@@ -117129,17 +117308,21 @@
       "post": {
         "operationId": "integrations.create",
         "tags": ["Settings"],
-        "x-xos-table": "app.integrations",
+        "x-xos-table": "app.integration_connections",
         "x-xos-capability": "org.integrations.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Create an integration",
-        "description": "An integration connection. Credentials are Vault references and never returned. Creates an integration. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Creates an integration. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "example": { "provider": "xero", "enabled": true },
+              "example": {
+                "provider_code": "xero",
+                "display_name": "Northwind Xero",
+                "external_account_id": "tenant-nwl"
+              },
               "schema": { "$ref": "#/components/schemas/IntegrationCreate" }
             }
           }
@@ -117162,10 +117345,15 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "provider": "xero",
-                  "enabled": true,
-                  "sync_status": "Healthy",
-                  "last_synced_at": "2026-10-08T14:30:00Z"
+                  "provider_code": "xero",
+                  "last_synced_at": "2026-10-08T14:30:00Z",
+                  "display_name": "Northwind Xero",
+                  "external_account_id": "tenant-nwl",
+                  "connection_state": "Connected",
+                  "credential_kind": "OAuth Token",
+                  "credential_expires_at": "2026-10-08T14:30:00Z",
+                  "last_error_code": "credential_refused",
+                  "last_error_message": "Xero refused the token."
                 },
                 "schema": { "$ref": "#/components/schemas/Integration" }
               }
@@ -117183,11 +117371,11 @@
       "get": {
         "operationId": "integrations.get",
         "tags": ["Settings"],
-        "x-xos-table": "app.integrations",
+        "x-xos-table": "app.integration_connections",
         "x-xos-capability": "org.settings.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Get an integration",
-        "description": "An integration connection. Credentials are Vault references and never returned. Returns one integration with its `ETag`. A integration the caller may not see returns 404.",
+        "description": "An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Returns one integration with its `ETag`. A integration the caller may not see returns 404.",
         "parameters": [
           {
             "schema": {
@@ -117221,10 +117409,15 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "provider": "xero",
-                  "enabled": true,
-                  "sync_status": "Healthy",
-                  "last_synced_at": "2026-10-08T14:30:00Z"
+                  "provider_code": "xero",
+                  "last_synced_at": "2026-10-08T14:30:00Z",
+                  "display_name": "Northwind Xero",
+                  "external_account_id": "tenant-nwl",
+                  "connection_state": "Connected",
+                  "credential_kind": "OAuth Token",
+                  "credential_expires_at": "2026-10-08T14:30:00Z",
+                  "last_error_code": "credential_refused",
+                  "last_error_message": "Xero refused the token."
                 },
                 "schema": { "$ref": "#/components/schemas/Integration" }
               }
@@ -117239,11 +117432,11 @@
       "patch": {
         "operationId": "integrations.update",
         "tags": ["Settings"],
-        "x-xos-table": "app.integrations",
+        "x-xos-table": "app.integration_connections",
         "x-xos-capability": "org.integrations.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Update an integration",
-        "description": "An integration connection. Credentials are Vault references and never returned. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "description": "An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
         "parameters": [
           {
             "schema": {
@@ -117263,7 +117456,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "enabled": true },
+              "example": { "display_name": "Northwind Xero", "external_account_id": "tenant-nwl" },
               "schema": { "$ref": "#/components/schemas/IntegrationUpdate" }
             }
           }
@@ -117286,10 +117479,15 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "provider": "xero",
-                  "enabled": true,
-                  "sync_status": "Healthy",
-                  "last_synced_at": "2026-10-08T14:30:00Z"
+                  "provider_code": "xero",
+                  "last_synced_at": "2026-10-08T14:30:00Z",
+                  "display_name": "Northwind Xero",
+                  "external_account_id": "tenant-nwl",
+                  "connection_state": "Connected",
+                  "credential_kind": "OAuth Token",
+                  "credential_expires_at": "2026-10-08T14:30:00Z",
+                  "last_error_code": "credential_refused",
+                  "last_error_message": "Xero refused the token."
                 },
                 "schema": { "$ref": "#/components/schemas/Integration" }
               }
@@ -117307,11 +117505,11 @@
       "delete": {
         "operationId": "integrations.delete",
         "tags": ["Settings"],
-        "x-xos-table": "app.integrations",
+        "x-xos-table": "app.integration_connections",
         "x-xos-capability": "org.integrations.manage",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
         "summary": "Delete an integration",
-        "description": "An integration connection. Credentials are Vault references and never returned. Soft-deletes the integration: it moves to Trash and can be restored for its table's retention period.",
+        "description": "An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Soft-deletes the integration: it moves to Trash and can be restored for its table's retention period.",
         "parameters": [
           {
             "schema": {
@@ -117330,6 +117528,223 @@
           "204": { "description": "The integration moved to Trash." },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/integrations/{id}/transitions": {
+      "post": {
+        "operationId": "integrations.transition",
+        "tags": ["Settings"],
+        "x-xos-table": "app.integration_connections",
+        "x-xos-capability": "org.integrations.manage",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Change an integration's state",
+        "description": "Moves a connection with compare-and-set: connect (needs a stored, unexpired credential unless the provider needs none), pause, resume or disconnect (destroys the Vault secret and cancels queued runs). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the integration.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the integration.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "expected_state": "Connected",
+                "next_state": "Connected",
+                "reason": "Authorized in Xero."
+              },
+              "schema": { "$ref": "#/components/schemas/IntegrationTransition" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provider_code": "xero",
+                  "last_synced_at": "2026-10-08T14:30:00Z",
+                  "display_name": "Northwind Xero",
+                  "external_account_id": "tenant-nwl",
+                  "connection_state": "Connected",
+                  "credential_kind": "OAuth Token",
+                  "credential_expires_at": "2026-10-08T14:30:00Z",
+                  "last_error_code": "credential_refused",
+                  "last_error_message": "Xero refused the token."
+                },
+                "schema": { "$ref": "#/components/schemas/Integration" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/integrations/{id}/credential": {
+      "post": {
+        "operationId": "integrations.storeCredential",
+        "tags": ["Settings"],
+        "x-xos-table": "app.integration_connections",
+        "x-xos-capability": "org.integrations.manage",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Store an integration credential",
+        "description": "Stores or rotates the connection's secret in Supabase Vault. The secret is never returned. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the integration.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the integration.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "secret": "{\"access_token\":\"...\"}",
+                "kind": "OAuth Token",
+                "expires_at": "2026-10-08T14:30:00Z"
+              },
+              "schema": { "$ref": "#/components/schemas/IntegrationCredential" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provider_code": "xero",
+                  "last_synced_at": "2026-10-08T14:30:00Z",
+                  "display_name": "Northwind Xero",
+                  "external_account_id": "tenant-nwl",
+                  "connection_state": "Connected",
+                  "credential_kind": "OAuth Token",
+                  "credential_expires_at": "2026-10-08T14:30:00Z",
+                  "last_error_code": "credential_refused",
+                  "last_error_message": "Xero refused the token."
+                },
+                "schema": { "$ref": "#/components/schemas/Integration" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/integrations/{id}/syncs": {
+      "post": {
+        "operationId": "integrations.sync",
+        "tags": ["Settings"],
+        "x-xos-table": "app.integration_connections",
+        "x-xos-capability": "org.integrations.manage",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Queue an integration sync",
+        "description": "Queues a sync run on a Connected connection; the run is attempted by the platform job queue with retries. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the integration.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the integration.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "scope": "Ledger Export",
+                "direction": "Outbound",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/IntegrationSyncRequest" }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted for processing.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "sync_run_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/IntegrationSyncQueued" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }

@@ -1,0 +1,36 @@
+{
+  "name": "@xos/cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "xos: the command line for the XOS public API. Sign in, choose an organization, call any operation, import, export, validate canon codes and test webhooks.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "xos": "./dist/main.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@xos/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.0.3",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
