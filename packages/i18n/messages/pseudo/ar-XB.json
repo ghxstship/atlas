@@ -484,7 +484,8 @@
       "milestone": "‮ɯılǝsʇouǝ‬",
       "record": "‮ꓤǝɔoɹp‬",
       "start": "‮Sʇɐɹʇ‬",
-      "state": "‮Sʇɐʇǝ‬"
+      "state": "‮Sʇɐʇǝ‬",
+      "scroll": "‮{label}, pɐʎs‬"
     },
     "tooltip": {
       "withShortcut": "‮{label} ({shortcut})‬"
@@ -521,6 +522,17 @@
     "widget": {
       "label": "‮Hoɯǝ sɔɹǝǝu ʍıpƃǝʇ‬",
       "nextShift": "‮Nǝxʇ sɥıɟʇ‬"
+    },
+    "recordList": {
+      "columns": {
+        "state": "‮Sʇɐʇǝ‬",
+        "key": "‮ꓘǝʎ‬",
+        "title": "‮ꓤǝɔoɹp‬",
+        "labels": "‮⅂ɐqǝls‬",
+        "next": "‮Nǝxʇ pɐʇǝ‬",
+        "owner": "‮Oʍuǝɹ‬",
+        "action": "‮∀ɔʇıou‬"
+      }
     }
   }
 }
