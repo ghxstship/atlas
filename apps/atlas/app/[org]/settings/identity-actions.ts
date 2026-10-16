@@ -103,7 +103,6 @@ const LOGO_SLOTS = {
 } as const;
 const LOGO_TYPES: Readonly<Record<string, string>> = {
   "image/png": "png",
-  "image/svg+xml": "svg",
   "image/webp": "webp",
   "image/x-icon": "ico",
   "image/vnd.microsoft.icon": "ico",
