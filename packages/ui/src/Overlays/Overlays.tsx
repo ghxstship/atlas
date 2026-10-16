@@ -23,7 +23,7 @@ import type {
 } from "../types/reference";
 import { cx } from "../lib/cx.ts";
 import { useT } from "../lib/context.tsx";
-import { useControllable } from "../lib/hooks.ts";
+import { useControllable, useReturnFocus } from "../lib/hooks.ts";
 import { Icon } from "../Icon/Icon.tsx";
 import { IconButton } from "../Button/Button.tsx";
 import { Keys } from "../Kbd/Kbd.tsx";
@@ -97,6 +97,7 @@ export function Dialog({
   ...control
 }: DialogProps): ReactElement {
   const [isOpen, setOpen] = useOverlayOpen(control);
+  const returnFocus = useReturnFocus(isOpen);
   return (
     <RDialog.Root open={isOpen} onOpenChange={setOpen}>
       {control.trigger ? <RDialog.Trigger asChild>{control.trigger}</RDialog.Trigger> : null}
@@ -104,6 +105,7 @@ export function Dialog({
         <RDialog.Overlay className={scrimClass} />
         <div className="pointer-events-none fixed inset-0 z-dialog grid place-items-center p-16">
           <RDialog.Content
+            onCloseAutoFocus={returnFocus}
             className={cx(
               panelClass,
               "xos-anim-dialog pointer-events-auto w-(--ui-dialog) flex flex-col max-h-full",
@@ -143,6 +145,7 @@ export function Drawer({
 }: DrawerProps): ReactElement {
   const t = useT();
   const [isOpen, setOpen] = useOverlayOpen(control);
+  const returnFocus = useReturnFocus(isOpen);
   const change = (next: boolean) => {
     setOpen(next);
     if (!next) onClose?.();
@@ -153,6 +156,7 @@ export function Drawer({
       <RDialog.Portal>
         <RDialog.Overlay className={scrimClass} />
         <RDialog.Content
+          onCloseAutoFocus={returnFocus}
           aria-describedby={undefined}
           className={cx(
             panelClass,
@@ -217,6 +221,7 @@ export function SidePeek({
 }: SidePeekProps): ReactElement {
   const t = useT();
   const [isOpen, setOpen] = useOverlayOpen(control);
+  const returnFocus = useReturnFocus(isOpen);
   const [width, setWidth] = useState(560);
   const resize = (e: KeyboardEvent<HTMLDivElement>) => {
     const step = e.key === "ArrowLeft" ? 16 : e.key === "ArrowRight" ? -16 : 0;
@@ -232,6 +237,7 @@ export function SidePeek({
         <RDialog.Content
           aria-describedby={undefined}
           onInteractOutside={(e) => e.preventDefault()}
+          onCloseAutoFocus={returnFocus}
           className={cx(
             panelClass,
             "xos-anim-peek fixed inset-y-0 end-0 z-peek flex flex-col rounded-none overflow-y-auto",
@@ -289,6 +295,7 @@ export function SidePeek({
 export function ShortcutSheet({ title, groups, ...control }: ShortcutSheetProps): ReactElement {
   const t = useT();
   const [isOpen, setOpen] = useOverlayOpen(control);
+  const returnFocus = useReturnFocus(isOpen);
   return (
     <RDialog.Root open={isOpen} onOpenChange={setOpen}>
       {control.trigger ? <RDialog.Trigger asChild>{control.trigger}</RDialog.Trigger> : null}
@@ -296,6 +303,7 @@ export function ShortcutSheet({ title, groups, ...control }: ShortcutSheetProps)
         <RDialog.Overlay className={scrimClass} />
         <div className="pointer-events-none fixed inset-0 z-dialog grid place-items-center p-16">
           <RDialog.Content
+            onCloseAutoFocus={returnFocus}
             aria-describedby={undefined}
             className={cx(
               panelClass,

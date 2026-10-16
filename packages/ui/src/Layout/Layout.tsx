@@ -127,11 +127,17 @@ export function AppShell({
             <div className="flex flex-1 items-center justify-between gap-8 min-w-0">{header}</div>
           ) : null}
         </div>
-        <div className="flex flex-col gap-16 min-h-0 px-24 py-16 max-lg:p-16 overflow-y-auto [&>*]:shrink-0">
+        <div
+          data-xos-bottom-bar-scroll={mobileNav ? "" : undefined}
+          className="flex flex-col gap-16 min-h-0 px-24 py-16 max-lg:p-16 overflow-y-auto [&>*]:shrink-0"
+        >
           {children}
         </div>
         {mobileNav ? (
-          <div className="hidden max-md:block sticky bottom-0 [&_nav]:w-full print:hidden">
+          <div
+            data-xos-bottom-bar=""
+            className="hidden max-md:block sticky bottom-0 [&_nav]:w-full print:hidden"
+          >
             {mobileNav}
           </div>
         ) : null}

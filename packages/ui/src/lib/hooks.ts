@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /** State that a parent may control (`value` given) or leave to the component (`defaultValue`). */
 export function useControllable<T>(
@@ -82,4 +82,29 @@ export function rovingIndex(
   if (key === "Home") return 0;
   if (key === "End") return count - 1;
   return null;
+}
+
+/**
+ * Focus return for an overlay opened without its own trigger (a hotkey, a row click): remembers the
+ * element focused when `open` turns true and hands it back on close, so focus never drops to the
+ * page body (WCAG 2.4.3). Pass the result to Radix `onCloseAutoFocus`.
+ */
+export function useReturnFocus(open: boolean): (event: Event) => void {
+  const opener = useRef<HTMLElement | null>(null);
+  /* A layout effect runs before the dialog's own focus move (a passive effect), so it still sees
+     the opener. */
+  useLayoutEffect(() => {
+    if (open) {
+      const active = document.activeElement;
+      opener.current = active instanceof HTMLElement && active !== document.body ? active : null;
+    }
+  }, [open]);
+  return useCallback((event: Event) => {
+    const target = opener.current;
+    opener.current = null;
+    if (target?.isConnected) {
+      event.preventDefault();
+      target.focus();
+    }
+  }, []);
 }

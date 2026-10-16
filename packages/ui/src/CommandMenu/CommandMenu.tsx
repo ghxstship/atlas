@@ -8,7 +8,7 @@ import type {
 } from "../types/reference";
 import { cx } from "../lib/cx.ts";
 import { useT } from "../lib/context.tsx";
-import { useControllable, useHotkey } from "../lib/hooks.ts";
+import { useControllable, useHotkey, useReturnFocus } from "../lib/hooks.ts";
 import { Icon } from "../Icon/Icon.tsx";
 import { Kbd, Keys } from "../Kbd/Kbd.tsx";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
@@ -133,6 +133,7 @@ export function CommandMenu({
   const dialog = open !== undefined;
   const [isOpen, setOpen] = useControllable(open, false, onOpenChange);
   useHotkey("k", () => setOpen(!isOpen), { mod: true, enabled: dialog && hotkey });
+  const returnFocus = useReturnFocus(dialog && isOpen);
   if (!dialog) return <Palette {...props} />;
   return (
     <RDialog.Root open={isOpen} onOpenChange={setOpen}>
@@ -141,6 +142,7 @@ export function CommandMenu({
         <div className="pointer-events-none fixed inset-0 z-command flex justify-center px-16 pt-64">
           <RDialog.Content
             aria-describedby={undefined}
+            onCloseAutoFocus={returnFocus}
             className="pointer-events-auto h-fit max-w-full"
           >
             <RDialog.Title className="sr-only">{t("command.label")}</RDialog.Title>

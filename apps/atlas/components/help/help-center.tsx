@@ -364,7 +364,13 @@ export function HelpCenter({ org }: { org: string }) {
         )}
       </Drawer>
       {offered ? (
-        <Card label={t("tours.label")}>
+        <Card
+          label={t("tours.label")}
+          onDismiss={() => {
+            void recordTourAction(org, offered.key, "Dismissed");
+            setClosedOffers((c) => [...c, offered.key]);
+          }}
+        >
           <p className="m-0 font-semibold">{t("tours.offerTitle")}</p>
           <p className="m-0 text-text-secondary">
             {t("tours.offerBody", {
@@ -388,7 +394,13 @@ export function HelpCenter({ org }: { org: string }) {
         </Card>
       ) : null}
       {tip ? (
-        <Card label={t("tips.label")}>
+        <Card
+          label={t("tips.label")}
+          onDismiss={() => {
+            setHiddenTips((h) => [...h, tip.key]);
+            void dismissTipAction(org, tip.key);
+          }}
+        >
           <p className="m-0 font-semibold">{t(`tips.${tip.key}.title`)}</p>
           <p className="m-0 text-text-secondary">{t(`tips.${tip.key}.body`)}</p>
           <div className="flex flex-wrap justify-end gap-8">
@@ -432,11 +444,40 @@ export function HelpCenter({ org }: { org: string }) {
   );
 }
 
-function Card({ label, children }: { label: string; children: React.ReactNode }) {
+/** Closes a floating help card on Escape wherever focus is (WCAG 1.4.13, A23-002). */
+function useEscape(onEscape: () => void) {
+  const latest = useRef(onEscape);
+  useEffect(() => {
+    latest.current = onEscape;
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !e.defaultPrevented) latest.current();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+}
+
+/* On phones the cards sit above the bottom tab bar, so they never cover it or the control in focus
+   (WCAG 2.4.11, A23-002). */
+const CARD_POSITION =
+  "fixed bottom-16 max-md:bottom-[calc(var(--ui-bottom-bar)+var(--space-16))] end-16 z-toast";
+
+function Card({
+  label,
+  onDismiss,
+  children,
+}: {
+  label: string;
+  onDismiss: () => void;
+  children: React.ReactNode;
+}) {
+  useEscape(onDismiss);
   return (
     <section
       aria-label={label}
-      className="fixed bottom-16 end-16 z-toast flex w-(--ui-dialog) max-w-[calc(100vw-var(--space-32))] flex-col gap-8 rounded-card bg-bg-raised p-16 text-text-13 shadow-menu forced-colors:border"
+      className={`${CARD_POSITION} flex w-(--ui-dialog) max-w-[calc(100vw-var(--space-32))] flex-col gap-8 rounded-card bg-bg-raised p-16 text-text-13 shadow-menu forced-colors:border`}
     >
       {children}
     </section>
@@ -463,6 +504,7 @@ function TourStep({
   const ref = useRef<HTMLElement>(null);
   const key = tourCopyKey(tour.key);
   const last = step === tour.steps.length - 1;
+  useEscape(onEnd);
 
   useEffect(() => {
     ref.current?.focus();
@@ -483,13 +525,7 @@ function TourStep({
       tabIndex={-1}
       aria-label={t("tours.label")}
       aria-describedby={`tour-${tour.key}-${step}`}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          onEnd();
-        }
-      }}
-      className="fixed bottom-16 end-16 z-toast flex w-(--ui-dialog) max-w-[calc(100vw-var(--space-32))] flex-col gap-8 rounded-card bg-bg-raised p-16 text-text-13 shadow-menu outline-none focus-visible:ring-(length:--stroke-width-focus) focus-visible:ring-focus-ring forced-colors:border"
+      className={`${CARD_POSITION} flex w-(--ui-dialog) max-w-[calc(100vw-var(--space-32))] flex-col gap-8 rounded-card bg-bg-raised p-16 text-text-13 shadow-menu outline-none focus-visible:ring-(length:--stroke-width-focus) focus-visible:ring-focus-ring forced-colors:border`}
     >
       <p className="m-0 text-text-12 text-text-secondary">
         {t("tours.step", { current: step + 1, total: tour.steps.length })}

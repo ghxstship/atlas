@@ -313,7 +313,9 @@ export function TemplateGatewayShell({
         <div className="flex flex-col gap-16 min-w-0">{children}</div>
       </main>
       {tabBar ? (
-        <div className="hidden max-md:block sticky bottom-0 [&_nav]:w-full">{tabBar}</div>
+        <div data-xos-bottom-bar="" className="hidden max-md:block sticky bottom-0 [&_nav]:w-full">
+          {tabBar}
+        </div>
       ) : null}
     </div>
   );

@@ -120,6 +120,60 @@ describe("Drawer and SidePeek", () => {
   });
 });
 
+describe("focus return", () => {
+  it("hands focus back to the row that opened a controlled peek (A23-003)", async () => {
+    function App() {
+      const [open, setOpen] = useStateHook(false);
+      return (
+        <div>
+          <button type="button" onClick={() => setOpen(true)}>
+            Rigging inspection row
+          </button>
+          <SidePeek
+            open={open}
+            onOpenChange={setOpen}
+            recordKey="NWL-1042"
+            kind="Inspection"
+            title="Rigging inspection"
+            state="in-review"
+            stateLabel="In Review"
+          >
+            Activity
+          </SidePeek>
+        </div>
+      );
+    }
+    render(<App />);
+    const row = screen.getByRole("button", { name: "Rigging inspection row" });
+    await userEvent.click(row);
+    expect(screen.getByRole("dialog", { name: "Rigging inspection" })).toBeTruthy();
+    within(screen.getByRole("dialog")).getByRole("button", { name: "Open full page" }).focus();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(row);
+  });
+
+  it("hands focus back after the command menu closes from its hotkey (A23-003)", async () => {
+    function App() {
+      const [open, setOpen] = useStateHook(false);
+      return (
+        <div>
+          <input aria-label="Search field" />
+          <CommandMenu open={open} onOpenChange={setOpen} groups={[]} />
+        </div>
+      );
+    }
+    render(<App />);
+    const field = screen.getByRole("textbox", { name: "Search field" });
+    field.focus();
+    await userEvent.keyboard("{Control>}k{/Control}");
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(field);
+  });
+});
+
 describe("ShortcutSheet and useHotkey", () => {
   it("opens with ? through useHotkey and lists keys by group", async () => {
     function App() {

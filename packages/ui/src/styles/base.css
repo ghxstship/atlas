@@ -125,6 +125,22 @@
 }
 
 /* Reduced motion: movement becomes a short opacity fade or nothing. */
+/* Phones show a sticky bottom tab bar (TabBar). Keyboard focus and scrollIntoView must stop above
+   it, or the bar hides the focused control (WCAG 2.4.11, A23-001). The bar is its top padding, one
+   touch target, its bottom padding and the device's safe area. */
+:root {
+  --ui-bottom-bar: calc(
+    var(--space-6) + var(--density-touch-min) + var(--space-20) + env(safe-area-inset-bottom)
+  );
+}
+
+@media (width < 48rem) {
+  html:has([data-xos-bottom-bar]),
+  [data-xos-bottom-bar-scroll] {
+    scroll-padding-bottom: calc(var(--ui-bottom-bar) + var(--space-16));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
