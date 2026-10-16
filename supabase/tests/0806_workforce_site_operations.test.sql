@@ -33,11 +33,11 @@ select throws_ok($$select app.create_occupancy_counter(pg_temp.id('prj_a'), 'No 
 select pg_temp.as_user('frank');
 select is(app.record_occupancy_count((select id from k where key = 'counter'), 79, 'Gate A'), 79, 'door staff count people in');
 select pg_temp.as_platform();
-select is((select count(*)::integer from app.notifications where kind = 'occupancy.threshold'), 0, 'no alert below 80 percent');
+select is((select count(*)::integer from app.notifications where kind = 'occupancy.threshold' and subject_id = (select id from k where key = 'counter')), 0, 'no alert below 80 percent');
 select pg_temp.as_user('frank');
 select app.record_occupancy_count((select id from k where key = 'counter'), 1, 'Gate A');
 select pg_temp.as_platform();
-select ok((select count(*) > 0 from app.notifications where kind = 'occupancy.threshold' and message_args ->> 'percent' = '80'), 'crossing 80 percent alerts the dispatchers');
+select ok((select count(*) > 0 from app.notifications where kind = 'occupancy.threshold' and subject_id = (select id from k where key = 'counter') and message_args ->> 'percent' = '80'), 'crossing 80 percent alerts the dispatchers');
 select pg_temp.as_user('frank');
 select app.record_occupancy_count((select id from k where key = 'counter'), 20, 'Gate B');
 select is((select alert_level_percent from app.occupancy_counters where id = (select id from k where key = 'counter')), 100::smallint, 'the count reaches 100 percent');

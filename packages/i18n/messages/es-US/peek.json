@@ -1,0 +1,11 @@
+{
+  "loading": "Abriendo {key}.",
+  "missing": "{key} no es un registro que puedas abrir aquí. Revisa la clave o abre el registro desde su proyecto.",
+  "unexpected": "No se pudo abrir {key}. Inténtalo de nuevo en un momento.",
+  "close": "Cerrar",
+  "project": "Proyecto",
+  "owner": "Responsable",
+  "unassigned": "Sin asignar",
+  "due": "Vence",
+  "openFullHint": "Abre la página completa para ver el contenido, los comentarios y la actividad del registro."
+}

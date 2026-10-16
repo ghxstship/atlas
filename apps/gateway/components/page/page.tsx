@@ -1,9 +1,8 @@
-import type { Route } from "next";
-import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { LoadError } from "@/components/ui";
 export { SectionTabs } from "./section-tabs";
+import { CollectionViews } from "./collection-views";
 import type { NavLink } from "@/lib/shell/nav-model";
 
 /**
@@ -45,47 +44,31 @@ export function childTabLinks(
   return tabs.map((tab) => ({ id: tab.id, label: t(tab.label), href: tab.href }));
 }
 
-/** The view switcher: links that keep every other query parameter (Section 11.15). */
+/**
+ * The view switcher (Section 11.15): the ported CollectionViews control with translated labels.
+ * `path` and `query` stay in the signature for the pages that pass them; the control reads the
+ * current URL itself and keeps every other query parameter.
+ */
 export async function ViewSwitcher({
   views,
   current,
-  path,
-  query,
 }: {
   views: readonly string[];
   current: string;
-  path: string;
-  query: Readonly<Record<string, string | string[] | undefined>>;
+  path?: string;
+  query?: Readonly<Record<string, string | string[] | undefined>>;
 }) {
   if (views.length < 2) return null;
   const t = await getTranslations("gateway.common");
   const tr = t as unknown as (key: string, values?: Record<string, string>) => string;
   return (
-    <div
-      role="group"
-      aria-label={tr("viewAs", { view: tr(`views.${current}`) })}
-      className="inline-flex gap-4"
-    >
-      {views.map((view) => {
-        const params = new URLSearchParams();
-        for (const [k, v] of Object.entries(query))
-          if (typeof v === "string" && k !== "view") params.set(k, v);
-        params.set("view", view);
-        const selected = view === current;
-        return (
-          <Link
-            key={view}
-            href={`${path}?${params.toString()}` as Route}
-            aria-current={selected ? "true" : undefined}
-            className={`inline-flex min-h-touch-min items-center rounded-control px-12 text-text-13 font-medium no-underline ${
-              selected ? "bg-bg-hover text-text-primary" : "text-text-secondary hover:bg-bg-hover"
-            }`}
-          >
-            {tr(`views.${view}`)}
-          </Link>
-        );
-      })}
-    </div>
+    <Suspense fallback={null}>
+      <CollectionViews
+        label={tr("viewAs", { view: tr(`views.${current}`) })}
+        value={current}
+        options={views.map((view) => ({ value: view, label: tr(`views.${view}`) }))}
+      />
+    </Suspense>
   );
 }
 

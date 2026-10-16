@@ -1,0 +1,30 @@
+import { findRoute, getNode } from "@xos/ia";
+import { sitemap } from "./sitemap";
+
+/**
+ * The shell's global `?peek={recordKey}` (Section 4.5.3: the side peek uses `?peek={recordKey}` on any
+ * route; the sitemap's globalQuery). A collection page (a node with a list) opens the rows of its own
+ * collection in its own peek, so the shell leaves `?peek` to it. On every other route (home, inbox,
+ * dashboards, settings, the Aurora center, a record's full page) the shell opens the record the key
+ * names. Aurora citation links and proposed sitemap nodes build their links with peekHref.
+ */
+/** Pages without a list in the sitemap that still peek the rows they show: a saved view's collection. */
+const OWN_PEEK_NODES: ReadonlySet<string> = new Set(["saved-view"]);
+
+export function pageOwnsPeek(pathname: string): boolean {
+  const match = findRoute(sitemap, pathname.split("?")[0] ?? pathname);
+  if (!match) return false;
+  return OWN_PEEK_NODES.has(match.id) || getNode(sitemap, match.id).node.list !== undefined;
+}
+
+/**
+ * A link that opens a record in the side peek on the current page, or on the record's full page when
+ * the current page is a collection that peeks its own rows.
+ */
+export function peekHref(org: string, pathname: string, search: string, recordKey: string): string {
+  if (pageOwnsPeek(pathname)) return `/${org}/r/${encodeURIComponent(recordKey)}`;
+  const params = new URLSearchParams(search);
+  params.set("peek", recordKey);
+  params.delete("full");
+  return `${pathname}?${params.toString()}`;
+}

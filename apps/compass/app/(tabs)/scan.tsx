@@ -14,7 +14,8 @@ import {
 } from "../../src/domain/access";
 import {
   buildAccessScan,
-  buildHandOver,
+  assetScanAction,
+  buildAssetScan,
   buildIntake,
   classify,
   ContinuousScan,
@@ -195,7 +196,15 @@ function BadgeView({ grant }: { readonly grant: ScanModeGrant }): ReactElement {
   );
 }
 
-function LiveScan({ grant }: { readonly grant: ScanModeGrant }): ReactElement {
+function LiveScan({
+  grant,
+  modes,
+  onModeChange,
+}: {
+  readonly grant: ScanModeGrant;
+  readonly modes?: { value: "asset" | "receiving" | "credential"; label: string }[];
+  readonly onModeChange?: (mode: "asset" | "receiving" | "credential") => void;
+}): ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
@@ -315,13 +324,22 @@ function LiveScan({ grant }: { readonly grant: ScanModeGrant }): ReactElement {
       return;
     }
     if (resolved?.orgId && identity) {
+      const me = {
+        membershipId: identity.membershipId,
+        engagementIds: identity.engagements.map((e) => e.id),
+      };
       void enqueue(
-        buildHandOver(
+        buildAssetScan(
           {
             orgId: resolved.orgId,
+            code: found.unit.asset_tag,
             unitId: found.unit.id,
+            action: assetScanAction(found.unit, found.custody, me),
             custodianMembershipId: identity.membershipId,
-            custodianEngagementId: null,
+            custodianEngagementId:
+              identity.membershipId === null
+                ? (found.custody?.custodian_engagement_id ?? null)
+                : null,
             venueId: null,
             projectId,
             note: null,
@@ -373,6 +391,7 @@ function LiveScan({ grant }: { readonly grant: ScanModeGrant }): ReactElement {
           onDone={done}
           {...(last ? { last } : {})}
           camera={<Scanner onCode={onCode} />}
+          {...(modes && onModeChange ? { modes, onModeChange } : {})}
         />
       </View>
       <ManualEntry onCode={onCode} theme={theme} />
@@ -492,11 +511,29 @@ export default function ScanScreen(): ReactElement {
       </Screen>
     );
   }
+  // The sheet switches between asset, receiving and credential itself; lookup needs the header picker.
+  const sheetModes = grants.every((g) => g.mode !== "lookup")
+    ? grants.map((g) => ({
+        value: g.mode as "asset" | "receiving" | "credential",
+        label: t(`nav.compass.scan.${g.mode}`),
+      }))
+    : null;
   return (
     <Screen testID="scan" title={t("compass.scan.title")} scroll={false}>
-      {header}
+      {sheetModes ? (
+        <>
+          <ProjectPicker />
+          <SyncBanner />
+        </>
+      ) : (
+        header
+      )}
       <View style={{ flex: 1 }}>
-        <LiveScan key={`${active.mode}-${projectId ?? ""}`} grant={active} />
+        <LiveScan
+          key={`${active.mode}-${projectId ?? ""}`}
+          grant={active}
+          {...(sheetModes ? { modes: sheetModes, onModeChange: (m) => setMode(m) } : {})}
+        />
       </View>
     </Screen>
   );

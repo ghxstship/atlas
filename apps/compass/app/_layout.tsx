@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CompassProvider, useCompass } from "../src/runtime/CompassProvider";
+import { playHaptic } from "../src/runtime/haptics";
 import { initI18n } from "../src/runtime/i18n";
 import { BiometricLock } from "../src/screens/BiometricLock";
 import { SignIn } from "../src/screens/SignIn";
@@ -65,6 +66,7 @@ function Themed(): ReactElement {
     <ThemeProvider
       preference={settings.theme}
       systemColorScheme={scheme === "light" || scheme === "dark" ? scheme : null}
+      {...(settings.haptics ? { onHaptic: playHaptic } : {})}
     >
       <Gatekeeper />
     </ThemeProvider>

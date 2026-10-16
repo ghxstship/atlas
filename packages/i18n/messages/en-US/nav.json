@@ -22,7 +22,8 @@
         "timeline": "Timeline",
         "calendar": "Calendar",
         "milestones": "Milestones",
-        "baselines": "Baselines"
+        "baselines": "Baselines",
+        "events": "Events"
       },
       "work": {
         "allRecords": "All Records",
@@ -87,7 +88,11 @@
         "requisitions": "Requisitions",
         "offers": "Offers",
         "agreements": "Agreements",
-        "certifications": "Certifications"
+        "certifications": "Certifications",
+        "groups": "Groups",
+        "chat": "Chat",
+        "recognition": "Recognition",
+        "helpDesk": "Help Desk"
       },
       "opportunities": {
         "requisitions": "Requisitions",
@@ -140,7 +145,11 @@
       "knowledge": {
         "sops": "SOPs",
         "documents": "Documents",
-        "verbiageLibrary": "Verbiage Library"
+        "verbiageLibrary": "Verbiage Library",
+        "feed": "Feed",
+        "handbook": "Handbook",
+        "forms": "Forms",
+        "training": "Training"
       },
       "reports": {
         "gateReadiness": "Gate Readiness",
@@ -168,6 +177,12 @@
       "activity": {
         "feed": "Org Activity Feed",
         "auditLog": "Audit Log"
+      },
+      "siteOps": {
+        "occupancy": "Occupancy",
+        "weather": "Weather",
+        "guestCheckIn": "Guest Check-In",
+        "lostAndFound": "Lost and Found"
       }
     },
     "items": {
@@ -196,7 +211,8 @@
       "canon": "Canon",
       "activity": "Activity",
       "settings": "Settings",
-      "personalSettings": "Personal Settings"
+      "personalSettings": "Personal Settings",
+      "siteOps": "Site Operations"
     },
     "projectTabs": {
       "overview": "Overview",

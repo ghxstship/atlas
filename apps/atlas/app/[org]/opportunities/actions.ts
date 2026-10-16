@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { errorState, type OpportunityActionState } from "@/lib/opportunities/action-state";
+import { gatewayUrl } from "@/lib/gateway-url";
 import { parseMoney } from "@/lib/opportunities/format";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 
@@ -476,8 +477,8 @@ export const issueSigningLinkAction: Action = action(
     return {
       ok: true,
       link: {
-        // The Gateway route /sign/{token} (apps/gateway/ia/sitemap.yaml, agreement-signing) on the org's Gateway origin.
-        url: `/sign/${result.data.token}`,
+        // The Gateway route /sign/{token} (apps/gateway/ia/sitemap.yaml, agreement-signing), in full.
+        url: gatewayUrl(`/sign/${result.data.token}`),
         accessCode: result.data.accessCode,
         expiresAt: result.data.expiresAt,
       },

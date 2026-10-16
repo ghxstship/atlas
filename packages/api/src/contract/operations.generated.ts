@@ -403,6 +403,7 @@ export interface Components {
     output_tokens: number | null;
   };
   AiUsagePage: { data: Array<Components["AiUsage"]>; next_cursor: string | null };
+  AnswerHelpDeskRequest: { body: string };
   ApiKey: {
     id: string;
     org_id: string;
@@ -822,6 +823,9 @@ export interface Components {
   };
   AssetUnitPage: { data: Array<Components["AssetUnit"]>; next_cursor: string | null };
   AssetUnitUpdate: { condition_enum_id?: string | null; home_venue_id?: string | null };
+  AssignHelpDeskRequest: { assignee_membership_id: string | null; help_desk_team_id?: string };
+  AssignTrainingRequest: { membership_ids: Array<string>; due_on?: string; reason?: string };
+  AssignTrainingResult: { assigned: number };
   AuditEvent: {
     id: string;
     org_id: string;
@@ -1215,6 +1219,7 @@ export interface Components {
   CallSheetCreate: { day: string; project_id: string };
   CallSheetPage: { data: Array<Components["CallSheet"]>; next_cursor: string | null };
   CallSheetUpdate: { day?: string };
+  CancelWorkforceEventRequest: { reason: string };
   CanonAct: { ordinal: number; act_code: Components["ActCode"]; definition: string };
   CanonActPage: { data: Array<Components["CanonAct"]>; next_cursor: string | null };
   CanonAssertionRank: { rank: number; meaning: string; note: string | null };
@@ -1746,6 +1751,28 @@ export interface Components {
     reason?: string;
   };
   ChangeOrderUpdate: { title?: string; reason?: string | null; order_type_enum_id?: string | null };
+  ChatMessage: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    conversation_id: string;
+    author_membership_id: string;
+    message_kind: "Text" | "Photo" | "File" | "Voice";
+    body: string | null;
+    language: string | null;
+    edited_at: string | null;
+  };
+  ChatMessageCreate: {
+    conversation_id: string;
+    message_kind: "Text" | "Photo" | "File" | "Voice";
+    body?: string | null;
+    language?: string | null;
+  };
+  ChatMessagePage: { data: Array<Components["ChatMessage"]>; next_cursor: string | null };
+  ChatMessageUpdate: { body?: string | null };
   Classification: "Public" | "Internal" | "Confidential" | "Restricted";
   ColumnClassification: {
     table_name: string;
@@ -1789,6 +1816,7 @@ export interface Components {
   CommentThreadPage: { data: Array<Components["CommentThread"]>; next_cursor: string | null };
   CommentThreadUpdate: { anchor?: string | null; resolved_at?: string | null };
   CommentUpdate: { body?: string; source?: "App" | "Email" | "API" };
+  CompleteTrainingRequest: { answers: Record<string, number> };
   ConsentRecord: {
     id: string;
     created_at: string;
@@ -1827,6 +1855,28 @@ export interface Components {
     reason: string;
   };
   ContingencyDrawPage: { data: Array<Components["ContingencyDraw"]>; next_cursor: string | null };
+  Conversation: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    conversation_kind: "Direct" | "Group";
+    group_id: string | null;
+    direct_key: string | null;
+    last_message_at: string | null;
+  };
+  ConversationPage: { data: Array<Components["Conversation"]>; next_cursor: string | null };
+  ConversationReadReceipt: {
+    membership_id: string;
+    full_name: string;
+    last_read_at: string | null;
+  };
+  ConversationReadReceiptPage: {
+    data: Array<Components["ConversationReadReceipt"]>;
+    next_cursor: string | null;
+  };
   CoordinateMatrixCell: {
     dept_code: Components["DeptCode"];
     phase_code: Components["PhaseCode"];
@@ -2242,6 +2292,22 @@ export interface Components {
     reason?: string;
   };
   DeptCode: string;
+  DirectConversationRequest: { other_membership_id: string };
+  DirectoryEntry: {
+    membership_id: string;
+    person_id: string;
+    full_name: string;
+    preferred_name: string | null;
+    headline: string | null;
+    photo_path: string | null;
+    role_names: Array<string>;
+    on_site_now: boolean;
+    on_site_project_id: string | null;
+    on_site_since: string | null;
+    work_phone: string | null;
+    recognition_count: number | null;
+  };
+  DirectoryEntryPage: { data: Array<Components["DirectoryEntry"]>; next_cursor: string | null };
   DiscCode: string;
   DispatchAssignment: {
     id: string;
@@ -2265,6 +2331,7 @@ export interface Components {
     next_cursor: string | null;
   };
   DispatchAssignmentUpdate: { arrived_at?: string | null };
+  DisposeLostItemRequest: { reason: string };
   DockSlot: {
     id: string;
     org_id: string;
@@ -2320,6 +2387,17 @@ export interface Components {
   };
   DocumentVersionCreate: { document_id: string; storage_uri: string; checksum_sha256: string };
   DocumentVersionPage: { data: Array<Components["DocumentVersion"]>; next_cursor: string | null };
+  DoorGuest: {
+    guest_list_entry_id: string;
+    guest_name: string;
+    plus_ones: number;
+    entry_state: "Approved" | "Checked In";
+    note: string | null;
+    checked_in_at: string | null;
+    plus_ones_admitted: number | null;
+    door: string | null;
+  };
+  DoorGuestPage: { data: Array<Components["DoorGuest"]>; next_cursor: string | null };
   DsarRequest: {
     id: string;
     org_id: string;
@@ -2510,6 +2588,33 @@ export interface Components {
     to_state: "Onboarding" | "Blocked" | "Active" | "Closing" | "Complete" | "Canceled";
     reason?: string;
   };
+  EventCheckIn: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    workforce_event_id: string;
+    membership_id: string;
+    check_in_method: "Self" | "Organizer" | "Scan";
+    checked_in_at: string;
+  };
+  EventCheckInPage: { data: Array<Components["EventCheckIn"]>; next_cursor: string | null };
+  EventCheckInRequest: { membership_id?: string; method?: "Self" | "Organizer" | "Scan" };
+  EventRsvp: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    workforce_event_id: string;
+    membership_id: string;
+    response: "Going" | "Maybe" | "Declined";
+    responded_at: string;
+  };
+  EventRsvpPage: { data: Array<Components["EventRsvp"]>; next_cursor: string | null };
   Expense: {
     id: string;
     org_id: string;
@@ -2574,6 +2679,61 @@ export interface Components {
     | "Artist"
     | "Artist Representative"
     | "Sponsor";
+  FeedAcknowledgmentStatus: {
+    membership_id: string;
+    person_id: string;
+    full_name: string;
+    acknowledged_at: string | null;
+  };
+  FeedAcknowledgmentStatusPage: {
+    data: Array<Components["FeedAcknowledgmentStatus"]>;
+    next_cursor: string | null;
+  };
+  FeedPost: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    post_kind: "Announcement" | "Update" | "Poll" | "Recognition";
+    title: string | null;
+    body: string;
+    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    project_id: string | null;
+    team_id: string | null;
+    role_id: string | null;
+    group_id: string | null;
+    author_membership_id: string | null;
+    pinned_at: string | null;
+    requires_acknowledgment: boolean;
+    reactions_enabled: boolean;
+    comments_enabled: boolean;
+    publish_at: string;
+    notified_at: string | null;
+    hidden_at: string | null;
+    hidden_reason: string | null;
+  };
+  FeedPostCreate: {
+    post_kind: "Announcement" | "Update" | "Poll" | "Recognition";
+    title?: string | null;
+    body: string;
+    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    project_id?: string | null;
+    team_id?: string | null;
+    role_id?: string | null;
+    group_id?: string | null;
+    requires_acknowledgment: boolean;
+    reactions_enabled: boolean;
+    comments_enabled: boolean;
+    publish_at: string;
+  };
+  FeedPostPage: { data: Array<Components["FeedPost"]>; next_cursor: string | null };
+  FeedPostUpdate: { reactions_enabled?: boolean; comments_enabled?: boolean; publish_at?: string };
+  FeedReactionRequest: {
+    reaction_code: "thumbs_up" | "heart" | "check" | "eyes" | "laugh" | "celebrate";
+    on?: boolean;
+  };
   Fields: string;
   Filter: Record<
     string,
@@ -2589,6 +2749,95 @@ export interface Components {
       contains?: string;
     }
   >;
+  FormDecisionRequest: { approve: boolean; note?: string };
+  FormField: {
+    key: string;
+    label: string;
+    kind: "text" | "long_text" | "number" | "yes_no" | "choice" | "multi_choice" | "date" | "photo";
+    required?: boolean;
+    choices?: Array<string>;
+    points?: Record<string, number>;
+    show_if?: { key: string; equals: string | number | boolean };
+  };
+  FormSubmission: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    form_template_id: string;
+    form_template_version_id: string;
+    project_id: string | null;
+    record_id: string | null;
+    submitted_by_membership_id: string;
+    answers: Record<string, unknown>;
+    score: number | null;
+    max_score: number | null;
+    passed: boolean | null;
+    latitude: number | null;
+    longitude: number | null;
+    accuracy_m?: number | null;
+    signer_name: string | null;
+    signature_path: string | null;
+    signed_at: string | null;
+    submission_state: "Submitted" | "Approved" | "Rejected" | "Recorded";
+    decided_by_membership_id: string | null;
+    decision_note: string | null;
+  };
+  FormSubmissionCreate: {
+    form_template_id: string;
+    project_id?: string | null;
+    answers: Record<string, unknown>;
+    latitude?: number | null;
+    longitude?: number | null;
+    accuracy_m?: number | null;
+    signer_name?: string | null;
+    signature_path?: string | null;
+  };
+  FormSubmissionPage: { data: Array<Components["FormSubmission"]>; next_cursor: string | null };
+  FormTemplate: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    name: string;
+    description: string | null;
+    record_kind: string;
+    record_subtype: string | null;
+    fields: Array<Components["FormField"]>;
+    requires_signature: boolean;
+    requires_location: boolean;
+    pass_score?: number | null;
+    approver_role_id: string | null;
+    template_state: "Draft" | "Published" | "Retired";
+    current_version: number;
+  };
+  FormTemplateCreate: {
+    name: string;
+    description?: string | null;
+    record_kind: string;
+    record_subtype?: string | null;
+    fields: Array<Components["FormField"]>;
+    requires_signature: boolean;
+    requires_location: boolean;
+    pass_score?: number | null;
+    approver_role_id?: string | null;
+  };
+  FormTemplatePage: { data: Array<Components["FormTemplate"]>; next_cursor: string | null };
+  FormTemplateUpdate: {
+    name?: string;
+    description?: string | null;
+    record_kind?: string;
+    record_subtype?: string | null;
+    fields?: Array<Components["FormField"]>;
+    requires_signature?: boolean;
+    requires_location?: boolean;
+    pass_score?: number | null;
+    approver_role_id?: string | null;
+  };
   Fulfillment: {
     id: string;
     org_id: string;
@@ -2762,6 +3011,25 @@ export interface Components {
   GoodsReceiptCreate: { purchase_order_id: string; received_at?: string; note?: string | null };
   GoodsReceiptPage: { data: Array<Components["GoodsReceipt"]>; next_cursor: string | null };
   GrainCode: string;
+  GuestCheckIn: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    guest_list_entry_id: string;
+    plus_ones_admitted: number;
+    credential_id: string | null;
+    door: string | null;
+    checked_in_by_membership_id: string | null;
+  };
+  GuestCheckInCreate: {
+    guest_list_entry_id: string;
+    plus_ones_admitted: number;
+    door?: string | null;
+  };
+  GuestCheckInPage: { data: Array<Components["GuestCheckIn"]>; next_cursor: string | null };
   GuestDecisionRequest: { outcome: "Approved" | "Declined" };
   GuestListEntry: {
     id: string;
@@ -2798,6 +3066,122 @@ export interface Components {
     plus_ones?: number;
     note?: string | null;
   };
+  HandbookArticle: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    handbook_section_id: string | null;
+    title: string;
+    body: string;
+    is_mandatory: boolean;
+    article_state: "Draft" | "Published" | "Archived";
+    published_version: number;
+    published_at: string | null;
+  };
+  HandbookArticleCreate: {
+    handbook_section_id?: string | null;
+    title: string;
+    body: string;
+    is_mandatory: boolean;
+  };
+  HandbookArticlePage: { data: Array<Components["HandbookArticle"]>; next_cursor: string | null };
+  HandbookArticleUpdate: {
+    handbook_section_id?: string | null;
+    title?: string;
+    body?: string;
+    is_mandatory?: boolean;
+  };
+  HandbookSection: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    name: string;
+    position: number;
+  };
+  HandbookSectionCreate: { name: string; position: number };
+  HandbookSectionPage: { data: Array<Components["HandbookSection"]>; next_cursor: string | null };
+  HandbookSectionUpdate: { name?: string; position?: number };
+  HelpDeskAnswer: { message_id: string };
+  HelpDeskRequest: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    ticket_number: string;
+    help_desk_team_id: string;
+    category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
+    severity: "Severity 3" | "Severity 1" | "Severity 2" | "Severity 4";
+    subject: string;
+    body: string;
+    ticket_state: "Open" | "Waiting" | "Resolved" | "Closed";
+    membership_id: string;
+    assignee_membership_id: string | null;
+    help_desk_response_due_at: string | null;
+    first_responded_at: string | null;
+  };
+  HelpDeskRequestCreate: {
+    help_desk_team_id: string;
+    category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
+    severity: "Severity 3" | "Severity 1" | "Severity 2" | "Severity 4";
+    subject: string;
+    body: string;
+  };
+  HelpDeskRequestPage: { data: Array<Components["HelpDeskRequest"]>; next_cursor: string | null };
+  HelpDeskTeam: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    name: string;
+    team_kind: "Operations" | "IT" | "HR" | "Facilities" | "Other";
+    description: string | null;
+    first_response_hours: number;
+    archived_at: string | null;
+  };
+  HelpDeskTeamCreate: {
+    name: string;
+    team_kind: "Operations" | "IT" | "HR" | "Facilities" | "Other";
+    description?: string | null;
+    first_response_hours: number;
+  };
+  HelpDeskTeamMember: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    help_desk_team_id: string;
+    membership_id: string;
+  };
+  HelpDeskTeamMemberCreate: { help_desk_team_id: string; membership_id: string };
+  HelpDeskTeamMemberPage: {
+    data: Array<Components["HelpDeskTeamMember"]>;
+    next_cursor: string | null;
+  };
+  HelpDeskTeamPage: { data: Array<Components["HelpDeskTeam"]>; next_cursor: string | null };
+  HelpDeskTeamUpdate: {
+    name?: string;
+    team_kind?: "Operations" | "IT" | "HR" | "Facilities" | "Other";
+    description?: string | null;
+    first_response_hours?: number;
+  };
+  HelpDeskTransitionRequest: {
+    expected_state: "Open" | "Waiting" | "Resolved" | "Closed";
+    to_state: "Open" | "Waiting" | "Resolved" | "Closed";
+    reason: string;
+  };
+  HideFeedPostRequest: { reason: string };
   HomeSummary: {
     open_work_count: number;
     blocked_work_count: number;
@@ -3420,6 +3804,16 @@ export interface Components {
   KioskDeviceCreate: { name: string; project_id?: string | null };
   KioskDevicePage: { data: Array<Components["KioskDevice"]>; next_cursor: string | null };
   KioskDeviceUpdate: { name?: string; project_id?: string | null };
+  KnowledgeSource: {
+    source_kind: "Handbook" | "SOP" | "Training";
+    source_id: string;
+    title: string;
+    version: number | null;
+    excerpt: string;
+    route: string;
+    rank: number;
+  };
+  KnowledgeSourcePage: { data: Array<Components["KnowledgeSource"]>; next_cursor: string | null };
   Limit: number;
   LineType: string;
   ListingReport: {
@@ -3450,7 +3844,65 @@ export interface Components {
     details?: string | null;
   };
   ListingReportPage: { data: Array<Components["ListingReport"]>; next_cursor: string | null };
+  LostFoundClaim: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    lost_found_item_id: string;
+    claimant_name: string;
+    claimant_contact: string;
+    proof_description: string;
+    recorded_by_membership_id: string | null;
+    decided_by_membership_id: string | null;
+    decided_at: string | null;
+    returned: boolean | null;
+    decision_note: string | null;
+  };
+  LostFoundClaimPage: { data: Array<Components["LostFoundClaim"]>; next_cursor: string | null };
+  LostFoundItem: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    item_number: string;
+    category:
+      "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+    description: string;
+    found_at: string;
+    found_location: string;
+    storage_location: string | null;
+    logged_by_membership_id: string | null;
+    item_state: "Logged" | "Claimed" | "Returned" | "Disposed";
+  };
+  LostFoundItemCreate: {
+    project_id: string;
+    category:
+      "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+    description: string;
+    found_at: string;
+    found_location: string;
+    storage_location?: string | null;
+  };
+  LostFoundItemPage: { data: Array<Components["LostFoundItem"]>; next_cursor: string | null };
+  LostFoundItemUpdate: {
+    category?:
+      "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+    description?: string;
+    storage_location?: string | null;
+  };
+  LostItemClaimRequest: {
+    claimant_name: string;
+    claimant_contact: string;
+    proof_description: string;
+  };
   MarkAllReadResult: { updated_count: number };
+  MarkConversationReadRequest: { muted?: boolean };
   MarketplaceListing: {
     id: string;
     org_id: string;
@@ -3664,6 +4116,33 @@ export interface Components {
     granted_at: string;
   };
   OauthGrantPage: { data: Array<Components["OauthGrant"]>; next_cursor: string | null };
+  OccupancyCountRequest: { delta: number; door?: string };
+  OccupancyCounter: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    space_id: string | null;
+    name: string;
+    load_basis: "Occupant Load Factor" | "Space Capacity" | "Permit";
+    metric_domain: string | null;
+    metric_item: string | null;
+    permitted_load: number;
+    current_count: number;
+    alert_level_percent: number;
+    closed_at: string | null;
+  };
+  OccupancyCounterCreateRequest: {
+    project_id: string;
+    name: string;
+    space_id?: string;
+    metric_item?: string;
+    permitted_load?: number;
+  };
+  OccupancyCounterPage: { data: Array<Components["OccupancyCounter"]>; next_cursor: string | null };
   OffboardingChecklist: {
     id: string;
     org_id: string;
@@ -4441,6 +4920,7 @@ export interface Components {
     has_active_element: boolean | null;
   };
   PhaseCoveragePage: { data: Array<Components["PhaseCoverage"]>; next_cursor: string | null };
+  PinFeedPostRequest: { pinned: boolean };
   Plan: { code: string; sort_order: number };
   PlanPage: { data: Array<Components["Plan"]>; next_cursor: string | null };
   PoChangeOrder: {
@@ -4500,6 +4980,41 @@ export interface Components {
     unit_price_minor?: number | null;
     line_number?: number;
   };
+  Poll: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    feed_post_id: string;
+    question: string;
+    allows_multiple: boolean;
+    closes_at: string | null;
+  };
+  PollPage: { data: Array<Components["Poll"]>; next_cursor: string | null };
+  PollPostRequest: {
+    body: string;
+    title?: string;
+    audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+    project_id?: string;
+    team_id?: string;
+    role_id?: string;
+    group_id?: string;
+    question: string;
+    options: Array<string>;
+    allows_multiple?: boolean;
+    closes_at?: string;
+  };
+  PollResult: {
+    poll_option_id: string;
+    option_position: number;
+    label: string;
+    votes: number;
+    voters: number;
+  };
+  PollResultPage: { data: Array<Components["PollResult"]>; next_cursor: string | null };
+  PollVoteRequest: { option_ids: Array<string> };
   PoolLevel: "Preferred" | "Approved" | "Do Not Engage";
   PoolMember: {
     id: string;
@@ -4833,6 +5348,7 @@ export interface Components {
     client_counterparty_id?: string | null;
   };
   Provenance: string;
+  PublishArticleRequest: { change_summary?: string };
   PurchaseOrder: {
     id: string;
     org_id: string;
@@ -4985,6 +5501,27 @@ export interface Components {
   };
   ReceiptLineCreate: { goods_receipt_id: string; po_line_id: string; quantity_received: number };
   ReceiptLinePage: { data: Array<Components["ReceiptLine"]>; next_cursor: string | null };
+  Recognition: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    from_membership_id: string;
+    to_membership_id: string;
+    project_id: string | null;
+    shift_id: string | null;
+    message: string;
+    feed_post_id: string | null;
+  };
+  RecognitionCreate: {
+    to_membership_id: string;
+    project_id?: string | null;
+    shift_id?: string | null;
+    message: string;
+  };
+  RecognitionPage: { data: Array<Components["Recognition"]>; next_cursor: string | null };
   Reconciliation: {
     id: string;
     org_id: string;
@@ -5518,6 +6055,8 @@ export interface Components {
     rationale: string | null;
   };
   RetentionPolicyPage: { data: Array<Components["RetentionPolicy"]>; next_cursor: string | null };
+  RetireCourseRequest: { reason: string };
+  RetireFormRequest: { reason: string };
   Rfq: {
     id: string;
     org_id: string;
@@ -5720,6 +6259,7 @@ export interface Components {
   RoleCreate: { name?: string | null; description?: string | null; code: string; band: number };
   RolePage: { data: Array<Components["Role"]>; next_cursor: string | null };
   RoleUpdate: { name?: string | null; description?: string | null; band?: number };
+  RsvpRequest: { response: "Going" | "Maybe" | "Declined" };
   RunOfShow: {
     id: string;
     org_id: string;
@@ -5976,6 +6516,7 @@ export interface Components {
   };
   SettingValuePage: { data: Array<Components["SettingValue"]>; next_cursor: string | null };
   SettingValueUpdate: { value?: string | number | boolean };
+  SettleClaimRequest: { returned: boolean; note?: string };
   SharedState: string;
   Shift: {
     id: string;
@@ -6435,6 +6976,87 @@ export interface Components {
     to_state: "Open" | "Waiting" | "Resolved" | "Closed";
     reason?: string;
   };
+  Survey: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    title: string;
+    description: string | null;
+    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    project_id: string | null;
+    team_id: string | null;
+    role_id: string | null;
+    group_id: string | null;
+    author_membership_id: string | null;
+    is_anonymous: boolean;
+    min_responses: number;
+    survey_state: "Draft" | "Open" | "Closed";
+    closes_at: string | null;
+  };
+  SurveyDraftRequest: {
+    title: string;
+    description?: string;
+    audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+    project_id?: string;
+    team_id?: string;
+    role_id?: string;
+    group_id?: string;
+    is_anonymous?: boolean;
+    min_responses?: number;
+    closes_at?: string;
+    questions: Array<{
+      prompt: string;
+      kind: "Scale" | "Choice" | "Text";
+      choices?: Array<string>;
+      scale_max?: 5 | 10;
+      required?: boolean;
+    }>;
+  };
+  SurveyPage: { data: Array<Components["Survey"]>; next_cursor: string | null };
+  SurveyQuestion: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    survey_id: string;
+    position: number;
+    prompt: string;
+    question_kind: "Scale" | "Choice" | "Text";
+    choices: Array<string> | null;
+    scale_max: number | null;
+    is_required: boolean;
+  };
+  SurveyQuestionPage: { data: Array<Components["SurveyQuestion"]>; next_cursor: string | null };
+  SurveyResponseRequest: { answers: Record<string, string | number> };
+  SurveyResponseResult: { response_id: string | null };
+  SurveyResults: {
+    survey_id: string;
+    responses: number;
+    min_responses: number;
+    threshold_met: boolean;
+    audience: number;
+    questions: Array<{
+      question_id: string;
+      position: number;
+      prompt: string;
+      kind: "Scale" | "Choice" | "Text";
+      scale_max: number | null;
+      answered: number;
+      average: number | null;
+      counts: Record<string, number> | null;
+      texts: Array<string> | null;
+    }>;
+  };
+  SurveyTransitionRequest: {
+    expected_state: "Draft" | "Open" | "Closed";
+    to_state: "Draft" | "Open" | "Closed";
+    reason: string;
+  };
   TagId: string;
   TalentPool: {
     id: string;
@@ -6834,6 +7456,146 @@ export interface Components {
     tour_state?: "Offered" | "Started" | "Completed" | "Dismissed";
     step?: number;
   };
+  TrainingAssignment: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    training_course_id: string;
+    membership_id: string;
+    assigned_by_membership_id: string | null;
+    due_on: string | null;
+    reason: string | null;
+  };
+  TrainingAssignmentPage: {
+    data: Array<Components["TrainingAssignment"]>;
+    next_cursor: string | null;
+  };
+  TrainingCompletion: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    training_course_id: string;
+    membership_id: string;
+    score_percent: number | null;
+    passed: boolean;
+    completed_at: string;
+    expires_at: string | null;
+    certificate_number: string | null;
+    certification_holder_id: string | null;
+  };
+  TrainingCompletionPage: {
+    data: Array<Components["TrainingCompletion"]>;
+    next_cursor: string | null;
+  };
+  TrainingCourse: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    title: string;
+    summary: string | null;
+    role_code: string | null;
+    certification_id: string | null;
+    gate_criterion_id: string | null;
+    validity_days: number | null;
+    pass_percent: number;
+    estimated_minutes: number | null;
+    course_state: "Draft" | "Published" | "Retired";
+  };
+  TrainingCourseCreate: {
+    title: string;
+    summary?: string | null;
+    role_code?: string | null;
+    certification_id?: string | null;
+    gate_criterion_id?: string | null;
+    validity_days?: number | null;
+    pass_percent: number;
+    estimated_minutes?: number | null;
+  };
+  TrainingCoursePage: { data: Array<Components["TrainingCourse"]>; next_cursor: string | null };
+  TrainingCourseUpdate: {
+    title?: string;
+    summary?: string | null;
+    role_code?: string | null;
+    certification_id?: string | null;
+    gate_criterion_id?: string | null;
+    validity_days?: number | null;
+    pass_percent?: number;
+    estimated_minutes?: number | null;
+  };
+  TrainingLesson: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    training_course_id: string;
+    position: number;
+    title: string;
+    lesson_kind: "Reading" | "Video" | "Quiz";
+    body: string | null;
+    video_url: string | null;
+  };
+  TrainingLessonCreate: {
+    training_course_id: string;
+    position: number;
+    title: string;
+    lesson_kind: "Reading" | "Video" | "Quiz";
+    body?: string | null;
+    video_url?: string | null;
+  };
+  TrainingLessonPage: { data: Array<Components["TrainingLesson"]>; next_cursor: string | null };
+  TrainingLessonUpdate: {
+    position?: number;
+    title?: string;
+    body?: string | null;
+    video_url?: string | null;
+  };
+  TrainingQuizKey: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    training_quiz_question_id: string;
+    correct_option: number;
+  };
+  TrainingQuizKeyCreate: { training_quiz_question_id: string; correct_option: number };
+  TrainingQuizKeyPage: { data: Array<Components["TrainingQuizKey"]>; next_cursor: string | null };
+  TrainingQuizKeyUpdate: { correct_option?: number };
+  TrainingQuizQuestion: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    training_lesson_id: string;
+    position: number;
+    prompt: string;
+    options: Array<string>;
+  };
+  TrainingQuizQuestionCreate: {
+    training_lesson_id: string;
+    position: number;
+    prompt: string;
+    options: Array<string>;
+  };
+  TrainingQuizQuestionPage: {
+    data: Array<Components["TrainingQuizQuestion"]>;
+    next_cursor: string | null;
+  };
+  TrainingQuizQuestionUpdate: { position?: number; prompt?: string; options?: Array<string> };
   TrashItem: {
     subject_urn: string;
     deleted_at: string;
@@ -7185,6 +7947,84 @@ export interface Components {
     effective_to?: string | null;
     source?: string;
   };
+  WeatherAlert: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    hazard: "Wind" | "Lightning" | "Heat";
+    alert_level: "Monitor" | "Restrict" | "Evacuate";
+    weather_reading_id: string;
+    issued_at: string;
+    cleared_at: string | null;
+  };
+  WeatherAlertPage: { data: Array<Components["WeatherAlert"]>; next_cursor: string | null };
+  WeatherAlertRole: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    alert_level: "Monitor" | "Restrict" | "Evacuate";
+    role_code: string;
+  };
+  WeatherAlertRoleCreate: {
+    project_id: string;
+    alert_level: "Monitor" | "Restrict" | "Evacuate";
+    role_code: string;
+  };
+  WeatherAlertRolePage: { data: Array<Components["WeatherAlertRole"]>; next_cursor: string | null };
+  WeatherReading: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    hazard: "Wind" | "Lightning" | "Heat";
+    reading_value: number;
+    observed_at: string;
+    recorded_by_membership_id: string | null;
+  };
+  WeatherReadingCreate: {
+    project_id: string;
+    hazard: "Wind" | "Lightning" | "Heat";
+    reading_value: number;
+    observed_at: string;
+  };
+  WeatherReadingPage: { data: Array<Components["WeatherReading"]>; next_cursor: string | null };
+  WeatherThreshold: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    hazard: "Wind" | "Lightning" | "Heat";
+    alert_level: "Monitor" | "Restrict" | "Evacuate";
+    threshold_value: number;
+    unit: "mph" | "mi" | "F";
+    comparison: "At or Above" | "At or Below";
+    source_note: string;
+  };
+  WeatherThresholdCreate: {
+    project_id: string;
+    hazard: "Wind" | "Lightning" | "Heat";
+    alert_level: "Monitor" | "Restrict" | "Evacuate";
+    threshold_value: number;
+    unit: "mph" | "mi" | "F";
+    comparison: "At or Above" | "At or Below";
+    source_note: string;
+  };
+  WeatherThresholdPage: { data: Array<Components["WeatherThreshold"]>; next_cursor: string | null };
+  WeatherThresholdUpdate: { threshold_value?: number; source_note?: string };
   WebhookDelivery: {
     id: string;
     org_id: string;
@@ -7285,6 +8125,102 @@ export interface Components {
     budget_minor?: number | null;
     currency?: string;
   };
+  WorkforceEvent: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    event_kind: "Briefing" | "Crew Call" | "Meeting";
+    title: string;
+    agenda: string | null;
+    location: string | null;
+    venue_id: string | null;
+    space_id: string | null;
+    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    project_id: string | null;
+    team_id: string | null;
+    role_id: string | null;
+    group_id: string | null;
+    organizer_membership_id: string | null;
+    starts_at: string;
+    ends_at: string;
+    rsvp_required: boolean;
+    canceled_at: string | null;
+    cancel_reason: string | null;
+  };
+  WorkforceEventCreate: {
+    event_kind: "Briefing" | "Crew Call" | "Meeting";
+    title: string;
+    agenda?: string | null;
+    location?: string | null;
+    venue_id?: string | null;
+    space_id?: string | null;
+    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    project_id?: string | null;
+    team_id?: string | null;
+    role_id?: string | null;
+    group_id?: string | null;
+    starts_at: string;
+    ends_at: string;
+    rsvp_required: boolean;
+  };
+  WorkforceEventPage: { data: Array<Components["WorkforceEvent"]>; next_cursor: string | null };
+  WorkforceEventUpdate: {
+    event_kind?: "Briefing" | "Crew Call" | "Meeting";
+    title?: string;
+    agenda?: string | null;
+    location?: string | null;
+    venue_id?: string | null;
+    space_id?: string | null;
+    project_id?: string | null;
+    starts_at?: string;
+    ends_at?: string;
+    rsvp_required?: boolean;
+  };
+  WorkforceGroup: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    name: string;
+    group_kind: "Department" | "Project" | "Crew" | "Custom";
+    project_id: string | null;
+    description: string | null;
+    archived_at: string | null;
+  };
+  WorkforceGroupCreate: {
+    name: string;
+    group_kind: "Department" | "Project" | "Crew" | "Custom";
+    project_id?: string | null;
+    description?: string | null;
+  };
+  WorkforceGroupMember: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    group_id: string;
+    membership_id: string;
+    group_role: "Member" | "Owner";
+  };
+  WorkforceGroupMemberCreate: {
+    group_id: string;
+    membership_id: string;
+    group_role: "Member" | "Owner";
+  };
+  WorkforceGroupMemberPage: {
+    data: Array<Components["WorkforceGroupMember"]>;
+    next_cursor: string | null;
+  };
+  WorkforceGroupPage: { data: Array<Components["WorkforceGroup"]>; next_cursor: string | null };
+  WorkforceGroupUpdate: { name?: string; description?: string | null };
+  WorkforceLedgerEntry: { ledger_id: string };
   Workspace: {
     id: string;
     org_id: string;
@@ -21739,6 +22675,1572 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "workforceGroups.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/groups";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WorkforceGroupPage"] };
+  };
+  "workforceGroups.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/groups";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WorkforceGroupCreate"];
+    responses: { 201: Components["WorkforceGroup"] };
+  };
+  "workforceGroups.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/groups/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WorkforceGroup"] };
+  };
+  "workforceGroups.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/groups/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["WorkforceGroupUpdate"];
+    responses: { 200: Components["WorkforceGroup"] };
+  };
+  "workforceGroups.archive": {
+    module: "Workforce";
+    method: "post";
+    path: "/groups/{id}/archive";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["WorkforceGroup"] };
+  };
+  "workforceGroupMembers.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/group-members";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WorkforceGroupMemberPage"] };
+  };
+  "workforceGroupMembers.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/group-members";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WorkforceGroupMemberCreate"];
+    responses: { 201: Components["WorkforceGroupMember"] };
+  };
+  "workforceGroupMembers.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/group-members/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WorkforceGroupMember"] };
+  };
+  "workforceGroupMembers.delete": {
+    module: "Workforce";
+    method: "delete";
+    path: "/group-members/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "conversations.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/conversations";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ConversationPage"] };
+  };
+  "conversations.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/conversations/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Conversation"] };
+  };
+  "conversations.startDirect": {
+    module: "Workforce";
+    method: "post";
+    path: "/conversations/start-direct";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["DirectConversationRequest"];
+    responses: { 200: Components["Conversation"] };
+  };
+  "conversations.markRead": {
+    module: "Workforce";
+    method: "post";
+    path: "/conversations/{id}/mark-read";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["MarkConversationReadRequest"];
+    responses: { 200: Components["Conversation"] };
+  };
+  "conversations.readReceipts": {
+    module: "Workforce";
+    method: "get";
+    path: "/conversations/{id}/read-receipts";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ConversationReadReceiptPage"] };
+  };
+  "chatMessages.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/chat-messages";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ChatMessagePage"] };
+  };
+  "chatMessages.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/chat-messages";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ChatMessageCreate"];
+    responses: { 201: Components["ChatMessage"] };
+  };
+  "chatMessages.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/chat-messages/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ChatMessage"] };
+  };
+  "chatMessages.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/chat-messages/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ChatMessageUpdate"];
+    responses: { 200: Components["ChatMessage"] };
+  };
+  "chatMessages.delete": {
+    module: "Workforce";
+    method: "delete";
+    path: "/chat-messages/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "directoryEntries.search": {
+    module: "Workforce";
+    method: "get";
+    path: "/directory-entries/search";
+    params: Record<string, never>;
+    query: { q?: string; on_site?: "true" | "false" };
+    body: undefined;
+    responses: { 200: Components["DirectoryEntryPage"] };
+  };
+  "feedPosts.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/feed-posts";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["FeedPostPage"] };
+  };
+  "feedPosts.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/feed-posts";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["FeedPostCreate"];
+    responses: { 201: Components["FeedPost"] };
+  };
+  "feedPosts.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/feed-posts/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["FeedPost"] };
+  };
+  "feedPosts.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/feed-posts/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["FeedPostUpdate"];
+    responses: { 200: Components["FeedPost"] };
+  };
+  "feedPosts.createPoll": {
+    module: "Workforce";
+    method: "post";
+    path: "/feed-posts/create-poll";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["PollPostRequest"];
+    responses: { 201: Components["FeedPost"] };
+  };
+  "feedPosts.pin": {
+    module: "Workforce";
+    method: "post";
+    path: "/feed-posts/{id}/pin";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PinFeedPostRequest"];
+    responses: { 200: Components["FeedPost"] };
+  };
+  "feedPosts.hide": {
+    module: "Workforce";
+    method: "post";
+    path: "/feed-posts/{id}/hide";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["HideFeedPostRequest"];
+    responses: { 200: Components["FeedPost"] };
+  };
+  "feedPosts.acknowledge": {
+    module: "Workforce";
+    method: "post";
+    path: "/feed-posts/{id}/acknowledge";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["FeedPost"] };
+  };
+  "feedPosts.react": {
+    module: "Workforce";
+    method: "post";
+    path: "/feed-posts/{id}/react";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["FeedReactionRequest"];
+    responses: { 200: Components["FeedPost"] };
+  };
+  "feedPosts.acknowledgments": {
+    module: "Workforce";
+    method: "get";
+    path: "/feed-posts/{id}/acknowledgments";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["FeedAcknowledgmentStatusPage"] };
+  };
+  "polls.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/polls";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["PollPage"] };
+  };
+  "polls.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/polls/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Poll"] };
+  };
+  "polls.vote": {
+    module: "Workforce";
+    method: "post";
+    path: "/polls/{id}/vote";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PollVoteRequest"];
+    responses: { 200: Components["Poll"] };
+  };
+  "polls.results": {
+    module: "Workforce";
+    method: "get";
+    path: "/polls/{id}/results";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["PollResultPage"] };
+  };
+  "surveys.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/surveys";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SurveyPage"] };
+  };
+  "surveys.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/surveys/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Survey"] };
+  };
+  "surveys.draft": {
+    module: "Workforce";
+    method: "post";
+    path: "/surveys/draft";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SurveyDraftRequest"];
+    responses: { 201: Components["Survey"] };
+  };
+  "surveys.transition": {
+    module: "Workforce";
+    method: "post";
+    path: "/surveys/{id}/transition";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SurveyTransitionRequest"];
+    responses: { 200: Components["WorkforceLedgerEntry"] };
+  };
+  "surveys.respond": {
+    module: "Workforce";
+    method: "post";
+    path: "/surveys/{id}/respond";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SurveyResponseRequest"];
+    responses: { 200: Components["SurveyResponseResult"] };
+  };
+  "surveys.results": {
+    module: "Workforce";
+    method: "get";
+    path: "/surveys/{id}/results";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["SurveyResults"] };
+  };
+  "surveyQuestions.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/survey-questions";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SurveyQuestionPage"] };
+  };
+  "surveyQuestions.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/survey-questions/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SurveyQuestion"] };
+  };
+  "recognitions.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/recognitions";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["RecognitionPage"] };
+  };
+  "recognitions.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/recognitions";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["RecognitionCreate"];
+    responses: { 201: Components["Recognition"] };
+  };
+  "recognitions.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/recognitions/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Recognition"] };
+  };
+  "workforceEvents.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/workforce-events";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WorkforceEventPage"] };
+  };
+  "workforceEvents.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/workforce-events";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WorkforceEventCreate"];
+    responses: { 201: Components["WorkforceEvent"] };
+  };
+  "workforceEvents.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/workforce-events/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WorkforceEvent"] };
+  };
+  "workforceEvents.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/workforce-events/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["WorkforceEventUpdate"];
+    responses: { 200: Components["WorkforceEvent"] };
+  };
+  "workforceEvents.cancel": {
+    module: "Workforce";
+    method: "post";
+    path: "/workforce-events/{id}/cancel";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["CancelWorkforceEventRequest"];
+    responses: { 200: Components["WorkforceEvent"] };
+  };
+  "workforceEvents.rsvp": {
+    module: "Workforce";
+    method: "post";
+    path: "/workforce-events/{id}/rsvp";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["RsvpRequest"];
+    responses: { 200: Components["EventRsvp"] };
+  };
+  "workforceEvents.checkIn": {
+    module: "Workforce";
+    method: "post";
+    path: "/workforce-events/{id}/check-in";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["EventCheckInRequest"];
+    responses: { 200: Components["EventCheckIn"] };
+  };
+  "eventRsvps.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/event-rsvps";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["EventRsvpPage"] };
+  };
+  "eventRsvps.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/event-rsvps/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["EventRsvp"] };
+  };
+  "eventCheckIns.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/event-check-ins";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["EventCheckInPage"] };
+  };
+  "eventCheckIns.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/event-check-ins/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["EventCheckIn"] };
+  };
+  "formTemplates.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/form-templates";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["FormTemplatePage"] };
+  };
+  "formTemplates.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/form-templates";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["FormTemplateCreate"];
+    responses: { 201: Components["FormTemplate"] };
+  };
+  "formTemplates.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/form-templates/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["FormTemplate"] };
+  };
+  "formTemplates.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/form-templates/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["FormTemplateUpdate"];
+    responses: { 200: Components["FormTemplate"] };
+  };
+  "formTemplates.publish": {
+    module: "Workforce";
+    method: "post";
+    path: "/form-templates/{id}/publish";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["FormTemplate"] };
+  };
+  "formTemplates.retire": {
+    module: "Workforce";
+    method: "post";
+    path: "/form-templates/{id}/retire";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["RetireFormRequest"];
+    responses: { 200: Components["FormTemplate"] };
+  };
+  "formSubmissions.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/form-submissions";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["FormSubmissionPage"] };
+  };
+  "formSubmissions.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/form-submissions";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["FormSubmissionCreate"];
+    responses: { 201: Components["FormSubmission"] };
+  };
+  "formSubmissions.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/form-submissions/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["FormSubmission"] };
+  };
+  "formSubmissions.decide": {
+    module: "Workforce";
+    method: "post";
+    path: "/form-submissions/{id}/decide";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["FormDecisionRequest"];
+    responses: { 200: Components["FormSubmission"] };
+  };
+  "trainingCourses.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-courses";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TrainingCoursePage"] };
+  };
+  "trainingCourses.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/training-courses";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TrainingCourseCreate"];
+    responses: { 201: Components["TrainingCourse"] };
+  };
+  "trainingCourses.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-courses/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TrainingCourse"] };
+  };
+  "trainingCourses.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/training-courses/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["TrainingCourseUpdate"];
+    responses: { 200: Components["TrainingCourse"] };
+  };
+  "trainingCourses.publish": {
+    module: "Workforce";
+    method: "post";
+    path: "/training-courses/{id}/publish";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["TrainingCourse"] };
+  };
+  "trainingCourses.retire": {
+    module: "Workforce";
+    method: "post";
+    path: "/training-courses/{id}/retire";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["RetireCourseRequest"];
+    responses: { 200: Components["TrainingCourse"] };
+  };
+  "trainingCourses.assign": {
+    module: "Workforce";
+    method: "post";
+    path: "/training-courses/{id}/assign";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AssignTrainingRequest"];
+    responses: { 200: Components["AssignTrainingResult"] };
+  };
+  "trainingCourses.complete": {
+    module: "Workforce";
+    method: "post";
+    path: "/training-courses/{id}/complete";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["CompleteTrainingRequest"];
+    responses: { 200: Components["TrainingCompletion"] };
+  };
+  "trainingLessons.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-lessons";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TrainingLessonPage"] };
+  };
+  "trainingLessons.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/training-lessons";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TrainingLessonCreate"];
+    responses: { 201: Components["TrainingLesson"] };
+  };
+  "trainingLessons.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-lessons/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TrainingLesson"] };
+  };
+  "trainingLessons.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/training-lessons/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["TrainingLessonUpdate"];
+    responses: { 200: Components["TrainingLesson"] };
+  };
+  "trainingLessons.delete": {
+    module: "Workforce";
+    method: "delete";
+    path: "/training-lessons/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "trainingLessons.complete": {
+    module: "Workforce";
+    method: "post";
+    path: "/training-lessons/{id}/complete";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["TrainingLesson"] };
+  };
+  "trainingQuizQuestions.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-quiz-questions";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TrainingQuizQuestionPage"] };
+  };
+  "trainingQuizQuestions.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/training-quiz-questions";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TrainingQuizQuestionCreate"];
+    responses: { 201: Components["TrainingQuizQuestion"] };
+  };
+  "trainingQuizQuestions.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-quiz-questions/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TrainingQuizQuestion"] };
+  };
+  "trainingQuizQuestions.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/training-quiz-questions/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["TrainingQuizQuestionUpdate"];
+    responses: { 200: Components["TrainingQuizQuestion"] };
+  };
+  "trainingQuizKeys.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-quiz-keys";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TrainingQuizKeyPage"] };
+  };
+  "trainingQuizKeys.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/training-quiz-keys";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TrainingQuizKeyCreate"];
+    responses: { 201: Components["TrainingQuizKey"] };
+  };
+  "trainingQuizKeys.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-quiz-keys/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TrainingQuizKey"] };
+  };
+  "trainingQuizKeys.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/training-quiz-keys/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["TrainingQuizKeyUpdate"];
+    responses: { 200: Components["TrainingQuizKey"] };
+  };
+  "trainingAssignments.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-assignments";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TrainingAssignmentPage"] };
+  };
+  "trainingAssignments.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-assignments/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TrainingAssignment"] };
+  };
+  "trainingAssignments.delete": {
+    module: "Workforce";
+    method: "delete";
+    path: "/training-assignments/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "trainingCompletions.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-completions";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TrainingCompletionPage"] };
+  };
+  "trainingCompletions.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/training-completions/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TrainingCompletion"] };
+  };
+  "trainingCompletions.issueCertification": {
+    module: "Workforce";
+    method: "post";
+    path: "/training-completions/{id}/issue-certification";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["TrainingCompletion"] };
+  };
+  "handbookSections.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/handbook-sections";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["HandbookSectionPage"] };
+  };
+  "handbookSections.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/handbook-sections";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["HandbookSectionCreate"];
+    responses: { 201: Components["HandbookSection"] };
+  };
+  "handbookSections.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/handbook-sections/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["HandbookSection"] };
+  };
+  "handbookSections.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/handbook-sections/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["HandbookSectionUpdate"];
+    responses: { 200: Components["HandbookSection"] };
+  };
+  "handbookArticles.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/handbook-articles";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["HandbookArticlePage"] };
+  };
+  "handbookArticles.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/handbook-articles";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["HandbookArticleCreate"];
+    responses: { 201: Components["HandbookArticle"] };
+  };
+  "handbookArticles.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/handbook-articles/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["HandbookArticle"] };
+  };
+  "handbookArticles.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/handbook-articles/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["HandbookArticleUpdate"];
+    responses: { 200: Components["HandbookArticle"] };
+  };
+  "handbookArticles.publish": {
+    module: "Workforce";
+    method: "post";
+    path: "/handbook-articles/{id}/publish";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PublishArticleRequest"];
+    responses: { 200: Components["HandbookArticle"] };
+  };
+  "handbookArticles.acknowledge": {
+    module: "Workforce";
+    method: "post";
+    path: "/handbook-articles/{id}/acknowledge";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["HandbookArticle"] };
+  };
+  "handbookArticles.archive": {
+    module: "Workforce";
+    method: "post";
+    path: "/handbook-articles/{id}/archive";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["HandbookArticle"] };
+  };
+  "knowledgeSources.search": {
+    module: "Workforce";
+    method: "get";
+    path: "/knowledge-sources/search";
+    params: Record<string, never>;
+    query: { q: string; limit?: number };
+    body: undefined;
+    responses: { 200: Components["KnowledgeSourcePage"] };
+  };
+  "helpDeskTeams.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/help-desk-teams";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["HelpDeskTeamPage"] };
+  };
+  "helpDeskTeams.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/help-desk-teams";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["HelpDeskTeamCreate"];
+    responses: { 201: Components["HelpDeskTeam"] };
+  };
+  "helpDeskTeams.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/help-desk-teams/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["HelpDeskTeam"] };
+  };
+  "helpDeskTeams.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/help-desk-teams/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["HelpDeskTeamUpdate"];
+    responses: { 200: Components["HelpDeskTeam"] };
+  };
+  "helpDeskTeams.archive": {
+    module: "Workforce";
+    method: "post";
+    path: "/help-desk-teams/{id}/archive";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["HelpDeskTeam"] };
+  };
+  "helpDeskTeamMembers.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/help-desk-team-members";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["HelpDeskTeamMemberPage"] };
+  };
+  "helpDeskTeamMembers.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/help-desk-team-members";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["HelpDeskTeamMemberCreate"];
+    responses: { 201: Components["HelpDeskTeamMember"] };
+  };
+  "helpDeskTeamMembers.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/help-desk-team-members/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["HelpDeskTeamMember"] };
+  };
+  "helpDeskTeamMembers.delete": {
+    module: "Workforce";
+    method: "delete";
+    path: "/help-desk-team-members/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "helpDeskRequests.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/help-desk-requests";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["HelpDeskRequestPage"] };
+  };
+  "helpDeskRequests.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/help-desk-requests";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["HelpDeskRequestCreate"];
+    responses: { 201: Components["HelpDeskRequest"] };
+  };
+  "helpDeskRequests.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/help-desk-requests/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["HelpDeskRequest"] };
+  };
+  "helpDeskRequests.assign": {
+    module: "Workforce";
+    method: "post";
+    path: "/help-desk-requests/{id}/assign";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AssignHelpDeskRequest"];
+    responses: { 200: Components["HelpDeskRequest"] };
+  };
+  "helpDeskRequests.answer": {
+    module: "Workforce";
+    method: "post";
+    path: "/help-desk-requests/{id}/answer";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AnswerHelpDeskRequest"];
+    responses: { 201: Components["HelpDeskAnswer"] };
+  };
+  "helpDeskRequests.transition": {
+    module: "Workforce";
+    method: "post";
+    path: "/help-desk-requests/{id}/transition";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["HelpDeskTransitionRequest"];
+    responses: { 200: Components["WorkforceLedgerEntry"] };
+  };
+  "occupancyCounters.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/occupancy-counters";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["OccupancyCounterPage"] };
+  };
+  "occupancyCounters.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/occupancy-counters/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["OccupancyCounter"] };
+  };
+  "occupancyCounters.setUp": {
+    module: "Workforce";
+    method: "post";
+    path: "/occupancy-counters/set-up";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["OccupancyCounterCreateRequest"];
+    responses: { 201: Components["OccupancyCounter"] };
+  };
+  "occupancyCounters.count": {
+    module: "Workforce";
+    method: "post";
+    path: "/occupancy-counters/{id}/count";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["OccupancyCountRequest"];
+    responses: { 200: Components["OccupancyCounter"] };
+  };
+  "occupancyCounters.close": {
+    module: "Workforce";
+    method: "post";
+    path: "/occupancy-counters/{id}/close";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OccupancyCounter"] };
+  };
+  "weatherThresholds.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-thresholds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WeatherThresholdPage"] };
+  };
+  "weatherThresholds.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/weather-thresholds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WeatherThresholdCreate"];
+    responses: { 201: Components["WeatherThreshold"] };
+  };
+  "weatherThresholds.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-thresholds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WeatherThreshold"] };
+  };
+  "weatherThresholds.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/weather-thresholds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["WeatherThresholdUpdate"];
+    responses: { 200: Components["WeatherThreshold"] };
+  };
+  "weatherAlertRoles.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-alert-roles";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WeatherAlertRolePage"] };
+  };
+  "weatherAlertRoles.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/weather-alert-roles";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WeatherAlertRoleCreate"];
+    responses: { 201: Components["WeatherAlertRole"] };
+  };
+  "weatherAlertRoles.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-alert-roles/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WeatherAlertRole"] };
+  };
+  "weatherAlertRoles.delete": {
+    module: "Workforce";
+    method: "delete";
+    path: "/weather-alert-roles/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "weatherReadings.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-readings";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WeatherReadingPage"] };
+  };
+  "weatherReadings.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/weather-readings";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WeatherReadingCreate"];
+    responses: { 201: Components["WeatherReading"] };
+  };
+  "weatherReadings.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-readings/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WeatherReading"] };
+  };
+  "weatherAlerts.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-alerts";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WeatherAlertPage"] };
+  };
+  "weatherAlerts.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/weather-alerts/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WeatherAlert"] };
+  };
+  "guestCheckIns.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/guest-check-ins";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["GuestCheckInPage"] };
+  };
+  "guestCheckIns.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/guest-check-ins";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["GuestCheckInCreate"];
+    responses: { 201: Components["GuestCheckIn"] };
+  };
+  "guestCheckIns.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/guest-check-ins/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["GuestCheckIn"] };
+  };
+  "guestCheckIns.doorList": {
+    module: "Workforce";
+    method: "get";
+    path: "/guest-check-ins/door-list";
+    params: Record<string, never>;
+    query: { project_id: string; q?: string };
+    body: undefined;
+    responses: { 200: Components["DoorGuestPage"] };
+  };
+  "lostFoundItems.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/lost-found-items";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["LostFoundItemPage"] };
+  };
+  "lostFoundItems.create": {
+    module: "Workforce";
+    method: "post";
+    path: "/lost-found-items";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["LostFoundItemCreate"];
+    responses: { 201: Components["LostFoundItem"] };
+  };
+  "lostFoundItems.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/lost-found-items/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["LostFoundItem"] };
+  };
+  "lostFoundItems.update": {
+    module: "Workforce";
+    method: "patch";
+    path: "/lost-found-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["LostFoundItemUpdate"];
+    responses: { 200: Components["LostFoundItem"] };
+  };
+  "lostFoundItems.claim": {
+    module: "Workforce";
+    method: "post";
+    path: "/lost-found-items/{id}/claim";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["LostItemClaimRequest"];
+    responses: { 201: Components["LostFoundClaim"] };
+  };
+  "lostFoundItems.dispose": {
+    module: "Workforce";
+    method: "post";
+    path: "/lost-found-items/{id}/dispose";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["DisposeLostItemRequest"];
+    responses: { 200: Components["LostFoundItem"] };
+  };
+  "lostFoundClaims.list": {
+    module: "Workforce";
+    method: "get";
+    path: "/lost-found-claims";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["LostFoundClaimPage"] };
+  };
+  "lostFoundClaims.get": {
+    module: "Workforce";
+    method: "get";
+    path: "/lost-found-claims/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["LostFoundClaim"] };
+  };
+  "lostFoundClaims.settle": {
+    module: "Workforce";
+    method: "post";
+    path: "/lost-found-claims/{id}/settle";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SettleClaimRequest"];
+    responses: { 200: Components["LostFoundClaim"] };
+  };
 }
 
 /** The operationIds of each module. */
@@ -23138,4 +25640,157 @@ export interface ModuleOperations {
     | "templateItems.get"
     | "templateItems.update"
     | "templateItems.delete";
+  Workforce:
+    | "workforceGroups.list"
+    | "workforceGroups.create"
+    | "workforceGroups.get"
+    | "workforceGroups.update"
+    | "workforceGroups.archive"
+    | "workforceGroupMembers.list"
+    | "workforceGroupMembers.create"
+    | "workforceGroupMembers.get"
+    | "workforceGroupMembers.delete"
+    | "conversations.list"
+    | "conversations.get"
+    | "conversations.startDirect"
+    | "conversations.markRead"
+    | "conversations.readReceipts"
+    | "chatMessages.list"
+    | "chatMessages.create"
+    | "chatMessages.get"
+    | "chatMessages.update"
+    | "chatMessages.delete"
+    | "directoryEntries.search"
+    | "feedPosts.list"
+    | "feedPosts.create"
+    | "feedPosts.get"
+    | "feedPosts.update"
+    | "feedPosts.createPoll"
+    | "feedPosts.pin"
+    | "feedPosts.hide"
+    | "feedPosts.acknowledge"
+    | "feedPosts.react"
+    | "feedPosts.acknowledgments"
+    | "polls.list"
+    | "polls.get"
+    | "polls.vote"
+    | "polls.results"
+    | "surveys.list"
+    | "surveys.get"
+    | "surveys.draft"
+    | "surveys.transition"
+    | "surveys.respond"
+    | "surveys.results"
+    | "surveyQuestions.list"
+    | "surveyQuestions.get"
+    | "recognitions.list"
+    | "recognitions.create"
+    | "recognitions.get"
+    | "workforceEvents.list"
+    | "workforceEvents.create"
+    | "workforceEvents.get"
+    | "workforceEvents.update"
+    | "workforceEvents.cancel"
+    | "workforceEvents.rsvp"
+    | "workforceEvents.checkIn"
+    | "eventRsvps.list"
+    | "eventRsvps.get"
+    | "eventCheckIns.list"
+    | "eventCheckIns.get"
+    | "formTemplates.list"
+    | "formTemplates.create"
+    | "formTemplates.get"
+    | "formTemplates.update"
+    | "formTemplates.publish"
+    | "formTemplates.retire"
+    | "formSubmissions.list"
+    | "formSubmissions.create"
+    | "formSubmissions.get"
+    | "formSubmissions.decide"
+    | "trainingCourses.list"
+    | "trainingCourses.create"
+    | "trainingCourses.get"
+    | "trainingCourses.update"
+    | "trainingCourses.publish"
+    | "trainingCourses.retire"
+    | "trainingCourses.assign"
+    | "trainingCourses.complete"
+    | "trainingLessons.list"
+    | "trainingLessons.create"
+    | "trainingLessons.get"
+    | "trainingLessons.update"
+    | "trainingLessons.delete"
+    | "trainingLessons.complete"
+    | "trainingQuizQuestions.list"
+    | "trainingQuizQuestions.create"
+    | "trainingQuizQuestions.get"
+    | "trainingQuizQuestions.update"
+    | "trainingQuizKeys.list"
+    | "trainingQuizKeys.create"
+    | "trainingQuizKeys.get"
+    | "trainingQuizKeys.update"
+    | "trainingAssignments.list"
+    | "trainingAssignments.get"
+    | "trainingAssignments.delete"
+    | "trainingCompletions.list"
+    | "trainingCompletions.get"
+    | "trainingCompletions.issueCertification"
+    | "handbookSections.list"
+    | "handbookSections.create"
+    | "handbookSections.get"
+    | "handbookSections.update"
+    | "handbookArticles.list"
+    | "handbookArticles.create"
+    | "handbookArticles.get"
+    | "handbookArticles.update"
+    | "handbookArticles.publish"
+    | "handbookArticles.acknowledge"
+    | "handbookArticles.archive"
+    | "knowledgeSources.search"
+    | "helpDeskTeams.list"
+    | "helpDeskTeams.create"
+    | "helpDeskTeams.get"
+    | "helpDeskTeams.update"
+    | "helpDeskTeams.archive"
+    | "helpDeskTeamMembers.list"
+    | "helpDeskTeamMembers.create"
+    | "helpDeskTeamMembers.get"
+    | "helpDeskTeamMembers.delete"
+    | "helpDeskRequests.list"
+    | "helpDeskRequests.create"
+    | "helpDeskRequests.get"
+    | "helpDeskRequests.assign"
+    | "helpDeskRequests.answer"
+    | "helpDeskRequests.transition"
+    | "occupancyCounters.list"
+    | "occupancyCounters.get"
+    | "occupancyCounters.setUp"
+    | "occupancyCounters.count"
+    | "occupancyCounters.close"
+    | "weatherThresholds.list"
+    | "weatherThresholds.create"
+    | "weatherThresholds.get"
+    | "weatherThresholds.update"
+    | "weatherAlertRoles.list"
+    | "weatherAlertRoles.create"
+    | "weatherAlertRoles.get"
+    | "weatherAlertRoles.delete"
+    | "weatherReadings.list"
+    | "weatherReadings.create"
+    | "weatherReadings.get"
+    | "weatherAlerts.list"
+    | "weatherAlerts.get"
+    | "guestCheckIns.list"
+    | "guestCheckIns.create"
+    | "guestCheckIns.get"
+    | "guestCheckIns.doorList"
+    | "lostFoundItems.list"
+    | "lostFoundItems.create"
+    | "lostFoundItems.get"
+    | "lostFoundItems.update"
+    | "lostFoundItems.claim"
+    | "lostFoundItems.dispose"
+    | "lostFoundClaims.list"
+    | "lostFoundClaims.get"
+    | "lostFoundClaims.settle";
 }

@@ -28,6 +28,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import type { CrewActionState } from "@/lib/crew/action-state";
+import { gatewayUrl } from "@/lib/gateway-url";
 import { errorMessage } from "@/lib/crew/errors";
 import { toMinor } from "@/lib/crew/money";
 import { getOrgContext } from "@/lib/shell/context";
@@ -319,11 +320,10 @@ export async function sendAgreementAction(_: State, form: FormData): Promise<Sta
   if (!result.ok) return failed(t, result.error);
   // No revalidation here: the dialog keeps the one-time link and code on screen and refreshes the
   // page when it closes.
-  const gateway = process.env["GATEWAY_SITE_URL"] ?? "";
   return {
     ok: true,
     signing: {
-      link: `${gateway}/sign/${result.data.signingToken}`,
+      link: gatewayUrl(`/sign/${result.data.signingToken}`),
       accessCode: result.data.accessCode,
     },
   };

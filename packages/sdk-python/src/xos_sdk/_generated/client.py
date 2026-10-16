@@ -357,6 +357,41 @@ from .resources import (
     ApprovalStepsResource,
     TemplateVersionsResource,
     TemplateItemsResource,
+    WorkforceGroupsResource,
+    WorkforceGroupMembersResource,
+    ConversationsResource,
+    ChatMessagesResource,
+    DirectoryEntriesResource,
+    FeedPostsResource,
+    PollsResource,
+    SurveysResource,
+    SurveyQuestionsResource,
+    RecognitionsResource,
+    WorkforceEventsResource,
+    EventRsvpsResource,
+    EventCheckInsResource,
+    FormTemplatesResource,
+    FormSubmissionsResource,
+    TrainingCoursesResource,
+    TrainingLessonsResource,
+    TrainingQuizQuestionsResource,
+    TrainingQuizKeysResource,
+    TrainingAssignmentsResource,
+    TrainingCompletionsResource,
+    HandbookSectionsResource,
+    HandbookArticlesResource,
+    KnowledgeSourcesResource,
+    HelpDeskTeamsResource,
+    HelpDeskTeamMembersResource,
+    HelpDeskRequestsResource,
+    OccupancyCountersResource,
+    WeatherThresholdsResource,
+    WeatherAlertRolesResource,
+    WeatherReadingsResource,
+    WeatherAlertsResource,
+    GuestCheckInsResource,
+    LostFoundItemsResource,
+    LostFoundClaimsResource,
 )
 
 
@@ -722,6 +757,41 @@ class XosClient(XosClientCore):
     approval_steps: ApprovalStepsResource
     template_versions: TemplateVersionsResource
     template_items: TemplateItemsResource
+    workforce_groups: WorkforceGroupsResource
+    workforce_group_members: WorkforceGroupMembersResource
+    conversations: ConversationsResource
+    chat_messages: ChatMessagesResource
+    directory_entries: DirectoryEntriesResource
+    feed_posts: FeedPostsResource
+    polls: PollsResource
+    surveys: SurveysResource
+    survey_questions: SurveyQuestionsResource
+    recognitions: RecognitionsResource
+    workforce_events: WorkforceEventsResource
+    event_rsvps: EventRsvpsResource
+    event_check_ins: EventCheckInsResource
+    form_templates: FormTemplatesResource
+    form_submissions: FormSubmissionsResource
+    training_courses: TrainingCoursesResource
+    training_lessons: TrainingLessonsResource
+    training_quiz_questions: TrainingQuizQuestionsResource
+    training_quiz_keys: TrainingQuizKeysResource
+    training_assignments: TrainingAssignmentsResource
+    training_completions: TrainingCompletionsResource
+    handbook_sections: HandbookSectionsResource
+    handbook_articles: HandbookArticlesResource
+    knowledge_sources: KnowledgeSourcesResource
+    help_desk_teams: HelpDeskTeamsResource
+    help_desk_team_members: HelpDeskTeamMembersResource
+    help_desk_requests: HelpDeskRequestsResource
+    occupancy_counters: OccupancyCountersResource
+    weather_thresholds: WeatherThresholdsResource
+    weather_alert_roles: WeatherAlertRolesResource
+    weather_readings: WeatherReadingsResource
+    weather_alerts: WeatherAlertsResource
+    guest_check_ins: GuestCheckInsResource
+    lost_found_items: LostFoundItemsResource
+    lost_found_claims: LostFoundClaimsResource
 
     def __init__(self, base_url: str, **kwargs: Any) -> None:
         super().__init__(base_url, **kwargs)
@@ -1075,3 +1145,38 @@ class XosClient(XosClientCore):
         self.approval_steps = ApprovalStepsResource(self)
         self.template_versions = TemplateVersionsResource(self)
         self.template_items = TemplateItemsResource(self)
+        self.workforce_groups = WorkforceGroupsResource(self)
+        self.workforce_group_members = WorkforceGroupMembersResource(self)
+        self.conversations = ConversationsResource(self)
+        self.chat_messages = ChatMessagesResource(self)
+        self.directory_entries = DirectoryEntriesResource(self)
+        self.feed_posts = FeedPostsResource(self)
+        self.polls = PollsResource(self)
+        self.surveys = SurveysResource(self)
+        self.survey_questions = SurveyQuestionsResource(self)
+        self.recognitions = RecognitionsResource(self)
+        self.workforce_events = WorkforceEventsResource(self)
+        self.event_rsvps = EventRsvpsResource(self)
+        self.event_check_ins = EventCheckInsResource(self)
+        self.form_templates = FormTemplatesResource(self)
+        self.form_submissions = FormSubmissionsResource(self)
+        self.training_courses = TrainingCoursesResource(self)
+        self.training_lessons = TrainingLessonsResource(self)
+        self.training_quiz_questions = TrainingQuizQuestionsResource(self)
+        self.training_quiz_keys = TrainingQuizKeysResource(self)
+        self.training_assignments = TrainingAssignmentsResource(self)
+        self.training_completions = TrainingCompletionsResource(self)
+        self.handbook_sections = HandbookSectionsResource(self)
+        self.handbook_articles = HandbookArticlesResource(self)
+        self.knowledge_sources = KnowledgeSourcesResource(self)
+        self.help_desk_teams = HelpDeskTeamsResource(self)
+        self.help_desk_team_members = HelpDeskTeamMembersResource(self)
+        self.help_desk_requests = HelpDeskRequestsResource(self)
+        self.occupancy_counters = OccupancyCountersResource(self)
+        self.weather_thresholds = WeatherThresholdsResource(self)
+        self.weather_alert_roles = WeatherAlertRolesResource(self)
+        self.weather_readings = WeatherReadingsResource(self)
+        self.weather_alerts = WeatherAlertsResource(self)
+        self.guest_check_ins = GuestCheckInsResource(self)
+        self.lost_found_items = LostFoundItemsResource(self)
+        self.lost_found_claims = LostFoundClaimsResource(self)

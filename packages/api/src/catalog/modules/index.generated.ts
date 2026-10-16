@@ -27,6 +27,7 @@ import { additions as settings } from "./settings.ts";
 import { additions as gateway } from "./gateway.ts";
 import { additions as identity } from "./identity.ts";
 import { additions as platform } from "./platform.ts";
+import { additions as workforce } from "./workforce.ts";
 
 export const MODULE_ADDITIONS: readonly ModuleAdditions[] = [
   home,
@@ -55,4 +56,5 @@ export const MODULE_ADDITIONS: readonly ModuleAdditions[] = [
   gateway,
   identity,
   platform,
+  workforce,
 ];

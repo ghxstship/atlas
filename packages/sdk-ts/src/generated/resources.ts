@@ -62,6 +62,7 @@ import type {
   AiSuggestionRejectRequest,
   AiSuggestionReopenRequest,
   AiUsage,
+  AnswerHelpDeskRequest,
   ApiKey,
   ApiKeyCreate,
   ApiKeySecret,
@@ -105,6 +106,9 @@ import type {
   AssetUnit,
   AssetUnitCreate,
   AssetUnitUpdate,
+  AssignHelpDeskRequest,
+  AssignTrainingRequest,
+  AssignTrainingResult,
   AuditEvent,
   AuroraAskRequest,
   AuroraBindCodeRequest,
@@ -158,6 +162,7 @@ import type {
   CallSheet,
   CallSheetCreate,
   CallSheetUpdate,
+  CancelWorkforceEventRequest,
   CanonAct,
   CanonAssertionRank,
   CanonCategory,
@@ -227,6 +232,9 @@ import type {
   ChangeOrderLineUpdate,
   ChangeOrderTransitionRequest,
   ChangeOrderUpdate,
+  ChatMessage,
+  ChatMessageCreate,
+  ChatMessageUpdate,
   ColumnClassification,
   Comment,
   CommentCreate,
@@ -234,10 +242,13 @@ import type {
   CommentThreadCreate,
   CommentThreadUpdate,
   CommentUpdate,
+  CompleteTrainingRequest,
   ConsentRecord,
   ConsentRecordCreate,
   ContingencyDraw,
   ContingencyDrawCreate,
+  Conversation,
+  ConversationReadReceiptPage,
   CoordinateMatrixCell,
   CostCenter,
   CostCenterCode,
@@ -289,10 +300,13 @@ import type {
   DelegationCreate,
   DelegationUpdate,
   DeptCode,
+  DirectConversationRequest,
+  DirectoryEntryPage,
   DiscCode,
   DispatchAssignment,
   DispatchAssignmentCreate,
   DispatchAssignmentUpdate,
+  DisposeLostItemRequest,
   DockSlot,
   DockSlotCreate,
   DockSlotUpdate,
@@ -301,6 +315,7 @@ import type {
   DocumentUpdate,
   DocumentVersion,
   DocumentVersionCreate,
+  DoorGuestPage,
   DsarRequest,
   DsarRequestCreate,
   EarningCode,
@@ -320,11 +335,25 @@ import type {
   EngagementThreadCreate,
   EngagementThreadUpdate,
   EngagementTransitionRequest,
+  EventCheckIn,
+  EventCheckInRequest,
+  EventRsvp,
   Expense,
   ExpenseCreate,
   ExpenseUpdate,
   ExportJob,
   ExportJobCreate,
+  FeedAcknowledgmentStatusPage,
+  FeedPost,
+  FeedPostCreate,
+  FeedPostUpdate,
+  FeedReactionRequest,
+  FormDecisionRequest,
+  FormSubmission,
+  FormSubmissionCreate,
+  FormTemplate,
+  FormTemplateCreate,
+  FormTemplateUpdate,
   Fulfillment,
   FulfillmentCreate,
   FulfillmentLine,
@@ -347,10 +376,28 @@ import type {
   GoodsReceipt,
   GoodsReceiptCreate,
   GrainCode,
+  GuestCheckIn,
+  GuestCheckInCreate,
   GuestDecisionRequest,
   GuestListEntry,
   GuestListEntryCreate,
   GuestListEntryUpdate,
+  HandbookArticle,
+  HandbookArticleCreate,
+  HandbookArticleUpdate,
+  HandbookSection,
+  HandbookSectionCreate,
+  HandbookSectionUpdate,
+  HelpDeskAnswer,
+  HelpDeskRequest,
+  HelpDeskRequestCreate,
+  HelpDeskTeam,
+  HelpDeskTeamCreate,
+  HelpDeskTeamMember,
+  HelpDeskTeamMemberCreate,
+  HelpDeskTeamUpdate,
+  HelpDeskTransitionRequest,
+  HideFeedPostRequest,
   HomeSummary,
   ImportBatch,
   ImportJob,
@@ -424,9 +471,16 @@ import type {
   KioskDevice,
   KioskDeviceCreate,
   KioskDeviceUpdate,
+  KnowledgeSourcePage,
   ListingReport,
   ListingReportCreate,
+  LostFoundClaim,
+  LostFoundItem,
+  LostFoundItemCreate,
+  LostFoundItemUpdate,
+  LostItemClaimRequest,
   MarkAllReadResult,
+  MarkConversationReadRequest,
   MarketplaceListingPage,
   MarshallingLogEntry,
   MarshallingLogEntryCreate,
@@ -451,6 +505,9 @@ import type {
   OauthAppCreate,
   OauthAppUpdate,
   OauthGrant,
+  OccupancyCountRequest,
+  OccupancyCounter,
+  OccupancyCounterCreateRequest,
   OffboardingChecklist,
   OffboardingChecklistUpdate,
   Offer,
@@ -536,6 +593,7 @@ import type {
   PersonUpdate,
   PhaseCode,
   PhaseCoverage,
+  PinFeedPostRequest,
   Plan,
   PoChangeOrder,
   PoChangeOrderApproveRequest,
@@ -545,6 +603,10 @@ import type {
   PoLine,
   PoLineCreate,
   PoLineUpdate,
+  Poll,
+  PollPostRequest,
+  PollResultPage,
+  PollVoteRequest,
   PoolMember,
   PoolMemberCreate,
   PoolMemberUpdate,
@@ -583,6 +645,7 @@ import type {
   ProjectTransitionRequest,
   ProjectUpdate,
   Provenance,
+  PublishArticleRequest,
   PurchaseOrder,
   PurchaseOrderApproveRequest,
   PurchaseOrderCreate,
@@ -604,6 +667,8 @@ import type {
   RatingReplyCreate,
   ReceiptLine,
   ReceiptLineCreate,
+  Recognition,
+  RecognitionCreate,
   Reconciliation,
   ReconciliationCreate,
   ReconciliationLine,
@@ -652,6 +717,8 @@ import type {
   RequisitionUpdate,
   RestoreRequest,
   RetentionPolicy,
+  RetireCourseRequest,
+  RetireFormRequest,
   Rfq,
   RfqCreate,
   RfqInvitation,
@@ -678,6 +745,7 @@ import type {
   RoleCode,
   RoleCreate,
   RoleUpdate,
+  RsvpRequest,
   RunOfShow,
   RunOfShowCreate,
   RunOfShowUpdate,
@@ -713,6 +781,7 @@ import type {
   SettingValue,
   SettingValueCreate,
   SettingValueUpdate,
+  SettleClaimRequest,
   Shift,
   ShiftCreate,
   ShiftSwap,
@@ -768,6 +837,13 @@ import type {
   SupportTicketOpenRequest,
   SupportTicketReplyRequest,
   SupportTicketTransitionRequest,
+  Survey,
+  SurveyDraftRequest,
+  SurveyQuestion,
+  SurveyResponseRequest,
+  SurveyResponseResult,
+  SurveyResults,
+  SurveyTransitionRequest,
   TagId,
   TalentPool,
   TalentPoolCreate,
@@ -818,6 +894,20 @@ import type {
   TourProgress,
   TourProgressCreate,
   TourProgressUpdate,
+  TrainingAssignment,
+  TrainingCompletion,
+  TrainingCourse,
+  TrainingCourseCreate,
+  TrainingCourseUpdate,
+  TrainingLesson,
+  TrainingLessonCreate,
+  TrainingLessonUpdate,
+  TrainingQuizKey,
+  TrainingQuizKeyCreate,
+  TrainingQuizKeyUpdate,
+  TrainingQuizQuestion,
+  TrainingQuizQuestionCreate,
+  TrainingQuizQuestionUpdate,
   TrashItem,
   TrashRestoreResult,
   UnionLocalRate,
@@ -857,6 +947,14 @@ import type {
   WageDetermination,
   WageDeterminationCreate,
   WageDeterminationUpdate,
+  WeatherAlert,
+  WeatherAlertRole,
+  WeatherAlertRoleCreate,
+  WeatherReading,
+  WeatherReadingCreate,
+  WeatherThreshold,
+  WeatherThresholdCreate,
+  WeatherThresholdUpdate,
   WebhookDelivery,
   WebhookEndpoint,
   WebhookEndpointCreate,
@@ -870,6 +968,15 @@ import type {
   WorkOrderCreate,
   WorkOrderTransitionRequest,
   WorkOrderUpdate,
+  WorkforceEvent,
+  WorkforceEventCreate,
+  WorkforceEventUpdate,
+  WorkforceGroup,
+  WorkforceGroupCreate,
+  WorkforceGroupMember,
+  WorkforceGroupMemberCreate,
+  WorkforceGroupUpdate,
+  WorkforceLedgerEntry,
   Workspace,
   WorkspaceCreate,
   WorkspaceMember,
@@ -34874,6 +34981,3801 @@ export class TemplateItemsResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["templateItems.delete"],
       { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `workforceGroups`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WorkforceGroupsResource extends $Resource {
+  /**
+   * List workforce group rows
+   *
+   * A group space by department, project, crew or custom audience, with its own chat and files. Returns a cursor page of workforce group rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /groups` (operation `workforceGroups.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  list(
+    params?: $ListParams<WorkforceGroup>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WorkforceGroup>> {
+    return this.client.requestPage<WorkforceGroup>(
+      $OPERATIONS["workforceGroups.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List workforce group rows
+   *
+   * A group space by department, project, crew or custom audience, with its own chat and files. Returns a cursor page of workforce group rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /groups` (operation `workforceGroups.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WorkforceGroup>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WorkforceGroup, void, undefined> {
+    return this.client.paginate<WorkforceGroup>(
+      $OPERATIONS["workforceGroups.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a workforce group
+   *
+   * A group space by department, project, crew or custom audience, with its own chat and files. Creates a workforce group. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /groups` (operation `workforceGroups.create`).
+   * Requires the capability `org.communication.write`.
+   */
+  create(
+    body: WorkforceGroupCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WorkforceGroup>> {
+    return this.client.request<WorkforceGroup>(
+      $OPERATIONS["workforceGroups.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a workforce group
+   *
+   * A group space by department, project, crew or custom audience, with its own chat and files. Returns one workforce group with its `ETag`. A workforce group the caller may not see returns 404.
+   *
+   * `GET /groups/{id}` (operation `workforceGroups.get`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WorkforceGroup>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WorkforceGroup>> {
+    return this.client.request<WorkforceGroup>(
+      $OPERATIONS["workforceGroups.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a workforce group
+   *
+   * A group space by department, project, crew or custom audience, with its own chat and files. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /groups/{id}` (operation `workforceGroups.update`).
+   * Requires the capability `org.communication.write`.
+   */
+  update(
+    id: string,
+    body: WorkforceGroupUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<WorkforceGroup>> {
+    return this.client.request<WorkforceGroup>(
+      $OPERATIONS["workforceGroups.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Archive a group
+   *
+   * Archives the group; it keeps its history and takes no new messages. Archiving is final. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /groups/{id}/archive` (operation `workforceGroups.archive`).
+   * Requires the capability `org.communication.write`.
+   */
+  archive(id: string, options?: $MutationOptions): Promise<$ApiResponse<WorkforceGroup>> {
+    return this.client.request<WorkforceGroup>(
+      $OPERATIONS["workforceGroups.archive"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `workforceGroupMembers`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WorkforceGroupMembersResource extends $Resource {
+  /**
+   * List workforce group member rows
+   *
+   * A member of a group space. Deleting removes the member, who also leaves the group conversation. Returns a cursor page of workforce group member rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /group-members` (operation `workforceGroupMembers.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  list(
+    params?: $ListParams<WorkforceGroupMember>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WorkforceGroupMember>> {
+    return this.client.requestPage<WorkforceGroupMember>(
+      $OPERATIONS["workforceGroupMembers.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List workforce group member rows
+   *
+   * A member of a group space. Deleting removes the member, who also leaves the group conversation. Returns a cursor page of workforce group member rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /group-members` (operation `workforceGroupMembers.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WorkforceGroupMember>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WorkforceGroupMember, void, undefined> {
+    return this.client.paginate<WorkforceGroupMember>(
+      $OPERATIONS["workforceGroupMembers.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a workforce group member
+   *
+   * A member of a group space. Deleting removes the member, who also leaves the group conversation. Creates a workforce group member. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /group-members` (operation `workforceGroupMembers.create`).
+   * Requires the capability `org.communication.write`.
+   */
+  create(
+    body: WorkforceGroupMemberCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WorkforceGroupMember>> {
+    return this.client.request<WorkforceGroupMember>(
+      $OPERATIONS["workforceGroupMembers.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a workforce group member
+   *
+   * A member of a group space. Deleting removes the member, who also leaves the group conversation. Returns one workforce group member with its `ETag`. A workforce group member the caller may not see returns 404.
+   *
+   * `GET /group-members/{id}` (operation `workforceGroupMembers.get`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WorkforceGroupMember>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WorkforceGroupMember>> {
+    return this.client.request<WorkforceGroupMember>(
+      $OPERATIONS["workforceGroupMembers.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a workforce group member
+   *
+   * A member of a group space. Deleting removes the member, who also leaves the group conversation. Soft-deletes the workforce group member: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /group-members/{id}` (operation `workforceGroupMembers.delete`).
+   * Requires the capability `org.communication.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["workforceGroupMembers.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `conversations`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class ConversationsResource extends $Resource {
+  /**
+   * List conversation rows
+   *
+   * A chat conversation: one-to-one between two members, or the conversation of a group. Returns a cursor page of conversation rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /conversations` (operation `conversations.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  list(
+    params?: $ListParams<Conversation>,
+    options?: $RequestOptions,
+  ): Promise<$Page<Conversation>> {
+    return this.client.requestPage<Conversation>(
+      $OPERATIONS["conversations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List conversation rows
+   *
+   * A chat conversation: one-to-one between two members, or the conversation of a group. Returns a cursor page of conversation rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /conversations` (operation `conversations.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  listAll(
+    params?: $ListAllParams<Conversation>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<Conversation, void, undefined> {
+    return this.client.paginate<Conversation>(
+      $OPERATIONS["conversations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a conversation
+   *
+   * A chat conversation: one-to-one between two members, or the conversation of a group. Returns one conversation with its `ETag`. A conversation the caller may not see returns 404.
+   *
+   * `GET /conversations/{id}` (operation `conversations.get`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<Conversation>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Conversation>> {
+    return this.client.request<Conversation>(
+      $OPERATIONS["conversations.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Start a direct conversation
+   *
+   * Opens, or returns, the one-to-one conversation with another active member of the org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /conversations/start-direct` (operation `conversations.startDirect`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  startDirect(
+    body: DirectConversationRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Conversation>> {
+    return this.client.request<Conversation>(
+      $OPERATIONS["conversations.startDirect"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Mark a conversation read
+   *
+   * Marks the conversation read up to now for the caller and optionally mutes or unmutes it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /conversations/{id}/mark-read` (operation `conversations.markRead`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  markRead(
+    id: string,
+    body: MarkConversationReadRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Conversation>> {
+    return this.client.request<Conversation>(
+      $OPERATIONS["conversations.markRead"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Read receipts
+   *
+   * When the other members last read the conversation; empty while the org has read receipts off. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /conversations/{id}/read-receipts` (operation `conversations.readReceipts`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  readReceipts(
+    id: string,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ConversationReadReceiptPage>> {
+    return this.client.request<ConversationReadReceiptPage>(
+      $OPERATIONS["conversations.readReceipts"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `chatMessages`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class ChatMessagesResource extends $Resource {
+  /**
+   * List chat message rows
+   *
+   * A chat message. Photos, files and voice notes are attachments on the message. Returns a cursor page of chat message rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /chat-messages` (operation `chatMessages.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  list(params?: $ListParams<ChatMessage>, options?: $RequestOptions): Promise<$Page<ChatMessage>> {
+    return this.client.requestPage<ChatMessage>(
+      $OPERATIONS["chatMessages.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List chat message rows
+   *
+   * A chat message. Photos, files and voice notes are attachments on the message. Returns a cursor page of chat message rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /chat-messages` (operation `chatMessages.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ChatMessage>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ChatMessage, void, undefined> {
+    return this.client.paginate<ChatMessage>(
+      $OPERATIONS["chatMessages.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a chat message
+   *
+   * A chat message. Photos, files and voice notes are attachments on the message. Creates a chat message. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /chat-messages` (operation `chatMessages.create`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  create(body: ChatMessageCreate, options?: $MutationOptions): Promise<$ApiResponse<ChatMessage>> {
+    return this.client.request<ChatMessage>($OPERATIONS["chatMessages.create"], { body }, options);
+  }
+
+  /**
+   * Get a chat message
+   *
+   * A chat message. Photos, files and voice notes are attachments on the message. Returns one chat message with its `ETag`. A chat message the caller may not see returns 404.
+   *
+   * `GET /chat-messages/{id}` (operation `chatMessages.get`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ChatMessage>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ChatMessage>> {
+    return this.client.request<ChatMessage>(
+      $OPERATIONS["chatMessages.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a chat message
+   *
+   * A chat message. Photos, files and voice notes are attachments on the message. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /chat-messages/{id}` (operation `chatMessages.update`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  update(
+    id: string,
+    body: ChatMessageUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<ChatMessage>> {
+    return this.client.request<ChatMessage>(
+      $OPERATIONS["chatMessages.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a chat message
+   *
+   * A chat message. Photos, files and voice notes are attachments on the message. Soft-deletes the chat message: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /chat-messages/{id}` (operation `chatMessages.delete`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["chatMessages.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `directoryEntries`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class DirectoryEntriesResource extends $Resource {
+  /**
+   * Search the directory
+   *
+   * The org directory, on-site members first, filtered by name or headline and optionally to those on site now. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /directory-entries/search` (operation `directoryEntries.search`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  search(
+    params?: {
+      /**
+       * Name or headline contains this.
+       */
+      readonly q?: string;
+      /**
+       * Only members on site now.
+       */
+      readonly on_site?: "true" | "false";
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<DirectoryEntryPage>> {
+    return this.client.request<DirectoryEntryPage>(
+      $OPERATIONS["directoryEntries.search"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `feedPosts`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class FeedPostsResource extends $Resource {
+  /**
+   * List feed post rows
+   *
+   * A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time. Returns a cursor page of feed post rows the caller may see. The default order is `publish_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /feed-posts` (operation `feedPosts.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(params?: $ListParams<FeedPost>, options?: $RequestOptions): Promise<$Page<FeedPost>> {
+    return this.client.requestPage<FeedPost>(
+      $OPERATIONS["feedPosts.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List feed post rows
+   *
+   * A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time. Returns a cursor page of feed post rows the caller may see. The default order is `publish_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /feed-posts` (operation `feedPosts.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<FeedPost>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<FeedPost, void, undefined> {
+    return this.client.paginate<FeedPost>(
+      $OPERATIONS["feedPosts.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a feed post
+   *
+   * A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time. Creates a feed post. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /feed-posts` (operation `feedPosts.create`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  create(body: FeedPostCreate, options?: $MutationOptions): Promise<$ApiResponse<FeedPost>> {
+    return this.client.request<FeedPost>($OPERATIONS["feedPosts.create"], { body }, options);
+  }
+
+  /**
+   * Get a feed post
+   *
+   * A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time. Returns one feed post with its `ETag`. A feed post the caller may not see returns 404.
+   *
+   * `GET /feed-posts/{id}` (operation `feedPosts.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<FeedPost>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<FeedPost>> {
+    return this.client.request<FeedPost>(
+      $OPERATIONS["feedPosts.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a feed post
+   *
+   * A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /feed-posts/{id}` (operation `feedPosts.update`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  update(
+    id: string,
+    body: FeedPostUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<FeedPost>> {
+    return this.client.request<FeedPost>(
+      $OPERATIONS["feedPosts.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Post a poll
+   *
+   * Posts a quick poll to the feed with 2 to 10 options. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /feed-posts/create-poll` (operation `feedPosts.createPoll`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  createPoll(body: PollPostRequest, options?: $MutationOptions): Promise<$ApiResponse<FeedPost>> {
+    return this.client.request<FeedPost>($OPERATIONS["feedPosts.createPoll"], { body }, options);
+  }
+
+  /**
+   * Pin or unpin a post
+   *
+   * Pins the post to the top of the feed, or unpins it. Needs knowledge.sop.publish or org.communication.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /feed-posts/{id}/pin` (operation `feedPosts.pin`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  pin(
+    id: string,
+    body: PinFeedPostRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<FeedPost>> {
+    return this.client.request<FeedPost>(
+      $OPERATIONS["feedPosts.pin"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Hide a post
+   *
+   * Hides the post with a reason; it leaves everyone else's feed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /feed-posts/{id}/hide` (operation `feedPosts.hide`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  hide(
+    id: string,
+    body: HideFeedPostRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<FeedPost>> {
+    return this.client.request<FeedPost>(
+      $OPERATIONS["feedPosts.hide"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Acknowledge a post
+   *
+   * Records that the caller acknowledged a post that requires it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /feed-posts/{id}/acknowledge` (operation `feedPosts.acknowledge`).
+   * Requires the capability `knowledge.sop.acknowledge`.
+   */
+  acknowledge(id: string, options?: $MutationOptions): Promise<$ApiResponse<FeedPost>> {
+    return this.client.request<FeedPost>(
+      $OPERATIONS["feedPosts.acknowledge"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * React to a post
+   *
+   * Adds or removes the caller's reaction from the curated set. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /feed-posts/{id}/react` (operation `feedPosts.react`).
+   * Requires the capability `knowledge.sop.acknowledge`.
+   */
+  react(
+    id: string,
+    body: FeedReactionRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<FeedPost>> {
+    return this.client.request<FeedPost>(
+      $OPERATIONS["feedPosts.react"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Acknowledgment status
+   *
+   * Each member of the audience and when they acknowledged the post, outstanding first. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /feed-posts/{id}/acknowledgments` (operation `feedPosts.acknowledgments`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  acknowledgments(
+    id: string,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<FeedAcknowledgmentStatusPage>> {
+    return this.client.request<FeedAcknowledgmentStatusPage>(
+      $OPERATIONS["feedPosts.acknowledgments"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `polls`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class PollsResource extends $Resource {
+  /**
+   * List poll rows
+   *
+   * A quick poll in the feed, attached to a post of kind Poll. Returns a cursor page of poll rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /polls` (operation `polls.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(params?: $ListParams<Poll>, options?: $RequestOptions): Promise<$Page<Poll>> {
+    return this.client.requestPage<Poll>($OPERATIONS["polls.list"], { query: params }, options);
+  }
+
+  /**
+   * List poll rows
+   *
+   * A quick poll in the feed, attached to a post of kind Poll. Returns a cursor page of poll rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /polls` (operation `polls.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<Poll>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<Poll, void, undefined> {
+    return this.client.paginate<Poll>($OPERATIONS["polls.list"], { query: params }, options);
+  }
+
+  /**
+   * Get a poll
+   *
+   * A quick poll in the feed, attached to a post of kind Poll. Returns one poll with its `ETag`. A poll the caller may not see returns 404.
+   *
+   * `GET /polls/{id}` (operation `polls.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<Poll>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Poll>> {
+    return this.client.request<Poll>(
+      $OPERATIONS["polls.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Vote in a poll
+   *
+   * Votes once: one option, or several when the poll allows it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /polls/{id}/vote` (operation `polls.vote`).
+   * Requires the capability `knowledge.sop.acknowledge`.
+   */
+  vote(id: string, body: PollVoteRequest, options?: $MutationOptions): Promise<$ApiResponse<Poll>> {
+    return this.client.request<Poll>($OPERATIONS["polls.vote"], { path: { id }, body }, options);
+  }
+
+  /**
+   * Poll results
+   *
+   * Votes per option. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /polls/{id}/results` (operation `polls.results`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  results(id: string, options?: $RequestOptions): Promise<$ApiResponse<PollResultPage>> {
+    return this.client.request<PollResultPage>(
+      $OPERATIONS["polls.results"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `surveys`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class SurveysResource extends $Resource {
+  /**
+   * List survey rows
+   *
+   * A pulse survey for an audience, anonymous by default, with results only once the minimum number of responses is met. Returns a cursor page of survey rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /surveys` (operation `surveys.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(params?: $ListParams<Survey>, options?: $RequestOptions): Promise<$Page<Survey>> {
+    return this.client.requestPage<Survey>($OPERATIONS["surveys.list"], { query: params }, options);
+  }
+
+  /**
+   * List survey rows
+   *
+   * A pulse survey for an audience, anonymous by default, with results only once the minimum number of responses is met. Returns a cursor page of survey rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /surveys` (operation `surveys.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<Survey>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<Survey, void, undefined> {
+    return this.client.paginate<Survey>($OPERATIONS["surveys.list"], { query: params }, options);
+  }
+
+  /**
+   * Get a survey
+   *
+   * A pulse survey for an audience, anonymous by default, with results only once the minimum number of responses is met. Returns one survey with its `ETag`. A survey the caller may not see returns 404.
+   *
+   * `GET /surveys/{id}` (operation `surveys.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<Survey>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Survey>> {
+    return this.client.request<Survey>(
+      $OPERATIONS["surveys.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Draft a survey
+   *
+   * Drafts a pulse survey with its questions. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /surveys/draft` (operation `surveys.draft`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  draft(body: SurveyDraftRequest, options?: $MutationOptions): Promise<$ApiResponse<Survey>> {
+    return this.client.request<Survey>($OPERATIONS["surveys.draft"], { body }, options);
+  }
+
+  /**
+   * Open or close a survey
+   *
+   * Opens a draft survey (notifying its audience) or closes an open one. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /surveys/{id}/transition` (operation `surveys.transition`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  transition(
+    id: string,
+    body: SurveyTransitionRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WorkforceLedgerEntry>> {
+    return this.client.request<WorkforceLedgerEntry>(
+      $OPERATIONS["surveys.transition"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Respond to a survey
+   *
+   * Responds once with answers keyed by question id. Anonymous answers carry no respondent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /surveys/{id}/respond` (operation `surveys.respond`).
+   * Requires the capability `knowledge.sop.acknowledge`.
+   */
+  respond(
+    id: string,
+    body: SurveyResponseRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SurveyResponseResult>> {
+    return this.client.request<SurveyResponseResult>(
+      $OPERATIONS["surveys.respond"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Survey results
+   *
+   * Results, shown only once the minimum number of responses is met. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /surveys/{id}/results` (operation `surveys.results`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  results(id: string, options?: $RequestOptions): Promise<$ApiResponse<SurveyResults>> {
+    return this.client.request<SurveyResults>(
+      $OPERATIONS["surveys.results"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `surveyQuestions`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class SurveyQuestionsResource extends $Resource {
+  /**
+   * List survey question rows
+   *
+   * A question of a pulse survey, in order. Returns a cursor page of survey question rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /survey-questions` (operation `surveyQuestions.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(
+    params?: $ListParams<SurveyQuestion>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SurveyQuestion>> {
+    return this.client.requestPage<SurveyQuestion>(
+      $OPERATIONS["surveyQuestions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List survey question rows
+   *
+   * A question of a pulse survey, in order. Returns a cursor page of survey question rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /survey-questions` (operation `surveyQuestions.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<SurveyQuestion>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SurveyQuestion, void, undefined> {
+    return this.client.paginate<SurveyQuestion>(
+      $OPERATIONS["surveyQuestions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a survey question
+   *
+   * A question of a pulse survey, in order. Returns one survey question with its `ETag`. A survey question the caller may not see returns 404.
+   *
+   * `GET /survey-questions/{id}` (operation `surveyQuestions.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SurveyQuestion>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SurveyQuestion>> {
+    return this.client.request<SurveyQuestion>(
+      $OPERATIONS["surveyQuestions.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `recognitions`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class RecognitionsResource extends $Resource {
+  /**
+   * List recognition rows
+   *
+   * A shout-out from one member to another, tied to a project or shift and posted to the feed. No points currency. Returns a cursor page of recognition rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /recognitions` (operation `recognitions.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(params?: $ListParams<Recognition>, options?: $RequestOptions): Promise<$Page<Recognition>> {
+    return this.client.requestPage<Recognition>(
+      $OPERATIONS["recognitions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List recognition rows
+   *
+   * A shout-out from one member to another, tied to a project or shift and posted to the feed. No points currency. Returns a cursor page of recognition rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /recognitions` (operation `recognitions.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<Recognition>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<Recognition, void, undefined> {
+    return this.client.paginate<Recognition>(
+      $OPERATIONS["recognitions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a recognition
+   *
+   * A shout-out from one member to another, tied to a project or shift and posted to the feed. No points currency. Creates a recognition. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /recognitions` (operation `recognitions.create`).
+   * Requires the capability `knowledge.sop.acknowledge`.
+   */
+  create(body: RecognitionCreate, options?: $MutationOptions): Promise<$ApiResponse<Recognition>> {
+    return this.client.request<Recognition>($OPERATIONS["recognitions.create"], { body }, options);
+  }
+
+  /**
+   * Get a recognition
+   *
+   * A shout-out from one member to another, tied to a project or shift and posted to the feed. No points currency. Returns one recognition with its `ETag`. A recognition the caller may not see returns 404.
+   *
+   * `GET /recognitions/{id}` (operation `recognitions.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<Recognition>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Recognition>> {
+    return this.client.request<Recognition>(
+      $OPERATIONS["recognitions.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `workforceEvents`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WorkforceEventsResource extends $Resource {
+  /**
+   * List workforce event rows
+   *
+   * A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in. Returns a cursor page of workforce event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /workforce-events` (operation `workforceEvents.list`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  list(
+    params?: $ListParams<WorkforceEvent>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WorkforceEvent>> {
+    return this.client.requestPage<WorkforceEvent>(
+      $OPERATIONS["workforceEvents.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List workforce event rows
+   *
+   * A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in. Returns a cursor page of workforce event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /workforce-events` (operation `workforceEvents.list`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WorkforceEvent>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WorkforceEvent, void, undefined> {
+    return this.client.paginate<WorkforceEvent>(
+      $OPERATIONS["workforceEvents.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a workforce event
+   *
+   * A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in. Creates a workforce event. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /workforce-events` (operation `workforceEvents.create`).
+   * Requires the capability `schedule.timeline.write`.
+   */
+  create(
+    body: WorkforceEventCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WorkforceEvent>> {
+    return this.client.request<WorkforceEvent>(
+      $OPERATIONS["workforceEvents.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a workforce event
+   *
+   * A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in. Returns one workforce event with its `ETag`. A workforce event the caller may not see returns 404.
+   *
+   * `GET /workforce-events/{id}` (operation `workforceEvents.get`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WorkforceEvent>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WorkforceEvent>> {
+    return this.client.request<WorkforceEvent>(
+      $OPERATIONS["workforceEvents.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a workforce event
+   *
+   * A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /workforce-events/{id}` (operation `workforceEvents.update`).
+   * Requires the capability `schedule.timeline.write`.
+   */
+  update(
+    id: string,
+    body: WorkforceEventUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<WorkforceEvent>> {
+    return this.client.request<WorkforceEvent>(
+      $OPERATIONS["workforceEvents.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Cancel an event
+   *
+   * Cancels the event with a reason; cancellation is final. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /workforce-events/{id}/cancel` (operation `workforceEvents.cancel`).
+   * Requires the capability `schedule.timeline.write`.
+   */
+  cancel(
+    id: string,
+    body: CancelWorkforceEventRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WorkforceEvent>> {
+    return this.client.request<WorkforceEvent>(
+      $OPERATIONS["workforceEvents.cancel"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * RSVP to an event
+   *
+   * Records or changes the caller's RSVP. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /workforce-events/{id}/rsvp` (operation `workforceEvents.rsvp`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  rsvp(
+    id: string,
+    body: RsvpRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EventRsvp>> {
+    return this.client.request<EventRsvp>(
+      $OPERATIONS["workforceEvents.rsvp"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Check in to an event
+   *
+   * Checks the caller in, or another invitee when the caller organizes the event, from an hour before the start to the end. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /workforce-events/{id}/check-in` (operation `workforceEvents.checkIn`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  checkIn(
+    id: string,
+    body: EventCheckInRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EventCheckIn>> {
+    return this.client.request<EventCheckIn>(
+      $OPERATIONS["workforceEvents.checkIn"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `eventRsvps`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class EventRsvpsResource extends $Resource {
+  /**
+   * List event rsvp rows
+   *
+   * An invitee's RSVP to an event. Returns a cursor page of event rsvp rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /event-rsvps` (operation `eventRsvps.list`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  list(params?: $ListParams<EventRsvp>, options?: $RequestOptions): Promise<$Page<EventRsvp>> {
+    return this.client.requestPage<EventRsvp>(
+      $OPERATIONS["eventRsvps.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List event rsvp rows
+   *
+   * An invitee's RSVP to an event. Returns a cursor page of event rsvp rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /event-rsvps` (operation `eventRsvps.list`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  listAll(
+    params?: $ListAllParams<EventRsvp>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<EventRsvp, void, undefined> {
+    return this.client.paginate<EventRsvp>(
+      $OPERATIONS["eventRsvps.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an event rsvp
+   *
+   * An invitee's RSVP to an event. Returns one event rsvp with its `ETag`. A event rsvp the caller may not see returns 404.
+   *
+   * `GET /event-rsvps/{id}` (operation `eventRsvps.get`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<EventRsvp>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<EventRsvp>> {
+    return this.client.request<EventRsvp>(
+      $OPERATIONS["eventRsvps.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `eventCheckIns`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class EventCheckInsResource extends $Resource {
+  /**
+   * List event check in rows
+   *
+   * Attendance of an event, one per attendee. Returns a cursor page of event check in rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /event-check-ins` (operation `eventCheckIns.list`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  list(
+    params?: $ListParams<EventCheckIn>,
+    options?: $RequestOptions,
+  ): Promise<$Page<EventCheckIn>> {
+    return this.client.requestPage<EventCheckIn>(
+      $OPERATIONS["eventCheckIns.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List event check in rows
+   *
+   * Attendance of an event, one per attendee. Returns a cursor page of event check in rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /event-check-ins` (operation `eventCheckIns.list`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  listAll(
+    params?: $ListAllParams<EventCheckIn>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<EventCheckIn, void, undefined> {
+    return this.client.paginate<EventCheckIn>(
+      $OPERATIONS["eventCheckIns.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an event check in
+   *
+   * Attendance of an event, one per attendee. Returns one event check in with its `ETag`. A event check in the caller may not see returns 404.
+   *
+   * `GET /event-check-ins/{id}` (operation `eventCheckIns.get`).
+   * Requires the capability `schedule.timeline.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<EventCheckIn>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<EventCheckIn>> {
+    return this.client.request<EventCheckIn>(
+      $OPERATIONS["eventCheckIns.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `formTemplates`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class FormTemplatesResource extends $Resource {
+  /**
+   * List form template rows
+   *
+   * A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype. Returns a cursor page of form template rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /form-templates` (operation `formTemplates.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(
+    params?: $ListParams<FormTemplate>,
+    options?: $RequestOptions,
+  ): Promise<$Page<FormTemplate>> {
+    return this.client.requestPage<FormTemplate>(
+      $OPERATIONS["formTemplates.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List form template rows
+   *
+   * A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype. Returns a cursor page of form template rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /form-templates` (operation `formTemplates.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<FormTemplate>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<FormTemplate, void, undefined> {
+    return this.client.paginate<FormTemplate>(
+      $OPERATIONS["formTemplates.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a form template
+   *
+   * A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype. Creates a form template. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /form-templates` (operation `formTemplates.create`).
+   * Requires the capability `knowledge.sop.write`.
+   */
+  create(
+    body: FormTemplateCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<FormTemplate>> {
+    return this.client.request<FormTemplate>(
+      $OPERATIONS["formTemplates.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a form template
+   *
+   * A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype. Returns one form template with its `ETag`. A form template the caller may not see returns 404.
+   *
+   * `GET /form-templates/{id}` (operation `formTemplates.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<FormTemplate>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<FormTemplate>> {
+    return this.client.request<FormTemplate>(
+      $OPERATIONS["formTemplates.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a form template
+   *
+   * A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /form-templates/{id}` (operation `formTemplates.update`).
+   * Requires the capability `knowledge.sop.write`.
+   */
+  update(
+    id: string,
+    body: FormTemplateUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<FormTemplate>> {
+    return this.client.request<FormTemplate>(
+      $OPERATIONS["formTemplates.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Publish a form
+   *
+   * Publishes a draft form as its next version. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-templates/{id}/publish` (operation `formTemplates.publish`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  publish(id: string, options?: $MutationOptions): Promise<$ApiResponse<FormTemplate>> {
+    return this.client.request<FormTemplate>(
+      $OPERATIONS["formTemplates.publish"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Retire a form
+   *
+   * Retires a published form; it keeps its submissions. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-templates/{id}/retire` (operation `formTemplates.retire`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  retire(
+    id: string,
+    body: RetireFormRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<FormTemplate>> {
+    return this.client.request<FormTemplate>(
+      $OPERATIONS["formTemplates.retire"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `formSubmissions`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class FormSubmissionsResource extends $Resource {
+  /**
+   * List form submission rows
+   *
+   * A submitted form: answers against one template version, score, GPS stamp, signature and approval. Returns a cursor page of form submission rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /form-submissions` (operation `formSubmissions.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(
+    params?: $ListParams<FormSubmission>,
+    options?: $RequestOptions,
+  ): Promise<$Page<FormSubmission>> {
+    return this.client.requestPage<FormSubmission>(
+      $OPERATIONS["formSubmissions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List form submission rows
+   *
+   * A submitted form: answers against one template version, score, GPS stamp, signature and approval. Returns a cursor page of form submission rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /form-submissions` (operation `formSubmissions.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<FormSubmission>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<FormSubmission, void, undefined> {
+    return this.client.paginate<FormSubmission>(
+      $OPERATIONS["formSubmissions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a form submission
+   *
+   * A submitted form: answers against one template version, score, GPS stamp, signature and approval. Creates a form submission. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /form-submissions` (operation `formSubmissions.create`).
+   * Requires the capability `knowledge.sop.acknowledge`.
+   */
+  create(
+    body: FormSubmissionCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<FormSubmission>> {
+    return this.client.request<FormSubmission>(
+      $OPERATIONS["formSubmissions.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a form submission
+   *
+   * A submitted form: answers against one template version, score, GPS stamp, signature and approval. Returns one form submission with its `ETag`. A form submission the caller may not see returns 404.
+   *
+   * `GET /form-submissions/{id}` (operation `formSubmissions.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<FormSubmission>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<FormSubmission>> {
+    return this.client.request<FormSubmission>(
+      $OPERATIONS["formSubmissions.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Approve or reject a submission
+   *
+   * A holder of the form's approver role decides a submitted form; never the submitter. A rejection needs a note. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /form-submissions/{id}/decide` (operation `formSubmissions.decide`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  decide(
+    id: string,
+    body: FormDecisionRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<FormSubmission>> {
+    return this.client.request<FormSubmission>(
+      $OPERATIONS["formSubmissions.decide"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `trainingCourses`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class TrainingCoursesResource extends $Resource {
+  /**
+   * List training course rows
+   *
+   * A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion. Returns a cursor page of training course rows the caller may see. The default order is `title` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /training-courses` (operation `trainingCourses.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(
+    params?: $ListParams<TrainingCourse>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TrainingCourse>> {
+    return this.client.requestPage<TrainingCourse>(
+      $OPERATIONS["trainingCourses.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List training course rows
+   *
+   * A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion. Returns a cursor page of training course rows the caller may see. The default order is `title` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /training-courses` (operation `trainingCourses.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<TrainingCourse>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TrainingCourse, void, undefined> {
+    return this.client.paginate<TrainingCourse>(
+      $OPERATIONS["trainingCourses.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a training course
+   *
+   * A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion. Creates a training course. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /training-courses` (operation `trainingCourses.create`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  create(
+    body: TrainingCourseCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TrainingCourse>> {
+    return this.client.request<TrainingCourse>(
+      $OPERATIONS["trainingCourses.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a training course
+   *
+   * A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion. Returns one training course with its `ETag`. A training course the caller may not see returns 404.
+   *
+   * `GET /training-courses/{id}` (operation `trainingCourses.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TrainingCourse>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TrainingCourse>> {
+    return this.client.request<TrainingCourse>(
+      $OPERATIONS["trainingCourses.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a training course
+   *
+   * A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /training-courses/{id}` (operation `trainingCourses.update`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  update(
+    id: string,
+    body: TrainingCourseUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<TrainingCourse>> {
+    return this.client.request<TrainingCourse>(
+      $OPERATIONS["trainingCourses.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Publish a course
+   *
+   * Publishes a draft course with at least one lesson and every quiz keyed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /training-courses/{id}/publish` (operation `trainingCourses.publish`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  publish(id: string, options?: $MutationOptions): Promise<$ApiResponse<TrainingCourse>> {
+    return this.client.request<TrainingCourse>(
+      $OPERATIONS["trainingCourses.publish"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Retire a course
+   *
+   * Retires a published course. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /training-courses/{id}/retire` (operation `trainingCourses.retire`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  retire(
+    id: string,
+    body: RetireCourseRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TrainingCourse>> {
+    return this.client.request<TrainingCourse>(
+      $OPERATIONS["trainingCourses.retire"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Assign a course
+   *
+   * Assigns a published course to active members with an optional due date. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /training-courses/{id}/assign` (operation `trainingCourses.assign`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  assign(
+    id: string,
+    body: AssignTrainingRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AssignTrainingResult>> {
+    return this.client.request<AssignTrainingResult>(
+      $OPERATIONS["trainingCourses.assign"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Complete a course
+   *
+   * Grades the caller's quiz answers once every reading and video lesson is finished. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /training-courses/{id}/complete` (operation `trainingCourses.complete`).
+   * Requires the capability `knowledge.sop.acknowledge`.
+   */
+  complete(
+    id: string,
+    body: CompleteTrainingRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TrainingCompletion>> {
+    return this.client.request<TrainingCompletion>(
+      $OPERATIONS["trainingCourses.complete"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `trainingLessons`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class TrainingLessonsResource extends $Resource {
+  /**
+   * List training lesson rows
+   *
+   * A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Returns a cursor page of training lesson rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /training-lessons` (operation `trainingLessons.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(
+    params?: $ListParams<TrainingLesson>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TrainingLesson>> {
+    return this.client.requestPage<TrainingLesson>(
+      $OPERATIONS["trainingLessons.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List training lesson rows
+   *
+   * A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Returns a cursor page of training lesson rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /training-lessons` (operation `trainingLessons.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<TrainingLesson>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TrainingLesson, void, undefined> {
+    return this.client.paginate<TrainingLesson>(
+      $OPERATIONS["trainingLessons.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a training lesson
+   *
+   * A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Creates a training lesson. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /training-lessons` (operation `trainingLessons.create`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  create(
+    body: TrainingLessonCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TrainingLesson>> {
+    return this.client.request<TrainingLesson>(
+      $OPERATIONS["trainingLessons.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a training lesson
+   *
+   * A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Returns one training lesson with its `ETag`. A training lesson the caller may not see returns 404.
+   *
+   * `GET /training-lessons/{id}` (operation `trainingLessons.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TrainingLesson>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TrainingLesson>> {
+    return this.client.request<TrainingLesson>(
+      $OPERATIONS["trainingLessons.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a training lesson
+   *
+   * A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /training-lessons/{id}` (operation `trainingLessons.update`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  update(
+    id: string,
+    body: TrainingLessonUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<TrainingLesson>> {
+    return this.client.request<TrainingLesson>(
+      $OPERATIONS["trainingLessons.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a training lesson
+   *
+   * A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Soft-deletes the training lesson: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /training-lessons/{id}` (operation `trainingLessons.delete`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["trainingLessons.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Finish a lesson
+   *
+   * Marks a reading or video lesson finished for the caller. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /training-lessons/{id}/complete` (operation `trainingLessons.complete`).
+   * Requires the capability `knowledge.sop.acknowledge`.
+   */
+  complete(id: string, options?: $MutationOptions): Promise<$ApiResponse<TrainingLesson>> {
+    return this.client.request<TrainingLesson>(
+      $OPERATIONS["trainingLessons.complete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `trainingQuizQuestions`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class TrainingQuizQuestionsResource extends $Resource {
+  /**
+   * List training quiz question rows
+   *
+   * A question of a quiz lesson; its correct option is a training quiz key that learners never read. Returns a cursor page of training quiz question rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /training-quiz-questions` (operation `trainingQuizQuestions.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(
+    params?: $ListParams<TrainingQuizQuestion>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TrainingQuizQuestion>> {
+    return this.client.requestPage<TrainingQuizQuestion>(
+      $OPERATIONS["trainingQuizQuestions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List training quiz question rows
+   *
+   * A question of a quiz lesson; its correct option is a training quiz key that learners never read. Returns a cursor page of training quiz question rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /training-quiz-questions` (operation `trainingQuizQuestions.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<TrainingQuizQuestion>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TrainingQuizQuestion, void, undefined> {
+    return this.client.paginate<TrainingQuizQuestion>(
+      $OPERATIONS["trainingQuizQuestions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a training quiz question
+   *
+   * A question of a quiz lesson; its correct option is a training quiz key that learners never read. Creates a training quiz question. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /training-quiz-questions` (operation `trainingQuizQuestions.create`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  create(
+    body: TrainingQuizQuestionCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TrainingQuizQuestion>> {
+    return this.client.request<TrainingQuizQuestion>(
+      $OPERATIONS["trainingQuizQuestions.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a training quiz question
+   *
+   * A question of a quiz lesson; its correct option is a training quiz key that learners never read. Returns one training quiz question with its `ETag`. A training quiz question the caller may not see returns 404.
+   *
+   * `GET /training-quiz-questions/{id}` (operation `trainingQuizQuestions.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TrainingQuizQuestion>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TrainingQuizQuestion>> {
+    return this.client.request<TrainingQuizQuestion>(
+      $OPERATIONS["trainingQuizQuestions.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a training quiz question
+   *
+   * A question of a quiz lesson; its correct option is a training quiz key that learners never read. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /training-quiz-questions/{id}` (operation `trainingQuizQuestions.update`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  update(
+    id: string,
+    body: TrainingQuizQuestionUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<TrainingQuizQuestion>> {
+    return this.client.request<TrainingQuizQuestion>(
+      $OPERATIONS["trainingQuizQuestions.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `trainingQuizKeys`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class TrainingQuizKeysResource extends $Resource {
+  /**
+   * List training quiz key rows
+   *
+   * The correct option of a quiz question. Only course editors read it. Returns a cursor page of training quiz key rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /training-quiz-keys` (operation `trainingQuizKeys.list`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  list(
+    params?: $ListParams<TrainingQuizKey>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TrainingQuizKey>> {
+    return this.client.requestPage<TrainingQuizKey>(
+      $OPERATIONS["trainingQuizKeys.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List training quiz key rows
+   *
+   * The correct option of a quiz question. Only course editors read it. Returns a cursor page of training quiz key rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /training-quiz-keys` (operation `trainingQuizKeys.list`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  listAll(
+    params?: $ListAllParams<TrainingQuizKey>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TrainingQuizKey, void, undefined> {
+    return this.client.paginate<TrainingQuizKey>(
+      $OPERATIONS["trainingQuizKeys.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a training quiz key
+   *
+   * The correct option of a quiz question. Only course editors read it. Creates a training quiz key. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /training-quiz-keys` (operation `trainingQuizKeys.create`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  create(
+    body: TrainingQuizKeyCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TrainingQuizKey>> {
+    return this.client.request<TrainingQuizKey>(
+      $OPERATIONS["trainingQuizKeys.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a training quiz key
+   *
+   * The correct option of a quiz question. Only course editors read it. Returns one training quiz key with its `ETag`. A training quiz key the caller may not see returns 404.
+   *
+   * `GET /training-quiz-keys/{id}` (operation `trainingQuizKeys.get`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TrainingQuizKey>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TrainingQuizKey>> {
+    return this.client.request<TrainingQuizKey>(
+      $OPERATIONS["trainingQuizKeys.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a training quiz key
+   *
+   * The correct option of a quiz question. Only course editors read it. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /training-quiz-keys/{id}` (operation `trainingQuizKeys.update`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  update(
+    id: string,
+    body: TrainingQuizKeyUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<TrainingQuizKey>> {
+    return this.client.request<TrainingQuizKey>(
+      $OPERATIONS["trainingQuizKeys.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `trainingAssignments`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class TrainingAssignmentsResource extends $Resource {
+  /**
+   * List training assignment rows
+   *
+   * A course assigned to a member with a due date. Deleting withdraws it. Returns a cursor page of training assignment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /training-assignments` (operation `trainingAssignments.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(
+    params?: $ListParams<TrainingAssignment>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TrainingAssignment>> {
+    return this.client.requestPage<TrainingAssignment>(
+      $OPERATIONS["trainingAssignments.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List training assignment rows
+   *
+   * A course assigned to a member with a due date. Deleting withdraws it. Returns a cursor page of training assignment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /training-assignments` (operation `trainingAssignments.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<TrainingAssignment>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TrainingAssignment, void, undefined> {
+    return this.client.paginate<TrainingAssignment>(
+      $OPERATIONS["trainingAssignments.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a training assignment
+   *
+   * A course assigned to a member with a due date. Deleting withdraws it. Returns one training assignment with its `ETag`. A training assignment the caller may not see returns 404.
+   *
+   * `GET /training-assignments/{id}` (operation `trainingAssignments.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TrainingAssignment>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TrainingAssignment>> {
+    return this.client.request<TrainingAssignment>(
+      $OPERATIONS["trainingAssignments.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a training assignment
+   *
+   * A course assigned to a member with a due date. Deleting withdraws it. Soft-deletes the training assignment: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /training-assignments/{id}` (operation `trainingAssignments.delete`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["trainingAssignments.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `trainingCompletions`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class TrainingCompletionsResource extends $Resource {
+  /**
+   * List training completion rows
+   *
+   * A training attempt with its quiz score; a pass carries a certificate number and expiry. Returns a cursor page of training completion rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /training-completions` (operation `trainingCompletions.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(
+    params?: $ListParams<TrainingCompletion>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TrainingCompletion>> {
+    return this.client.requestPage<TrainingCompletion>(
+      $OPERATIONS["trainingCompletions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List training completion rows
+   *
+   * A training attempt with its quiz score; a pass carries a certificate number and expiry. Returns a cursor page of training completion rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /training-completions` (operation `trainingCompletions.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<TrainingCompletion>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TrainingCompletion, void, undefined> {
+    return this.client.paginate<TrainingCompletion>(
+      $OPERATIONS["trainingCompletions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a training completion
+   *
+   * A training attempt with its quiz score; a pass carries a certificate number and expiry. Returns one training completion with its `ETag`. A training completion the caller may not see returns 404.
+   *
+   * `GET /training-completions/{id}` (operation `trainingCompletions.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TrainingCompletion>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TrainingCompletion>> {
+    return this.client.request<TrainingCompletion>(
+      $OPERATIONS["trainingCompletions.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Issue the certification
+   *
+   * A verifier issues the certification a passed course grants, never the learner. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /training-completions/{id}/issue-certification` (operation `trainingCompletions.issueCertification`).
+   * Requires the capability `people.certification.verify`.
+   */
+  issueCertification(
+    id: string,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TrainingCompletion>> {
+    return this.client.request<TrainingCompletion>(
+      $OPERATIONS["trainingCompletions.issueCertification"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `handbookSections`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class HandbookSectionsResource extends $Resource {
+  /**
+   * List handbook section rows
+   *
+   * A chapter of the org handbook. Returns a cursor page of handbook section rows the caller may see. The default order is `position` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /handbook-sections` (operation `handbookSections.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(
+    params?: $ListParams<HandbookSection>,
+    options?: $RequestOptions,
+  ): Promise<$Page<HandbookSection>> {
+    return this.client.requestPage<HandbookSection>(
+      $OPERATIONS["handbookSections.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List handbook section rows
+   *
+   * A chapter of the org handbook. Returns a cursor page of handbook section rows the caller may see. The default order is `position` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /handbook-sections` (operation `handbookSections.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<HandbookSection>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<HandbookSection, void, undefined> {
+    return this.client.paginate<HandbookSection>(
+      $OPERATIONS["handbookSections.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a handbook section
+   *
+   * A chapter of the org handbook. Creates a handbook section. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /handbook-sections` (operation `handbookSections.create`).
+   * Requires the capability `knowledge.sop.write`.
+   */
+  create(
+    body: HandbookSectionCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<HandbookSection>> {
+    return this.client.request<HandbookSection>(
+      $OPERATIONS["handbookSections.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a handbook section
+   *
+   * A chapter of the org handbook. Returns one handbook section with its `ETag`. A handbook section the caller may not see returns 404.
+   *
+   * `GET /handbook-sections/{id}` (operation `handbookSections.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<HandbookSection>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<HandbookSection>> {
+    return this.client.request<HandbookSection>(
+      $OPERATIONS["handbookSections.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a handbook section
+   *
+   * A chapter of the org handbook. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /handbook-sections/{id}` (operation `handbookSections.update`).
+   * Requires the capability `knowledge.sop.write`.
+   */
+  update(
+    id: string,
+    body: HandbookSectionUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<HandbookSection>> {
+    return this.client.request<HandbookSection>(
+      $OPERATIONS["handbookSections.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `handbookArticles`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class HandbookArticlesResource extends $Resource {
+  /**
+   * List handbook article rows
+   *
+   * A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version. Returns a cursor page of handbook article rows the caller may see. The default order is `title` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /handbook-articles` (operation `handbookArticles.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  list(
+    params?: $ListParams<HandbookArticle>,
+    options?: $RequestOptions,
+  ): Promise<$Page<HandbookArticle>> {
+    return this.client.requestPage<HandbookArticle>(
+      $OPERATIONS["handbookArticles.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List handbook article rows
+   *
+   * A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version. Returns a cursor page of handbook article rows the caller may see. The default order is `title` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /handbook-articles` (operation `handbookArticles.list`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  listAll(
+    params?: $ListAllParams<HandbookArticle>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<HandbookArticle, void, undefined> {
+    return this.client.paginate<HandbookArticle>(
+      $OPERATIONS["handbookArticles.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a handbook article
+   *
+   * A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version. Creates a handbook article. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /handbook-articles` (operation `handbookArticles.create`).
+   * Requires the capability `knowledge.sop.write`.
+   */
+  create(
+    body: HandbookArticleCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<HandbookArticle>> {
+    return this.client.request<HandbookArticle>(
+      $OPERATIONS["handbookArticles.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a handbook article
+   *
+   * A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version. Returns one handbook article with its `ETag`. A handbook article the caller may not see returns 404.
+   *
+   * `GET /handbook-articles/{id}` (operation `handbookArticles.get`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<HandbookArticle>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<HandbookArticle>> {
+    return this.client.request<HandbookArticle>(
+      $OPERATIONS["handbookArticles.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a handbook article
+   *
+   * A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /handbook-articles/{id}` (operation `handbookArticles.update`).
+   * Requires the capability `knowledge.sop.write`.
+   */
+  update(
+    id: string,
+    body: HandbookArticleUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<HandbookArticle>> {
+    return this.client.request<HandbookArticle>(
+      $OPERATIONS["handbookArticles.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Publish an article
+   *
+   * Publishes the working text as the next version; a mandatory article then asks everyone to acknowledge it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /handbook-articles/{id}/publish` (operation `handbookArticles.publish`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  publish(
+    id: string,
+    body: PublishArticleRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<HandbookArticle>> {
+    return this.client.request<HandbookArticle>(
+      $OPERATIONS["handbookArticles.publish"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Acknowledge an article
+   *
+   * Records that the caller read the current version. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /handbook-articles/{id}/acknowledge` (operation `handbookArticles.acknowledge`).
+   * Requires the capability `knowledge.sop.acknowledge`.
+   */
+  acknowledge(id: string, options?: $MutationOptions): Promise<$ApiResponse<HandbookArticle>> {
+    return this.client.request<HandbookArticle>(
+      $OPERATIONS["handbookArticles.acknowledge"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Archive an article
+   *
+   * Withdraws a published article. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /handbook-articles/{id}/archive` (operation `handbookArticles.archive`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  archive(id: string, options?: $MutationOptions): Promise<$ApiResponse<HandbookArticle>> {
+    return this.client.request<HandbookArticle>(
+      $OPERATIONS["handbookArticles.archive"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `knowledgeSources`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class KnowledgeSourcesResource extends $Resource {
+  /**
+   * Search knowledge sources
+   *
+   * The Assistant's sources: published handbook articles, SOPs and training lessons the caller can read that match the question, ranked, with routes to cite. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /knowledge-sources/search` (operation `knowledgeSources.search`).
+   * Requires the capability `knowledge.sop.read`.
+   */
+  search(
+    params: {
+      /**
+       * The question.
+       */
+      readonly q: string;
+      /**
+       * At most this many.
+       */
+      readonly limit?: number;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<KnowledgeSourcePage>> {
+    return this.client.request<KnowledgeSourcePage>(
+      $OPERATIONS["knowledgeSources.search"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `helpDeskTeams`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class HelpDeskTeamsResource extends $Resource {
+  /**
+   * List help desk team rows
+   *
+   * An internal team that answers help desk requests, with its first response target. Returns a cursor page of help desk team rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /help-desk-teams` (operation `helpDeskTeams.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  list(
+    params?: $ListParams<HelpDeskTeam>,
+    options?: $RequestOptions,
+  ): Promise<$Page<HelpDeskTeam>> {
+    return this.client.requestPage<HelpDeskTeam>(
+      $OPERATIONS["helpDeskTeams.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List help desk team rows
+   *
+   * An internal team that answers help desk requests, with its first response target. Returns a cursor page of help desk team rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /help-desk-teams` (operation `helpDeskTeams.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  listAll(
+    params?: $ListAllParams<HelpDeskTeam>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<HelpDeskTeam, void, undefined> {
+    return this.client.paginate<HelpDeskTeam>(
+      $OPERATIONS["helpDeskTeams.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a help desk team
+   *
+   * An internal team that answers help desk requests, with its first response target. Creates a help desk team. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /help-desk-teams` (operation `helpDeskTeams.create`).
+   * Requires the capability `org.help.write`.
+   */
+  create(
+    body: HelpDeskTeamCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<HelpDeskTeam>> {
+    return this.client.request<HelpDeskTeam>(
+      $OPERATIONS["helpDeskTeams.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a help desk team
+   *
+   * An internal team that answers help desk requests, with its first response target. Returns one help desk team with its `ETag`. A help desk team the caller may not see returns 404.
+   *
+   * `GET /help-desk-teams/{id}` (operation `helpDeskTeams.get`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<HelpDeskTeam>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<HelpDeskTeam>> {
+    return this.client.request<HelpDeskTeam>(
+      $OPERATIONS["helpDeskTeams.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a help desk team
+   *
+   * An internal team that answers help desk requests, with its first response target. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /help-desk-teams/{id}` (operation `helpDeskTeams.update`).
+   * Requires the capability `org.help.write`.
+   */
+  update(
+    id: string,
+    body: HelpDeskTeamUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<HelpDeskTeam>> {
+    return this.client.request<HelpDeskTeam>(
+      $OPERATIONS["helpDeskTeams.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Archive a team
+   *
+   * The team stops taking requests. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /help-desk-teams/{id}/archive` (operation `helpDeskTeams.archive`).
+   * Requires the capability `org.help.write`.
+   */
+  archive(id: string, options?: $MutationOptions): Promise<$ApiResponse<HelpDeskTeam>> {
+    return this.client.request<HelpDeskTeam>(
+      $OPERATIONS["helpDeskTeams.archive"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `helpDeskTeamMembers`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class HelpDeskTeamMembersResource extends $Resource {
+  /**
+   * List help desk team member rows
+   *
+   * A member who answers a help desk team's requests. Deleting removes them. Returns a cursor page of help desk team member rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /help-desk-team-members` (operation `helpDeskTeamMembers.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  list(
+    params?: $ListParams<HelpDeskTeamMember>,
+    options?: $RequestOptions,
+  ): Promise<$Page<HelpDeskTeamMember>> {
+    return this.client.requestPage<HelpDeskTeamMember>(
+      $OPERATIONS["helpDeskTeamMembers.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List help desk team member rows
+   *
+   * A member who answers a help desk team's requests. Deleting removes them. Returns a cursor page of help desk team member rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /help-desk-team-members` (operation `helpDeskTeamMembers.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  listAll(
+    params?: $ListAllParams<HelpDeskTeamMember>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<HelpDeskTeamMember, void, undefined> {
+    return this.client.paginate<HelpDeskTeamMember>(
+      $OPERATIONS["helpDeskTeamMembers.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a help desk team member
+   *
+   * A member who answers a help desk team's requests. Deleting removes them. Creates a help desk team member. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /help-desk-team-members` (operation `helpDeskTeamMembers.create`).
+   * Requires the capability `org.help.write`.
+   */
+  create(
+    body: HelpDeskTeamMemberCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<HelpDeskTeamMember>> {
+    return this.client.request<HelpDeskTeamMember>(
+      $OPERATIONS["helpDeskTeamMembers.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a help desk team member
+   *
+   * A member who answers a help desk team's requests. Deleting removes them. Returns one help desk team member with its `ETag`. A help desk team member the caller may not see returns 404.
+   *
+   * `GET /help-desk-team-members/{id}` (operation `helpDeskTeamMembers.get`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<HelpDeskTeamMember>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<HelpDeskTeamMember>> {
+    return this.client.request<HelpDeskTeamMember>(
+      $OPERATIONS["helpDeskTeamMembers.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a help desk team member
+   *
+   * A member who answers a help desk team's requests. Deleting removes them. Soft-deletes the help desk team member: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /help-desk-team-members/{id}` (operation `helpDeskTeamMembers.delete`).
+   * Requires the capability `org.help.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["helpDeskTeamMembers.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `helpDeskRequests`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class HelpDeskRequestsResource extends $Resource {
+  /**
+   * List help desk request rows
+   *
+   * A help desk request: an Organization queue support ticket routed to an internal team, with assignment and response deadline. Returns a cursor page of help desk request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /help-desk-requests` (operation `helpDeskRequests.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  list(
+    params?: $ListParams<HelpDeskRequest>,
+    options?: $RequestOptions,
+  ): Promise<$Page<HelpDeskRequest>> {
+    return this.client.requestPage<HelpDeskRequest>(
+      $OPERATIONS["helpDeskRequests.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List help desk request rows
+   *
+   * A help desk request: an Organization queue support ticket routed to an internal team, with assignment and response deadline. Returns a cursor page of help desk request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /help-desk-requests` (operation `helpDeskRequests.list`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  listAll(
+    params?: $ListAllParams<HelpDeskRequest>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<HelpDeskRequest, void, undefined> {
+    return this.client.paginate<HelpDeskRequest>(
+      $OPERATIONS["helpDeskRequests.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a help desk request
+   *
+   * A help desk request: an Organization queue support ticket routed to an internal team, with assignment and response deadline. Creates a help desk request. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /help-desk-requests` (operation `helpDeskRequests.create`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  create(
+    body: HelpDeskRequestCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<HelpDeskRequest>> {
+    return this.client.request<HelpDeskRequest>(
+      $OPERATIONS["helpDeskRequests.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a help desk request
+   *
+   * A help desk request: an Organization queue support ticket routed to an internal team, with assignment and response deadline. Returns one help desk request with its `ETag`. A help desk request the caller may not see returns 404.
+   *
+   * `GET /help-desk-requests/{id}` (operation `helpDeskRequests.get`).
+   * Requires the capability `inbox.notifications.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<HelpDeskRequest>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<HelpDeskRequest>> {
+    return this.client.request<HelpDeskRequest>(
+      $OPERATIONS["helpDeskRequests.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Assign a request
+   *
+   * Assigns the request to a member of its team, optionally moving it to another team. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /help-desk-requests/{id}/assign` (operation `helpDeskRequests.assign`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  assign(
+    id: string,
+    body: AssignHelpDeskRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<HelpDeskRequest>> {
+    return this.client.request<HelpDeskRequest>(
+      $OPERATIONS["helpDeskRequests.assign"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Answer a request
+   *
+   * A team member answers; the first answer records the response time. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /help-desk-requests/{id}/answer` (operation `helpDeskRequests.answer`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  answer(
+    id: string,
+    body: AnswerHelpDeskRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<HelpDeskAnswer>> {
+    return this.client.request<HelpDeskAnswer>(
+      $OPERATIONS["helpDeskRequests.answer"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Move a request
+   *
+   * A team member moves the request through Open, Waiting, Resolved and Closed with a reason. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /help-desk-requests/{id}/transition` (operation `helpDeskRequests.transition`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  transition(
+    id: string,
+    body: HelpDeskTransitionRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WorkforceLedgerEntry>> {
+    return this.client.request<WorkforceLedgerEntry>(
+      $OPERATIONS["helpDeskRequests.transition"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `occupancyCounters`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class OccupancyCountersResource extends $Resource {
+  /**
+   * List occupancy counter rows
+   *
+   * A live occupancy counter against the permitted occupant load, with alerts at 80, 90 and 100 percent. Returns a cursor page of occupancy counter rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /occupancy-counters` (operation `occupancyCounters.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(
+    params?: $ListParams<OccupancyCounter>,
+    options?: $RequestOptions,
+  ): Promise<$Page<OccupancyCounter>> {
+    return this.client.requestPage<OccupancyCounter>(
+      $OPERATIONS["occupancyCounters.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List occupancy counter rows
+   *
+   * A live occupancy counter against the permitted occupant load, with alerts at 80, 90 and 100 percent. Returns a cursor page of occupancy counter rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /occupancy-counters` (operation `occupancyCounters.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<OccupancyCounter>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<OccupancyCounter, void, undefined> {
+    return this.client.paginate<OccupancyCounter>(
+      $OPERATIONS["occupancyCounters.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an occupancy counter
+   *
+   * A live occupancy counter against the permitted occupant load, with alerts at 80, 90 and 100 percent. Returns one occupancy counter with its `ETag`. A occupancy counter the caller may not see returns 404.
+   *
+   * `GET /occupancy-counters/{id}` (operation `occupancyCounters.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<OccupancyCounter>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<OccupancyCounter>> {
+    return this.client.request<OccupancyCounter>(
+      $OPERATIONS["occupancyCounters.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Set up a counter
+   *
+   * Sets up a counter sized by a permit load, a Bible occupant load factor or the space capacity. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /occupancy-counters/set-up` (operation `occupancyCounters.setUp`).
+   * Requires the capability `safety.emergency_code.write`.
+   */
+  setUp(
+    body: OccupancyCounterCreateRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<OccupancyCounter>> {
+    return this.client.request<OccupancyCounter>(
+      $OPERATIONS["occupancyCounters.setUp"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Count people in or out
+   *
+   * Counts people in (positive) or out (negative) at a door. Crossing 80, 90 or 100 percent alerts the dispatchers. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /occupancy-counters/{id}/count` (operation `occupancyCounters.count`).
+   * Requires the capability `safety.incident.write`.
+   */
+  count(
+    id: string,
+    body: OccupancyCountRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<OccupancyCounter>> {
+    return this.client.request<OccupancyCounter>(
+      $OPERATIONS["occupancyCounters.count"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Close a counter
+   *
+   * Stops counting. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /occupancy-counters/{id}/close` (operation `occupancyCounters.close`).
+   * Requires the capability `safety.emergency_code.write`.
+   */
+  close(id: string, options?: $MutationOptions): Promise<$ApiResponse<OccupancyCounter>> {
+    return this.client.request<OccupancyCounter>(
+      $OPERATIONS["occupancyCounters.close"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `weatherThresholds`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WeatherThresholdsResource extends $Resource {
+  /**
+   * List weather threshold rows
+   *
+   * A weather action threshold of a project: one value per hazard and level, with its emergency plan source. Returns a cursor page of weather threshold rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /weather-thresholds` (operation `weatherThresholds.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(
+    params?: $ListParams<WeatherThreshold>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WeatherThreshold>> {
+    return this.client.requestPage<WeatherThreshold>(
+      $OPERATIONS["weatherThresholds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List weather threshold rows
+   *
+   * A weather action threshold of a project: one value per hazard and level, with its emergency plan source. Returns a cursor page of weather threshold rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /weather-thresholds` (operation `weatherThresholds.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WeatherThreshold>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WeatherThreshold, void, undefined> {
+    return this.client.paginate<WeatherThreshold>(
+      $OPERATIONS["weatherThresholds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a weather threshold
+   *
+   * A weather action threshold of a project: one value per hazard and level, with its emergency plan source. Creates a weather threshold. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /weather-thresholds` (operation `weatherThresholds.create`).
+   * Requires the capability `safety.emergency_code.write`.
+   */
+  create(
+    body: WeatherThresholdCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WeatherThreshold>> {
+    return this.client.request<WeatherThreshold>(
+      $OPERATIONS["weatherThresholds.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a weather threshold
+   *
+   * A weather action threshold of a project: one value per hazard and level, with its emergency plan source. Returns one weather threshold with its `ETag`. A weather threshold the caller may not see returns 404.
+   *
+   * `GET /weather-thresholds/{id}` (operation `weatherThresholds.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WeatherThreshold>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WeatherThreshold>> {
+    return this.client.request<WeatherThreshold>(
+      $OPERATIONS["weatherThresholds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a weather threshold
+   *
+   * A weather action threshold of a project: one value per hazard and level, with its emergency plan source. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /weather-thresholds/{id}` (operation `weatherThresholds.update`).
+   * Requires the capability `safety.emergency_code.write`.
+   */
+  update(
+    id: string,
+    body: WeatherThresholdUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<WeatherThreshold>> {
+    return this.client.request<WeatherThreshold>(
+      $OPERATIONS["weatherThresholds.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `weatherAlertRoles`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WeatherAlertRolesResource extends $Resource {
+  /**
+   * List weather alert role rows
+   *
+   * A canon role the emergency plan names for a weather level; people assigned it on the project are alerted. Returns a cursor page of weather alert role rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /weather-alert-roles` (operation `weatherAlertRoles.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(
+    params?: $ListParams<WeatherAlertRole>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WeatherAlertRole>> {
+    return this.client.requestPage<WeatherAlertRole>(
+      $OPERATIONS["weatherAlertRoles.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List weather alert role rows
+   *
+   * A canon role the emergency plan names for a weather level; people assigned it on the project are alerted. Returns a cursor page of weather alert role rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /weather-alert-roles` (operation `weatherAlertRoles.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WeatherAlertRole>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WeatherAlertRole, void, undefined> {
+    return this.client.paginate<WeatherAlertRole>(
+      $OPERATIONS["weatherAlertRoles.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a weather alert role
+   *
+   * A canon role the emergency plan names for a weather level; people assigned it on the project are alerted. Creates a weather alert role. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /weather-alert-roles` (operation `weatherAlertRoles.create`).
+   * Requires the capability `safety.emergency_code.write`.
+   */
+  create(
+    body: WeatherAlertRoleCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WeatherAlertRole>> {
+    return this.client.request<WeatherAlertRole>(
+      $OPERATIONS["weatherAlertRoles.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a weather alert role
+   *
+   * A canon role the emergency plan names for a weather level; people assigned it on the project are alerted. Returns one weather alert role with its `ETag`. A weather alert role the caller may not see returns 404.
+   *
+   * `GET /weather-alert-roles/{id}` (operation `weatherAlertRoles.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WeatherAlertRole>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WeatherAlertRole>> {
+    return this.client.request<WeatherAlertRole>(
+      $OPERATIONS["weatherAlertRoles.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a weather alert role
+   *
+   * A canon role the emergency plan names for a weather level; people assigned it on the project are alerted. Soft-deletes the weather alert role: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /weather-alert-roles/{id}` (operation `weatherAlertRoles.delete`).
+   * Requires the capability `safety.emergency_code.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["weatherAlertRoles.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `weatherReadings`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WeatherReadingsResource extends $Resource {
+  /**
+   * List weather reading rows
+   *
+   * A weather reading on site, in the hazard's unit. Returns a cursor page of weather reading rows the caller may see. The default order is `observed_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /weather-readings` (operation `weatherReadings.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(
+    params?: $ListParams<WeatherReading>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WeatherReading>> {
+    return this.client.requestPage<WeatherReading>(
+      $OPERATIONS["weatherReadings.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List weather reading rows
+   *
+   * A weather reading on site, in the hazard's unit. Returns a cursor page of weather reading rows the caller may see. The default order is `observed_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /weather-readings` (operation `weatherReadings.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WeatherReading>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WeatherReading, void, undefined> {
+    return this.client.paginate<WeatherReading>(
+      $OPERATIONS["weatherReadings.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a weather reading
+   *
+   * A weather reading on site, in the hazard's unit. Creates a weather reading. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /weather-readings` (operation `weatherReadings.create`).
+   * Requires the capability `safety.incident.write`.
+   */
+  create(
+    body: WeatherReadingCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WeatherReading>> {
+    return this.client.request<WeatherReading>(
+      $OPERATIONS["weatherReadings.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a weather reading
+   *
+   * A weather reading on site, in the hazard's unit. Returns one weather reading with its `ETag`. A weather reading the caller may not see returns 404.
+   *
+   * `GET /weather-readings/{id}` (operation `weatherReadings.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WeatherReading>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WeatherReading>> {
+    return this.client.request<WeatherReading>(
+      $OPERATIONS["weatherReadings.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `weatherAlerts`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class WeatherAlertsResource extends $Resource {
+  /**
+   * List weather alert rows
+   *
+   * A weather alert raised by a reading at the highest level met, cleared when readings fall below every level. Returns a cursor page of weather alert rows the caller may see. The default order is `issued_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /weather-alerts` (operation `weatherAlerts.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(
+    params?: $ListParams<WeatherAlert>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WeatherAlert>> {
+    return this.client.requestPage<WeatherAlert>(
+      $OPERATIONS["weatherAlerts.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List weather alert rows
+   *
+   * A weather alert raised by a reading at the highest level met, cleared when readings fall below every level. Returns a cursor page of weather alert rows the caller may see. The default order is `issued_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /weather-alerts` (operation `weatherAlerts.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WeatherAlert>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WeatherAlert, void, undefined> {
+    return this.client.paginate<WeatherAlert>(
+      $OPERATIONS["weatherAlerts.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a weather alert
+   *
+   * A weather alert raised by a reading at the highest level met, cleared when readings fall below every level. Returns one weather alert with its `ETag`. A weather alert the caller may not see returns 404.
+   *
+   * `GET /weather-alerts/{id}` (operation `weatherAlerts.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WeatherAlert>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WeatherAlert>> {
+    return this.client.request<WeatherAlert>(
+      $OPERATIONS["weatherAlerts.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `guestCheckIns`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class GuestCheckInsResource extends $Resource {
+  /**
+   * List guest check in rows
+   *
+   * A door check-in of an approved guest with plus-ones admitted and the credential scanned. Returns a cursor page of guest check in rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /guest-check-ins` (operation `guestCheckIns.list`).
+   * Requires the capability `credentials.scan.write`.
+   */
+  list(
+    params?: $ListParams<GuestCheckIn>,
+    options?: $RequestOptions,
+  ): Promise<$Page<GuestCheckIn>> {
+    return this.client.requestPage<GuestCheckIn>(
+      $OPERATIONS["guestCheckIns.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List guest check in rows
+   *
+   * A door check-in of an approved guest with plus-ones admitted and the credential scanned. Returns a cursor page of guest check in rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /guest-check-ins` (operation `guestCheckIns.list`).
+   * Requires the capability `credentials.scan.write`.
+   */
+  listAll(
+    params?: $ListAllParams<GuestCheckIn>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<GuestCheckIn, void, undefined> {
+    return this.client.paginate<GuestCheckIn>(
+      $OPERATIONS["guestCheckIns.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a guest check in
+   *
+   * A door check-in of an approved guest with plus-ones admitted and the credential scanned. Creates a guest check in. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /guest-check-ins` (operation `guestCheckIns.create`).
+   * Requires the capability `credentials.scan.write`.
+   */
+  create(
+    body: GuestCheckInCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<GuestCheckIn>> {
+    return this.client.request<GuestCheckIn>(
+      $OPERATIONS["guestCheckIns.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a guest check in
+   *
+   * A door check-in of an approved guest with plus-ones admitted and the credential scanned. Returns one guest check in with its `ETag`. A guest check in the caller may not see returns 404.
+   *
+   * `GET /guest-check-ins/{id}` (operation `guestCheckIns.get`).
+   * Requires the capability `credentials.scan.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<GuestCheckIn>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<GuestCheckIn>> {
+    return this.client.request<GuestCheckIn>(
+      $OPERATIONS["guestCheckIns.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Door list
+   *
+   * Approved and checked-in guests of a project for door staff, filtered by name. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /guest-check-ins/door-list` (operation `guestCheckIns.doorList`).
+   * Requires the capability `credentials.scan.write`.
+   */
+  doorList(
+    params: {
+      /**
+       * Project.
+       */
+      readonly project_id: string;
+      /**
+       * Name contains this.
+       */
+      readonly q?: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<DoorGuestPage>> {
+    return this.client.request<DoorGuestPage>(
+      $OPERATIONS["guestCheckIns.doorList"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `lostFoundItems`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class LostFoundItemsResource extends $Resource {
+  /**
+   * List lost found item rows
+   *
+   * An item in the lost and found log, with photos as attachments and its claim state. Returns a cursor page of lost found item rows the caller may see. The default order is `found_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /lost-found-items` (operation `lostFoundItems.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(
+    params?: $ListParams<LostFoundItem>,
+    options?: $RequestOptions,
+  ): Promise<$Page<LostFoundItem>> {
+    return this.client.requestPage<LostFoundItem>(
+      $OPERATIONS["lostFoundItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List lost found item rows
+   *
+   * An item in the lost and found log, with photos as attachments and its claim state. Returns a cursor page of lost found item rows the caller may see. The default order is `found_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /lost-found-items` (operation `lostFoundItems.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<LostFoundItem>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<LostFoundItem, void, undefined> {
+    return this.client.paginate<LostFoundItem>(
+      $OPERATIONS["lostFoundItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a lost found item
+   *
+   * An item in the lost and found log, with photos as attachments and its claim state. Creates a lost found item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /lost-found-items` (operation `lostFoundItems.create`).
+   * Requires the capability `safety.incident.write`.
+   */
+  create(
+    body: LostFoundItemCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<LostFoundItem>> {
+    return this.client.request<LostFoundItem>(
+      $OPERATIONS["lostFoundItems.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a lost found item
+   *
+   * An item in the lost and found log, with photos as attachments and its claim state. Returns one lost found item with its `ETag`. A lost found item the caller may not see returns 404.
+   *
+   * `GET /lost-found-items/{id}` (operation `lostFoundItems.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<LostFoundItem>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<LostFoundItem>> {
+    return this.client.request<LostFoundItem>(
+      $OPERATIONS["lostFoundItems.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a lost found item
+   *
+   * An item in the lost and found log, with photos as attachments and its claim state. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /lost-found-items/{id}` (operation `lostFoundItems.update`).
+   * Requires the capability `safety.incident.write`.
+   */
+  update(
+    id: string,
+    body: LostFoundItemUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<LostFoundItem>> {
+    return this.client.request<LostFoundItem>(
+      $OPERATIONS["lostFoundItems.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Record a claim
+   *
+   * Records a claim on a held item with the claimant's name, contact and proof. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /lost-found-items/{id}/claim` (operation `lostFoundItems.claim`).
+   * Requires the capability `safety.incident.write`.
+   */
+  claim(
+    id: string,
+    body: LostItemClaimRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<LostFoundClaim>> {
+    return this.client.request<LostFoundClaim>(
+      $OPERATIONS["lostFoundItems.claim"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Dispose of an item
+   *
+   * Disposes of an unclaimed held item with a reason. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /lost-found-items/{id}/dispose` (operation `lostFoundItems.dispose`).
+   * Requires the capability `safety.incident.close`.
+   */
+  dispose(
+    id: string,
+    body: DisposeLostItemRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<LostFoundItem>> {
+    return this.client.request<LostFoundItem>(
+      $OPERATIONS["lostFoundItems.dispose"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `lostFoundClaims`, in the Workforce module.
+ *
+ * Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).
+ */
+export class LostFoundClaimsResource extends $Resource {
+  /**
+   * List lost found claim rows
+   *
+   * A claim on a lost item: the claimant, their contact (Confidential), their proof and how it was settled. Returns a cursor page of lost found claim rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /lost-found-claims` (operation `lostFoundClaims.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  list(
+    params?: $ListParams<LostFoundClaim>,
+    options?: $RequestOptions,
+  ): Promise<$Page<LostFoundClaim>> {
+    return this.client.requestPage<LostFoundClaim>(
+      $OPERATIONS["lostFoundClaims.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List lost found claim rows
+   *
+   * A claim on a lost item: the claimant, their contact (Confidential), their proof and how it was settled. Returns a cursor page of lost found claim rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /lost-found-claims` (operation `lostFoundClaims.list`).
+   * Requires the capability `safety.incident.read`.
+   */
+  listAll(
+    params?: $ListAllParams<LostFoundClaim>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<LostFoundClaim, void, undefined> {
+    return this.client.paginate<LostFoundClaim>(
+      $OPERATIONS["lostFoundClaims.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a lost found claim
+   *
+   * A claim on a lost item: the claimant, their contact (Confidential), their proof and how it was settled. Returns one lost found claim with its `ETag`. A lost found claim the caller may not see returns 404.
+   *
+   * `GET /lost-found-claims/{id}` (operation `lostFoundClaims.get`).
+   * Requires the capability `safety.incident.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<LostFoundClaim>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<LostFoundClaim>> {
+    return this.client.request<LostFoundClaim>(
+      $OPERATIONS["lostFoundClaims.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Settle a claim
+   *
+   * Returns the item to the verified claimant, or rejects the claim with a reason. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /lost-found-claims/{id}/settle` (operation `lostFoundClaims.settle`).
+   * Requires the capability `safety.incident.close`.
+   */
+  settle(
+    id: string,
+    body: SettleClaimRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<LostFoundClaim>> {
+    return this.client.request<LostFoundClaim>(
+      $OPERATIONS["lostFoundClaims.settle"],
+      { path: { id }, body },
       options,
     );
   }

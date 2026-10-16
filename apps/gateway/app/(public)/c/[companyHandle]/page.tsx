@@ -46,10 +46,10 @@ export default async function CompanyProfilePage({ params }: PageProps<"/c/[comp
   if (!data) notFound();
   if (data.profile.redirected) permanentRedirect(`/c/${data.profile.handle}` as Route);
   const [t, locale, ctx] = await Promise.all([getTranslate(), getLocale(), getGatewayContext()]);
-  const opportunities = ctx ? await searchOpportunities(ctx.db, { limit: 12 }) : null;
-  const open = opportunities?.ok
-    ? opportunities.data.filter((o) => o.orgName === data.profile.name)
-    : [];
+  const opportunities = ctx
+    ? await searchOpportunities(ctx.db, { orgId: data.profile.org_id, limit: 12 })
+    : null;
+  const open = opportunities?.ok ? opportunities.data : [];
   const details = (kind: string) =>
     data.details.filter((d) => d.detail_kind === kind).sort((a, b) => a.sort_order - b.sort_order);
   const domains = details("verified_domain");

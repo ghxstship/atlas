@@ -21,6 +21,7 @@
     "@op-engineering/op-sqlite": "18.2.5",
     "@powersync/react-native": "2.3.1",
     "@supabase/supabase-js": "2.117.3",
+    "@xos/ai": "workspace:*",
     "@xos/data": "workspace:*",
     "@xos/i18n": "workspace:*",
     "@xos/sync": "workspace:*",

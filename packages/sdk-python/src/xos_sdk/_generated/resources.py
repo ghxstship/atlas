@@ -79,6 +79,7 @@ if TYPE_CHECKING:
         AiSuggestionReopenRequest,
         AiUsage,
         AiUsagePage,
+        AnswerHelpDeskRequest,
         ApiKey,
         ApiKeyCreate,
         ApiKeyPage,
@@ -136,6 +137,9 @@ if TYPE_CHECKING:
         AssetUnitCreate,
         AssetUnitPage,
         AssetUnitUpdate,
+        AssignHelpDeskRequest,
+        AssignTrainingRequest,
+        AssignTrainingResult,
         AuditEvent,
         AuditEventPage,
         AuroraAskRequest,
@@ -205,6 +209,7 @@ if TYPE_CHECKING:
         CallSheetCreate,
         CallSheetPage,
         CallSheetUpdate,
+        CancelWorkforceEventRequest,
         CanonAct,
         CanonActPage,
         CanonAssertionRank,
@@ -329,6 +334,10 @@ if TYPE_CHECKING:
         ChangeOrderPage,
         ChangeOrderTransitionRequest,
         ChangeOrderUpdate,
+        ChatMessage,
+        ChatMessageCreate,
+        ChatMessagePage,
+        ChatMessageUpdate,
         ColumnClassification,
         ColumnClassificationPage,
         Comment,
@@ -339,12 +348,16 @@ if TYPE_CHECKING:
         CommentThreadPage,
         CommentThreadUpdate,
         CommentUpdate,
+        CompleteTrainingRequest,
         ConsentRecord,
         ConsentRecordCreate,
         ConsentRecordPage,
         ContingencyDraw,
         ContingencyDrawCreate,
         ContingencyDrawPage,
+        Conversation,
+        ConversationPage,
+        ConversationReadReceiptPage,
         CoordinateMatrixCell,
         CoordinateMatrixCellPage,
         CostCenter,
@@ -413,11 +426,14 @@ if TYPE_CHECKING:
         DelegationPage,
         DelegationUpdate,
         DeptCode,
+        DirectConversationRequest,
+        DirectoryEntryPage,
         DiscCode,
         DispatchAssignment,
         DispatchAssignmentCreate,
         DispatchAssignmentPage,
         DispatchAssignmentUpdate,
+        DisposeLostItemRequest,
         DockSlot,
         DockSlotCreate,
         DockSlotPage,
@@ -429,6 +445,7 @@ if TYPE_CHECKING:
         DocumentVersion,
         DocumentVersionCreate,
         DocumentVersionPage,
+        DoorGuestPage,
         DsarRequest,
         DsarRequestCreate,
         DsarRequestPage,
@@ -456,6 +473,11 @@ if TYPE_CHECKING:
         EngagementThreadPage,
         EngagementThreadUpdate,
         EngagementTransitionRequest,
+        EventCheckIn,
+        EventCheckInPage,
+        EventCheckInRequest,
+        EventRsvp,
+        EventRsvpPage,
         Expense,
         ExpenseCreate,
         ExpensePage,
@@ -463,6 +485,20 @@ if TYPE_CHECKING:
         ExportJob,
         ExportJobCreate,
         ExportJobPage,
+        FeedAcknowledgmentStatusPage,
+        FeedPost,
+        FeedPostCreate,
+        FeedPostPage,
+        FeedPostUpdate,
+        FeedReactionRequest,
+        FormDecisionRequest,
+        FormSubmission,
+        FormSubmissionCreate,
+        FormSubmissionPage,
+        FormTemplate,
+        FormTemplateCreate,
+        FormTemplatePage,
+        FormTemplateUpdate,
         Fulfillment,
         FulfillmentCreate,
         FulfillmentLine,
@@ -492,11 +528,35 @@ if TYPE_CHECKING:
         GoodsReceiptCreate,
         GoodsReceiptPage,
         GrainCode,
+        GuestCheckIn,
+        GuestCheckInCreate,
+        GuestCheckInPage,
         GuestDecisionRequest,
         GuestListEntry,
         GuestListEntryCreate,
         GuestListEntryPage,
         GuestListEntryUpdate,
+        HandbookArticle,
+        HandbookArticleCreate,
+        HandbookArticlePage,
+        HandbookArticleUpdate,
+        HandbookSection,
+        HandbookSectionCreate,
+        HandbookSectionPage,
+        HandbookSectionUpdate,
+        HelpDeskAnswer,
+        HelpDeskRequest,
+        HelpDeskRequestCreate,
+        HelpDeskRequestPage,
+        HelpDeskTeam,
+        HelpDeskTeamCreate,
+        HelpDeskTeamMember,
+        HelpDeskTeamMemberCreate,
+        HelpDeskTeamMemberPage,
+        HelpDeskTeamPage,
+        HelpDeskTeamUpdate,
+        HelpDeskTransitionRequest,
+        HideFeedPostRequest,
         HomeSummary,
         ImportBatch,
         ImportBatchPage,
@@ -593,10 +653,19 @@ if TYPE_CHECKING:
         KioskDeviceCreate,
         KioskDevicePage,
         KioskDeviceUpdate,
+        KnowledgeSourcePage,
         ListingReport,
         ListingReportCreate,
         ListingReportPage,
+        LostFoundClaim,
+        LostFoundClaimPage,
+        LostFoundItem,
+        LostFoundItemCreate,
+        LostFoundItemPage,
+        LostFoundItemUpdate,
+        LostItemClaimRequest,
         MarkAllReadResult,
+        MarkConversationReadRequest,
         MarketplaceListingPage,
         MarshallingLogEntry,
         MarshallingLogEntryCreate,
@@ -631,6 +700,10 @@ if TYPE_CHECKING:
         OauthAppUpdate,
         OauthGrant,
         OauthGrantPage,
+        OccupancyCountRequest,
+        OccupancyCounter,
+        OccupancyCounterCreateRequest,
+        OccupancyCounterPage,
         OffboardingChecklist,
         OffboardingChecklistPage,
         OffboardingChecklistUpdate,
@@ -747,6 +820,7 @@ if TYPE_CHECKING:
         PhaseCode,
         PhaseCoverage,
         PhaseCoveragePage,
+        PinFeedPostRequest,
         Plan,
         PlanPage,
         PoChangeOrder,
@@ -759,6 +833,11 @@ if TYPE_CHECKING:
         PoLineCreate,
         PoLinePage,
         PoLineUpdate,
+        Poll,
+        PollPage,
+        PollPostRequest,
+        PollResultPage,
+        PollVoteRequest,
         PoolMember,
         PoolMemberCreate,
         PoolMemberPage,
@@ -810,6 +889,7 @@ if TYPE_CHECKING:
         ProjectTransitionRequest,
         ProjectUpdate,
         Provenance,
+        PublishArticleRequest,
         PurchaseOrder,
         PurchaseOrderApproveRequest,
         PurchaseOrderCreate,
@@ -838,6 +918,9 @@ if TYPE_CHECKING:
         ReceiptLine,
         ReceiptLineCreate,
         ReceiptLinePage,
+        Recognition,
+        RecognitionCreate,
+        RecognitionPage,
         Reconciliation,
         ReconciliationCreate,
         ReconciliationLine,
@@ -903,6 +986,8 @@ if TYPE_CHECKING:
         RestoreRequest,
         RetentionPolicy,
         RetentionPolicyPage,
+        RetireCourseRequest,
+        RetireFormRequest,
         Rfq,
         RfqCreate,
         RfqInvitation,
@@ -938,6 +1023,7 @@ if TYPE_CHECKING:
         RoleCreate,
         RolePage,
         RoleUpdate,
+        RsvpRequest,
         RunOfShow,
         RunOfShowCreate,
         RunOfShowPage,
@@ -987,6 +1073,7 @@ if TYPE_CHECKING:
         SettingValueCreate,
         SettingValuePage,
         SettingValueUpdate,
+        SettleClaimRequest,
         Shift,
         ShiftCreate,
         ShiftPage,
@@ -1068,6 +1155,15 @@ if TYPE_CHECKING:
         SupportTicketPage,
         SupportTicketReplyRequest,
         SupportTicketTransitionRequest,
+        Survey,
+        SurveyDraftRequest,
+        SurveyPage,
+        SurveyQuestion,
+        SurveyQuestionPage,
+        SurveyResponseRequest,
+        SurveyResponseResult,
+        SurveyResults,
+        SurveyTransitionRequest,
         TagId,
         TalentPool,
         TalentPoolCreate,
@@ -1137,6 +1233,26 @@ if TYPE_CHECKING:
         TourProgressCreate,
         TourProgressPage,
         TourProgressUpdate,
+        TrainingAssignment,
+        TrainingAssignmentPage,
+        TrainingCompletion,
+        TrainingCompletionPage,
+        TrainingCourse,
+        TrainingCourseCreate,
+        TrainingCoursePage,
+        TrainingCourseUpdate,
+        TrainingLesson,
+        TrainingLessonCreate,
+        TrainingLessonPage,
+        TrainingLessonUpdate,
+        TrainingQuizKey,
+        TrainingQuizKeyCreate,
+        TrainingQuizKeyPage,
+        TrainingQuizKeyUpdate,
+        TrainingQuizQuestion,
+        TrainingQuizQuestionCreate,
+        TrainingQuizQuestionPage,
+        TrainingQuizQuestionUpdate,
         TrashItem,
         TrashItemPage,
         TrashRestoreResult,
@@ -1189,6 +1305,18 @@ if TYPE_CHECKING:
         WageDeterminationCreate,
         WageDeterminationPage,
         WageDeterminationUpdate,
+        WeatherAlert,
+        WeatherAlertPage,
+        WeatherAlertRole,
+        WeatherAlertRoleCreate,
+        WeatherAlertRolePage,
+        WeatherReading,
+        WeatherReadingCreate,
+        WeatherReadingPage,
+        WeatherThreshold,
+        WeatherThresholdCreate,
+        WeatherThresholdPage,
+        WeatherThresholdUpdate,
         WebhookDelivery,
         WebhookDeliveryPage,
         WebhookEndpoint,
@@ -1207,6 +1335,18 @@ if TYPE_CHECKING:
         WorkOrderPage,
         WorkOrderTransitionRequest,
         WorkOrderUpdate,
+        WorkforceEvent,
+        WorkforceEventCreate,
+        WorkforceEventPage,
+        WorkforceEventUpdate,
+        WorkforceGroup,
+        WorkforceGroupCreate,
+        WorkforceGroupMember,
+        WorkforceGroupMemberCreate,
+        WorkforceGroupMemberPage,
+        WorkforceGroupPage,
+        WorkforceGroupUpdate,
+        WorkforceLedgerEntry,
         Workspace,
         WorkspaceCreate,
         WorkspaceMember,
@@ -32508,3 +32648,3361 @@ class TemplateItemsResource(Resource):
         Requires the capability ``projects.template.write``.
         """
         return self._client.request(OPERATIONS["templateItems.delete"], path={"id": id}, options=options)
+
+
+class WorkforceGroupsResource(Resource):
+    """Operations on ``workforceGroups``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WorkforceGroup]:
+        """List workforce group rows
+
+        A group space by department, project, crew or custom audience, with its own chat and files. Returns a cursor page of workforce group rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /groups`` (operation ``workforceGroups.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request_page(OPERATIONS["workforceGroups.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WorkforceGroup]:
+        """List workforce group rows
+
+        A group space by department, project, crew or custom audience, with its own chat and files. Returns a cursor page of workforce group rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /groups`` (operation ``workforceGroups.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.paginate(OPERATIONS["workforceGroups.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: WorkforceGroupCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceGroup]:
+        """Create a workforce group
+
+        A group space by department, project, crew or custom audience, with its own chat and files. Creates a workforce group. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /groups`` (operation ``workforceGroups.create``).
+        Requires the capability ``org.communication.write``.
+        """
+        return self._client.request(OPERATIONS["workforceGroups.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceGroup]:
+        """Get a workforce group
+
+        A group space by department, project, crew or custom audience, with its own chat and files. Returns one workforce group with its `ETag`. A workforce group the caller may not see returns 404.
+
+        ``GET /groups/{id}`` (operation ``workforceGroups.get``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request(OPERATIONS["workforceGroups.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: WorkforceGroupUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceGroup]:
+        """Update a workforce group
+
+        A group space by department, project, crew or custom audience, with its own chat and files. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /groups/{id}`` (operation ``workforceGroups.update``).
+        Requires the capability ``org.communication.write``.
+        """
+        return self._client.request(OPERATIONS["workforceGroups.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def archive(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceGroup]:
+        """Archive a group
+
+        Archives the group; it keeps its history and takes no new messages. Archiving is final. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /groups/{id}/archive`` (operation ``workforceGroups.archive``).
+        Requires the capability ``org.communication.write``.
+        """
+        return self._client.request(OPERATIONS["workforceGroups.archive"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class WorkforceGroupMembersResource(Resource):
+    """Operations on ``workforceGroupMembers``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WorkforceGroupMember]:
+        """List workforce group member rows
+
+        A member of a group space. Deleting removes the member, who also leaves the group conversation. Returns a cursor page of workforce group member rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /group-members`` (operation ``workforceGroupMembers.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request_page(OPERATIONS["workforceGroupMembers.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WorkforceGroupMember]:
+        """List workforce group member rows
+
+        A member of a group space. Deleting removes the member, who also leaves the group conversation. Returns a cursor page of workforce group member rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /group-members`` (operation ``workforceGroupMembers.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.paginate(OPERATIONS["workforceGroupMembers.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: WorkforceGroupMemberCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceGroupMember]:
+        """Create a workforce group member
+
+        A member of a group space. Deleting removes the member, who also leaves the group conversation. Creates a workforce group member. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /group-members`` (operation ``workforceGroupMembers.create``).
+        Requires the capability ``org.communication.write``.
+        """
+        return self._client.request(OPERATIONS["workforceGroupMembers.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceGroupMember]:
+        """Get a workforce group member
+
+        A member of a group space. Deleting removes the member, who also leaves the group conversation. Returns one workforce group member with its `ETag`. A workforce group member the caller may not see returns 404.
+
+        ``GET /group-members/{id}`` (operation ``workforceGroupMembers.get``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request(OPERATIONS["workforceGroupMembers.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a workforce group member
+
+        A member of a group space. Deleting removes the member, who also leaves the group conversation. Soft-deletes the workforce group member: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /group-members/{id}`` (operation ``workforceGroupMembers.delete``).
+        Requires the capability ``org.communication.write``.
+        """
+        return self._client.request(OPERATIONS["workforceGroupMembers.delete"], path={"id": id}, options=options)
+
+
+class ConversationsResource(Resource):
+    """Operations on ``conversations``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[Conversation]:
+        """List conversation rows
+
+        A chat conversation: one-to-one between two members, or the conversation of a group. Returns a cursor page of conversation rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /conversations`` (operation ``conversations.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request_page(OPERATIONS["conversations.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[Conversation]:
+        """List conversation rows
+
+        A chat conversation: one-to-one between two members, or the conversation of a group. Returns a cursor page of conversation rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /conversations`` (operation ``conversations.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.paginate(OPERATIONS["conversations.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Conversation]:
+        """Get a conversation
+
+        A chat conversation: one-to-one between two members, or the conversation of a group. Returns one conversation with its `ETag`. A conversation the caller may not see returns 404.
+
+        ``GET /conversations/{id}`` (operation ``conversations.get``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request(OPERATIONS["conversations.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def start_direct(
+        self,
+        body: DirectConversationRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Conversation]:
+        """Start a direct conversation
+
+        Opens, or returns, the one-to-one conversation with another active member of the org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /conversations/start-direct`` (operation ``conversations.startDirect``).
+        Requires the capability ``inbox.notifications.write``.
+        """
+        return self._client.request(OPERATIONS["conversations.startDirect"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def mark_read(
+        self,
+        id: str,
+        body: MarkConversationReadRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Conversation]:
+        """Mark a conversation read
+
+        Marks the conversation read up to now for the caller and optionally mutes or unmutes it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /conversations/{id}/mark-read`` (operation ``conversations.markRead``).
+        Requires the capability ``inbox.notifications.write``.
+        """
+        return self._client.request(OPERATIONS["conversations.markRead"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def read_receipts(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ConversationReadReceiptPage]:
+        """Read receipts
+
+        When the other members last read the conversation; empty while the org has read receipts off. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /conversations/{id}/read-receipts`` (operation ``conversations.readReceipts``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request(OPERATIONS["conversations.readReceipts"], path={"id": id}, options=options)
+
+
+class ChatMessagesResource(Resource):
+    """Operations on ``chatMessages``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ChatMessage]:
+        """List chat message rows
+
+        A chat message. Photos, files and voice notes are attachments on the message. Returns a cursor page of chat message rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /chat-messages`` (operation ``chatMessages.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request_page(OPERATIONS["chatMessages.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ChatMessage]:
+        """List chat message rows
+
+        A chat message. Photos, files and voice notes are attachments on the message. Returns a cursor page of chat message rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /chat-messages`` (operation ``chatMessages.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.paginate(OPERATIONS["chatMessages.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ChatMessageCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ChatMessage]:
+        """Create a chat message
+
+        A chat message. Photos, files and voice notes are attachments on the message. Creates a chat message. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /chat-messages`` (operation ``chatMessages.create``).
+        Requires the capability ``inbox.notifications.write``.
+        """
+        return self._client.request(OPERATIONS["chatMessages.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ChatMessage]:
+        """Get a chat message
+
+        A chat message. Photos, files and voice notes are attachments on the message. Returns one chat message with its `ETag`. A chat message the caller may not see returns 404.
+
+        ``GET /chat-messages/{id}`` (operation ``chatMessages.get``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request(OPERATIONS["chatMessages.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: ChatMessageUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ChatMessage]:
+        """Update a chat message
+
+        A chat message. Photos, files and voice notes are attachments on the message. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /chat-messages/{id}`` (operation ``chatMessages.update``).
+        Requires the capability ``inbox.notifications.write``.
+        """
+        return self._client.request(OPERATIONS["chatMessages.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a chat message
+
+        A chat message. Photos, files and voice notes are attachments on the message. Soft-deletes the chat message: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /chat-messages/{id}`` (operation ``chatMessages.delete``).
+        Requires the capability ``inbox.notifications.write``.
+        """
+        return self._client.request(OPERATIONS["chatMessages.delete"], path={"id": id}, options=options)
+
+
+class DirectoryEntriesResource(Resource):
+    """Operations on ``directoryEntries``, in the Workforce module."""
+
+    def search(
+        self,
+        *,
+        q: Optional[str] = None,
+        on_site: Optional[Literal["true", "false"]] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[DirectoryEntryPage]:
+        """Search the directory
+
+        The org directory, on-site members first, filtered by name or headline and optionally to those on site now. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /directory-entries/search`` (operation ``directoryEntries.search``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request(OPERATIONS["directoryEntries.search"], query={"q": q, "on_site": on_site}, options=options)
+
+
+class FeedPostsResource(Resource):
+    """Operations on ``feedPosts``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[FeedPost]:
+        """List feed post rows
+
+        A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time. Returns a cursor page of feed post rows the caller may see. The default order is `publish_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /feed-posts`` (operation ``feedPosts.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["feedPosts.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[FeedPost]:
+        """List feed post rows
+
+        A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time. Returns a cursor page of feed post rows the caller may see. The default order is `publish_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /feed-posts`` (operation ``feedPosts.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["feedPosts.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: FeedPostCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FeedPost]:
+        """Create a feed post
+
+        A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time. Creates a feed post. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /feed-posts`` (operation ``feedPosts.create``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request(OPERATIONS["feedPosts.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FeedPost]:
+        """Get a feed post
+
+        A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time. Returns one feed post with its `ETag`. A feed post the caller may not see returns 404.
+
+        ``GET /feed-posts/{id}`` (operation ``feedPosts.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["feedPosts.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: FeedPostUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FeedPost]:
+        """Update a feed post
+
+        A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /feed-posts/{id}`` (operation ``feedPosts.update``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request(OPERATIONS["feedPosts.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def create_poll(
+        self,
+        body: PollPostRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FeedPost]:
+        """Post a poll
+
+        Posts a quick poll to the feed with 2 to 10 options. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /feed-posts/create-poll`` (operation ``feedPosts.createPoll``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request(OPERATIONS["feedPosts.createPoll"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def pin(
+        self,
+        id: str,
+        body: PinFeedPostRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FeedPost]:
+        """Pin or unpin a post
+
+        Pins the post to the top of the feed, or unpins it. Needs knowledge.sop.publish or org.communication.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /feed-posts/{id}/pin`` (operation ``feedPosts.pin``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["feedPosts.pin"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def hide(
+        self,
+        id: str,
+        body: HideFeedPostRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FeedPost]:
+        """Hide a post
+
+        Hides the post with a reason; it leaves everyone else's feed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /feed-posts/{id}/hide`` (operation ``feedPosts.hide``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request(OPERATIONS["feedPosts.hide"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def acknowledge(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FeedPost]:
+        """Acknowledge a post
+
+        Records that the caller acknowledged a post that requires it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /feed-posts/{id}/acknowledge`` (operation ``feedPosts.acknowledge``).
+        Requires the capability ``knowledge.sop.acknowledge``.
+        """
+        return self._client.request(OPERATIONS["feedPosts.acknowledge"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def react(
+        self,
+        id: str,
+        body: FeedReactionRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FeedPost]:
+        """React to a post
+
+        Adds or removes the caller's reaction from the curated set. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /feed-posts/{id}/react`` (operation ``feedPosts.react``).
+        Requires the capability ``knowledge.sop.acknowledge``.
+        """
+        return self._client.request(OPERATIONS["feedPosts.react"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def acknowledgments(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FeedAcknowledgmentStatusPage]:
+        """Acknowledgment status
+
+        Each member of the audience and when they acknowledged the post, outstanding first. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /feed-posts/{id}/acknowledgments`` (operation ``feedPosts.acknowledgments``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["feedPosts.acknowledgments"], path={"id": id}, options=options)
+
+
+class PollsResource(Resource):
+    """Operations on ``polls``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[Poll]:
+        """List poll rows
+
+        A quick poll in the feed, attached to a post of kind Poll. Returns a cursor page of poll rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /polls`` (operation ``polls.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["polls.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[Poll]:
+        """List poll rows
+
+        A quick poll in the feed, attached to a post of kind Poll. Returns a cursor page of poll rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /polls`` (operation ``polls.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["polls.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Poll]:
+        """Get a poll
+
+        A quick poll in the feed, attached to a post of kind Poll. Returns one poll with its `ETag`. A poll the caller may not see returns 404.
+
+        ``GET /polls/{id}`` (operation ``polls.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["polls.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def vote(
+        self,
+        id: str,
+        body: PollVoteRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Poll]:
+        """Vote in a poll
+
+        Votes once: one option, or several when the poll allows it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /polls/{id}/vote`` (operation ``polls.vote``).
+        Requires the capability ``knowledge.sop.acknowledge``.
+        """
+        return self._client.request(OPERATIONS["polls.vote"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def results(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PollResultPage]:
+        """Poll results
+
+        Votes per option. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /polls/{id}/results`` (operation ``polls.results``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["polls.results"], path={"id": id}, options=options)
+
+
+class SurveysResource(Resource):
+    """Operations on ``surveys``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[Survey]:
+        """List survey rows
+
+        A pulse survey for an audience, anonymous by default, with results only once the minimum number of responses is met. Returns a cursor page of survey rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /surveys`` (operation ``surveys.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["surveys.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[Survey]:
+        """List survey rows
+
+        A pulse survey for an audience, anonymous by default, with results only once the minimum number of responses is met. Returns a cursor page of survey rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /surveys`` (operation ``surveys.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["surveys.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Survey]:
+        """Get a survey
+
+        A pulse survey for an audience, anonymous by default, with results only once the minimum number of responses is met. Returns one survey with its `ETag`. A survey the caller may not see returns 404.
+
+        ``GET /surveys/{id}`` (operation ``surveys.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["surveys.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def draft(
+        self,
+        body: SurveyDraftRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Survey]:
+        """Draft a survey
+
+        Drafts a pulse survey with its questions. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /surveys/draft`` (operation ``surveys.draft``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["surveys.draft"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def transition(
+        self,
+        id: str,
+        body: SurveyTransitionRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceLedgerEntry]:
+        """Open or close a survey
+
+        Opens a draft survey (notifying its audience) or closes an open one. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /surveys/{id}/transition`` (operation ``surveys.transition``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["surveys.transition"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def respond(
+        self,
+        id: str,
+        body: SurveyResponseRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SurveyResponseResult]:
+        """Respond to a survey
+
+        Responds once with answers keyed by question id. Anonymous answers carry no respondent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /surveys/{id}/respond`` (operation ``surveys.respond``).
+        Requires the capability ``knowledge.sop.acknowledge``.
+        """
+        return self._client.request(OPERATIONS["surveys.respond"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def results(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SurveyResults]:
+        """Survey results
+
+        Results, shown only once the minimum number of responses is met. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /surveys/{id}/results`` (operation ``surveys.results``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["surveys.results"], path={"id": id}, options=options)
+
+
+class SurveyQuestionsResource(Resource):
+    """Operations on ``surveyQuestions``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SurveyQuestion]:
+        """List survey question rows
+
+        A question of a pulse survey, in order. Returns a cursor page of survey question rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /survey-questions`` (operation ``surveyQuestions.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["surveyQuestions.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SurveyQuestion]:
+        """List survey question rows
+
+        A question of a pulse survey, in order. Returns a cursor page of survey question rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /survey-questions`` (operation ``surveyQuestions.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["surveyQuestions.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SurveyQuestion]:
+        """Get a survey question
+
+        A question of a pulse survey, in order. Returns one survey question with its `ETag`. A survey question the caller may not see returns 404.
+
+        ``GET /survey-questions/{id}`` (operation ``surveyQuestions.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["surveyQuestions.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class RecognitionsResource(Resource):
+    """Operations on ``recognitions``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[Recognition]:
+        """List recognition rows
+
+        A shout-out from one member to another, tied to a project or shift and posted to the feed. No points currency. Returns a cursor page of recognition rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /recognitions`` (operation ``recognitions.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["recognitions.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[Recognition]:
+        """List recognition rows
+
+        A shout-out from one member to another, tied to a project or shift and posted to the feed. No points currency. Returns a cursor page of recognition rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /recognitions`` (operation ``recognitions.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["recognitions.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: RecognitionCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Recognition]:
+        """Create a recognition
+
+        A shout-out from one member to another, tied to a project or shift and posted to the feed. No points currency. Creates a recognition. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /recognitions`` (operation ``recognitions.create``).
+        Requires the capability ``knowledge.sop.acknowledge``.
+        """
+        return self._client.request(OPERATIONS["recognitions.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Recognition]:
+        """Get a recognition
+
+        A shout-out from one member to another, tied to a project or shift and posted to the feed. No points currency. Returns one recognition with its `ETag`. A recognition the caller may not see returns 404.
+
+        ``GET /recognitions/{id}`` (operation ``recognitions.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["recognitions.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class WorkforceEventsResource(Resource):
+    """Operations on ``workforceEvents``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WorkforceEvent]:
+        """List workforce event rows
+
+        A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in. Returns a cursor page of workforce event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /workforce-events`` (operation ``workforceEvents.list``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.request_page(OPERATIONS["workforceEvents.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WorkforceEvent]:
+        """List workforce event rows
+
+        A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in. Returns a cursor page of workforce event rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /workforce-events`` (operation ``workforceEvents.list``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.paginate(OPERATIONS["workforceEvents.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: WorkforceEventCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceEvent]:
+        """Create a workforce event
+
+        A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in. Creates a workforce event. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /workforce-events`` (operation ``workforceEvents.create``).
+        Requires the capability ``schedule.timeline.write``.
+        """
+        return self._client.request(OPERATIONS["workforceEvents.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceEvent]:
+        """Get a workforce event
+
+        A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in. Returns one workforce event with its `ETag`. A workforce event the caller may not see returns 404.
+
+        ``GET /workforce-events/{id}`` (operation ``workforceEvents.get``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.request(OPERATIONS["workforceEvents.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: WorkforceEventUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceEvent]:
+        """Update a workforce event
+
+        A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /workforce-events/{id}`` (operation ``workforceEvents.update``).
+        Requires the capability ``schedule.timeline.write``.
+        """
+        return self._client.request(OPERATIONS["workforceEvents.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def cancel(
+        self,
+        id: str,
+        body: CancelWorkforceEventRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceEvent]:
+        """Cancel an event
+
+        Cancels the event with a reason; cancellation is final. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /workforce-events/{id}/cancel`` (operation ``workforceEvents.cancel``).
+        Requires the capability ``schedule.timeline.write``.
+        """
+        return self._client.request(OPERATIONS["workforceEvents.cancel"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def rsvp(
+        self,
+        id: str,
+        body: RsvpRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EventRsvp]:
+        """RSVP to an event
+
+        Records or changes the caller's RSVP. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /workforce-events/{id}/rsvp`` (operation ``workforceEvents.rsvp``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.request(OPERATIONS["workforceEvents.rsvp"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def check_in(
+        self,
+        id: str,
+        body: EventCheckInRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EventCheckIn]:
+        """Check in to an event
+
+        Checks the caller in, or another invitee when the caller organizes the event, from an hour before the start to the end. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /workforce-events/{id}/check-in`` (operation ``workforceEvents.checkIn``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.request(OPERATIONS["workforceEvents.checkIn"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class EventRsvpsResource(Resource):
+    """Operations on ``eventRsvps``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[EventRsvp]:
+        """List event rsvp rows
+
+        An invitee's RSVP to an event. Returns a cursor page of event rsvp rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /event-rsvps`` (operation ``eventRsvps.list``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.request_page(OPERATIONS["eventRsvps.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[EventRsvp]:
+        """List event rsvp rows
+
+        An invitee's RSVP to an event. Returns a cursor page of event rsvp rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /event-rsvps`` (operation ``eventRsvps.list``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.paginate(OPERATIONS["eventRsvps.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EventRsvp]:
+        """Get an event rsvp
+
+        An invitee's RSVP to an event. Returns one event rsvp with its `ETag`. A event rsvp the caller may not see returns 404.
+
+        ``GET /event-rsvps/{id}`` (operation ``eventRsvps.get``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.request(OPERATIONS["eventRsvps.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class EventCheckInsResource(Resource):
+    """Operations on ``eventCheckIns``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[EventCheckIn]:
+        """List event check in rows
+
+        Attendance of an event, one per attendee. Returns a cursor page of event check in rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /event-check-ins`` (operation ``eventCheckIns.list``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.request_page(OPERATIONS["eventCheckIns.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[EventCheckIn]:
+        """List event check in rows
+
+        Attendance of an event, one per attendee. Returns a cursor page of event check in rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /event-check-ins`` (operation ``eventCheckIns.list``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.paginate(OPERATIONS["eventCheckIns.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EventCheckIn]:
+        """Get an event check in
+
+        Attendance of an event, one per attendee. Returns one event check in with its `ETag`. A event check in the caller may not see returns 404.
+
+        ``GET /event-check-ins/{id}`` (operation ``eventCheckIns.get``).
+        Requires the capability ``schedule.timeline.read``.
+        """
+        return self._client.request(OPERATIONS["eventCheckIns.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class FormTemplatesResource(Resource):
+    """Operations on ``formTemplates``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[FormTemplate]:
+        """List form template rows
+
+        A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype. Returns a cursor page of form template rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /form-templates`` (operation ``formTemplates.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["formTemplates.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[FormTemplate]:
+        """List form template rows
+
+        A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype. Returns a cursor page of form template rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /form-templates`` (operation ``formTemplates.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["formTemplates.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: FormTemplateCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormTemplate]:
+        """Create a form template
+
+        A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype. Creates a form template. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /form-templates`` (operation ``formTemplates.create``).
+        Requires the capability ``knowledge.sop.write``.
+        """
+        return self._client.request(OPERATIONS["formTemplates.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormTemplate]:
+        """Get a form template
+
+        A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype. Returns one form template with its `ETag`. A form template the caller may not see returns 404.
+
+        ``GET /form-templates/{id}`` (operation ``formTemplates.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["formTemplates.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: FormTemplateUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormTemplate]:
+        """Update a form template
+
+        A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /form-templates/{id}`` (operation ``formTemplates.update``).
+        Requires the capability ``knowledge.sop.write``.
+        """
+        return self._client.request(OPERATIONS["formTemplates.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def publish(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormTemplate]:
+        """Publish a form
+
+        Publishes a draft form as its next version. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /form-templates/{id}/publish`` (operation ``formTemplates.publish``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["formTemplates.publish"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def retire(
+        self,
+        id: str,
+        body: RetireFormRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormTemplate]:
+        """Retire a form
+
+        Retires a published form; it keeps its submissions. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /form-templates/{id}/retire`` (operation ``formTemplates.retire``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["formTemplates.retire"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class FormSubmissionsResource(Resource):
+    """Operations on ``formSubmissions``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[FormSubmission]:
+        """List form submission rows
+
+        A submitted form: answers against one template version, score, GPS stamp, signature and approval. Returns a cursor page of form submission rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /form-submissions`` (operation ``formSubmissions.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["formSubmissions.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[FormSubmission]:
+        """List form submission rows
+
+        A submitted form: answers against one template version, score, GPS stamp, signature and approval. Returns a cursor page of form submission rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /form-submissions`` (operation ``formSubmissions.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["formSubmissions.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: FormSubmissionCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormSubmission]:
+        """Create a form submission
+
+        A submitted form: answers against one template version, score, GPS stamp, signature and approval. Creates a form submission. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /form-submissions`` (operation ``formSubmissions.create``).
+        Requires the capability ``knowledge.sop.acknowledge``.
+        """
+        return self._client.request(OPERATIONS["formSubmissions.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormSubmission]:
+        """Get a form submission
+
+        A submitted form: answers against one template version, score, GPS stamp, signature and approval. Returns one form submission with its `ETag`. A form submission the caller may not see returns 404.
+
+        ``GET /form-submissions/{id}`` (operation ``formSubmissions.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["formSubmissions.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def decide(
+        self,
+        id: str,
+        body: FormDecisionRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[FormSubmission]:
+        """Approve or reject a submission
+
+        A holder of the form's approver role decides a submitted form; never the submitter. A rejection needs a note. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /form-submissions/{id}/decide`` (operation ``formSubmissions.decide``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["formSubmissions.decide"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class TrainingCoursesResource(Resource):
+    """Operations on ``trainingCourses``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[TrainingCourse]:
+        """List training course rows
+
+        A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion. Returns a cursor page of training course rows the caller may see. The default order is `title` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /training-courses`` (operation ``trainingCourses.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["trainingCourses.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[TrainingCourse]:
+        """List training course rows
+
+        A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion. Returns a cursor page of training course rows the caller may see. The default order is `title` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /training-courses`` (operation ``trainingCourses.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["trainingCourses.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: TrainingCourseCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingCourse]:
+        """Create a training course
+
+        A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion. Creates a training course. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /training-courses`` (operation ``trainingCourses.create``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingCourses.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingCourse]:
+        """Get a training course
+
+        A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion. Returns one training course with its `ETag`. A training course the caller may not see returns 404.
+
+        ``GET /training-courses/{id}`` (operation ``trainingCourses.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["trainingCourses.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: TrainingCourseUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingCourse]:
+        """Update a training course
+
+        A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /training-courses/{id}`` (operation ``trainingCourses.update``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingCourses.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def publish(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingCourse]:
+        """Publish a course
+
+        Publishes a draft course with at least one lesson and every quiz keyed. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /training-courses/{id}/publish`` (operation ``trainingCourses.publish``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingCourses.publish"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def retire(
+        self,
+        id: str,
+        body: RetireCourseRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingCourse]:
+        """Retire a course
+
+        Retires a published course. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /training-courses/{id}/retire`` (operation ``trainingCourses.retire``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingCourses.retire"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def assign(
+        self,
+        id: str,
+        body: AssignTrainingRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AssignTrainingResult]:
+        """Assign a course
+
+        Assigns a published course to active members with an optional due date. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /training-courses/{id}/assign`` (operation ``trainingCourses.assign``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingCourses.assign"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def complete(
+        self,
+        id: str,
+        body: CompleteTrainingRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingCompletion]:
+        """Complete a course
+
+        Grades the caller's quiz answers once every reading and video lesson is finished. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /training-courses/{id}/complete`` (operation ``trainingCourses.complete``).
+        Requires the capability ``knowledge.sop.acknowledge``.
+        """
+        return self._client.request(OPERATIONS["trainingCourses.complete"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class TrainingLessonsResource(Resource):
+    """Operations on ``trainingLessons``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[TrainingLesson]:
+        """List training lesson rows
+
+        A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Returns a cursor page of training lesson rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /training-lessons`` (operation ``trainingLessons.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["trainingLessons.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[TrainingLesson]:
+        """List training lesson rows
+
+        A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Returns a cursor page of training lesson rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /training-lessons`` (operation ``trainingLessons.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["trainingLessons.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: TrainingLessonCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingLesson]:
+        """Create a training lesson
+
+        A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Creates a training lesson. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /training-lessons`` (operation ``trainingLessons.create``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingLessons.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingLesson]:
+        """Get a training lesson
+
+        A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Returns one training lesson with its `ETag`. A training lesson the caller may not see returns 404.
+
+        ``GET /training-lessons/{id}`` (operation ``trainingLessons.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["trainingLessons.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: TrainingLessonUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingLesson]:
+        """Update a training lesson
+
+        A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /training-lessons/{id}`` (operation ``trainingLessons.update``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingLessons.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a training lesson
+
+        A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft. Soft-deletes the training lesson: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /training-lessons/{id}`` (operation ``trainingLessons.delete``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingLessons.delete"], path={"id": id}, options=options)
+
+    def complete(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingLesson]:
+        """Finish a lesson
+
+        Marks a reading or video lesson finished for the caller. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /training-lessons/{id}/complete`` (operation ``trainingLessons.complete``).
+        Requires the capability ``knowledge.sop.acknowledge``.
+        """
+        return self._client.request(OPERATIONS["trainingLessons.complete"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class TrainingQuizQuestionsResource(Resource):
+    """Operations on ``trainingQuizQuestions``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[TrainingQuizQuestion]:
+        """List training quiz question rows
+
+        A question of a quiz lesson; its correct option is a training quiz key that learners never read. Returns a cursor page of training quiz question rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /training-quiz-questions`` (operation ``trainingQuizQuestions.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["trainingQuizQuestions.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[TrainingQuizQuestion]:
+        """List training quiz question rows
+
+        A question of a quiz lesson; its correct option is a training quiz key that learners never read. Returns a cursor page of training quiz question rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /training-quiz-questions`` (operation ``trainingQuizQuestions.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["trainingQuizQuestions.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: TrainingQuizQuestionCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingQuizQuestion]:
+        """Create a training quiz question
+
+        A question of a quiz lesson; its correct option is a training quiz key that learners never read. Creates a training quiz question. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /training-quiz-questions`` (operation ``trainingQuizQuestions.create``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingQuizQuestions.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingQuizQuestion]:
+        """Get a training quiz question
+
+        A question of a quiz lesson; its correct option is a training quiz key that learners never read. Returns one training quiz question with its `ETag`. A training quiz question the caller may not see returns 404.
+
+        ``GET /training-quiz-questions/{id}`` (operation ``trainingQuizQuestions.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["trainingQuizQuestions.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: TrainingQuizQuestionUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingQuizQuestion]:
+        """Update a training quiz question
+
+        A question of a quiz lesson; its correct option is a training quiz key that learners never read. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /training-quiz-questions/{id}`` (operation ``trainingQuizQuestions.update``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingQuizQuestions.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+
+class TrainingQuizKeysResource(Resource):
+    """Operations on ``trainingQuizKeys``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[TrainingQuizKey]:
+        """List training quiz key rows
+
+        The correct option of a quiz question. Only course editors read it. Returns a cursor page of training quiz key rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /training-quiz-keys`` (operation ``trainingQuizKeys.list``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request_page(OPERATIONS["trainingQuizKeys.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[TrainingQuizKey]:
+        """List training quiz key rows
+
+        The correct option of a quiz question. Only course editors read it. Returns a cursor page of training quiz key rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /training-quiz-keys`` (operation ``trainingQuizKeys.list``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.paginate(OPERATIONS["trainingQuizKeys.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: TrainingQuizKeyCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingQuizKey]:
+        """Create a training quiz key
+
+        The correct option of a quiz question. Only course editors read it. Creates a training quiz key. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /training-quiz-keys`` (operation ``trainingQuizKeys.create``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingQuizKeys.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingQuizKey]:
+        """Get a training quiz key
+
+        The correct option of a quiz question. Only course editors read it. Returns one training quiz key with its `ETag`. A training quiz key the caller may not see returns 404.
+
+        ``GET /training-quiz-keys/{id}`` (operation ``trainingQuizKeys.get``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingQuizKeys.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: TrainingQuizKeyUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingQuizKey]:
+        """Update a training quiz key
+
+        The correct option of a quiz question. Only course editors read it. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /training-quiz-keys/{id}`` (operation ``trainingQuizKeys.update``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingQuizKeys.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+
+class TrainingAssignmentsResource(Resource):
+    """Operations on ``trainingAssignments``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[TrainingAssignment]:
+        """List training assignment rows
+
+        A course assigned to a member with a due date. Deleting withdraws it. Returns a cursor page of training assignment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /training-assignments`` (operation ``trainingAssignments.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["trainingAssignments.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[TrainingAssignment]:
+        """List training assignment rows
+
+        A course assigned to a member with a due date. Deleting withdraws it. Returns a cursor page of training assignment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /training-assignments`` (operation ``trainingAssignments.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["trainingAssignments.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingAssignment]:
+        """Get a training assignment
+
+        A course assigned to a member with a due date. Deleting withdraws it. Returns one training assignment with its `ETag`. A training assignment the caller may not see returns 404.
+
+        ``GET /training-assignments/{id}`` (operation ``trainingAssignments.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["trainingAssignments.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a training assignment
+
+        A course assigned to a member with a due date. Deleting withdraws it. Soft-deletes the training assignment: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /training-assignments/{id}`` (operation ``trainingAssignments.delete``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["trainingAssignments.delete"], path={"id": id}, options=options)
+
+
+class TrainingCompletionsResource(Resource):
+    """Operations on ``trainingCompletions``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[TrainingCompletion]:
+        """List training completion rows
+
+        A training attempt with its quiz score; a pass carries a certificate number and expiry. Returns a cursor page of training completion rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /training-completions`` (operation ``trainingCompletions.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["trainingCompletions.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[TrainingCompletion]:
+        """List training completion rows
+
+        A training attempt with its quiz score; a pass carries a certificate number and expiry. Returns a cursor page of training completion rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /training-completions`` (operation ``trainingCompletions.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["trainingCompletions.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingCompletion]:
+        """Get a training completion
+
+        A training attempt with its quiz score; a pass carries a certificate number and expiry. Returns one training completion with its `ETag`. A training completion the caller may not see returns 404.
+
+        ``GET /training-completions/{id}`` (operation ``trainingCompletions.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["trainingCompletions.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def issue_certification(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TrainingCompletion]:
+        """Issue the certification
+
+        A verifier issues the certification a passed course grants, never the learner. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /training-completions/{id}/issue-certification`` (operation ``trainingCompletions.issueCertification``).
+        Requires the capability ``people.certification.verify``.
+        """
+        return self._client.request(OPERATIONS["trainingCompletions.issueCertification"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class HandbookSectionsResource(Resource):
+    """Operations on ``handbookSections``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[HandbookSection]:
+        """List handbook section rows
+
+        A chapter of the org handbook. Returns a cursor page of handbook section rows the caller may see. The default order is `position` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /handbook-sections`` (operation ``handbookSections.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["handbookSections.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[HandbookSection]:
+        """List handbook section rows
+
+        A chapter of the org handbook. Returns a cursor page of handbook section rows the caller may see. The default order is `position` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /handbook-sections`` (operation ``handbookSections.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["handbookSections.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: HandbookSectionCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HandbookSection]:
+        """Create a handbook section
+
+        A chapter of the org handbook. Creates a handbook section. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /handbook-sections`` (operation ``handbookSections.create``).
+        Requires the capability ``knowledge.sop.write``.
+        """
+        return self._client.request(OPERATIONS["handbookSections.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HandbookSection]:
+        """Get a handbook section
+
+        A chapter of the org handbook. Returns one handbook section with its `ETag`. A handbook section the caller may not see returns 404.
+
+        ``GET /handbook-sections/{id}`` (operation ``handbookSections.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["handbookSections.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: HandbookSectionUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HandbookSection]:
+        """Update a handbook section
+
+        A chapter of the org handbook. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /handbook-sections/{id}`` (operation ``handbookSections.update``).
+        Requires the capability ``knowledge.sop.write``.
+        """
+        return self._client.request(OPERATIONS["handbookSections.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+
+class HandbookArticlesResource(Resource):
+    """Operations on ``handbookArticles``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[HandbookArticle]:
+        """List handbook article rows
+
+        A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version. Returns a cursor page of handbook article rows the caller may see. The default order is `title` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /handbook-articles`` (operation ``handbookArticles.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request_page(OPERATIONS["handbookArticles.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[HandbookArticle]:
+        """List handbook article rows
+
+        A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version. Returns a cursor page of handbook article rows the caller may see. The default order is `title` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /handbook-articles`` (operation ``handbookArticles.list``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.paginate(OPERATIONS["handbookArticles.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: HandbookArticleCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HandbookArticle]:
+        """Create a handbook article
+
+        A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version. Creates a handbook article. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /handbook-articles`` (operation ``handbookArticles.create``).
+        Requires the capability ``knowledge.sop.write``.
+        """
+        return self._client.request(OPERATIONS["handbookArticles.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HandbookArticle]:
+        """Get a handbook article
+
+        A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version. Returns one handbook article with its `ETag`. A handbook article the caller may not see returns 404.
+
+        ``GET /handbook-articles/{id}`` (operation ``handbookArticles.get``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["handbookArticles.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: HandbookArticleUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HandbookArticle]:
+        """Update a handbook article
+
+        A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /handbook-articles/{id}`` (operation ``handbookArticles.update``).
+        Requires the capability ``knowledge.sop.write``.
+        """
+        return self._client.request(OPERATIONS["handbookArticles.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def publish(
+        self,
+        id: str,
+        body: PublishArticleRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HandbookArticle]:
+        """Publish an article
+
+        Publishes the working text as the next version; a mandatory article then asks everyone to acknowledge it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /handbook-articles/{id}/publish`` (operation ``handbookArticles.publish``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["handbookArticles.publish"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def acknowledge(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HandbookArticle]:
+        """Acknowledge an article
+
+        Records that the caller read the current version. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /handbook-articles/{id}/acknowledge`` (operation ``handbookArticles.acknowledge``).
+        Requires the capability ``knowledge.sop.acknowledge``.
+        """
+        return self._client.request(OPERATIONS["handbookArticles.acknowledge"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def archive(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HandbookArticle]:
+        """Archive an article
+
+        Withdraws a published article. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /handbook-articles/{id}/archive`` (operation ``handbookArticles.archive``).
+        Requires the capability ``knowledge.sop.publish``.
+        """
+        return self._client.request(OPERATIONS["handbookArticles.archive"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class KnowledgeSourcesResource(Resource):
+    """Operations on ``knowledgeSources``, in the Workforce module."""
+
+    def search(
+        self,
+        *,
+        q: str,
+        limit_: Optional[int] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[KnowledgeSourcePage]:
+        """Search knowledge sources
+
+        The Assistant's sources: published handbook articles, SOPs and training lessons the caller can read that match the question, ranked, with routes to cite. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /knowledge-sources/search`` (operation ``knowledgeSources.search``).
+        Requires the capability ``knowledge.sop.read``.
+        """
+        return self._client.request(OPERATIONS["knowledgeSources.search"], query={"q": q, "limit": limit_}, options=options)
+
+
+class HelpDeskTeamsResource(Resource):
+    """Operations on ``helpDeskTeams``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[HelpDeskTeam]:
+        """List help desk team rows
+
+        An internal team that answers help desk requests, with its first response target. Returns a cursor page of help desk team rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /help-desk-teams`` (operation ``helpDeskTeams.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request_page(OPERATIONS["helpDeskTeams.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[HelpDeskTeam]:
+        """List help desk team rows
+
+        An internal team that answers help desk requests, with its first response target. Returns a cursor page of help desk team rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /help-desk-teams`` (operation ``helpDeskTeams.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.paginate(OPERATIONS["helpDeskTeams.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: HelpDeskTeamCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HelpDeskTeam]:
+        """Create a help desk team
+
+        An internal team that answers help desk requests, with its first response target. Creates a help desk team. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /help-desk-teams`` (operation ``helpDeskTeams.create``).
+        Requires the capability ``org.help.write``.
+        """
+        return self._client.request(OPERATIONS["helpDeskTeams.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HelpDeskTeam]:
+        """Get a help desk team
+
+        An internal team that answers help desk requests, with its first response target. Returns one help desk team with its `ETag`. A help desk team the caller may not see returns 404.
+
+        ``GET /help-desk-teams/{id}`` (operation ``helpDeskTeams.get``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request(OPERATIONS["helpDeskTeams.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: HelpDeskTeamUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HelpDeskTeam]:
+        """Update a help desk team
+
+        An internal team that answers help desk requests, with its first response target. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /help-desk-teams/{id}`` (operation ``helpDeskTeams.update``).
+        Requires the capability ``org.help.write``.
+        """
+        return self._client.request(OPERATIONS["helpDeskTeams.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def archive(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HelpDeskTeam]:
+        """Archive a team
+
+        The team stops taking requests. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /help-desk-teams/{id}/archive`` (operation ``helpDeskTeams.archive``).
+        Requires the capability ``org.help.write``.
+        """
+        return self._client.request(OPERATIONS["helpDeskTeams.archive"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class HelpDeskTeamMembersResource(Resource):
+    """Operations on ``helpDeskTeamMembers``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[HelpDeskTeamMember]:
+        """List help desk team member rows
+
+        A member who answers a help desk team's requests. Deleting removes them. Returns a cursor page of help desk team member rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /help-desk-team-members`` (operation ``helpDeskTeamMembers.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request_page(OPERATIONS["helpDeskTeamMembers.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[HelpDeskTeamMember]:
+        """List help desk team member rows
+
+        A member who answers a help desk team's requests. Deleting removes them. Returns a cursor page of help desk team member rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /help-desk-team-members`` (operation ``helpDeskTeamMembers.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.paginate(OPERATIONS["helpDeskTeamMembers.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: HelpDeskTeamMemberCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HelpDeskTeamMember]:
+        """Create a help desk team member
+
+        A member who answers a help desk team's requests. Deleting removes them. Creates a help desk team member. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /help-desk-team-members`` (operation ``helpDeskTeamMembers.create``).
+        Requires the capability ``org.help.write``.
+        """
+        return self._client.request(OPERATIONS["helpDeskTeamMembers.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HelpDeskTeamMember]:
+        """Get a help desk team member
+
+        A member who answers a help desk team's requests. Deleting removes them. Returns one help desk team member with its `ETag`. A help desk team member the caller may not see returns 404.
+
+        ``GET /help-desk-team-members/{id}`` (operation ``helpDeskTeamMembers.get``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request(OPERATIONS["helpDeskTeamMembers.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a help desk team member
+
+        A member who answers a help desk team's requests. Deleting removes them. Soft-deletes the help desk team member: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /help-desk-team-members/{id}`` (operation ``helpDeskTeamMembers.delete``).
+        Requires the capability ``org.help.write``.
+        """
+        return self._client.request(OPERATIONS["helpDeskTeamMembers.delete"], path={"id": id}, options=options)
+
+
+class HelpDeskRequestsResource(Resource):
+    """Operations on ``helpDeskRequests``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[HelpDeskRequest]:
+        """List help desk request rows
+
+        A help desk request: an Organization queue support ticket routed to an internal team, with assignment and response deadline. Returns a cursor page of help desk request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /help-desk-requests`` (operation ``helpDeskRequests.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request_page(OPERATIONS["helpDeskRequests.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[HelpDeskRequest]:
+        """List help desk request rows
+
+        A help desk request: an Organization queue support ticket routed to an internal team, with assignment and response deadline. Returns a cursor page of help desk request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /help-desk-requests`` (operation ``helpDeskRequests.list``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.paginate(OPERATIONS["helpDeskRequests.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: HelpDeskRequestCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HelpDeskRequest]:
+        """Create a help desk request
+
+        A help desk request: an Organization queue support ticket routed to an internal team, with assignment and response deadline. Creates a help desk request. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /help-desk-requests`` (operation ``helpDeskRequests.create``).
+        Requires the capability ``inbox.notifications.write``.
+        """
+        return self._client.request(OPERATIONS["helpDeskRequests.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HelpDeskRequest]:
+        """Get a help desk request
+
+        A help desk request: an Organization queue support ticket routed to an internal team, with assignment and response deadline. Returns one help desk request with its `ETag`. A help desk request the caller may not see returns 404.
+
+        ``GET /help-desk-requests/{id}`` (operation ``helpDeskRequests.get``).
+        Requires the capability ``inbox.notifications.read``.
+        """
+        return self._client.request(OPERATIONS["helpDeskRequests.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def assign(
+        self,
+        id: str,
+        body: AssignHelpDeskRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HelpDeskRequest]:
+        """Assign a request
+
+        Assigns the request to a member of its team, optionally moving it to another team. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /help-desk-requests/{id}/assign`` (operation ``helpDeskRequests.assign``).
+        Requires the capability ``inbox.notifications.write``.
+        """
+        return self._client.request(OPERATIONS["helpDeskRequests.assign"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def answer(
+        self,
+        id: str,
+        body: AnswerHelpDeskRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HelpDeskAnswer]:
+        """Answer a request
+
+        A team member answers; the first answer records the response time. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /help-desk-requests/{id}/answer`` (operation ``helpDeskRequests.answer``).
+        Requires the capability ``inbox.notifications.write``.
+        """
+        return self._client.request(OPERATIONS["helpDeskRequests.answer"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def transition(
+        self,
+        id: str,
+        body: HelpDeskTransitionRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkforceLedgerEntry]:
+        """Move a request
+
+        A team member moves the request through Open, Waiting, Resolved and Closed with a reason. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /help-desk-requests/{id}/transition`` (operation ``helpDeskRequests.transition``).
+        Requires the capability ``inbox.notifications.write``.
+        """
+        return self._client.request(OPERATIONS["helpDeskRequests.transition"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class OccupancyCountersResource(Resource):
+    """Operations on ``occupancyCounters``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[OccupancyCounter]:
+        """List occupancy counter rows
+
+        A live occupancy counter against the permitted occupant load, with alerts at 80, 90 and 100 percent. Returns a cursor page of occupancy counter rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /occupancy-counters`` (operation ``occupancyCounters.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request_page(OPERATIONS["occupancyCounters.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[OccupancyCounter]:
+        """List occupancy counter rows
+
+        A live occupancy counter against the permitted occupant load, with alerts at 80, 90 and 100 percent. Returns a cursor page of occupancy counter rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /occupancy-counters`` (operation ``occupancyCounters.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.paginate(OPERATIONS["occupancyCounters.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OccupancyCounter]:
+        """Get an occupancy counter
+
+        A live occupancy counter against the permitted occupant load, with alerts at 80, 90 and 100 percent. Returns one occupancy counter with its `ETag`. A occupancy counter the caller may not see returns 404.
+
+        ``GET /occupancy-counters/{id}`` (operation ``occupancyCounters.get``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request(OPERATIONS["occupancyCounters.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def set_up(
+        self,
+        body: OccupancyCounterCreateRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OccupancyCounter]:
+        """Set up a counter
+
+        Sets up a counter sized by a permit load, a Bible occupant load factor or the space capacity. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /occupancy-counters/set-up`` (operation ``occupancyCounters.setUp``).
+        Requires the capability ``safety.emergency_code.write``.
+        """
+        return self._client.request(OPERATIONS["occupancyCounters.setUp"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def count(
+        self,
+        id: str,
+        body: OccupancyCountRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OccupancyCounter]:
+        """Count people in or out
+
+        Counts people in (positive) or out (negative) at a door. Crossing 80, 90 or 100 percent alerts the dispatchers. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /occupancy-counters/{id}/count`` (operation ``occupancyCounters.count``).
+        Requires the capability ``safety.incident.write``.
+        """
+        return self._client.request(OPERATIONS["occupancyCounters.count"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def close(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OccupancyCounter]:
+        """Close a counter
+
+        Stops counting. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /occupancy-counters/{id}/close`` (operation ``occupancyCounters.close``).
+        Requires the capability ``safety.emergency_code.write``.
+        """
+        return self._client.request(OPERATIONS["occupancyCounters.close"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class WeatherThresholdsResource(Resource):
+    """Operations on ``weatherThresholds``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WeatherThreshold]:
+        """List weather threshold rows
+
+        A weather action threshold of a project: one value per hazard and level, with its emergency plan source. Returns a cursor page of weather threshold rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /weather-thresholds`` (operation ``weatherThresholds.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request_page(OPERATIONS["weatherThresholds.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WeatherThreshold]:
+        """List weather threshold rows
+
+        A weather action threshold of a project: one value per hazard and level, with its emergency plan source. Returns a cursor page of weather threshold rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /weather-thresholds`` (operation ``weatherThresholds.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.paginate(OPERATIONS["weatherThresholds.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: WeatherThresholdCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherThreshold]:
+        """Create a weather threshold
+
+        A weather action threshold of a project: one value per hazard and level, with its emergency plan source. Creates a weather threshold. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /weather-thresholds`` (operation ``weatherThresholds.create``).
+        Requires the capability ``safety.emergency_code.write``.
+        """
+        return self._client.request(OPERATIONS["weatherThresholds.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherThreshold]:
+        """Get a weather threshold
+
+        A weather action threshold of a project: one value per hazard and level, with its emergency plan source. Returns one weather threshold with its `ETag`. A weather threshold the caller may not see returns 404.
+
+        ``GET /weather-thresholds/{id}`` (operation ``weatherThresholds.get``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request(OPERATIONS["weatherThresholds.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: WeatherThresholdUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherThreshold]:
+        """Update a weather threshold
+
+        A weather action threshold of a project: one value per hazard and level, with its emergency plan source. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /weather-thresholds/{id}`` (operation ``weatherThresholds.update``).
+        Requires the capability ``safety.emergency_code.write``.
+        """
+        return self._client.request(OPERATIONS["weatherThresholds.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+
+class WeatherAlertRolesResource(Resource):
+    """Operations on ``weatherAlertRoles``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WeatherAlertRole]:
+        """List weather alert role rows
+
+        A canon role the emergency plan names for a weather level; people assigned it on the project are alerted. Returns a cursor page of weather alert role rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /weather-alert-roles`` (operation ``weatherAlertRoles.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request_page(OPERATIONS["weatherAlertRoles.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WeatherAlertRole]:
+        """List weather alert role rows
+
+        A canon role the emergency plan names for a weather level; people assigned it on the project are alerted. Returns a cursor page of weather alert role rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /weather-alert-roles`` (operation ``weatherAlertRoles.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.paginate(OPERATIONS["weatherAlertRoles.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: WeatherAlertRoleCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherAlertRole]:
+        """Create a weather alert role
+
+        A canon role the emergency plan names for a weather level; people assigned it on the project are alerted. Creates a weather alert role. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /weather-alert-roles`` (operation ``weatherAlertRoles.create``).
+        Requires the capability ``safety.emergency_code.write``.
+        """
+        return self._client.request(OPERATIONS["weatherAlertRoles.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherAlertRole]:
+        """Get a weather alert role
+
+        A canon role the emergency plan names for a weather level; people assigned it on the project are alerted. Returns one weather alert role with its `ETag`. A weather alert role the caller may not see returns 404.
+
+        ``GET /weather-alert-roles/{id}`` (operation ``weatherAlertRoles.get``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request(OPERATIONS["weatherAlertRoles.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a weather alert role
+
+        A canon role the emergency plan names for a weather level; people assigned it on the project are alerted. Soft-deletes the weather alert role: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /weather-alert-roles/{id}`` (operation ``weatherAlertRoles.delete``).
+        Requires the capability ``safety.emergency_code.write``.
+        """
+        return self._client.request(OPERATIONS["weatherAlertRoles.delete"], path={"id": id}, options=options)
+
+
+class WeatherReadingsResource(Resource):
+    """Operations on ``weatherReadings``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WeatherReading]:
+        """List weather reading rows
+
+        A weather reading on site, in the hazard's unit. Returns a cursor page of weather reading rows the caller may see. The default order is `observed_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /weather-readings`` (operation ``weatherReadings.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request_page(OPERATIONS["weatherReadings.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WeatherReading]:
+        """List weather reading rows
+
+        A weather reading on site, in the hazard's unit. Returns a cursor page of weather reading rows the caller may see. The default order is `observed_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /weather-readings`` (operation ``weatherReadings.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.paginate(OPERATIONS["weatherReadings.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: WeatherReadingCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherReading]:
+        """Create a weather reading
+
+        A weather reading on site, in the hazard's unit. Creates a weather reading. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /weather-readings`` (operation ``weatherReadings.create``).
+        Requires the capability ``safety.incident.write``.
+        """
+        return self._client.request(OPERATIONS["weatherReadings.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherReading]:
+        """Get a weather reading
+
+        A weather reading on site, in the hazard's unit. Returns one weather reading with its `ETag`. A weather reading the caller may not see returns 404.
+
+        ``GET /weather-readings/{id}`` (operation ``weatherReadings.get``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request(OPERATIONS["weatherReadings.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class WeatherAlertsResource(Resource):
+    """Operations on ``weatherAlerts``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WeatherAlert]:
+        """List weather alert rows
+
+        A weather alert raised by a reading at the highest level met, cleared when readings fall below every level. Returns a cursor page of weather alert rows the caller may see. The default order is `issued_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /weather-alerts`` (operation ``weatherAlerts.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request_page(OPERATIONS["weatherAlerts.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WeatherAlert]:
+        """List weather alert rows
+
+        A weather alert raised by a reading at the highest level met, cleared when readings fall below every level. Returns a cursor page of weather alert rows the caller may see. The default order is `issued_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /weather-alerts`` (operation ``weatherAlerts.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.paginate(OPERATIONS["weatherAlerts.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WeatherAlert]:
+        """Get a weather alert
+
+        A weather alert raised by a reading at the highest level met, cleared when readings fall below every level. Returns one weather alert with its `ETag`. A weather alert the caller may not see returns 404.
+
+        ``GET /weather-alerts/{id}`` (operation ``weatherAlerts.get``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request(OPERATIONS["weatherAlerts.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class GuestCheckInsResource(Resource):
+    """Operations on ``guestCheckIns``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[GuestCheckIn]:
+        """List guest check in rows
+
+        A door check-in of an approved guest with plus-ones admitted and the credential scanned. Returns a cursor page of guest check in rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /guest-check-ins`` (operation ``guestCheckIns.list``).
+        Requires the capability ``credentials.scan.write``.
+        """
+        return self._client.request_page(OPERATIONS["guestCheckIns.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[GuestCheckIn]:
+        """List guest check in rows
+
+        A door check-in of an approved guest with plus-ones admitted and the credential scanned. Returns a cursor page of guest check in rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /guest-check-ins`` (operation ``guestCheckIns.list``).
+        Requires the capability ``credentials.scan.write``.
+        """
+        return self._client.paginate(OPERATIONS["guestCheckIns.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: GuestCheckInCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[GuestCheckIn]:
+        """Create a guest check in
+
+        A door check-in of an approved guest with plus-ones admitted and the credential scanned. Creates a guest check in. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /guest-check-ins`` (operation ``guestCheckIns.create``).
+        Requires the capability ``credentials.scan.write``.
+        """
+        return self._client.request(OPERATIONS["guestCheckIns.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[GuestCheckIn]:
+        """Get a guest check in
+
+        A door check-in of an approved guest with plus-ones admitted and the credential scanned. Returns one guest check in with its `ETag`. A guest check in the caller may not see returns 404.
+
+        ``GET /guest-check-ins/{id}`` (operation ``guestCheckIns.get``).
+        Requires the capability ``credentials.scan.write``.
+        """
+        return self._client.request(OPERATIONS["guestCheckIns.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def door_list(
+        self,
+        *,
+        project_id: str,
+        q: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[DoorGuestPage]:
+        """Door list
+
+        Approved and checked-in guests of a project for door staff, filtered by name. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /guest-check-ins/door-list`` (operation ``guestCheckIns.doorList``).
+        Requires the capability ``credentials.scan.write``.
+        """
+        return self._client.request(OPERATIONS["guestCheckIns.doorList"], query={"project_id": project_id, "q": q}, options=options)
+
+
+class LostFoundItemsResource(Resource):
+    """Operations on ``lostFoundItems``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[LostFoundItem]:
+        """List lost found item rows
+
+        An item in the lost and found log, with photos as attachments and its claim state. Returns a cursor page of lost found item rows the caller may see. The default order is `found_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /lost-found-items`` (operation ``lostFoundItems.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request_page(OPERATIONS["lostFoundItems.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[LostFoundItem]:
+        """List lost found item rows
+
+        An item in the lost and found log, with photos as attachments and its claim state. Returns a cursor page of lost found item rows the caller may see. The default order is `found_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /lost-found-items`` (operation ``lostFoundItems.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.paginate(OPERATIONS["lostFoundItems.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: LostFoundItemCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LostFoundItem]:
+        """Create a lost found item
+
+        An item in the lost and found log, with photos as attachments and its claim state. Creates a lost found item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /lost-found-items`` (operation ``lostFoundItems.create``).
+        Requires the capability ``safety.incident.write``.
+        """
+        return self._client.request(OPERATIONS["lostFoundItems.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LostFoundItem]:
+        """Get a lost found item
+
+        An item in the lost and found log, with photos as attachments and its claim state. Returns one lost found item with its `ETag`. A lost found item the caller may not see returns 404.
+
+        ``GET /lost-found-items/{id}`` (operation ``lostFoundItems.get``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request(OPERATIONS["lostFoundItems.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: LostFoundItemUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LostFoundItem]:
+        """Update a lost found item
+
+        An item in the lost and found log, with photos as attachments and its claim state. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /lost-found-items/{id}`` (operation ``lostFoundItems.update``).
+        Requires the capability ``safety.incident.write``.
+        """
+        return self._client.request(OPERATIONS["lostFoundItems.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def claim(
+        self,
+        id: str,
+        body: LostItemClaimRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LostFoundClaim]:
+        """Record a claim
+
+        Records a claim on a held item with the claimant's name, contact and proof. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /lost-found-items/{id}/claim`` (operation ``lostFoundItems.claim``).
+        Requires the capability ``safety.incident.write``.
+        """
+        return self._client.request(OPERATIONS["lostFoundItems.claim"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def dispose(
+        self,
+        id: str,
+        body: DisposeLostItemRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LostFoundItem]:
+        """Dispose of an item
+
+        Disposes of an unclaimed held item with a reason. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /lost-found-items/{id}/dispose`` (operation ``lostFoundItems.dispose``).
+        Requires the capability ``safety.incident.close``.
+        """
+        return self._client.request(OPERATIONS["lostFoundItems.dispose"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class LostFoundClaimsResource(Resource):
+    """Operations on ``lostFoundClaims``, in the Workforce module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[LostFoundClaim]:
+        """List lost found claim rows
+
+        A claim on a lost item: the claimant, their contact (Confidential), their proof and how it was settled. Returns a cursor page of lost found claim rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /lost-found-claims`` (operation ``lostFoundClaims.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request_page(OPERATIONS["lostFoundClaims.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[LostFoundClaim]:
+        """List lost found claim rows
+
+        A claim on a lost item: the claimant, their contact (Confidential), their proof and how it was settled. Returns a cursor page of lost found claim rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /lost-found-claims`` (operation ``lostFoundClaims.list``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.paginate(OPERATIONS["lostFoundClaims.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LostFoundClaim]:
+        """Get a lost found claim
+
+        A claim on a lost item: the claimant, their contact (Confidential), their proof and how it was settled. Returns one lost found claim with its `ETag`. A lost found claim the caller may not see returns 404.
+
+        ``GET /lost-found-claims/{id}`` (operation ``lostFoundClaims.get``).
+        Requires the capability ``safety.incident.read``.
+        """
+        return self._client.request(OPERATIONS["lostFoundClaims.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def settle(
+        self,
+        id: str,
+        body: SettleClaimRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LostFoundClaim]:
+        """Settle a claim
+
+        Returns the item to the verified claimant, or rejects the claim with a reason. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /lost-found-claims/{id}/settle`` (operation ``lostFoundClaims.settle``).
+        Requires the capability ``safety.incident.close``.
+        """
+        return self._client.request(OPERATIONS["lostFoundClaims.settle"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)

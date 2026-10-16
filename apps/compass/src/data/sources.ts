@@ -137,6 +137,35 @@ const INTERNAL_SOURCES: readonly Source[] = [
   },
   { table: "zones", schema: "app", relation: "zones", select: "id,org_id,venue_id,code,name" },
   {
+    table: "dock_slots",
+    schema: "app",
+    relation: "dock_slots",
+    select:
+      "id,org_id,project_id,zone_id,shipment_id,starts_at,ends_at,checked_in_at,engagement_id",
+    projectColumn: "project_id",
+  },
+  {
+    table: "gate_queue",
+    schema: "app",
+    relation: "gate_queue",
+    select: "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at",
+    projectColumn: "project_id",
+  },
+  {
+    table: "marshalling_log",
+    schema: "app",
+    relation: "marshalling_log",
+    select: "id,org_id,project_id,shipment_id,zone_id,entry,logged_at",
+    projectColumn: "project_id",
+  },
+  {
+    table: "fulfillments",
+    schema: "app",
+    relation: "fulfillments",
+    select: "id,org_id,project_id,fulfillment_kind,title,starts_at,fulfillment_state",
+    projectColumn: "project_id",
+  },
+  {
     // The kiosk roster: org members by name, for the shared clock-in picker (Section 4.3 item 2).
     table: "kiosk_roster",
     schema: "app",
@@ -173,9 +202,38 @@ const EXTERNAL_SOURCES: readonly Source[] = [
   {
     table: "projects",
     schema: "api_external",
-    relation: "engagements",
-    select: "project_id,project_name,org_id",
-    map: (r) => ({ id: r["project_id"], name: r["project_name"], org_id: r["org_id"] }),
+    relation: "projects",
+    select: "id,org_id,name,time_zone",
+    projectColumn: "id",
+  },
+  {
+    table: "clock_punches",
+    schema: "api_external",
+    relation: "clock_punches",
+    select:
+      "id,engagement_id,project_id,shift_id,punch_kind,device_time,effective_at,source,geofence_verified,skew_flagged",
+    projectColumn: "project_id",
+  },
+  {
+    table: "radio_channels",
+    schema: "api_external",
+    relation: "radio_channels",
+    select: "id,project_id,channel_number,name,zone_id",
+    projectColumn: "project_id",
+  },
+  {
+    // The gear the person's engagements hold now; the view's names map back to the table's.
+    table: "asset_custody",
+    schema: "api_external",
+    relation: "asset_custody",
+    select: "id,asset_unit_id,engagement_id,project_id,held_since",
+    map: (r) => ({
+      id: r["id"],
+      asset_unit_id: r["asset_unit_id"],
+      custodian_engagement_id: r["engagement_id"],
+      project_id: r["project_id"],
+      created_at: r["held_since"],
+    }),
   },
   {
     table: "shifts",

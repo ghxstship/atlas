@@ -95,6 +95,12 @@ const ALREADY_DONE: Readonly<Record<string, readonly string[]>> = {
   "app.call_cue": ["cue_already_called"],
 };
 
+/**
+ * RPCs that answer with a summary instead of the whole row (report_incident returns its number and state,
+ * apply_asset_scan its outcome). The optimistic row stays until the next download brings the server's.
+ */
+const SUMMARY_RESULT = new Set(["app.report_incident", "app.apply_asset_scan"]);
+
 /** Strips device-only fields that the server tables do not have. */
 const DEVICE_ONLY = new Set([
   "device_geofence_status",
@@ -213,6 +219,15 @@ export class SupabaseUploader implements Uploader {
   }
 
   async #rpc(mutation: Mutation): Promise<UploadOutcome> {
+    const media = await this.#uploadMedia(mutation);
+    if (media) return media;
+    const outcome = await this.#call(mutation);
+    return outcome.kind === "applied" && SUMMARY_RESULT.has(mutation.target)
+      ? { kind: "applied", serverRow: null }
+      : outcome;
+  }
+
+  async #call(mutation: Mutation): Promise<UploadOutcome> {
     const synced = mutation.target.startsWith(SYNC_PREFIX);
     const orgId = this.#options.orgId();
     if (synced && orgId !== null) return this.#replay(mutation, orgId);

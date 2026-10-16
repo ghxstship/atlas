@@ -51,6 +51,11 @@ export interface ScopeAlternative {
   readonly key: ScopeKey;
   /** Audiences this alternative serves; omitted means every audience. */
   readonly audiences?: readonly Audience[];
+  /**
+   * Served only by the REST downloader, through an api_external view or a join whose filter a PowerSync
+   * sync rule cannot express; sync-rules.yaml carries no bucket for it.
+   */
+  readonly restOnly?: boolean;
 }
 
 export interface TableRule {
@@ -74,6 +79,17 @@ const internalProject: ScopeAlternative = {
   audiences: INTERNAL,
 };
 const internalOrg: ScopeAlternative = { column: "org_id", key: "orgIds", audiences: INTERNAL };
+const clientRunningOrder: ScopeAlternative = {
+  column: "project_id",
+  key: "engagedProjectIds",
+  audiences: ["client"],
+};
+const artistSetTimes: ScopeAlternative = {
+  column: "project_id",
+  key: "engagedProjectIds",
+  audiences: ["artist", "artist-representative"],
+  restOnly: true,
+};
 
 /** The device-side mirror of sync-rules.yaml. Order follows the Compass feature list (Section 4.3). */
 export const TABLE_RULES: readonly TableRule[] = [
@@ -95,13 +111,9 @@ export const TABLE_RULES: readonly TableRule[] = [
   },
   { table: "time_entries", anyOf: [...ownOrEngaged, internalProject] },
   { table: "clock_punches", anyOf: [...ownOrEngaged, internalProject] },
-  {
-    table: "geofence_shapes",
-    anyOf: [
-      { column: "project_id", key: "readableProjectIds", audiences: INTERNAL },
-      { column: "project_id", key: "engagedProjectIds", audiences: OPERATIONAL_EXTERNAL },
-    ],
-  },
+  // Geofences belong to venues, not projects; internal devices hold their org's shapes. External devices
+  // have no venue scope, and the server checks every punch against the geofence anyway (record_punch).
+  { table: "geofence_shapes", anyOf: [internalOrg] },
   {
     table: "day_sheets",
     anyOf: [
@@ -113,28 +125,11 @@ export const TABLE_RULES: readonly TableRule[] = [
       },
     ],
   },
-  {
-    table: "run_of_show",
-    anyOf: [
-      internalProject,
-      {
-        column: "project_id",
-        key: "engagedProjectIds",
-        audiences: ["crew", "staff", "artist", "artist-representative", "client"],
-      },
-    ],
-  },
-  {
-    table: "cues",
-    anyOf: [
-      internalProject,
-      {
-        column: "project_id",
-        key: "engagedProjectIds",
-        audiences: ["crew", "staff", "artist", "artist-representative", "client"],
-      },
-    ],
-  },
+  // api_external.run_of_show and api_external.cues give a Client the whole running order and an artist only
+  // their own set times. A sync rule cannot join cues to engagement_cues, so Client devices sync them and
+  // artists receive their set times through the REST downloader, which reads the views.
+  { table: "run_of_show", anyOf: [internalProject, clientRunningOrder, artistSetTimes] },
+  { table: "cues", anyOf: [internalProject, clientRunningOrder, artistSetTimes] },
   { table: "incidents", anyOf: [internalProject, { column: "reported_by", key: "personIds" }] },
   { table: "incident_media", anyOf: [internalProject, { column: "created_by", key: "personIds" }] },
   { table: "inspection_templates", anyOf: [internalOrg] },
@@ -180,9 +175,14 @@ export const TABLE_RULES: readonly TableRule[] = [
       { column: "project_id", key: "engagedProjectIds", audiences: OPERATIONAL_EXTERNAL },
     ],
   },
+  // Compass logistics (Section 4.3 item 8): the gate queue, the marshalling yard log and fulfillments.
+  { table: "gate_queue", anyOf: [internalProject] },
+  { table: "marshalling_log", anyOf: [internalProject] },
+  { table: "fulfillments", anyOf: [internalProject] },
   { table: "sops", anyOf: [internalOrg] },
   { table: "zones", anyOf: [internalOrg] },
-  { table: "kiosk_roster", anyOf: [internalOrg] },
+  // Memberships joined to people's names: no single replicable table holds it.
+  { table: "kiosk_roster", anyOf: [{ ...internalOrg, restOnly: true }] },
   { table: "emergency_codes", anyOf: [], global: true },
   { table: "incident_severities", anyOf: [], global: true },
   { table: "inspection_result_values", anyOf: [], global: true },

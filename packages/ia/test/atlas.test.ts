@@ -68,6 +68,7 @@ describe("atlas sitemap", () => {
       ["Assets", "both"],
       ["Credentials", "both"],
       ["Safety", "both"],
+      ["Site Operations", "org"],
       ["People", "org"],
       ["Opportunities", "both"],
       ["Crew", "both"],

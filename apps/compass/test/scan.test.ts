@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   buildAccessScan,
-  buildHandOver,
+  assetScanAction,
+  buildAssetScan,
   custodyBlocked,
   resolveAsset,
   buildIntake,
@@ -356,10 +357,28 @@ describe("intake and custody", () => {
       kind: "unknown",
     });
     expect(custodyBlocked(units[1] as (typeof units)[number])).toBe(true);
-    const m = buildHandOver(
+    const me = { membershipId: "m1", engagementIds: ["e1"] };
+    const unit = { id: "u1", asset_tag: "NWL-RAD-001", asset_state: "Available" };
+    expect(assetScanAction(unit, null, me)).toBe("check-out");
+    const held = { id: "k", asset_unit_id: "u1", custodian_membership_id: "m1", venue_id: null };
+    const deployed = { ...unit, asset_state: "Deployed" };
+    expect(assetScanAction(deployed, held, me)).toBe("check-in");
+    expect(assetScanAction(deployed, { ...held, custodian_membership_id: "m9" }, me)).toBe(
+      "transfer",
+    );
+    expect(
+      assetScanAction(
+        deployed,
+        { ...held, custodian_membership_id: null, custodian_engagement_id: "e1" },
+        me,
+      ),
+    ).toBe("check-in");
+    const m = buildAssetScan(
       {
         orgId: "o1",
+        code: "NWL-RAD-001",
         unitId: "u1",
+        action: "check-out",
         custodianMembershipId: "m1",
         custodianEngagementId: null,
         venueId: null,
@@ -370,26 +389,41 @@ describe("intake and custody", () => {
       () => "h1",
     );
     expect(m).toMatchObject({
-      op: "insert",
+      op: "rpc",
+      target: "app.apply_asset_scan",
       table: "asset_custody",
       rowId: "h1",
       policy: "append",
-      payload: { asset_unit_id: "u1", custodian_membership_id: "m1" },
+      payload: {
+        p_event_id: "h1",
+        p_org_id: "o1",
+        p_code: "NWL-RAD-001",
+        p_action: "check-out",
+        p_custodian_membership_id: "m1",
+        p_project_id: "p1",
+      },
+      optimistic: { id: "h1", asset_unit_id: "u1", custodian_membership_id: "m1" },
     });
-    expect(
-      buildHandOver(
-        {
-          orgId: "o",
-          unitId: "u",
-          custodianMembershipId: null,
-          custodianEngagementId: "e1",
-          venueId: null,
-          projectId: null,
-          note: "x",
-        },
-        0,
-      ).payload,
-    ).toMatchObject({ custodian_engagement_id: "e1" });
+    const back = buildAssetScan(
+      {
+        orgId: "o",
+        code: "NWL-RAD-001",
+        unitId: "u",
+        action: "check-in",
+        custodianMembershipId: "m1",
+        custodianEngagementId: "e1",
+        venueId: null,
+        projectId: "p1",
+        note: "x",
+      },
+      0,
+    );
+    expect(back.payload).toMatchObject({
+      p_action: "check-in",
+      p_custodian_membership_id: null,
+      p_custodian_engagement_id: null,
+      p_project_id: null,
+    });
   });
 
   it("limits crew to gear assigned to them", () => {

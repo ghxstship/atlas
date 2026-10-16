@@ -125,12 +125,32 @@ describe("incident quick report", () => {
       "incident_media:ph-1",
       "incident_parties:party-1",
     ]);
+    expect(writes.map((w) => w.target)).toEqual([
+      "app.report_incident",
+      "app.add_incident_media",
+      "app.add_incident_party",
+    ]);
     expect(writes[0]?.payload).toMatchObject({
+      p_id: "inc-1",
+      p_title: "Fall near Gate B",
+      p_latitude: 30.266,
+      p_longitude: -97.744,
+      p_accuracy_m: 12,
+      p_severity_enum_id: "ENM-098",
+    });
+    expect(writes[0]?.optimistic).toMatchObject({
       title: "Fall near Gate B",
-      latitude: 30.266,
-      longitude: -97.744,
-      accuracy_m: 12,
-      severity_enum_id: "ENM-098",
+      incident_state: "Reported",
+    });
+    expect(writes[1]?.payload).toMatchObject({
+      p_id: "ph-1",
+      p_incident_id: "inc-1",
+      p_media_uri: "org-1/incidents/inc-1/ph-1.jpg",
+      local_uri: "file:///a.jpg",
+    });
+    expect(writes[2]?.payload).toMatchObject({
+      p_id: "party-1",
+      p_description: "Guest, about 40, blue jacket",
     });
     const dependents = withIncidentDependency(writes, "mut-1");
     expect(dependents.map((d) => d.dependsOn)).toEqual([["mut-1"], ["mut-1"]]);
@@ -177,7 +197,7 @@ describe("incident quick report", () => {
     const m = buildTransition(incident, "Dispatched", "Medic 2 sent");
     expect(m).toMatchObject({
       op: "rpc",
-      target: "transition_incident",
+      target: "app.transition_incident",
       policy: "cas",
       payload: { p_expected: "Reported", p_next: "Dispatched" },
     });

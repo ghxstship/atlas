@@ -140,12 +140,9 @@ export function SyncBanner(): ReactElement | null {
     return (
       <OfflineBanner
         testID="sync-offline"
-        message={
-          status.queued > 0
-            ? t(countKey("compass.sync.queued", status.queued), { count: status.queued })
-            : t("compass.sync.offline")
-        }
-        queued={0}
+        message={t("compass.sync.offline")}
+        queued={status.queued}
+        queuedLabel={t(countKey("compass.sync.queued", status.queued), { count: status.queued })}
         viewLabel={t("compass.sync.view")}
         onView={() => router.push("/offline-queue")}
       />

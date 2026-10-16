@@ -1,0 +1,59 @@
+"use server";
+
+import { getRecordByKey } from "@xos/data/work";
+import { z } from "zod";
+import { getOrgContext } from "./context";
+
+/** What the shell's global peek shows for a record key (Section 4.5.3). */
+export interface ShellPeekRecord {
+  readonly key: string;
+  readonly kind: string;
+  readonly state: string;
+  readonly title: string;
+  readonly projectKey: string;
+  readonly projectName: string;
+  readonly ownerName: string | null;
+  readonly dueAt: string | null;
+  readonly timeZone: string | null;
+}
+
+export type ShellPeekResult =
+  | { readonly ok: true; readonly record: ShellPeekRecord }
+  | { readonly ok: false; readonly reason: "notFound" | "unexpected" };
+
+const KEY = z.string().trim().min(3).max(80);
+
+/**
+ * Reads the record a `?peek` key names with the viewer's own client, so row level security decides: a
+ * key for a record the viewer may not read, in another org or of no record at all is the same
+ * not-found (ADR 0003).
+ */
+export async function loadShellPeekAction(
+  org: string,
+  recordKey: string,
+): Promise<ShellPeekResult> {
+  const key = KEY.safeParse(recordKey);
+  const ctx = await getOrgContext(org);
+  if (!key.success || !ctx) return { ok: false, reason: "notFound" };
+  const found = await getRecordByKey(ctx.viewer.db, ctx.org.id, key.data);
+  if (!found.ok) {
+    if (found.error.kind === "not-found") return { ok: false, reason: "notFound" };
+    console.error("Shell peek failed", found.error);
+    return { ok: false, reason: "unexpected" };
+  }
+  const r = found.data;
+  return {
+    ok: true,
+    record: {
+      key: r.key,
+      kind: r.kind,
+      state: r.state,
+      title: r.title,
+      projectKey: r.projectKey,
+      projectName: r.projectName,
+      ownerName: r.ownerName,
+      dueAt: r.dueAt,
+      timeZone: r.timeZone ?? r.projectTimeZone,
+    },
+  };
+}

@@ -17,10 +17,10 @@ import {
 } from "../domain/clock";
 import {
   evaluateGeofence,
+  parseGeoShape,
   samplingPlan,
   type Geofence,
   type GeofenceStatus,
-  type GeoShape,
 } from "../domain/geo";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { useLocation } from "../runtime/location";
@@ -33,6 +33,8 @@ interface ShiftRow extends Row {
   readonly starts_at: string;
   readonly ends_at: string;
   readonly shift_state?: string;
+  readonly job_title?: string | null;
+  readonly time_zone?: string;
 }
 
 interface EntryRow extends Row {
@@ -85,7 +87,7 @@ export function useClock(punching: boolean): ClockModel {
     "shifts",
     (s) => mine(s) && s.project_id === projectId,
   );
-  const { rows: shapes } = useRows<Row & { name: string; boundary_geojson: GeoShape }>(
+  const { rows: shapes } = useRows<Row & { name: string; boundary_geojson: unknown }>(
     "geofence_shapes",
   );
   const [now, setNow] = useState(Date.now());
@@ -116,11 +118,10 @@ export function useClock(punching: boolean): ClockModel {
     batterySaver: settings.batterySaver,
   });
   const { fix, permission } = useLocation(plan);
-  const geofences: Geofence[] = shapes.map((s) => ({
-    id: s.id,
-    name: s.name,
-    boundary: s.boundary_geojson,
-  }));
+  const geofences: Geofence[] = shapes.flatMap((s) => {
+    const boundary = parseGeoShape(s.boundary_geojson);
+    return boundary ? [{ id: s.id, name: s.name, boundary }] : [];
+  });
   const geofence = evaluateGeofence(fix, geofences, now);
   const policy = { requireGeofence: geofences.length > 0, requireShift: false };
 

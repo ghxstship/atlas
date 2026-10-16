@@ -1266,6 +1266,153 @@ __all__ = [
     "TemplateItem",
     "TemplateItemCreate",
     "TemplateItemUpdate",
+    "WorkforceGroupPage",
+    "WorkforceGroup",
+    "WorkforceGroupCreate",
+    "WorkforceGroupUpdate",
+    "WorkforceGroupMemberPage",
+    "WorkforceGroupMember",
+    "WorkforceGroupMemberCreate",
+    "ConversationPage",
+    "Conversation",
+    "DirectConversationRequest",
+    "MarkConversationReadRequest",
+    "ConversationReadReceiptPage",
+    "ConversationReadReceipt",
+    "ChatMessagePage",
+    "ChatMessage",
+    "ChatMessageCreate",
+    "ChatMessageUpdate",
+    "DirectoryEntryPage",
+    "DirectoryEntry",
+    "FeedPostPage",
+    "FeedPost",
+    "FeedPostCreate",
+    "FeedPostUpdate",
+    "PollPostRequest",
+    "PinFeedPostRequest",
+    "HideFeedPostRequest",
+    "FeedReactionRequest",
+    "FeedAcknowledgmentStatusPage",
+    "FeedAcknowledgmentStatus",
+    "PollPage",
+    "Poll",
+    "PollVoteRequest",
+    "PollResultPage",
+    "PollResult",
+    "SurveyPage",
+    "Survey",
+    "SurveyDraftRequest",
+    "WorkforceLedgerEntry",
+    "SurveyTransitionRequest",
+    "SurveyResponseResult",
+    "SurveyResponseRequest",
+    "SurveyResults",
+    "SurveyQuestionPage",
+    "SurveyQuestion",
+    "RecognitionPage",
+    "Recognition",
+    "RecognitionCreate",
+    "WorkforceEventPage",
+    "WorkforceEvent",
+    "WorkforceEventCreate",
+    "WorkforceEventUpdate",
+    "CancelWorkforceEventRequest",
+    "EventRsvp",
+    "RsvpRequest",
+    "EventCheckIn",
+    "EventCheckInRequest",
+    "EventRsvpPage",
+    "EventCheckInPage",
+    "FormTemplatePage",
+    "FormTemplate",
+    "FormField",
+    "FormTemplateCreate",
+    "FormTemplateUpdate",
+    "RetireFormRequest",
+    "FormSubmissionPage",
+    "FormSubmission",
+    "FormSubmissionCreate",
+    "FormDecisionRequest",
+    "TrainingCoursePage",
+    "TrainingCourse",
+    "TrainingCourseCreate",
+    "TrainingCourseUpdate",
+    "RetireCourseRequest",
+    "AssignTrainingResult",
+    "AssignTrainingRequest",
+    "TrainingCompletion",
+    "CompleteTrainingRequest",
+    "TrainingLessonPage",
+    "TrainingLesson",
+    "TrainingLessonCreate",
+    "TrainingLessonUpdate",
+    "TrainingQuizQuestionPage",
+    "TrainingQuizQuestion",
+    "TrainingQuizQuestionCreate",
+    "TrainingQuizQuestionUpdate",
+    "TrainingQuizKeyPage",
+    "TrainingQuizKey",
+    "TrainingQuizKeyCreate",
+    "TrainingQuizKeyUpdate",
+    "TrainingAssignmentPage",
+    "TrainingAssignment",
+    "TrainingCompletionPage",
+    "HandbookSectionPage",
+    "HandbookSection",
+    "HandbookSectionCreate",
+    "HandbookSectionUpdate",
+    "HandbookArticlePage",
+    "HandbookArticle",
+    "HandbookArticleCreate",
+    "HandbookArticleUpdate",
+    "PublishArticleRequest",
+    "KnowledgeSourcePage",
+    "KnowledgeSource",
+    "HelpDeskTeamPage",
+    "HelpDeskTeam",
+    "HelpDeskTeamCreate",
+    "HelpDeskTeamUpdate",
+    "HelpDeskTeamMemberPage",
+    "HelpDeskTeamMember",
+    "HelpDeskTeamMemberCreate",
+    "HelpDeskRequestPage",
+    "HelpDeskRequest",
+    "HelpDeskRequestCreate",
+    "AssignHelpDeskRequest",
+    "HelpDeskAnswer",
+    "AnswerHelpDeskRequest",
+    "HelpDeskTransitionRequest",
+    "OccupancyCounterPage",
+    "OccupancyCounter",
+    "OccupancyCounterCreateRequest",
+    "OccupancyCountRequest",
+    "WeatherThresholdPage",
+    "WeatherThreshold",
+    "WeatherThresholdCreate",
+    "WeatherThresholdUpdate",
+    "WeatherAlertRolePage",
+    "WeatherAlertRole",
+    "WeatherAlertRoleCreate",
+    "WeatherReadingPage",
+    "WeatherReading",
+    "WeatherReadingCreate",
+    "WeatherAlertPage",
+    "WeatherAlert",
+    "GuestCheckInPage",
+    "GuestCheckIn",
+    "GuestCheckInCreate",
+    "DoorGuestPage",
+    "DoorGuest",
+    "LostFoundItemPage",
+    "LostFoundItem",
+    "LostFoundItemCreate",
+    "LostFoundItemUpdate",
+    "LostFoundClaim",
+    "LostItemClaimRequest",
+    "DisposeLostItemRequest",
+    "LostFoundClaimPage",
+    "SettleClaimRequest",
 ]
 
 
@@ -19853,6 +20000,2424 @@ class TemplateItemUpdate(TypedDict, total=False):
     phase_code: Optional[str]
     #: For a record: due this many days after the project start; null for none.
     due_offset_days: Optional[int]
+
+
+class WorkforceGroupPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WorkforceGroup]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WorkforceGroup(TypedDict):
+    """A group space by department, project, crew or custom audience, with its own chat and files."""
+
+    #: Identifier of the workforce group.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Group name, unique in the org.
+    name: str
+    #: What the group gathers.
+    group_kind: Literal["Department", "Project", "Crew", "Custom"]
+    #: Identifier of the project a Project group gathers.
+    project_id: Optional[str]
+    #: What the group is for.
+    description: Optional[str]
+    #: When the group was archived.
+    archived_at: Optional[str]
+
+
+class _WorkforceGroupCreateRequired(TypedDict):
+    #: Group name, unique in the org.
+    name: str
+    #: What the group gathers.
+    group_kind: Literal["Department", "Project", "Crew", "Custom"]
+
+
+class WorkforceGroupCreate(_WorkforceGroupCreateRequired, total=False):
+    """Fields accepted when creating a WorkforceGroup."""
+
+    #: Identifier of the project a Project group gathers.
+    project_id: Optional[str]
+    #: What the group is for.
+    description: Optional[str]
+
+
+class WorkforceGroupUpdate(TypedDict, total=False):
+    """Fields accepted when updating a WorkforceGroup. Omitted fields are unchanged."""
+
+    #: Group name, unique in the org.
+    name: str
+    #: What the group is for.
+    description: Optional[str]
+
+
+class WorkforceGroupMemberPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WorkforceGroupMember]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WorkforceGroupMember(TypedDict):
+    """A member of a group space. Deleting removes the member, who also leaves the group conversation."""
+
+    #: Identifier of the workforce group member.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the group.
+    group_id: str
+    #: Identifier of the member of the org in the group.
+    membership_id: str
+    #: Owners add and remove members.
+    group_role: Literal["Member", "Owner"]
+
+
+class WorkforceGroupMemberCreate(TypedDict):
+    """Fields accepted when creating a WorkforceGroupMember."""
+
+    #: Identifier of the group.
+    group_id: str
+    #: Identifier of the member of the org in the group.
+    membership_id: str
+    #: Owners add and remove members.
+    group_role: Literal["Member", "Owner"]
+
+
+class ConversationPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Conversation]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Conversation(TypedDict):
+    """A chat conversation: one-to-one between two members, or the conversation of a group."""
+
+    #: Identifier of the conversation.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Direct or Group.
+    conversation_kind: Literal["Direct", "Group"]
+    #: Identifier of the group whose conversation this is.
+    group_id: Optional[str]
+    #: The two membership ids of a Direct conversation, sorted and joined by a colon.
+    direct_key: Optional[str]
+    #: When the latest message was sent.
+    last_message_at: Optional[str]
+
+
+class DirectConversationRequest(TypedDict):
+    """Whom to message."""
+
+    #: The other member.
+    other_membership_id: str
+
+
+class MarkConversationReadRequest(TypedDict, total=False):
+    """Read position and mute switch."""
+
+    #: Mute or unmute.
+    muted: bool
+
+
+class ConversationReadReceiptPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ConversationReadReceipt]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ConversationReadReceipt(TypedDict):
+    """When another member last read the conversation."""
+
+    #: Member of the conversation.
+    membership_id: str
+    #: Their name.
+    full_name: str
+    #: When they last read it.
+    last_read_at: Optional[str]
+
+
+class ChatMessagePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ChatMessage]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ChatMessage(TypedDict):
+    """A chat message. Photos, files and voice notes are attachments on the message."""
+
+    #: Identifier of the chat message.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the conversation.
+    conversation_id: str
+    #: Identifier of the member who sent it.
+    author_membership_id: str
+    #: What the message carries.
+    message_kind: Literal["Text", "Photo", "File", "Voice"]
+    #: Message text; optional for a photo, file or voice note.
+    body: Optional[str]
+    #: Language the author wrote in.
+    language: Optional[str]
+    #: When the author last edited the text.
+    edited_at: Optional[str]
+
+
+class _ChatMessageCreateRequired(TypedDict):
+    #: Identifier of the conversation.
+    conversation_id: str
+    #: What the message carries.
+    message_kind: Literal["Text", "Photo", "File", "Voice"]
+
+
+class ChatMessageCreate(_ChatMessageCreateRequired, total=False):
+    """Fields accepted when creating a ChatMessage."""
+
+    #: Message text; optional for a photo, file or voice note.
+    body: Optional[str]
+    #: Language the author wrote in.
+    language: Optional[str]
+
+
+class ChatMessageUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ChatMessage. Omitted fields are unchanged."""
+
+    #: Message text; optional for a photo, file or voice note.
+    body: Optional[str]
+
+
+class DirectoryEntryPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[DirectoryEntry]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class DirectoryEntry(TypedDict):
+    """A member in the org directory: profile basics they share with their network, roles, whether they are on site now (clocked in inside a geofence), the work phone they chose to share and their recognition count when they consented."""
+
+    #: Membership.
+    membership_id: str
+    #: Person.
+    person_id: str
+    #: Name.
+    full_name: str
+    #: Preferred name.
+    preferred_name: Optional[str]
+    #: Profile headline.
+    headline: Optional[str]
+    #: Profile photo storage path.
+    photo_path: Optional[str]
+    #: Org roles held.
+    role_names: List[str]
+    #: Whether they are clocked in inside a geofence now.
+    on_site_now: bool
+    #: Identifier of the project they are on site for.
+    on_site_project_id: Optional[str]
+    #: When they clocked in.
+    on_site_since: Optional[str]
+    #: Work phone they shared for one-tap calls.
+    work_phone: Optional[str]
+    #: Times recognized, shown only with their consent.
+    recognition_count: Optional[int]
+
+
+class FeedPostPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[FeedPost]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class FeedPost(TypedDict):
+    """A feed post for an audience: an announcement, update, poll or recognition, with pinning, required acknowledgment, reaction and comment switches and a publish time."""
+
+    #: Identifier of the feed post.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Post kind; Poll posts come from the createPoll action, Recognition posts from recognitions.
+    post_kind: Literal["Announcement", "Update", "Poll", "Recognition"]
+    #: Optional headline.
+    title: Optional[str]
+    #: Post text.
+    body: str
+    #: Who the row reaches.
+    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Identifier of the project audience, or the project the row belongs to.
+    project_id: Optional[str]
+    #: Identifier of the team audience.
+    team_id: Optional[str]
+    #: Identifier of the org role audience.
+    role_id: Optional[str]
+    #: Identifier of the group audience, including department groups.
+    group_id: Optional[str]
+    #: Identifier of the member who wrote the post.
+    author_membership_id: Optional[str]
+    #: When the post was pinned; null when not pinned.
+    pinned_at: Optional[str]
+    #: Whether every member of the audience must acknowledge it.
+    requires_acknowledgment: bool
+    #: Whether members can react.
+    reactions_enabled: bool
+    #: Whether members can comment.
+    comments_enabled: bool
+    #: When the post appears; a future time schedules it.
+    publish_at: str
+    #: When the audience was notified.
+    notified_at: Optional[str]
+    #: When the post was hidden.
+    hidden_at: Optional[str]
+    #: Why it was hidden.
+    hidden_reason: Optional[str]
+
+
+class _FeedPostCreateRequired(TypedDict):
+    #: Post kind; Poll posts come from the createPoll action, Recognition posts from recognitions.
+    post_kind: Literal["Announcement", "Update", "Poll", "Recognition"]
+    #: Post text.
+    body: str
+    #: Who the row reaches.
+    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Whether every member of the audience must acknowledge it.
+    requires_acknowledgment: bool
+    #: Whether members can react.
+    reactions_enabled: bool
+    #: Whether members can comment.
+    comments_enabled: bool
+    #: When the post appears; a future time schedules it.
+    publish_at: str
+
+
+class FeedPostCreate(_FeedPostCreateRequired, total=False):
+    """Fields accepted when creating a FeedPost."""
+
+    #: Optional headline.
+    title: Optional[str]
+    #: Identifier of the project audience, or the project the row belongs to.
+    project_id: Optional[str]
+    #: Identifier of the team audience.
+    team_id: Optional[str]
+    #: Identifier of the org role audience.
+    role_id: Optional[str]
+    #: Identifier of the group audience, including department groups.
+    group_id: Optional[str]
+
+
+class FeedPostUpdate(TypedDict, total=False):
+    """Fields accepted when updating a FeedPost. Omitted fields are unchanged."""
+
+    #: Whether members can react.
+    reactions_enabled: bool
+    #: Whether members can comment.
+    comments_enabled: bool
+    #: When the post appears; a future time schedules it.
+    publish_at: str
+
+
+class _PollPostRequestRequired(TypedDict):
+    #: Post text.
+    body: str
+    #: Poll question.
+    question: str
+    #: 2 to 10 options.
+    options: List[str]
+
+
+class PollPostRequest(_PollPostRequestRequired, total=False):
+    """A poll posted to the feed."""
+
+    #: Optional headline.
+    title: str
+    #: Who the row reaches.
+    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Project audience.
+    project_id: str
+    #: Team audience.
+    team_id: str
+    #: Role audience.
+    role_id: str
+    #: Group audience.
+    group_id: str
+    #: Whether members may pick several.
+    allows_multiple: bool
+    #: When voting closes.
+    closes_at: str
+
+
+class PinFeedPostRequest(TypedDict):
+    """Pin switch."""
+
+    #: Pinned.
+    pinned: bool
+
+
+class HideFeedPostRequest(TypedDict):
+    """A reason for the change."""
+
+    #: Why the post is hidden.
+    reason: str
+
+
+class _FeedReactionRequestRequired(TypedDict):
+    #: Reaction.
+    reaction_code: Literal["thumbs_up", "heart", "check", "eyes", "laugh", "celebrate"]
+
+
+class FeedReactionRequest(_FeedReactionRequestRequired, total=False):
+    """A reaction."""
+
+    #: Add (default) or remove.
+    on: bool
+
+
+class FeedAcknowledgmentStatusPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[FeedAcknowledgmentStatus]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class FeedAcknowledgmentStatus(TypedDict):
+    """One audience member and when they acknowledged the post."""
+
+    #: Member of the audience.
+    membership_id: str
+    #: Person.
+    person_id: str
+    #: Name.
+    full_name: str
+    #: When they acknowledged.
+    acknowledged_at: Optional[str]
+
+
+class PollPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Poll]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Poll(TypedDict):
+    """A quick poll in the feed, attached to a post of kind Poll."""
+
+    #: Identifier of the poll.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the feed post.
+    feed_post_id: str
+    #: Question.
+    question: str
+    #: Whether members may pick several options.
+    allows_multiple: bool
+    #: When voting closes.
+    closes_at: Optional[str]
+
+
+class PollVoteRequest(TypedDict):
+    """Options chosen."""
+
+    #: Options chosen.
+    option_ids: List[str]
+
+
+class PollResultPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[PollResult]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class PollResult(TypedDict):
+    """Votes for one poll option."""
+
+    #: Option.
+    poll_option_id: str
+    #: Order, from 1.
+    option_position: int
+    #: Option text.
+    label: str
+    #: Votes for the option.
+    votes: int
+    #: Members who voted in the poll.
+    voters: int
+
+
+class SurveyPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Survey]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Survey(TypedDict):
+    """A pulse survey for an audience, anonymous by default, with results only once the minimum number of responses is met."""
+
+    #: Identifier of the survey.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Survey title.
+    title: str
+    #: What the survey asks about.
+    description: Optional[str]
+    #: Who the row reaches.
+    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Identifier of the project audience, or the project the row belongs to.
+    project_id: Optional[str]
+    #: Identifier of the team audience.
+    team_id: Optional[str]
+    #: Identifier of the org role audience.
+    role_id: Optional[str]
+    #: Identifier of the group audience, including department groups.
+    group_id: Optional[str]
+    #: Identifier of the member who wrote the survey.
+    author_membership_id: Optional[str]
+    #: Whether answers are stored with no respondent.
+    is_anonymous: bool
+    #: Responses needed before results show.
+    min_responses: int
+    #: Draft, Open or Closed.
+    survey_state: Literal["Draft", "Open", "Closed"]
+    #: When responses stop.
+    closes_at: Optional[str]
+
+
+class _SurveyDraftRequestRequired(TypedDict):
+    #: Survey title.
+    title: str
+    #: 1 to 50 questions in order.
+    questions: List[Dict[str, Any]]
+
+
+class SurveyDraftRequest(_SurveyDraftRequestRequired, total=False):
+    """A survey drafted with its questions."""
+
+    #: What the survey asks about.
+    description: str
+    #: Who the row reaches.
+    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Project audience.
+    project_id: str
+    #: Team audience.
+    team_id: str
+    #: Role audience.
+    role_id: str
+    #: Group audience.
+    group_id: str
+    #: Anonymous by default.
+    is_anonymous: bool
+    #: Responses before results show; 5 by default.
+    min_responses: int
+    #: When responses stop.
+    closes_at: str
+
+
+class WorkforceLedgerEntry(TypedDict):
+    """The ledger entry a lifecycle move wrote."""
+
+    #: The state transition ledger entry written.
+    ledger_id: str
+
+
+class SurveyTransitionRequest(TypedDict):
+    """Request to move a lifecycle to another state."""
+
+    #: The state the caller believes the row is in.
+    expected_state: Literal["Draft", "Open", "Closed"]
+    #: Target state.
+    to_state: Literal["Draft", "Open", "Closed"]
+    #: Why the state changes.
+    reason: str
+
+
+class SurveyResponseResult(TypedDict):
+    """The response written."""
+
+    #: The response, or null for an anonymous survey.
+    response_id: Optional[str]
+
+
+class SurveyResponseRequest(TypedDict):
+    """Survey answers."""
+
+    #: Answers keyed by question id.
+    answers: Dict[str, Union[str, float]]
+
+
+class SurveyResults(TypedDict):
+    """Results of a pulse survey."""
+
+    #: Survey.
+    survey_id: str
+    #: Responses so far.
+    responses: int
+    #: Responses needed before results show.
+    min_responses: int
+    #: Whether results show.
+    threshold_met: bool
+    #: Members in the audience.
+    audience: int
+    #: Per question results; empty below the threshold.
+    questions: List[Dict[str, Any]]
+
+
+class SurveyQuestionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SurveyQuestion]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SurveyQuestion(TypedDict):
+    """A question of a pulse survey, in order."""
+
+    #: Identifier of the survey question.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the survey.
+    survey_id: str
+    #: Order, from 1.
+    position: int
+    #: Question text.
+    prompt: str
+    #: Question kind.
+    question_kind: Literal["Scale", "Choice", "Text"]
+    #: Options of a Choice question.
+    choices: Optional[List[str]]
+    #: Top of a Scale question: 5 or 10.
+    scale_max: Optional[int]
+    #: Whether a response must answer it.
+    is_required: bool
+
+
+class RecognitionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Recognition]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Recognition(TypedDict):
+    """A shout-out from one member to another, tied to a project or shift and posted to the feed. No points currency."""
+
+    #: Identifier of the recognition.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the member who gave the recognition.
+    from_membership_id: str
+    #: Identifier of the member recognized.
+    to_membership_id: str
+    #: Identifier of the project the recognition is for.
+    project_id: Optional[str]
+    #: Identifier of the shift the recognition is for.
+    shift_id: Optional[str]
+    #: What they did well.
+    message: str
+    #: Identifier of the recognition post in the feed.
+    feed_post_id: Optional[str]
+
+
+class _RecognitionCreateRequired(TypedDict):
+    #: Identifier of the member recognized.
+    to_membership_id: str
+    #: What they did well.
+    message: str
+
+
+class RecognitionCreate(_RecognitionCreateRequired, total=False):
+    """Fields accepted when creating a Recognition."""
+
+    #: Identifier of the project the recognition is for.
+    project_id: Optional[str]
+    #: Identifier of the shift the recognition is for.
+    shift_id: Optional[str]
+
+
+class WorkforceEventPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WorkforceEvent]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WorkforceEvent(TypedDict):
+    """A briefing, crew call or meeting for an audience, with RSVP, location, agenda and check-in."""
+
+    #: Identifier of the workforce event.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Event kind.
+    event_kind: Literal["Briefing", "Crew Call", "Meeting"]
+    #: Event title.
+    title: str
+    #: Agenda, in order.
+    agenda: Optional[str]
+    #: Where to meet.
+    location: Optional[str]
+    #: Identifier of the venue.
+    venue_id: Optional[str]
+    #: Identifier of the space within the venue.
+    space_id: Optional[str]
+    #: Who the row reaches.
+    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Identifier of the project audience, or the project the row belongs to.
+    project_id: Optional[str]
+    #: Identifier of the team audience.
+    team_id: Optional[str]
+    #: Identifier of the org role audience.
+    role_id: Optional[str]
+    #: Identifier of the group audience, including department groups.
+    group_id: Optional[str]
+    #: Identifier of the member who organizes the event.
+    organizer_membership_id: Optional[str]
+    #: Start.
+    starts_at: str
+    #: End, at most seven days after the start.
+    ends_at: str
+    #: Whether invitees are asked to RSVP.
+    rsvp_required: bool
+    #: When the event was canceled.
+    canceled_at: Optional[str]
+    #: Why it was canceled.
+    cancel_reason: Optional[str]
+
+
+class _WorkforceEventCreateRequired(TypedDict):
+    #: Event kind.
+    event_kind: Literal["Briefing", "Crew Call", "Meeting"]
+    #: Event title.
+    title: str
+    #: Who the row reaches.
+    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Start.
+    starts_at: str
+    #: End, at most seven days after the start.
+    ends_at: str
+    #: Whether invitees are asked to RSVP.
+    rsvp_required: bool
+
+
+class WorkforceEventCreate(_WorkforceEventCreateRequired, total=False):
+    """Fields accepted when creating a WorkforceEvent."""
+
+    #: Agenda, in order.
+    agenda: Optional[str]
+    #: Where to meet.
+    location: Optional[str]
+    #: Identifier of the venue.
+    venue_id: Optional[str]
+    #: Identifier of the space within the venue.
+    space_id: Optional[str]
+    #: Identifier of the project audience, or the project the row belongs to.
+    project_id: Optional[str]
+    #: Identifier of the team audience.
+    team_id: Optional[str]
+    #: Identifier of the org role audience.
+    role_id: Optional[str]
+    #: Identifier of the group audience, including department groups.
+    group_id: Optional[str]
+
+
+class WorkforceEventUpdate(TypedDict, total=False):
+    """Fields accepted when updating a WorkforceEvent. Omitted fields are unchanged."""
+
+    #: Event kind.
+    event_kind: Literal["Briefing", "Crew Call", "Meeting"]
+    #: Event title.
+    title: str
+    #: Agenda, in order.
+    agenda: Optional[str]
+    #: Where to meet.
+    location: Optional[str]
+    #: Identifier of the venue.
+    venue_id: Optional[str]
+    #: Identifier of the space within the venue.
+    space_id: Optional[str]
+    #: Identifier of the project audience, or the project the row belongs to.
+    project_id: Optional[str]
+    #: Start.
+    starts_at: str
+    #: End, at most seven days after the start.
+    ends_at: str
+    #: Whether invitees are asked to RSVP.
+    rsvp_required: bool
+
+
+class CancelWorkforceEventRequest(TypedDict):
+    """A reason for the change."""
+
+    #: Why it is canceled.
+    reason: str
+
+
+class EventRsvp(TypedDict):
+    """An invitee's RSVP to an event."""
+
+    #: Identifier of the event rsvp.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the event.
+    workforce_event_id: str
+    #: Identifier of the invitee.
+    membership_id: str
+    #: RSVP answer.
+    response: Literal["Going", "Maybe", "Declined"]
+    #: When they last answered.
+    responded_at: str
+
+
+class RsvpRequest(TypedDict):
+    """An RSVP."""
+
+    #: Answer.
+    response: Literal["Going", "Maybe", "Declined"]
+
+
+class EventCheckIn(TypedDict):
+    """Attendance of an event, one per attendee."""
+
+    #: Identifier of the event check in.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the event.
+    workforce_event_id: str
+    #: Identifier of the attendee.
+    membership_id: str
+    #: How they were checked in.
+    check_in_method: Literal["Self", "Organizer", "Scan"]
+    #: When they checked in.
+    checked_in_at: str
+
+
+class EventCheckInRequest(TypedDict, total=False):
+    """A check-in."""
+
+    #: Invitee to check in; the caller by default.
+    membership_id: str
+    #: How.
+    method: Literal["Self", "Organizer", "Scan"]
+
+
+class EventRsvpPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[EventRsvp]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class EventCheckInPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[EventCheckIn]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class FormTemplatePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[FormTemplate]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class _FormTemplateRequired(TypedDict):
+    #: Identifier of the form template.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Form name, unique in the org.
+    name: str
+    #: When to fill it in.
+    description: Optional[str]
+    #: Canon record kind each project submission becomes.
+    record_kind: str
+    #: Canon record subtype.
+    record_subtype: Optional[str]
+    #: Field definitions in order.
+    fields: List[FormField]
+    #: Whether a submission must be signed.
+    requires_signature: bool
+    #: Whether a submission needs a GPS stamp.
+    requires_location: bool
+    #: Identifier of the org role whose holders approve submissions.
+    approver_role_id: Optional[str]
+    #: Draft, Published or Retired.
+    template_state: Literal["Draft", "Published", "Retired"]
+    #: Latest published version; 0 before the first publish.
+    current_version: int
+
+
+class FormTemplate(_FormTemplateRequired, total=False):
+    """A no-code form with conditional fields, photos, GPS stamp, signature, scoring and approval routing. Project submissions become records of its canon kind and subtype."""
+
+    #: Score needed to pass; null when not scored to pass.
+    pass_score: Optional[float]
+
+
+class _FormFieldRequired(TypedDict):
+    #: Field key.
+    key: str
+    #: Label.
+    label: str
+    #: Field kind.
+    kind: Literal["text", "long_text", "number", "yes_no", "choice", "multi_choice", "date", "photo"]
+
+
+class FormField(_FormFieldRequired, total=False):
+    """One field of a form."""
+
+    #: Whether it must be answered when shown.
+    required: bool
+    #: Choices of a choice field.
+    choices: List[str]
+    #: Points per answer, for scoring.
+    points: Dict[str, float]
+    #: Shows the field only when an earlier field has this answer.
+    show_if: Dict[str, Any]
+
+
+class _FormTemplateCreateRequired(TypedDict):
+    #: Form name, unique in the org.
+    name: str
+    #: Canon record kind each project submission becomes.
+    record_kind: str
+    #: Field definitions in order.
+    fields: List[FormField]
+    #: Whether a submission must be signed.
+    requires_signature: bool
+    #: Whether a submission needs a GPS stamp.
+    requires_location: bool
+
+
+class FormTemplateCreate(_FormTemplateCreateRequired, total=False):
+    """Fields accepted when creating a FormTemplate."""
+
+    #: When to fill it in.
+    description: Optional[str]
+    #: Canon record subtype.
+    record_subtype: Optional[str]
+    #: Score needed to pass; null when not scored to pass.
+    pass_score: Optional[float]
+    #: Identifier of the org role whose holders approve submissions.
+    approver_role_id: Optional[str]
+
+
+class FormTemplateUpdate(TypedDict, total=False):
+    """Fields accepted when updating a FormTemplate. Omitted fields are unchanged."""
+
+    #: Form name, unique in the org.
+    name: str
+    #: When to fill it in.
+    description: Optional[str]
+    #: Canon record kind each project submission becomes.
+    record_kind: str
+    #: Canon record subtype.
+    record_subtype: Optional[str]
+    #: Field definitions in order.
+    fields: List[FormField]
+    #: Whether a submission must be signed.
+    requires_signature: bool
+    #: Whether a submission needs a GPS stamp.
+    requires_location: bool
+    #: Score needed to pass; null when not scored to pass.
+    pass_score: Optional[float]
+    #: Identifier of the org role whose holders approve submissions.
+    approver_role_id: Optional[str]
+
+
+class RetireFormRequest(TypedDict):
+    """A reason for the change."""
+
+    #: Why it is retired.
+    reason: str
+
+
+class FormSubmissionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[FormSubmission]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class _FormSubmissionRequired(TypedDict):
+    #: Identifier of the form submission.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the form answered.
+    form_template_id: str
+    #: Identifier of the version answered.
+    form_template_version_id: str
+    #: Identifier of the project the submission belongs to.
+    project_id: Optional[str]
+    #: Identifier of the record the project submission became.
+    record_id: Optional[str]
+    #: Identifier of the member who submitted.
+    submitted_by_membership_id: str
+    #: Answers keyed by field key.
+    answers: Dict[str, Any]
+    #: Points earned.
+    score: Optional[float]
+    #: Points available on the shown fields.
+    max_score: Optional[float]
+    #: Whether the pass score was met.
+    passed: Optional[bool]
+    #: WGS 84 latitude.
+    latitude: Optional[float]
+    #: WGS 84 longitude.
+    longitude: Optional[float]
+    #: Name of the signer.
+    signer_name: Optional[str]
+    #: Signature image path in the field-media bucket.
+    signature_path: Optional[str]
+    #: When it was signed.
+    signed_at: Optional[str]
+    #: Submission state.
+    submission_state: Literal["Submitted", "Approved", "Rejected", "Recorded"]
+    #: Identifier of the approver who decided.
+    decided_by_membership_id: Optional[str]
+    #: Approver's note.
+    decision_note: Optional[str]
+
+
+class FormSubmission(_FormSubmissionRequired, total=False):
+    """A submitted form: answers against one template version, score, GPS stamp, signature and approval."""
+
+    #: GPS accuracy in metres.
+    accuracy_m: Optional[float]
+
+
+class _FormSubmissionCreateRequired(TypedDict):
+    #: Identifier of the form answered.
+    form_template_id: str
+    #: Answers keyed by field key.
+    answers: Dict[str, Any]
+
+
+class FormSubmissionCreate(_FormSubmissionCreateRequired, total=False):
+    """Fields accepted when creating a FormSubmission."""
+
+    #: Identifier of the project the submission belongs to.
+    project_id: Optional[str]
+    #: WGS 84 latitude.
+    latitude: Optional[float]
+    #: WGS 84 longitude.
+    longitude: Optional[float]
+    #: GPS accuracy in metres.
+    accuracy_m: Optional[float]
+    #: Name of the signer.
+    signer_name: Optional[str]
+    #: Signature image path in the field-media bucket.
+    signature_path: Optional[str]
+
+
+class _FormDecisionRequestRequired(TypedDict):
+    #: Approve or reject.
+    approve: bool
+
+
+class FormDecisionRequest(_FormDecisionRequestRequired, total=False):
+    """A decision."""
+
+    #: Note; required to reject.
+    note: str
+
+
+class TrainingCoursePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TrainingCourse]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TrainingCourse(TypedDict):
+    """A short training course of lessons and quizzes with completion records and expiry, linked to a role, a certification and a gate criterion."""
+
+    #: Identifier of the training course.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Course title.
+    title: str
+    #: What the course teaches.
+    summary: Optional[str]
+    #: Canon role trained for.
+    role_code: Optional[str]
+    #: Identifier of the org certification a pass qualifies for.
+    certification_id: Optional[str]
+    #: Canon gate criterion the course helps satisfy.
+    gate_criterion_id: Optional[str]
+    #: Days a pass stays current.
+    validity_days: Optional[int]
+    #: Quiz score needed to pass, in percent.
+    pass_percent: int
+    #: Expected time.
+    estimated_minutes: Optional[int]
+    #: Course state.
+    course_state: Literal["Draft", "Published", "Retired"]
+
+
+class _TrainingCourseCreateRequired(TypedDict):
+    #: Course title.
+    title: str
+    #: Quiz score needed to pass, in percent.
+    pass_percent: int
+
+
+class TrainingCourseCreate(_TrainingCourseCreateRequired, total=False):
+    """Fields accepted when creating a TrainingCourse."""
+
+    #: What the course teaches.
+    summary: Optional[str]
+    #: Canon role trained for.
+    role_code: Optional[str]
+    #: Identifier of the org certification a pass qualifies for.
+    certification_id: Optional[str]
+    #: Canon gate criterion the course helps satisfy.
+    gate_criterion_id: Optional[str]
+    #: Days a pass stays current.
+    validity_days: Optional[int]
+    #: Expected time.
+    estimated_minutes: Optional[int]
+
+
+class TrainingCourseUpdate(TypedDict, total=False):
+    """Fields accepted when updating a TrainingCourse. Omitted fields are unchanged."""
+
+    #: Course title.
+    title: str
+    #: What the course teaches.
+    summary: Optional[str]
+    #: Canon role trained for.
+    role_code: Optional[str]
+    #: Identifier of the org certification a pass qualifies for.
+    certification_id: Optional[str]
+    #: Canon gate criterion the course helps satisfy.
+    gate_criterion_id: Optional[str]
+    #: Days a pass stays current.
+    validity_days: Optional[int]
+    #: Quiz score needed to pass, in percent.
+    pass_percent: int
+    #: Expected time.
+    estimated_minutes: Optional[int]
+
+
+class RetireCourseRequest(TypedDict):
+    """A reason for the change."""
+
+    #: Why it is retired.
+    reason: str
+
+
+class AssignTrainingResult(TypedDict):
+    """How many were assigned."""
+
+    #: Newly assigned learners.
+    assigned: int
+
+
+class _AssignTrainingRequestRequired(TypedDict):
+    #: Learners.
+    membership_ids: List[str]
+
+
+class AssignTrainingRequest(_AssignTrainingRequestRequired, total=False):
+    """Learners to assign."""
+
+    #: Due date.
+    due_on: str
+    #: Why.
+    reason: str
+
+
+class TrainingCompletion(TypedDict):
+    """A training attempt with its quiz score; a pass carries a certificate number and expiry."""
+
+    #: Identifier of the training completion.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the course.
+    training_course_id: str
+    #: Identifier of the learner.
+    membership_id: str
+    #: Quiz score in percent.
+    score_percent: Optional[int]
+    #: Whether the attempt passed.
+    passed: bool
+    #: When the attempt finished.
+    completed_at: str
+    #: When the pass stops being current.
+    expires_at: Optional[str]
+    #: Completion certificate number.
+    certificate_number: Optional[str]
+    #: Identifier of the certification record a verifier issued.
+    certification_holder_id: Optional[str]
+
+
+class CompleteTrainingRequest(TypedDict):
+    """Quiz answers."""
+
+    #: Option numbers keyed by question id.
+    answers: Dict[str, int]
+
+
+class TrainingLessonPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TrainingLesson]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TrainingLesson(TypedDict):
+    """A lesson of a training course: a reading, a video or a quiz. Changes only while the course is a draft."""
+
+    #: Identifier of the training lesson.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the course.
+    training_course_id: str
+    #: Order, from 1.
+    position: int
+    #: Lesson title.
+    title: str
+    #: Lesson kind.
+    lesson_kind: Literal["Reading", "Video", "Quiz"]
+    #: Reading text or notes.
+    body: Optional[str]
+    #: HTTPS address of the lesson video.
+    video_url: Optional[str]
+
+
+class _TrainingLessonCreateRequired(TypedDict):
+    #: Identifier of the course.
+    training_course_id: str
+    #: Order, from 1.
+    position: int
+    #: Lesson title.
+    title: str
+    #: Lesson kind.
+    lesson_kind: Literal["Reading", "Video", "Quiz"]
+
+
+class TrainingLessonCreate(_TrainingLessonCreateRequired, total=False):
+    """Fields accepted when creating a TrainingLesson."""
+
+    #: Reading text or notes.
+    body: Optional[str]
+    #: HTTPS address of the lesson video.
+    video_url: Optional[str]
+
+
+class TrainingLessonUpdate(TypedDict, total=False):
+    """Fields accepted when updating a TrainingLesson. Omitted fields are unchanged."""
+
+    #: Order, from 1.
+    position: int
+    #: Lesson title.
+    title: str
+    #: Reading text or notes.
+    body: Optional[str]
+    #: HTTPS address of the lesson video.
+    video_url: Optional[str]
+
+
+class TrainingQuizQuestionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TrainingQuizQuestion]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TrainingQuizQuestion(TypedDict):
+    """A question of a quiz lesson; its correct option is a training quiz key that learners never read."""
+
+    #: Identifier of the training quiz question.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the quiz lesson.
+    training_lesson_id: str
+    #: Order, from 1.
+    position: int
+    #: Question text.
+    prompt: str
+    #: Answer options.
+    options: List[str]
+
+
+class TrainingQuizQuestionCreate(TypedDict):
+    """Fields accepted when creating a TrainingQuizQuestion."""
+
+    #: Identifier of the quiz lesson.
+    training_lesson_id: str
+    #: Order, from 1.
+    position: int
+    #: Question text.
+    prompt: str
+    #: Answer options.
+    options: List[str]
+
+
+class TrainingQuizQuestionUpdate(TypedDict, total=False):
+    """Fields accepted when updating a TrainingQuizQuestion. Omitted fields are unchanged."""
+
+    #: Order, from 1.
+    position: int
+    #: Question text.
+    prompt: str
+    #: Answer options.
+    options: List[str]
+
+
+class TrainingQuizKeyPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TrainingQuizKey]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TrainingQuizKey(TypedDict):
+    """The correct option of a quiz question. Only course editors read it."""
+
+    #: Identifier of the training quiz key.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the quiz question.
+    training_quiz_question_id: str
+    #: Correct option, from 1.
+    correct_option: int
+
+
+class TrainingQuizKeyCreate(TypedDict):
+    """Fields accepted when creating a TrainingQuizKey."""
+
+    #: Identifier of the quiz question.
+    training_quiz_question_id: str
+    #: Correct option, from 1.
+    correct_option: int
+
+
+class TrainingQuizKeyUpdate(TypedDict, total=False):
+    """Fields accepted when updating a TrainingQuizKey. Omitted fields are unchanged."""
+
+    #: Correct option, from 1.
+    correct_option: int
+
+
+class TrainingAssignmentPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TrainingAssignment]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TrainingAssignment(TypedDict):
+    """A course assigned to a member with a due date. Deleting withdraws it."""
+
+    #: Identifier of the training assignment.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the course.
+    training_course_id: str
+    #: Identifier of the learner.
+    membership_id: str
+    #: Identifier of the who assigned it.
+    assigned_by_membership_id: Optional[str]
+    #: Day it is due.
+    due_on: Optional[str]
+    #: Why it was assigned.
+    reason: Optional[str]
+
+
+class TrainingCompletionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TrainingCompletion]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class HandbookSectionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[HandbookSection]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class HandbookSection(TypedDict):
+    """A chapter of the org handbook."""
+
+    #: Identifier of the handbook section.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Section name.
+    name: str
+    #: Order.
+    position: int
+
+
+class HandbookSectionCreate(TypedDict):
+    """Fields accepted when creating a HandbookSection."""
+
+    #: Section name.
+    name: str
+    #: Order.
+    position: int
+
+
+class HandbookSectionUpdate(TypedDict, total=False):
+    """Fields accepted when updating a HandbookSection. Omitted fields are unchanged."""
+
+    #: Section name.
+    name: str
+    #: Order.
+    position: int
+
+
+class HandbookArticlePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[HandbookArticle]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class HandbookArticle(TypedDict):
+    """A handbook or SOP article: versioned on publish, optionally a mandatory read acknowledged per version."""
+
+    #: Identifier of the handbook article.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the section.
+    handbook_section_id: Optional[str]
+    #: Title.
+    title: str
+    #: Working text; members read the published version.
+    body: str
+    #: Whether every member must acknowledge the current version.
+    is_mandatory: bool
+    #: Article state.
+    article_state: Literal["Draft", "Published", "Archived"]
+    #: Latest published version.
+    published_version: int
+    #: When the latest version was published.
+    published_at: Optional[str]
+
+
+class _HandbookArticleCreateRequired(TypedDict):
+    #: Title.
+    title: str
+    #: Working text; members read the published version.
+    body: str
+    #: Whether every member must acknowledge the current version.
+    is_mandatory: bool
+
+
+class HandbookArticleCreate(_HandbookArticleCreateRequired, total=False):
+    """Fields accepted when creating a HandbookArticle."""
+
+    #: Identifier of the section.
+    handbook_section_id: Optional[str]
+
+
+class HandbookArticleUpdate(TypedDict, total=False):
+    """Fields accepted when updating a HandbookArticle. Omitted fields are unchanged."""
+
+    #: Identifier of the section.
+    handbook_section_id: Optional[str]
+    #: Title.
+    title: str
+    #: Working text; members read the published version.
+    body: str
+    #: Whether every member must acknowledge the current version.
+    is_mandatory: bool
+
+
+class PublishArticleRequest(TypedDict, total=False):
+    """What changed."""
+
+    #: What changed.
+    change_summary: str
+
+
+class KnowledgeSourcePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[KnowledgeSource]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class KnowledgeSource(TypedDict):
+    """A published handbook article, SOP or training lesson matching a question, for the Assistant to cite (Section 4.7)."""
+
+    #: Source kind.
+    source_kind: Literal["Handbook", "SOP", "Training"]
+    #: Source row.
+    source_id: str
+    #: Title.
+    title: str
+    #: Version cited.
+    version: Optional[int]
+    #: Matching excerpt.
+    excerpt: str
+    #: Atlas route of the source.
+    route: str
+    #: Relevance.
+    rank: float
+
+
+class HelpDeskTeamPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[HelpDeskTeam]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class HelpDeskTeam(TypedDict):
+    """An internal team that answers help desk requests, with its first response target."""
+
+    #: Identifier of the help desk team.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Team name.
+    name: str
+    #: Team kind.
+    team_kind: Literal["Operations", "IT", "HR", "Facilities", "Other"]
+    #: What the team helps with.
+    description: Optional[str]
+    #: Business hours to first response.
+    first_response_hours: int
+    #: When the team stopped taking requests.
+    archived_at: Optional[str]
+
+
+class _HelpDeskTeamCreateRequired(TypedDict):
+    #: Team name.
+    name: str
+    #: Team kind.
+    team_kind: Literal["Operations", "IT", "HR", "Facilities", "Other"]
+    #: Business hours to first response.
+    first_response_hours: int
+
+
+class HelpDeskTeamCreate(_HelpDeskTeamCreateRequired, total=False):
+    """Fields accepted when creating a HelpDeskTeam."""
+
+    #: What the team helps with.
+    description: Optional[str]
+
+
+class HelpDeskTeamUpdate(TypedDict, total=False):
+    """Fields accepted when updating a HelpDeskTeam. Omitted fields are unchanged."""
+
+    #: Team name.
+    name: str
+    #: Team kind.
+    team_kind: Literal["Operations", "IT", "HR", "Facilities", "Other"]
+    #: What the team helps with.
+    description: Optional[str]
+    #: Business hours to first response.
+    first_response_hours: int
+
+
+class HelpDeskTeamMemberPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[HelpDeskTeamMember]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class HelpDeskTeamMember(TypedDict):
+    """A member who answers a help desk team's requests. Deleting removes them."""
+
+    #: Identifier of the help desk team member.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the team.
+    help_desk_team_id: str
+    #: Identifier of the member.
+    membership_id: str
+
+
+class HelpDeskTeamMemberCreate(TypedDict):
+    """Fields accepted when creating a HelpDeskTeamMember."""
+
+    #: Identifier of the team.
+    help_desk_team_id: str
+    #: Identifier of the member.
+    membership_id: str
+
+
+class HelpDeskRequestPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[HelpDeskRequest]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class HelpDeskRequest(TypedDict):
+    """A help desk request: an Organization queue support ticket routed to an internal team, with assignment and response deadline."""
+
+    #: Identifier of the help desk request.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Display number.
+    ticket_number: str
+    #: Identifier of the team the request is routed to.
+    help_desk_team_id: str
+    #: What it is about.
+    category: Literal["Question", "Problem", "Access", "Billing", "Account", "Feature Request"]
+    #: Severity.
+    severity: Literal["Severity 3", "Severity 1", "Severity 2", "Severity 4"]
+    #: One-line summary.
+    subject: str
+    #: What happened and what is needed.
+    body: str
+    #: Request state.
+    ticket_state: Literal["Open", "Waiting", "Resolved", "Closed"]
+    #: Identifier of the member who asked.
+    membership_id: str
+    #: Identifier of the team member it is assigned to.
+    assignee_membership_id: Optional[str]
+    #: When the first response is due.
+    help_desk_response_due_at: Optional[str]
+    #: When the team first answered.
+    first_responded_at: Optional[str]
+
+
+class HelpDeskRequestCreate(TypedDict):
+    """Fields accepted when creating a HelpDeskRequest."""
+
+    #: Identifier of the team the request is routed to.
+    help_desk_team_id: str
+    #: What it is about.
+    category: Literal["Question", "Problem", "Access", "Billing", "Account", "Feature Request"]
+    #: Severity.
+    severity: Literal["Severity 3", "Severity 1", "Severity 2", "Severity 4"]
+    #: One-line summary.
+    subject: str
+    #: What happened and what is needed.
+    body: str
+
+
+class _AssignHelpDeskRequestRequired(TypedDict):
+    #: Team member; null unassigns.
+    assignee_membership_id: Optional[str]
+
+
+class AssignHelpDeskRequest(_AssignHelpDeskRequestRequired, total=False):
+    """Assignment."""
+
+    #: Team to move the request to.
+    help_desk_team_id: str
+
+
+class HelpDeskAnswer(TypedDict):
+    """The message an answer wrote."""
+
+    #: The message written.
+    message_id: str
+
+
+class AnswerHelpDeskRequest(TypedDict):
+    """An answer."""
+
+    #: Answer.
+    body: str
+
+
+class HelpDeskTransitionRequest(TypedDict):
+    """Request to move a lifecycle to another state."""
+
+    #: The state the caller believes the row is in.
+    expected_state: Literal["Open", "Waiting", "Resolved", "Closed"]
+    #: Target state.
+    to_state: Literal["Open", "Waiting", "Resolved", "Closed"]
+    #: Why the state changes.
+    reason: str
+
+
+class OccupancyCounterPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[OccupancyCounter]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class OccupancyCounter(TypedDict):
+    """A live occupancy counter against the permitted occupant load, with alerts at 80, 90 and 100 percent."""
+
+    #: Identifier of the occupancy counter.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the space counted.
+    space_id: Optional[str]
+    #: Counter name.
+    name: str
+    #: Where the permitted load comes from.
+    load_basis: Literal["Occupant Load Factor", "Space Capacity", "Permit"]
+    #: Bible metric domain of the load factor.
+    metric_domain: Optional[str]
+    #: Bible occupant load factor.
+    metric_item: Optional[str]
+    #: Permitted occupant load.
+    permitted_load: int
+    #: People inside now.
+    current_count: int
+    #: Highest alert level met: 0, 80, 90 or 100.
+    alert_level_percent: int
+    #: When counting stopped.
+    closed_at: Optional[str]
+
+
+class _OccupancyCounterCreateRequestRequired(TypedDict):
+    #: Project.
+    project_id: str
+    #: Counter name.
+    name: str
+
+
+class OccupancyCounterCreateRequest(_OccupancyCounterCreateRequestRequired, total=False):
+    """An occupancy counter sized by a permit, a load factor or the space capacity."""
+
+    #: Space counted.
+    space_id: str
+    #: Bible occupant load factor sizing the space.
+    metric_item: str
+    #: Permitted load from a permit.
+    permitted_load: int
+
+
+class _OccupancyCountRequestRequired(TypedDict):
+    #: People in or out.
+    delta: int
+
+
+class OccupancyCountRequest(_OccupancyCountRequestRequired, total=False):
+    """A door count."""
+
+    #: Door.
+    door: str
+
+
+class WeatherThresholdPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WeatherThreshold]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WeatherThreshold(TypedDict):
+    """A weather action threshold of a project: one value per hazard and level, with its emergency plan source."""
+
+    #: Identifier of the weather threshold.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Hazard.
+    hazard: Literal["Wind", "Lightning", "Heat"]
+    #: Level.
+    alert_level: Literal["Monitor", "Restrict", "Evacuate"]
+    #: Value that triggers the level.
+    threshold_value: float
+    #: Unit: mph for wind, mi for lightning distance, F for heat index.
+    unit: Literal["mph", "mi", "F"]
+    #: At or Above for wind and heat, At or Below for lightning.
+    comparison: Literal["At or Above", "At or Below"]
+    #: Where the value comes from.
+    source_note: str
+
+
+class WeatherThresholdCreate(TypedDict):
+    """Fields accepted when creating a WeatherThreshold."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Hazard.
+    hazard: Literal["Wind", "Lightning", "Heat"]
+    #: Level.
+    alert_level: Literal["Monitor", "Restrict", "Evacuate"]
+    #: Value that triggers the level.
+    threshold_value: float
+    #: Unit: mph for wind, mi for lightning distance, F for heat index.
+    unit: Literal["mph", "mi", "F"]
+    #: At or Above for wind and heat, At or Below for lightning.
+    comparison: Literal["At or Above", "At or Below"]
+    #: Where the value comes from.
+    source_note: str
+
+
+class WeatherThresholdUpdate(TypedDict, total=False):
+    """Fields accepted when updating a WeatherThreshold. Omitted fields are unchanged."""
+
+    #: Value that triggers the level.
+    threshold_value: float
+    #: Where the value comes from.
+    source_note: str
+
+
+class WeatherAlertRolePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WeatherAlertRole]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WeatherAlertRole(TypedDict):
+    """A canon role the emergency plan names for a weather level; people assigned it on the project are alerted."""
+
+    #: Identifier of the weather alert role.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Level.
+    alert_level: Literal["Monitor", "Restrict", "Evacuate"]
+    #: Canon role notified.
+    role_code: str
+
+
+class WeatherAlertRoleCreate(TypedDict):
+    """Fields accepted when creating a WeatherAlertRole."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Level.
+    alert_level: Literal["Monitor", "Restrict", "Evacuate"]
+    #: Canon role notified.
+    role_code: str
+
+
+class WeatherReadingPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WeatherReading]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WeatherReading(TypedDict):
+    """A weather reading on site, in the hazard's unit."""
+
+    #: Identifier of the weather reading.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Hazard.
+    hazard: Literal["Wind", "Lightning", "Heat"]
+    #: Reading.
+    reading_value: float
+    #: When it was observed.
+    observed_at: str
+    #: Identifier of the member who recorded it.
+    recorded_by_membership_id: Optional[str]
+
+
+class WeatherReadingCreate(TypedDict):
+    """Fields accepted when creating a WeatherReading."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Hazard.
+    hazard: Literal["Wind", "Lightning", "Heat"]
+    #: Reading.
+    reading_value: float
+    #: When it was observed.
+    observed_at: str
+
+
+class WeatherAlertPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WeatherAlert]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WeatherAlert(TypedDict):
+    """A weather alert raised by a reading at the highest level met, cleared when readings fall below every level."""
+
+    #: Identifier of the weather alert.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Hazard.
+    hazard: Literal["Wind", "Lightning", "Heat"]
+    #: Level met.
+    alert_level: Literal["Monitor", "Restrict", "Evacuate"]
+    #: Identifier of the reading that raised it.
+    weather_reading_id: str
+    #: When it was raised.
+    issued_at: str
+    #: When it cleared.
+    cleared_at: Optional[str]
+
+
+class GuestCheckInPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[GuestCheckIn]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class GuestCheckIn(TypedDict):
+    """A door check-in of an approved guest with plus-ones admitted and the credential scanned."""
+
+    #: Identifier of the guest check in.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the guest list entry.
+    guest_list_entry_id: str
+    #: Plus-ones admitted.
+    plus_ones_admitted: int
+    #: Identifier of the credential scanned.
+    credential_id: Optional[str]
+    #: Door or gate.
+    door: Optional[str]
+    #: Identifier of the door staff member.
+    checked_in_by_membership_id: Optional[str]
+
+
+class _GuestCheckInCreateRequired(TypedDict):
+    #: Identifier of the guest list entry.
+    guest_list_entry_id: str
+    #: Plus-ones admitted.
+    plus_ones_admitted: int
+
+
+class GuestCheckInCreate(_GuestCheckInCreateRequired, total=False):
+    """Fields accepted when creating a GuestCheckIn."""
+
+    #: Door or gate.
+    door: Optional[str]
+
+
+class DoorGuestPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[DoorGuest]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class DoorGuest(TypedDict):
+    """A guest on the door list."""
+
+    #: Guest list entry.
+    guest_list_entry_id: str
+    #: Guest name.
+    guest_name: str
+    #: Plus-ones on the list.
+    plus_ones: int
+    #: Approved or Checked In.
+    entry_state: Literal["Approved", "Checked In"]
+    #: Note for the door.
+    note: Optional[str]
+    #: When they were checked in.
+    checked_in_at: Optional[str]
+    #: Plus-ones admitted.
+    plus_ones_admitted: Optional[int]
+    #: Door.
+    door: Optional[str]
+
+
+class LostFoundItemPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[LostFoundItem]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class LostFoundItem(TypedDict):
+    """An item in the lost and found log, with photos as attachments and its claim state."""
+
+    #: Identifier of the lost found item.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Display number.
+    item_number: str
+    #: Category.
+    category: Literal["Wallet", "Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Other"]
+    #: Description a claimant is checked against.
+    description: str
+    #: When it was found.
+    found_at: str
+    #: Where it was found.
+    found_location: str
+    #: Where it is held.
+    storage_location: Optional[str]
+    #: Identifier of the member who logged it.
+    logged_by_membership_id: Optional[str]
+    #: Item state.
+    item_state: Literal["Logged", "Claimed", "Returned", "Disposed"]
+
+
+class _LostFoundItemCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Category.
+    category: Literal["Wallet", "Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Other"]
+    #: Description a claimant is checked against.
+    description: str
+    #: When it was found.
+    found_at: str
+    #: Where it was found.
+    found_location: str
+
+
+class LostFoundItemCreate(_LostFoundItemCreateRequired, total=False):
+    """Fields accepted when creating a LostFoundItem."""
+
+    #: Where it is held.
+    storage_location: Optional[str]
+
+
+class LostFoundItemUpdate(TypedDict, total=False):
+    """Fields accepted when updating a LostFoundItem. Omitted fields are unchanged."""
+
+    #: Category.
+    category: Literal["Wallet", "Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Other"]
+    #: Description a claimant is checked against.
+    description: str
+    #: Where it is held.
+    storage_location: Optional[str]
+
+
+class LostFoundClaim(TypedDict):
+    """A claim on a lost item: the claimant, their contact (Confidential), their proof and how it was settled."""
+
+    #: Identifier of the lost found claim.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Person who created the row; null for seed, platform or system writes.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Person who last updated the row; null for seed, platform or system writes.
+    updated_by: Optional[str]
+    #: Identifier of the item claimed.
+    lost_found_item_id: str
+    #: Claimant.
+    claimant_name: str
+    #: Claimant phone or email.
+    claimant_contact: str
+    #: How they proved it.
+    proof_description: str
+    #: Identifier of the member who took the claim.
+    recorded_by_membership_id: Optional[str]
+    #: Identifier of the member who settled it.
+    decided_by_membership_id: Optional[str]
+    #: When it was settled.
+    decided_at: Optional[str]
+    #: True when returned, false when rejected.
+    returned: Optional[bool]
+    #: Why rejected, or a return note.
+    decision_note: Optional[str]
+
+
+class LostItemClaimRequest(TypedDict):
+    """A claim."""
+
+    #: Claimant.
+    claimant_name: str
+    #: Phone or email.
+    claimant_contact: str
+    #: Proof.
+    proof_description: str
+
+
+class DisposeLostItemRequest(TypedDict):
+    """A reason for the change."""
+
+    #: Why it is disposed of.
+    reason: str
+
+
+class LostFoundClaimPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[LostFoundClaim]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class _SettleClaimRequestRequired(TypedDict):
+    #: Returned (true) or rejected (false).
+    returned: bool
+
+
+class SettleClaimRequest(_SettleClaimRequestRequired, total=False):
+    """Settlement."""
+
+    #: Note; required to reject.
+    note: str
 
 
 #: Refusal outcome (Section 3.7). NO_ANSWER: the data does not support an answer. UNRATIFIED: the value is proposed and not ratified. REFUSE: a rule forbids the action.

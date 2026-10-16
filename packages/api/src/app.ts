@@ -102,6 +102,8 @@ const TAG_DESCRIPTIONS: Record<Module, string> = {
     "People, organizations, memberships, assignments, representation and profiles (Section 4.8).",
   Platform:
     "Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).",
+  Workforce:
+    "Groups, chat, the directory, the feed, polls, surveys, recognition, events, forms, training, the handbook, the help desk and site operations (Section 4.9).",
 };
 
 export const DOCUMENT_INFO = {

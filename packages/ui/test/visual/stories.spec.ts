@@ -38,12 +38,16 @@ async function open(page: Page, id: string, globals: string): Promise<void> {
 for (const story of stories) {
   test.describe(story.title, () => {
     for (const mode of MODES) {
-      test(`axe ${mode.name} ${story.id}`, async ({ page }) => {
+      test(`axe ${mode.name} ${story.id}`, async ({ page, browserName }) => {
         await open(page, story.id, mode.globals);
-        const results = await new AxeBuilder({ page })
+        let axe = new AxeBuilder({ page })
           .include("#storybook-root")
-          .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
-          .analyze();
+          .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]);
+        /* Contrast is a property of the token colors, which Chromium and Firefox measure. axe in
+           WebKit misreads backgrounds painted on table rows and reports cells that pass in both
+           other engines, so the WebKit pass runs every other rule. */
+        if (browserName === "webkit") axe = axe.disableRules(["color-contrast"]);
+        const results = await axe.analyze();
         const blocking = results.violations
           .filter((v) => v.impact === "serious" || v.impact === "critical")
           .map(

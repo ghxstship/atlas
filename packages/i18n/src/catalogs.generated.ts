@@ -22,6 +22,7 @@ import enUS_knowledge from "../messages/en-US/knowledge.json" with { type: "json
 import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
+import enUS_peek from "../messages/en-US/peek.json" with { type: "json" };
 import enUS_people from "../messages/en-US/people.json" with { type: "json" };
 import enUS_permits from "../messages/en-US/permits.json" with { type: "json" };
 import enUS_places from "../messages/en-US/places.json" with { type: "json" };
@@ -32,6 +33,7 @@ import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
+import enUS_shipmentTracking from "../messages/en-US/shipmentTracking.json" with { type: "json" };
 import enUS_show from "../messages/en-US/show.json" with { type: "json" };
 import enUS_status from "../messages/en-US/status.json" with { type: "json" };
 import enUS_support from "../messages/en-US/support.json" with { type: "json" };
@@ -40,6 +42,7 @@ import enUS_vendors from "../messages/en-US/vendors.json" with { type: "json" };
 import enUS_views from "../messages/en-US/views.json" with { type: "json" };
 import enUS_work from "../messages/en-US/work.json" with { type: "json" };
 import enUS_workflow from "../messages/en-US/workflow.json" with { type: "json" };
+import enUS_workforce from "../messages/en-US/workforce.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json" };
 import esUS_assets from "../messages/es-US/assets.json" with { type: "json" };
@@ -61,6 +64,7 @@ import esUS_knowledge from "../messages/es-US/knowledge.json" with { type: "json
 import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
+import esUS_peek from "../messages/es-US/peek.json" with { type: "json" };
 import esUS_people from "../messages/es-US/people.json" with { type: "json" };
 import esUS_permits from "../messages/es-US/permits.json" with { type: "json" };
 import esUS_places from "../messages/es-US/places.json" with { type: "json" };
@@ -71,6 +75,7 @@ import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
+import esUS_shipmentTracking from "../messages/es-US/shipmentTracking.json" with { type: "json" };
 import esUS_show from "../messages/es-US/show.json" with { type: "json" };
 import esUS_status from "../messages/es-US/status.json" with { type: "json" };
 import esUS_support from "../messages/es-US/support.json" with { type: "json" };
@@ -79,6 +84,7 @@ import esUS_vendors from "../messages/es-US/vendors.json" with { type: "json" };
 import esUS_views from "../messages/es-US/views.json" with { type: "json" };
 import esUS_work from "../messages/es-US/work.json" with { type: "json" };
 import esUS_workflow from "../messages/es-US/workflow.json" with { type: "json" };
+import esUS_workforce from "../messages/es-US/workforce.json" with { type: "json" };
 
 export const enUS = {
   activity: enUS_activity,
@@ -102,6 +108,7 @@ export const enUS = {
   logistics: enUS_logistics,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
+  peek: enUS_peek,
   people: enUS_people,
   permits: enUS_permits,
   places: enUS_places,
@@ -112,6 +119,7 @@ export const enUS = {
   schedule: enUS_schedule,
   settings: enUS_settings,
   shell: enUS_shell,
+  shipmentTracking: enUS_shipmentTracking,
   show: enUS_show,
   status: enUS_status,
   support: enUS_support,
@@ -120,6 +128,7 @@ export const enUS = {
   views: enUS_views,
   work: enUS_work,
   workflow: enUS_workflow,
+  workforce: enUS_workforce,
 };
 
 export const esUS = {
@@ -144,6 +153,7 @@ export const esUS = {
   logistics: esUS_logistics,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
+  peek: esUS_peek,
   people: esUS_people,
   permits: esUS_permits,
   places: esUS_places,
@@ -154,6 +164,7 @@ export const esUS = {
   schedule: esUS_schedule,
   settings: esUS_settings,
   shell: esUS_shell,
+  shipmentTracking: esUS_shipmentTracking,
   show: esUS_show,
   status: esUS_status,
   support: esUS_support,
@@ -162,4 +173,5 @@ export const esUS = {
   views: esUS_views,
   work: esUS_work,
   workflow: esUS_workflow,
+  workforce: esUS_workforce,
 };

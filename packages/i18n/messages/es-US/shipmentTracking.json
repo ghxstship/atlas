@@ -1,0 +1,39 @@
+{
+  "title": "Rastreo del transportista",
+  "notTracked": "Aún sin rastreo. Elige el transportista para seguir aquí los escaneos y la entrega de este envío.",
+  "notTrackedReadOnly": "Sin rastreo. Quien gestiona los envíos de este proyecto puede iniciarlo.",
+  "noCarriers": "No hay transportistas conectados. Conecta UPS, FedEx o DHL en Configuración, Integraciones, y luego inicia el rastreo aquí.",
+  "carrier": "Transportista",
+  "number": "Número de rastreo",
+  "numberValue": "Número de rastreo {number}",
+  "numberFromShipment": "Déjalo en blanco para usar el número del envío, {number}.",
+  "numberHint": "Agrega el número de rastreo del transportista, de 6 a 40 letras y dígitos.",
+  "start": "Iniciar rastreo",
+  "stop": "Detener rastreo",
+  "estimated": "Previsto {time}",
+  "delivered": "Entregado {time}",
+  "checked": "Última consulta {time}",
+  "notCheckedYet": "Aún no se consultó al transportista; los escaneos aparecen tras la próxima consulta.",
+  "noScans": "Aún no hay escaneos del transportista.",
+  "scans": "Escaneos del transportista, del más reciente al más antiguo",
+  "status": {
+    "labelCreated": "Etiqueta creada",
+    "inTransit": "En tránsito",
+    "outForDelivery": "En reparto",
+    "delivered": "Entregado",
+    "exception": "Incidencia",
+    "returned": "Devuelto",
+    "unknown": "Aún desconocido"
+  },
+  "errors": {
+    "carrierRequired": "Elige el transportista que lleva este envío.",
+    "numberFormat": "Los números de rastreo tienen de 6 a 40 letras y dígitos. Revisa el número e inténtalo de nuevo.",
+    "tracking_number_required": "Agrega el número de rastreo al envío, o escríbelo aquí, antes de rastrearlo.",
+    "integration_not_connected": "Esa conexión del transportista no está conectada. Reconéctala en Configuración, Integraciones, e inténtalo de nuevo.",
+    "integration_category_mismatch": "Elige una conexión de transportista: UPS, FedEx o DHL.",
+    "alreadyTracked": "Este envío ya tiene rastreo. Recarga la página para verlo.",
+    "notFound": "Ese rastreo ya no está disponible para ti. Recarga la página para ver lo actual.",
+    "refused": "Las reglas de la organización no lo permitieron. Consulta con quien gestiona los envíos de este proyecto.",
+    "unexpected": "Algo salió mal de nuestro lado. Inténtalo de nuevo en un momento."
+  }
+}
