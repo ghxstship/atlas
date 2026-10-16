@@ -1,0 +1,47 @@
+-- A22-002 (High): app.apply_sync_mutation is SECURITY DEFINER and replays device RPCs through
+-- private.sync_call as its owner. Four allowlisted RPCs are SECURITY INVOKER and rely on RLS alone
+-- (app.add_marshalling_entry, app.record_gate_arrival, app.check_in_dock_slot, app.release_vehicle),
+-- so through the sync path they run with RLS bypassed. A member of any org writes rows into another
+-- tenant's project, and the replay ledger row is filed under the attacker's own org.
+--
+-- This file FAILS on main while the finding is open. Run with supabase/tests/security/run-attacks.sh.
+begin;
+create extension if not exists pgtap with schema extensions;
+set search_path = extensions, public;
+\ir ../0300_domain_world.psql
+
+select plan(6);
+
+-- The victim: Northwind Live's project prj_a.
+select pg_temp.as_platform();
+
+-- The attacker: Xavier, Owner of Harbor Lights, with no access to Northwind Live.
+create function pg_temp.replay(p_rpc text, p_args jsonb) returns text
+language plpgsql as $$
+begin
+  return app.apply_sync_mutation(gen_random_uuid(), pg_temp.id('org_b'), 'attacker-device', p_rpc, p_args)::text;
+exception when others then
+  return sqlstate;
+end $$;
+
+select pg_temp.as_user('xavier');
+select is((select count(*)::integer from app.projects where id = pg_temp.id('prj_a')), 0,
+  'control: the attacker cannot read the victim project through RLS');
+select throws_ok(format($$insert into app.marshalling_log (project_id, entry) values (%L, 'Direct write')$$, pg_temp.id('prj_a')),
+  '42501', null, 'control: a direct insert into the victim project is refused by RLS');
+
+select isnt(left(pg_temp.replay('app.add_marshalling_entry',
+    jsonb_build_object('p_project_id', pg_temp.id('prj_a'), 'p_entry', 'Written by another tenant')), 8), '{"data":',
+  'A22-002: the sync path refuses add_marshalling_entry on another tenant''s project');
+select isnt(left(pg_temp.replay('app.record_gate_arrival',
+    jsonb_build_object('p_project_id', pg_temp.id('prj_a'), 'p_vehicle_identifier', 'XTENANT-1')), 8), '{"data":',
+  'A22-002: the sync path refuses record_gate_arrival on another tenant''s project');
+
+select pg_temp.as_platform();
+select is((select count(*)::integer from app.marshalling_log where project_id = pg_temp.id('prj_a') and entry = 'Written by another tenant'), 0,
+  'A22-002: no marshalling entry from another tenant lands in the victim project');
+select is((select count(*)::integer from app.gate_queue where project_id = pg_temp.id('prj_a') and vehicle_identifier = 'XTENANT-1'), 0,
+  'A22-002: no gate arrival from another tenant lands in the victim project');
+
+select * from finish();
+rollback;
