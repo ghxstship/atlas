@@ -12930,6 +12930,14 @@ var work_default$1 = {
     title: "{kind} details",
   },
 };
+var workflow_default$1 = {
+  settings: {
+    requesterMayCancel: {
+      label: "Requesters may withdraw their approvals",
+      help: "When off, only people who edit approval policies can withdraw an approval in review.",
+    },
+  },
+};
 var activity_default = {
   feed: {
     title: "Actividad",
@@ -25137,6 +25145,14 @@ var work_default = {
     title: "Detalles de {kind}",
   },
 };
+var workflow_default = {
+  settings: {
+    requesterMayCancel: {
+      label: "Los solicitantes pueden retirar sus aprobaciones",
+      help: "Si está desactivado, solo quienes editan las políticas de aprobación pueden retirar una aprobación en revisión.",
+    },
+  },
+};
 //#endregion
 //#region ../i18n/src/catalogs.generated.ts
 var enUS = {
@@ -25177,6 +25193,7 @@ var enUS = {
   vendors: vendors_default$1,
   views: views_default$1,
   work: work_default$1,
+  workflow: workflow_default$1,
 };
 var esUS = {
   activity: activity_default,
@@ -25216,6 +25233,7 @@ var esUS = {
   vendors: vendors_default,
   views: views_default,
   work: work_default,
+  workflow: workflow_default,
 };
 //#endregion
 //#region ../i18n/src/index.ts

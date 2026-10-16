@@ -1,0 +1,8 @@
+{
+  "settings": {
+    "requesterMayCancel": {
+      "label": "Los solicitantes pueden retirar sus aprobaciones",
+      "help": "Si está desactivado, solo quienes editan las políticas de aprobación pueden retirar una aprobación en revisión."
+    }
+  }
+}

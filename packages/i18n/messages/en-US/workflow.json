@@ -1,0 +1,8 @@
+{
+  "settings": {
+    "requesterMayCancel": {
+      "label": "Requesters may withdraw their approvals",
+      "help": "When off, only people who edit approval policies can withdraw an approval in review."
+    }
+  }
+}

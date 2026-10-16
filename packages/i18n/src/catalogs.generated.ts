@@ -38,6 +38,7 @@ import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
 import enUS_vendors from "../messages/en-US/vendors.json" with { type: "json" };
 import enUS_views from "../messages/en-US/views.json" with { type: "json" };
 import enUS_work from "../messages/en-US/work.json" with { type: "json" };
+import enUS_workflow from "../messages/en-US/workflow.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json" };
 import esUS_assets from "../messages/es-US/assets.json" with { type: "json" };
@@ -75,6 +76,7 @@ import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
 import esUS_vendors from "../messages/es-US/vendors.json" with { type: "json" };
 import esUS_views from "../messages/es-US/views.json" with { type: "json" };
 import esUS_work from "../messages/es-US/work.json" with { type: "json" };
+import esUS_workflow from "../messages/es-US/workflow.json" with { type: "json" };
 
 export const enUS = {
   activity: enUS_activity,
@@ -114,6 +116,7 @@ export const enUS = {
   vendors: enUS_vendors,
   views: enUS_views,
   work: enUS_work,
+  workflow: enUS_workflow,
 };
 
 export const esUS = {
@@ -154,4 +157,5 @@ export const esUS = {
   vendors: esUS_vendors,
   views: esUS_views,
   work: esUS_work,
+  workflow: esUS_workflow,
 };
