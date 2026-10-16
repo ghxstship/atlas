@@ -44,6 +44,9 @@ importers:
       '@xos/icons':
         specifier: workspace:*
         version: link:../../packages/icons
+      '@xos/integrations':
+        specifier: workspace:*
+        version: link:../../packages/integrations
       '@xos/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
