@@ -123,7 +123,14 @@
     "running": "Aurora is reading the document.",
     "noAnswer": "Aurora could not read any field from this document: {missing}",
     "failed": "Aurora could not read the document. Nothing was changed. Try again.",
-    "review": "Review the lines Aurora read before saving them."
+    "review": "Review the lines Aurora read before saving them.",
+    "fileLabel": "Rider file",
+    "fileHelp": "A PDF, image or text file of the rider, up to 10 MB.",
+    "tooLarge": "This file is larger than 10 MB. Choose a smaller file.",
+    "saved": "Rider lines added from the document.",
+    "suggestionsOpen": "The lines were added, but some proposals are still open in the suggestion log.",
+    "saveFailed": "The lines were not saved. Check the rider and try again.",
+    "noLines": "Aurora found no asks in this rider. Add them by hand above."
   },
   "compass": {
     "menuLabel": "Aurora",

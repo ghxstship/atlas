@@ -45217,9 +45217,9 @@
             "example": "insurance_certificate"
           },
           "document_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the stored document to read.",
+            "description": "Identifier of the stored document read, when the file is one.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "media_type": {
@@ -45243,7 +45243,7 @@
             "example": "coi-atlantic.pdf"
           }
         },
-        "required": ["kind", "document_id", "media_type", "content_base64", "file_name"],
+        "required": ["kind", "media_type", "content_base64", "file_name"],
         "description": "A document to extract into proposed fields."
       },
       "AuroraDraftRequest": {

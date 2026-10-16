@@ -294,7 +294,7 @@ const ExtractBody = z
     kind: z
       .enum(["rider", "insurance_certificate", "invoice", "receipt", "quote"])
       .meta({ description: "What the document is.", example: "insurance_certificate" }),
-    document_id: fields.ref("stored document to read"),
+    document_id: orNull(fields.ref("stored document read, when the file is one")).optional(),
     media_type: z
       .enum(["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"])
       .meta({ description: "Media type of the content.", example: "application/pdf" }),

@@ -1889,6 +1889,14 @@ var aurora_default$1 = {
     noAnswer: "Aurora could not read any field from this document: {missing}",
     failed: "Aurora could not read the document. Nothing was changed. Try again.",
     review: "Review the lines Aurora read before saving them.",
+    fileLabel: "Rider file",
+    fileHelp: "A PDF, image or text file of the rider, up to 10 MB.",
+    tooLarge: "This file is larger than 10 MB. Choose a smaller file.",
+    saved: "Rider lines added from the document.",
+    suggestionsOpen:
+      "The lines were added, but some proposals are still open in the suggestion log.",
+    saveFailed: "The lines were not saved. Check the rider and try again.",
+    noLines: "Aurora found no asks in this rider. Add them by hand above.",
   },
   compass: {
     menuLabel: "Aurora",
@@ -13832,6 +13840,14 @@ var aurora_default = {
     noAnswer: "Aurora no pudo leer ningún campo de este documento: {missing}",
     failed: "Aurora no pudo leer el documento. No se cambió nada. Inténtalo de nuevo.",
     review: "Revisa las líneas que leyó Aurora antes de guardarlas.",
+    fileLabel: "Archivo del rider",
+    fileHelp: "Un archivo PDF, de imagen o de texto del rider, de hasta 10 MB.",
+    tooLarge: "Este archivo pesa más de 10 MB. Elige un archivo más pequeño.",
+    saved: "Líneas del rider agregadas desde el documento.",
+    suggestionsOpen:
+      "Las líneas se agregaron, pero algunas propuestas siguen abiertas en el registro de sugerencias.",
+    saveFailed: "Las líneas no se guardaron. Revisa el rider e inténtalo de nuevo.",
+    noLines: "Aurora no encontró solicitudes en este rider. Agrégalas a mano arriba.",
   },
   compass: {
     menuLabel: "Aurora",

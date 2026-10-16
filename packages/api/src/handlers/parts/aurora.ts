@@ -391,7 +391,7 @@ export function auroraHandlers(
     "aurora.extract": async (request, context) => {
       const body = request.body as {
         kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
-        document_id: string;
+        document_id?: string | null;
         media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
         content_base64: string;
         file_name: string;
@@ -406,7 +406,7 @@ export function auroraHandlers(
           kind: body.kind,
           document: { type: "document", mediaType: body.media_type, data },
           fileName: body.file_name,
-          subject: { table: "app.documents", id: body.document_id },
+          subject: body.document_id ? { table: "app.documents", id: body.document_id } : null,
         }),
       );
     },

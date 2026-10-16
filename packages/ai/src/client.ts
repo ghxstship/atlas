@@ -95,7 +95,7 @@ export interface AuroraClient {
   }): Promise<AuroraCall<AuroraApiResult>>;
   extract(input: {
     kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
-    document_id: string;
+    document_id?: string | null;
     media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
     content_base64: string;
     file_name: string;

@@ -123,7 +123,14 @@
     "running": "Aurora está leyendo el documento.",
     "noAnswer": "Aurora no pudo leer ningún campo de este documento: {missing}",
     "failed": "Aurora no pudo leer el documento. No se cambió nada. Inténtalo de nuevo.",
-    "review": "Revisa las líneas que leyó Aurora antes de guardarlas."
+    "review": "Revisa las líneas que leyó Aurora antes de guardarlas.",
+    "fileLabel": "Archivo del rider",
+    "fileHelp": "Un archivo PDF, de imagen o de texto del rider, de hasta 10 MB.",
+    "tooLarge": "Este archivo pesa más de 10 MB. Elige un archivo más pequeño.",
+    "saved": "Líneas del rider agregadas desde el documento.",
+    "suggestionsOpen": "Las líneas se agregaron, pero algunas propuestas siguen abiertas en el registro de sugerencias.",
+    "saveFailed": "Las líneas no se guardaron. Revisa el rider e inténtalo de nuevo.",
+    "noLines": "Aurora no encontró solicitudes en este rider. Agrégalas a mano arriba."
   },
   "compass": {
     "menuLabel": "Aurora",
