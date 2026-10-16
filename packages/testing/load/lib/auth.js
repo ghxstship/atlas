@@ -2,31 +2,30 @@ import http from "k6/http";
 import { check, fail } from "k6";
 
 /**
- * Signs each load user in once through Supabase Auth (password grant) and returns their access
- * tokens. Runs in setup(), so sign-in cost never counts against the API objectives.
+ * Signs one load user in through Supabase Auth (password grant). Requests are tagged `kind:auth`, so
+ * sign-in cost never counts against the read, write or sync objectives.
  */
-export function signInAll(env) {
-  const sessions = [];
-  for (const email of env.users) {
-    const res = http.post(
-      `${env.supabaseUrl}/auth/v1/token?grant_type=password`,
-      JSON.stringify({ email, password: env.password }),
-      {
-        headers: { apikey: env.anonKey, "Content-Type": "application/json" },
-        tags: { kind: "auth" },
-      },
-    );
-    if (!check(res, { "sign-in answers 200": (r) => r.status === 200 })) {
-      fail(`sign-in failed for ${email}: ${res.status} ${res.body}`);
-    }
-    sessions.push({ email, token: res.json("access_token") });
+export function signIn(env, email) {
+  const res = http.post(
+    `${env.supabaseUrl}/auth/v1/token?grant_type=password`,
+    JSON.stringify({ email, password: env.password }),
+    {
+      headers: { apikey: env.anonKey, "Content-Type": "application/json" },
+      tags: { kind: "auth" },
+    },
+  );
+  if (!check(res, { "sign-in answers 200": (r) => r.status === 200 })) {
+    fail(`sign-in failed for ${email}: ${res.status} ${res.body}`);
   }
-  return sessions;
+  return { email, token: res.json("access_token") };
 }
 
-/** The session a virtual user acts as: users are shared round-robin across virtual users. */
-export function sessionFor(sessions, vu) {
-  return sessions[(vu - 1) % sessions.length];
+/**
+ * The user a virtual user acts as, shared round-robin. Each virtual user signs in on its first
+ * iteration and keeps the session, so 10,000 users never queue behind one setup().
+ */
+export function userFor(env, vu) {
+  return env.users[(vu - 1) % env.users.length];
 }
 
 /** Headers for the public API (Bearer session JWT, ADR 0003). */

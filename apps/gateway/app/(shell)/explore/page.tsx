@@ -161,9 +161,10 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
         <RegionError />
       ) : (
         <>
-          <p className="m-0 text-text-13 text-text-secondary" role="status">
-            {t("gateway.explore.results", { n: results.data.length })}
-          </p>
+          {/* The count heads the results, so the cards' titles (h3) follow an h2 (heading order). */}
+          <h2 className="m-0 text-text-13 font-normal text-text-secondary">
+            <span role="status">{t("gateway.explore.results", { n: results.data.length })}</span>
+          </h2>
           {results.data.length === 0 ? (
             <EmptyStateLink
               icon="SearchX"

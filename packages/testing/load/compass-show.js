@@ -1,7 +1,7 @@
 import http from "k6/http";
 import { check, fail, sleep } from "k6";
 import { Counter, Trend } from "k6/metrics";
-import { restHeaders, sessionFor, signInAll, uuid } from "./lib/auth.js";
+import { restHeaders, signIn, userFor, uuid } from "./lib/auth.js";
 import { SLO, loadEnv, rampingScenario } from "./lib/config.js";
 
 /**
@@ -33,17 +33,18 @@ const READS = [
 ];
 
 export function setup() {
-  const sessions = signInAll(env);
+  // One sign-in finds the counter; each device signs in itself on its first iteration.
+  const first = signIn(env, env.users[0]);
   const res = http.get(
     `${env.supabaseUrl}/rest/v1/occupancy_counters?select=id,org_id&closed_at=is.null&deleted_at=is.null&limit=1`,
     {
-      headers: restHeaders(env, sessions[0].token, { "Accept-Profile": "app" }),
+      headers: restHeaders(env, first.token, { "Accept-Profile": "app" }),
       tags: { kind: "setup" },
     },
   );
   const counter = res.status === 200 ? res.json("0") : null;
   if (!counter) fail(`no open occupancy counter is readable: ${res.status} ${res.body}`);
-  return { sessions, counter };
+  return { counter };
 }
 
 function applyMutation(data, token, id, delta) {
@@ -64,9 +65,11 @@ function applyMutation(data, token, id, delta) {
 }
 
 let lastMutation = null;
+let session = null;
 
 export default function (data) {
-  const { token } = sessionFor(data.sessions, __VU);
+  if (session === null) session = signIn(env, userFor(env, __VU));
+  const { token } = session;
   // Entries and exits alternate so the count stays near its start; a refusal is a clean answer.
   const id = uuid();
   const delta = __ITER % 2 === 0 ? 1 : -1;
