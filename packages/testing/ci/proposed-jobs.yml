@@ -1,0 +1,189 @@
+# Proposed CI jobs from A24 (QA and performance) for the orchestrator to add to
+# .github/workflows/ci.yml under `jobs:`. Action pins match the ones ci.yml already uses. Not loaded
+# by GitHub from this path; it lives here so the proposal is versioned and reviewable.
+
+e2e:
+  name: Playwright journeys (${{ matrix.app }}) (gate 6)
+  runs-on: ubuntu-24.04
+  timeout-minutes: 60
+  strategy:
+    fail-fast: false
+    matrix:
+      app: [atlas, gateway, docs]
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+    - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      with:
+        version: 2.120.0
+    - run: pnpm install --frozen-lockfile
+    - run: pnpm exec playwright install --with-deps chromium
+      working-directory: apps/${{ matrix.app }}
+    # The full stack (Auth, PostgREST, Storage) with migrations and the demo seed, on the default
+    # 554xx ports of the committed config.toml.
+    - run: supabase start
+    - name: Write the app environment from the stack
+      run: |
+        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\n' "$ANON" > apps/atlas/.env.local
+        echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
+        echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
+    # Journeys run against production builds: dev compiles each route on first visit, and typing
+    # before hydration is the race the journeys guard against.
+    - run: pnpm turbo run build --filter=@xos/${{ matrix.app }}
+    - name: Start the production server
+      if: matrix.app != 'docs'
+      run: |
+        PORT=$([ "${{ matrix.app }}" = atlas ] && echo 3006 || echo 3127)
+        (cd apps/${{ matrix.app }} && pnpm exec next start --port "$PORT" &)
+        echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
+    - run: pnpm exec playwright test
+      working-directory: apps/${{ matrix.app }}
+    - if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: e2e-${{ matrix.app }}
+        path: apps/${{ matrix.app }}/node_modules/.cache/playwright
+        if-no-files-found: ignore
+
+lighthouse:
+  name: Lighthouse CI budgets (gate 10)
+  runs-on: ubuntu-24.04
+  timeout-minutes: 40
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+    - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      with:
+        version: 2.120.0
+    - run: pnpm install --frozen-lockfile
+    - run: pnpm exec playwright install --with-deps chromium
+      working-directory: apps/atlas
+    - run: supabase start
+    - run: pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway --filter=@xos/docs
+    - name: Serve the three production builds and run Lighthouse
+      run: |
+        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        export SUPABASE_URL=http://127.0.0.1:55421 SUPABASE_ANON_KEY="$ANON"
+        (cd apps/atlas && ATLAS_SITE_URL=http://127.0.0.1:3006 pnpm exec next start --port 3006 &)
+        (cd apps/gateway && GATEWAY_SITE_URL=http://127.0.0.1:3127 pnpm exec next start --port 3127 &)
+        (cd apps/docs && pnpm exec next start --port 3014 &)
+        sleep 10
+        export CHROME_PATH=$(node -e "console.log(require('playwright-core').chromium.executablePath())")
+        pnpm --filter @xos/testing lighthouse
+    - if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: lighthouse
+        path: packages/testing/lighthouse/results
+        if-no-files-found: ignore
+
+load-smoke:
+  name: k6 smoke against the CI stack (Section 5.1 scripts stay runnable)
+  runs-on: ubuntu-24.04
+  timeout-minutes: 30
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+    - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      with:
+        version: 2.120.0
+    - run: pnpm install --frozen-lockfile
+    - run: supabase start
+    - run: pnpm turbo run build --filter=@xos/atlas
+    - name: Smoke the three scripts through grafana/k6:2.3.0
+      run: |
+        ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        export SUPABASE_ANON_KEY="$ANON"
+        (cd apps/atlas && SUPABASE_URL=http://127.0.0.1:55421 ATLAS_SITE_URL=http://127.0.0.1:3006 pnpm exec next start --port 3006 &)
+        sleep 10
+        SUPABASE_URL=http://host.docker.internal:55421 ATLAS_URL=http://host.docker.internal:3006 \
+          sh packages/testing/load/run.sh smoke
+
+# Compass Maestro (gate 7). Needs a JDK and, for iOS, Xcode and CocoaPods on the runner; GitHub's
+# macos-15 image ships both. The owner has not decided yet to add these jobs (they cost macOS
+# minutes); nothing is installed on developer machines for them.
+maestro-ios:
+  name: Compass Maestro on iOS (gate 7)
+  runs-on: macos-15
+  timeout-minutes: 90
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+    - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      with:
+        version: 2.120.0
+    - run: pnpm install --frozen-lockfile
+    - run: supabase start
+    - name: Build Compass for the simulator against the CI stack
+      working-directory: apps/compass
+      run: |
+        export EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:55421
+        export EXPO_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        pnpm exec expo prebuild --platform ios --no-install
+        (cd ios && pod install)
+        xcodebuild -workspace ios/*.xcworkspace -scheme Compass -configuration Release \
+          -sdk iphonesimulator -derivedDataPath build
+        xcrun simctl boot "iPhone 16" || true
+        xcrun simctl install booted build/Build/Products/Release-iphonesimulator/*.app
+    - name: Install Maestro and run the field flows, including airplane mode and queue drain
+      run: |
+        curl -fsSL "https://get.maestro.mobile.dev" | bash
+        export PATH="$HOME/.maestro/bin:$PATH"
+        maestro test -e XOS_DEMO_PASSWORD=xos-demo-2026 apps/compass/.maestro
+
+maestro-android:
+  name: Compass Maestro on Android (gate 7)
+  runs-on: ubuntu-24.04
+  timeout-minutes: 90
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    # Not yet used in ci.yml: pin to the release commit SHA when adding, as the other actions are.
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: "21"
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+    - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+      with:
+        version: 2.120.0
+    - run: pnpm install --frozen-lockfile
+    - run: supabase start
+    - name: Build the release APK against the CI stack (emulator reaches the host at 10.0.2.2)
+      working-directory: apps/compass
+      run: |
+        export EXPO_PUBLIC_SUPABASE_URL=http://10.0.2.2:55421
+        export EXPO_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        pnpm exec expo prebuild --platform android --no-install
+        (cd android && ./gradlew assembleRelease)
+    - name: Run the field flows on an emulator
+      # Not yet used in ci.yml: pin to the release commit SHA when adding.
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 34
+        target: google_apis
+        arch: x86_64
+        script: |
+          adb install apps/compass/android/app/build/outputs/apk/release/app-release.apk
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          $HOME/.maestro/bin/maestro test -e XOS_DEMO_PASSWORD=xos-demo-2026 apps/compass/.maestro
