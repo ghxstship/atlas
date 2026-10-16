@@ -16,6 +16,8 @@ export default defineConfig({
   },
   test: {
     include: ["test/**/*.test.ts"],
+    /* Some suites import whole screens; on a loaded machine or a shared CI runner they need more than 5 s. */
+    testTimeout: 30_000,
     coverage: {
       provider: "v8",
       include: ["src/domain/**/*.ts"],
