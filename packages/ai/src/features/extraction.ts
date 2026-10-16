@@ -103,7 +103,7 @@ export const EXTRACTION_TARGETS: Readonly<Record<DocumentKind, ExtractionTarget>
     lines: {
       operationId: "riderLines.create",
       fields: [
-        { path: "statement", kind: "text", description: "The requirement as the rider states it." },
+        { path: "description", kind: "text", description: "The ask as the rider states it." },
         { path: "quantity", kind: "quantity", description: "Quantity required, if stated." },
       ],
     },

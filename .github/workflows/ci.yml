@@ -81,3 +81,25 @@ jobs:
           name: visual-baselines
           path: packages/ui/test/visual/__screenshots__
           if-no-files-found: ignore
+
+  ai-evals:
+    name: Aurora AI evals (gate 21)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Runs only where the Anthropic key is configured; unit tests use a fake model client.
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: env.ANTHROPIC_API_KEY != ''
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        if: env.ANTHROPIC_API_KEY != ''
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: env.ANTHROPIC_API_KEY != ''
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: env.ANTHROPIC_API_KEY != ''
+      - run: pnpm --filter @xos/ai evals
+        if: env.ANTHROPIC_API_KEY != ''

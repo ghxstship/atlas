@@ -32,6 +32,7 @@ import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
 import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
 import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
+import { AuroraCenter } from "@/components/aurora/aurora-center";
 import { HelpCenter, helpCommandItems, openHelpArticle } from "@/components/help/help-center";
 import { broadcast, SessionWatcher } from "./session-watcher";
 
@@ -47,6 +48,8 @@ export interface ShellFrameProps {
   readonly locale: AtlasLocale;
   readonly theme: Theme;
   readonly email: string | null;
+  /** Whether the viewer can turn AI features on (org.ai.write), for the Aurora panel. */
+  readonly canManageAi: boolean;
   readonly children: ReactNode;
 }
 
@@ -273,6 +276,7 @@ export function ShellFrame(props: ShellFrameProps) {
         header={
           <>
             <Breadcrumbs items={crumbs} />
+            <AuroraCenter org={org.slug} canManage={props.canManageAi} />
             <HelpCenter org={org.slug} />
             <DropdownMenu
               label={t("shell.chrome.account")}

@@ -228,6 +228,25 @@ export function createApiKeyExchange(options: SupabaseAuthOptions) {
   };
 }
 
+/**
+ * The scopes of a JWT minted for an API key (`amr` method `xos_api_key`), or null for an ordinary
+ * session. A minted token without a scopes claim gets no scopes, so it can do nothing scoped.
+ */
+export function apiKeyTokenScopes(claims: Record<string, unknown>): readonly string[] | null {
+  const amr = claims["amr"];
+  const minted =
+    Array.isArray(amr) &&
+    amr.some(
+      (entry) =>
+        typeof entry === "object" &&
+        entry !== null &&
+        (entry as { method?: unknown }).method === "xos_api_key",
+    );
+  if (!minted) return null;
+  const scopes = claims["scopes"];
+  return Array.isArray(scopes) ? scopes.filter((s): s is string => typeof s === "string") : [];
+}
+
 /** The `Authenticate` dependency for Supabase sessions. */
 export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authenticate {
   const locales = options.locales ?? SUPPORTED_LOCALES;
@@ -289,13 +308,18 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
             ...(typeof claim === "string" ? [{ id: claim }] : []),
             ...(lastOrg === undefined ? [] : [{ slug: lastOrg }]),
           ]);
+    // A token the api-token function minted for an API key keeps that key's scope limit even when the
+    // client presents the JWT itself instead of the xos_live_ key.
+    const keyScopes = apiKeyTokenScopes(jwtClaims(credential.token));
     return {
       user: { id: user.id, email: user.email ?? null },
       personId,
       org,
       locale: negotiateLocale(request.headers.get("accept-language"), locales),
       db,
-      credential: "session",
+      ...(keyScopes === null
+        ? { credential: "session" as const }
+        : { credential: "api_key" as const, scopes: keyScopes }),
       requestId,
     };
   };

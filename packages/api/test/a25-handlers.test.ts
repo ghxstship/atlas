@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import { catalog } from "../src/app.ts";
 import {
   auroraHandlers,
+  bodyFromFields,
   filterFields,
   inProcessApi,
   proposableOperations,
@@ -521,17 +522,15 @@ describe("suggestions, requests and usage", () => {
     );
   });
 
-  it("confirms, applies, reopens and rejects through the transition RPC", async () => {
+  it("applies, reopens and rejects through the transition RPC", async () => {
     const read = [ok(suggestion), ok(suggestion)];
     const fields = [ok([field]), ok([field])];
     const { api, calls } = app({
-      "from:ai_suggestions": [...read, ...read, ...read, ...read, refusal("ai_suggestion_expired")],
-      "from:ai_suggestion_fields": [...fields, ...fields, ...fields, ...fields],
-      "rpc:transition_ai_suggestion": [ok(id(1)), ok(id(2)), ok(id(3)), ok(id(4))],
+      "from:ai_suggestions": [...read, ...read, ...read],
+      "from:ai_suggestion_fields": [...fields, ...fields, ...fields],
+      "rpc:transition_ai_suggestion": [ok(id(2)), ok(id(3)), ok(id(4))],
     });
     const item = `/ai-suggestions/${suggestion.id}`;
-    const confirmed = await api.request(`${item}/confirm`, post({ reason: "Checked." }));
-    await expectContract(confirmed, "aiSuggestions.confirm");
     const applied = await api.request(
       `${item}/apply`,
       post({ applied_id: id(55), reason: "Written by expenses.create." }),
@@ -544,12 +543,108 @@ describe("suggestions, requests and usage", () => {
     const rpcs = calls
       .filter((c) => c.target === "rpc:transition_ai_suggestion")
       .map((c) => c.steps[0]?.[1]?.[0]);
-    expect(rpcs[1]).toMatchObject({
+    expect(rpcs[0]).toMatchObject({
       p_expected: "Confirmed",
       p_next: "Applied",
       p_applied_id: id(55),
     });
-    expect(rpcs[3]).toMatchObject({ p_expected: "Proposed", p_next: "Rejected" });
+    expect(rpcs[2]).toMatchObject({ p_expected: "Proposed", p_next: "Rejected" });
+  });
+
+  it("confirms and performs the operation as the caller, then marks it Applied", async () => {
+    const settingsRow = {
+      ...audit(40),
+      assistant_enabled: true,
+      plain_language_enabled: false,
+      extraction_enabled: false,
+      drafting_enabled: false,
+      summaries_enabled: true,
+      mapping_enabled: false,
+    };
+    const proposal = {
+      ...suggestion,
+      operation_id: "aiSettings.update",
+      target_id: settingsRow.id,
+    };
+    const switchField = {
+      ...field,
+      field_path: "summaries_enabled",
+      proposed_value: true,
+      confidence: "1.000",
+    };
+    const { api, calls } = app({
+      "from:ai_suggestions": [
+        ok(proposal),
+        ok({ ...proposal, suggestion_state: "Applied", applied_id: settingsRow.id }),
+      ],
+      "from:ai_suggestion_fields": [ok([switchField]), ok([switchField])],
+      "rpc:transition_ai_suggestion": [ok(id(5)), ok(id(6))],
+      "from:ai_settings": [ok(settingsRow), ok([{ id: settingsRow.id }]), ok(settingsRow)],
+    });
+    const res = await api.request(
+      `/ai-suggestions/${proposal.id}/confirm`,
+      post({ reason: "Turn summaries on.", values: { assistant_enabled: true } }),
+    );
+    const body = (await expectContract(res, "aiSuggestions.confirm")) as {
+      suggestion_state: string;
+    };
+    expect(body.suggestion_state).toBe("Applied");
+    const update = calls.filter((c) => c.target === "from:ai_settings")[1];
+    expect(update?.steps.find(([m]) => m === "update")?.[1]).toEqual([
+      { summaries_enabled: true, assistant_enabled: true },
+    ]);
+    const moves = calls
+      .filter((c) => c.target === "rpc:transition_ai_suggestion")
+      .map((c) => c.steps[0]?.[1]?.[0]);
+    expect(moves[1]).toMatchObject({ p_next: "Applied", p_applied_id: settingsRow.id });
+  });
+
+  it("returns the suggestion to Proposed and answers the refusal when the operation is unavailable", async () => {
+    const proposal = { ...suggestion, operation_id: "approvalPolicies.create" };
+    const { api, calls } = app({
+      "from:ai_suggestions": [ok(proposal)],
+      "from:ai_suggestion_fields": [ok([field])],
+      "rpc:transition_ai_suggestion": [ok(id(7)), ok(id(8))],
+    });
+    const res = await api.request(
+      `/ai-suggestions/${proposal.id}/confirm`,
+      post({ reason: "Yes." }),
+    );
+    const body = (await expectContract(res, "aiSuggestions.confirm")) as { rule: string };
+    expect(res.status).toBe(422);
+    expect(body.rule).toBe("ai_suggestion_operation_unavailable");
+    const moves = calls
+      .filter((c) => c.target === "rpc:transition_ai_suggestion")
+      .map((c) => c.steps[0]?.[1]?.[0]);
+    expect(moves[1]).toMatchObject({ p_expected: "Confirmed", p_next: "Proposed" });
+  });
+
+  it("refuses confirmation of an expired suggestion", async () => {
+    const { api } = app({
+      "from:ai_suggestions": [ok(suggestion)],
+      "from:ai_suggestion_fields": [ok([field])],
+      "rpc:transition_ai_suggestion": [
+        refusal("ai_suggestion_expired", "This suggestion has expired."),
+      ],
+    });
+    const res = await api.request(
+      `/ai-suggestions/${suggestion.id}/confirm`,
+      post({ reason: "Late." }),
+    );
+    expect(res.status).toBe(422);
+    await expectContract(res, "aiSuggestions.confirm");
+  });
+
+  it("nests dotted field paths into the request body", () => {
+    expect(
+      bodyFromFields(
+        [
+          { field_path: "insurance.expires_on", proposed_value: "2027-03-31", refusal: null },
+          { field_path: "limit_minor", proposed_value: null, refusal: "NO_ANSWER" },
+        ],
+        { "insurance.carrier": "Atlantic Mutual" },
+      ),
+    ).toEqual({ insurance: { expires_on: "2027-03-31", carrier: "Atlantic Mutual" } });
   });
 
   it("reads the request log and the usage ledger", async () => {
