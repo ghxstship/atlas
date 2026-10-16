@@ -1345,7 +1345,13 @@
       "body": "Something went wrong before the page could load. Reload to try again.",
       "action": "Reload"
     },
-    "loading": "Loading"
+    "loading": "Loading",
+    "pageError": {
+      "title": "This page did not load",
+      "body": "Gateway could not read what this page shows. Try again, or go to Home and open the page from the menu.",
+      "retry": "Try again",
+      "home": "Go to Home"
+    }
   },
   "auth": {
     "fields": {

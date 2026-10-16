@@ -806,6 +806,12 @@
       "title": "Atlas no se cargó",
       "body": "Algo salió mal antes de que la página se cargara. Recarga para intentarlo de nuevo.",
       "action": "Recargar"
+    },
+    "pageError": {
+      "title": "Esta página no se cargó",
+      "body": "Atlas no pudo leer lo que muestra esta página. Inténtalo de nuevo, o ve a Inicio y abre la página desde la barra lateral.",
+      "retry": "Intentar de nuevo",
+      "home": "Ir a Inicio"
     }
   },
   "page": {
