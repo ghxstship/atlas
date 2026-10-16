@@ -59,7 +59,7 @@ select throws_ok('select 1 from app.integration_calendar_items', '42501', null, 
 
 -- Items ----------------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
-select is((select count(*)::int from app.integration_calendar_items where sync_kind = 'Meeting'), 1, 'the project meeting syncs; undated and other-project meetings do not');
+select is((select count(*)::int from app.integration_calendar_items where sync_kind = 'Meeting' and integration_connection_id = pg_temp.id('gcal')), 1, 'the project meeting syncs; undated and other-project meetings do not');
 select is((select location_text from app.integration_calendar_items where local_id = pg_temp.id('meeting')), 'Pier Office', 'with its location');
 select is((select ends_at from app.integration_calendar_items where local_id = pg_temp.id('event')), '2027-06-06 00:00+00'::timestamptz, 'an event without an end lasts an hour');
 select is((select time_zone from app.integration_calendar_items where local_id = pg_temp.id('event')), 'America/New_York', 'and takes the project time zone');

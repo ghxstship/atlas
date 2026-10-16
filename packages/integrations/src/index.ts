@@ -14,3 +14,7 @@ export * from "./framework/messages.ts";
 export * from "./connectors/communication/index.ts";
 export * from "./connectors/payroll/index.ts";
 export * from "./connectors/shipping/index.ts";
+export * from "./connectors/ticketing/index.ts";
+export * from "./identity/verifiers.ts";
+export * from "./identity/scim.ts";
+export * from "./worker.ts";
