@@ -13,7 +13,7 @@ The XOS public API is one versioned REST API at `/api/v1` on your Atlas deployme
 2. Choose **Create key**, name it after the integration, pick the scopes it needs, and set an expiry.
 3. Copy the key. It starts with `xos_live_` and is shown once; Atlas stores only its hash.
 
-An API key belongs to one organization and acts as its own service account. It can do what its scopes allow and nothing more. See [Authentication](guide:authentication) for scopes, OAuth and session tokens.
+An API key belongs to one organization and acts as its own service account. It can do what its scopes allow and nothing more. See [Authentication](guide:authentication) for scopes and session tokens.
 
 ## Make your first request
 

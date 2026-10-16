@@ -1,6 +1,6 @@
 ---
 title: Autenticación
-summary: Claves de API para servidores, OAuth 2.1 con PKCE para aplicaciones que actúan en nombre de una persona y tokens de sesión para las aplicaciones de XOS.
+summary: Claves de API para servidores y tokens de sesión para las aplicaciones de XOS. El acceso delegado con OAuth todavía no está disponible.
 section: start
 order: 2
 ---
@@ -20,9 +20,9 @@ La API cambia la clave por un token de corta duración de su cuenta de servicio 
 
 > Mantén las claves en servidores. Nunca incluyas una en un navegador ni en una aplicación móvil, y nunca subas una al control de versiones.
 
-## OAuth 2.1 con PKCE
+## Aplicaciones que actúan en nombre de una persona
 
-Usa OAuth cuando tu aplicación actúa en nombre de una persona que inicia sesión. El flujo es el de código de autorización con PKCE (S256), en `/oauth/authorize` y `/oauth/token`. Los alcances corresponden uno a uno con los grupos de capacidades, y la persona los concede para una organización.
+El acceso delegado para aplicaciones de terceros, mediante OAuth 2.1 con PKCE, todavía no está disponible: hoy XOS no ofrece un endpoint de autorización ni de token. Mientras tanto, crea las integraciones de servidor con una clave de API. Esta guía describirá el flujo cuando esté disponible.
 
 ## Tokens de sesión
 

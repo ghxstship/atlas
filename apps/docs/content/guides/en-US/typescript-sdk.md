@@ -18,7 +18,7 @@ const xos = new XosClient({
 });
 ```
 
-Instead of `apiKey`, pass `accessToken` for an OAuth or session token, or `getToken` to supply a fresh token before every request. Other options: `maxRetries` (default 2), `timeoutMs` (default 30000) and a custom `fetch`.
+Instead of `apiKey`, pass `accessToken` for a session token, or `getToken` to supply a fresh token before every request. Other options: `maxRetries` (default 2), `timeoutMs` (default 30000) and a custom `fetch`.
 
 ## Call operations
 

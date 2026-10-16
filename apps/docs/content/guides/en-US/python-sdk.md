@@ -16,7 +16,7 @@ from xos_sdk import XosClient
 xos = XosClient("https://atlas.example.com/api/v1", api_key=os.environ["XOS_API_KEY"])
 ```
 
-Instead of `api_key`, pass `access_token` for an OAuth or session token, or `get_token` to supply a fresh token before every request. Other options: `max_retries` (default 2) and `timeout` in seconds (default 30).
+Instead of `api_key`, pass `access_token` for a session token, or `get_token` to supply a fresh token before every request. Other options: `max_retries` (default 2) and `timeout` in seconds (default 30).
 
 ## Call operations
 

@@ -13,7 +13,7 @@ La API pública de XOS es una sola API REST versionada en `/api/v1` de tu instal
 2. Elige **Crear clave**, ponle el nombre de la integración, elige los alcances que necesita y fija una fecha de vencimiento.
 3. Copia la clave. Empieza con `xos_live_` y se muestra una sola vez; Atlas guarda solo su hash.
 
-Una clave de API pertenece a una organización y actúa como su propia cuenta de servicio. Puede hacer lo que permiten sus alcances y nada más. Consulta [Autenticación](guide:authentication) para alcances, OAuth y tokens de sesión.
+Una clave de API pertenece a una organización y actúa como su propia cuenta de servicio. Puede hacer lo que permiten sus alcances y nada más. Consulta [Autenticación](guide:authentication) para alcances y tokens de sesión.
 
 ## Haz tu primera solicitud
 
