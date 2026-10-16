@@ -26,7 +26,8 @@
     },
     "test:visual": {
       "dependsOn": ["storybook:build"],
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["PLAYWRIGHT_*", "VISUAL_UPDATE_SNAPSHOTS", "STORYBOOK_PORT"]
     }
   }
 }
