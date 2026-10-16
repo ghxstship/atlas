@@ -15,14 +15,7 @@ export interface KnownProblem {
   readonly roles?: readonly string[];
 }
 
-export const KNOWN_PROBLEMS: readonly KnownProblem[] = [
-  {
-    finding: "A23-001",
-    pattern: /axe target-size .*Away from/,
-    routes: ["settings.out-of-office"],
-    viewports: ["phone-375"],
-  },
-];
+export const KNOWN_PROBLEMS: readonly KnownProblem[] = [];
 
 export interface Triage {
   readonly open: string[];

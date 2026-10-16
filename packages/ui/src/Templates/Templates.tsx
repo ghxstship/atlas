@@ -299,11 +299,11 @@ export function TemplateGatewayShell({
   tabBar,
 }: TemplateGatewayShellProps): ReactElement {
   return (
-    <div className="flex flex-col min-h-full bg-bg-canvas text-text-14">
+    <div className="flex flex-col min-h-full max-md:flex-1 max-md:min-h-0 bg-bg-canvas text-text-14">
       <div className="max-md:hidden">{topNav}</div>
       <main
         className={cx(
-          "flex-1 p-24 max-md:p-16 min-w-0",
+          "flex-1 p-24 max-md:p-16 min-w-0 max-md:min-h-0 max-md:overflow-y-auto",
           aside
             ? "grid grid-cols-[var(--ui-gateway-aside)_minmax(0,1fr)] max-lg:grid-cols-[minmax(0,1fr)] gap-24"
             : "flex flex-col gap-16",
