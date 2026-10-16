@@ -2227,6 +2227,10 @@ var compass_default$1 = {
       notRostered:
         "You have no accepted shift on this project today. Accept a shift in Schedule first.",
     },
+    live: {
+      shift: "Current shift",
+      ends: "Ends {time}",
+    },
   },
   schedule: {
     title: "Schedule",
@@ -2539,6 +2543,18 @@ var compass_default$1 = {
         Amenity: "Amenity",
       },
     },
+  },
+  aurora: {
+    inputHelp: "Ask in a sentence, such as When is my call time tomorrow?",
+    notInPlan:
+      "Aurora AI comes with the Core, Pro, Team and Enterprise plans. Ask an Owner to change the plan in Atlas, Settings, Billing and Plan.",
+    offTitle: "Aurora is off for this org",
+    limit:
+      "Your org has used all {allowance} requests this month. The allowance resets on the first of next month.",
+    noAnswer:
+      "The records you can see do not answer this. Ask about a shift, an SOP or the handbook.",
+    confirmReason: "Confirmed in Compass.",
+    rejectReason: "Rejected in Compass.",
   },
 };
 var credentials_default$1 = {
@@ -14326,6 +14342,10 @@ var compass_default = {
       notRostered:
         "No tienes un turno aceptado hoy en este proyecto. Acepta uno en Agenda primero.",
     },
+    live: {
+      shift: "Turno actual",
+      ends: "Termina a las {time}",
+    },
   },
   schedule: {
     title: "Agenda",
@@ -14643,6 +14663,18 @@ var compass_default = {
         Amenity: "Comodidad",
       },
     },
+  },
+  aurora: {
+    inputHelp: "Pregunta con una frase, como ¿A qué hora es mi llamado mañana?",
+    notInPlan:
+      "Aurora AI viene con los planes Core, Pro, Team y Enterprise. Pide a un Propietario que cambie el plan en Atlas, Configuración, Facturación y plan.",
+    offTitle: "Aurora está desactivada en esta organización",
+    limit:
+      "Tu organización usó las {allowance} solicitudes de este mes. El límite se renueva el primer día del mes próximo.",
+    noAnswer:
+      "Los registros que puedes ver no responden esto. Pregunta por un turno, un SOP o el manual.",
+    confirmReason: "Confirmado en Compass.",
+    rejectReason: "Rechazado en Compass.",
   },
 };
 var credentials_default = {

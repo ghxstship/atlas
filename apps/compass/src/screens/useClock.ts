@@ -33,6 +33,8 @@ interface ShiftRow extends Row {
   readonly starts_at: string;
   readonly ends_at: string;
   readonly shift_state?: string;
+  readonly job_title?: string | null;
+  readonly time_zone?: string;
 }
 
 interface EntryRow extends Row {

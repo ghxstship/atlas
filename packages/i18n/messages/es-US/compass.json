@@ -138,6 +138,10 @@
       "outsideGeofence": "Marca en el lugar. Entra al límite del sitio y vuelve a intentarlo.",
       "locationUnknown": "Compass necesita tu ubicación para marcar en el lugar. Activa la ubicación y vuelve a intentarlo.",
       "notRostered": "No tienes un turno aceptado hoy en este proyecto. Acepta uno en Agenda primero."
+    },
+    "live": {
+      "shift": "Turno actual",
+      "ends": "Termina a las {time}"
     }
   },
   "schedule": {
@@ -449,5 +453,14 @@
         "Amenity": "Comodidad"
       }
     }
+  },
+  "aurora": {
+    "inputHelp": "Pregunta con una frase, como ¿A qué hora es mi llamado mañana?",
+    "notInPlan": "Aurora AI viene con los planes Core, Pro, Team y Enterprise. Pide a un Propietario que cambie el plan en Atlas, Configuración, Facturación y plan.",
+    "offTitle": "Aurora está desactivada en esta organización",
+    "limit": "Tu organización usó las {allowance} solicitudes de este mes. El límite se renueva el primer día del mes próximo.",
+    "noAnswer": "Los registros que puedes ver no responden esto. Pregunta por un turno, un SOP o el manual.",
+    "confirmReason": "Confirmado en Compass.",
+    "rejectReason": "Rechazado en Compass."
   }
 }

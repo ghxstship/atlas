@@ -1,3 +1,5 @@
+import { COMPASS_AURORA_ENTRY } from "@xos/ai/conversation";
+import { isInternal } from "@xos/sync";
 import { useRouter, type Href } from "expo-router";
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
@@ -61,6 +63,15 @@ export default function MoreScreen(): ReactElement {
             }
           />
         ))}
+        {resolved && isInternal(resolved.identity.audience) ? (
+          <ListRow
+            testID={`more-${COMPASS_AURORA_ENTRY.id}`}
+            icon="sparkles"
+            title={t(COMPASS_AURORA_ENTRY.labelKey)}
+            subtitle={t(COMPASS_AURORA_ENTRY.descriptionKey)}
+            onPress={() => router.push(COMPASS_AURORA_ENTRY.route as Href)}
+          />
+        ) : null}
         {canKiosk ? (
           <ListRow
             testID="more-kiosk"

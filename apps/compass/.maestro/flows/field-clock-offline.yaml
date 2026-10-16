@@ -18,10 +18,11 @@ name: Clock in during airplane mode, then the queue drains on reconnect
 - tapOn:
     id: "clock-button"
 - assertVisible:
-    id: "clock-button-timer"
+    id: "clock-live"
 - assertVisible:
     id: "clock-notice"
-- assertVisible: ".*1 change waiting to upload.*"
+# The offline banner shows the queued count; assistive technology hears it as words.
+- assertVisible: ".*offline.*\\(1\\).*"
 - setAirplaneMode: disabled
 - extendedWaitUntil:
     notVisible:
@@ -31,5 +32,4 @@ name: Clock in during airplane mode, then the queue drains on reconnect
     notVisible:
       id: "sync-queued"
     timeout: 30000
-- tapOn:
-    id: "clock-button"
+- tapOn: "Clock Out"

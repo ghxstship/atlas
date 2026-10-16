@@ -16,21 +16,19 @@ name: Clock in at the venue, take a break, clock out
 - assertVisible: "You're at Northwind Pier Site"
 - tapOn:
     id: "clock-button"
+# On shift, the Live Activity card holds the break toggle and clock out.
 - extendedWaitUntil:
     visible:
-      id: "clock-button-timer"
+      id: "clock-live"
     timeout: 5000
-- tapOn:
-    id: "punch-break-start"
+- tapOn: "Start Break"
 - assertVisible: ".*On Break.*"
-- tapOn:
-    id: "clock-button"
+- tapOn: "End Break"
 - assertVisible: ".*On Shift.*"
-- tapOn:
-    id: "clock-button"
+- tapOn: "Clock Out"
 - extendedWaitUntil:
     notVisible:
-      id: "clock-button-timer"
+      id: "clock-live"
     timeout: 5000
 # Every punch uploaded: nothing waits in the queue.
 - tapOn:

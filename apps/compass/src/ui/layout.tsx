@@ -391,18 +391,24 @@ export function InlineAlert({
 export function OfflineBanner({
   message,
   queued,
+  queuedLabel,
   viewLabel,
   onView,
   testID,
 }: OfflineBannerProps): ReactElement {
   return (
-    <Banner
-      {...tid(testID)}
-      tone="warning"
-      icon="cloud-off"
-      message={queued > 0 ? `${message} (${queued})` : message}
-      {...(viewLabel && onView ? { actionLabel: viewLabel, onAction: onView } : {})}
-    />
+    <View
+      accessible
+      accessibilityLabel={queued > 0 && queuedLabel ? `${message}, ${queuedLabel}` : message}
+    >
+      <Banner
+        {...tid(testID)}
+        tone="warning"
+        icon="cloud-off"
+        message={queued > 0 ? `${message} (${queued})` : message}
+        {...(viewLabel && onView ? { actionLabel: viewLabel, onAction: onView } : {})}
+      />
+    </View>
   );
 }
 
