@@ -3,11 +3,12 @@
 -- opened, which hides the whole discussion from every member. private.guard_comment_thread pins the
 -- subject and stamps resolution but never checks who is acting, and deleted_at is not guarded.
 --
--- This file FAILS on main while the finding is open. Run with supabase/tests/security/run-attacks.sh.
+-- Regression test from the attacker's side: fixed in migration 0937 (RRR-41). This file failed on
+-- main d36918a and must keep passing.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
-\ir ../0300_domain_world.psql
+\ir 0300_domain_world.psql
 
 select plan(4);
 

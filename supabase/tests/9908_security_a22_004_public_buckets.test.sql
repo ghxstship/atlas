@@ -3,11 +3,12 @@
 -- never served inline from public buckets. Any signed-in person can upload an SVG with script to
 -- their own profile-media folder and share its public URL, which the storage origin serves inline.
 --
--- This file FAILS on main while the finding is open. Run with supabase/tests/security/run-attacks.sh.
+-- Regression test from the attacker's side: fixed in migration 0938 (RRR-41). This file failed on
+-- main d36918a and must keep passing.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
-\ir ../0200_identity_world.psql
+\ir 0200_identity_world.psql
 
 select plan(3);
 

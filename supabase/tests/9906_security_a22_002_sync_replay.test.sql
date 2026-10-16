@@ -4,11 +4,12 @@
 -- so through the sync path they run with RLS bypassed. A member of any org writes rows into another
 -- tenant's project, and the replay ledger row is filed under the attacker's own org.
 --
--- This file FAILS on main while the finding is open. Run with supabase/tests/security/run-attacks.sh.
+-- Regression test from the attacker's side: fixed in migration 0935 (RRR-41). This file failed on
+-- main d36918a and must keep passing.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
-\ir ../0300_domain_world.psql
+\ir 0300_domain_world.psql
 
 select plan(7);
 

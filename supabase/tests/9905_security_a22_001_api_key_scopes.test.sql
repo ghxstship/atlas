@@ -3,13 +3,12 @@
 -- valid Supabase session for the service account. Sent straight to PostgREST, it acts with the
 -- service account's full role, whatever the key's scopes say.
 --
--- This file FAILS on main while the finding is open. It passes once the database refuses a write
--- outside the scopes carried by a token minted for an API key (amr method xos_api_key).
--- Run with supabase/tests/security/run-attacks.sh.
+-- Regression test from the attacker's side: fixed in migration 0936 (RRR-41). This file failed on
+-- main d36918a and must keep passing.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
-\ir ../0200_identity_world.psql
+\ir 0200_identity_world.psql
 
 select plan(4);
 

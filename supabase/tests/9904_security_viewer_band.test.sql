@@ -2,8 +2,6 @@
 -- A Viewer reads within granted scopes and writes nothing. For every app table with org_id that
 -- holds a Northwind row, gina (Viewer of Northwind Live) changes, removes and copies none of them.
 -- Each statement runs in its own subtransaction and is rolled back.
---
--- app.comment_threads is left out while finding A22-003 is open; its attack file covers it.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -35,7 +33,7 @@ declare
   v_row jsonb;
 begin
   for t in select rel, has_id, own_sample from security_targets
-           where own_sample is not null and rel <> 'app.comment_threads' loop
+           where own_sample is not null loop
     v_row := case when t.has_id then t.own_sample || jsonb_build_object('id', gen_random_uuid()) else t.own_sample end;
     v_sql := case p_kind
       when 'update' then format('update %s set org_id = org_id where org_id = %L', t.rel, pg_temp.id('org_a'))
