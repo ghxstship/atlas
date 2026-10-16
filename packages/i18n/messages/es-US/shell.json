@@ -1097,7 +1097,7 @@
       "logos": "Logotipos",
       "logoLight": "Logotipo para fondos claros",
       "logoDark": "Logotipo para fondos oscuros",
-      "logoHelp": "SVG o PNG, de al menos 256 píxeles de ancho.",
+      "logoHelp": "PNG o WebP, de al menos 256 píxeles de ancho.",
       "notStored": "Los ajustes de marca se verifican aquí pero aún no se pueden guardar: el almacén de ajustes de marca no está disponible. Tu acento no se conserva."
     },
     "modules": {

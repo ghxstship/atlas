@@ -23,7 +23,8 @@ export default defineConfig({
   workers: process.env["CI"] ? 2 : 4,
   retries: process.env["CI"] ? 1 : 0,
   timeout: 60_000,
-  reporter: [["list"]],
+  /* The github reporter turns each failure into a check annotation, readable without log access. */
+  reporter: process.env["CI"] ? [["list"], ["github"]] : [["list"]],
   outputDir: "../../node_modules/.cache/playwright-visual",
   snapshotPathTemplate: "{testDir}/__screenshots__/{projectName}/{arg}{ext}",
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.002, animations: "disabled" } },

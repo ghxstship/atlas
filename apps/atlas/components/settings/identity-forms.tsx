@@ -279,7 +279,7 @@ export function BrandAssetForm({
         id={`asset-${slot}`}
         name="file"
         type="file"
-        accept="image/png,image/svg+xml,image/webp,image/x-icon"
+        accept="image/png,image/webp,image/x-icon"
         aria-describedby={`asset-${slot}-help`}
         className="text-text-13"
       />
