@@ -23,23 +23,23 @@ than the database allows.
 
 ## Findings referenced
 
-| Id      | Severity | Boundary                        | State |
-| ------- | -------- | ------------------------------- | ----- |
-| A22-001 | High     | API key to api-token JWT        | Fixed |
-| A22-002 | High     | Compass offline sync            | Fixed |
-| A22-003 | Medium   | Tenant member to app            | Fixed |
-| A22-004 | Medium   | Storage buckets                 | Fixed |
-| A22-005 | Low      | Subprocessors (legal)           | Open  |
-| A22-006 | Low      | Subprocessors (legal)           | Open  |
-| A22-007 | Low      | Normalization (gate 29)         | Open  |
-| A22-008 | Low      | Normalization (gate 29)         | Open  |
-| A22-009 | Low      | Normalization (gate 29)         | Open  |
-| A22-010 | Medium   | Tenant member to app            | Open  |
-| A22-011 | Medium   | Storage buckets                 | Open  |
-| A22-012 | Low      | API key to api-token JWT        | Open  |
-| A22-013 | Low      | Service role and Edge Functions | Open  |
-| A22-014 | Low      | Tenant member to app            | Open  |
-| A22-015 | Low      | Integrations (OAuth)            | Open  |
+| Id      | Severity | Boundary                        | State    |
+| ------- | -------- | ------------------------------- | -------- |
+| A22-001 | High     | API key to api-token JWT        | Fixed    |
+| A22-002 | High     | Compass offline sync            | Fixed    |
+| A22-003 | Medium   | Tenant member to app            | Fixed    |
+| A22-004 | Medium   | Storage buckets                 | Fixed    |
+| A22-005 | Low      | Subprocessors (legal)           | Fixed    |
+| A22-006 | Low      | Subprocessors (legal)           | Fixed    |
+| A22-007 | Low      | Normalization (gate 29)         | Fixed    |
+| A22-008 | Low      | Normalization (gate 29)         | Fixed    |
+| A22-009 | Low      | Normalization (gate 29)         | Fixed    |
+| A22-010 | Medium   | Tenant member to app            | Fixed    |
+| A22-011 | Medium   | Storage buckets                 | Fixed    |
+| A22-012 | Low      | API key to api-token JWT        | Fixed    |
+| A22-013 | Low      | Service role and Edge Functions | Fixed    |
+| A22-014 | Low      | Tenant member to app            | Fixed    |
+| A22-015 | Low      | Integrations (OAuth)            | Accepted |
 
 ## Trust boundaries
 
@@ -126,9 +126,8 @@ Servers call `/api/v1` with `Authorization: Bearer xos_live_...`. The runtime ex
 | D      | Replaying exchanges                            | Exchanged tokens are cached per key for their lifetime; rate limits per key                                       | `auth-attacks.test.ts`                       |
 | E      | A key exceeding its service account's role     | The account's membership and role bound every token; Owner is refused for service accounts                        | 0922 suite                                   |
 
-Residual risk: the default rate limiter counts per server instance in memory, so the real limit
-scales with the number of instances. A shared store is needed before launch (see the ASVS matrix,
-V2.4.1).
+The default rate limiter counts in Postgres (`app.take_api_rate_limit`, migration 1040), shared by
+every instance, with the in-process limiter as the fallback (A22-012, fixed).
 
 ## 5. Service role and Edge Functions
 
@@ -140,12 +139,10 @@ token).
 | ------ | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | S      | Calling a worker function without the secret | Worker functions require a bearer secret compared in constant time (`_shared/runtime.ts` `hasBearer`)          | Function source review                     |
 | T      | Service-role writes skipping tenant rules    | Functions call checked RPCs (`kiosk_punch`, `exchange_api_key`, `unsubscribe_by_token`) rather than raw tables | 0592, 0922 and 0520 suites                 |
-| I      | Error detail leaking internals               | Unhandled errors return a 500 problem; its `detail` carries the error message                                  | Residual risk, see below                   |
+| I      | Error detail leaking internals               | Unhandled errors return a 500 problem with only a request id; the error is logged through the redactor         | `packages/platform/test/failure.test.ts`   |
 | E      | Service role key exposure                    | Keys only in Supabase and Vercel encrypted environment variables; gitleaks in CI; no key in the repository     | gitleaks scan of the tree (no leaks found) |
 
-Residual risk: `_shared/runtime.ts` `serve` returns the raw error message in `detail`, which can
-name a missing environment variable or a database error. This is a low-severity information
-disclosure; returning a request id instead is recommended (ASVS V16.5.1).
+`_shared/runtime.ts` `serve` returns a request id and logs the error server side (A22-013, fixed).
 
 ## 6. Webhooks: Stripe, inbound email and kiosk punch
 
@@ -192,7 +189,9 @@ RPCs listed in `private.sync_rpcs`. PowerSync streams rows filtered by `private.
 
 Residual risk: the OAuth 2.1 authorization and token endpoints are not built yet (ADR 0024). Until
 they are, OAuth grants cannot be exercised end to end, and ASVS V10 requirements are marked as gaps.
-Scopes and SCIM groups are stored as arrays (A22-009).
+The docs no longer advertise the endpoints; the frozen OpenAPI `oauth2` scheme stays until the server
+exists (A22-015, accepted). Scopes and SCIM groups are stored as arrays, registered in the
+denormalization register (A22-009, fixed).
 
 ## 9. Aurora AI
 
@@ -229,8 +228,10 @@ tools appear only for resources or modules named with `--write`, and delete also
 | I      | Active content served inline from a public bucket | Public buckets refuse SVG, HTML, XML and script (A22-004, fixed in 0938) | `9908` (A22-004); 0938 suite |
 | D      | Oversized uploads                                 | Per-bucket size caps (2 MB to 50 MB) and type allowlists                 | `9908` control assertion     |
 
-Residual risk: virus scanning of uploads (Section 9) is not wired (A22-011); this is recorded as a gap
-in the ASVS matrix (V5.4.3).
+Uploads are sniffed and scanned by the `upload-scan` worker; private buckets serve only Clean files to
+anyone but the uploader (A22-011, fixed in 1041). Residual risk: production needs a reachable scanner,
+an owner decision recorded in `infra/runbooks/hosted-security-settings.md`; until then files fail
+closed.
 
 ## Review method
 

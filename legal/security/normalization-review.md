@@ -35,9 +35,9 @@ record of that review on main d36918a: 170 migrations, 481 `app` tables, 74 `pri
 | `report_runs`, `export_jobs` row counts | Facts about a run at the time it ran, not derivable later; not violations                                         |
 | Delivery `attempt_count`                | No attempts table exists, so the count is the only record of attempts; not a violation                            |
 | `invite_links.use_count`                | Memberships do not record the link they came from, so the count is not derivable; not a violation                 |
-| Occupancy running totals                | Violation: [A22-007](findings/A22-007.md)                                                                         |
-| Forms, surveys and quizzes              | Violation: [A22-008](findings/A22-008.md)                                                                         |
-| Scope and group arrays                  | Violation: [A22-009](findings/A22-009.md)                                                                         |
+| Occupancy running totals                | Registered with a refresh rule: [A22-007](findings/A22-007.md)                                                    |
+| Forms, surveys and quizzes              | Quiz keys fixed in 1042; the rest registered: [A22-008](findings/A22-008.md)                                      |
+| Scope and group arrays                  | Registered with a refresh rule: [A22-009](findings/A22-009.md)                                                    |
 
 ## Observations below the finding threshold
 
