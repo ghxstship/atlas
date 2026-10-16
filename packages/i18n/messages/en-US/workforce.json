@@ -865,5 +865,310 @@
     "hours": "First response target (business hours)",
     "hoursHelp": "From 1 to 168 business hours.",
     "teamDescription": "What the team helps with"
+  },
+  "compass": {
+    "common": {
+      "loading": "Loading",
+      "errorTitle": "This did not load",
+      "errorSentence": "Check your connection and try again. Nothing you saved on this device is lost.",
+      "retry": "Try Again",
+      "refresh": "Refresh",
+      "failed": "That did not go through. Try again in a moment.",
+      "back": "Back",
+      "close": "Close",
+      "notFound": "That is no longer open to you. Refresh to see what is current.",
+      "conflict": "That already exists. Refresh to see it.",
+      "invalid": "Some details are not in the expected format. Check each one and try again.",
+      "unexpected": "Something went wrong on our side. Try again in a moment.",
+      "noProject": "Choose a project to see its site operations.",
+      "chooseProject": "Choose Project",
+      "openAtlas": "Continue in Atlas"
+    },
+    "hub": {
+      "title": "Workforce",
+      "crew": "Team",
+      "siteOps": "Site Operations",
+      "surveys": "Surveys",
+      "surveysEmpty": "No open surveys. New ones appear here and in the feed.",
+      "forms": "Forms",
+      "formsEmpty": "No forms are published yet. Forms built in Atlas appear here, ready offline.",
+      "screens": {
+        "feed": "Feed",
+        "surveys": "Surveys",
+        "chat": "Chat",
+        "directory": "Directory",
+        "events": "Events",
+        "forms": "Forms",
+        "training": "Training",
+        "handbook": "Handbook",
+        "recognition": "Recognition",
+        "helpDesk": "Help Desk",
+        "occupancy": "Occupancy",
+        "weather": "Weather",
+        "door": "Guest Check-In",
+        "lostFound": "Lost and Found"
+      }
+    },
+    "feed": {
+      "title": "Feed",
+      "empty": "Nothing posted yet. Announcements and updates for you appear here.",
+      "pinned": "Pinned",
+      "mustAcknowledge": "Please read and acknowledge",
+      "acknowledge": "Acknowledge",
+      "acknowledged": "Acknowledged",
+      "vote": "Vote",
+      "voted": "Vote saved",
+      "comments": "Comments",
+      "kinds": {
+        "announcement": "Announcement",
+        "update": "Update",
+        "poll": "Poll",
+        "recognition": "Recognition"
+      },
+      "reactions": {
+        "thumbs_up": "Thumbs up",
+        "heart": "Heart",
+        "check": "Check",
+        "eyes": "Eyes",
+        "laugh": "Laugh",
+        "celebrate": "Celebrate"
+      },
+      "reaction": "{name}, {count}",
+      "reactionMine": "{name}, {count}, yours",
+      "byline": "{author} · {time}"
+    },
+    "survey": {
+      "submit": "Send Answers",
+      "submitted": "Thanks. Your answers are saved and send when you're online.",
+      "closed": "This survey is closed.",
+      "anonymous": "Anonymous: your name is not stored with your answers.",
+      "optional": "{prompt} (optional)",
+      "answerRequired": "Answer {count} more to send."
+    },
+    "chat": {
+      "title": "Chat",
+      "empty": "No conversations yet. Start one from the directory.",
+      "newMessage": "New Message",
+      "muted": "Muted",
+      "noMessages": "No messages yet",
+      "unread": "{count} unread",
+      "threadEmpty": "No messages yet. Say hello.",
+      "message": "Message",
+      "send": "Send",
+      "edited": "Edited",
+      "you": "You",
+      "attachment": "Attachment",
+      "meta": "{author} · {time}"
+    },
+    "directory": {
+      "title": "Directory",
+      "search": "Search people",
+      "empty": "Nobody matches. Clear the search to see everyone.",
+      "clearSearch": "Clear Search",
+      "scope": "Show",
+      "everyone": "Everyone",
+      "onSiteNow": "On site now",
+      "onSite": "On site",
+      "call": "Call {name}",
+      "message": "Message {name}",
+      "recognitions": "{count} recognitions"
+    },
+    "events": {
+      "title": "Events",
+      "empty": "No briefings, crew calls or meetings coming up.",
+      "checkIn": "Check In",
+      "checkedIn": "Checked in",
+      "kinds": {
+        "briefing": "Briefing",
+        "crewCall": "Crew Call",
+        "meeting": "Meeting"
+      },
+      "responses": {
+        "going": "Going",
+        "maybe": "Maybe",
+        "declined": "Not Going"
+      },
+      "phases": {
+        "canceled": "Canceled",
+        "past": "Over",
+        "live": "Happening now",
+        "upcoming": "Upcoming"
+      },
+      "when": "{start} to {end}",
+      "whenAt": "{start} to {end} · {location}",
+      "counts": "{Going} going, {Maybe} maybe, {Declined} not going"
+    },
+    "forms": {
+      "submit": "Submit Form",
+      "submitted": "Form saved. It submits now, or when you're back online.",
+      "required": "Required",
+      "requiredField": "{label} (required)",
+      "missing": "Fill in {count} more required answers.",
+      "score": "Score {score} of {max}",
+      "scorePass": "Score {score} of {max}, pass at {pass}",
+      "addPhoto": "Add Photo",
+      "photos": "{count} photos",
+      "dateHelp": "Year, month and day, such as 2027-06-01.",
+      "numberError": "Enter a number.",
+      "signature": "Signature",
+      "attestation": "By signing, I confirm these answers are true.",
+      "clearSignature": "Clear",
+      "signatureMissing": "Sign in the box before submitting.",
+      "locationStamped": "Location stamped near {latitude}, {longitude}",
+      "locating": "Finding your location for the stamp. You can keep filling in the form.",
+      "locationOff": "Location is off. Turn it on to stamp this form with where you are."
+    },
+    "training": {
+      "title": "Training",
+      "empty": "No training assigned to you. Courses your org assigns appear here.",
+      "lessons": "Lessons",
+      "markComplete": "Mark Complete",
+      "lessonDone": "Done",
+      "watchVideo": "Watch Video",
+      "submitQuiz": "Submit Quiz",
+      "answerAll": "Answer every question to submit.",
+      "passed": "Passed",
+      "retake": "Retake",
+      "progress": "{done} of {total} lessons",
+      "due": "Due {date}",
+      "minutes": "{minutes} min",
+      "passMark": "Pass mark {percent} percent"
+    },
+    "handbook": {
+      "title": "Handbook",
+      "search": "Search the handbook",
+      "empty": "No articles match. Clear the search to see them all.",
+      "mandatory": "Must read",
+      "mustRead": "Read and acknowledge these",
+      "allArticles": "All articles",
+      "acknowledge": "I Have Read This",
+      "acknowledged": "Acknowledged",
+      "changes": "What changed: {summary}"
+    },
+    "recognition": {
+      "title": "Recognition",
+      "empty": "No shout-outs yet. Be the first to recognize a colleague.",
+      "give": "Recognize Someone",
+      "sheetTitle": "Recognize a colleague",
+      "who": "Who",
+      "message": "What they did",
+      "messageHelp": "A sentence or two about what made a difference.",
+      "send": "Send",
+      "line": "{from} to {to} · {time}"
+    },
+    "helpDesk": {
+      "title": "Help Desk",
+      "empty": "You have no requests. Ask a team when you need help.",
+      "ask": "Ask for Help",
+      "sheetTitle": "Ask a team",
+      "team": "Team",
+      "category": "Category",
+      "subject": "Subject",
+      "body": "What you need",
+      "send": "Send Request",
+      "overdue": "Response overdue",
+      "states": {
+        "open": "Open",
+        "waiting": "Waiting on you",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      },
+      "categories": {
+        "question": "Question",
+        "problem": "Problem",
+        "access": "Access",
+        "billing": "Billing",
+        "account": "Account",
+        "featureRequest": "Feature request"
+      },
+      "meta": "{number} · {time}",
+      "metaAssigned": "{number} · {assignee} · {time}"
+    },
+    "occupancy": {
+      "title": "Occupancy",
+      "empty": "No counters on this project. A supervisor sets them up in Atlas.",
+      "counter": "Counter",
+      "door": "Door",
+      "closed": "Closed",
+      "add": "Add {n}",
+      "remove": "Remove {n}",
+      "count": "{count} of {permitted}",
+      "percent": "{percent} percent of the permitted load",
+      "level80": "80 percent of the permitted load. Slow entry.",
+      "level90": "90 percent of the permitted load. Hold entry and call your supervisor.",
+      "level100": "At the permitted load. Stop entry now."
+    },
+    "weather": {
+      "title": "Weather",
+      "alerts": "Active alerts",
+      "noAlerts": "No weather alerts. Keep recording readings.",
+      "readings": "Recent readings",
+      "noReadings": "No readings yet.",
+      "thresholds": "Thresholds",
+      "noThresholds": "No thresholds set. A supervisor sets them in Atlas.",
+      "record": "Record a Reading",
+      "hazard": "Hazard",
+      "value": "Value in {unit}",
+      "valueError": "Enter a number.",
+      "save": "Save Reading",
+      "hazards": {
+        "wind": "Wind",
+        "lightning": "Lightning",
+        "heat": "Heat"
+      },
+      "levels": {
+        "monitor": "Monitor",
+        "restrict": "Restrict",
+        "evacuate": "Evacuate"
+      },
+      "alertLine": "{hazard}: {level} · {time}",
+      "readingLine": "{value} {unit} · {time}",
+      "thresholdLine": "{level} at {value} {unit} ({source})"
+    },
+    "door": {
+      "title": "Guest Check-In",
+      "search": "Search guests",
+      "empty": "No guests match. Check the spelling or clear the search.",
+      "checkIn": "Check In",
+      "checkedIn": "Checked in",
+      "approved": "Approved",
+      "door": "Door",
+      "sheetTitle": "Check in {name}",
+      "confirm": "Confirm Check-In",
+      "plusOnes": "{admitted} of {allowed} plus-ones",
+      "more": "One more",
+      "fewer": "One fewer",
+      "admitted": "In with {plusOnes} plus-ones · {time}",
+      "admittedAt": "In with {plusOnes} plus-ones at {door} · {time}"
+    },
+    "lostFound": {
+      "title": "Lost and Found",
+      "empty": "Nothing logged. Log an item the moment it is handed in.",
+      "log": "Log Found Item",
+      "sheetTitle": "Log a found item",
+      "category": "Category",
+      "description": "Description",
+      "foundLocation": "Where it was found",
+      "storageLocation": "Where it is kept",
+      "save": "Save Item",
+      "categories": {
+        "bag": "Bag",
+        "clothing": "Clothing",
+        "electronics": "Electronics",
+        "jewelry": "Jewelry",
+        "keys": "Keys",
+        "documents": "Documents",
+        "wallet": "Wallet",
+        "other": "Other"
+      },
+      "states": {
+        "logged": "Logged",
+        "claimed": "Claimed",
+        "returned": "Returned",
+        "disposed": "Disposed"
+      },
+      "itemTitle": "{category}: {description}",
+      "meta": "{number} · {place} · {count} claims waiting"
+    }
   }
 }

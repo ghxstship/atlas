@@ -159,6 +159,9 @@ importers:
       '@xos/ui-native':
         specifier: workspace:*
         version: link:../../packages/ui-native
+      '@xos/workforce-native':
+        specifier: workspace:*
+        version: link:../../packages/workforce-native
       expo:
         specifier: 57.0.27
         version: 57.0.27(@babel/core@7.29.7)(@expo/metro-runtime@57.0.17)(expo-router@57.0.25)(react-dom@19.3.0(react@19.2.3))(react-native-worklets@0.10.1(@babel/core@7.29.7)(react-native@0.86.3(@types/react@19.3.0)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@types/react@19.3.0)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
