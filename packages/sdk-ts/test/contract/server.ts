@@ -525,6 +525,12 @@ export async function startContractServer(
         res.end();
         return;
       }
+      // The API serves its own document (Section 10.1).
+      if (req.method === "GET" && url.pathname === "/api/v1/openapi.json") {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(document));
+        return;
+      }
       const path = url.pathname.replace(/^\/api\/v1/, "");
       let route: Route | undefined;
       let params: Record<string, string> = {};
