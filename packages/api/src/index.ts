@@ -39,9 +39,11 @@ export type { ProblemBody, RefusalCode } from "./problem.ts";
 export {
   API_KEY_PREFIX,
   LAST_ORG_COOKIE,
+  SECURE_SESSION_COOKIE,
   SESSION_COOKIE,
   createSupabaseAuthenticator,
   negotiateLocale,
+  sessionCookieName,
 } from "./runtime/auth.ts";
 export type { SupabaseAuthOptions } from "./runtime/auth.ts";
 export { requireOrg, requirePerson } from "./runtime/context.ts";

@@ -61,7 +61,7 @@ API answers 404 for it, never a stub.
 
 ## What the runtime does for every request
 
-1. Authenticates: a bearer Supabase session JWT, the Atlas `xos-auth` cookie (same-origin only on
+1. Authenticates: a bearer Supabase session JWT, the Atlas session cookie (`__Host-xos-auth` over https, same-origin only on
    writes) or an `xos_live_` API key, which the `api-token` Edge Function exchanges for a
    5-minute JWT acting as the key's service account. The org comes from the token's `org_id`
    claim (set by the context switcher through `app.set_active_org`), then the org Atlas last

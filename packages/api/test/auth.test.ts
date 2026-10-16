@@ -10,6 +10,7 @@ import {
   jwtClaims,
   negotiateLocale,
   parseCookies,
+  sessionCookieName,
   sessionTokenFromCookies,
 } from "../src/runtime/auth.ts";
 import { requireOrg, requirePerson } from "../src/runtime/context.ts";
@@ -93,9 +94,9 @@ function fakeSupabase(orgs: (typeof ORG_A)[], options: { person?: boolean } = {}
 
 function sessionCookie(token: string, chunked = false): string {
   const value = `base64-${Buffer.from(JSON.stringify({ access_token: token })).toString("base64url")}`;
-  if (!chunked) return `xos-auth=${value}`;
+  if (!chunked) return `__Host-xos-auth=${value}`;
   const mid = Math.floor(value.length / 2);
-  return `xos-auth.0=${value.slice(0, mid)}; xos-auth.1=${value.slice(mid)}`;
+  return `__Host-xos-auth.0=${value.slice(0, mid)}; __Host-xos-auth.1=${value.slice(mid)}`;
 }
 
 async function resolve(
@@ -209,6 +210,12 @@ describe("the Atlas session cookie", () => {
     expect(chunked?.org).toBeNull();
   });
 
+  it("ignores an unprefixed session cookie on an https site (A22-014 cookie tossing)", async () => {
+    const { authenticate } = fakeSupabase([ORG_A]);
+    const tossed = sessionCookie(VALID).replace("__Host-xos-auth=", "xos-auth=");
+    expect(await resolve(authenticate, { cookie: tossed })).toBeNull();
+  });
+
   it("refuses the cookie on a cross-site state-changing request", async () => {
     const { authenticate } = fakeSupabase([ORG_A]);
     await expect(
@@ -241,6 +248,11 @@ describe("helpers", () => {
     expect(cookies.get("a")).toBe("1");
     expect(cookies.get("b")).toBe("%E0%A4%A");
     expect(parseCookies(null).size).toBe(0);
+  });
+
+  it("names the session cookie with __Host- only over https", () => {
+    expect(sessionCookieName("https://atlas.test")).toBe("__Host-xos-auth");
+    expect(sessionCookieName("http://localhost:3000")).toBe("xos-auth");
   });
 
   it("rejects a session cookie without a token", () => {

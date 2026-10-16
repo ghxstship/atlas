@@ -23,7 +23,7 @@ const authenticate = createSupabaseAuthenticator({
 
 function cookieRequest(method: string, origin: string | null): Request {
   const session = encodeURIComponent(JSON.stringify({ access_token: "header.payload.signature" }));
-  const headers: Record<string, string> = { cookie: `xos-auth=${session}` };
+  const headers: Record<string, string> = { cookie: `__Host-xos-auth=${session}` };
   if (origin !== null) headers["origin"] = origin;
   return new Request(`${SITE}/api/v1/projects`, { method, headers });
 }
