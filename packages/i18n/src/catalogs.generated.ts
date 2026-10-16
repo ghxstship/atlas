@@ -4,6 +4,7 @@
 import enUS_activity from "../messages/en-US/activity.json" with { type: "json" };
 import enUS_advancing from "../messages/en-US/advancing.json" with { type: "json" };
 import enUS_assets from "../messages/en-US/assets.json" with { type: "json" };
+import enUS_aurora from "../messages/en-US/aurora.json" with { type: "json" };
 import enUS_canonBrowser from "../messages/en-US/canonBrowser.json" with { type: "json" };
 import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
@@ -38,6 +39,7 @@ import enUS_work from "../messages/en-US/work.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json" };
 import esUS_assets from "../messages/es-US/assets.json" with { type: "json" };
+import esUS_aurora from "../messages/es-US/aurora.json" with { type: "json" };
 import esUS_canonBrowser from "../messages/es-US/canonBrowser.json" with { type: "json" };
 import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
@@ -74,6 +76,7 @@ export const enUS = {
   activity: enUS_activity,
   advancing: enUS_advancing,
   assets: enUS_assets,
+  aurora: enUS_aurora,
   canonBrowser: enUS_canonBrowser,
   compass: enUS_compass,
   credentials: enUS_credentials,
@@ -111,6 +114,7 @@ export const esUS = {
   activity: esUS_activity,
   advancing: esUS_advancing,
   assets: esUS_assets,
+  aurora: esUS_aurora,
   canonBrowser: esUS_canonBrowser,
   compass: esUS_compass,
   credentials: esUS_credentials,

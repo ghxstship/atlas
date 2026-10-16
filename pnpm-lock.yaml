@@ -29,6 +29,9 @@ importers:
       '@supabase/supabase-js':
         specifier: 2.117.3
         version: 2.117.3
+      '@xos/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@xos/api':
         specifier: workspace:*
         version: link:../../packages/api

@@ -1,0 +1,132 @@
+{
+  "panel": {
+    "title": "Aurora",
+    "button": "Preguntar a Aurora",
+    "aiNotice": "Estás hablando con Aurora, un asistente de IA. Responde solo con registros que puedes ver y nunca cambia nada sin tu confirmación.",
+    "aiLabel": "Generado por IA",
+    "modelLabel": "Respondido por {model}",
+    "inputLabel": "Pregunta sobre los registros de tu organización",
+    "inputHelp": "Pulsa Intro para preguntar. Mayús+Intro agrega una línea.",
+    "send": "Preguntar",
+    "newConversation": "Nueva conversación",
+    "asking": "Aurora está leyendo los registros que puedes ver.",
+    "you": "Tú",
+    "loadingStatus": "Comprobando lo que Aurora puede hacer por ti.",
+    "citations": "Registros usados",
+    "notice": "Aviso sobre funciones de IA"
+  },
+  "empty": {
+    "sentence": "Pregunta sobre proyectos, permisos, equipo, horarios o proveedores. Aurora responde con registros que puedes ver y enlaza cada uno.",
+    "action": "Hacer una pregunta"
+  },
+  "off": {
+    "sentence": "Un administrador no ha activado el asistente para esta organización.",
+    "actionAdmin": "Abrir la configuración de funciones de IA",
+    "actionMember": "Pide a un administrador que lo active en Configuración, Funciones de IA."
+  },
+  "notInPlan": {
+    "title": "Aurora AI no está en tu plan",
+    "reason": "Aurora AI viene con los planes Core, Pro, Team y Enterprise. Un propietario puede cambiar el plan en Configuración, Facturación y plan.",
+    "action": "Ver planes"
+  },
+  "limit": {
+    "title": "Se agotó la asignación de Aurora de este mes",
+    "reason": "Tu organización usó las {allowance, number} solicitudes de este mes. La asignación se renueva el primer día del mes próximo, o un propietario puede pasar a un plan mayor.",
+    "action": "Ver planes"
+  },
+  "statusError": {
+    "title": "No se pudo cargar Aurora",
+    "sentence": "No pudimos comprobar lo que Aurora puede hacer por ti. Revisa tu conexión e inténtalo de nuevo.",
+    "retry": "Intentar de nuevo"
+  },
+  "noAnswer": {
+    "title": "Sin respuesta"
+  },
+  "failed": {
+    "title": "Aurora no pudo responder",
+    "sentence": "El modelo no respondió y no se cambió nada. Pregunta de nuevo en un momento."
+  },
+  "refused": {
+    "title": "Aurora no puede hacer esto"
+  },
+  "error": {
+    "title": "No se pudo contactar a Aurora",
+    "sentence": "Revisa tu conexión y vuelve a preguntar. No se cambió nada."
+  },
+  "suggestions": {
+    "heading": "Esperando tu confirmación",
+    "caption": "Valores propuestos",
+    "field": "Campo",
+    "value": "Valor propuesto",
+    "confidence": "Confianza",
+    "confidenceValue": "{percent, number} por ciento",
+    "noAnswerValue": "Sin respuesta: {missing}",
+    "provenance": "Procedencia: agente",
+    "operation": "Se escribe con {operation}",
+    "expires": "Confirma antes del {date}",
+    "confirm": "Confirmar y aplicar",
+    "reject": "Rechazar",
+    "confirmReason": "Confirmado en el panel de Aurora.",
+    "rejectReason": "Rechazado en el panel de Aurora.",
+    "loading": "Cargando el cambio propuesto.",
+    "applied": "Aplicado. El cambio se escribió con tus permisos.",
+    "rejected": "Rechazado. No se escribió nada.",
+    "refused": "El cambio no se escribió: {detail}",
+    "error": "No se pudo cargar este cambio propuesto: {detail}"
+  },
+  "settings": {
+    "title": "Funciones de Aurora AI",
+    "description": "Cada función de Aurora AI está desactivada hasta que un administrador la activa. Los campos restringidos y los registros médicos nunca se envían a un modelo, y los datos de clientes nunca se usan para entrenamiento.",
+    "legend": "Funciones",
+    "save": "Guardar funciones",
+    "saved": "Guardado.",
+    "readOnly": "Solo quienes administran las funciones de IA pueden cambiar estos interruptores.",
+    "notInPlan": "Aurora AI no está en el plan de esta organización. Un propietario puede pasar a Core o superior en Configuración, Facturación y plan para activar funciones.",
+    "usage": "{used, number} de {allowance, number} solicitudes usadas este mes.",
+    "usageUnlimited": "{used, number} solicitudes este mes. Tu plan no fija un límite mensual.",
+    "modelHeading": "Modelos en uso",
+    "model": "{feature}: {model}",
+    "loadFailed": "No se pudieron cargar las funciones de IA. Recarga la página para intentarlo de nuevo.",
+    "errors": {
+      "aurora_not_in_plan": "Aurora AI no está en el plan de esta organización, así que no se pueden activar funciones.",
+      "generic": "Las funciones no se guardaron. Inténtalo de nuevo."
+    },
+    "features": {
+      "assistant": {
+        "label": "Asistente",
+        "description": "Responde preguntas sobre tus registros con enlaces a ellos. Cmd o Ctrl+J en Atlas, el menú Más en Compass."
+      },
+      "plain_language": {
+        "label": "Preguntar en lenguaje natural",
+        "description": "Convierte una frase en una vista guardada o un filtro y muestra el filtro que creó."
+      },
+      "extraction": {
+        "label": "Extracción de documentos",
+        "description": "Lee riders, certificados de seguro, facturas, recibos y cotizaciones en campos que tú confirmas."
+      },
+      "drafting": {
+        "label": "Redacción",
+        "description": "Redacta SOP, paquetes de avance, correos, hojas del día y descripciones de órdenes de cambio con tu vocabulario."
+      },
+      "summaries": {
+        "label": "Resúmenes",
+        "description": "Resume la actividad de un registro, la semana de un proyecto y la preparación de una puerta de fase."
+      },
+      "mapping": {
+        "label": "Ayuda de asignación",
+        "description": "Sugiere asignaciones de columnas al importar y vínculos de catálogo para códigos escaneados desconocidos."
+      }
+    }
+  },
+  "extraction": {
+    "button": "Extraer con Aurora",
+    "running": "Aurora está leyendo el documento.",
+    "noAnswer": "Aurora no pudo leer ningún campo de este documento: {missing}",
+    "failed": "Aurora no pudo leer el documento. No se cambió nada. Inténtalo de nuevo.",
+    "review": "Revisa las líneas que leyó Aurora antes de guardarlas."
+  },
+  "compass": {
+    "menuLabel": "Aurora",
+    "menuDescription": "Pregunta sobre tus turnos, SOP y manual."
+  }
+}

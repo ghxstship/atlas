@@ -1757,6 +1757,144 @@ var assets_default$1 = {
     emptyAction: "Open the custody ledger",
   },
 };
+var aurora_default$1 = {
+  panel: {
+    title: "Aurora",
+    button: "Ask Aurora",
+    aiNotice:
+      "You are talking with Aurora, an AI assistant. It answers only from records you can see and never changes anything without your confirmation.",
+    aiLabel: "AI-generated",
+    modelLabel: "Answered by {model}",
+    inputLabel: "Ask about your org's records",
+    inputHelp: "Press Enter to ask. Shift+Enter adds a line.",
+    send: "Ask",
+    newConversation: "New conversation",
+    asking: "Aurora is reading the records you can see.",
+    you: "You",
+    loadingStatus: "Checking what Aurora can do for you.",
+    citations: "Records used",
+    notice: "AI Features Notice",
+  },
+  empty: {
+    sentence:
+      "Ask about projects, permits, crew, schedules or vendors. Aurora answers from records you can see and links to each one.",
+    action: "Ask a question",
+  },
+  off: {
+    sentence: "An Admin has not turned on the assistant for this org.",
+    actionAdmin: "Open AI Features settings",
+    actionMember: "Ask an Admin to turn it on in Settings, AI Features.",
+  },
+  notInPlan: {
+    title: "Aurora AI is not in your plan",
+    reason:
+      "Aurora AI comes with the Core, Pro, Team and Enterprise plans. An Owner can change the plan in Settings, Billing and Plan.",
+    action: "View plans",
+  },
+  limit: {
+    title: "This month's Aurora allowance is used up",
+    reason:
+      "Your org has used all {allowance, number} requests this month. The allowance resets on the first of next month, or an Owner can move to a larger plan.",
+    action: "View plans",
+  },
+  statusError: {
+    title: "Aurora could not load",
+    sentence: "We could not check what Aurora can do for you. Check your connection and try again.",
+    retry: "Try again",
+  },
+  noAnswer: { title: "No answer" },
+  failed: {
+    title: "Aurora could not answer",
+    sentence: "The model did not respond, and nothing was changed. Ask again in a moment.",
+  },
+  refused: { title: "Aurora cannot do this" },
+  error: {
+    title: "Aurora could not be reached",
+    sentence: "Check your connection and ask again. Nothing was changed.",
+  },
+  suggestions: {
+    heading: "Waiting for your confirmation",
+    caption: "Proposed values",
+    field: "Field",
+    value: "Proposed value",
+    confidence: "Confidence",
+    confidenceValue: "{percent, number} percent",
+    noAnswerValue: "No answer: {missing}",
+    provenance: "Provenance: agent",
+    operation: "Writes with {operation}",
+    expires: "Confirm by {date}",
+    confirm: "Confirm and apply",
+    reject: "Reject",
+    confirmReason: "Confirmed in the Aurora panel.",
+    rejectReason: "Rejected in the Aurora panel.",
+    loading: "Loading the proposed change.",
+    applied: "Applied. The change was written with your permissions.",
+    rejected: "Rejected. Nothing was written.",
+    refused: "The change was not written: {detail}",
+    error: "This proposed change could not be loaded: {detail}",
+  },
+  settings: {
+    title: "Aurora AI features",
+    description:
+      "Every Aurora AI feature is off until an Admin turns it on. Restricted fields and medical records are never sent to a model, and customer data is never used for training.",
+    legend: "Features",
+    save: "Save features",
+    saved: "Saved.",
+    readOnly: "Only people who manage AI features can change these switches.",
+    notInPlan:
+      "Aurora AI is not in this org's plan. An Owner can move to Core or above in Settings, Billing and Plan to turn features on.",
+    usage: "{used, number} of {allowance, number} requests used this month.",
+    usageUnlimited: "{used, number} requests this month. Your plan sets no monthly limit.",
+    modelHeading: "Models in use",
+    model: "{feature}: {model}",
+    loadFailed: "AI features could not load. Reload the page to try again.",
+    errors: {
+      aurora_not_in_plan: "Aurora AI is not in this org's plan, so features cannot be turned on.",
+      generic: "The features were not saved. Try again.",
+    },
+    features: {
+      assistant: {
+        label: "Assistant",
+        description:
+          "Answers questions about your records with links to them. Cmd or Ctrl+J in Atlas, the More menu in Compass.",
+      },
+      plain_language: {
+        label: "Ask in plain language",
+        description: "Turns a sentence into a saved view or filter and shows the filter it built.",
+      },
+      extraction: {
+        label: "Document extraction",
+        description:
+          "Reads riders, insurance certificates, invoices, receipts and quotes into fields for you to confirm.",
+      },
+      drafting: {
+        label: "Drafting",
+        description:
+          "Drafts SOPs, advance packets, emails, day sheets and change order descriptions in your verbiage.",
+      },
+      summaries: {
+        label: "Summaries",
+        description: "Summarizes a record's activity, a project's week and gate readiness.",
+      },
+      mapping: {
+        label: "Mapping help",
+        description:
+          "Suggests import column mappings and catalog bindings for unknown scanned codes.",
+      },
+    },
+  },
+  extraction: {
+    button: "Extract with Aurora",
+    running: "Aurora is reading the document.",
+    noAnswer: "Aurora could not read any field from this document: {missing}",
+    failed: "Aurora could not read the document. Nothing was changed. Try again.",
+    review: "Review the lines Aurora read before saving them.",
+  },
+  compass: {
+    menuLabel: "Aurora",
+    menuDescription: "Ask about your shifts, SOPs and handbook.",
+  },
+};
 var canonBrowser_default$1 = {
   what: "the canon",
   empty:
@@ -13557,6 +13695,149 @@ var assets_default = {
     emptyAction: "Abrir el registro de custodia",
   },
 };
+var aurora_default = {
+  panel: {
+    title: "Aurora",
+    button: "Preguntar a Aurora",
+    aiNotice:
+      "Estás hablando con Aurora, un asistente de IA. Responde solo con registros que puedes ver y nunca cambia nada sin tu confirmación.",
+    aiLabel: "Generado por IA",
+    modelLabel: "Respondido por {model}",
+    inputLabel: "Pregunta sobre los registros de tu organización",
+    inputHelp: "Pulsa Intro para preguntar. Mayús+Intro agrega una línea.",
+    send: "Preguntar",
+    newConversation: "Nueva conversación",
+    asking: "Aurora está leyendo los registros que puedes ver.",
+    you: "Tú",
+    loadingStatus: "Comprobando lo que Aurora puede hacer por ti.",
+    citations: "Registros usados",
+    notice: "Aviso sobre funciones de IA",
+  },
+  empty: {
+    sentence:
+      "Pregunta sobre proyectos, permisos, equipo, horarios o proveedores. Aurora responde con registros que puedes ver y enlaza cada uno.",
+    action: "Hacer una pregunta",
+  },
+  off: {
+    sentence: "Un administrador no ha activado el asistente para esta organización.",
+    actionAdmin: "Abrir la configuración de funciones de IA",
+    actionMember: "Pide a un administrador que lo active en Configuración, Funciones de IA.",
+  },
+  notInPlan: {
+    title: "Aurora AI no está en tu plan",
+    reason:
+      "Aurora AI viene con los planes Core, Pro, Team y Enterprise. Un propietario puede cambiar el plan en Configuración, Facturación y plan.",
+    action: "Ver planes",
+  },
+  limit: {
+    title: "Se agotó la asignación de Aurora de este mes",
+    reason:
+      "Tu organización usó las {allowance, number} solicitudes de este mes. La asignación se renueva el primer día del mes próximo, o un propietario puede pasar a un plan mayor.",
+    action: "Ver planes",
+  },
+  statusError: {
+    title: "No se pudo cargar Aurora",
+    sentence:
+      "No pudimos comprobar lo que Aurora puede hacer por ti. Revisa tu conexión e inténtalo de nuevo.",
+    retry: "Intentar de nuevo",
+  },
+  noAnswer: { title: "Sin respuesta" },
+  failed: {
+    title: "Aurora no pudo responder",
+    sentence: "El modelo no respondió y no se cambió nada. Pregunta de nuevo en un momento.",
+  },
+  refused: { title: "Aurora no puede hacer esto" },
+  error: {
+    title: "No se pudo contactar a Aurora",
+    sentence: "Revisa tu conexión y vuelve a preguntar. No se cambió nada.",
+  },
+  suggestions: {
+    heading: "Esperando tu confirmación",
+    caption: "Valores propuestos",
+    field: "Campo",
+    value: "Valor propuesto",
+    confidence: "Confianza",
+    confidenceValue: "{percent, number} por ciento",
+    noAnswerValue: "Sin respuesta: {missing}",
+    provenance: "Procedencia: agente",
+    operation: "Se escribe con {operation}",
+    expires: "Confirma antes del {date}",
+    confirm: "Confirmar y aplicar",
+    reject: "Rechazar",
+    confirmReason: "Confirmado en el panel de Aurora.",
+    rejectReason: "Rechazado en el panel de Aurora.",
+    loading: "Cargando el cambio propuesto.",
+    applied: "Aplicado. El cambio se escribió con tus permisos.",
+    rejected: "Rechazado. No se escribió nada.",
+    refused: "El cambio no se escribió: {detail}",
+    error: "No se pudo cargar este cambio propuesto: {detail}",
+  },
+  settings: {
+    title: "Funciones de Aurora AI",
+    description:
+      "Cada función de Aurora AI está desactivada hasta que un administrador la activa. Los campos restringidos y los registros médicos nunca se envían a un modelo, y los datos de clientes nunca se usan para entrenamiento.",
+    legend: "Funciones",
+    save: "Guardar funciones",
+    saved: "Guardado.",
+    readOnly: "Solo quienes administran las funciones de IA pueden cambiar estos interruptores.",
+    notInPlan:
+      "Aurora AI no está en el plan de esta organización. Un propietario puede pasar a Core o superior en Configuración, Facturación y plan para activar funciones.",
+    usage: "{used, number} de {allowance, number} solicitudes usadas este mes.",
+    usageUnlimited: "{used, number} solicitudes este mes. Tu plan no fija un límite mensual.",
+    modelHeading: "Modelos en uso",
+    model: "{feature}: {model}",
+    loadFailed:
+      "No se pudieron cargar las funciones de IA. Recarga la página para intentarlo de nuevo.",
+    errors: {
+      aurora_not_in_plan:
+        "Aurora AI no está en el plan de esta organización, así que no se pueden activar funciones.",
+      generic: "Las funciones no se guardaron. Inténtalo de nuevo.",
+    },
+    features: {
+      assistant: {
+        label: "Asistente",
+        description:
+          "Responde preguntas sobre tus registros con enlaces a ellos. Cmd o Ctrl+J en Atlas, el menú Más en Compass.",
+      },
+      plain_language: {
+        label: "Preguntar en lenguaje natural",
+        description:
+          "Convierte una frase en una vista guardada o un filtro y muestra el filtro que creó.",
+      },
+      extraction: {
+        label: "Extracción de documentos",
+        description:
+          "Lee riders, certificados de seguro, facturas, recibos y cotizaciones en campos que tú confirmas.",
+      },
+      drafting: {
+        label: "Redacción",
+        description:
+          "Redacta SOP, paquetes de avance, correos, hojas del día y descripciones de órdenes de cambio con tu vocabulario.",
+      },
+      summaries: {
+        label: "Resúmenes",
+        description:
+          "Resume la actividad de un registro, la semana de un proyecto y la preparación de una puerta de fase.",
+      },
+      mapping: {
+        label: "Ayuda de asignación",
+        description:
+          "Sugiere asignaciones de columnas al importar y vínculos de catálogo para códigos escaneados desconocidos.",
+      },
+    },
+  },
+  extraction: {
+    button: "Extraer con Aurora",
+    running: "Aurora está leyendo el documento.",
+    noAnswer: "Aurora no pudo leer ningún campo de este documento: {missing}",
+    failed: "Aurora no pudo leer el documento. No se cambió nada. Inténtalo de nuevo.",
+    review: "Revisa las líneas que leyó Aurora antes de guardarlas.",
+  },
+  compass: {
+    menuLabel: "Aurora",
+    menuDescription: "Pregunta sobre tus turnos, SOP y manual.",
+  },
+};
 var canonBrowser_default = {
   what: "el canon",
   empty:
@@ -24335,6 +24616,7 @@ var enUS = {
   activity: activity_default$1,
   advancing: advancing_default$1,
   assets: assets_default$1,
+  aurora: aurora_default$1,
   canonBrowser: canonBrowser_default$1,
   compass: compass_default$1,
   credentials: credentials_default$1,
@@ -24371,6 +24653,7 @@ var esUS = {
   activity: activity_default,
   advancing: advancing_default,
   assets: assets_default,
+  aurora: aurora_default,
   canonBrowser: canonBrowser_default,
   compass: compass_default,
   credentials: credentials_default,

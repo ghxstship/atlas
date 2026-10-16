@@ -1,0 +1,132 @@
+{
+  "panel": {
+    "title": "Aurora",
+    "button": "Ask Aurora",
+    "aiNotice": "You are talking with Aurora, an AI assistant. It answers only from records you can see and never changes anything without your confirmation.",
+    "aiLabel": "AI-generated",
+    "modelLabel": "Answered by {model}",
+    "inputLabel": "Ask about your org's records",
+    "inputHelp": "Press Enter to ask. Shift+Enter adds a line.",
+    "send": "Ask",
+    "newConversation": "New conversation",
+    "asking": "Aurora is reading the records you can see.",
+    "you": "You",
+    "loadingStatus": "Checking what Aurora can do for you.",
+    "citations": "Records used",
+    "notice": "AI Features Notice"
+  },
+  "empty": {
+    "sentence": "Ask about projects, permits, crew, schedules or vendors. Aurora answers from records you can see and links to each one.",
+    "action": "Ask a question"
+  },
+  "off": {
+    "sentence": "An Admin has not turned on the assistant for this org.",
+    "actionAdmin": "Open AI Features settings",
+    "actionMember": "Ask an Admin to turn it on in Settings, AI Features."
+  },
+  "notInPlan": {
+    "title": "Aurora AI is not in your plan",
+    "reason": "Aurora AI comes with the Core, Pro, Team and Enterprise plans. An Owner can change the plan in Settings, Billing and Plan.",
+    "action": "View plans"
+  },
+  "limit": {
+    "title": "This month's Aurora allowance is used up",
+    "reason": "Your org has used all {allowance, number} requests this month. The allowance resets on the first of next month, or an Owner can move to a larger plan.",
+    "action": "View plans"
+  },
+  "statusError": {
+    "title": "Aurora could not load",
+    "sentence": "We could not check what Aurora can do for you. Check your connection and try again.",
+    "retry": "Try again"
+  },
+  "noAnswer": {
+    "title": "No answer"
+  },
+  "failed": {
+    "title": "Aurora could not answer",
+    "sentence": "The model did not respond, and nothing was changed. Ask again in a moment."
+  },
+  "refused": {
+    "title": "Aurora cannot do this"
+  },
+  "error": {
+    "title": "Aurora could not be reached",
+    "sentence": "Check your connection and ask again. Nothing was changed."
+  },
+  "suggestions": {
+    "heading": "Waiting for your confirmation",
+    "caption": "Proposed values",
+    "field": "Field",
+    "value": "Proposed value",
+    "confidence": "Confidence",
+    "confidenceValue": "{percent, number} percent",
+    "noAnswerValue": "No answer: {missing}",
+    "provenance": "Provenance: agent",
+    "operation": "Writes with {operation}",
+    "expires": "Confirm by {date}",
+    "confirm": "Confirm and apply",
+    "reject": "Reject",
+    "confirmReason": "Confirmed in the Aurora panel.",
+    "rejectReason": "Rejected in the Aurora panel.",
+    "loading": "Loading the proposed change.",
+    "applied": "Applied. The change was written with your permissions.",
+    "rejected": "Rejected. Nothing was written.",
+    "refused": "The change was not written: {detail}",
+    "error": "This proposed change could not be loaded: {detail}"
+  },
+  "settings": {
+    "title": "Aurora AI features",
+    "description": "Every Aurora AI feature is off until an Admin turns it on. Restricted fields and medical records are never sent to a model, and customer data is never used for training.",
+    "legend": "Features",
+    "save": "Save features",
+    "saved": "Saved.",
+    "readOnly": "Only people who manage AI features can change these switches.",
+    "notInPlan": "Aurora AI is not in this org's plan. An Owner can move to Core or above in Settings, Billing and Plan to turn features on.",
+    "usage": "{used, number} of {allowance, number} requests used this month.",
+    "usageUnlimited": "{used, number} requests this month. Your plan sets no monthly limit.",
+    "modelHeading": "Models in use",
+    "model": "{feature}: {model}",
+    "loadFailed": "AI features could not load. Reload the page to try again.",
+    "errors": {
+      "aurora_not_in_plan": "Aurora AI is not in this org's plan, so features cannot be turned on.",
+      "generic": "The features were not saved. Try again."
+    },
+    "features": {
+      "assistant": {
+        "label": "Assistant",
+        "description": "Answers questions about your records with links to them. Cmd or Ctrl+J in Atlas, the More menu in Compass."
+      },
+      "plain_language": {
+        "label": "Ask in plain language",
+        "description": "Turns a sentence into a saved view or filter and shows the filter it built."
+      },
+      "extraction": {
+        "label": "Document extraction",
+        "description": "Reads riders, insurance certificates, invoices, receipts and quotes into fields for you to confirm."
+      },
+      "drafting": {
+        "label": "Drafting",
+        "description": "Drafts SOPs, advance packets, emails, day sheets and change order descriptions in your verbiage."
+      },
+      "summaries": {
+        "label": "Summaries",
+        "description": "Summarizes a record's activity, a project's week and gate readiness."
+      },
+      "mapping": {
+        "label": "Mapping help",
+        "description": "Suggests import column mappings and catalog bindings for unknown scanned codes."
+      }
+    }
+  },
+  "extraction": {
+    "button": "Extract with Aurora",
+    "running": "Aurora is reading the document.",
+    "noAnswer": "Aurora could not read any field from this document: {missing}",
+    "failed": "Aurora could not read the document. Nothing was changed. Try again.",
+    "review": "Review the lines Aurora read before saving them."
+  },
+  "compass": {
+    "menuLabel": "Aurora",
+    "menuDescription": "Ask about your shifts, SOPs and handbook."
+  }
+}
