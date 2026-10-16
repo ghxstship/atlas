@@ -150,6 +150,7 @@ export function RecordRow({
  * between rows; Home and End jump.
  */
 export function RecordList({ label, children }: RecordListProps): ReactElement {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const [entered, setEntered] = useState(false);
   const rowsOf = () => [...(ref.current?.querySelectorAll<HTMLElement>("[data-row]") ?? [])];
@@ -178,6 +179,15 @@ export function RecordList({ label, children }: RecordListProps): ReactElement {
       onKeyDown={onKeyDown}
       className="xos-rlist flex flex-col overflow-hidden rounded-card border border-border-subtle"
     >
+      {/* The list stays headless on screen; screen readers moving across a row hear which value
+          each cell is (1.3.1, A23-012). */}
+      <div role="row" className="sr-only">
+        {["state", "key", "title", "labels", "next", "owner", "action"].map((c) => (
+          <span key={c} role="columnheader">
+            {t(`recordList.columns.${c}`)}
+          </span>
+        ))}
+      </div>
       {children}
     </div>
   );

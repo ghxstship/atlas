@@ -521,5 +521,16 @@
   "widget": {
     "label": "Home screen widget",
     "nextShift": "Next shift"
+  },
+  "recordList": {
+    "columns": {
+      "state": "State",
+      "key": "Key",
+      "title": "Record",
+      "labels": "Labels",
+      "next": "Next date",
+      "owner": "Owner",
+      "action": "Action"
+    }
   }
 }

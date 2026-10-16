@@ -158,7 +158,13 @@ describe("RecordRow and RecordList", () => {
       </RecordList>,
     );
     const grid = screen.getByRole("grid", { name: "Tasks" });
-    const rowsEls = within(grid).getAllByRole("row");
+    // A23-012: one visually hidden header row names every column; arrow keys skip it.
+    const [header, ...rowsEls] = within(grid).getAllByRole("row");
+    expect(
+      within(header as HTMLElement)
+        .getAllByRole("columnheader")
+        .map((h) => h.textContent),
+    ).toEqual(["State", "Key", "Record", "Labels", "Next date", "Owner", "Action"]);
     act(() => grid.focus());
     expect(document.activeElement).toBe(rowsEls[0]);
     await userEvent.keyboard("x");

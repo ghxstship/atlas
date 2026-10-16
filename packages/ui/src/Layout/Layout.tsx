@@ -115,6 +115,7 @@ export function AppShell({
               ref={menuButton}
               type="button"
               aria-label={t("shell.menu")}
+              title={t("shell.menu")}
               aria-expanded={open}
               aria-controls={sideId}
               onClick={() => setOpen((v) => !v)}
