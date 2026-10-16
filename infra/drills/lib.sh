@@ -36,7 +36,13 @@ require_local_docker() {
 # The source must be a local XOS stack's database container.
 require_source_container() {
   local name="$1"
-  [[ "$name" =~ ^supabase_db_xos4-[a-z0-9-]+$ ]] || die "Source ${name} is not a local XOS stack (supabase_db_xos4-*)."
+  # CI starts the repository's own stack (project_id xos4) on a fresh runner; on a workstation that
+  # name belongs to the orchestrator's stack, so it is accepted only in CI.
+  if [[ "$name" == "supabase_db_xos4" && "${CI:-}" == "true" ]]; then
+    :
+  elif [[ ! "$name" =~ ^supabase_db_xos4-[a-z0-9-]+$ ]]; then
+    die "Source ${name} is not a local XOS stack (supabase_db_xos4-*)."
+  fi
   [[ "$(docker inspect -f '{{.State.Running}}' "$name" 2>/dev/null)" == "true" ]] || die "Container ${name} is not running."
 }
 
