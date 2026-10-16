@@ -33,6 +33,7 @@ import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" 
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
 import enUS_show from "../messages/en-US/show.json" with { type: "json" };
+import enUS_status from "../messages/en-US/status.json" with { type: "json" };
 import enUS_support from "../messages/en-US/support.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
 import enUS_vendors from "../messages/en-US/vendors.json" with { type: "json" };
@@ -71,6 +72,7 @@ import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" 
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
 import esUS_show from "../messages/es-US/show.json" with { type: "json" };
+import esUS_status from "../messages/es-US/status.json" with { type: "json" };
 import esUS_support from "../messages/es-US/support.json" with { type: "json" };
 import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
 import esUS_vendors from "../messages/es-US/vendors.json" with { type: "json" };
@@ -111,6 +113,7 @@ export const enUS = {
   settings: enUS_settings,
   shell: enUS_shell,
   show: enUS_show,
+  status: enUS_status,
   support: enUS_support,
   ui: enUS_ui,
   vendors: enUS_vendors,
@@ -152,6 +155,7 @@ export const esUS = {
   settings: esUS_settings,
   shell: esUS_shell,
   show: esUS_show,
+  status: esUS_status,
   support: esUS_support,
   ui: esUS_ui,
   vendors: esUS_vendors,

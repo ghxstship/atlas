@@ -1,0 +1,13 @@
+{
+  "stages": [
+    { "percent": 5, "bakeMinutes": 30 },
+    { "percent": 25, "bakeMinutes": 60 },
+    { "percent": 100 }
+  ],
+  "minCanaryRequests": 200,
+  "maxErrorRate": 0.02,
+  "maxErrorRateIncrease": 0.005,
+  "maxErrorRateRatio": 1.5,
+  "maxLatencyRatio": 1.5,
+  "latencyFloorMs": 800
+}

@@ -1,0 +1,44 @@
+{
+  "title": "Estado de XOS",
+  "description": "Disponibilidad en vivo de Atlas, Gateway, la API, Realtime, la sincronización de Compass y las notificaciones, revisada cada pocos minutos.",
+  "skipLink": "Saltar a los componentes",
+  "overall": {
+    "operational": "Todos los sistemas funcionan con normalidad",
+    "degraded": "Algunos sistemas están más lentos de lo normal. Los estamos vigilando.",
+    "outage": "Algunos sistemas no están disponibles. Estamos trabajando en ello; las novedades aparecen abajo.",
+    "unknown": "Las revisiones de estado aún no han informado. Se ejecutan cada cinco minutos; actualice esta página en breve."
+  },
+  "state": {
+    "operational": "Operativo",
+    "degraded": "Degradado",
+    "outage": "Interrupción",
+    "unknown": "Sin datos"
+  },
+  "component": {
+    "atlas": "Atlas",
+    "gateway": "Gateway",
+    "api": "API",
+    "realtime": "Realtime",
+    "sync": "Sincronización de Compass",
+    "notifications": "Notificaciones"
+  },
+  "region": {
+    "us-east": "Este de EE. UU.",
+    "eu-central": "Europa central"
+  },
+  "regionHeading": "{region}",
+  "uptime": "{percent} de disponibilidad en los últimos {days} días",
+  "uptimeUnknown": "No hay revisiones registradas en los últimos {days} días",
+  "historyLabel": "Historial diario de {component} en {region}, del más antiguo al más reciente",
+  "day": "{date}: {state}",
+  "lastChecked": "Última revisión {time} UTC",
+  "neverChecked": "Aún sin revisar",
+  "incidents": {
+    "heading": "Incidentes de los últimos 14 días",
+    "empty": "No hubo incidentes en los últimos 14 días. Si algo no le funciona, infórmelo desde Ayuda en Atlas o Gateway.",
+    "started": "Inicio {time} UTC",
+    "resolved": "Resuelto {time} UTC",
+    "ongoing": "En curso"
+  },
+  "footer": "Medido con revisiones sintéticas contra el servicio en vivo. Objetivo: 99,9 por ciento de disponibilidad mensual para Atlas y la API."
+}

@@ -1,0 +1,48 @@
+# Local PowerSync service for Compass development against the xos4-shared stack.
+#
+#   POWERSYNC_SERVICE_IMAGE=<image pinned in ADR 0001> PS_DATA_SOURCE_URI=... \
+#     docker compose -f infra/powersync/docker-compose.yaml -p xos4-powersync up -d
+#
+# The service image tag is pinned in ADR 0001 before first use (orchestrator approval, see the
+# runbook); compose refuses to start without it. Bucket storage is a throwaway Postgres in this
+# project; the XOS database is only read through logical replication.
+
+name: xos4-powersync
+
+services:
+  storage:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: powersync_storage
+      POSTGRES_USER: powersync_storage
+      POSTGRES_PASSWORD: ${PS_STORAGE_PASSWORD:?set PS_STORAGE_PASSWORD to any local value}
+    volumes:
+      - storage:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "powersync_storage", "-d", "powersync_storage"]
+      interval: 5s
+      retries: 20
+
+  powersync:
+    image: ${POWERSYNC_SERVICE_IMAGE:?set POWERSYNC_SERVICE_IMAGE to the tag pinned in ADR 0001}
+    command: ["start", "-r", "unified"]
+    depends_on:
+      storage:
+        condition: service_healthy
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/powersync.yaml
+      PS_DATA_SOURCE_URI: ${PS_DATA_SOURCE_URI:?set PS_DATA_SOURCE_URI to powersync_role on the local stack}
+      PS_DATA_SOURCE_SSLMODE: disable
+      PS_STORAGE_URI: postgresql://powersync_storage:${PS_STORAGE_PASSWORD}@storage:5432/powersync_storage
+      PS_STORAGE_SSLMODE: disable
+      PS_JWKS_URI: ${PS_JWKS_URI:-http://host.docker.internal:56021/auth/v1/.well-known/jwks.json}
+    volumes:
+      - ./powersync.yaml:/config/powersync.yaml:ro
+      - ../../packages/sync/sync-rules.yaml:/config/sync-rules.yaml:ro
+    ports:
+      - "127.0.0.1:56080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  storage:
