@@ -18,11 +18,13 @@
   "dependencies": {
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.3",
+    "@xos/ai": "workspace:*",
     "@xos/api": "workspace:*",
     "@xos/data": "workspace:*",
     "@xos/i18n": "workspace:*",
     "@xos/ia": "workspace:*",
     "@xos/icons": "workspace:*",
+    "@xos/schemas": "workspace:*",
     "@xos/tokens": "workspace:*",
     "@xos/ui": "workspace:*",
     "cmdk": "1.1.1",

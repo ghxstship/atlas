@@ -1,4 +1,4 @@
-import type { XosClient } from "../src/client";
+import type { XosClient } from "../src/client.ts";
 
 /**
  * A recording stand-in for the Supabase client. Each `from(table)` or `rpc(name)` call takes the next
@@ -41,6 +41,16 @@ export function fakeClient(queues: Record<string, Response[]>) {
     return proxy;
   };
   const client = {
+    /** Canon reads (`schema("xpms").from(t)`) queue under `from:xpms.<table>`. */
+    schema(name: string) {
+      return {
+        from(table: string) {
+          const call: Call = { target: `from:${name}.${table}`, steps: [] };
+          calls.push(call);
+          return builder(`from:${name}.${table}`, call.steps);
+        },
+      };
+    },
     from(table: string) {
       const call: Call = { target: `from:${table}`, steps: [] };
       calls.push(call);

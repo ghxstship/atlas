@@ -260,9 +260,23 @@ export function ScrollRegion({
     const measure = () => setOverflows(el.scrollWidth > el.clientWidth + 1);
     measure();
     if (typeof ResizeObserver === "undefined") return undefined;
+    // Content can grow wider after the first measure (rows load, fonts swap), so watch the region's
+    // children as well as its own box, and re-observe when children change.
     const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
+    const observeAll = () => {
+      observer.disconnect();
+      observer.observe(el);
+      for (const child of Array.from(el.children)) observer.observe(child);
+      measure();
+    };
+    observeAll();
+    const mutations =
+      typeof MutationObserver === "undefined" ? null : new MutationObserver(observeAll);
+    mutations?.observe(el, { childList: true });
+    return () => {
+      observer.disconnect();
+      mutations?.disconnect();
+    };
   }, []);
   return (
     <div

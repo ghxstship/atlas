@@ -1,0 +1,20 @@
+appId: pro.ghxstship.compass
+name: Switch to Sunlight and sign out, which wipes the device
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-settings"
+- tapOn:
+    id: "settings-theme-sunlight"
+- assertVisible: "Highest contrast for bright sun."
+- tapOn:
+    id: "settings-sign-out"
+- extendedWaitUntil:
+    visible:
+      id: "sign-in"
+    timeout: 10000

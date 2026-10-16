@@ -1,0 +1,172 @@
+{
+  "what": "el canon",
+  "empty": "El canon no tiene filas aquí. Actualice; si sigue vacío, la importación del canon no se ha ejecutado en este entorno.",
+  "readOnly": "El canon es de solo lectura y lo comparten todas las organizaciones. Su organización lo amplía en Extensiones de la organización.",
+  "back": "Volver a {page}",
+  "yes": "Sí",
+  "no": "No",
+  "none": "Ninguno",
+  "inherited": "De la jurisdicción superior",
+  "neutral": "Sin jurisdicción",
+  "orgExtension": "Extensión de su organización",
+  "fields": {
+    "code": "Código",
+    "name": "Nombre",
+    "department": "Departamento",
+    "discipline": "Disciplina",
+    "source": "Origen",
+    "extension": "Rango de extensión",
+    "urid": "URID",
+    "state": "Estado"
+  },
+  "xyz": {
+    "X": "X: recurso",
+    "Y": "Y: proceso",
+    "Z": "Z: cronograma"
+  },
+  "departments": {
+    "title": "Departamentos",
+    "coreFunction": "Función principal",
+    "scope": "Alcance",
+    "disciplines": "Disciplinas",
+    "disciplineCount": "{count, plural, one {# disciplina} other {# disciplinas}}"
+  },
+  "disciplines": {
+    "title": "Disciplinas",
+    "categories": "Categorías"
+  },
+  "categories": {
+    "title": "Categorías",
+    "xyz": "Familia de esquema"
+  },
+  "elements": {
+    "title": "Elementos",
+    "search": "Buscar elementos",
+    "uridPrefix": "URID empieza con",
+    "apply": "Buscar",
+    "pageStatus": "Página {page} de {pages}, {total, plural, one {# elemento} other {# elementos}}",
+    "previous": "Página anterior",
+    "next": "Página siguiente",
+    "noMatches": "Ningún elemento coincide. Borre la búsqueda o pruebe un prefijo de URID más corto.",
+    "itemId": "ID de artículo",
+    "commonName": "Nombre común",
+    "unit": "Unidad",
+    "grade": "Grado",
+    "tier": "Nivel",
+    "leadTime": "Plazo de entrega",
+    "hours": "{hours, plural, one {# hora} other {# horas}}",
+    "description": "Descripción"
+  },
+  "phases": {
+    "title": "Fases y compuertas",
+    "gate": "Compuerta",
+    "act": "Acto",
+    "criteria": "Criterios de la compuerta",
+    "exit": "Salida de la compuerta",
+    "definition": "Definición",
+    "statement": "Criterio",
+    "blocking": "Bloqueante",
+    "gateLine": "Compuerta {gate}, acto {act}"
+  },
+  "recordKinds": {
+    "title": "Tipos de registro",
+    "kind": "Tipo",
+    "class": "Clase",
+    "subtypes": "Subtipos",
+    "definition": "Definición",
+    "done": "Definición de terminado",
+    "grammar": "Gramática del título"
+  },
+  "roles": {
+    "title": "Roles",
+    "function": "Función",
+    "jobTitle": "Cargo",
+    "ratio": "Proporción de personal",
+    "ratioLine": "{ratio} {basis}"
+  },
+  "jurisdictions": {
+    "title": "Jurisdicciones y reglas de permisos",
+    "level": "Nivel",
+    "levels": {
+      "country": "País",
+      "region": "Región",
+      "ahj": "Autoridad competente"
+    },
+    "parent": "Superior",
+    "status": "Estado",
+    "statuses": {
+      "populated": "Con datos",
+      "declared-unpopulated": "Declarada, sin datos"
+    },
+    "rules": "Reglas de permisos",
+    "rule": "Regla",
+    "permit": "Permiso",
+    "ahj": "Autoridad",
+    "leadTime": "Plazo",
+    "condition": "Cuándo aplica",
+    "currency": "Moneda",
+    "units": "Sistema de unidades",
+    "note": "Nota",
+    "unpopulated": "El canon declara esta jurisdicción pero aún no tiene reglas, así que no responde preguntas de permisos.",
+    "noRules": "No hay reglas de permisos para esta jurisdicción."
+  },
+  "metrics": {
+    "title": "Métricas",
+    "domain": "Dominio",
+    "item": "Métrica",
+    "value": "Valor",
+    "qualifier": "Calificador",
+    "source": "Fuente",
+    "jurisdiction": "Jurisdicción",
+    "provenance": "Procedencia"
+  },
+  "extensions": {
+    "title": "Extensiones de la organización",
+    "what": "las extensiones de la organización",
+    "create": "Proponer extensión",
+    "createHelp": "Las extensiones usan .50 a .99 en el segmento de disciplina o de categoría. Otra persona distinta de usted aprueba la propuesta.",
+    "empty": "Aún no hay extensiones. Proponga una disciplina o categoría que su organización necesita y el canon no tiene.",
+    "emptyRead": "Su organización no tiene extensiones del canon.",
+    "level": "Nivel",
+    "levels": {
+      "Department": "departamento",
+      "Discipline": "Disciplina",
+      "Category": "Categoría"
+    },
+    "parent": "Superior",
+    "parentHelp": "Un departamento para una disciplina nueva, o una disciplina para una categoría nueva.",
+    "chooseParent": "Elija el nivel superior",
+    "code": "Código",
+    "codeHelp": "DDDD.DD para una disciplina, DDDD.DD.DD para una categoría.",
+    "label": "Etiqueta",
+    "labelHelp": "Mayúsculas Iniciales, por ejemplo Espectáculos de Drones.",
+    "rationale": "Por qué la necesita la organización",
+    "proposed": "Propuesta",
+    "decided": "Decidida",
+    "notDecided": "Aún sin decidir",
+    "ownProposal": "Usted la propuso, así que otra persona debe aprobarla o rechazarla.",
+    "edit": "Editar propuesta",
+    "save": "Guardar propuesta",
+    "states": {
+      "Proposed": "Propuesta",
+      "Approved": "Aprobada",
+      "Rejected": "Rechazada",
+      "Withdrawn": "Retirada"
+    },
+    "moves": {
+      "Approved": "Aprobar",
+      "Rejected": "Rechazar",
+      "Withdrawn": "Retirar"
+    }
+  },
+  "refusals": {
+    "canon_extension_exists": "Ese código ya es parte del canon. Elija otro código entre .50 y .99.",
+    "canon_extension_parent": "El nivel superior no es del canon ni una de sus extensiones aprobadas.",
+    "canon_extension_immutable": "Una propuesta conserva su nivel, superior y código. Retírela y proponga de nuevo.",
+    "canon_extension_locked": "Una propuesta decidida no cambia.",
+    "canon_extension_decide_rpc": "Decida las propuestas con los botones Aprobar y Rechazar.",
+    "canon_extension_transition_not_allowed": "Ese cambio no se permite desde el estado actual.",
+    "sod_approval_requester": "Separación de funciones: quien la propuso no puede decidirla.",
+    "transition_reason_required": "Cada decisión necesita un motivo."
+  }
+}

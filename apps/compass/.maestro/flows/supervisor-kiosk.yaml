@@ -1,0 +1,38 @@
+appId: pro.ghxstship.compass
+name: Kiosk mode refuses a wrong PIN without revealing anything
+---
+# Needs a kiosk registered in Atlas; pass its device key as KIOSK_DEVICE_KEY. The Demo Admin holds
+# org.time_attendance.write.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: admin@example.com
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-kiosk"
+- tapOn:
+    id: "kiosk-key"
+- inputText: ${KIOSK_DEVICE_KEY}
+- tapOn:
+    id: "kiosk-start"
+- tapOn:
+    id: "kiosk-search"
+- inputText: "Field"
+- tapOn: "Demo Field Lead"
+- tapOn:
+    id: "kiosk-key-9"
+- tapOn:
+    id: "kiosk-key-9"
+- tapOn:
+    id: "kiosk-key-9"
+- tapOn:
+    id: "kiosk-key-9"
+- tapOn:
+    id: "kiosk-submit"
+- assertVisible: "4 attempts left"
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible:
+      id: "kiosk-search"
+    timeout: 5000

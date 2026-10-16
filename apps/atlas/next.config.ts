@@ -12,6 +12,8 @@ const config: NextConfig = {
   agentRules: false,
   // Playwright and local tools reach the dev server at 127.0.0.1.
   allowedDevOrigins: ["127.0.0.1"],
+  // Attachments upload through server actions; the bucket allows 50 MiB (migration 0590), above Next's 1 MB default.
+  experimental: { serverActions: { bodySizeLimit: "50mb" } },
 };
 
 export default withNextIntl(config);

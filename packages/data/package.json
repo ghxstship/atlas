@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./database.types": "./src/database.types.ts",
-    "./slug": "./src/slug.ts"
+    "./slug": "./src/slug.ts",
+    "./*": "./src/*.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

@@ -1,0 +1,11 @@
+# What's New in the help panel, newest first. Copy lives in help.whatsNew.<key> (title, body).
+entries:
+  - key: saved-views
+    date: "2026-10-15"
+    article: saved-views
+  - key: contextual-help
+    date: "2026-10-15"
+    article: getting-started
+  - key: support-requests
+    date: "2026-10-15"
+    article: contact-support

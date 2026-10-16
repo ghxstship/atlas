@@ -1,0 +1,153 @@
+# View registry (Section 11.15). Every collection in every shell is shown through these view types.
+#
+# Each view names the data traits it needs (`requires`, all of them) and the shells that offer it. A
+# page declares the views it may show (its sitemap node's `list.views`) and the traits its data has; the
+# switcher offers only the declared views whose traits are present, so a view that does not fit the data
+# never appears and no option is ever disabled.
+#
+# `saved_as` is the app.view_type label a saved view stores (migrations 0540 and 0640). `alternative`
+# marks visual layouts that render an accessible table alternative beside the visual (map, matrix, Gantt,
+# chart). `defaults` sets an entity's default view per shell and device class, overriding a page's own
+# default only where the spec names one.
+#
+# Run `pnpm --filter @xos/schemas generate:views` after editing; `check:views` fails while
+# src/views/registry.generated.ts is out of date.
+
+traits:
+  - code: editable_numeric
+    description: Editable numeric or money columns.
+  - code: media
+    description: An image, media or a profile.
+  - code: single_choice
+    description: A state, stage or other single-choice field.
+  - code: date
+    description: A date or date range.
+  - code: date_range_assignee
+    description: A date range and an assignee.
+  - code: dependencies
+    description: Start, end and dependencies.
+  - code: location
+    description: A location or geometry.
+  - code: venue_pins
+    description: Pins on a venue drawing.
+  - code: parent
+    description: A parent relationship.
+  - code: two_dimensions
+    description: Two categorical dimensions.
+  - code: reporting_lines
+    description: Reporting lines.
+  - code: measures
+    description: Measures over dimensions.
+  - code: time_ordered
+    description: Time-ordered activity or posts.
+  - code: needs_person
+    description: Items that need the person.
+  - code: detail
+    description: A list with a detail.
+
+views:
+  - code: list
+    saved_as: List
+    icon: List
+    requires: []
+    shells: [atlas, gateway, compass]
+  - code: table
+    saved_as: Table
+    icon: Table
+    requires: []
+    shells: [atlas, gateway]
+  - code: spreadsheet
+    saved_as: Spreadsheet
+    icon: Sheet
+    requires: [editable_numeric]
+    shells: [atlas, gateway]
+  - code: gallery
+    saved_as: Gallery
+    icon: LayoutGrid
+    requires: [media]
+    shells: [atlas, gateway, compass]
+  - code: board
+    saved_as: Board
+    icon: Columns3
+    requires: [single_choice]
+    shells: [atlas, gateway, compass]
+  - code: calendar
+    saved_as: Calendar
+    icon: Calendar
+    requires: [date]
+    shells: [atlas, gateway, compass]
+  - code: resource-schedule
+    saved_as: Resource Schedule
+    icon: CalendarRange
+    requires: [date_range_assignee]
+    shells: [atlas, compass]
+    alternative: true
+  - code: timeline
+    saved_as: Timeline
+    icon: ChartGantt
+    requires: [dependencies]
+    shells: [atlas, gateway]
+    alternative: true
+  - code: map
+    saved_as: Map
+    icon: Map
+    requires: [location]
+    shells: [atlas, gateway, compass]
+    alternative: true
+  - code: site-plan
+    saved_as: Site Plan
+    icon: MapPinned
+    requires: [venue_pins]
+    shells: [atlas, gateway, compass]
+    alternative: true
+  - code: tree
+    saved_as: Tree
+    icon: ListTree
+    requires: [parent]
+    shells: [atlas]
+  - code: matrix
+    saved_as: Matrix
+    icon: Grid3x3
+    requires: [two_dimensions]
+    shells: [atlas]
+    alternative: true
+  - code: org-chart
+    saved_as: Org Chart
+    icon: Network
+    requires: [reporting_lines]
+    shells: [atlas]
+    alternative: true
+  - code: chart
+    saved_as: Chart
+    icon: ChartColumn
+    requires: [measures]
+    shells: [atlas, gateway, compass]
+    alternative: true
+  - code: feed
+    saved_as: Feed
+    icon: Rss
+    requires: [time_ordered]
+    shells: [atlas, gateway, compass]
+  - code: inbox
+    saved_as: Inbox
+    icon: Inbox
+    requires: [needs_person]
+    shells: [atlas, gateway, compass]
+  - code: split
+    saved_as: List
+    icon: PanelLeft
+    requires: [detail]
+    shells: [atlas, gateway, compass]
+
+defaults:
+  - entity: shifts
+    atlas: resource-schedule
+    compass: calendar
+  - entity: incidents
+    atlas: list
+    compass: list
+    dispatch: map
+  - entity: opportunities
+    gateway: gallery
+  - entity: budget_lines
+    atlas: spreadsheet

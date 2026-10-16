@@ -1,0 +1,336 @@
+{
+  "states": {
+    "proposed": "Propuesto",
+    "received": "Recibido",
+    "available": "Disponible",
+    "reserved": "Reservado",
+    "deployed": "En uso",
+    "inMaintenance": "En mantenimiento",
+    "damaged": "Dañado",
+    "lost": "Perdido",
+    "retired": "Dado de baja"
+  },
+  "actions": {
+    "checkOut": "Entregar",
+    "checkIn": "Devolver",
+    "transfer": "Transferir"
+  },
+  "views": {
+    "table": "Tabla",
+    "list": "Lista",
+    "board": "Tablero",
+    "gallery": "Galería",
+    "calendar": "Calendario",
+    "resource-schedule": "Programación"
+  },
+  "collection": {
+    "view": "Vista",
+    "filters": "Filtrar esta lista",
+    "search": "Buscar",
+    "state": "Estado",
+    "allStates": "Todos los estados",
+    "apply": "Aplicar",
+    "clear": "Quitar filtros",
+    "noMatches": "Nada coincide con estos filtros. Quita los filtros para ver todo de nuevo.",
+    "open": "Abrir",
+    "openFull": "Abrir página completa"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "notRecorded": "Sin registrar",
+    "noVenue": "Sin sede de origen",
+    "noProject": "Sin proyecto",
+    "homeVenue": "Su sede de origen",
+    "keepProject": "Mantener el proyecto actual",
+    "costUnknown": "Costo desconocido",
+    "unnamed": "Miembro sin nombre"
+  },
+  "fields": {
+    "name": "Nombre",
+    "elementId": "Elemento canónico",
+    "element": "Elemento",
+    "urid": "URID",
+    "units": "Unidades",
+    "lots": "Lotes",
+    "classId": "Clase de activo",
+    "assetTag": "Etiqueta de activo",
+    "state": "Estado",
+    "conditionEnumId": "Condición",
+    "homeVenueId": "Sede de origen",
+    "custodian": "En manos de",
+    "projectId": "Proyecto",
+    "since": "En custodia desde",
+    "createdAt": "Registrado",
+    "venueId": "Sede",
+    "quantity": "Cantidad",
+    "onHand": "Disponible",
+    "opening": "Conteo inicial",
+    "lotCode": "Código de etiqueta",
+    "counted": "Cantidad contada",
+    "note": "Nota",
+    "membershipId": "Miembro que lo recibe",
+    "checkInVenue": "Devuelto a",
+    "next": "Pasar a",
+    "reason": "Motivo",
+    "scheme": "Esquema",
+    "value": "Identificador",
+    "unitId": "Unidad de activo",
+    "performedOn": "Realizado el",
+    "description": "Descripción",
+    "cost": "Costo en {currency}",
+    "costColumn": "Costo",
+    "currencyCode": "Moneda",
+    "reportedAt": "Reportado",
+    "at": "Cuándo",
+    "code": "Código",
+    "eventId": "Evento de escaneo",
+    "action": "Acción",
+    "comment": "Comentario",
+    "file": "Archivo"
+  },
+  "errors": {
+    "field": "Revisa {field}.",
+    "unexpected": "No se guardó por un problema de nuestra parte. Inténtalo de nuevo; si sigue fallando, contacta a soporte.",
+    "notFound": "Ese elemento ya no existe o ya no tienes acceso. Actualiza la página para ver la lista actual.",
+    "conflict": "Ese valor ya está en uso en esta organización. Elige otro.",
+    "invalid": "Algo de lo que escribiste no es válido.",
+    "refused": "La base de datos rechazó ese cambio. Actualiza la página e inténtalo de nuevo.",
+    "fileTooLarge": "Ese archivo pesa más de 50 MB. Sube un archivo más pequeño.",
+    "scanning": "Ese archivo aún se está revisando en busca de virus. Intenta la descarga de nuevo en un minuto.",
+    "asset_class_in_use": "Esta clase todavía tiene unidades o lotes. Muévelos o archívalos antes de archivar la clase.",
+    "asset_lot_count_negative": "Un conteo es cero o más. Escribe la cantidad que contaste.",
+    "asset_lot_insufficient": "No hay tanto disponible en este lote. Revisa la cantidad e inténtalo de nuevo.",
+    "asset_lot_quantity_ledger": "La cantidad de un lote cambia con un conteo o una entrega, no con una edición. Registra un conteo.",
+    "asset_state_conflict": "Alguien movió este activo hace un momento. Actualiza la página para ver su estado actual.",
+    "asset_tag_immutable": "Un activo conserva su etiqueta. Registra una unidad nueva si la etiqueta debe cambiar.",
+    "asset_transition_not_allowed": "Un activo no puede hacer ese cambio desde su estado actual. Elige uno de los cambios ofrecidos.",
+    "cross_org_reference": "Esa opción pertenece a otra organización. Elige una de esta organización.",
+    "enumeration_domain": "Esa condición no está en la lista canónica de condiciones de activos. Elige una de las condiciones ofrecidas.",
+    "transition_reason_required": "Cada cambio de estado lleva un motivo. Indica por qué se mueve el activo.",
+    "asset_code_unknown": "Ningún activo ni lote de esta organización tiene ese código. Revisa la etiqueta y escanea de nuevo.",
+    "asset_code_ambiguous": "Más de un activo tiene ese identificador, así que no se pueden distinguir. Escanea la etiqueta de activo.",
+    "asset_scan_custodian_required": "Elige el único miembro que recibe el activo.",
+    "asset_scan_lot_transfer": "La cantidad de un lote no se pasa de mano en mano. Devuélvela y luego entrégala a la siguiente persona.",
+    "asset_scan_place_required": "Este activo no tiene sede de origen. Elige el lugar al que regresa.",
+    "asset_scan_quantity_required": "Escribe cuántas unidades del lote se mueven.",
+    "asset_scan_state_conflict": "Alguien movió este activo desde que lo buscaste. Búscalo de nuevo para ver dónde está.",
+    "asset_scan_unavailable": "Este activo no está en servicio, así que no se puede entregar ni devolver. Primero pásalo a Disponible.",
+    "asset_scan_event_reused": "Ese escaneo ya se usó para otro elemento. Cierra esta ventana y escanea de nuevo."
+  },
+  "load": {
+    "loading": "Cargando activos",
+    "title": "Los activos no se cargaron",
+    "sentence": "No pudimos leer esta página en este momento. Inténtalo de nuevo; si sigue fallando, contacta a soporte con la referencia de abajo.",
+    "retry": "Intentar de nuevo"
+  },
+  "collab": {
+    "comments": "Comentarios",
+    "noComments": "Aún no hay comentarios. Agrega el contexto que necesitará la siguiente persona.",
+    "unknownAuthor": "Antiguo miembro",
+    "deleted": "Este comentario se eliminó.",
+    "delete": "Eliminar",
+    "write": "Escribe un comentario",
+    "post": "Publicar comentario",
+    "attachments": "Archivos adjuntos",
+    "noAttachments": "Aún no hay archivos. Sube fotos, manuales o registros de servicio.",
+    "download": "Descargar",
+    "remove": "Quitar",
+    "file": "Archivo",
+    "upload": "Subir",
+    "scan": {
+      "PendingUpload": "Subiendo",
+      "Scanning": "Revisando",
+      "Clean": "Listo",
+      "Infected": "Bloqueado",
+      "ScanFailed": "La revisión falló"
+    }
+  },
+  "classes": {
+    "counts": "{units, plural, one {# unidad} other {# unidades}} · {lots, plural, one {# lote} other {# lotes}}",
+    "empty": "Aún no hay clases de activos. Define los tipos de equipo que tienes, cada uno ligado a su elemento canónico.",
+    "emptyReadOnly": "Aún no hay clases de activos. Explora los elementos canónicos mientras un responsable de activos las configura.",
+    "emptyReadOnlyAction": "Explorar elementos canónicos",
+    "notFound": "Ninguna clase de activo coincide con ese enlace. Puede haberse archivado; elige una de la lista.",
+    "units": "Unidades",
+    "lots": "Lotes",
+    "noUnits": "Aún no hay unidades de esta clase. Registra una desde Unidades.",
+    "noLots": "Aún no hay lotes de esta clase. Cuenta uno desde Lotes.",
+    "lotLine": "{venue}: {onHand} disponibles",
+    "create": {
+      "open": "Nueva clase de activo",
+      "title": "Nueva clase de activo",
+      "description": "Busca el elemento canónico que corresponde a este equipo y nómbralo como lo llama tu equipo.",
+      "search": "Buscar un elemento canónico",
+      "searchHelp": "Busca por nombre o ID de elemento, por ejemplo cabeza móvil o 5000.02.",
+      "find": "Buscar",
+      "noElements": "Ningún elemento canónico coincide. Prueba con una palabra más corta.",
+      "nameHelp": "El nombre que usa tu equipo, como Luminaria Spot.",
+      "submit": "Crear clase"
+    },
+    "rename": {
+      "open": "Cambiar nombre",
+      "title": "Cambiar el nombre de {name}"
+    },
+    "archive": {
+      "open": "Archivar",
+      "title": "Archivar {name}",
+      "description": "La clase sale del catálogo. No tiene unidades ni lotes, así que nada más cambia.",
+      "submit": "Archivar clase"
+    }
+  },
+  "units": {
+    "empty": "Aún no hay unidades. Registra cada equipo con número de serie para saber quién lo tiene.",
+    "emptyReadOnly": "Aún no hay unidades. Revisa el registro de custodia cuando se registren unidades.",
+    "emptyReadOnlyAction": "Abrir el registro de custodia",
+    "emptyNoClasses": "Registra unidades después de definir una clase de activo para ellas.",
+    "emptyNoClassesAction": "Definir una clase de activo",
+    "notFound": "Ninguna unidad tiene la etiqueta {tag}. Puede haberse dado de baja del registro; busca en la lista.",
+    "backToUnits": "Volver a unidades",
+    "heldBy": "En manos de {custodian}",
+    "noCustody": "Aún no se ha entregado",
+    "out": "Fuera",
+    "properties": "Propiedades de la unidad",
+    "moved": "De {from} a {to}",
+    "registered": "Registrado como {state}",
+    "none": {
+      "custody": "Esta unidad aún no ha cambiado de manos. Entrégala para iniciar su registro de custodia.",
+      "maintenance": "No hay mantenimiento registrado. Registra el servicio cuando se haga.",
+      "damage": "No hay daños reportados. Reporta el daño en cuanto regrese dañado.",
+      "identifiers": "No hay número de serie ni GTIN registrado. Agrega el número de serie del fabricante para que un escaneo encuentre esta unidad."
+    },
+    "sections": {
+      "custody": "Custodia",
+      "history": "Historial de estados",
+      "maintenance": "Mantenimiento",
+      "damage": "Daños",
+      "identifiers": "Identificadores"
+    },
+    "create": {
+      "open": "Registrar unidad",
+      "title": "Registrar unidad",
+      "description": "La unidad empieza como Propuesto. Pásala a Recibido y luego a Disponible cuando llegue.",
+      "tagHelp": "Letras, dígitos y guiones, tal como aparece en la etiqueta, por ejemplo NWL-RAD-014.",
+      "submit": "Registrar unidad"
+    },
+    "edit": {
+      "open": "Editar",
+      "title": "Editar {tag}"
+    },
+    "transition": {
+      "open": "Cambiar estado",
+      "title": "Cambiar el estado de {tag}",
+      "description": "Ahora está en {state}. Solo se ofrecen los cambios que permite el ciclo de vida del activo.",
+      "reasonHelp": "Di por qué, por ejemplo De vuelta del taller o Dado de baja después de la tormenta.",
+      "submit": "Cambiar estado"
+    },
+    "identifiers": {
+      "add": "Agregar identificador",
+      "title": "Agregar identificador",
+      "description": "Registra un valor emitido por el fabricante u otra autoridad, tal como está impreso.",
+      "schemeHelp": "En minúsculas, como serial, gtin14 o mpn.",
+      "submit": "Agregar identificador",
+      "remove": "Quitar {identifier}",
+      "removeTitle": "¿Quitar {identifier}?",
+      "removeSubmit": "Quitar identificador"
+    }
+  },
+  "lots": {
+    "line": "{venue}: {onHand} disponibles",
+    "empty": "Aún no hay lotes. Cuenta el equipo a granel que controlas por cantidad, como cable o sacos de arena.",
+    "emptyReadOnly": "Aún no hay lotes. Mientras tanto, revisa el registro de custodia.",
+    "emptyNoClasses": "Cuenta lotes después de definir una clase de activo para ellos.",
+    "emptyNoVenues": "Un lote está en una sede. Primero agrega una sede.",
+    "emptyNoVenuesAction": "Agregar una sede",
+    "notFound": "Ningún lote coincide con ese enlace. Puede haberse archivado; elige uno de la lista.",
+    "ledger": "Registro del lote",
+    "noMovements": "Aún no se ha movido nada. Entrega una cantidad o registra un conteo.",
+    "kinds": {
+      "Count": "Contado, diferencia de {delta}",
+      "CheckOut": "{delta} entregados a {custodian}",
+      "CheckIn": "{delta} devueltos"
+    },
+    "create": {
+      "open": "Nuevo lote",
+      "title": "Nuevo lote",
+      "description": "Cuenta lo que hay en el estante ahora. Los cambios posteriores son conteos y entregas en el registro del lote.",
+      "quantityHelp": "La cantidad disponible hoy.",
+      "submit": "Crear lote"
+    },
+    "count": {
+      "open": "Registrar conteo",
+      "title": "Registrar un conteo",
+      "description": "El registro muestra {onHand} disponibles. Escribe lo que contaste; se registra la diferencia.",
+      "submit": "Registrar conteo"
+    }
+  },
+  "custody": {
+    "line": "{tag} a {holder}",
+    "empty": "Aún no hay movimientos de custodia. Escanea o escribe una etiqueta de activo arriba para entregar equipo.",
+    "emptyReadOnly": "Aún no hay movimientos de custodia. Los movimientos de equipo aparecen aquí cuando ocurren.",
+    "emptyAction": "Abrir unidades",
+    "notFound": "Ninguna entrada de custodia coincide con ese enlace. Elige una del registro.",
+    "openUnit": "Abrir {tag}",
+    "projectHelp": "El proyecto para el que sale el equipo, si lo hay.",
+    "desk": {
+      "title": "Escanea o escribe un código",
+      "code": "Etiqueta de activo, número de serie o etiqueta de lote",
+      "help": "Un escáner de mano escribe el código y presiona Enter por ti.",
+      "find": "Buscar",
+      "noAnswer": "No se encontró nada para {code}",
+      "again": "Escanear de nuevo",
+      "unitState": "Ahora está en {state}.",
+      "cannotMove": "No está en servicio, así que no se puede entregar ni devolver desde aquí. Abre la unidad para cambiar su estado.",
+      "lotOnHand": "{onHand} disponibles"
+    },
+    "checkOut": {
+      "title": "Entregar {code}",
+      "description": "Entrégalo a un miembro. Pasa a En uso.",
+      "submit": "Entregar"
+    },
+    "checkIn": {
+      "title": "Devolver {code}",
+      "description": "Regrésalo a un lugar. Pasa a Disponible.",
+      "submit": "Devolver",
+      "venueHelp": "Déjalo así para regresarlo a su sede de origen."
+    },
+    "transfer": {
+      "title": "Transferir {code}",
+      "description": "Pásalo de quien lo tiene a otro miembro. Sigue En uso.",
+      "submit": "Transferir"
+    }
+  },
+  "maintenance": {
+    "empty": "Aún no hay mantenimiento registrado. Registra el servicio cuando se haga para que el historial acompañe al equipo.",
+    "emptyReadOnly": "Aún no hay mantenimiento registrado. Los registros de servicio aparecen aquí cuando se agregan.",
+    "emptyNoUnits": "Registra mantenimiento cuando haya unidades registradas.",
+    "emptyNoUnitsAction": "Abrir unidades",
+    "notFound": "Ningún registro de mantenimiento coincide con ese enlace. Elige uno de la lista.",
+    "create": {
+      "open": "Registrar mantenimiento",
+      "title": "Registrar mantenimiento",
+      "description": "Indica qué se hizo y cuándo. Deja el costo en blanco si aún no lo sabes.",
+      "costHelp": "Déjalo en blanco si no se conoce. Un costo en blanco sigue desconocido, nunca cero.",
+      "submit": "Registrar mantenimiento"
+    }
+  },
+  "damage": {
+    "empty": "No hay daños reportados. Reporta el daño en cuanto el equipo regrese dañado.",
+    "emptyReadOnly": "No hay daños reportados. Los reportes aparecen aquí cuando se presentan.",
+    "emptyNoUnits": "Reporta daños cuando haya unidades registradas.",
+    "notFound": "Ningún reporte de daños coincide con ese enlace. Elige uno de la lista.",
+    "openUnit": "Abrir {tag} para repararlo o darlo de baja",
+    "create": {
+      "open": "Reportar daño",
+      "title": "Reportar daño",
+      "description": "Describe qué pasó y cuándo. Pasa la unidad a Dañado desde su página si está fuera de servicio.",
+      "descriptionHelp": "Qué está roto y cómo pasó.",
+      "submit": "Reportar daño"
+    }
+  },
+  "project": {
+    "unitsTitle": "Activos en {project}",
+    "empty": "Aún no hay equipo entregado a {project}. Entrega unidades a este proyecto desde el registro de custodia.",
+    "emptyAction": "Abrir el registro de custodia"
+  }
+}
