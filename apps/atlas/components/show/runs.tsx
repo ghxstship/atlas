@@ -176,7 +176,7 @@ export function RunCollection({
     const index = (d: string) =>
       Math.round((Date.parse(`${d}T00:00:00Z`) - Date.parse(`${first}T00:00:00Z`)) / 86_400_000);
     body = (
-      <div className="overflow-x-auto">
+      <div className="min-w-0">
         <Timeline
           label={t("runs.timelineLabel")}
           days={Array.from({ length: span }, (_, i) => {

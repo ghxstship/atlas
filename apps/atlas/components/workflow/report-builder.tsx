@@ -511,7 +511,12 @@ export function ReportBuilder({
                 {t("builder.preview.chartNeedsGroup")}
               </p>
             ) : null}
-            <div className="overflow-x-auto rounded-card border border-border-subtle">
+            <div
+              role="region"
+              aria-label={t("builder.preview.caption")}
+              tabIndex={0}
+              className="overflow-x-auto rounded-card border border-border-subtle"
+            >
               <table className="w-full border-collapse text-text-13">
                 <caption className="sr-only">{t("builder.preview.caption")}</caption>
                 <thead>

@@ -482,6 +482,7 @@
     "key": "Clave",
     "milestone": "hito",
     "record": "Registro",
+    "scroll": "{label}, días",
     "start": "Inicio",
     "state": "Estado"
   },

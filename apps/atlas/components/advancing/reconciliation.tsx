@@ -124,7 +124,12 @@ export async function ReconciliationCollection({
           href={ridersHref}
         />
       ) : view === "matrix" ? (
-        <div className="overflow-x-auto">
+        <div
+          role="region"
+          aria-label={t("advancing.reconciliation.matrixCaption")}
+          tabIndex={0}
+          className="overflow-x-auto"
+        >
           <table className="w-full border-collapse text-text-13">
             <caption className="sr-only">{t("advancing.reconciliation.matrixCaption")}</caption>
             <thead>

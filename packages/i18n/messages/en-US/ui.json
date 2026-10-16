@@ -482,6 +482,7 @@
     "key": "Key",
     "milestone": "milestone",
     "record": "Record",
+    "scroll": "{label}, days",
     "start": "Start",
     "state": "State"
   },
