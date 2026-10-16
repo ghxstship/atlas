@@ -388,5 +388,66 @@
     "prompt": "Desbloquear Compass",
     "unlock": "Desbloquear",
     "failed": "No se desbloqueó Compass. Vuelve a intentarlo."
+  },
+  "logistics": {
+    "title": "Logística",
+    "dock": {
+      "title": "Turnos de muelle",
+      "empty": "No hay turnos de muelle hoy en este proyecto. Los turnos reservados en Atlas aparecen aquí.",
+      "zoneUnknown": "Muelle",
+      "window": "{start} a {end}",
+      "checkIn": "Registrar llegada",
+      "checkedIn": "Llegó a las {time}",
+      "queued": "Llegada guardada. Se envía ahora o cuando vuelvas a tener conexión."
+    },
+    "gate": {
+      "title": "Cola de acceso",
+      "empty": "No hay vehículos esperando en el acceso.",
+      "waiting": "Esperando desde las {time}",
+      "release": "Dar paso",
+      "released": "Paso guardado. Se envía ahora o cuando vuelvas a tener conexión.",
+      "arrive": "Registrar llegada al acceso",
+      "recorded": "Llegada guardada. Se envía ahora o cuando vuelvas a tener conexión."
+    },
+    "vehicle": {
+      "label": "Vehículo o remolque",
+      "help": "Placa o número de remolque, como TX 4KL-221.",
+      "required": "Escribe la placa o el número de remolque.",
+      "format": "Usa letras, dígitos, espacios y guiones, hasta 40 caracteres."
+    },
+    "yard": {
+      "title": "Registro del patio",
+      "empty": "Aún no hay nada registrado en el patio.",
+      "add": "Agregar entrada",
+      "entry": "Qué pasó",
+      "required": "Escribe qué pasó antes de agregarlo.",
+      "added": "Entrada guardada. Se envía ahora o cuando vuelvas a tener conexión."
+    },
+    "fulfillments": {
+      "title": "Servicios",
+      "empty": "No hay servicios que mover en este proyecto.",
+      "reason": "Movido desde Compass.",
+      "queued": "Cambio guardado. Se envía ahora o cuando vuelvas a tener conexión.",
+      "states": {
+        "Proposed": "Propuesto",
+        "Active": "Activo",
+        "Blocked": "Bloqueado",
+        "Complete": "Completo",
+        "Canceled": "Cancelado"
+      },
+      "moves": {
+        "Proposed": "Volver a Propuesto",
+        "Active": "Marcar activo",
+        "Blocked": "Marcar bloqueado",
+        "Complete": "Marcar completo",
+        "Canceled": "Cancelar"
+      },
+      "kinds": {
+        "Lodging": "Alojamiento",
+        "Catering": "Catering",
+        "Travel": "Viaje",
+        "Amenity": "Comodidad"
+      }
+    }
   }
 }

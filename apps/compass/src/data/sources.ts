@@ -137,6 +137,35 @@ const INTERNAL_SOURCES: readonly Source[] = [
   },
   { table: "zones", schema: "app", relation: "zones", select: "id,org_id,venue_id,code,name" },
   {
+    table: "dock_slots",
+    schema: "app",
+    relation: "dock_slots",
+    select:
+      "id,org_id,project_id,zone_id,shipment_id,starts_at,ends_at,checked_in_at,engagement_id",
+    projectColumn: "project_id",
+  },
+  {
+    table: "gate_queue",
+    schema: "app",
+    relation: "gate_queue",
+    select: "id,org_id,project_id,shipment_id,vehicle_identifier,arrived_at,released_at",
+    projectColumn: "project_id",
+  },
+  {
+    table: "marshalling_log",
+    schema: "app",
+    relation: "marshalling_log",
+    select: "id,org_id,project_id,shipment_id,zone_id,entry,logged_at",
+    projectColumn: "project_id",
+  },
+  {
+    table: "fulfillments",
+    schema: "app",
+    relation: "fulfillments",
+    select: "id,org_id,project_id,fulfillment_kind,title,starts_at,fulfillment_state",
+    projectColumn: "project_id",
+  },
+  {
     // The kiosk roster: org members by name, for the shared clock-in picker (Section 4.3 item 2).
     table: "kiosk_roster",
     schema: "app",

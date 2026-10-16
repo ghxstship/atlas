@@ -477,9 +477,32 @@ export function custodyBlocked(unit: AssetUnitRow): boolean {
   return UNAVAILABLE_STATES.has(unit.asset_state);
 }
 
-export interface HandOver {
+export type AssetScanAction = "check-out" | "check-in" | "transfer";
+
+/**
+ * What a scan does to a unit: a unit the person already holds goes back (check-in), a unit someone
+ * else holds moves to the person (transfer), and anything else is checked out to them.
+ */
+export function assetScanAction(
+  unit: AssetUnitRow,
+  custody: CustodyRow | null,
+  me: { membershipId: string | null; engagementIds: readonly string[] },
+): AssetScanAction {
+  const mine =
+    custody !== null &&
+    ((me.membershipId !== null && custody.custodian_membership_id === me.membershipId) ||
+      (typeof custody.custodian_engagement_id === "string" &&
+        me.engagementIds.includes(custody.custodian_engagement_id)));
+  if (unit.asset_state === "Deployed") return mine ? "check-in" : "transfer";
+  return "check-out";
+}
+
+export interface AssetScan {
   readonly orgId: string;
+  /** The code the server resolves: the unit's asset tag. */
+  readonly code: string;
   readonly unitId: string;
+  readonly action: AssetScanAction;
   readonly custodianMembershipId: string | null;
   readonly custodianEngagementId: string | null;
   readonly venueId: string | null;
@@ -488,32 +511,47 @@ export interface HandOver {
 }
 
 /**
- * Queues a hand-over as a new row of the append-only custody ledger (app.asset_custody). The client id is
- * the row id, so a replay is a duplicate and never a second hand-over.
+ * Queues one scan event for app.apply_asset_scan (A12 0975), replayed through app.apply_sync_mutation:
+ * the server resolves the code, writes the custody row under the device-minted event id and moves the
+ * unit state in one transaction, so a replay answers duplicate and never hands the unit over twice.
+ * Check-in returns the unit to a place, so it names no custodian.
  */
-export function buildHandOver(
-  h: HandOver,
+export function buildAssetScan(
+  scan: AssetScan,
   nowMs: number,
   newId: (ms: number) => string = uuidv7,
 ): MutationInput {
   const id = newId(nowMs);
-  const row = {
-    id,
-    org_id: h.orgId,
-    asset_unit_id: h.unitId,
-    custodian_membership_id: h.custodianMembershipId,
-    ...(h.custodianEngagementId ? { custodian_engagement_id: h.custodianEngagementId } : {}),
-    venue_id: h.venueId,
-    project_id: h.projectId,
-    note: h.note,
-  };
+  const returning = scan.action === "check-in";
+  const membership = returning ? null : scan.custodianMembershipId;
+  const engagement = returning ? null : scan.custodianEngagementId;
   return {
-    op: "insert",
+    op: "rpc",
+    target: "app.apply_asset_scan",
     table: "asset_custody",
     rowId: id,
-    payload: row,
+    payload: {
+      p_event_id: id,
+      p_org_id: scan.orgId,
+      p_code: scan.code,
+      p_action: scan.action,
+      p_custodian_membership_id: membership,
+      p_custodian_engagement_id: engagement,
+      p_venue_id: scan.venueId,
+      p_project_id: returning ? null : scan.projectId,
+      p_note: scan.note,
+    },
     policy: "append",
-    optimistic: { ...row, created_at: new Date(nowMs).toISOString() },
+    optimistic: {
+      id,
+      org_id: scan.orgId,
+      asset_unit_id: scan.unitId,
+      custodian_membership_id: membership,
+      custodian_engagement_id: engagement,
+      venue_id: scan.venueId,
+      project_id: returning ? null : scan.projectId,
+      created_at: new Date(nowMs).toISOString(),
+    },
   };
 }
 

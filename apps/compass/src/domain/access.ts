@@ -52,7 +52,11 @@ export type Feature =
   | "scan.credential.badge"
   | "scan.lookup"
   | "crew.board"
-  | "timesheets.approve";
+  | "timesheets.approve"
+  | "logistics.dock"
+  | "logistics.yard"
+  | "logistics.release"
+  | "hospitality.fulfillment";
 
 export type Denial =
   /** The role type never has this feature (Section 4.5.7). */
@@ -89,6 +93,10 @@ const INTERNAL_CAPABILITY: Readonly<Record<Feature, string | null>> = {
   "scan.lookup": "assets.asset.read",
   "crew.board": "crew.shift.read",
   "timesheets.approve": "crew.timesheet.approve",
+  "logistics.dock": "logistics.dock_slot.write",
+  "logistics.yard": "logistics.yard.write",
+  "logistics.release": "logistics.release.approve",
+  "hospitality.fulfillment": "hospitality.fulfillment.write",
 };
 
 /** External role types per feature (Section 4.5.7 role table and the sitemap's scan modes). */
@@ -117,6 +125,10 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   "scan.lookup": [],
   "crew.board": [],
   "timesheets.approve": [],
+  "logistics.dock": [],
+  "logistics.yard": [],
+  "logistics.release": [],
+  "hospitality.fulfillment": [],
 };
 
 /** Internal-only features that also need the supervisor audience (Section 4.5.7 supervisor mode). */

@@ -175,6 +175,10 @@ export const TABLE_RULES: readonly TableRule[] = [
       { column: "project_id", key: "engagedProjectIds", audiences: OPERATIONAL_EXTERNAL },
     ],
   },
+  // Compass logistics (Section 4.3 item 8): the gate queue, the marshalling yard log and fulfillments.
+  { table: "gate_queue", anyOf: [internalProject] },
+  { table: "marshalling_log", anyOf: [internalProject] },
+  { table: "fulfillments", anyOf: [internalProject] },
   { table: "sops", anyOf: [internalOrg] },
   { table: "zones", anyOf: [internalOrg] },
   // Memberships joined to people's names: no single replicable table holds it.

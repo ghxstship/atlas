@@ -14,7 +14,8 @@ import {
 } from "../../src/domain/access";
 import {
   buildAccessScan,
-  buildHandOver,
+  assetScanAction,
+  buildAssetScan,
   buildIntake,
   classify,
   ContinuousScan,
@@ -315,13 +316,22 @@ function LiveScan({ grant }: { readonly grant: ScanModeGrant }): ReactElement {
       return;
     }
     if (resolved?.orgId && identity) {
+      const me = {
+        membershipId: identity.membershipId,
+        engagementIds: identity.engagements.map((e) => e.id),
+      };
       void enqueue(
-        buildHandOver(
+        buildAssetScan(
           {
             orgId: resolved.orgId,
+            code: found.unit.asset_tag,
             unitId: found.unit.id,
+            action: assetScanAction(found.unit, found.custody, me),
             custodianMembershipId: identity.membershipId,
-            custodianEngagementId: null,
+            custodianEngagementId:
+              identity.membershipId === null
+                ? (found.custody?.custodian_engagement_id ?? null)
+                : null,
             venueId: null,
             projectId,
             note: null,

@@ -24,6 +24,7 @@ const ICONS: Readonly<Record<string, string>> = {
 const NATIVE = new Set([
   "incidents",
   "inspections",
+  "logistics",
   "show",
   "run-of-show",
   "reference",

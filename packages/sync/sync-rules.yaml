@@ -64,6 +64,9 @@ bucket_definitions:
       - SELECT * FROM app.scan_intake WHERE project_id = bucket.project_id
       - SELECT * FROM app.dock_slots WHERE project_id = bucket.project_id
       - SELECT * FROM app.radio_channels WHERE project_id = bucket.project_id
+      - SELECT * FROM app.gate_queue WHERE project_id = bucket.project_id
+      - SELECT * FROM app.marshalling_log WHERE project_id = bucket.project_id
+      - SELECT * FROM app.fulfillments WHERE project_id = bucket.project_id
 
   internal_org:
     parameters: >-

@@ -112,12 +112,26 @@ export function buildReport(
     device_reported_at: new Date(nowMs).toISOString(),
     incident_state: "Reported",
   };
+  // A14's field RPCs (0471), allowlisted for app.apply_sync_mutation: each takes the device-minted id,
+  // so a replay finds the row it already wrote instead of filing a second report.
   const writes: MutationInput[] = [
     {
-      op: "insert",
+      op: "rpc",
+      target: "app.report_incident",
       table: "incidents",
       rowId: draft.id,
-      payload: incident,
+      payload: {
+        p_id: incident.id,
+        p_project_id: incident.project_id,
+        p_title: incident.title,
+        p_severity_enum_id: incident.severity_enum_id,
+        p_occurred_at: incident.occurred_at,
+        p_zone_id: incident.zone_id,
+        p_latitude: incident.latitude,
+        p_longitude: incident.longitude,
+        p_accuracy_m: incident.accuracy_m,
+        p_device_reported_at: incident.device_reported_at,
+      },
       policy: "append",
       optimistic: incident,
     },
@@ -131,14 +145,21 @@ export function buildReport(
       project_id: draft.projectId,
       media_uri: path,
       captured_at: photo.capturedAt,
-      local_uri: photo.uri,
-      storage_path: path,
     };
     writes.push({
-      op: "insert",
+      op: "rpc",
+      target: "app.add_incident_media",
       table: "incident_media",
       rowId: photo.id,
-      payload: row,
+      payload: {
+        p_id: photo.id,
+        p_incident_id: draft.id,
+        p_media_uri: path,
+        p_captured_at: photo.capturedAt,
+        // Device-only: the uploader sends the file to the field-media bucket before the RPC.
+        local_uri: photo.uri,
+        storage_path: path,
+      },
       policy: "append",
       optimistic: row,
     });
@@ -151,10 +172,16 @@ export function buildReport(
       description: party.description,
     };
     writes.push({
-      op: "insert",
+      op: "rpc",
+      target: "app.add_incident_party",
       table: "incident_parties",
       rowId: row.id,
-      payload: row,
+      payload: {
+        p_id: row.id,
+        p_incident_id: row.incident_id,
+        p_description: row.description,
+        p_person_id: row.person_id,
+      },
       policy: "append",
       optimistic: row,
     });
@@ -199,7 +226,7 @@ export function dispatchQueue(
     );
 }
 
-/** Dispatch and contain go through app.transition_incident with compare-and-set. */
+/** Dispatch and contain go through app.transition_incident (allowlisted) with compare-and-set. */
 export function buildTransition(
   incident: IncidentRow,
   next: "Dispatched" | "Contained",
@@ -207,7 +234,7 @@ export function buildTransition(
 ): MutationInput {
   return {
     op: "rpc",
-    target: "transition_incident",
+    target: "app.transition_incident",
     table: "incidents",
     rowId: incident.id,
     payload: {

@@ -459,3 +459,54 @@ describe("module results", () => {
     ).toBe("unauthorized");
   });
 });
+
+describe("field RPCs (A12 scans, A14 incidents)", () => {
+  it("uploads an incident photo before replaying add_incident_media, without device fields", async () => {
+    const { client, calls } = fakeClient([{ data: { data: "ph-1" }, error: null, status: 200 }]);
+    const uploads: string[] = [];
+    const uploader = new SupabaseUploader({
+      client,
+      ...base,
+      uploadFile: (path, uri) => (uploads.push(`${path} ${uri}`), Promise.resolve({ error: null })),
+    });
+    const m = mutation({
+      op: "rpc",
+      target: "app.add_incident_media",
+      table: "incident_media",
+      rowId: "ph-1",
+      payload: {
+        p_id: "ph-1",
+        p_incident_id: "i1",
+        p_media_uri: "o/incidents/i1/ph-1.jpg",
+        local_uri: "file:///ph.jpg",
+        storage_path: "o/incidents/i1/ph-1.jpg",
+      },
+    });
+    expect((await uploader.upload(m)).kind).toBe("applied");
+    expect(uploads).toEqual(["o/incidents/i1/ph-1.jpg file:///ph.jpg"]);
+    expect(calls[0]).toContain('rpc apply_sync_mutation {"p_mutation_id":"mut-1"');
+    expect(calls[0]).toContain('"p_rpc":"app.add_incident_media"');
+    expect(calls[0]).not.toContain("local_uri");
+  });
+
+  it("keeps the optimistic row when the RPC answers with a summary", async () => {
+    const { client } = fakeClient([
+      {
+        data: { data: { id: "inc-1", incident_number: 12, incident_state: "Reported" } },
+        error: null,
+        status: 200,
+      },
+      { data: { data: [{ outcome: "applied", subject_id: "u1" }] }, error: null, status: 200 },
+    ]);
+    const uploader = new SupabaseUploader({ client, ...base });
+    expect(await uploader.upload(mutation({ op: "rpc", target: "app.report_incident" }))).toEqual({
+      kind: "applied",
+      serverRow: null,
+    });
+    expect(
+      await uploader.upload(
+        mutation({ op: "rpc", target: "app.apply_asset_scan", table: "asset_custody" }),
+      ),
+    ).toEqual({ kind: "applied", serverRow: null });
+  });
+});
