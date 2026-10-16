@@ -1,0 +1,32 @@
+-- Shared fixture for the A22 RLS regression files 9901 to 9904 (RRR-41). Included with \ir inside
+-- each test transaction, after 0300_domain_world.psql. Nothing persists: each suite rolls back.
+--
+-- security_targets lists every app table with an org_id column, generated from the catalog, with
+-- one real row of a victim tenant where the table has one. A victim row is any row owned by an org
+-- other than Harbor Lights (org_b, the attacker's org): the domain world's Northwind Live rows and any
+-- demo seed rows. own_sample is a Northwind row, used by the role band file.
+
+create temporary table security_targets as
+select c.oid::regclass::text as rel,
+  exists (select 1 from pg_attribute i where i.attrelid = c.oid and i.attname = 'id' and not i.attisdropped) as has_id,
+  null::jsonb as sample,
+  null::jsonb as own_sample
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+join pg_attribute a on a.attrelid = c.oid and a.attname = 'org_id' and not a.attisdropped
+where n.nspname = 'app' and c.relkind in ('r', 'p') and not c.relispartition;
+
+do $$
+declare
+  t record;
+  v jsonb;
+begin
+  for t in select rel from security_targets loop
+    execute format('select to_jsonb(s) from %s s where s.org_id <> %L limit 1', t.rel, pg_temp.id('org_b')) into v;
+    update security_targets set sample = v where rel = t.rel;
+    execute format('select to_jsonb(s) from %s s where s.org_id = %L limit 1', t.rel, pg_temp.id('org_a')) into v;
+    update security_targets set own_sample = v where rel = t.rel;
+  end loop;
+end $$;
+
+grant select on security_targets to public;
