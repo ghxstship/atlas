@@ -11018,6 +11018,54 @@ var show_default$1 = {
     calendar: "Calendar",
   },
 };
+var status_default$1 = {
+  title: "XOS status",
+  description:
+    "Live availability of Atlas, Gateway, the API, Realtime, Compass sync and notifications, checked every few minutes.",
+  skipLink: "Skip to components",
+  overall: {
+    operational: "All systems operational",
+    degraded: "Some systems are slower than normal. We are watching them.",
+    outage: "Some systems are unavailable. We are working on it; updates appear below.",
+    unknown:
+      "Status checks have not reported yet. Checks run every five minutes; refresh this page shortly.",
+  },
+  state: {
+    operational: "Operational",
+    degraded: "Degraded",
+    outage: "Outage",
+    unknown: "No data",
+  },
+  component: {
+    atlas: "Atlas",
+    gateway: "Gateway",
+    api: "API",
+    realtime: "Realtime",
+    sync: "Compass sync",
+    notifications: "Notifications",
+  },
+  region: {
+    "us-east": "US East",
+    "eu-central": "EU Central",
+  },
+  regionHeading: "{region}",
+  uptime: "{percent} uptime over the last {days} days",
+  uptimeUnknown: "No checks recorded in the last {days} days",
+  historyLabel: "Daily history for {component} in {region}, oldest first",
+  day: "{date}: {state}",
+  lastChecked: "Last checked {time} UTC",
+  neverChecked: "Not checked yet",
+  incidents: {
+    heading: "Incidents in the last 14 days",
+    empty:
+      "No incidents in the last 14 days. If something is not working for you, report it from Help in Atlas or Gateway.",
+    started: "Started {time} UTC",
+    resolved: "Resolved {time} UTC",
+    ongoing: "Ongoing",
+  },
+  footer:
+    "Measured by synthetic checks against the live service. Targets: 99.9 percent monthly availability for Atlas and the API.",
+};
 var support_default$1 = {
   categories: {
     Question: "Question",
@@ -23258,6 +23306,55 @@ var show_default = {
     calendar: "Calendario",
   },
 };
+var status_default = {
+  title: "Estado de XOS",
+  description:
+    "Disponibilidad en vivo de Atlas, Gateway, la API, Realtime, la sincronización de Compass y las notificaciones, revisada cada pocos minutos.",
+  skipLink: "Saltar a los componentes",
+  overall: {
+    operational: "Todos los sistemas funcionan con normalidad",
+    degraded: "Algunos sistemas están más lentos de lo normal. Los estamos vigilando.",
+    outage:
+      "Algunos sistemas no están disponibles. Estamos trabajando en ello; las novedades aparecen abajo.",
+    unknown:
+      "Las revisiones de estado aún no han informado. Se ejecutan cada cinco minutos; actualice esta página en breve.",
+  },
+  state: {
+    operational: "Operativo",
+    degraded: "Degradado",
+    outage: "Interrupción",
+    unknown: "Sin datos",
+  },
+  component: {
+    atlas: "Atlas",
+    gateway: "Gateway",
+    api: "API",
+    realtime: "Realtime",
+    sync: "Sincronización de Compass",
+    notifications: "Notificaciones",
+  },
+  region: {
+    "us-east": "Este de EE. UU.",
+    "eu-central": "Europa central",
+  },
+  regionHeading: "{region}",
+  uptime: "{percent} de disponibilidad en los últimos {days} días",
+  uptimeUnknown: "No hay revisiones registradas en los últimos {days} días",
+  historyLabel: "Historial diario de {component} en {region}, del más antiguo al más reciente",
+  day: "{date}: {state}",
+  lastChecked: "Última revisión {time} UTC",
+  neverChecked: "Aún sin revisar",
+  incidents: {
+    heading: "Incidentes de los últimos 14 días",
+    empty:
+      "No hubo incidentes en los últimos 14 días. Si algo no le funciona, infórmelo desde Ayuda en Atlas o Gateway.",
+    started: "Inicio {time} UTC",
+    resolved: "Resuelto {time} UTC",
+    ongoing: "En curso",
+  },
+  footer:
+    "Medido con revisiones sintéticas contra el servicio en vivo. Objetivo: 99,9 por ciento de disponibilidad mensual para Atlas y la API.",
+};
 var support_default = {
   categories: {
     Question: "Pregunta",
@@ -25026,6 +25123,7 @@ var enUS = {
   shell: shell_default$1,
   shipmentTracking: shipmentTracking_default$1,
   show: show_default$1,
+  status: status_default$1,
   support: support_default$1,
   ui: ui_default$1,
   vendors: vendors_default$1,
@@ -25066,6 +25164,7 @@ var esUS = {
   shell: shell_default,
   shipmentTracking: shipmentTracking_default,
   show: show_default,
+  status: status_default,
   support: support_default,
   ui: ui_default,
   vendors: vendors_default,

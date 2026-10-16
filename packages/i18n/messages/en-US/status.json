@@ -1,0 +1,44 @@
+{
+  "title": "XOS status",
+  "description": "Live availability of Atlas, Gateway, the API, Realtime, Compass sync and notifications, checked every few minutes.",
+  "skipLink": "Skip to components",
+  "overall": {
+    "operational": "All systems operational",
+    "degraded": "Some systems are slower than normal. We are watching them.",
+    "outage": "Some systems are unavailable. We are working on it; updates appear below.",
+    "unknown": "Status checks have not reported yet. Checks run every five minutes; refresh this page shortly."
+  },
+  "state": {
+    "operational": "Operational",
+    "degraded": "Degraded",
+    "outage": "Outage",
+    "unknown": "No data"
+  },
+  "component": {
+    "atlas": "Atlas",
+    "gateway": "Gateway",
+    "api": "API",
+    "realtime": "Realtime",
+    "sync": "Compass sync",
+    "notifications": "Notifications"
+  },
+  "region": {
+    "us-east": "US East",
+    "eu-central": "EU Central"
+  },
+  "regionHeading": "{region}",
+  "uptime": "{percent} uptime over the last {days} days",
+  "uptimeUnknown": "No checks recorded in the last {days} days",
+  "historyLabel": "Daily history for {component} in {region}, oldest first",
+  "day": "{date}: {state}",
+  "lastChecked": "Last checked {time} UTC",
+  "neverChecked": "Not checked yet",
+  "incidents": {
+    "heading": "Incidents in the last 14 days",
+    "empty": "No incidents in the last 14 days. If something is not working for you, report it from Help in Atlas or Gateway.",
+    "started": "Started {time} UTC",
+    "resolved": "Resolved {time} UTC",
+    "ongoing": "Ongoing"
+  },
+  "footer": "Measured by synthetic checks against the live service. Targets: 99.9 percent monthly availability for Atlas and the API."
+}

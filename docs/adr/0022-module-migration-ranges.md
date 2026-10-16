@@ -52,3 +52,15 @@ ADR 0004 gave all domain schema to A03 (0300 to 0499). In Wave 3 every module ag
 - Schema requests no longer queue behind one agent.
 - A31 (views, help and support) owns 0640 to 0649, the end of A19's original 0600 to 0649 integration range; A19 keeps 0600 to 0639.
 - `api_external` projections still belong to A28. Views over late-slot columns go in A28's post-late range, 1000 to 1009, which sorts after 0999 as text and as a number.
+
+## Amendment (2026-10-16): post-late ranges
+
+Follow-up agents that need tables from every module range take blocks after A28's 1000 to 1009:
+
+| Agent | Range        | Scope                                                         |
+| ----- | ------------ | ------------------------------------------------------------- |
+| A29   | 1010 to 1014 | Workforce late slot                                           |
+| A32   | 1020 to 1029 | Gateway and Compass follow-up, including `api_external` views |
+| A33   | 1030 to 1039 | Platform workflow: approvals, trash, templates, state labels  |
+
+A32 adds `api_external` views in its own range because A28 is complete; the projection rules in ADR 0019 still apply.
