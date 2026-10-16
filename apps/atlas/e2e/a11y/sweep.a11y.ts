@@ -58,7 +58,9 @@ for (const { role } of activeRoles()) {
           test.skip();
         }
         expect(status, `${path} answered ${status}`).toBe(200);
-        await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+        const h1 = page.getByRole("heading", { level: 1 }).first();
+        await h1.waitFor({ state: "visible", timeout: 10_000 }).catch(() => undefined);
+        if (!(await h1.isVisible())) problems.push("structure: the page has no visible h1");
         for (const theme of THEMES) {
           await setTheme(page, theme);
           problems.push(...(await axeProblems(page)).map((p) => `${theme}: ${p}`));

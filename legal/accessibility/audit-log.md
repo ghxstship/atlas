@@ -8,7 +8,7 @@ audience: Internal; summarized in the ACRs and the Accessibility Statement
 
 # Accessibility Audit Log
 
-> **Draft for review by counsel before launch.** Entries 1 to 22 record the Wave 6 independent audit by A23 on main 5f4e839. Screen reader passes with real assistive technology are still owed; see "Passes still owed" below.
+> **Draft for review by counsel before launch.** Entries 1 to 23 record the Wave 6 independent audit by A23 on main 5f4e839. Screen reader passes with real assistive technology are still owed; see "Passes still owed" below.
 
 Section 14.1 requires manual keyboard and screen reader passes on every screen in Section 11.5, with VoiceOver on macOS and iOS, NVDA and TalkBack, logged here. **Audits begin in Wave 6**, when A23 (Accessibility Review) runs the independent audit across Atlas, Gateway and Compass. Automated axe-core results are produced by CI on every build and are referenced here, not copied.
 
@@ -59,6 +59,7 @@ The Accessibility Conformance Reports (`acr-atlas.md` and `acr-compass.md`) are 
 | 20 | 2026-10-16 | Compass | Kiosk mode, banners | 5f4e839 | Source review | Source at 5f4e839 | 1.1.1, 4.1.2 | Fail | A23-010 (Minor) | A17 | Open | A23 |
 | 21 | 2026-10-16 | Compass | Touch targets on every primitive | 5f4e839 | Source review against tokens (touchMin 48 pt) | Source at 5f4e839 | 2.5.5, 2.5.8 | Pass | None | A17 | n/a | A23 |
 | 22 | 2026-10-16 | Compass | Labels, roles and states on every control | 5f4e839 | Source review | Source at 5f4e839 | 1.1.1, 4.1.2 | Fail | A23-006 (Moderate) | A17 | Open | A23 |
+| 23 | 2026-10-16 | Atlas | Error state when a page fails (Field Lead on Project overview) | 5f4e839 | Accessibility tree, keyboard | Chrome 155 headless, Playwright 1.64, axe-core 4.13 | 1.3.1, 2.4.5, 2.4.6 | Fail | A23-017 (Moderate) | A06 | Open | A23 |
 
 ## How the automated entries were run
 

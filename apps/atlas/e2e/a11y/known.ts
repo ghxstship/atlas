@@ -25,6 +25,12 @@ export const KNOWN_PROBLEMS: readonly KnownProblem[] = [
     roles: ["owner", "manager", "field"],
   },
   {
+    finding: "A23-017",
+    pattern: /^structure: the page has no visible h1$/,
+    routes: ["project", "project.overview"],
+    roles: ["field"],
+  },
+  {
     finding: "A23-016",
     pattern: /^icon control: "Open navigation" has no tooltip$/,
     viewports: ["phone-375"],
