@@ -126,4 +126,4 @@ export function memberName(v: unknown): string | null {
   return strOrNull(p?.["full_name"]);
 }
 
-export const MEMBER_EMBED = "id, person_id, person:people(full_name)";
+export const MEMBER_EMBED = "id, person_id, person:people!memberships_person_id_fkey(full_name)";
