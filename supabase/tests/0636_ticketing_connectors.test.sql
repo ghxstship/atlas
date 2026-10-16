@@ -27,8 +27,8 @@ select is((select count(*)::int from app.attendance_counts where project_id = pg
 select is(app.record_attendance(pg_temp.id('run'), jsonb_build_array(
   jsonb_build_object('scope_node_id', pg_temp.id('show_a'), 'counted_on', '2027-06-05', 'ticket_class', 'VIP', 'tickets_sold', 210, 'gross_minor', 2100000, 'currency_code', 'USD'))),
   1, 'a newer figure for the same day and class');
-select is((select count(*)::int from app.attendance_counts), 2, 'replaces the older one');
-select is((select tickets_sold from app.attendance_counts where ticket_class = 'VIP'), 210, 'with the new figure');
+select is((select count(*)::int from app.attendance_counts where integration_connection_id = pg_temp.id('csv')), 2, 'replaces the older one');
+select is((select tickets_sold from app.attendance_counts where ticket_class = 'VIP' and integration_connection_id = pg_temp.id('csv')), 210, 'with the new figure');
 select throws_ok($$select app.record_attendance((select id from world where key = 'run'), jsonb_build_array(jsonb_build_object('project_id', (select id from world where key = 'prj_b'), 'counted_on', '2027-06-05', 'ticket_class', 'GA', 'tickets_sold', 1)))$$,
   'XR001', 'attendance_project_unknown: An attendance row names a project this org does not have.', 'a row cannot name another org''s project');
 select throws_ok($$select app.record_attendance((select id from world where key = 'run'), jsonb_build_array(jsonb_build_object('scope_node_id', (select id from world where key = 'root_a2'), 'counted_on', '2027-06-05', 'ticket_class', 'GA', 'tickets_sold', 1)))$$,
@@ -47,7 +47,7 @@ select pg_temp.as_platform();
 select is((select tickets_sold from app.project_attendance_totals where project_id = pg_temp.id('prj_a')), 2010::bigint, 'sold totals across classes');
 select is((select gross_minor from app.project_attendance_totals where project_id = pg_temp.id('prj_a')), 10200000::bigint, 'gross totals when every row is priced');
 select is((select scans_unreported_count::int from app.project_attendance_totals where project_id = pg_temp.id('prj_a')), 1, 'unreported scans are counted, not zeroed');
-update app.attendance_counts set gross_minor = null, currency_code = null where ticket_class = 'VIP';
+update app.attendance_counts set gross_minor = null, currency_code = null where ticket_class = 'VIP' and integration_connection_id = pg_temp.id('csv');
 select is((select gross_minor from app.project_attendance_totals where project_id = pg_temp.id('prj_a')), null::bigint, 'an unpriced row makes the gross NULL, never zero');
 select is((select unpriced_count::int from app.project_attendance_totals where project_id = pg_temp.id('prj_a')), 1, 'with the unpriced count beside it');
 
