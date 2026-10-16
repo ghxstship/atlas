@@ -1,10 +1,11 @@
 import type { Row } from "@xos/sync";
-import type { ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { operationalEngagements } from "../../src/domain/access";
 import {
   actionFor,
   buildShiftAction,
+  claimConflict,
   groupByDay,
   isOpenShift,
   startsIn,
@@ -12,7 +13,7 @@ import {
 } from "../../src/domain/shifts";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { formatDay, formatTime, ProjectPicker, SyncBanner } from "../../src/screens/common";
-import { Button, EmptyState, Screen, ShiftCard, Text } from "../../src/ui";
+import { Button, EmptyState, InlineAlert, Screen, ShiftCard, Text } from "../../src/ui";
 
 export default function ScheduleScreen(): ReactElement {
   const { t } = useTranslation();
@@ -26,6 +27,24 @@ export default function ScheduleScreen(): ReactElement {
   };
   const mine = rows.filter((s) => !isOpenShift(s));
   const open = rows.filter(isOpenShift);
+  const [notice, setNotice] = useState<{ tone: "success" | "warning"; text: string } | null>(null);
+  const held = mine.filter((s) => s.membership_id === me.membershipId);
+  const act = (s: ShiftRow, action: "accept" | "claim") => {
+    if (action === "claim") {
+      const conflict = claimConflict(s, held);
+      if (conflict) {
+        setNotice({
+          tone: "warning",
+          text: t("compass.schedule.claimOverlap", {
+            time: `${formatDay(conflict.starts_at, conflict.time_zone)} ${formatTime(conflict.starts_at, conflict.time_zone)}`,
+          }),
+        });
+        return;
+      }
+      setNotice({ tone: "success", text: t("compass.schedule.claimQueued") });
+    }
+    void enqueue(buildShiftAction(s, action, identity?.membershipId === null, me.membershipId));
+  };
   const card = (s: ShiftRow) => {
     const action = actionFor(s, me);
     const state =
@@ -60,9 +79,7 @@ export default function ScheduleScreen(): ReactElement {
             <Button
               testID={`shift-${action}-${s.id}`}
               label={t(`compass.schedule.${action}`)}
-              onPress={() =>
-                void enqueue(buildShiftAction(s, action, identity?.membershipId === null))
-              }
+              onPress={() => act(s, action)}
             />
           ) : undefined
         }
@@ -74,6 +91,9 @@ export default function ScheduleScreen(): ReactElement {
     <Screen testID="schedule" title={t("compass.schedule.title")} onRefresh={() => void refresh()}>
       <ProjectPicker />
       <SyncBanner />
+      {notice ? (
+        <InlineAlert testID="schedule-notice" tone={notice.tone} message={notice.text} />
+      ) : null}
       <Text variant="heading20" heading>
         {t("compass.schedule.myShifts")}
       </Text>

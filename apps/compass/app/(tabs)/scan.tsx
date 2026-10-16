@@ -29,10 +29,12 @@ import {
   type CustodyRow,
   type Symbology,
 } from "../../src/domain/scan";
+import { scanAnnouncement } from "../../src/domain/announce";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { DenialNotice, formatDay, ProjectPicker, SyncBanner } from "../../src/screens/common";
 import { Scanner } from "../../src/screens/Scanner";
 import {
+  announce,
   Button,
   Card,
   CredentialBadge,
@@ -210,7 +212,12 @@ function LiveScan({
   const router = useRouter();
   const { resolved, projectId, enqueue, settings } = useCompass();
   const identity = resolved?.identity;
-  const [last, setLast] = useState<Last | undefined>(undefined);
+  const [last, setLastState] = useState<Last | undefined>(undefined);
+  // Each result is announced as well as shown: iOS has no live regions (A23-004).
+  const setLast = (next: Last) => {
+    setLastState(next);
+    announce(scanAnnouncement(next));
+  };
   const [zoneId, setZoneId] = useState<string | null>(null);
   const batch = useRef(new ContinuousScan());
   const [count, setCount] = useState(0);

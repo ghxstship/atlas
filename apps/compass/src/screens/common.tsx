@@ -3,13 +3,15 @@
  * the always-visible sync banner and the loading and error states.
  */
 import { useRouter } from "expo-router";
-import { useState, type ReactElement, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { access, type Denial, type Feature } from "../domain/access";
+import { queueAnnouncement } from "../domain/announce";
 import { useCompass } from "../runtime/CompassProvider";
 import { countKey } from "../runtime/i18n";
 import {
+  announce,
   Banner,
   Button,
   ErrorState,
@@ -111,6 +113,15 @@ export function SyncBanner(): ReactElement | null {
   const { t } = useTranslation();
   const router = useRouter();
   const { status, network, lastRefresh } = useCompass();
+  // The queue count changes in place, so it is announced (A23-004); the first reading is not.
+  const previous = useRef<number | null>(null);
+  const queued = status?.queued ?? null;
+  useEffect(() => {
+    if (queued === null) return;
+    const change = queueAnnouncement(previous.current, queued);
+    previous.current = queued;
+    if (change) announce(t(change.key, change.count === undefined ? {} : { count: change.count }));
+  }, [queued, t]);
   if (!status) return null;
   if (status.authRequired) {
     return (

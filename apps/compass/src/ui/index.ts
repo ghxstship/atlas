@@ -11,7 +11,7 @@ export {
   type ThemePreference,
   type XosNativeTheme,
 } from "@xos/ui-native/theme";
-export { LiveActivity } from "@xos/ui-native";
+export { announce, LiveActivity, OfflineBanner } from "@xos/ui-native";
 export { Button, Icon, IconButton, SegmentedControl, Switch, Text, TextField } from "./primitives";
 export {
   Badge,
@@ -21,7 +21,6 @@ export {
   ErrorState,
   InlineAlert,
   ListRow,
-  OfflineBanner,
   ProgressBar,
   RefusalNotice,
   Screen,

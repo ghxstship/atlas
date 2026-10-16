@@ -48,6 +48,25 @@ export function isOpenShift(s: ShiftRow): boolean {
 
 export type ShiftAction = "accept" | "claim" | null;
 
+/**
+ * Journey 66: the org's claiming rule as the device can check it before queuing (claim_open_shift,
+ * 0460, decides for good): a person never holds two overlapping shifts. Returns the shift already held
+ * that overlaps, or null.
+ */
+export function claimConflict(open: ShiftRow, mine: readonly ShiftRow[]): ShiftRow | null {
+  const start = Date.parse(open.starts_at);
+  const end = Date.parse(open.ends_at);
+  return (
+    mine.find(
+      (s) =>
+        s.id !== open.id &&
+        s.shift_state !== "Canceled" &&
+        Date.parse(s.starts_at) < end &&
+        Date.parse(s.ends_at) > start,
+    ) ?? null
+  );
+}
+
 export function actionFor(
   s: ShiftRow,
   me: { readonly membershipId: string | null; readonly engagementIds: readonly string[] },
@@ -68,6 +87,7 @@ export function buildShiftAction(
   s: ShiftRow,
   action: "accept" | "claim",
   external: boolean,
+  membershipId: string | null = null,
 ): MutationInput {
   const target =
     action === "claim"
@@ -82,7 +102,11 @@ export function buildShiftAction(
     rowId: s.id,
     payload: { p_shift_id: s.id },
     policy: "cas",
-    optimistic: { ...s, shift_state: "Accepted" },
+    // A claimed shift becomes the person's own at once, so it moves to My shifts while queued.
+    optimistic:
+      action === "claim" && membershipId
+        ? { ...s, membership_id: membershipId, shift_state: "Accepted" }
+        : { ...s, shift_state: "Accepted" },
   };
 }
 

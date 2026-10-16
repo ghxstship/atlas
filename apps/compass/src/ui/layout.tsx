@@ -9,7 +9,6 @@ import type {
   ErrorStateProps,
   InlineAlertProps,
   ListRowProps,
-  OfflineBannerProps,
   ProgressBarProps,
   RefusalNoticeProps,
   ScreenProps,
@@ -19,8 +18,9 @@ import type {
   TagProps,
   ToastProps,
 } from "@xos/ui-native";
+import { announce } from "@xos/ui-native";
 import { useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
-import type { ReactElement } from "react";
+import { useEffect, type ReactElement } from "react";
 import { Modal, Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, gloveSlop, Icon, Text, tid } from "./primitives";
@@ -387,32 +387,11 @@ export function InlineAlert({
   );
 }
 
-/** The always-visible queue (Section 11.13: every action works offline, with the queue visible). */
-export function OfflineBanner({
-  message,
-  queued,
-  queuedLabel,
-  viewLabel,
-  onView,
-  testID,
-}: OfflineBannerProps): ReactElement {
-  return (
-    <View
-      accessible
-      accessibilityLabel={queued > 0 && queuedLabel ? `${message}, ${queuedLabel}` : message}
-    >
-      <Banner
-        {...tid(testID)}
-        tone="warning"
-        icon="cloud-off"
-        message={queued > 0 ? `${message} (${queued})` : message}
-        {...(viewLabel && onView ? { actionLabel: viewLabel, onAction: onView } : {})}
-      />
-    </View>
-  );
-}
-
 export function Toast({ message, actionLabel, onAction, testID }: ToastProps): ReactElement {
+  // A toast is a status message: VoiceOver hears it only when it is announced (A23-004).
+  useEffect(() => {
+    announce(message);
+  }, [message]);
   return (
     <Banner
       {...tid(testID)}

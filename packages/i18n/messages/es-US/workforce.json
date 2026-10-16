@@ -865,5 +865,310 @@
     "hours": "Plazo de primera respuesta (horas hábiles)",
     "hoursHelp": "De 1 a 168 horas hábiles.",
     "teamDescription": "Con qué ayuda el equipo"
+  },
+  "compass": {
+    "common": {
+      "loading": "Cargando",
+      "errorTitle": "Esto no se cargó",
+      "errorSentence": "Revisa tu conexión e inténtalo de nuevo. No se pierde nada de lo guardado en este dispositivo.",
+      "retry": "Reintentar",
+      "refresh": "Actualizar",
+      "failed": "No se pudo completar. Inténtalo de nuevo en un momento.",
+      "back": "Atrás",
+      "close": "Cerrar",
+      "notFound": "Eso ya no está disponible para ti. Actualiza para ver lo actual.",
+      "conflict": "Eso ya existe. Actualiza para verlo.",
+      "invalid": "Algunos datos no tienen el formato esperado. Revisa cada uno e inténtalo de nuevo.",
+      "unexpected": "Algo salió mal de nuestro lado. Inténtalo de nuevo en un momento.",
+      "noProject": "Elige un proyecto para ver sus operaciones en sitio.",
+      "chooseProject": "Elegir proyecto",
+      "openAtlas": "Continuar en Atlas"
+    },
+    "hub": {
+      "title": "Equipo de trabajo",
+      "crew": "Equipo",
+      "siteOps": "Operaciones en sitio",
+      "surveys": "Encuestas",
+      "surveysEmpty": "No hay encuestas abiertas. Las nuevas aparecen aquí y en el muro.",
+      "forms": "Formularios",
+      "formsEmpty": "Aún no hay formularios publicados. Los formularios creados en Atlas aparecen aquí, listos sin conexión.",
+      "screens": {
+        "feed": "Muro",
+        "surveys": "Encuestas",
+        "chat": "Chat",
+        "directory": "Directorio",
+        "events": "Eventos",
+        "forms": "Formularios",
+        "training": "Capacitación",
+        "handbook": "Manual",
+        "recognition": "Reconocimientos",
+        "helpDesk": "Mesa de ayuda",
+        "occupancy": "Aforo",
+        "weather": "Clima",
+        "door": "Registro de invitados",
+        "lostFound": "Objetos perdidos"
+      }
+    },
+    "feed": {
+      "title": "Muro",
+      "empty": "Aún no hay publicaciones. Los anuncios y novedades para ti aparecen aquí.",
+      "pinned": "Fijado",
+      "mustAcknowledge": "Léelo y confirma",
+      "acknowledge": "Confirmar lectura",
+      "acknowledged": "Lectura confirmada",
+      "vote": "Votar",
+      "voted": "Voto guardado",
+      "comments": "Comentarios",
+      "kinds": {
+        "announcement": "Anuncio",
+        "update": "Novedad",
+        "poll": "Encuesta rápida",
+        "recognition": "Reconocimiento"
+      },
+      "reactions": {
+        "thumbs_up": "Pulgar arriba",
+        "heart": "Corazón",
+        "check": "Visto bueno",
+        "eyes": "Ojos",
+        "laugh": "Risa",
+        "celebrate": "Celebración"
+      },
+      "reaction": "{name}, {count}",
+      "reactionMine": "{name}, {count}, tuya",
+      "byline": "{author} · {time}"
+    },
+    "survey": {
+      "submit": "Enviar respuestas",
+      "submitted": "Gracias. Tus respuestas se guardaron y se envían cuando tengas conexión.",
+      "closed": "Esta encuesta está cerrada.",
+      "anonymous": "Anónima: tu nombre no se guarda con tus respuestas.",
+      "optional": "{prompt} (opcional)",
+      "answerRequired": "Responde {count} más para enviar."
+    },
+    "chat": {
+      "title": "Chat",
+      "empty": "Aún no hay conversaciones. Empieza una desde el directorio.",
+      "newMessage": "Nuevo mensaje",
+      "muted": "Silenciada",
+      "noMessages": "Aún no hay mensajes",
+      "unread": "{count} sin leer",
+      "threadEmpty": "Aún no hay mensajes. Saluda.",
+      "message": "Mensaje",
+      "send": "Enviar",
+      "edited": "Editado",
+      "you": "Tú",
+      "attachment": "Adjunto",
+      "meta": "{author} · {time}"
+    },
+    "directory": {
+      "title": "Directorio",
+      "search": "Buscar personas",
+      "empty": "Nadie coincide. Borra la búsqueda para ver a todos.",
+      "clearSearch": "Borrar búsqueda",
+      "scope": "Mostrar",
+      "everyone": "Todos",
+      "onSiteNow": "En sitio ahora",
+      "onSite": "En sitio",
+      "call": "Llamar a {name}",
+      "message": "Escribir a {name}",
+      "recognitions": "{count} reconocimientos"
+    },
+    "events": {
+      "title": "Eventos",
+      "empty": "No hay reuniones informativas, llamados ni reuniones próximas.",
+      "checkIn": "Registrar asistencia",
+      "checkedIn": "Asistencia registrada",
+      "kinds": {
+        "briefing": "Reunión informativa",
+        "crewCall": "Llamado de equipo",
+        "meeting": "Reunión"
+      },
+      "responses": {
+        "going": "Asistiré",
+        "maybe": "Tal vez",
+        "declined": "No asistiré"
+      },
+      "phases": {
+        "canceled": "Cancelado",
+        "past": "Terminado",
+        "live": "En curso",
+        "upcoming": "Próximo"
+      },
+      "when": "{start} a {end}",
+      "whenAt": "{start} a {end} · {location}",
+      "counts": "{Going} asistirán, {Maybe} tal vez, {Declined} no asistirán"
+    },
+    "forms": {
+      "submit": "Enviar formulario",
+      "submitted": "Formulario guardado. Se envía ahora o cuando vuelvas a tener conexión.",
+      "required": "Obligatorio",
+      "requiredField": "{label} (obligatorio)",
+      "missing": "Completa {count} respuestas obligatorias más.",
+      "score": "Puntaje {score} de {max}",
+      "scorePass": "Puntaje {score} de {max}, aprueba con {pass}",
+      "addPhoto": "Agregar foto",
+      "photos": "{count} fotos",
+      "dateHelp": "Año, mes y día, como 2027-06-01.",
+      "numberError": "Escribe un número.",
+      "signature": "Firma",
+      "attestation": "Al firmar, confirmo que estas respuestas son verdaderas.",
+      "clearSignature": "Borrar",
+      "signatureMissing": "Firma en el recuadro antes de enviar.",
+      "locationStamped": "Ubicación registrada cerca de {latitude}, {longitude}",
+      "locating": "Buscando tu ubicación para el registro. Puedes seguir completando el formulario.",
+      "locationOff": "La ubicación está desactivada. Actívala para registrar dónde estás en este formulario."
+    },
+    "training": {
+      "title": "Capacitación",
+      "empty": "No tienes capacitaciones asignadas. Los cursos que asigne tu organización aparecen aquí.",
+      "lessons": "Lecciones",
+      "markComplete": "Marcar como completada",
+      "lessonDone": "Hecha",
+      "watchVideo": "Ver video",
+      "submitQuiz": "Enviar cuestionario",
+      "answerAll": "Responde todas las preguntas para enviar.",
+      "passed": "Aprobado",
+      "retake": "Repetir",
+      "progress": "{done} de {total} lecciones",
+      "due": "Vence el {date}",
+      "minutes": "{minutes} min",
+      "passMark": "Se aprueba con {percent} por ciento"
+    },
+    "handbook": {
+      "title": "Manual",
+      "search": "Buscar en el manual",
+      "empty": "Ningún artículo coincide. Borra la búsqueda para verlos todos.",
+      "mandatory": "Lectura obligatoria",
+      "mustRead": "Lee y confirma estos",
+      "allArticles": "Todos los artículos",
+      "acknowledge": "Lo he leído",
+      "acknowledged": "Lectura confirmada",
+      "changes": "Qué cambió: {summary}"
+    },
+    "recognition": {
+      "title": "Reconocimientos",
+      "empty": "Aún no hay reconocimientos. Sé el primero en reconocer a un colega.",
+      "give": "Reconocer a alguien",
+      "sheetTitle": "Reconocer a un colega",
+      "who": "A quién",
+      "message": "Qué hizo",
+      "messageHelp": "Una o dos frases sobre lo que marcó la diferencia.",
+      "send": "Enviar",
+      "line": "{from} a {to} · {time}"
+    },
+    "helpDesk": {
+      "title": "Mesa de ayuda",
+      "empty": "No tienes solicitudes. Pide ayuda a un equipo cuando la necesites.",
+      "ask": "Pedir ayuda",
+      "sheetTitle": "Pedir ayuda a un equipo",
+      "team": "Equipo",
+      "category": "Categoría",
+      "subject": "Asunto",
+      "body": "Qué necesitas",
+      "send": "Enviar solicitud",
+      "overdue": "Respuesta atrasada",
+      "states": {
+        "open": "Abierta",
+        "waiting": "Espera tu respuesta",
+        "resolved": "Resuelta",
+        "closed": "Cerrada"
+      },
+      "categories": {
+        "question": "Pregunta",
+        "problem": "Problema",
+        "access": "Acceso",
+        "billing": "Facturación",
+        "account": "Cuenta",
+        "featureRequest": "Sugerencia"
+      },
+      "meta": "{number} · {time}",
+      "metaAssigned": "{number} · {assignee} · {time}"
+    },
+    "occupancy": {
+      "title": "Aforo",
+      "empty": "No hay contadores en este proyecto. Un supervisor los configura en Atlas.",
+      "counter": "Contador",
+      "door": "Puerta",
+      "closed": "Cerrado",
+      "add": "Sumar {n}",
+      "remove": "Restar {n}",
+      "count": "{count} de {permitted}",
+      "percent": "{percent} por ciento del aforo permitido",
+      "level80": "80 por ciento del aforo permitido. Reduce el ingreso.",
+      "level90": "90 por ciento del aforo permitido. Detén el ingreso y llama a tu supervisor.",
+      "level100": "Aforo permitido alcanzado. Detén el ingreso ahora."
+    },
+    "weather": {
+      "title": "Clima",
+      "alerts": "Alertas activas",
+      "noAlerts": "No hay alertas de clima. Sigue registrando lecturas.",
+      "readings": "Lecturas recientes",
+      "noReadings": "Aún no hay lecturas.",
+      "thresholds": "Umbrales",
+      "noThresholds": "No hay umbrales. Un supervisor los define en Atlas.",
+      "record": "Registrar una lectura",
+      "hazard": "Riesgo",
+      "value": "Valor en {unit}",
+      "valueError": "Escribe un número.",
+      "save": "Guardar lectura",
+      "hazards": {
+        "wind": "Viento",
+        "lightning": "Rayos",
+        "heat": "Calor"
+      },
+      "levels": {
+        "monitor": "Vigilar",
+        "restrict": "Restringir",
+        "evacuate": "Evacuar"
+      },
+      "alertLine": "{hazard}: {level} · {time}",
+      "readingLine": "{value} {unit} · {time}",
+      "thresholdLine": "{level} con {value} {unit} ({source})"
+    },
+    "door": {
+      "title": "Registro de invitados",
+      "search": "Buscar invitados",
+      "empty": "Ningún invitado coincide. Revisa la ortografía o borra la búsqueda.",
+      "checkIn": "Registrar",
+      "checkedIn": "Registrado",
+      "approved": "Aprobado",
+      "door": "Puerta",
+      "sheetTitle": "Registrar a {name}",
+      "confirm": "Confirmar registro",
+      "plusOnes": "{admitted} de {allowed} acompañantes",
+      "more": "Uno más",
+      "fewer": "Uno menos",
+      "admitted": "Ingresó con {plusOnes} acompañantes · {time}",
+      "admittedAt": "Ingresó con {plusOnes} acompañantes por {door} · {time}"
+    },
+    "lostFound": {
+      "title": "Objetos perdidos",
+      "empty": "No hay nada registrado. Registra un objeto en cuanto lo entreguen.",
+      "log": "Registrar objeto encontrado",
+      "sheetTitle": "Registrar un objeto encontrado",
+      "category": "Categoría",
+      "description": "Descripción",
+      "foundLocation": "Dónde se encontró",
+      "storageLocation": "Dónde se guarda",
+      "save": "Guardar objeto",
+      "categories": {
+        "bag": "Bolso",
+        "clothing": "Ropa",
+        "electronics": "Electrónicos",
+        "jewelry": "Joyas",
+        "keys": "Llaves",
+        "documents": "Documentos",
+        "wallet": "Billetera",
+        "other": "Otro"
+      },
+      "states": {
+        "logged": "Registrado",
+        "claimed": "Reclamado",
+        "returned": "Devuelto",
+        "disposed": "Descartado"
+      },
+      "itemTitle": "{category}: {description}",
+      "meta": "{number} · {place} · {count} reclamos en espera"
+    }
   }
 }

@@ -65,6 +65,14 @@ export default function MoreScreen(): ReactElement {
         ))}
         {resolved && isInternal(resolved.identity.audience) ? (
           <ListRow
+            testID="more-workforce"
+            icon="users"
+            title={t("workforce.compass.hub.title")}
+            onPress={() => router.push("/workforce" as Href)}
+          />
+        ) : null}
+        {resolved && isInternal(resolved.identity.audience) ? (
+          <ListRow
             testID={`more-${COMPASS_AURORA_ENTRY.id}`}
             icon="sparkles"
             title={t(COMPASS_AURORA_ENTRY.labelKey)}

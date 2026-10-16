@@ -21,8 +21,9 @@ name: Clock in during airplane mode, then the queue drains on reconnect
     id: "clock-live"
 - assertVisible:
     id: "clock-notice"
-# The offline banner shows the queued count; assistive technology hears it as words.
-- assertVisible: ".*offline.*\\(1\\).*"
+# The offline banner shows the queued count beside its message; screen readers hear it as words.
+- assertVisible: ".*offline.*"
+- assertVisible: "1 change waiting to upload"
 - setAirplaneMode: disabled
 - extendedWaitUntil:
     notVisible:
