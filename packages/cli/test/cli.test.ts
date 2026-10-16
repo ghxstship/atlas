@@ -186,7 +186,13 @@ describe("resources", () => {
         "projects",
         "create",
         "--data",
-        JSON.stringify({ name: "CLI Show", tier_code: "04", currency: "USD" }),
+        JSON.stringify({
+          name: "CLI Show",
+          tier_code: "04",
+          currency: "USD",
+          project_key: "CLI-1",
+          time_zone: "America/New_York",
+        }),
       ]),
     ) as { id: string; project_state: string };
     const read = await xos(["projects", "get", created.id, "--fields", "name"]);
@@ -222,9 +228,17 @@ describe("resources", () => {
     expect(tableOut.err).toMatch(/ETag: W\//);
     expect(tableOut.out).toMatch(/name\s+CLI Show Two/);
 
-    const deleted = await xos(["projects", "delete", created.id], { tty: true });
+    const calendar = json(
+      await xos([
+        "calendars",
+        "create",
+        "--data",
+        '{"name":"Venue Working Days","time_zone":"UTC"}',
+      ]),
+    ) as { id: string };
+    const deleted = await xos(["calendars", "delete", calendar.id], { tty: true });
     expect(deleted.err).toMatch(/done \(204\)/);
-    expect((await xos(["projects", "get", created.id])).code).toBe(4);
+    expect((await xos(["calendars", "get", calendar.id])).code).toBe(4);
   });
 
   it("lists with filters, pages and --all", async () => {
@@ -233,7 +247,13 @@ describe("resources", () => {
         "projects",
         "create",
         "--data",
-        JSON.stringify({ name: `CLI Page ${i}`, tier_code: "04", currency: "USD" }),
+        JSON.stringify({
+          name: `CLI Page ${i}`,
+          tier_code: "04",
+          currency: "USD",
+          project_key: "CLI-1",
+          time_zone: "America/New_York",
+        }),
       ]);
     }
     const page = json(
@@ -282,12 +302,27 @@ describe("resources", () => {
 
   it("reads --data from a file and from stdin, and passes extra query parameters", async () => {
     const file = join(dir, "project.json");
-    writeFileSync(file, JSON.stringify({ name: "From File", tier_code: "04", currency: "USD" }));
+    writeFileSync(
+      file,
+      JSON.stringify({
+        name: "From File",
+        tier_code: "04",
+        currency: "USD",
+        project_key: "CLI-1",
+        time_zone: "America/New_York",
+      }),
+    );
     expect((await xos(["projects", "create", "--data", `@${file}`])).code).toBe(0);
     const piped = await xos(
       ["projects", "create", "--data", "-", "--idempotency-key", "cli-stdin-0001"],
       {
-        stdin: JSON.stringify({ name: "From Stdin", tier_code: "04", currency: "USD" }),
+        stdin: JSON.stringify({
+          name: "From Stdin",
+          tier_code: "04",
+          currency: "USD",
+          project_key: "CLI-1",
+          time_zone: "America/New_York",
+        }),
       },
     );
     expect(piped.code).toBe(0);
@@ -300,7 +335,7 @@ describe("resources", () => {
       "projects",
       "create",
       "--data",
-      '{"name":"","tier_code":"04","currency":"usd"}',
+      '{"name":"","tier_code":"04","currency":"usd","project_key":"CLI-1","time_zone":"America/New_York"}',
     ]);
     expect(result.code).toBe(1);
     expect(result.err).toMatch(/\/currency/);
@@ -312,7 +347,7 @@ describe("import and export", () => {
     const file = join(dir, "projects.csv");
     writeFileSync(
       file,
-      'name,tier_code,currency\n"Import, One",04,USD\nImport Two,04,USD\nBad,04,usd\n',
+      'name,tier_code,currency,project_key,time_zone\n"Import, One",04,USD,IMP-1,UTC\nImport Two,04,USD,IMP-2,UTC\nBad,04,usd,IMP-3,UTC\n',
     );
     const dry = await xos(["import", "projects", "--file", file, "--dry-run"]);
     expect(dry.err).toMatch(/Dry run: 3 row/);
@@ -369,18 +404,15 @@ describe("import and export", () => {
 
   it("drives server import and export jobs", async () => {
     const doc = "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f";
+    const importBody = {
+      target_code: "projects",
+      source: "CSV",
+      original_filename: "projects.csv",
+      storage_object_path: "imports/projects.csv",
+      import_mapping_profile_id: doc,
+    };
     const job = json(
-      await xos([
-        "import",
-        "job",
-        "create",
-        "--document",
-        doc,
-        "--table",
-        "app.projects",
-        "--mapping",
-        doc,
-      ]),
+      await xos(["import", "job", "create", "--data", JSON.stringify(importBody)]),
     ) as { id: string };
     expect(job.id).toBeTruthy();
     expect((await xos(["import", "job", "dry-run", job.id])).code).toBe(0);
@@ -393,7 +425,17 @@ describe("import and export", () => {
     expect((await xos(["import", "undo", doc])).code).toBe(4);
 
     const exp = json(
-      await xos(["export", "job", "create", "--source", "projects", "--format", "CSV"]),
+      await xos([
+        "export",
+        "job",
+        "create",
+        "--data",
+        JSON.stringify({
+          source_label: "Projects",
+          export_format: "CSV",
+          columns: ["app.projects.name"],
+        }),
+      ]),
     ) as { id: string };
     expect((await xos(["export", "job", "status", exp.id])).code).toBe(0);
     expect((await xos(["export", "job", "status"])).code).toBe(2);

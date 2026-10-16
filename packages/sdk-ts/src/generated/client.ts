@@ -336,10 +336,18 @@ import {
   TrashItemsResource,
   TemplatesResource,
   TemplateApplicationsResource,
+  GuestListEntriesResource,
+  SavedViewSharesResource,
+  SavedViewDefaultsResource,
+  TourProgressResource,
+  TipDismissalsResource,
+  SupportTicketsResource,
+  SupportTicketMessagesResource,
+  SupportTicketDiagnosticsResource,
 } from "./resources.ts";
 
 /**
- * Client for the XOS Public API 1.0.0-draft.1. One property per resource; every operation in the
+ * Client for the XOS Public API 1.0.0-draft.2. One property per resource; every operation in the
  * OpenAPI document is a method.
  *
  * @example
@@ -1101,4 +1109,23 @@ export class XosClient extends XosClientCore {
   readonly templateApplications: TemplateApplicationsResource = new TemplateApplicationsResource(
     this,
   );
+  /** Advancing: operations on `guestListEntries`. */
+  readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
+  /** Platform: operations on `savedViewShares`. */
+  readonly savedViewShares: SavedViewSharesResource = new SavedViewSharesResource(this);
+  /** Platform: operations on `savedViewDefaults`. */
+  readonly savedViewDefaults: SavedViewDefaultsResource = new SavedViewDefaultsResource(this);
+  /** Platform: operations on `tourProgress`. */
+  readonly tourProgress: TourProgressResource = new TourProgressResource(this);
+  /** Platform: operations on `tipDismissals`. */
+  readonly tipDismissals: TipDismissalsResource = new TipDismissalsResource(this);
+  /** Platform: operations on `supportTickets`. */
+  readonly supportTickets: SupportTicketsResource = new SupportTicketsResource(this);
+  /** Platform: operations on `supportTicketMessages`. */
+  readonly supportTicketMessages: SupportTicketMessagesResource = new SupportTicketMessagesResource(
+    this,
+  );
+  /** Platform: operations on `supportTicketDiagnostics`. */
+  readonly supportTicketDiagnostics: SupportTicketDiagnosticsResource =
+    new SupportTicketDiagnosticsResource(this);
 }

@@ -2,9 +2,9 @@
  * Import and export.
  *
  *   xos export <resource> [--format ndjson|json|csv] [--out FILE] [--filter ...] [--fields] [--sort]
- *   xos export job create --source S --format F | xos export job status <id>
+ *   xos export job create --data JSON | xos export job status <id>
  *   xos import <resource> --file FILE [--dry-run] [--stop-on-error] [--key-prefix P]
- *   xos import job create --document ID --table T [--mapping ID]
+ *   xos import job create --data JSON
  *   xos import job dry-run <id> | commit <id> | status <id>
  *   xos import undo <batch-id>
  *
@@ -16,8 +16,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
 import { parseArgs } from "node:util";
 import type { OperationSpec } from "@xos/sdk";
-import { XosApiError } from "@xos/sdk";
-import { findOperation, parseFilters } from "../args.ts";
+import { OPERATIONS, XosApiError } from "@xos/sdk";
+import { findOperation, parseData, parseFilters } from "../args.ts";
 import type { Context } from "../context.ts";
 import type { Row } from "../csv.ts";
 import { formatCsv, parseRows } from "../csv.ts";
@@ -77,21 +77,36 @@ export async function exportCommand(ctx: Context, argv: readonly string[]): Prom
   return 0;
 }
 
+/**
+ * The body of a server job comes from `--data`, validated by the API against the current
+ * contract, so the CLI never pins a job shape the contract may correct (ADR 0023).
+ */
+async function jobBody(
+  ctx: Context,
+  argv: readonly string[],
+  kind: "import" | "export",
+): Promise<unknown> {
+  const { values } = parseArgs({ args: [...argv], options: { data: { type: "string" } } });
+  const body = await parseData(values.data, ctx.io);
+  if (body === undefined) {
+    const schema = kind === "import" ? "ImportJobCreate" : "ExportJobCreate";
+    throw new UsageError(
+      `\`xos ${kind} job create\` needs --data with a ${schema} body; run \`xos ops ${kind}-jobs\` for the operation.`,
+    );
+  }
+  return body;
+}
+
 async function exportJob(ctx: Context, argv: readonly string[]): Promise<number> {
   const [action, ...rest] = argv;
   const client = ctx.client();
   if (action === "create") {
-    const { values } = parseArgs({
-      args: rest,
-      options: { source: { type: "string" }, format: { type: "string" } },
-    });
-    if (!values.source || !values.format)
-      throw new UsageError("`xos export job create` needs --source and --format.");
-    const job = await client.exportJobs.create({
-      source: values.source,
-      format: values.format as never,
-    });
-    render(ctx.io, ctx.format, job.data);
+    const body = await jobBody(ctx, rest, "export");
+    render(
+      ctx.io,
+      ctx.format,
+      (await client.request(OPERATIONS["exportJobs.create"], { body })).data,
+    );
     return 0;
   }
   if (action === "status") {
@@ -190,21 +205,8 @@ async function importJob(ctx: Context, argv: readonly string[]): Promise<number>
   const client = ctx.client();
   switch (action) {
     case "create": {
-      const { values } = parseArgs({
-        args: rest,
-        options: {
-          document: { type: "string" },
-          table: { type: "string" },
-          mapping: { type: "string" },
-        },
-      });
-      if (!values.document || !values.table)
-        throw new UsageError("`xos import job create` needs --document and --table.");
-      const job = await client.importJobs.create({
-        source_document_id: values.document,
-        target_table: values.table,
-        ...(values.mapping ? { import_mapping_profile_id: values.mapping } : {}),
-      });
+      const body = await jobBody(ctx, rest, "import");
+      const job = await client.request(OPERATIONS["importJobs.create"], { body });
       render(ctx.io, ctx.format, job.data);
       return 0;
     }

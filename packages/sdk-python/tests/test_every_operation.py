@@ -32,7 +32,7 @@ class EveryOperationTest(unittest.TestCase):
                 if spec.verb == "transition":
                     row = resource.get(*args).data
                     state = next(k for k in row if k.endswith("_state"))
-                    body = {**body, "expected_state": row[state]}
+                    body = {**body, "expected_state": row[state], "to_state": row[state]}
                 if spec.body is not None:
                     args.append(body)
                 kwargs = {ident(k): v for k, v in given["query"].items()}

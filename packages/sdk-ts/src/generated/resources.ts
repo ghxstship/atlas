@@ -46,7 +46,7 @@ import type {
   AdvanceSectionUpdate,
   AdvanceSubmission,
   AdvanceSubmissionCreate,
-  AdvanceTransitionRequest,
+  AdvanceSubmissionReviewRequest,
   AgencySlate,
   AgencySlateCreate,
   Agreement,
@@ -86,6 +86,8 @@ import type {
   AssetMaintenance,
   AssetMaintenanceCreate,
   AssetMaintenanceUpdate,
+  AssetScanEvent,
+  AssetScanResult,
   AssetTransitionRequest,
   AssetUnit,
   AssetUnitCreate,
@@ -129,6 +131,7 @@ import type {
   CalendarCreate,
   CalendarFeed,
   CalendarFeedCreate,
+  CalendarFeedToken,
   CalendarUpdate,
   CallSheet,
   CallSheetCreate,
@@ -284,8 +287,6 @@ import type {
   ElementEconomics,
   ElementResolution,
   EmergencyCode,
-  EmergencyCodeCreate,
-  EmergencyCodeUpdate,
   Engagement,
   EngagementCreate,
   EngagementDocument,
@@ -297,7 +298,6 @@ import type {
   EngagementThreadCreate,
   EngagementThreadUpdate,
   EngagementTransitionRequest,
-  EntitlementFulfillmentTransitionRequest,
   Expense,
   ExpenseCreate,
   ExpenseUpdate,
@@ -313,7 +313,6 @@ import type {
   FxRate,
   GateEvidence,
   GateEvidenceCreate,
-  GateEvidenceUpdate,
   GateQueueEntry,
   GateQueueEntryCreate,
   GateQueueEntryUpdate,
@@ -326,6 +325,10 @@ import type {
   GoodsReceipt,
   GoodsReceiptCreate,
   GrainCode,
+  GuestDecisionRequest,
+  GuestListEntry,
+  GuestListEntryCreate,
+  GuestListEntryUpdate,
   HomeSummary,
   ImportBatch,
   ImportJob,
@@ -335,6 +338,7 @@ import type {
   ImportMappingProfileUpdate,
   ImportRowResult,
   Incident,
+  IncidentCloseRequest,
   IncidentCreate,
   IncidentMedia,
   IncidentMediaCreate,
@@ -378,6 +382,7 @@ import type {
   InvoiceLineUpdate,
   InvoiceMatch,
   InvoiceMatchCreate,
+  InvoiceMatchResolveRequest,
   InvoiceTransitionRequest,
   InvoiceUpdate,
   ItemId,
@@ -423,8 +428,11 @@ import type {
   OffboardingChecklist,
   OffboardingChecklistUpdate,
   Offer,
+  OfferCounterRequest,
   OfferCreate,
+  OfferDeclineRequest,
   OfferUpdate,
+  OfferWithdrawRequest,
   OnboardingItem,
   OnboardingItemCreate,
   OnboardingItemUpdate,
@@ -470,8 +478,6 @@ import type {
   OrganizationRelationshipUpdate,
   OrganizationUpdate,
   OvertimeRule,
-  OvertimeRuleCreate,
-  OvertimeRuleUpdate,
   PayPeriod,
   PayPeriodCreate,
   PayPeriodTransitionRequest,
@@ -495,6 +501,7 @@ import type {
   PermitEngineRequest,
   PermitRequirement,
   PermitRequirementPage,
+  PermitTrackRequest,
   PermitTransitionRequest,
   Person,
   PersonProfile,
@@ -505,7 +512,9 @@ import type {
   PhaseCoverage,
   Plan,
   PoChangeOrder,
+  PoChangeOrderApproveRequest,
   PoChangeOrderCreate,
+  PoChangeOrderRejectRequest,
   PoChangeOrderUpdate,
   PoLine,
   PoLineCreate,
@@ -513,12 +522,12 @@ import type {
   PoolMember,
   PoolMemberCreate,
   PoolMemberUpdate,
-  PostingExportAccepted,
+  PostingExport,
   PostingExportRequest,
   PostingLine,
   Prequalification,
   PrequalificationCreate,
-  PrequalificationTransitionRequest,
+  PrequalificationDecideRequest,
   PrequalificationUpdate,
   PriceBook,
   PriceBookCreate,
@@ -549,6 +558,7 @@ import type {
   ProjectUpdate,
   Provenance,
   PurchaseOrder,
+  PurchaseOrderApproveRequest,
   PurchaseOrderCreate,
   PurchaseOrderTransitionRequest,
   PurchaseOrderUpdate,
@@ -648,6 +658,10 @@ import type {
   SavedSearchUpdate,
   SavedView,
   SavedViewCreate,
+  SavedViewDefault,
+  SavedViewDefaultCreate,
+  SavedViewShare,
+  SavedViewShareCreate,
   SavedViewUpdate,
   ScanRequest,
   ScheduleActual,
@@ -662,8 +676,6 @@ import type {
   ScopeNodeCreate,
   ScopeNodeUpdate,
   SeparationOfDutiesRule,
-  SeparationOfDutiesRuleCreate,
-  SeparationOfDutiesRuleUpdate,
   ServiceAccount,
   ServiceAccountCreate,
   ServiceAccountUpdate,
@@ -722,6 +734,12 @@ import type {
   StdVerbiage,
   Subscription,
   SubscriptionUpdate,
+  SupportTicket,
+  SupportTicketDiagnostics,
+  SupportTicketMessage,
+  SupportTicketOpenRequest,
+  SupportTicketReplyRequest,
+  SupportTicketTransitionRequest,
   TagId,
   TalentPool,
   TalentPoolCreate,
@@ -759,12 +777,16 @@ import type {
   Timesheet,
   TimesheetApproval,
   TimesheetCreate,
+  TipDismissal,
+  TipDismissalCreate,
   TouchpointId,
+  TourProgress,
+  TourProgressCreate,
+  TourProgressUpdate,
   TrashItem,
   UnionLocalRate,
   UnionLocalRateCreate,
   UnionLocalRateUpdate,
-  UnitCode,
   Urid,
   UrnResolution,
   UserCapabilityGrant,
@@ -783,6 +805,7 @@ import type {
   VendorScorecard,
   VendorScorecardCreate,
   VendorScorecardUpdate,
+  VendorTransitionRequest,
   VendorUpdate,
   Venue,
   VenueCreate,
@@ -801,6 +824,7 @@ import type {
   WebhookDelivery,
   WebhookEndpoint,
   WebhookEndpointCreate,
+  WebhookEndpointSecret,
   WebhookEndpointUpdate,
   WebhookEventType,
   WorkOrder,
@@ -927,22 +951,6 @@ export class ProjectsResource extends $Resource {
   }
 
   /**
-   * Delete a project
-   *
-   * A production project. Jurisdiction is resolved at gate 1. Soft-deletes the project: it moves to Trash and can be restored for its table's retention period.
-   *
-   * `DELETE /projects/{id}` (operation `projects.delete`).
-   * Requires the capability `projects.project.archive`.
-   */
-  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
-    return this.client.request<undefined>(
-      $OPERATIONS["projects.delete"],
-      { path: { id } },
-      options,
-    );
-  }
-
-  /**
    * Transition the project state
    *
    * Moves the project lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
@@ -999,16 +1007,28 @@ export class ProjectsResource extends $Resource {
   }
 
   /**
-   * Duplicate a project
+   * Archive a project
    *
-   * Creates a copy of the project with its scope tree, optionally with its records. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Sets `archived_at`, so the project leaves the default lists and stays readable and restorable. Archiving an archived project leaves it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
-   * `POST /projects/{id}/duplicate` (operation `projects.duplicate`).
-   * Requires the capability `projects.project.create`.
+   * `POST /projects/{id}/archive` (operation `projects.archive`).
+   * Requires the capability `projects.project.archive`.
    */
-  duplicate(id: string, options?: $MutationOptions): Promise<$ApiResponse<Project>> {
+  archive(id: string, options?: $MutationOptions): Promise<$ApiResponse<Project>> {
+    return this.client.request<Project>($OPERATIONS["projects.archive"], { path: { id } }, options);
+  }
+
+  /**
+   * Restore an archived project
+   *
+   * Clears `archived_at`, so the project returns to the default lists. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /projects/{id}/unarchive` (operation `projects.unarchive`).
+   * Requires the capability `projects.project.archive`.
+   */
+  unarchive(id: string, options?: $MutationOptions): Promise<$ApiResponse<Project>> {
     return this.client.request<Project>(
-      $OPERATIONS["projects.duplicate"],
+      $OPERATIONS["projects.unarchive"],
       { path: { id } },
       options,
     );
@@ -1276,26 +1296,6 @@ export class GateEvidenceResource extends $Resource {
   }
 
   /**
-   * Update a gate evidence
-   *
-   * Evidence for a gate criterion. One evidence spine serves every criterion. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /gate-evidence/{id}` (operation `gateEvidence.update`).
-   * Requires the capability `projects.gate.evidence.write`.
-   */
-  update(
-    id: string,
-    body: GateEvidenceUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<GateEvidence>> {
-    return this.client.request<GateEvidence>(
-      $OPERATIONS["gateEvidence.update"],
-      { path: { id }, body },
-      options,
-    );
-  }
-
-  /**
    * Delete a gate evidence
    *
    * Evidence for a gate criterion. One evidence spine serves every criterion. Soft-deletes the gate evidence: it moves to Trash and can be restored for its table's retention period.
@@ -1321,7 +1321,7 @@ export class ActivityEventsResource extends $Resource {
   /**
    * List activity event rows
    *
-   * A user-facing activity feed entry, separate from the compliance audit ledger. Returns a cursor page of activity event rows the caller may see. The default order is `occurred_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A user-facing activity feed entry, separate from the compliance audit ledger. Returns a cursor page of activity event rows the caller may see. The default order is `occurred_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /activity-events` (operation `activityEvents.list`).
    * Requires the capability `activity.feed.read`.
@@ -1340,7 +1340,7 @@ export class ActivityEventsResource extends $Resource {
   /**
    * List activity event rows
    *
-   * A user-facing activity feed entry, separate from the compliance audit ledger. Returns a cursor page of activity event rows the caller may see. The default order is `occurred_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A user-facing activity feed entry, separate from the compliance audit ledger. Returns a cursor page of activity event rows the caller may see. The default order is `occurred_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -2048,18 +2048,6 @@ export class RecordsResource extends $Resource {
    */
   duplicate(id: string, options?: $MutationOptions): Promise<$ApiResponse<Record>> {
     return this.client.request<Record>($OPERATIONS["records.duplicate"], { path: { id } }, options);
-  }
-
-  /**
-   * Archive a record
-   *
-   * Hides the record from default views while keeping it searchable with a filter. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-   *
-   * `POST /records/{id}/archive` (operation `records.archive`).
-   * Requires the capability `work.record.write`.
-   */
-  archive(id: string, options?: $MutationOptions): Promise<$ApiResponse<Record>> {
-    return this.client.request<Record>($OPERATIONS["records.archive"], { path: { id } }, options);
   }
 }
 
@@ -3216,6 +3204,18 @@ export class SopsResource extends $Resource {
    */
   delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
     return this.client.request<undefined>($OPERATIONS["sops.delete"], { path: { id } }, options);
+  }
+
+  /**
+   * Publish an SOP
+   *
+   * Publishes the SOP: the database stamps `published_at` and raises `version` when it was published before, so everyone is asked to acknowledge the new version. Needs knowledge.sop.publish. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /sops/{id}/publish` (operation `sops.publish`).
+   * Requires the capability `knowledge.sop.publish`.
+   */
+  publish(id: string, options?: $MutationOptions): Promise<$ApiResponse<Sop>> {
+    return this.client.request<Sop>($OPERATIONS["sops.publish"], { path: { id } }, options);
   }
 }
 
@@ -5374,26 +5374,6 @@ export class AdvancePacketsResource extends $Resource {
       options,
     );
   }
-
-  /**
-   * Transition the advance state
-   *
-   * Moves the advance lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-   *
-   * `POST /advance-packets/{id}/transitions` (operation `advancePackets.transition`).
-   * Requires the capability `advancing.packet.write`.
-   */
-  transition(
-    id: string,
-    body: AdvanceTransitionRequest,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<AdvancePacket>> {
-    return this.client.request<AdvancePacket>(
-      $OPERATIONS["advancePackets.transition"],
-      { path: { id }, body },
-      options,
-    );
-  }
 }
 
 /**
@@ -5672,7 +5652,7 @@ export class AdvanceSubmissionsResource extends $Resource {
    * A recipient's submission for one section. Creates an advance submission. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
    *
    * `POST /advance-submissions` (operation `advanceSubmissions.create`).
-   * Requires the capability `advancing.packet.write`.
+   * Requires the capability `advancing.submission.review`.
    */
   create(
     body: AdvanceSubmissionCreate,
@@ -5701,6 +5681,26 @@ export class AdvanceSubmissionsResource extends $Resource {
     return this.client.request<AdvanceSubmission>(
       $OPERATIONS["advanceSubmissions.get"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Review an advance answer
+   *
+   * Records the one review of an answer: Accepted, or Returned with a reason the recipient reads. The database stamps the reviewer and time and refuses the person who submitted it (sod_advance_submitter) or a second review (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-submissions/{id}/review` (operation `advanceSubmissions.review`).
+   * Requires the capability `advancing.submission.review`.
+   */
+  review(
+    id: string,
+    body: AdvanceSubmissionReviewRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceSubmission>> {
+    return this.client.request<AdvanceSubmission>(
+      $OPERATIONS["advanceSubmissions.review"],
+      { path: { id }, body },
       options,
     );
   }
@@ -6704,6 +6704,25 @@ export class AssetUnitsResource extends $Resource {
   scan(body: ScanRequest, options?: $MutationOptions): Promise<$ApiResponse<AssetUnit>> {
     return this.client.request<AssetUnit>($OPERATIONS["assetUnits.scan"], { body }, options);
   }
+
+  /**
+   * Apply a scan event
+   *
+   * Applies one scanned custody move in one transaction (app.apply_asset_scan): resolves the code to a unit or lot, writes the custody entry or lot movement under the device's event id, and moves the unit's state. Replaying an event id returns `duplicate` and changes nothing. A unit someone else moved meanwhile is refused (422, asset_scan_state_conflict); a code no item carries is refused with NO_ANSWER. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /asset-units/scans` (operation `assetUnits.applyScan`).
+   * Requires the capability `assets.custody.write`.
+   */
+  applyScan(
+    body: AssetScanEvent,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AssetScanResult>> {
+    return this.client.request<AssetScanResult>(
+      $OPERATIONS["assetUnits.applyScan"],
+      { body },
+      options,
+    );
+  }
 }
 
 /**
@@ -6929,7 +6948,7 @@ export class AssetCustodyEntriesResource extends $Resource {
   /**
    * List asset custody rows
    *
-   * An append-only custody ledger entry. Returns a cursor page of asset custody rows the caller may see. The default order is `recorded_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * An append-only custody ledger entry. Returns a cursor page of asset custody rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /asset-custody` (operation `assetCustodyEntries.list`).
    * Requires the capability `assets.asset.read`.
@@ -6948,7 +6967,7 @@ export class AssetCustodyEntriesResource extends $Resource {
   /**
    * List asset custody rows
    *
-   * An append-only custody ledger entry. Returns a cursor page of asset custody rows the caller may see. The default order is `recorded_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * An append-only custody ledger entry. Returns a cursor page of asset custody rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -7555,7 +7574,7 @@ export class OffersResource extends $Resource {
    * Terms issued to a person or organization: accepted, countered or declined. Creates an offer. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
    *
    * `POST /offers` (operation `offers.create`).
-   * Requires the capability `people.offer.write`.
+   * Requires the capability `opportunities.offer.send`.
    */
   create(body: OfferCreate, options?: $MutationOptions): Promise<$ApiResponse<Offer>> {
     return this.client.request<Offer>($OPERATIONS["offers.create"], { body }, options);
@@ -7587,7 +7606,7 @@ export class OffersResource extends $Resource {
    * Terms issued to a person or organization: accepted, countered or declined. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
    *
    * `PATCH /offers/{id}` (operation `offers.update`).
-   * Requires the capability `people.offer.write`.
+   * Requires the capability `opportunities.offer.send`.
    */
   update(id: string, body: OfferUpdate, options: $UpdateOptions): Promise<$ApiResponse<Offer>> {
     return this.client.request<Offer>(
@@ -7595,18 +7614,6 @@ export class OffersResource extends $Resource {
       { path: { id }, body },
       options,
     );
-  }
-
-  /**
-   * Send an offer
-   *
-   * Issues the offer terms to the person or organization. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-   *
-   * `POST /offers/{id}/send` (operation `offers.send`).
-   * Requires the capability `people.offer.approve`.
-   */
-  send(id: string, options?: $MutationOptions): Promise<$ApiResponse<Offer>> {
-    return this.client.request<Offer>($OPERATIONS["offers.send"], { path: { id } }, options);
   }
 
   /**
@@ -7624,26 +7631,58 @@ export class OffersResource extends $Resource {
   /**
    * Decline an offer
    *
-   * Declines the offer as the offered party. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * The applicant side declines the organization's terms; the offer and the application become Declined. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /offers/{id}/decline` (operation `offers.decline`).
    * Requires the capability `me.work_details.write`.
    */
-  decline(id: string, options?: $MutationOptions): Promise<$ApiResponse<Offer>> {
-    return this.client.request<Offer>($OPERATIONS["offers.decline"], { path: { id } }, options);
+  decline(
+    id: string,
+    body: OfferDeclineRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Offer>> {
+    return this.client.request<Offer>(
+      $OPERATIONS["offers.decline"],
+      { path: { id }, body },
+      options,
+    );
   }
 
   /**
    * Counter an offer
    *
-   * Returns counter terms to the org. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * The applicant side counters the terms in force with its own, as a new version; the offer becomes Countered. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /offers/{id}/counter` (operation `offers.counter`).
    * Requires the capability `me.work_details.write`.
    */
-  counter(id: string, body: OfferUpdate, options?: $MutationOptions): Promise<$ApiResponse<Offer>> {
+  counter(
+    id: string,
+    body: OfferCounterRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Offer>> {
     return this.client.request<Offer>(
       $OPERATIONS["offers.counter"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Withdraw an offer
+   *
+   * The organization withdraws an offer that is Sent or Countered; the application becomes Not Selected. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /offers/{id}/withdraw` (operation `offers.withdraw`).
+   * Requires the capability `opportunities.offer.send`.
+   */
+  withdraw(
+    id: string,
+    body: OfferWithdrawRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Offer>> {
+    return this.client.request<Offer>(
+      $OPERATIONS["offers.withdraw"],
       { path: { id }, body },
       options,
     );
@@ -7888,6 +7927,18 @@ export class ShiftsResource extends $Resource {
   accept(id: string, options?: $MutationOptions): Promise<$ApiResponse<Shift>> {
     return this.client.request<Shift>($OPERATIONS["shifts.accept"], { path: { id } }, options);
   }
+
+  /**
+   * Claim an open shift
+   *
+   * Takes a published shift that has no one on it as the caller's own membership; the shift becomes Accepted. A held, unpublished or overlapping shift is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /shifts/{id}/claim` (operation `shifts.claim`).
+   * Requires the capability `crew.shift.read`.
+   */
+  claim(id: string, options?: $MutationOptions): Promise<$ApiResponse<Shift>> {
+    return this.client.request<Shift>($OPERATIONS["shifts.claim"], { path: { id } }, options);
+  }
 }
 
 /**
@@ -8023,7 +8074,7 @@ export class TimeEntriesResource extends $Resource {
   /**
    * List time entry rows
    *
-   * A time entry. Entries cannot overlap for one person; forgotten clock-outs close at 16 hours and are flagged. Returns a cursor page of time entry rows the caller may see. The default order is `clock_in_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A time entry. Entries cannot overlap for one person; forgotten clock-outs close at 16 hours and are flagged. Returns a cursor page of time entry rows the caller may see. The default order is `clock_in` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /time-entries` (operation `timeEntries.list`).
    * Requires the capability `crew.time_entry.read`.
@@ -8039,7 +8090,7 @@ export class TimeEntriesResource extends $Resource {
   /**
    * List time entry rows
    *
-   * A time entry. Entries cannot overlap for one person; forgotten clock-outs close at 16 hours and are flagged. Returns a cursor page of time entry rows the caller may see. The default order is `clock_in_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A time entry. Entries cannot overlap for one person; forgotten clock-outs close at 16 hours and are flagged. Returns a cursor page of time entry rows the caller may see. The default order is `clock_in` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -8100,38 +8151,6 @@ export class TimeEntriesResource extends $Resource {
   clockOut(id: string, options?: $MutationOptions): Promise<$ApiResponse<TimeEntry>> {
     return this.client.request<TimeEntry>(
       $OPERATIONS["timeEntries.clockOut"],
-      { path: { id } },
-      options,
-    );
-  }
-
-  /**
-   * Start a break
-   *
-   * Records a break punch on the open time entry. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-   *
-   * `POST /time-entries/{id}/start-break` (operation `timeEntries.startBreak`).
-   * Requires the capability `crew.time_entry.write`.
-   */
-  startBreak(id: string, options?: $MutationOptions): Promise<$ApiResponse<TimeEntry>> {
-    return this.client.request<TimeEntry>(
-      $OPERATIONS["timeEntries.startBreak"],
-      { path: { id } },
-      options,
-    );
-  }
-
-  /**
-   * End a break
-   *
-   * Ends the current break on the open time entry. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-   *
-   * `POST /time-entries/{id}/end-break` (operation `timeEntries.endBreak`).
-   * Requires the capability `crew.time_entry.write`.
-   */
-  endBreak(id: string, options?: $MutationOptions): Promise<$ApiResponse<TimeEntry>> {
-    return this.client.request<TimeEntry>(
-      $OPERATIONS["timeEntries.endBreak"],
       { path: { id } },
       options,
     );
@@ -8909,7 +8928,7 @@ export class OvertimeRulesResource extends $Resource {
   /**
    * List overtime rule rows
    *
-   * An overtime rule by jurisdiction. Returns a cursor page of overtime rule rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A jurisdiction's wage and hour rule from canon: daily and weekly overtime thresholds and minimum multipliers. A lower jurisdiction inherits its parent's rule. Returns a cursor page of overtime rule rows the caller may see. The default order is `jurisdiction_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /overtime-rules` (operation `overtimeRules.list`).
    * Requires the capability `crew.rate_card.read`.
@@ -8928,7 +8947,7 @@ export class OvertimeRulesResource extends $Resource {
   /**
    * List overtime rule rows
    *
-   * An overtime rule by jurisdiction. Returns a cursor page of overtime rule rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A jurisdiction's wage and hour rule from canon: daily and weekly overtime thresholds and minimum multipliers. A lower jurisdiction inherits its parent's rule. Returns a cursor page of overtime rule rows the caller may see. The default order is `jurisdiction_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -8947,76 +8966,21 @@ export class OvertimeRulesResource extends $Resource {
   }
 
   /**
-   * Create an overtime rule
-   *
-   * An overtime rule by jurisdiction. Creates an overtime rule. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /overtime-rules` (operation `overtimeRules.create`).
-   * Requires the capability `org.time_attendance.write`.
-   */
-  create(
-    body: OvertimeRuleCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<OvertimeRule>> {
-    return this.client.request<OvertimeRule>(
-      $OPERATIONS["overtimeRules.create"],
-      { body },
-      options,
-    );
-  }
-
-  /**
    * Get an overtime rule
    *
-   * An overtime rule by jurisdiction. Returns one overtime rule with its `ETag`. A overtime rule the caller may not see returns 404.
+   * A jurisdiction's wage and hour rule from canon: daily and weekly overtime thresholds and minimum multipliers. A lower jurisdiction inherits its parent's rule. Returns one overtime rule with its `ETag`. A overtime rule the caller may not see returns 404.
    *
-   * `GET /overtime-rules/{id}` (operation `overtimeRules.get`).
+   * `GET /overtime-rules/{jurisdiction_id}` (operation `overtimeRules.get`).
    * Requires the capability `crew.rate_card.read`.
    */
   get(
-    id: string,
+    jurisdictionId: NonNullable<JurisdictionId>,
     params?: $FieldsParams<OvertimeRule>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<OvertimeRule>> {
     return this.client.request<OvertimeRule>(
       $OPERATIONS["overtimeRules.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Update an overtime rule
-   *
-   * An overtime rule by jurisdiction. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /overtime-rules/{id}` (operation `overtimeRules.update`).
-   * Requires the capability `org.time_attendance.write`.
-   */
-  update(
-    id: string,
-    body: OvertimeRuleUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<OvertimeRule>> {
-    return this.client.request<OvertimeRule>(
-      $OPERATIONS["overtimeRules.update"],
-      { path: { id }, body },
-      options,
-    );
-  }
-
-  /**
-   * Delete an overtime rule
-   *
-   * An overtime rule by jurisdiction. Soft-deletes the overtime rule: it moves to Trash and can be restored for its table's retention period.
-   *
-   * `DELETE /overtime-rules/{id}` (operation `overtimeRules.delete`).
-   * Requires the capability `org.time_attendance.write`.
-   */
-  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
-    return this.client.request<undefined>(
-      $OPERATIONS["overtimeRules.delete"],
-      { path: { id } },
+      { path: { jurisdiction_id: jurisdictionId }, query: params },
       options,
     );
   }
@@ -9476,6 +9440,38 @@ export class PayrollRunsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Calculate a payroll run
+   *
+   * Replaces the run's lines from the approved member timesheets of its pay period, splitting overtime by the canon wage and hour rule of each project's jurisdiction; the run becomes Calculated. A missing earning code, rate or rule is refused (422) and names it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /payroll-runs/{id}/calculate` (operation `payrollRuns.calculate`).
+   * Requires the capability `crew.pay_period.manage`.
+   */
+  calculate(id: string, options?: $MutationOptions): Promise<$ApiResponse<PayrollRun>> {
+    return this.client.request<PayrollRun>(
+      $OPERATIONS["payrollRuns.calculate"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Approve a payroll run
+   *
+   * Records an approval on a Calculated run under spend authority for Payroll Run, never by the run's creator; the run becomes Approved once fully approved. A refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /payroll-runs/{id}/approve` (operation `payrollRuns.approve`).
+   * Requires the capability `crew.pay_period.manage`.
+   */
+  approve(id: string, options?: $MutationOptions): Promise<$ApiResponse<PayrollRun>> {
+    return this.client.request<PayrollRun>(
+      $OPERATIONS["payrollRuns.approve"],
+      { path: { id } },
+      options,
+    );
+  }
 }
 
 /**
@@ -9487,7 +9483,7 @@ export class PayrollLinesResource extends $Resource {
   /**
    * List payroll line rows
    *
-   * A payroll line, derived from approved timesheets. Returns a cursor page of payroll line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A payroll line, derived from approved timesheets. Returns a cursor page of payroll line rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /payroll-lines` (operation `payrollLines.list`).
    * Requires the capability `data.restricted.read.payroll`.
@@ -9503,7 +9499,7 @@ export class PayrollLinesResource extends $Resource {
   /**
    * List payroll line rows
    *
-   * A payroll line, derived from approved timesheets. Returns a cursor page of payroll line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A payroll line, derived from approved timesheets. Returns a cursor page of payroll line rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -9637,7 +9633,7 @@ export class EarningCodesResource extends $Resource {
   /**
    * List earning code rows
    *
-   * An earning code mapped to the payroll provider. Returns a cursor page of earning code rows the caller may see. Coded list: the default order is numeric code order by `earning_code`. Supports sparse fieldsets and the filter grammar.
+   * An earning code mapped to the payroll provider. Returns a cursor page of earning code rows the caller may see. Coded list: the default order is numeric code order by `code`. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /earning-codes` (operation `earningCodes.list`).
    * Requires the capability `crew.rate_card.read`.
@@ -9653,7 +9649,7 @@ export class EarningCodesResource extends $Resource {
   /**
    * List earning code rows
    *
-   * An earning code mapped to the payroll provider. Returns a cursor page of earning code rows the caller may see. Coded list: the default order is numeric code order by `earning_code`. Supports sparse fieldsets and the filter grammar.
+   * An earning code mapped to the payroll provider. Returns a cursor page of earning code rows the caller may see. Coded list: the default order is numeric code order by `code`. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -10093,7 +10089,7 @@ export class CredentialCategoriesResource extends $Resource {
   /**
    * List credential category rows
    *
-   * A credential category, such as All Access or Artist. Returns a cursor page of credential category rows the caller may see. The default order is `position` ascending. Supports sparse fieldsets and the filter grammar.
+   * A credential category, such as All Access or Artist. Returns a cursor page of credential category rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /credential-categories` (operation `credentialCategories.list`).
    * Requires the capability `credentials.credential.read`.
@@ -10112,7 +10108,7 @@ export class CredentialCategoriesResource extends $Resource {
   /**
    * List credential category rows
    *
-   * A credential category, such as All Access or Artist. Returns a cursor page of credential category rows the caller may see. The default order is `position` ascending. Supports sparse fieldsets and the filter grammar.
+   * A credential category, such as All Access or Artist. Returns a cursor page of credential category rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -10738,22 +10734,6 @@ export class CertificationHoldersResource extends $Resource {
       options,
     );
   }
-
-  /**
-   * Verify a certification
-   *
-   * Verifies the certification against its issuer or evidence. Certifications cannot be self-verified. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-   *
-   * `POST /certification-holders/{id}/verify` (operation `certificationHolders.verify`).
-   * Requires the capability `people.certification.verify`.
-   */
-  verify(id: string, options?: $MutationOptions): Promise<$ApiResponse<CertificationHolder>> {
-    return this.client.request<CertificationHolder>(
-      $OPERATIONS["certificationHolders.verify"],
-      { path: { id } },
-      options,
-    );
-  }
 }
 
 /**
@@ -10877,7 +10857,7 @@ export class BudgetLinesResource extends $Resource {
   /**
    * List budget line rows
    *
-   * A budget line. A blank unit price is unpriced; zero is a claim. Fee and Contingency are line types. Returns a cursor page of budget line rows the caller may see. Coded list: the default order is numeric code order by `account_code`, then `urid`. Supports sparse fieldsets and the filter grammar.
+   * A budget line. A blank unit price is unpriced; zero is a claim. Fee and Contingency are line types. Returns a cursor page of budget line rows the caller may see. The default order is `line_number` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /budget-lines` (operation `budgetLines.list`).
    * Requires the capability `finance.budget.read`.
@@ -10893,7 +10873,7 @@ export class BudgetLinesResource extends $Resource {
   /**
    * List budget line rows
    *
-   * A budget line. A blank unit price is unpriced; zero is a claim. Fee and Contingency are line types. Returns a cursor page of budget line rows the caller may see. Coded list: the default order is numeric code order by `account_code`, then `urid`. Supports sparse fieldsets and the filter grammar.
+   * A budget line. A blank unit price is unpriced; zero is a claim. Fee and Contingency are line types. Returns a cursor page of budget line rows the caller may see. The default order is `line_number` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -11820,17 +11800,17 @@ export class PostingLinesResource extends $Resource {
    *
    * A Universal Posting Line (Bible tab 36): the one export shape, projected to every accounting platform. Returns one posting line with its `ETag`. A posting line the caller may not see returns 404.
    *
-   * `GET /posting-lines/{id}` (operation `postingLines.get`).
+   * `GET /posting-lines/{posting_line_id}` (operation `postingLines.get`).
    * Requires the capability `finance.journal.read`.
    */
   get(
-    id: string,
+    postingLineId: string,
     params?: $FieldsParams<PostingLine>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<PostingLine>> {
     return this.client.request<PostingLine>(
       $OPERATIONS["postingLines.get"],
-      { path: { id }, query: params },
+      { path: { posting_line_id: postingLineId }, query: params },
       options,
     );
   }
@@ -11838,7 +11818,7 @@ export class PostingLinesResource extends $Resource {
   /**
    * Export posting lines
    *
-   * Projects the period's Universal Posting Lines to the target accounting platform through its field mapping. There is no other export format. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Projects the period's Universal Posting Lines to the target accounting platform through its canon field mapping and returns the CSV. There is no other export format. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /posting-lines/exports` (operation `postingLines.export`).
    * Requires the capability `finance.upl.export`.
@@ -11846,8 +11826,8 @@ export class PostingLinesResource extends $Resource {
   export(
     body: PostingExportRequest,
     options?: $MutationOptions,
-  ): Promise<$ApiResponse<PostingExportAccepted>> {
-    return this.client.request<PostingExportAccepted>(
+  ): Promise<$ApiResponse<PostingExport>> {
+    return this.client.request<PostingExport>(
       $OPERATIONS["postingLines.export"],
       { body },
       options,
@@ -12294,7 +12274,7 @@ export class CostCentersResource extends $Resource {
   /**
    * List cost center rows
    *
-   * A tenant cost center (GL dimension 1), created from canon templates or per event scope. Returns a cursor page of cost center rows the caller may see. The default order is `cost_center_id` ascending. Supports sparse fieldsets and the filter grammar.
+   * A tenant cost center (GL dimension 1), created from canon templates or per event scope. Returns a cursor page of cost center rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /cost-centers` (operation `costCenters.list`).
    * Requires the capability `finance.gl.read`.
@@ -12310,7 +12290,7 @@ export class CostCentersResource extends $Resource {
   /**
    * List cost center rows
    *
-   * A tenant cost center (GL dimension 1), created from canon templates or per event scope. Returns a cursor page of cost center rows the caller may see. The default order is `cost_center_id` ascending. Supports sparse fieldsets and the filter grammar.
+   * A tenant cost center (GL dimension 1), created from canon templates or per event scope. Returns a cursor page of cost center rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -12632,7 +12612,7 @@ export class FxRatesResource extends $Resource {
   /**
    * List fx rate rows
    *
-   * A daily reference exchange rate with its rate date and source. Returns a cursor page of fx rate rows the caller may see. The default order is `rate_date` ascending. Supports sparse fieldsets and the filter grammar.
+   * A daily reference exchange rate with its rate date and source. Returns a cursor page of fx rate rows the caller may see. The default order is `effective_on` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /fx-rates` (operation `fxRates.list`).
    * Requires the capability `finance.gl.read`.
@@ -12644,7 +12624,7 @@ export class FxRatesResource extends $Resource {
   /**
    * List fx rate rows
    *
-   * A daily reference exchange rate with its rate date and source. Returns a cursor page of fx rate rows the caller may see. The default order is `rate_date` ascending. Supports sparse fieldsets and the filter grammar.
+   * A daily reference exchange rate with its rate date and source. Returns a cursor page of fx rate rows the caller may see. The default order is `effective_on` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -13071,22 +13051,6 @@ export class RfqResponsesResource extends $Resource {
       options,
     );
   }
-
-  /**
-   * Submit an RFQ response
-   *
-   * Seals and submits the response. A bidder sees only their own response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-   *
-   * `POST /rfq-responses/{id}/submit` (operation `rfqResponses.submit`).
-   * Requires the capability `procurement.rfq.read`.
-   */
-  submit(id: string, options?: $MutationOptions): Promise<$ApiResponse<RfqResponse>> {
-    return this.client.request<RfqResponse>(
-      $OPERATIONS["rfqResponses.submit"],
-      { path: { id } },
-      options,
-    );
-  }
 }
 
 /**
@@ -13319,15 +13283,19 @@ export class PurchaseOrdersResource extends $Resource {
   /**
    * Approve a purchase order
    *
-   * Records an approval decision on the purchase order. The creator of a purchase order cannot approve it. Spend authority and separation of duties are enforced in the approval RPC; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Records an approval through app.approve_purchase_order: finance.po.approve on the project, never by the order's creator (sod_po_creator), fully priced, within spend authority. Above the dual threshold the order stays Proposed until a second approver approves; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /purchase-orders/{id}/approve` (operation `purchaseOrders.approve`).
    * Requires the capability `finance.po.approve`.
    */
-  approve(id: string, options?: $MutationOptions): Promise<$ApiResponse<PurchaseOrder>> {
+  approve(
+    id: string,
+    body: PurchaseOrderApproveRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<PurchaseOrder>> {
     return this.client.request<PurchaseOrder>(
       $OPERATIONS["purchaseOrders.approve"],
-      { path: { id } },
+      { path: { id }, body },
       options,
     );
   }
@@ -13573,15 +13541,39 @@ export class PoChangeOrdersResource extends $Resource {
   /**
    * Approve a PO change order
    *
-   * Records an approval decision on the PO change order. Its requester cannot approve it. Spend authority and separation of duties are enforced in the approval RPC; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Approves a priced, Proposed PO change order through app.decide_po_change_order under spend authority. Its requester cannot approve it; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /po-change-orders/{id}/approve` (operation `poChangeOrders.approve`).
    * Requires the capability `finance.po.approve`.
    */
-  approve(id: string, options?: $MutationOptions): Promise<$ApiResponse<PoChangeOrder>> {
+  approve(
+    id: string,
+    body: PoChangeOrderApproveRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<PoChangeOrder>> {
     return this.client.request<PoChangeOrder>(
       $OPERATIONS["poChangeOrders.approve"],
-      { path: { id } },
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Reject a PO change order
+   *
+   * Rejects a Proposed PO change order through app.decide_po_change_order. Its requester cannot decide it; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /po-change-orders/{id}/reject` (operation `poChangeOrders.reject`).
+   * Requires the capability `finance.po.approve`.
+   */
+  reject(
+    id: string,
+    body: PoChangeOrderRejectRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<PoChangeOrder>> {
+    return this.client.request<PoChangeOrder>(
+      $OPERATIONS["poChangeOrders.reject"],
+      { path: { id }, body },
       options,
     );
   }
@@ -13830,6 +13822,26 @@ export class InvoiceMatchesResource extends $Resource {
     return this.client.request<InvoiceMatch>(
       $OPERATIONS["invoiceMatches.get"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Accept an invoice mismatch
+   *
+   * Records why a mismatch is accepted. Only someone other than the person who recorded the match may accept it, once; a refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /invoice-matches/{id}/resolve` (operation `invoiceMatches.resolve`).
+   * Requires the capability `procurement.invoice_match.write`.
+   */
+  resolve(
+    id: string,
+    body: InvoiceMatchResolveRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<InvoiceMatch>> {
+    return this.client.request<InvoiceMatch>(
+      $OPERATIONS["invoiceMatches.resolve"],
+      { path: { id }, body },
       options,
     );
   }
@@ -14173,6 +14185,26 @@ export class VendorsResource extends $Resource {
   delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
     return this.client.request<undefined>($OPERATIONS["vendors.delete"], { path: { id } }, options);
   }
+
+  /**
+   * Transition the vendor state
+   *
+   * Moves the vendor lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /vendors/{id}/transitions` (operation `vendors.transition`).
+   * Requires the capability `vendors.vendor.write`.
+   */
+  transition(
+    id: string,
+    body: VendorTransitionRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Vendor>> {
+    return this.client.request<Vendor>(
+      $OPERATIONS["vendors.transition"],
+      { path: { id }, body },
+      options,
+    );
+  }
 }
 
 /**
@@ -14511,20 +14543,20 @@ export class PrequalificationsResource extends $Resource {
   }
 
   /**
-   * Transition the prequalification state
+   * Decide a prequalification
    *
-   * Moves the prequalification lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Approves or rejects a pending prequalification through app.decide_prequalification: vendors.prequalification.approve, never by the requester, final once decided. A refusal returns 422 and names the rule. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
-   * `POST /prequalifications/{id}/transitions` (operation `prequalifications.transition`).
+   * `POST /prequalifications/{id}/decide` (operation `prequalifications.decide`).
    * Requires the capability `vendors.prequalification.approve`.
    */
-  transition(
+  decide(
     id: string,
-    body: PrequalificationTransitionRequest,
+    body: PrequalificationDecideRequest,
     options?: $MutationOptions,
   ): Promise<$ApiResponse<Prequalification>> {
     return this.client.request<Prequalification>(
-      $OPERATIONS["prequalifications.transition"],
+      $OPERATIONS["prequalifications.decide"],
       { path: { id }, body },
       options,
     );
@@ -14897,21 +14929,33 @@ export class SponsorEntitlementsResource extends $Resource {
   }
 
   /**
-   * Transition the entitlement fulfillment state
+   * Mark an entitlement fulfilled
    *
-   * Moves the entitlement fulfillment lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Stamps `fulfilled_at` now. Needs vendors.entitlement.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
-   * `POST /sponsor-entitlements/{id}/transitions` (operation `sponsorEntitlements.transition`).
+   * `POST /sponsor-entitlements/{id}/fulfill` (operation `sponsorEntitlements.fulfill`).
    * Requires the capability `vendors.entitlement.write`.
    */
-  transition(
-    id: string,
-    body: EntitlementFulfillmentTransitionRequest,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<SponsorEntitlement>> {
+  fulfill(id: string, options?: $MutationOptions): Promise<$ApiResponse<SponsorEntitlement>> {
     return this.client.request<SponsorEntitlement>(
-      $OPERATIONS["sponsorEntitlements.transition"],
-      { path: { id }, body },
+      $OPERATIONS["sponsorEntitlements.fulfill"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Mark an entitlement owed again
+   *
+   * Clears `fulfilled_at`. Needs vendors.entitlement.write on the project. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /sponsor-entitlements/{id}/reopen` (operation `sponsorEntitlements.reopen`).
+   * Requires the capability `vendors.entitlement.write`.
+   */
+  reopen(id: string, options?: $MutationOptions): Promise<$ApiResponse<SponsorEntitlement>> {
+    return this.client.request<SponsorEntitlement>(
+      $OPERATIONS["sponsorEntitlements.reopen"],
+      { path: { id } },
       options,
     );
   }
@@ -15483,6 +15527,26 @@ export class PermitRequirementsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Track a permit requirement
+   *
+   * Opens the Permit record that tracks the requirement (app.track_permit_requirement), titled with the canon permit, in one transaction. A requirement already tracked returns a 422 `permit_requirement_tracked` refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /permit-requirements/{id}/track` (operation `permitRequirements.track`).
+   * Requires the capability `safety.permit.write`.
+   */
+  track(
+    id: string,
+    body: PermitTrackRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<PermitRequirement>> {
+    return this.client.request<PermitRequirement>(
+      $OPERATIONS["permitRequirements.track"],
+      { path: { id }, body },
+      options,
+    );
+  }
 }
 
 /**
@@ -15603,13 +15667,21 @@ export class IncidentsResource extends $Resource {
   /**
    * Close an incident
    *
-   * Closes the incident with sign-off. A critical incident cannot be relabeled and closed in one request. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Closes a contained incident with sign-off through app.close_incident; the caller is recorded as the person signing off. The reporter of a critical incident cannot sign off its closure (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /incidents/{id}/close` (operation `incidents.close`).
    * Requires the capability `safety.incident.close`.
    */
-  close(id: string, options?: $MutationOptions): Promise<$ApiResponse<Incident>> {
-    return this.client.request<Incident>($OPERATIONS["incidents.close"], { path: { id } }, options);
+  close(
+    id: string,
+    body: IncidentCloseRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Incident>> {
+    return this.client.request<Incident>(
+      $OPERATIONS["incidents.close"],
+      { path: { id }, body },
+      options,
+    );
   }
 }
 
@@ -16150,7 +16222,7 @@ export class EmergencyCodesResource extends $Resource {
   /**
    * List emergency code rows
    *
-   * An org emergency code, seeded from the Standard Library and listed in numeric order. Returns a cursor page of emergency code rows the caller may see. Coded list: the default order is numeric code order by `code`. Supports sparse fieldsets and the filter grammar.
+   * An org emergency code, seeded from the Standard Library and listed in numeric order. Returns a cursor page of emergency code rows the caller may see. Coded list: the default order is numeric code order by `sort_order`. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /emergency-codes` (operation `emergencyCodes.list`).
    * Requires the capability `safety.incident.read`.
@@ -16169,7 +16241,7 @@ export class EmergencyCodesResource extends $Resource {
   /**
    * List emergency code rows
    *
-   * An org emergency code, seeded from the Standard Library and listed in numeric order. Returns a cursor page of emergency code rows the caller may see. Coded list: the default order is numeric code order by `code`. Supports sparse fieldsets and the filter grammar.
+   * An org emergency code, seeded from the Standard Library and listed in numeric order. Returns a cursor page of emergency code rows the caller may see. Coded list: the default order is numeric code order by `sort_order`. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -16188,76 +16260,21 @@ export class EmergencyCodesResource extends $Resource {
   }
 
   /**
-   * Create an emergency code
-   *
-   * An org emergency code, seeded from the Standard Library and listed in numeric order. Creates an emergency code. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /emergency-codes` (operation `emergencyCodes.create`).
-   * Requires the capability `safety.emergency_code.write`.
-   */
-  create(
-    body: EmergencyCodeCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<EmergencyCode>> {
-    return this.client.request<EmergencyCode>(
-      $OPERATIONS["emergencyCodes.create"],
-      { body },
-      options,
-    );
-  }
-
-  /**
    * Get an emergency code
    *
    * An org emergency code, seeded from the Standard Library and listed in numeric order. Returns one emergency code with its `ETag`. A emergency code the caller may not see returns 404.
    *
-   * `GET /emergency-codes/{id}` (operation `emergencyCodes.get`).
+   * `GET /emergency-codes/{code}` (operation `emergencyCodes.get`).
    * Requires the capability `safety.incident.read`.
    */
   get(
-    id: string,
+    code: string,
     params?: $FieldsParams<EmergencyCode>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<EmergencyCode>> {
     return this.client.request<EmergencyCode>(
       $OPERATIONS["emergencyCodes.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Update an emergency code
-   *
-   * An org emergency code, seeded from the Standard Library and listed in numeric order. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /emergency-codes/{id}` (operation `emergencyCodes.update`).
-   * Requires the capability `safety.emergency_code.write`.
-   */
-  update(
-    id: string,
-    body: EmergencyCodeUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<EmergencyCode>> {
-    return this.client.request<EmergencyCode>(
-      $OPERATIONS["emergencyCodes.update"],
-      { path: { id }, body },
-      options,
-    );
-  }
-
-  /**
-   * Delete an emergency code
-   *
-   * An org emergency code, seeded from the Standard Library and listed in numeric order. Soft-deletes the emergency code: it moves to Trash and can be restored for its table's retention period.
-   *
-   * `DELETE /emergency-codes/{id}` (operation `emergencyCodes.delete`).
-   * Requires the capability `safety.emergency_code.write`.
-   */
-  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
-    return this.client.request<undefined>(
-      $OPERATIONS["emergencyCodes.delete"],
-      { path: { id } },
+      { path: { code }, query: params },
       options,
     );
   }
@@ -16272,7 +16289,7 @@ export class RadioChannelsResource extends $Resource {
   /**
    * List radio channel rows
    *
-   * A radio channel in the org radio plan, listed in numeric order. Returns a cursor page of radio channel rows the caller may see. Coded list: the default order is numeric code order by `channel`. Supports sparse fieldsets and the filter grammar.
+   * A radio channel in the org radio plan, listed in numeric order. Returns a cursor page of radio channel rows the caller may see. Coded list: the default order is numeric code order by `channel_number`. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /radio-channels` (operation `radioChannels.list`).
    * Requires the capability `safety.incident.read`.
@@ -16291,7 +16308,7 @@ export class RadioChannelsResource extends $Resource {
   /**
    * List radio channel rows
    *
-   * A radio channel in the org radio plan, listed in numeric order. Returns a cursor page of radio channel rows the caller may see. Coded list: the default order is numeric code order by `channel`. Supports sparse fieldsets and the filter grammar.
+   * A radio channel in the org radio plan, listed in numeric order. Returns a cursor page of radio channel rows the caller may see. Coded list: the default order is numeric code order by `channel_number`. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -17189,18 +17206,6 @@ export class BidsResource extends $Resource {
    */
   update(id: string, body: BidUpdate, options: $UpdateOptions): Promise<$ApiResponse<Bid>> {
     return this.client.request<Bid>($OPERATIONS["bids.update"], { path: { id }, body }, options);
-  }
-
-  /**
-   * Unseal a bid
-   *
-   * Unseals a bid before the deadline. Requires `procurement.bid.unseal`; otherwise refused. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-   *
-   * `POST /bids/{id}/unseal` (operation `bids.unseal`).
-   * Requires the capability `procurement.bid.unseal`.
-   */
-  unseal(id: string, options?: $MutationOptions): Promise<$ApiResponse<Bid>> {
-    return this.client.request<Bid>($OPERATIONS["bids.unseal"], { path: { id } }, options);
   }
 }
 
@@ -19949,17 +19954,17 @@ export class CanonActsResource extends $Resource {
    *
    * An act: a presentation grouping of gates, never a control point. Returns one canon act with its `ETag`. A canon act the caller may not see returns 404.
    *
-   * `GET /canon/acts/{act}` (operation `canonActs.get`).
+   * `GET /canon/acts/{act_code}` (operation `canonActs.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    act: NonNullable<ActCode>,
+    actCode: NonNullable<ActCode>,
     params?: $FieldsParams<CanonAct>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<CanonAct>> {
     return this.client.request<CanonAct>(
       $OPERATIONS["canonActs.get"],
-      { path: { act }, query: params },
+      { path: { act_code: actCode }, query: params },
       options,
     );
   }
@@ -21756,7 +21761,7 @@ export class CanonUnitDimensionsResource extends $Resource {
   /**
    * List canon unit dimension rows
    *
-   * A controlled unit and the dimension it measures. Returns a cursor page of canon unit dimension rows the caller may see. The default order is `unit` ascending. Supports sparse fieldsets and the filter grammar.
+   * A controlled unit and the dimension it measures. Returns a cursor page of canon unit dimension rows the caller may see. The default order is `dimension_code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/unit-dimensions` (operation `canonUnitDimensions.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -21775,7 +21780,7 @@ export class CanonUnitDimensionsResource extends $Resource {
   /**
    * List canon unit dimension rows
    *
-   * A controlled unit and the dimension it measures. Returns a cursor page of canon unit dimension rows the caller may see. The default order is `unit` ascending. Supports sparse fieldsets and the filter grammar.
+   * A controlled unit and the dimension it measures. Returns a cursor page of canon unit dimension rows the caller may see. The default order is `dimension_code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -21798,17 +21803,17 @@ export class CanonUnitDimensionsResource extends $Resource {
    *
    * A controlled unit and the dimension it measures. Returns one canon unit dimension with its `ETag`. A canon unit dimension the caller may not see returns 404.
    *
-   * `GET /canon/unit-dimensions/{unit}` (operation `canonUnitDimensions.get`).
+   * `GET /canon/unit-dimensions/{dimension_code}` (operation `canonUnitDimensions.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    unit: NonNullable<UnitCode>,
+    dimensionCode: string,
     params?: $FieldsParams<CanonUnitDimension>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<CanonUnitDimension>> {
     return this.client.request<CanonUnitDimension>(
       $OPERATIONS["canonUnitDimensions.get"],
-      { path: { unit }, query: params },
+      { path: { dimension_code: dimensionCode }, query: params },
       options,
     );
   }
@@ -21890,7 +21895,7 @@ export class CanonLocalesResource extends $Resource {
   /**
    * List canon locale rows
    *
-   * A supported locale. Returns a cursor page of canon locale rows the caller may see. The default order is `locale` ascending. Supports sparse fieldsets and the filter grammar.
+   * A supported locale. Returns a cursor page of canon locale rows the caller may see. The default order is `locale_code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/locales` (operation `canonLocales.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -21906,7 +21911,7 @@ export class CanonLocalesResource extends $Resource {
   /**
    * List canon locale rows
    *
-   * A supported locale. Returns a cursor page of canon locale rows the caller may see. The default order is `locale` ascending. Supports sparse fieldsets and the filter grammar.
+   * A supported locale. Returns a cursor page of canon locale rows the caller may see. The default order is `locale_code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -21929,17 +21934,17 @@ export class CanonLocalesResource extends $Resource {
    *
    * A supported locale. Returns one canon locale with its `ETag`. A canon locale the caller may not see returns 404.
    *
-   * `GET /canon/locales/{locale}` (operation `canonLocales.get`).
+   * `GET /canon/locales/{locale_code}` (operation `canonLocales.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    locale: string,
+    localeCode: string,
     params?: $FieldsParams<CanonLocale>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<CanonLocale>> {
     return this.client.request<CanonLocale>(
       $OPERATIONS["canonLocales.get"],
-      { path: { locale }, query: params },
+      { path: { locale_code: localeCode }, query: params },
       options,
     );
   }
@@ -23608,7 +23613,7 @@ export class CanonCrosswalkCoverageResource extends $Resource {
   /**
    * List crosswalk coverage rows
    *
-   * Crosswalk coverage from GTIN to GPC brick to UNSPSC to URID. Returns a cursor page of crosswalk coverage rows the caller may see. Coded list: the default order is numeric code order by `urid`. Supports sparse fieldsets and the filter grammar.
+   * Crosswalk coverage from GTIN to GPC brick to UNSPSC to URID. Returns a cursor page of crosswalk coverage rows the caller may see. Coded list: the default order is numeric code order by `cat_urid`. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/crosswalk-coverage` (operation `canonCrosswalkCoverage.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -23627,7 +23632,7 @@ export class CanonCrosswalkCoverageResource extends $Resource {
   /**
    * List crosswalk coverage rows
    *
-   * Crosswalk coverage from GTIN to GPC brick to UNSPSC to URID. Returns a cursor page of crosswalk coverage rows the caller may see. Coded list: the default order is numeric code order by `urid`. Supports sparse fieldsets and the filter grammar.
+   * Crosswalk coverage from GTIN to GPC brick to UNSPSC to URID. Returns a cursor page of crosswalk coverage rows the caller may see. Coded list: the default order is numeric code order by `cat_urid`. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -26234,7 +26239,7 @@ export class PlansResource extends $Resource {
   /**
    * List plan rows
    *
-   * A plan generated from `plans.yaml`. Returns a cursor page of plan rows the caller may see. The default order is `plan_code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A plan generated from `plans.yaml`. Returns a cursor page of plan rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /plans` (operation `plans.list`).
    * Requires the capability `org.billing.read`.
@@ -26246,7 +26251,7 @@ export class PlansResource extends $Resource {
   /**
    * List plan rows
    *
-   * A plan generated from `plans.yaml`. Returns a cursor page of plan rows the caller may see. The default order is `plan_code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A plan generated from `plans.yaml`. Returns a cursor page of plan rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -27116,7 +27121,7 @@ export class CapabilitiesResource extends $Resource {
   /**
    * List capability rows
    *
-   * A capability from `packages/schemas/capabilities.yaml`. Read-only. Returns a cursor page of capability rows the caller may see. The default order is `capability` ascending. Supports sparse fieldsets and the filter grammar.
+   * A capability from `packages/schemas/capabilities.yaml`. Read-only. Returns a cursor page of capability rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /capabilities` (operation `capabilities.list`).
    * Requires the capability `org.members.read`.
@@ -27132,7 +27137,7 @@ export class CapabilitiesResource extends $Resource {
   /**
    * List capability rows
    *
-   * A capability from `packages/schemas/capabilities.yaml`. Read-only. Returns a cursor page of capability rows the caller may see. The default order is `capability` ascending. Supports sparse fieldsets and the filter grammar.
+   * A capability from `packages/schemas/capabilities.yaml`. Read-only. Returns a cursor page of capability rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -27730,7 +27735,7 @@ export class SeparationOfDutiesRulesResource extends $Resource {
   /**
    * List separation of duties rule rows
    *
-   * A separation of duties rule. Orgs may tighten defaults but never remove them. Returns a cursor page of separation of duties rule rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A separation of duties rule. Orgs may tighten defaults but never remove them. Returns a cursor page of separation of duties rule rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /separation-of-duties-rules` (operation `separationOfDutiesRules.list`).
    * Requires the capability `org.settings.read`.
@@ -27749,7 +27754,7 @@ export class SeparationOfDutiesRulesResource extends $Resource {
   /**
    * List separation of duties rule rows
    *
-   * A separation of duties rule. Orgs may tighten defaults but never remove them. Returns a cursor page of separation of duties rule rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A separation of duties rule. Orgs may tighten defaults but never remove them. Returns a cursor page of separation of duties rule rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -27763,81 +27768,6 @@ export class SeparationOfDutiesRulesResource extends $Resource {
     return this.client.paginate<SeparationOfDutiesRule>(
       $OPERATIONS["separationOfDutiesRules.list"],
       { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Create a separation of duties rule
-   *
-   * A separation of duties rule. Orgs may tighten defaults but never remove them. Creates a separation of duties rule. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /separation-of-duties-rules` (operation `separationOfDutiesRules.create`).
-   * Requires the capability `org.separation_of_duties.write`.
-   */
-  create(
-    body: SeparationOfDutiesRuleCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<SeparationOfDutiesRule>> {
-    return this.client.request<SeparationOfDutiesRule>(
-      $OPERATIONS["separationOfDutiesRules.create"],
-      { body },
-      options,
-    );
-  }
-
-  /**
-   * Get a separation of duties rule
-   *
-   * A separation of duties rule. Orgs may tighten defaults but never remove them. Returns one separation of duties rule with its `ETag`. A separation of duties rule the caller may not see returns 404.
-   *
-   * `GET /separation-of-duties-rules/{id}` (operation `separationOfDutiesRules.get`).
-   * Requires the capability `org.settings.read`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<SeparationOfDutiesRule>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<SeparationOfDutiesRule>> {
-    return this.client.request<SeparationOfDutiesRule>(
-      $OPERATIONS["separationOfDutiesRules.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Update a separation of duties rule
-   *
-   * A separation of duties rule. Orgs may tighten defaults but never remove them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /separation-of-duties-rules/{id}` (operation `separationOfDutiesRules.update`).
-   * Requires the capability `org.separation_of_duties.write`.
-   */
-  update(
-    id: string,
-    body: SeparationOfDutiesRuleUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<SeparationOfDutiesRule>> {
-    return this.client.request<SeparationOfDutiesRule>(
-      $OPERATIONS["separationOfDutiesRules.update"],
-      { path: { id }, body },
-      options,
-    );
-  }
-
-  /**
-   * Delete a separation of duties rule
-   *
-   * A separation of duties rule. Orgs may tighten defaults but never remove them. Soft-deletes the separation of duties rule: it moves to Trash and can be restored for its table's retention period.
-   *
-   * `DELETE /separation-of-duties-rules/{id}` (operation `separationOfDutiesRules.delete`).
-   * Requires the capability `org.separation_of_duties.write`.
-   */
-  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
-    return this.client.request<undefined>(
-      $OPERATIONS["separationOfDutiesRules.delete"],
-      { path: { id } },
       options,
     );
   }
@@ -28467,13 +28397,13 @@ export class ApiKeysResource extends $Resource {
   /**
    * Create an API key
    *
-   * An org-scoped API key with capability scopes and expiry. The secret is shown once and stored hashed. Creates an API key. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   * Creates an API key with scopes and an expiry, optionally for a service account, through `app.create_api_key`. The full secret is returned once; only its hash is stored. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /api-keys` (operation `apiKeys.create`).
    * Requires the capability `org.api_keys.manage`.
    */
-  create(body: ApiKeyCreate, options?: $MutationOptions): Promise<$ApiResponse<ApiKey>> {
-    return this.client.request<ApiKey>($OPERATIONS["apiKeys.create"], { body }, options);
+  create(body: ApiKeyCreate, options?: $MutationOptions): Promise<$ApiResponse<ApiKeySecret>> {
+    return this.client.request<ApiKeySecret>($OPERATIONS["apiKeys.create"], { body }, options);
   }
 
   /**
@@ -29016,7 +28946,7 @@ export class WebhookEndpointsResource extends $Resource {
   /**
    * Create a webhook endpoint
    *
-   * A webhook endpoint. Deliveries are signed with HMAC-SHA256 and retried for 72 hours. Creates a webhook endpoint. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   * Creates an endpoint subscribed to the given event types through `app.create_webhook_endpoint`. The signing secret is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /webhook-endpoints` (operation `webhookEndpoints.create`).
    * Requires the capability `org.webhooks.manage`.
@@ -29024,8 +28954,8 @@ export class WebhookEndpointsResource extends $Resource {
   create(
     body: WebhookEndpointCreate,
     options?: $MutationOptions,
-  ): Promise<$ApiResponse<WebhookEndpoint>> {
-    return this.client.request<WebhookEndpoint>(
+  ): Promise<$ApiResponse<WebhookEndpointSecret>> {
+    return this.client.request<WebhookEndpointSecret>(
       $OPERATIONS["webhookEndpoints.create"],
       { body },
       options,
@@ -29181,7 +29111,7 @@ export class WebhookEventTypesResource extends $Resource {
   /**
    * List webhook event type rows
    *
-   * A webhook event from the domain event table. Returns a cursor page of webhook event type rows the caller may see. The default order is `event` ascending. Supports sparse fieldsets and the filter grammar.
+   * A webhook event from the domain event table. Returns a cursor page of webhook event type rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /webhook-events` (operation `webhookEventTypes.list`).
    * Requires the capability `org.settings.read`.
@@ -29200,7 +29130,7 @@ export class WebhookEventTypesResource extends $Resource {
   /**
    * List webhook event type rows
    *
-   * A webhook event from the domain event table. Returns a cursor page of webhook event type rows the caller may see. The default order is `event` ascending. Supports sparse fieldsets and the filter grammar.
+   * A webhook event from the domain event table. Returns a cursor page of webhook event type rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -29489,7 +29419,7 @@ export class AuditEventsResource extends $Resource {
   /**
    * List audit event rows
    *
-   * An append-only compliance audit event, retained 7 years. Returns a cursor page of audit event rows the caller may see. The default order is `occurred_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * An append-only compliance audit event, retained 7 years. Returns a cursor page of audit event rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /audit-events` (operation `auditEvents.list`).
    * Requires the capability `audit.log.read`.
@@ -29505,7 +29435,7 @@ export class AuditEventsResource extends $Resource {
   /**
    * List audit event rows
    *
-   * An append-only compliance audit event, retained 7 years. Returns a cursor page of audit event rows the caller may see. The default order is `occurred_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * An append-only compliance audit event, retained 7 years. Returns a cursor page of audit event rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -30476,13 +30406,29 @@ export class ReportsResource extends $Resource {
   /**
    * Budget versus actual
    *
-   * Budget versus actual by GL account, cost center and URID. Aggregates of unpriced lines stay null and carry `unpriced_count`. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Revised budget (working budget plus approved change orders) against actual spend, grouped by one dimension. Unpriced lines stay out of each sum and are counted in `unpriced_count`. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /reports/budget-vs-actual` (operation `reports.budgetVsActual`).
    * Requires the capability `finance.budget.read`.
    */
-  budgetVsActual(options?: $RequestOptions): Promise<$ApiResponse<ReportRowPage>> {
-    return this.client.request<ReportRowPage>($OPERATIONS["reports.budgetVsActual"], {}, options);
+  budgetVsActual(
+    params?: {
+      /**
+       * Only this project; every visible project when omitted.
+       */
+      readonly project_id?: string;
+      /**
+       * Grouping dimension; defaults to account.
+       */
+      readonly dimension?: "account" | "costCenter" | "department" | "urid" | "project";
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ReportRowPage>> {
+    return this.client.request<ReportRowPage>(
+      $OPERATIONS["reports.budgetVsActual"],
+      { query: params },
+      options,
+    );
   }
 
   /**
@@ -30500,13 +30446,25 @@ export class ReportsResource extends $Resource {
   /**
    * PO exposure
    *
-   * Open purchase order exposure by vendor and GL account. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Committed purchase order value (lines plus approved changes) against value received, by vendor. An order with an unpriced line stays out of each sum and is counted in `unpriced_count`. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /reports/po-exposure` (operation `reports.poExposure`).
    * Requires the capability `procurement.po.read`.
    */
-  poExposure(options?: $RequestOptions): Promise<$ApiResponse<ReportRowPage>> {
-    return this.client.request<ReportRowPage>($OPERATIONS["reports.poExposure"], {}, options);
+  poExposure(
+    params?: {
+      /**
+       * Only this project; every visible project when omitted.
+       */
+      readonly project_id?: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ReportRowPage>> {
+    return this.client.request<ReportRowPage>(
+      $OPERATIONS["reports.poExposure"],
+      { query: params },
+      options,
+    );
   }
 
   /**
@@ -30524,13 +30482,25 @@ export class ReportsResource extends $Resource {
   /**
    * Final cost report
    *
-   * Final cost against the gate 3 baseline. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Final cost of one project by GL account: the gate 3 baseline plus approved change orders against posted actuals from the Universal Posting Line. A project without a baseline answers 422 NO_ANSWER, never zero. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /reports/final-cost-report` (operation `reports.finalCostReport`).
    * Requires the capability `finance.budget.read`.
    */
-  finalCostReport(options?: $RequestOptions): Promise<$ApiResponse<ReportRowPage>> {
-    return this.client.request<ReportRowPage>($OPERATIONS["reports.finalCostReport"], {}, options);
+  finalCostReport(
+    params: {
+      /**
+       * The project reported on.
+       */
+      readonly project_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ReportRowPage>> {
+    return this.client.request<ReportRowPage>(
+      $OPERATIONS["reports.finalCostReport"],
+      { query: params },
+      options,
+    );
   }
 
   /**
@@ -31586,7 +31556,7 @@ export class ImportRowResultsResource extends $Resource {
   /**
    * List import row result rows
    *
-   * The validation result of one imported row, with a reason per cell. Returns a cursor page of import row result rows the caller may see. The default order is `source_row` ascending. Supports sparse fieldsets and the filter grammar.
+   * The validation result of one imported row, with a reason per cell. Returns a cursor page of import row result rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /import-row-results` (operation `importRowResults.list`).
    * Requires the capability `org.settings.read`.
@@ -31605,7 +31575,7 @@ export class ImportRowResultsResource extends $Resource {
   /**
    * List import row result rows
    *
-   * The validation result of one imported row, with a reason per cell. Returns a cursor page of import row result rows the caller may see. The default order is `source_row` ascending. Supports sparse fieldsets and the filter grammar.
+   * The validation result of one imported row, with a reason per cell. Returns a cursor page of import row result rows the caller may see. The default order is `id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -32800,7 +32770,7 @@ export class CalendarFeedsResource extends $Resource {
   /**
    * Create a calendar feed
    *
-   * An iCalendar feed. The token is shown once, stored hashed and revocable. Creates a calendar feed. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   * Creates an iCalendar feed of the caller's schedule, optionally for one project, through `app.create_calendar_feed`. The token of the subscription URL is returned once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /calendar-feeds` (operation `calendarFeeds.create`).
    * Requires the capability `me.calendar_feeds.write`.
@@ -32808,8 +32778,8 @@ export class CalendarFeedsResource extends $Resource {
   create(
     body: CalendarFeedCreate,
     options?: $MutationOptions,
-  ): Promise<$ApiResponse<CalendarFeed>> {
-    return this.client.request<CalendarFeed>(
+  ): Promise<$ApiResponse<CalendarFeedToken>> {
+    return this.client.request<CalendarFeedToken>(
       $OPERATIONS["calendarFeeds.create"],
       { body },
       options,
@@ -33101,6 +33071,832 @@ export class TemplateApplicationsResource extends $Resource {
   ): Promise<$ApiResponse<TemplateApplication>> {
     return this.client.request<TemplateApplication>(
       $OPERATIONS["templateApplications.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `guestListEntries`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class GuestListEntriesResource extends $Resource {
+  /**
+   * List guest list entry rows
+   *
+   * A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Returns a cursor page of guest list entry rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /guest-list-entries` (operation `guestListEntries.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<GuestListEntry>,
+    options?: $RequestOptions,
+  ): Promise<$Page<GuestListEntry>> {
+    return this.client.requestPage<GuestListEntry>(
+      $OPERATIONS["guestListEntries.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List guest list entry rows
+   *
+   * A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Returns a cursor page of guest list entry rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /guest-list-entries` (operation `guestListEntries.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<GuestListEntry>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<GuestListEntry, void, undefined> {
+    return this.client.paginate<GuestListEntry>(
+      $OPERATIONS["guestListEntries.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a guest list entry
+   *
+   * A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Creates a guest list entry. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /guest-list-entries` (operation `guestListEntries.create`).
+   * Requires the capability `advancing.rider.write`.
+   */
+  create(
+    body: GuestListEntryCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<GuestListEntry>> {
+    return this.client.request<GuestListEntry>(
+      $OPERATIONS["guestListEntries.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a guest list entry
+   *
+   * A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Returns one guest list entry with its `ETag`. A guest list entry the caller may not see returns 404.
+   *
+   * `GET /guest-list-entries/{id}` (operation `guestListEntries.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<GuestListEntry>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<GuestListEntry>> {
+    return this.client.request<GuestListEntry>(
+      $OPERATIONS["guestListEntries.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a guest list entry
+   *
+   * A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /guest-list-entries/{id}` (operation `guestListEntries.update`).
+   * Requires the capability `advancing.rider.write`.
+   */
+  update(
+    id: string,
+    body: GuestListEntryUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<GuestListEntry>> {
+    return this.client.request<GuestListEntry>(
+      $OPERATIONS["guestListEntries.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a guest list entry
+   *
+   * A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door. Soft-deletes the guest list entry: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /guest-list-entries/{id}` (operation `guestListEntries.delete`).
+   * Requires the capability `advancing.rider.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["guestListEntries.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Approve or decline a guest
+   *
+   * Moves a Requested guest to Approved or Declined. Needs review authority on the project and refuses the person who requested the guest (sod_guest_requester, 422); the database stamps who decided and when. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /guest-list-entries/{id}/decide` (operation `guestListEntries.decide`).
+   * Requires the capability `advancing.submission.review`.
+   */
+  decide(
+    id: string,
+    body: GuestDecisionRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<GuestListEntry>> {
+    return this.client.request<GuestListEntry>(
+      $OPERATIONS["guestListEntries.decide"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Check a guest in
+   *
+   * Moves an Approved guest to Checked In at the door; the database stamps who checked them in and when. Any other state is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /guest-list-entries/{id}/check-in` (operation `guestListEntries.checkIn`).
+   * Requires the capability `advancing.rider.write`.
+   */
+  checkIn(id: string, options?: $MutationOptions): Promise<$ApiResponse<GuestListEntry>> {
+    return this.client.request<GuestListEntry>(
+      $OPERATIONS["guestListEntries.checkIn"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `savedViewShares`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class SavedViewSharesResource extends $Resource {
+  /**
+   * List saved view share rows
+   *
+   * A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows. Returns a cursor page of saved view share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /saved-view-shares` (operation `savedViewShares.list`).
+   * Requires the capability `my_work.items.read`.
+   */
+  list(
+    params?: $ListParams<SavedViewShare>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SavedViewShare>> {
+    return this.client.requestPage<SavedViewShare>(
+      $OPERATIONS["savedViewShares.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List saved view share rows
+   *
+   * A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows. Returns a cursor page of saved view share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /saved-view-shares` (operation `savedViewShares.list`).
+   * Requires the capability `my_work.items.read`.
+   */
+  listAll(
+    params?: $ListAllParams<SavedViewShare>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SavedViewShare, void, undefined> {
+    return this.client.paginate<SavedViewShare>(
+      $OPERATIONS["savedViewShares.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a saved view share
+   *
+   * A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows. Creates a saved view share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /saved-view-shares` (operation `savedViewShares.create`).
+   * Requires the capability `org.views.write`.
+   */
+  create(
+    body: SavedViewShareCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SavedViewShare>> {
+    return this.client.request<SavedViewShare>(
+      $OPERATIONS["savedViewShares.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a saved view share
+   *
+   * A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows. Returns one saved view share with its `ETag`. A saved view share the caller may not see returns 404.
+   *
+   * `GET /saved-view-shares/{id}` (operation `savedViewShares.get`).
+   * Requires the capability `my_work.items.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SavedViewShare>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SavedViewShare>> {
+    return this.client.request<SavedViewShare>(
+      $OPERATIONS["savedViewShares.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a saved view share
+   *
+   * A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows. Soft-deletes the saved view share: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /saved-view-shares/{id}` (operation `savedViewShares.delete`).
+   * Requires the capability `org.views.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["savedViewShares.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `savedViewDefaults`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class SavedViewDefaultsResource extends $Resource {
+  /**
+   * List saved view default rows
+   *
+   * The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default). Returns a cursor page of saved view default rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /saved-view-defaults` (operation `savedViewDefaults.list`).
+   * Requires the capability `me.preferences.write`.
+   */
+  list(
+    params?: $ListParams<SavedViewDefault>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SavedViewDefault>> {
+    return this.client.requestPage<SavedViewDefault>(
+      $OPERATIONS["savedViewDefaults.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List saved view default rows
+   *
+   * The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default). Returns a cursor page of saved view default rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /saved-view-defaults` (operation `savedViewDefaults.list`).
+   * Requires the capability `me.preferences.write`.
+   */
+  listAll(
+    params?: $ListAllParams<SavedViewDefault>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SavedViewDefault, void, undefined> {
+    return this.client.paginate<SavedViewDefault>(
+      $OPERATIONS["savedViewDefaults.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a saved view default
+   *
+   * The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default). Creates a saved view default. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /saved-view-defaults` (operation `savedViewDefaults.create`).
+   * Requires the capability `me.preferences.write`.
+   */
+  create(
+    body: SavedViewDefaultCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SavedViewDefault>> {
+    return this.client.request<SavedViewDefault>(
+      $OPERATIONS["savedViewDefaults.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a saved view default
+   *
+   * The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default). Returns one saved view default with its `ETag`. A saved view default the caller may not see returns 404.
+   *
+   * `GET /saved-view-defaults/{id}` (operation `savedViewDefaults.get`).
+   * Requires the capability `me.preferences.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SavedViewDefault>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SavedViewDefault>> {
+    return this.client.request<SavedViewDefault>(
+      $OPERATIONS["savedViewDefaults.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a saved view default
+   *
+   * The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default). Soft-deletes the saved view default: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /saved-view-defaults/{id}` (operation `savedViewDefaults.delete`).
+   * Requires the capability `me.preferences.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["savedViewDefaults.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `tourProgress`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class TourProgressResource extends $Resource {
+  /**
+   * List tour progress rows
+   *
+   * The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again. Returns a cursor page of tour progress rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /tour-progress` (operation `tourProgress.list`).
+   * Requires the capability `me.preferences.write`.
+   */
+  list(
+    params?: $ListParams<TourProgress>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TourProgress>> {
+    return this.client.requestPage<TourProgress>(
+      $OPERATIONS["tourProgress.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List tour progress rows
+   *
+   * The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again. Returns a cursor page of tour progress rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /tour-progress` (operation `tourProgress.list`).
+   * Requires the capability `me.preferences.write`.
+   */
+  listAll(
+    params?: $ListAllParams<TourProgress>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TourProgress, void, undefined> {
+    return this.client.paginate<TourProgress>(
+      $OPERATIONS["tourProgress.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a tour progress
+   *
+   * The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again. Creates a tour progress. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /tour-progress` (operation `tourProgress.create`).
+   * Requires the capability `me.preferences.write`.
+   */
+  create(
+    body: TourProgressCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TourProgress>> {
+    return this.client.request<TourProgress>($OPERATIONS["tourProgress.create"], { body }, options);
+  }
+
+  /**
+   * Get a tour progress
+   *
+   * The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again. Returns one tour progress with its `ETag`. A tour progress the caller may not see returns 404.
+   *
+   * `GET /tour-progress/{id}` (operation `tourProgress.get`).
+   * Requires the capability `me.preferences.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TourProgress>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TourProgress>> {
+    return this.client.request<TourProgress>(
+      $OPERATIONS["tourProgress.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a tour progress
+   *
+   * The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /tour-progress/{id}` (operation `tourProgress.update`).
+   * Requires the capability `me.preferences.write`.
+   */
+  update(
+    id: string,
+    body: TourProgressUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<TourProgress>> {
+    return this.client.request<TourProgress>(
+      $OPERATIONS["tourProgress.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `tipDismissals`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class TipDismissalsResource extends $Resource {
+  /**
+   * List tip dismissal rows
+   *
+   * A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived. Returns a cursor page of tip dismissal rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /tip-dismissals` (operation `tipDismissals.list`).
+   * Requires the capability `me.preferences.write`.
+   */
+  list(
+    params?: $ListParams<TipDismissal>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TipDismissal>> {
+    return this.client.requestPage<TipDismissal>(
+      $OPERATIONS["tipDismissals.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List tip dismissal rows
+   *
+   * A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived. Returns a cursor page of tip dismissal rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /tip-dismissals` (operation `tipDismissals.list`).
+   * Requires the capability `me.preferences.write`.
+   */
+  listAll(
+    params?: $ListAllParams<TipDismissal>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TipDismissal, void, undefined> {
+    return this.client.paginate<TipDismissal>(
+      $OPERATIONS["tipDismissals.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a tip dismissal
+   *
+   * A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived. Creates a tip dismissal. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /tip-dismissals` (operation `tipDismissals.create`).
+   * Requires the capability `me.preferences.write`.
+   */
+  create(
+    body: TipDismissalCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TipDismissal>> {
+    return this.client.request<TipDismissal>(
+      $OPERATIONS["tipDismissals.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a tip dismissal
+   *
+   * A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived. Returns one tip dismissal with its `ETag`. A tip dismissal the caller may not see returns 404.
+   *
+   * `GET /tip-dismissals/{id}` (operation `tipDismissals.get`).
+   * Requires the capability `me.preferences.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TipDismissal>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TipDismissal>> {
+    return this.client.request<TipDismissal>(
+      $OPERATIONS["tipDismissals.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a tip dismissal
+   *
+   * A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived. Soft-deletes the tip dismissal: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /tip-dismissals/{id}` (operation `tipDismissals.delete`).
+   * Requires the capability `me.preferences.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["tipDismissals.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `supportTickets`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class SupportTicketsResource extends $Resource {
+  /**
+   * List support ticket rows
+   *
+   * A request for help (0643): to the org's own admins (Organization queue) or, from holders of org.help.write, to the platform team (Platform queue), whose channel and first response deadline follow the plan. Readable by the requester and by those who answer support for the org. Returns a cursor page of support ticket rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /support-tickets` (operation `supportTickets.list`).
+   * Requires the capability `me.account.write`.
+   */
+  list(
+    params?: $ListParams<SupportTicket>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SupportTicket>> {
+    return this.client.requestPage<SupportTicket>(
+      $OPERATIONS["supportTickets.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List support ticket rows
+   *
+   * A request for help (0643): to the org's own admins (Organization queue) or, from holders of org.help.write, to the platform team (Platform queue), whose channel and first response deadline follow the plan. Readable by the requester and by those who answer support for the org. Returns a cursor page of support ticket rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /support-tickets` (operation `supportTickets.list`).
+   * Requires the capability `me.account.write`.
+   */
+  listAll(
+    params?: $ListAllParams<SupportTicket>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SupportTicket, void, undefined> {
+    return this.client.paginate<SupportTicket>(
+      $OPERATIONS["supportTickets.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Open a support request
+   *
+   * Opens a request as the caller (app.open_support_ticket). The Platform queue needs org.help.write and a plan with a platform channel (support_platform_admins_only, support_plan_no_channel: 422); diagnostics need consent (support_diagnostics_consent). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /support-tickets` (operation `supportTickets.open`).
+   * Requires the capability `me.account.write`.
+   */
+  open(
+    body: SupportTicketOpenRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SupportTicket>> {
+    return this.client.request<SupportTicket>(
+      $OPERATIONS["supportTickets.open"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a support ticket
+   *
+   * A request for help (0643): to the org's own admins (Organization queue) or, from holders of org.help.write, to the platform team (Platform queue), whose channel and first response deadline follow the plan. Readable by the requester and by those who answer support for the org. Returns one support ticket with its `ETag`. A support ticket the caller may not see returns 404.
+   *
+   * `GET /support-tickets/{id}` (operation `supportTickets.get`).
+   * Requires the capability `me.account.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SupportTicket>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SupportTicket>> {
+    return this.client.request<SupportTicket>(
+      $OPERATIONS["supportTickets.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Move a support request
+   *
+   * Moves a request with a reason (app.transition_support_ticket). Responders make any allowed move; the requester closes, reopens a resolved request or takes back a waiting one (support_ticket_transition_forbidden: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /support-tickets/{id}/transition` (operation `supportTickets.transition`).
+   * Requires the capability `me.account.write`.
+   */
+  transition(
+    id: string,
+    body: SupportTicketTransitionRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SupportTicket>> {
+    return this.client.request<SupportTicket>(
+      $OPERATIONS["supportTickets.transition"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Reply on a support request
+   *
+   * Adds a message as the requester or a responder (app.post_support_message). A closed request takes no messages (support_ticket_closed: 422); a requester's reply reopens a waiting request. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /support-tickets/{id}/reply` (operation `supportTickets.reply`).
+   * Requires the capability `me.account.write`.
+   */
+  reply(
+    id: string,
+    body: SupportTicketReplyRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SupportTicketMessage>> {
+    return this.client.request<SupportTicketMessage>(
+      $OPERATIONS["supportTickets.reply"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `supportTicketMessages`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class SupportTicketMessagesResource extends $Resource {
+  /**
+   * List support ticket message rows
+   *
+   * One message on a support request (0643), oldest first. Append-only; posted with the reply action. Returns a cursor page of support ticket message rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /support-ticket-messages` (operation `supportTicketMessages.list`).
+   * Requires the capability `me.account.write`.
+   */
+  list(
+    params?: $ListParams<SupportTicketMessage>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SupportTicketMessage>> {
+    return this.client.requestPage<SupportTicketMessage>(
+      $OPERATIONS["supportTicketMessages.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List support ticket message rows
+   *
+   * One message on a support request (0643), oldest first. Append-only; posted with the reply action. Returns a cursor page of support ticket message rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /support-ticket-messages` (operation `supportTicketMessages.list`).
+   * Requires the capability `me.account.write`.
+   */
+  listAll(
+    params?: $ListAllParams<SupportTicketMessage>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SupportTicketMessage, void, undefined> {
+    return this.client.paginate<SupportTicketMessage>(
+      $OPERATIONS["supportTicketMessages.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a support ticket message
+   *
+   * One message on a support request (0643), oldest first. Append-only; posted with the reply action. Returns one support ticket message with its `ETag`. A support ticket message the caller may not see returns 404.
+   *
+   * `GET /support-ticket-messages/{id}` (operation `supportTicketMessages.get`).
+   * Requires the capability `me.account.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SupportTicketMessage>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SupportTicketMessage>> {
+    return this.client.request<SupportTicketMessage>(
+      $OPERATIONS["supportTicketMessages.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `supportTicketDiagnostics`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class SupportTicketDiagnosticsResource extends $Resource {
+  /**
+   * List support ticket diagnostics rows
+   *
+   * Diagnostics the requester chose to attach to a support request (0643), with the moment they consented. Append-only. Returns a cursor page of support ticket diagnostics rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /support-ticket-diagnostics` (operation `supportTicketDiagnostics.list`).
+   * Requires the capability `me.account.write`.
+   */
+  list(
+    params?: $ListParams<SupportTicketDiagnostics>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SupportTicketDiagnostics>> {
+    return this.client.requestPage<SupportTicketDiagnostics>(
+      $OPERATIONS["supportTicketDiagnostics.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List support ticket diagnostics rows
+   *
+   * Diagnostics the requester chose to attach to a support request (0643), with the moment they consented. Append-only. Returns a cursor page of support ticket diagnostics rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /support-ticket-diagnostics` (operation `supportTicketDiagnostics.list`).
+   * Requires the capability `me.account.write`.
+   */
+  listAll(
+    params?: $ListAllParams<SupportTicketDiagnostics>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SupportTicketDiagnostics, void, undefined> {
+    return this.client.paginate<SupportTicketDiagnostics>(
+      $OPERATIONS["supportTicketDiagnostics.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a support ticket diagnostics
+   *
+   * Diagnostics the requester chose to attach to a support request (0643), with the moment they consented. Append-only. Returns one support ticket diagnostics with its `ETag`. A support ticket diagnostics the caller may not see returns 404.
+   *
+   * `GET /support-ticket-diagnostics/{id}` (operation `supportTicketDiagnostics.get`).
+   * Requires the capability `me.account.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SupportTicketDiagnostics>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SupportTicketDiagnostics>> {
+    return this.client.request<SupportTicketDiagnostics>(
+      $OPERATIONS["supportTicketDiagnostics.get"],
       { path: { id }, query: params },
       options,
     );

@@ -42,9 +42,9 @@ Work with resources
 
 Import and export
   export RESOURCE [--format ndjson|json|csv] [--out FILE] [--filter ...]
-  export job create --source S --format F | export job status ID
+  export job create --data JSON|@file | export job status ID
   import RESOURCE --file rows.csv|.ndjson|.json [--dry-run] [--stop-on-error]
-  import job create --document ID --table T [--mapping ID]
+  import job create --data JSON|@file
   import job dry-run ID | commit ID | status ID
   import undo BATCH_ID
 

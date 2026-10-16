@@ -26,7 +26,13 @@ let server: ContractServer;
 let sleeps: number[];
 let client: XosClient;
 
-const project = { name: "Harborfront Summer Series", tier_code: "04", currency: "USD" } as const;
+const project = {
+  name: "Harborfront Summer Series",
+  project_key: "HSS-26",
+  time_zone: "America/New_York",
+  tier_code: "04",
+  currency: "USD",
+} as const;
 
 beforeAll(async () => {
   server = await startContractServer();
@@ -104,11 +110,17 @@ describe("create, read, update, delete", () => {
     await expect(
       client.projects.update(id, { name: "Stale" }, { ifMatch: read.etag as string }),
     ).rejects.toBeInstanceOf(XosPreconditionFailedError);
+  });
 
-    const deleted = await client.projects.delete(id);
+  it("soft-deletes a row and then answers 404 for it", async () => {
+    const calendar = await client.calendars.create({
+      name: "Venue Working Days",
+      time_zone: "America/New_York",
+    });
+    const deleted = await client.calendars.delete(calendar.data.id);
     expect(deleted.status).toBe(204);
     expect(deleted.data).toBeUndefined();
-    await expect(client.projects.get(id)).rejects.toBeInstanceOf(XosNotFoundError);
+    await expect(client.calendars.get(calendar.data.id)).rejects.toBeInstanceOf(XosNotFoundError);
   });
 
   it("returns a sparse fieldset", async () => {
@@ -249,7 +261,7 @@ describe("pagination and filters", () => {
       /requires the query parameter/,
     );
     await expect(
-      client.request(OPERATIONS["projects.delete"], { path: { id: "x" }, body: {} }),
+      client.request(OPERATIONS["calendars.delete"], { path: { id: "x" }, body: {} }),
     ).rejects.toThrow(/no request body/);
     await expect(client.request(OPERATIONS["projects.create"], {})).rejects.toThrow(
       /requires a request body/,
@@ -283,7 +295,7 @@ describe("problem errors", () => {
 
   it("raises XosValidationError with JSON Pointers", async () => {
     const error = await client.projects
-      .create({ name: "", tier_code: "04", currency: "usd" })
+      .create({ ...project, name: "", currency: "usd" })
       .catch((e: unknown) => e);
     expect(error).toBeInstanceOf(XosValidationError);
     expect((error as XosValidationError).errors.map((e) => e.pointer).sort()).toEqual([

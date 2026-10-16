@@ -342,11 +342,19 @@ from .resources import (
     TrashItemsResource,
     TemplatesResource,
     TemplateApplicationsResource,
+    GuestListEntriesResource,
+    SavedViewSharesResource,
+    SavedViewDefaultsResource,
+    TourProgressResource,
+    TipDismissalsResource,
+    SupportTicketsResource,
+    SupportTicketMessagesResource,
+    SupportTicketDiagnosticsResource,
 )
 
 
 class XosClient(XosClientCore):
-    """Client for the XOS Public API 1.0.0-draft.1.
+    """Client for the XOS Public API 1.0.0-draft.2.
 
     Example::
 
@@ -692,6 +700,14 @@ class XosClient(XosClientCore):
     trash_items: TrashItemsResource
     templates: TemplatesResource
     template_applications: TemplateApplicationsResource
+    guest_list_entries: GuestListEntriesResource
+    saved_view_shares: SavedViewSharesResource
+    saved_view_defaults: SavedViewDefaultsResource
+    tour_progress: TourProgressResource
+    tip_dismissals: TipDismissalsResource
+    support_tickets: SupportTicketsResource
+    support_ticket_messages: SupportTicketMessagesResource
+    support_ticket_diagnostics: SupportTicketDiagnosticsResource
 
     def __init__(self, base_url: str, **kwargs: Any) -> None:
         super().__init__(base_url, **kwargs)
@@ -1030,3 +1046,11 @@ class XosClient(XosClientCore):
         self.trash_items = TrashItemsResource(self)
         self.templates = TemplatesResource(self)
         self.template_applications = TemplateApplicationsResource(self)
+        self.guest_list_entries = GuestListEntriesResource(self)
+        self.saved_view_shares = SavedViewSharesResource(self)
+        self.saved_view_defaults = SavedViewDefaultsResource(self)
+        self.tour_progress = TourProgressResource(self)
+        self.tip_dismissals = TipDismissalsResource(self)
+        self.support_tickets = SupportTicketsResource(self)
+        self.support_ticket_messages = SupportTicketMessagesResource(self)
+        self.support_ticket_diagnostics = SupportTicketDiagnosticsResource(self)

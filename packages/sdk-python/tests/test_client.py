@@ -28,7 +28,13 @@ from xos_sdk import (
 
 from .contract import ContractServer
 
-PROJECT = {"name": "Harborfront Summer Series", "tier_code": "04", "currency": "USD"}
+PROJECT = {
+    "name": "Harborfront Summer Series",
+    "project_key": "HSS-26",
+    "time_zone": "America/New_York",
+    "tier_code": "04",
+    "currency": "USD",
+}
 
 
 class ClientTest(unittest.TestCase):
@@ -78,9 +84,10 @@ class ClientTest(unittest.TestCase):
         self.assertEqual(updated.data["name"], "Harborfront Fall Series")
         with self.assertRaises(XosPreconditionFailedError):
             self.client.projects.update(project_id, {"name": "Stale"}, if_match=read.etag or "")
-        self.assertEqual(self.client.projects.delete(project_id).status, 204)
+        calendar = self.client.calendars.create({"name": "Venue Working Days", "time_zone": "America/New_York"})
+        self.assertEqual(self.client.calendars.delete(calendar.data["id"]).status, 204)
         with self.assertRaises(XosNotFoundError):
-            self.client.projects.get(project_id)
+            self.client.calendars.get(calendar.data["id"])
 
     def test_sparse_fieldset(self) -> None:
         project_id = self.client.projects.create(PROJECT).data["id"]
@@ -137,7 +144,7 @@ class ClientTest(unittest.TestCase):
         with self.assertRaisesRegex(TypeError, "requires the query parameter"):
             self.client.request(OPERATIONS["canonElements.resolve"])
         with self.assertRaisesRegex(TypeError, "no request body"):
-            self.client.request(OPERATIONS["projects.delete"], path={"id": "x"}, body={})
+            self.client.request(OPERATIONS["calendars.delete"], path={"id": "x"}, body={})
         with self.assertRaisesRegex(TypeError, "requires a request body"):
             self.client.request(OPERATIONS["projects.create"])
         with self.assertRaisesRegex(TypeError, "not a paged list"):
@@ -152,7 +159,7 @@ class ClientTest(unittest.TestCase):
         self.assertIn("not Closed", refused.exception.reason)
         self.assertIsNone(refused.exception.rule)
         with self.assertRaises(XosValidationError) as invalid:
-            self.client.projects.create({"name": "", "tier_code": "04", "currency": "usd"})
+            self.client.projects.create({**PROJECT, "name": "", "currency": "usd"})
         self.assertEqual(sorted(e["pointer"] for e in invalid.exception.errors), ["/currency", "/name"])
 
     def test_auth_and_bad_request(self) -> None:

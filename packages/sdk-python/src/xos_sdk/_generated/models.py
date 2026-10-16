@@ -41,7 +41,6 @@ __all__ = [
     "GateEvidencePage",
     "GateEvidence",
     "GateEvidenceCreate",
-    "GateEvidenceUpdate",
     "ActivityEventPage",
     "ActivityEvent",
     "ScheduleBaselinePage",
@@ -100,7 +99,6 @@ __all__ = [
     "RunOfShowUpdate",
     "CuePage",
     "Cue",
-    "DeptCode",
     "CueCreate",
     "CueUpdate",
     "DaySheetPage",
@@ -135,6 +133,7 @@ __all__ = [
     "VenueUpdate",
     "SpacePage",
     "Space",
+    "Urid",
     "SpaceCreate",
     "SpaceUpdate",
     "ZonePage",
@@ -155,11 +154,11 @@ __all__ = [
     "SitePlanPinUpdate",
     "GeofencePage",
     "Geofence",
+    "GeoJsonPolygon",
     "GeofenceCreate",
     "GeofenceUpdate",
     "RequirementPage",
     "Requirement",
-    "Direction",
     "UnitCode",
     "RequirementCreate",
     "RequirementUpdate",
@@ -193,7 +192,6 @@ __all__ = [
     "AdvancePacket",
     "AdvancePacketCreate",
     "AdvancePacketUpdate",
-    "AdvanceTransitionRequest",
     "AdvanceSectionPage",
     "AdvanceSection",
     "AdvanceSectionCreate",
@@ -204,6 +202,7 @@ __all__ = [
     "AdvanceSubmissionPage",
     "AdvanceSubmission",
     "AdvanceSubmissionCreate",
+    "AdvanceSubmissionReviewRequest",
     "AdvancePromotionPage",
     "AdvancePromotion",
     "AdvancePromotionCreate",
@@ -235,8 +234,6 @@ __all__ = [
     "BeoLineUpdate",
     "AssetClassPage",
     "AssetClass",
-    "ItemId",
-    "Urid",
     "AssetClassCreate",
     "AssetClassUpdate",
     "AssetUnitPage",
@@ -245,6 +242,8 @@ __all__ = [
     "AssetUnitUpdate",
     "AssetTransitionRequest",
     "ScanRequest",
+    "AssetScanResult",
+    "AssetScanEvent",
     "AssetLotPage",
     "AssetLot",
     "AssetLotCreate",
@@ -276,9 +275,11 @@ __all__ = [
     "OfferPage",
     "Offer",
     "RateType",
-    "Masked",
     "OfferCreate",
     "OfferUpdate",
+    "OfferDeclineRequest",
+    "OfferCounterRequest",
+    "OfferWithdrawRequest",
     "AgreementPage",
     "Agreement",
     "AgreementCreate",
@@ -314,6 +315,7 @@ __all__ = [
     "RateCardUpdate",
     "RateCardLinePage",
     "RateCardLine",
+    "Masked",
     "RateCardLineCreate",
     "RateCardLineUpdate",
     "PayRatePage",
@@ -321,8 +323,6 @@ __all__ = [
     "PayRateCreate",
     "OvertimeRulePage",
     "OvertimeRule",
-    "OvertimeRuleCreate",
-    "OvertimeRuleUpdate",
     "UnionLocalRatePage",
     "UnionLocalRate",
     "UnionLocalRateCreate",
@@ -376,7 +376,6 @@ __all__ = [
     "AccessScanCreate",
     "CertificationPage",
     "Certification",
-    "TagId",
     "CertificationCreate",
     "CertificationUpdate",
     "CertificationHolderPage",
@@ -390,10 +389,8 @@ __all__ = [
     "BudgetSummary",
     "BudgetLinePage",
     "BudgetLine",
-    "GlAccountCode",
     "LineType",
-    "Grade",
-    "SharedState",
+    "ItemId",
     "BudgetLineCreate",
     "BudgetLineUpdate",
     "ExpensePage",
@@ -423,13 +420,15 @@ __all__ = [
     "JournalEntryUpdate",
     "JournalLinePage",
     "JournalLine",
+    "GlAccountCode",
     "JournalLineCreate",
     "JournalLineUpdate",
     "PostingLinePage",
     "PostingLine",
     "CostCenterCode",
     "TaxType",
-    "PostingExportAccepted",
+    "SharedState",
+    "PostingExport",
     "PostingExportRequest",
     "InvoicePage",
     "Invoice",
@@ -484,6 +483,7 @@ __all__ = [
     "PurchaseOrder",
     "PurchaseOrderCreate",
     "PurchaseOrderUpdate",
+    "PurchaseOrderApproveRequest",
     "PurchaseOrderTransitionRequest",
     "PoLinePage",
     "PoLine",
@@ -493,6 +493,8 @@ __all__ = [
     "PoChangeOrder",
     "PoChangeOrderCreate",
     "PoChangeOrderUpdate",
+    "PoChangeOrderApproveRequest",
+    "PoChangeOrderRejectRequest",
     "GoodsReceiptPage",
     "GoodsReceipt",
     "GoodsReceiptCreate",
@@ -502,6 +504,7 @@ __all__ = [
     "InvoiceMatchPage",
     "InvoiceMatch",
     "InvoiceMatchCreate",
+    "InvoiceMatchResolveRequest",
     "CatalogBindingPage",
     "CatalogBinding",
     "CatalogBindingCreate",
@@ -515,6 +518,7 @@ __all__ = [
     "CounterpartyType",
     "VendorCreate",
     "VendorUpdate",
+    "VendorTransitionRequest",
     "VendorClassPage",
     "VendorClass",
     "VendorClassCreate",
@@ -526,7 +530,7 @@ __all__ = [
     "Prequalification",
     "PrequalificationCreate",
     "PrequalificationUpdate",
-    "PrequalificationTransitionRequest",
+    "PrequalificationDecideRequest",
     "InsuranceCertificatePage",
     "InsuranceCertificate",
     "InsuranceCertificateCreate",
@@ -539,7 +543,6 @@ __all__ = [
     "SponsorEntitlement",
     "SponsorEntitlementCreate",
     "SponsorEntitlementUpdate",
-    "EntitlementFulfillmentTransitionRequest",
     "InspectionTemplatePage",
     "InspectionTemplate",
     "InspectionTemplateCreate",
@@ -560,11 +563,13 @@ __all__ = [
     "PermitRequirement",
     "PermitEngineRequest",
     "PermitTransitionRequest",
+    "PermitTrackRequest",
     "IncidentPage",
     "Incident",
     "IncidentCreate",
     "IncidentUpdate",
     "IncidentTransitionRequest",
+    "IncidentCloseRequest",
     "IncidentPartyPage",
     "IncidentParty",
     "IncidentPartyCreate",
@@ -585,8 +590,6 @@ __all__ = [
     "CrisisAlertCreate",
     "EmergencyCodePage",
     "EmergencyCode",
-    "EmergencyCodeCreate",
-    "EmergencyCodeUpdate",
     "RadioChannelPage",
     "RadioChannel",
     "RadioChannelCreate",
@@ -717,6 +720,7 @@ __all__ = [
     "BackgroundCheckCreate",
     "CanonDepartmentPage",
     "CanonDepartment",
+    "DeptCode",
     "CanonDisciplinePage",
     "CanonDiscipline",
     "DiscCode",
@@ -736,6 +740,7 @@ __all__ = [
     "TeamId",
     "CanonTagPage",
     "CanonTag",
+    "TagId",
     "CanonTouchpointPage",
     "CanonTouchpoint",
     "TouchpointId",
@@ -866,7 +871,6 @@ __all__ = [
     "MembershipUpdate",
     "MembershipRolePage",
     "MembershipRole",
-    "OrgRole",
     "MembershipRoleCreate",
     "ProjectAssignmentPage",
     "ProjectAssignment",
@@ -899,6 +903,7 @@ __all__ = [
     "JoinRequestCreate",
     "InvitationLinkPage",
     "InvitationLink",
+    "OrgRole",
     "InvitationLinkCreate",
     "InvitePage",
     "Invite",
@@ -978,7 +983,6 @@ __all__ = [
     "RoleUpdate",
     "CapabilityPage",
     "Capability",
-    "Classification",
     "RoleCapabilityPage",
     "RoleCapability",
     "RoleCapabilityCreate",
@@ -996,15 +1000,13 @@ __all__ = [
     "DelegationUpdate",
     "SpendAuthorityPage",
     "SpendAuthority",
-    "SpendDocumentType",
     "SpendAuthorityCreate",
     "SpendAuthorityUpdate",
     "SeparationOfDutiesRulePage",
     "SeparationOfDutiesRule",
-    "SeparationOfDutiesRuleCreate",
-    "SeparationOfDutiesRuleUpdate",
     "ColumnClassificationPage",
     "ColumnClassification",
+    "Classification",
     "AccessReviewCampaignPage",
     "AccessReviewCampaign",
     "AccessReviewCampaignCreate",
@@ -1025,9 +1027,9 @@ __all__ = [
     "ScimGroupMappingUpdate",
     "ApiKeyPage",
     "ApiKey",
-    "ApiKeyCreate",
     "ApiKeyUpdate",
     "ApiKeySecret",
+    "ApiKeyCreate",
     "ServiceAccountPage",
     "ServiceAccount",
     "ServiceAccountCreate",
@@ -1044,8 +1046,9 @@ __all__ = [
     "IntegrationUpdate",
     "WebhookEndpointPage",
     "WebhookEndpoint",
-    "WebhookEndpointCreate",
     "WebhookEndpointUpdate",
+    "WebhookEndpointSecret",
+    "WebhookEndpointCreate",
     "WebhookDeliveryPage",
     "WebhookDelivery",
     "WebhookEventTypePage",
@@ -1149,6 +1152,7 @@ __all__ = [
     "SavedViewUpdate",
     "ApprovalPolicyPage",
     "ApprovalPolicy",
+    "SpendDocumentType",
     "ApprovalPolicyCreate",
     "ApprovalPolicyUpdate",
     "ApprovalInstancePage",
@@ -1175,6 +1179,7 @@ __all__ = [
     "NotificationPreferenceUpdate",
     "CalendarFeedPage",
     "CalendarFeed",
+    "CalendarFeedToken",
     "CalendarFeedCreate",
     "TrashItemPage",
     "TrashItem",
@@ -1186,6 +1191,33 @@ __all__ = [
     "TemplateApplicationPage",
     "TemplateApplication",
     "TemplateApplicationCreate",
+    "GuestListEntryPage",
+    "GuestListEntry",
+    "GuestListEntryCreate",
+    "GuestListEntryUpdate",
+    "GuestDecisionRequest",
+    "SavedViewSharePage",
+    "SavedViewShare",
+    "SavedViewShareCreate",
+    "SavedViewDefaultPage",
+    "SavedViewDefault",
+    "SavedViewDefaultCreate",
+    "TourProgressPage",
+    "TourProgress",
+    "TourProgressCreate",
+    "TourProgressUpdate",
+    "TipDismissalPage",
+    "TipDismissal",
+    "TipDismissalCreate",
+    "SupportTicketPage",
+    "SupportTicket",
+    "SupportTicketOpenRequest",
+    "SupportTicketTransitionRequest",
+    "SupportTicketMessage",
+    "SupportTicketReplyRequest",
+    "SupportTicketMessagePage",
+    "SupportTicketDiagnosticsPage",
+    "SupportTicketDiagnostics",
 ]
 
 
@@ -1293,13 +1325,13 @@ class Project(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Display key issued by `next_sequence`.
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Project key, chosen by the caller and unique in the organization; it addresses the project in Atlas URLs.
     project_key: str
     #: Project name, Title Case.
     name: str
@@ -1309,7 +1341,7 @@ class Project(TypedDict):
     workspace_id: Optional[str]
     jurisdiction_id: JurisdictionId
     region_code: RegionCode
-    tier_code: TierCode
+    tier_code: Optional[TierCode]
     current_phase_code: PhaseCode
     #: Project lifecycle state. A Title Case value from the lifecycle's database enum.
     project_state: str
@@ -1319,14 +1351,25 @@ class Project(TypedDict):
     starts_on: Optional[str]
     #: Last show day.
     ends_on: Optional[str]
+    #: IANA time zone of the project; local times are entered in it.
+    time_zone: str
+    #: Identifier of the primary venue of the project.
+    venue_id: Optional[str]
+    #: Identifier of the client counterparty the project is produced for.
+    client_counterparty_id: Optional[str]
+    #: Production lifecycle state, which runs beside the project state; changes only through its transition RPC. A Title Case value from the lifecycle's database enum.
+    production_state: str
+    #: When the project was archived; archived projects leave the default lists.
+    archived_at: Optional[str]
 
 
 class _ProjectCreateRequired(TypedDict):
     #: Project name, Title Case.
     name: str
-    tier_code: TierCode
-    #: Base currency of the project.
-    currency: str
+    #: Project key, chosen by the caller and unique in the organization; it addresses the project in Atlas URLs.
+    project_key: str
+    #: IANA time zone of the project; local times are entered in it.
+    time_zone: str
 
 
 class ProjectCreate(_ProjectCreateRequired, total=False):
@@ -1338,10 +1381,15 @@ class ProjectCreate(_ProjectCreateRequired, total=False):
     workspace_id: Optional[str]
     jurisdiction_id: JurisdictionId
     region_code: RegionCode
+    tier_code: Optional[TierCode]
+    #: Base currency of the project.
+    currency: str
     #: First show day.
     starts_on: Optional[str]
     #: Last show day.
     ends_on: Optional[str]
+    #: Identifier of the primary venue of the project.
+    venue_id: Optional[str]
 
 
 class ProjectUpdate(TypedDict, total=False):
@@ -1355,13 +1403,21 @@ class ProjectUpdate(TypedDict, total=False):
     workspace_id: Optional[str]
     jurisdiction_id: JurisdictionId
     region_code: RegionCode
-    tier_code: TierCode
+    tier_code: Optional[TierCode]
     #: Base currency of the project.
     currency: str
     #: First show day.
     starts_on: Optional[str]
     #: Last show day.
     ends_on: Optional[str]
+    #: Project key, chosen by the caller and unique in the organization; it addresses the project in Atlas URLs.
+    project_key: str
+    #: IANA time zone of the project; local times are entered in it.
+    time_zone: str
+    #: Identifier of the primary venue of the project.
+    venue_id: Optional[str]
+    #: Identifier of the client counterparty the project is produced for.
+    client_counterparty_id: Optional[str]
 
 
 class _ProjectTransitionRequestRequired(TypedDict):
@@ -1427,12 +1483,12 @@ class ScopeNode(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Identifier of the parent scope node.
@@ -1494,16 +1550,16 @@ class ProjectPhaseTransition(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     from_phase_code: PhaseCode
-    to_phase_code: PhaseCode
+    to_phase_code: Optional[PhaseCode]
     #: When the gate was passed.
     transitioned_at: str
     #: Identifier of the person who passed the gate.
@@ -1528,37 +1584,37 @@ class GateEvidence(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     criterion_id: CriterionId
     #: Identifier of the record that evidences the criterion.
     record_id: Optional[str]
-    #: Identifier of the evidence document.
-    evidence_document_id: Optional[str]
     #: Identifier of the person who attested the evidence.
-    attested_by: str
+    attested_by: Optional[str]
     #: When the evidence was attested.
     attested_at: str
     #: Assertion rank of the evidence, 0 to 4.
     assertion_rank: int
+    #: Where the evidence lives: a document or record URI.
+    evidence_uri: Optional[str]
+    #: Note on the evidence.
+    note: Optional[str]
 
 
 class _GateEvidenceCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
     criterion_id: CriterionId
-    #: Identifier of the person who attested the evidence.
-    attested_by: str
-    #: When the evidence was attested.
-    attested_at: str
     #: Assertion rank of the evidence, 0 to 4.
     assertion_rank: int
+    #: Where the evidence lives: a document or record URI.
+    evidence_uri: str
 
 
 class GateEvidenceCreate(_GateEvidenceCreateRequired, total=False):
@@ -1566,23 +1622,8 @@ class GateEvidenceCreate(_GateEvidenceCreateRequired, total=False):
 
     #: Identifier of the record that evidences the criterion.
     record_id: Optional[str]
-    #: Identifier of the evidence document.
-    evidence_document_id: Optional[str]
-
-
-class GateEvidenceUpdate(TypedDict, total=False):
-    """Fields accepted when updating a GateEvidence. Omitted fields are unchanged."""
-
-    #: Identifier of the record that evidences the criterion.
-    record_id: Optional[str]
-    #: Identifier of the evidence document.
-    evidence_document_id: Optional[str]
-    #: Identifier of the person who attested the evidence.
-    attested_by: str
-    #: When the evidence was attested.
-    attested_at: str
-    #: Assertion rank of the evidence, 0 to 4.
-    assertion_rank: int
+    #: Note on the evidence.
+    note: Optional[str]
 
 
 class ActivityEventPage(TypedDict):
@@ -1603,14 +1644,14 @@ class ActivityEvent(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the person who acted.
-    actor_id: str
+    actor_id: Optional[str]
     #: What happened.
     verb: str
     #: URN of the subject.
@@ -1641,12 +1682,12 @@ class ScheduleBaseline(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Baseline name.
@@ -1682,12 +1723,12 @@ class ScheduleActual(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the record.
     record_id: str
     #: Actual start.
@@ -1737,12 +1778,12 @@ class Calendar(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Calendar name.
     name: str
     #: IANA time zone the local time was entered in.
@@ -1794,12 +1835,12 @@ class RecordDependency(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the predecessor record.
     predecessor_id: str
     #: Identifier of the successor record.
@@ -1841,12 +1882,12 @@ class RecordRecurrence(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the template record.
     record_id: str
     #: RFC 5545 recurrence rule.
@@ -1902,12 +1943,12 @@ class Record(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Display key issued by `next_sequence`.
     record_key: str
     record_kind: RecordKind
@@ -2034,12 +2075,12 @@ class RecordStateTransition(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the record.
     record_id: str
     from_state: RecordState
@@ -2068,24 +2109,34 @@ class RecordReplan(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the record.
     record_id: str
-    #: Changed field.
-    field: str
-    #: Previous value.
-    from_value: Optional[str]
-    #: New value.
-    to_value: Optional[str]
     #: Replan reason.
     reason: Optional[str]
     #: When the replan was logged.
     replanned_at: str
+    #: Record state before the change. A Title Case value from the lifecycle's database enum.
+    from_state: str
+    #: Record state after the change. A Title Case value from the lifecycle's database enum.
+    to_state: str
+    #: Start before the change.
+    old_starts_at: Optional[str]
+    #: Start after the change.
+    new_starts_at: Optional[str]
+    #: End before the change.
+    old_ends_at: Optional[str]
+    #: End after the change.
+    new_ends_at: Optional[str]
+    #: Due time before the change.
+    old_due_at: Optional[str]
+    #: Due time after the change.
+    new_due_at: Optional[str]
 
 
 class RecordChecklistItemPage(TypedDict):
@@ -2106,12 +2157,12 @@ class RecordChecklistItem(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the record.
     record_id: str
     #: Display position.
@@ -2177,12 +2228,12 @@ class RecordWatcher(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the record.
     record_id: str
     #: Identifier of the watching person.
@@ -2216,12 +2267,12 @@ class WorkOrder(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Identifier of the record the work order fulfills.
@@ -2308,12 +2359,12 @@ class WorkOrderBid(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the work order.
     work_order_id: str
     #: Identifier of the bidding organization.
@@ -2375,50 +2426,45 @@ class RunOfShow(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the show scope node.
-    scope_node_id: str
+    scope_node_id: Optional[str]
     #: Run of show title.
-    title: str
+    name: str
     #: Show date.
     show_date: str
-    #: IANA time zone the local time was entered in.
-    time_zone: str
-    #: Whether the run of show is published to crew and clients.
-    published: bool
+    #: Identifier of the project of the running order.
+    project_id: str
 
 
-class RunOfShowCreate(TypedDict):
+class _RunOfShowCreateRequired(TypedDict):
+    #: Run of show title.
+    name: str
+    #: Show date.
+    show_date: str
+    #: Identifier of the project of the running order.
+    project_id: str
+
+
+class RunOfShowCreate(_RunOfShowCreateRequired, total=False):
     """Fields accepted when creating a RunOfShow."""
 
     #: Identifier of the show scope node.
-    scope_node_id: str
-    #: Run of show title.
-    title: str
-    #: Show date.
-    show_date: str
-    #: IANA time zone the local time was entered in.
-    time_zone: str
-    #: Whether the run of show is published to crew and clients.
-    published: bool
+    scope_node_id: Optional[str]
 
 
 class RunOfShowUpdate(TypedDict, total=False):
     """Fields accepted when updating a RunOfShow. Omitted fields are unchanged."""
 
     #: Run of show title.
-    title: str
+    name: str
     #: Show date.
     show_date: str
-    #: IANA time zone the local time was entered in.
-    time_zone: str
-    #: Whether the run of show is published to crew and clients.
-    published: bool
 
 
 class CuePage(TypedDict):
@@ -2439,27 +2485,28 @@ class Cue(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the run of show.
     run_of_show_id: str
     #: Cue order.
     position: int
-    #: Cue number.
-    cue_code: str
     #: Cue title.
-    title: str
+    label: str
     #: Planned cue time.
-    planned_at: str
-    #: Planned duration in seconds.
-    duration_seconds: int
-    department_dept_code: DeptCode
+    planned_at: Optional[str]
     #: When the cue was called.
-    fired_at: Optional[str]
+    called_at: Optional[str]
+    #: Planned length as hours:minutes:seconds.
+    duration: Optional[str]
+    #: Identifier of the person who called the cue, set by app.call_cue.
+    called_by: Optional[str]
+    #: Identifier of the project of the running order, stamped by the database.
+    project_id: str
 
 
 class _CueCreateRequired(TypedDict):
@@ -2467,20 +2514,17 @@ class _CueCreateRequired(TypedDict):
     run_of_show_id: str
     #: Cue order.
     position: int
-    #: Cue number.
-    cue_code: str
     #: Cue title.
-    title: str
-    #: Planned cue time.
-    planned_at: str
-    #: Planned duration in seconds.
-    duration_seconds: int
+    label: str
 
 
 class CueCreate(_CueCreateRequired, total=False):
     """Fields accepted when creating a Cue."""
 
-    department_dept_code: DeptCode
+    #: Planned cue time.
+    planned_at: Optional[str]
+    #: Planned length as hours:minutes:seconds.
+    duration: Optional[str]
 
 
 class CueUpdate(TypedDict, total=False):
@@ -2488,15 +2532,12 @@ class CueUpdate(TypedDict, total=False):
 
     #: Cue order.
     position: int
-    #: Cue number.
-    cue_code: str
     #: Cue title.
-    title: str
+    label: str
     #: Planned cue time.
-    planned_at: str
-    #: Planned duration in seconds.
-    duration_seconds: int
-    department_dept_code: DeptCode
+    planned_at: Optional[str]
+    #: Planned length as hours:minutes:seconds.
+    duration: Optional[str]
 
 
 class DaySheetPage(TypedDict):
@@ -2517,44 +2558,40 @@ class DaySheet(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the scope node.
-    scope_node_id: str
-    #: Day the sheet covers.
-    sheet_date: str
-    #: Day sheet body as a rich text document.
-    body: Dict[str, Any]
-    #: Whether the sheet is published.
-    published: bool
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Day the sheet covers; one sheet per project and day.
+    day: str
+    #: Day sheet content as rich text.
+    body: str
+    #: Identifier of the project of the day sheet.
+    project_id: str
+    #: When the day sheet was published, stamped by the database; set once by the publish action.
+    published_at: Optional[str]
 
 
 class DaySheetCreate(TypedDict):
     """Fields accepted when creating a DaySheet."""
 
-    #: Identifier of the scope node.
-    scope_node_id: str
-    #: Day the sheet covers.
-    sheet_date: str
-    #: Day sheet body as a rich text document.
-    body: Dict[str, Any]
-    #: Whether the sheet is published.
-    published: bool
+    #: Day the sheet covers; one sheet per project and day.
+    day: str
+    #: Day sheet content as rich text.
+    body: str
+    #: Identifier of the project of the day sheet.
+    project_id: str
 
 
 class DaySheetUpdate(TypedDict, total=False):
     """Fields accepted when updating a DaySheet. Omitted fields are unchanged."""
 
-    #: Day the sheet covers.
-    sheet_date: str
-    #: Day sheet body as a rich text document.
-    body: Dict[str, Any]
-    #: Whether the sheet is published.
-    published: bool
+    #: Day the sheet covers; one sheet per project and day.
+    day: str
+    #: Day sheet content as rich text.
+    body: str
 
 
 class CallSheetPage(TypedDict):
@@ -2575,50 +2612,34 @@ class CallSheet(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the scope node.
-    scope_node_id: str
-    #: Day the sheet covers.
-    sheet_date: str
-    #: General crew call.
-    general_call_at: str
-    #: Call sheet body as a rich text document.
-    body: Dict[str, Any]
-    #: Whether the sheet is published.
-    published: bool
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Day the sheet covers; one sheet per project and day.
+    day: str
+    #: Identifier of the project of the call sheet.
+    project_id: str
+    #: When the call sheet was published, stamped by the database; set once by the publish action.
+    published_at: Optional[str]
 
 
 class CallSheetCreate(TypedDict):
     """Fields accepted when creating a CallSheet."""
 
-    #: Identifier of the scope node.
-    scope_node_id: str
-    #: Day the sheet covers.
-    sheet_date: str
-    #: General crew call.
-    general_call_at: str
-    #: Call sheet body as a rich text document.
-    body: Dict[str, Any]
-    #: Whether the sheet is published.
-    published: bool
+    #: Day the sheet covers; one sheet per project and day.
+    day: str
+    #: Identifier of the project of the call sheet.
+    project_id: str
 
 
 class CallSheetUpdate(TypedDict, total=False):
     """Fields accepted when updating a CallSheet. Omitted fields are unchanged."""
 
-    #: Day the sheet covers.
-    sheet_date: str
-    #: General crew call.
-    general_call_at: str
-    #: Call sheet body as a rich text document.
-    body: Dict[str, Any]
-    #: Whether the sheet is published.
-    published: bool
+    #: Day the sheet covers; one sheet per project and day.
+    day: str
 
 
 class SopPage(TypedDict):
@@ -2639,36 +2660,33 @@ class Sop(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: SOP title.
     title: str
-    #: SOP body as a rich text document.
-    body: Dict[str, Any]
-    urid: UridAtAnyGrain
-    #: SOP state. A Title Case value from the lifecycle's database enum.
-    sop_state: str
-    #: Whether members must acknowledge it.
-    requires_acknowledgment: bool
+    #: Procedure text.
+    body: str
+    #: SOP code, SOP- and three to five digits.
+    code: str
+    #: Version number, raised on each publish.
+    version: int
+    #: When the current version was published; null while draft.
+    published_at: Optional[str]
 
 
-class _SopCreateRequired(TypedDict):
-    #: SOP title.
-    title: str
-    #: SOP body as a rich text document.
-    body: Dict[str, Any]
-    #: Whether members must acknowledge it.
-    requires_acknowledgment: bool
-
-
-class SopCreate(_SopCreateRequired, total=False):
+class SopCreate(TypedDict):
     """Fields accepted when creating a Sop."""
 
-    urid: UridAtAnyGrain
+    #: SOP title.
+    title: str
+    #: Procedure text.
+    body: str
+    #: SOP code, SOP- and three to five digits.
+    code: str
 
 
 class SopUpdate(TypedDict, total=False):
@@ -2676,11 +2694,8 @@ class SopUpdate(TypedDict, total=False):
 
     #: SOP title.
     title: str
-    #: SOP body as a rich text document.
-    body: Dict[str, Any]
-    urid: UridAtAnyGrain
-    #: Whether members must acknowledge it.
-    requires_acknowledgment: bool
+    #: Procedure text.
+    body: str
 
 
 class SopAcknowledgmentPage(TypedDict):
@@ -2701,18 +2716,20 @@ class SopAcknowledgment(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the SOP.
     sop_id: str
     #: Identifier of the acknowledging person.
     person_id: str
     #: When it was acknowledged.
     acknowledged_at: str
+    #: Version acknowledged.
+    sop_version: int
 
 
 class SopAcknowledgmentCreate(TypedDict):
@@ -2720,8 +2737,6 @@ class SopAcknowledgmentCreate(TypedDict):
 
     #: Identifier of the SOP.
     sop_id: str
-    #: Identifier of the acknowledging person.
-    person_id: str
 
 
 class DocumentPage(TypedDict):
@@ -2742,29 +2757,21 @@ class Document(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Document title.
     title: str
     #: Identifier of the project.
     project_id: Optional[str]
-    #: Identifier of the record the document belongs to.
-    record_id: Optional[str]
-    #: Column classification of the content. A Title Case value from the lifecycle's database enum.
-    classification: str
-    #: Identifier of the current version.
-    current_version_id: Optional[str]
 
 
 class _DocumentCreateRequired(TypedDict):
     #: Document title.
     title: str
-    #: Column classification of the content. A Title Case value from the lifecycle's database enum.
-    classification: str
 
 
 class DocumentCreate(_DocumentCreateRequired, total=False):
@@ -2772,8 +2779,6 @@ class DocumentCreate(_DocumentCreateRequired, total=False):
 
     #: Identifier of the project.
     project_id: Optional[str]
-    #: Identifier of the record the document belongs to.
-    record_id: Optional[str]
 
 
 class DocumentUpdate(TypedDict, total=False):
@@ -2783,10 +2788,6 @@ class DocumentUpdate(TypedDict, total=False):
     title: str
     #: Identifier of the project.
     project_id: Optional[str]
-    #: Identifier of the record the document belongs to.
-    record_id: Optional[str]
-    #: Column classification of the content. A Title Case value from the lifecycle's database enum.
-    classification: str
 
 
 class DocumentVersionPage(TypedDict):
@@ -2807,24 +2808,20 @@ class DocumentVersion(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the document.
     document_id: str
     #: Version number.
     version_number: int
-    #: Original file name.
-    file_name: str
-    #: Sniffed MIME type.
-    mime_type: str
-    #: File size in bytes.
-    byte_size: int
-    #: SHA-256 of the file.
-    sha256: str
+    #: Where the file is stored.
+    storage_uri: str
+    #: SHA-256 of the file, lowercase hex.
+    checksum_sha256: str
 
 
 class DocumentVersionCreate(TypedDict):
@@ -2832,10 +2829,10 @@ class DocumentVersionCreate(TypedDict):
 
     #: Identifier of the document.
     document_id: str
-    #: Original file name.
-    file_name: str
-    #: Sniffed MIME type.
-    mime_type: str
+    #: Where the file is stored.
+    storage_uri: str
+    #: SHA-256 of the file, lowercase hex.
+    checksum_sha256: str
 
 
 class VerbiageTermPage(TypedDict):
@@ -2856,18 +2853,18 @@ class VerbiageTerm(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Term.
     term: str
     #: Casing rule.
     casing_rule: str
-    #: Usage note.
-    usage: str
+    #: Definition, a sentence ending in a period.
+    definition: str
 
 
 class VerbiageTermCreate(TypedDict):
@@ -2877,8 +2874,8 @@ class VerbiageTermCreate(TypedDict):
     term: str
     #: Casing rule.
     casing_rule: str
-    #: Usage note.
-    usage: str
+    #: Definition, a sentence ending in a period.
+    definition: str
 
 
 class VerbiageTermUpdate(TypedDict, total=False):
@@ -2888,8 +2885,8 @@ class VerbiageTermUpdate(TypedDict, total=False):
     term: str
     #: Casing rule.
     casing_rule: str
-    #: Usage note.
-    usage: str
+    #: Definition, a sentence ending in a period.
+    definition: str
 
 
 class VenuePage(TypedDict):
@@ -2910,24 +2907,20 @@ class Venue(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Venue name.
     name: str
     #: Street address.
-    address_line1: str
+    street_address: Optional[str]
     #: City.
-    locality: str
-    #: State or region.
-    region: str
+    locality: Optional[str]
     #: Postal code.
-    postal_code: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
+    postal_code: Optional[str]
     jurisdiction_id: JurisdictionId
     #: IANA time zone the local time was entered in.
     time_zone: str
@@ -2940,16 +2933,7 @@ class Venue(TypedDict):
 class _VenueCreateRequired(TypedDict):
     #: Venue name.
     name: str
-    #: Street address.
-    address_line1: str
-    #: City.
-    locality: str
-    #: State or region.
-    region: str
-    #: Postal code.
-    postal_code: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
+    jurisdiction_id: JurisdictionId
     #: IANA time zone the local time was entered in.
     time_zone: str
 
@@ -2957,7 +2941,12 @@ class _VenueCreateRequired(TypedDict):
 class VenueCreate(_VenueCreateRequired, total=False):
     """Fields accepted when creating a Venue."""
 
-    jurisdiction_id: JurisdictionId
+    #: Street address.
+    street_address: Optional[str]
+    #: City.
+    locality: Optional[str]
+    #: Postal code.
+    postal_code: Optional[str]
     #: WGS 84 latitude.
     latitude: Optional[float]
     #: WGS 84 longitude.
@@ -2970,15 +2959,11 @@ class VenueUpdate(TypedDict, total=False):
     #: Venue name.
     name: str
     #: Street address.
-    address_line1: str
+    street_address: Optional[str]
     #: City.
-    locality: str
-    #: State or region.
-    region: str
+    locality: Optional[str]
     #: Postal code.
-    postal_code: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
+    postal_code: Optional[str]
     jurisdiction_id: JurisdictionId
     #: IANA time zone the local time was entered in.
     time_zone: str
@@ -3006,12 +2991,12 @@ class Space(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the venue.
     venue_id: str
     #: Space name.
@@ -3020,6 +3005,7 @@ class Space(TypedDict):
     capacity: Optional[int]
     #: Floor area in square feet.
     area_sq_ft: Optional[float]
+    urid: Optional[Urid]
 
 
 class _SpaceCreateRequired(TypedDict):
@@ -3036,6 +3022,7 @@ class SpaceCreate(_SpaceCreateRequired, total=False):
     capacity: Optional[int]
     #: Floor area in square feet.
     area_sq_ft: Optional[float]
+    urid: Optional[Urid]
 
 
 class SpaceUpdate(TypedDict, total=False):
@@ -3047,6 +3034,7 @@ class SpaceUpdate(TypedDict, total=False):
     capacity: Optional[int]
     #: Floor area in square feet.
     area_sq_ft: Optional[float]
+    urid: Optional[Urid]
 
 
 class ZonePage(TypedDict):
@@ -3067,29 +3055,36 @@ class Zone(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the space.
-    space_id: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the space the zone sits in.
+    space_id: Optional[str]
     #: Zone name.
     name: str
     #: Zone code used on credentials.
-    zone_code: str
+    code: str
+    #: Identifier of the venue.
+    venue_id: str
 
 
-class ZoneCreate(TypedDict):
+class _ZoneCreateRequired(TypedDict):
+    #: Zone name.
+    name: str
+    #: Zone code used on credentials.
+    code: str
+    #: Identifier of the venue.
+    venue_id: str
+
+
+class ZoneCreate(_ZoneCreateRequired, total=False):
     """Fields accepted when creating a Zone."""
 
-    #: Identifier of the space.
-    space_id: str
-    #: Zone name.
-    name: str
-    #: Zone code used on credentials.
-    zone_code: str
+    #: Identifier of the space the zone sits in.
+    space_id: Optional[str]
 
 
 class ZoneUpdate(TypedDict, total=False):
@@ -3098,7 +3093,9 @@ class ZoneUpdate(TypedDict, total=False):
     #: Zone name.
     name: str
     #: Zone code used on credentials.
-    zone_code: str
+    code: str
+    #: Identifier of the space the zone sits in.
+    space_id: Optional[str]
 
 
 class CapabilityDocumentPage(TypedDict):
@@ -3119,31 +3116,35 @@ class CapabilityDocument(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the venue.
     venue_id: str
-    #: Identifier of the document.
-    document_id: str
     #: First day the document is valid.
     valid_from: str
     #: Last day the document is valid.
     valid_to: Optional[str]
     #: Whether the document is frozen.
     frozen: bool
+    #: Document title.
+    title: str
+    #: Where the document is stored.
+    document_uri: str
 
 
 class _CapabilityDocumentCreateRequired(TypedDict):
     #: Identifier of the venue.
     venue_id: str
-    #: Identifier of the document.
-    document_id: str
     #: First day the document is valid.
     valid_from: str
+    #: Document title.
+    title: str
+    #: Where the document is stored.
+    document_uri: str
 
 
 class CapabilityDocumentCreate(_CapabilityDocumentCreateRequired, total=False):
@@ -3156,12 +3157,14 @@ class CapabilityDocumentCreate(_CapabilityDocumentCreateRequired, total=False):
 class CapabilityDocumentUpdate(TypedDict, total=False):
     """Fields accepted when updating a CapabilityDocument. Omitted fields are unchanged."""
 
-    #: Identifier of the document.
-    document_id: str
     #: First day the document is valid.
     valid_from: str
     #: Last day the document is valid.
     valid_to: Optional[str]
+    #: Document title.
+    title: str
+    #: Where the document is stored.
+    document_uri: str
 
 
 class SitePlanPage(TypedDict):
@@ -3182,29 +3185,36 @@ class SitePlan(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the venue.
-    venue_id: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the venue drawn.
+    venue_id: Optional[str]
     #: Site plan title.
     title: str
-    #: Identifier of the drawing document.
-    document_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Where the drawing is stored.
+    image_uri: str
 
 
-class SitePlanCreate(TypedDict):
+class _SitePlanCreateRequired(TypedDict):
+    #: Site plan title.
+    title: str
+    #: Identifier of the project.
+    project_id: str
+    #: Where the drawing is stored.
+    image_uri: str
+
+
+class SitePlanCreate(_SitePlanCreateRequired, total=False):
     """Fields accepted when creating a SitePlan."""
 
-    #: Identifier of the venue.
-    venue_id: str
-    #: Site plan title.
-    title: str
-    #: Identifier of the drawing document.
-    document_id: str
+    #: Identifier of the venue drawn.
+    venue_id: Optional[str]
 
 
 class SitePlanUpdate(TypedDict, total=False):
@@ -3212,8 +3222,10 @@ class SitePlanUpdate(TypedDict, total=False):
 
     #: Site plan title.
     title: str
-    #: Identifier of the drawing document.
-    document_id: str
+    #: Identifier of the venue drawn.
+    venue_id: Optional[str]
+    #: Where the drawing is stored.
+    image_uri: str
 
 
 class SitePlanPinPage(TypedDict):
@@ -3234,12 +3246,27 @@ class SitePlanPin(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the site plan.
+    site_plan_id: str
+    #: Pin label.
+    label: str
+    #: Horizontal position, 0 to 1.
+    x: float
+    #: Vertical position, 0 to 1.
+    y: float
+    #: Identifier of the zone the pin marks.
+    zone_id: Optional[str]
+    #: Identifier of the record the pin marks.
+    record_id: Optional[str]
+
+
+class _SitePlanPinCreateRequired(TypedDict):
     #: Identifier of the site plan.
     site_plan_id: str
     #: Pin label.
@@ -3250,17 +3277,13 @@ class SitePlanPin(TypedDict):
     y: float
 
 
-class SitePlanPinCreate(TypedDict):
+class SitePlanPinCreate(_SitePlanPinCreateRequired, total=False):
     """Fields accepted when creating a SitePlanPin."""
 
-    #: Identifier of the site plan.
-    site_plan_id: str
-    #: Pin label.
-    label: str
-    #: Horizontal position, 0 to 1.
-    x: float
-    #: Vertical position, 0 to 1.
-    y: float
+    #: Identifier of the zone the pin marks.
+    zone_id: Optional[str]
+    #: Identifier of the record the pin marks.
+    record_id: Optional[str]
 
 
 class SitePlanPinUpdate(TypedDict, total=False):
@@ -3272,6 +3295,10 @@ class SitePlanPinUpdate(TypedDict, total=False):
     x: float
     #: Vertical position, 0 to 1.
     y: float
+    #: Identifier of the zone the pin marks.
+    zone_id: Optional[str]
+    #: Identifier of the record the pin marks.
+    record_id: Optional[str]
 
 
 class GeofencePage(TypedDict):
@@ -3292,40 +3319,41 @@ class Geofence(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Geofence name.
     name: str
     #: Identifier of the venue.
-    venue_id: Optional[str]
-    #: WGS 84 latitude.
-    latitude: float
-    #: WGS 84 longitude.
-    longitude: float
-    #: Radius in meters.
-    radius_m: int
+    venue_id: str
+    #: Identifier of the zone the geofence outlines.
+    zone_id: Optional[str]
+    boundary: GeoJsonPolygon
+
+
+class GeoJsonPolygon(TypedDict):
+    """A GeoJSON Polygon in WGS 84 (RFC 7946): rings of [longitude, latitude] positions."""
+
+    type: Literal["Polygon"]
+    coordinates: List[List[List[Any]]]
 
 
 class _GeofenceCreateRequired(TypedDict):
     #: Geofence name.
     name: str
-    #: WGS 84 latitude.
-    latitude: float
-    #: WGS 84 longitude.
-    longitude: float
-    #: Radius in meters.
-    radius_m: int
+    #: Identifier of the venue.
+    venue_id: str
+    boundary: GeoJsonPolygon
 
 
 class GeofenceCreate(_GeofenceCreateRequired, total=False):
     """Fields accepted when creating a Geofence."""
 
-    #: Identifier of the venue.
-    venue_id: Optional[str]
+    #: Identifier of the zone the geofence outlines.
+    zone_id: Optional[str]
 
 
 class GeofenceUpdate(TypedDict, total=False):
@@ -3333,14 +3361,9 @@ class GeofenceUpdate(TypedDict, total=False):
 
     #: Geofence name.
     name: str
-    #: Identifier of the venue.
-    venue_id: Optional[str]
-    #: WGS 84 latitude.
-    latitude: float
-    #: WGS 84 longitude.
-    longitude: float
-    #: Radius in meters.
-    radius_m: int
+    #: Identifier of the zone the geofence outlines.
+    zone_id: Optional[str]
+    boundary: GeoJsonPolygon
 
 
 class RequirementPage(TypedDict):
@@ -3361,70 +3384,75 @@ class Requirement(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    direction: Direction
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Require for a requirement of the project, Provide for a capability a venue or counterparty offers.
+    direction: Literal["Require", "Provide"]
     #: Identifier of the project.
-    project_id: Optional[str]
+    project_id: str
     #: Identifier of the venue.
     venue_id: Optional[str]
     urid: UridAtAnyGrain
     #: What is required or provided.
-    statement: str
+    description: str
     #: Quantity required or provided.
     quantity: Optional[float]
-    unit: UnitCode
+    unit_basis: UnitCode
     #: Whether the requirement is critical.
-    critical: bool
-    #: Assertion rank of the claim, 0 to 4.
-    assertion_rank: int
+    is_critical: bool
+    #: Identifier of the counterparty that provides a capability.
+    counterparty_id: Optional[str]
+    #: Canon capability assertion word (Bible tab 22); silence is UNKNOWN, which reconciles as Unknown.
+    assertion_word: Literal["CERTIFIED", "DOCUMENTED", "CLAIMED", "INFERRED", "UNKNOWN"]
 
 
 class _RequirementCreateRequired(TypedDict):
-    direction: Direction
+    #: Require for a requirement of the project, Provide for a capability a venue or counterparty offers.
+    direction: Literal["Require", "Provide"]
+    #: Identifier of the project.
+    project_id: str
     urid: UridAtAnyGrain
     #: What is required or provided.
-    statement: str
-    #: Whether the requirement is critical.
-    critical: bool
-    #: Assertion rank of the claim, 0 to 4.
-    assertion_rank: int
+    description: str
 
 
 class RequirementCreate(_RequirementCreateRequired, total=False):
     """Fields accepted when creating a Requirement."""
 
-    #: Identifier of the project.
-    project_id: Optional[str]
     #: Identifier of the venue.
     venue_id: Optional[str]
     #: Quantity required or provided.
     quantity: Optional[float]
-    unit: UnitCode
+    unit_basis: UnitCode
+    #: Whether the requirement is critical.
+    is_critical: bool
+    #: Identifier of the counterparty that provides a capability.
+    counterparty_id: Optional[str]
+    #: Canon capability assertion word (Bible tab 22); silence is UNKNOWN, which reconciles as Unknown.
+    assertion_word: Literal["CERTIFIED", "DOCUMENTED", "CLAIMED", "INFERRED", "UNKNOWN"]
 
 
 class RequirementUpdate(TypedDict, total=False):
     """Fields accepted when updating a Requirement. Omitted fields are unchanged."""
 
-    direction: Direction
-    #: Identifier of the project.
-    project_id: Optional[str]
     #: Identifier of the venue.
     venue_id: Optional[str]
     urid: UridAtAnyGrain
     #: What is required or provided.
-    statement: str
+    description: str
     #: Quantity required or provided.
     quantity: Optional[float]
-    unit: UnitCode
+    unit_basis: UnitCode
     #: Whether the requirement is critical.
-    critical: bool
-    #: Assertion rank of the claim, 0 to 4.
-    assertion_rank: int
+    is_critical: bool
+    #: Identifier of the counterparty that provides a capability.
+    counterparty_id: Optional[str]
+    #: Canon capability assertion word (Bible tab 22); silence is UNKNOWN, which reconciles as Unknown.
+    assertion_word: Literal["CERTIFIED", "DOCUMENTED", "CLAIMED", "INFERRED", "UNKNOWN"]
 
 
 class ReconciliationPage(TypedDict):
@@ -3445,16 +3473,14 @@ class Reconciliation(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    #: Identifier of the venue.
-    venue_id: Optional[str]
     #: When the reconciliation ran.
     run_at: str
     #: Requirements met.
@@ -3463,6 +3489,8 @@ class Reconciliation(TypedDict):
     gap_count: int
     #: Requirements with an unknown result.
     unknown_count: int
+    #: Notes on the run.
+    note: Optional[str]
 
 
 class _ReconciliationCreateRequired(TypedDict):
@@ -3473,8 +3501,8 @@ class _ReconciliationCreateRequired(TypedDict):
 class ReconciliationCreate(_ReconciliationCreateRequired, total=False):
     """Fields accepted when creating a Reconciliation."""
 
-    #: Identifier of the venue.
-    venue_id: Optional[str]
+    #: Notes on the run.
+    note: Optional[str]
 
 
 class ReconciliationLinePage(TypedDict):
@@ -3495,12 +3523,12 @@ class ReconciliationLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the reconciliation.
     reconciliation_id: str
     #: Identifier of the requirement.
@@ -3528,12 +3556,12 @@ class Shipment(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Carrier name.
@@ -3611,12 +3639,12 @@ class ShipmentLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the shipment.
     shipment_id: str
     #: Line description.
@@ -3675,12 +3703,12 @@ class DockSlot(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the venue.
     venue_id: str
     #: Identifier of the shipment.
@@ -3744,12 +3772,12 @@ class GateQueueEntry(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the venue.
     venue_id: str
     #: Identifier of the dock slot.
@@ -3811,12 +3839,12 @@ class MarshallingLogEntry(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the venue.
     venue_id: str
     #: Vehicle plate.
@@ -3865,33 +3893,34 @@ class AdvancePacket(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Packet title.
     title: str
-    #: Advance state. A Title Case value from the lifecycle's database enum.
-    advance_state: str
     #: When submissions are due.
-    due_at: str
+    due_at: Optional[str]
     #: When the packet was sent.
     sent_at: Optional[str]
 
 
-class AdvancePacketCreate(TypedDict):
-    """Fields accepted when creating a AdvancePacket."""
-
+class _AdvancePacketCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
     #: Packet title.
     title: str
+
+
+class AdvancePacketCreate(_AdvancePacketCreateRequired, total=False):
+    """Fields accepted when creating a AdvancePacket."""
+
     #: When submissions are due.
-    due_at: str
+    due_at: Optional[str]
 
 
 class AdvancePacketUpdate(TypedDict, total=False):
@@ -3900,21 +3929,7 @@ class AdvancePacketUpdate(TypedDict, total=False):
     #: Packet title.
     title: str
     #: When submissions are due.
-    due_at: str
-
-
-class _AdvanceTransitionRequestRequired(TypedDict):
-    #: The state the caller believes the row is in (compare-and-set).
-    expected_state: str
-    #: Target state.
-    to_state: str
-
-
-class AdvanceTransitionRequest(_AdvanceTransitionRequestRequired, total=False):
-    """Request to move a lifecycle to another state."""
-
-    #: Reason, required by some transitions.
-    reason: str
+    due_at: Optional[str]
 
 
 class AdvanceSectionPage(TypedDict):
@@ -3935,20 +3950,20 @@ class AdvanceSection(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the advance packet.
     advance_packet_id: str
     #: Section order.
     position: int
     #: Section title.
     title: str
-    #: Identifier of the form the section collects.
-    form_definition_id: Optional[str]
+    #: What the recipient is asked.
+    prompt: Optional[str]
 
 
 class _AdvanceSectionCreateRequired(TypedDict):
@@ -3963,8 +3978,8 @@ class _AdvanceSectionCreateRequired(TypedDict):
 class AdvanceSectionCreate(_AdvanceSectionCreateRequired, total=False):
     """Fields accepted when creating a AdvanceSection."""
 
-    #: Identifier of the form the section collects.
-    form_definition_id: Optional[str]
+    #: What the recipient is asked.
+    prompt: Optional[str]
 
 
 class AdvanceSectionUpdate(TypedDict, total=False):
@@ -3974,8 +3989,8 @@ class AdvanceSectionUpdate(TypedDict, total=False):
     position: int
     #: Section title.
     title: str
-    #: Identifier of the form the section collects.
-    form_definition_id: Optional[str]
+    #: What the recipient is asked.
+    prompt: Optional[str]
 
 
 class AdvanceRecipientPage(TypedDict):
@@ -3996,20 +4011,18 @@ class AdvanceRecipient(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the advance packet.
     advance_packet_id: str
     #: Identifier of the recipient person.
     person_id: Optional[str]
-    #: Identifier of the recipient organization.
-    organization_id: Optional[str]
-    #: Identifier of the engagement.
-    engagement_id: Optional[str]
+    #: Identifier of the recipient counterparty.
+    counterparty_id: Optional[str]
 
 
 class _AdvanceRecipientCreateRequired(TypedDict):
@@ -4022,10 +4035,8 @@ class AdvanceRecipientCreate(_AdvanceRecipientCreateRequired, total=False):
 
     #: Identifier of the recipient person.
     person_id: Optional[str]
-    #: Identifier of the recipient organization.
-    organization_id: Optional[str]
-    #: Identifier of the engagement.
-    engagement_id: Optional[str]
+    #: Identifier of the recipient counterparty.
+    counterparty_id: Optional[str]
 
 
 class AdvanceSubmissionPage(TypedDict):
@@ -4046,20 +4057,30 @@ class AdvanceSubmission(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the advance section.
     advance_section_id: str
     #: Identifier of the advance recipient.
     advance_recipient_id: str
-    #: Identifier of the form submission.
-    form_submission_id: str
     #: When it was submitted.
     submitted_at: str
+    #: The answer as rich text.
+    body: str
+    #: When the answer was reviewed.
+    reviewed_at: Optional[str]
+    #: Identifier of the person who reviewed the answer.
+    reviewed_by: Optional[str]
+    #: Accepted or Returned.
+    review_outcome: Optional[Literal["Accepted", "Returned"]]
+    #: Why the answer was returned.
+    return_reason: Optional[str]
+    #: True when the recipient answered through a Gateway link.
+    via_link: bool
 
 
 class AdvanceSubmissionCreate(TypedDict):
@@ -4069,8 +4090,20 @@ class AdvanceSubmissionCreate(TypedDict):
     advance_section_id: str
     #: Identifier of the advance recipient.
     advance_recipient_id: str
-    #: Identifier of the form submission.
-    form_submission_id: str
+    #: The answer as rich text.
+    body: str
+
+
+class _AdvanceSubmissionReviewRequestRequired(TypedDict):
+    #: Accepted, or Returned to the recipient to answer again.
+    outcome: Literal["Accepted", "Returned"]
+
+
+class AdvanceSubmissionReviewRequest(_AdvanceSubmissionReviewRequestRequired, total=False):
+    """Review of one advance answer."""
+
+    #: Why the answer is returned; required when Returned, shown to the recipient.
+    return_reason: str
 
 
 class AdvancePromotionPage(TypedDict):
@@ -4091,16 +4124,16 @@ class AdvancePromotion(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the advance submission.
     advance_submission_id: str
-    #: URN of the record created from the submission.
-    target_urn: str
+    #: Identifier of the record created from the answer.
+    record_id: str
 
 
 class AdvancePromotionCreate(TypedDict):
@@ -4108,8 +4141,8 @@ class AdvancePromotionCreate(TypedDict):
 
     #: Identifier of the advance submission.
     advance_submission_id: str
-    #: URN of the record created from the submission.
-    target_urn: str
+    #: Identifier of the record created from the answer.
+    record_id: str
 
 
 class RiderPage(TypedDict):
@@ -4130,43 +4163,41 @@ class Rider(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the engagement.
-    engagement_id: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Rider title.
     title: str
-    #: Identifier of the source document.
-    document_id: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the counterparty whose rider it is.
+    counterparty_id: Optional[str]
 
 
 class _RiderCreateRequired(TypedDict):
-    #: Identifier of the engagement.
-    engagement_id: str
     #: Rider title.
     title: str
+    #: Identifier of the project.
+    project_id: str
 
 
 class RiderCreate(_RiderCreateRequired, total=False):
     """Fields accepted when creating a Rider."""
 
-    #: Identifier of the source document.
-    document_id: Optional[str]
+    #: Identifier of the counterparty whose rider it is.
+    counterparty_id: Optional[str]
 
 
 class RiderUpdate(TypedDict, total=False):
     """Fields accepted when updating a Rider. Omitted fields are unchanged."""
 
-    #: Identifier of the engagement.
-    engagement_id: str
     #: Rider title.
     title: str
-    #: Identifier of the source document.
-    document_id: Optional[str]
+    #: Identifier of the counterparty whose rider it is.
+    counterparty_id: Optional[str]
 
 
 class RiderLinePage(TypedDict):
@@ -4187,50 +4218,53 @@ class RiderLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the rider.
     rider_id: str
-    urid: UridAtAnyGrain
-    #: What the rider asks for.
-    statement: str
     #: Quantity.
     quantity: Optional[float]
-    #: Identifier of the requirement created from the line.
-    requirement_id: Optional[str]
+    #: What is asked.
+    description: str
+    #: Catalog element that fulfills the ask.
+    element_id: Optional[str]
+    #: When the ask was fulfilled; NULL while open.
+    fulfilled_at: Optional[str]
 
 
 class _RiderLineCreateRequired(TypedDict):
     #: Identifier of the rider.
     rider_id: str
-    #: What the rider asks for.
-    statement: str
+    #: What is asked.
+    description: str
 
 
 class RiderLineCreate(_RiderLineCreateRequired, total=False):
     """Fields accepted when creating a RiderLine."""
 
-    urid: UridAtAnyGrain
     #: Quantity.
     quantity: Optional[float]
-    #: Identifier of the requirement created from the line.
-    requirement_id: Optional[str]
+    #: Catalog element that fulfills the ask.
+    element_id: Optional[str]
+    #: When the ask was fulfilled; NULL while open.
+    fulfilled_at: Optional[str]
 
 
 class RiderLineUpdate(TypedDict, total=False):
     """Fields accepted when updating a RiderLine. Omitted fields are unchanged."""
 
-    urid: UridAtAnyGrain
-    #: What the rider asks for.
-    statement: str
     #: Quantity.
     quantity: Optional[float]
-    #: Identifier of the requirement created from the line.
-    requirement_id: Optional[str]
+    #: What is asked.
+    description: str
+    #: Catalog element that fulfills the ask.
+    element_id: Optional[str]
+    #: When the ask was fulfilled; NULL while open.
+    fulfilled_at: Optional[str]
 
 
 class FulfillmentPage(TypedDict):
@@ -4251,12 +4285,12 @@ class Fulfillment(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     kind: FulfillmentKind
@@ -4337,12 +4371,12 @@ class FulfillmentLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the fulfillment.
     fulfillment_id: str
     #: Line description.
@@ -4407,12 +4441,12 @@ class Beo(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Identifier of the catering fulfillment.
@@ -4474,12 +4508,12 @@ class BeoLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the BEO.
     beo_id: str
     #: Menu item or service.
@@ -4541,28 +4575,25 @@ class AssetClass(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Asset class name.
     name: str
-    element_id: ItemId
-    urid: Urid
+    #: Canon element the class is.
+    element_id: str
 
 
-class _AssetClassCreateRequired(TypedDict):
-    #: Asset class name.
-    name: str
-    urid: Urid
-
-
-class AssetClassCreate(_AssetClassCreateRequired, total=False):
+class AssetClassCreate(TypedDict):
     """Fields accepted when creating a AssetClass."""
 
-    element_id: ItemId
+    #: Asset class name.
+    name: str
+    #: Canon element the class is.
+    element_id: str
 
 
 class AssetClassUpdate(TypedDict, total=False):
@@ -4570,8 +4601,8 @@ class AssetClassUpdate(TypedDict, total=False):
 
     #: Asset class name.
     name: str
-    element_id: ItemId
-    urid: Urid
+    #: Canon element the class is.
+    element_id: str
 
 
 class AssetUnitPage(TypedDict):
@@ -4592,20 +4623,22 @@ class AssetUnit(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the asset class.
     asset_class_id: str
     #: Asset tag (a code that is ours).
     asset_tag: str
-    #: Manufacturer serial (an identifier).
-    serial_number: Optional[str]
-    #: Asset lifecycle state. A Title Case value from the lifecycle's database enum.
-    asset_state: str
+    #: Asset lifecycle state.
+    asset_state: Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired"]
+    #: Condition: a row of the canon Asset Condition enumeration.
+    condition_enum_id: Optional[str]
+    #: Identifier of the venue the unit returns to.
+    home_venue_id: Optional[str]
 
 
 class _AssetUnitCreateRequired(TypedDict):
@@ -4618,17 +4651,19 @@ class _AssetUnitCreateRequired(TypedDict):
 class AssetUnitCreate(_AssetUnitCreateRequired, total=False):
     """Fields accepted when creating a AssetUnit."""
 
-    #: Manufacturer serial (an identifier).
-    serial_number: Optional[str]
+    #: Condition: a row of the canon Asset Condition enumeration.
+    condition_enum_id: Optional[str]
+    #: Identifier of the venue the unit returns to.
+    home_venue_id: Optional[str]
 
 
 class AssetUnitUpdate(TypedDict, total=False):
     """Fields accepted when updating a AssetUnit. Omitted fields are unchanged."""
 
-    #: Asset tag (a code that is ours).
-    asset_tag: str
-    #: Manufacturer serial (an identifier).
-    serial_number: Optional[str]
+    #: Condition: a row of the canon Asset Condition enumeration.
+    condition_enum_id: Optional[str]
+    #: Identifier of the venue the unit returns to.
+    home_venue_id: Optional[str]
 
 
 class _AssetTransitionRequestRequired(TypedDict):
@@ -4654,6 +4689,49 @@ class ScanRequest(TypedDict):
     symbology: str
 
 
+class AssetScanResult(TypedDict):
+    """The outcome of one scan event."""
+
+    #: applied for a new event; duplicate when the event id was already applied.
+    outcome: Literal["applied", "duplicate"]
+    #: What the code named.
+    subject_kind: Literal["unit", "lot"]
+    #: The asset unit or lot moved.
+    subject_id: str
+    #: The custody entry or lot movement, equal to the event id.
+    ledger_id: str
+    #: Units: the state after the move.
+    asset_state: Optional[Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired"]]
+    #: Lots: the quantity on hand after the move.
+    on_hand: Optional[float]
+
+
+class _AssetScanEventRequired(TypedDict):
+    #: UUID the device minted when the scan happened and keeps in its offline queue. It becomes the custody entry or lot movement id, so replaying the event at any later time changes nothing.
+    event_id: str
+    #: The scanned asset tag, external identifier (serial, GTIN) or lot label (LOT:<lot id>).
+    code: str
+    #: check-out hands the item to one custodian (the unit becomes Deployed); check-in returns it to a venue (the unit becomes Available); transfer passes a deployed unit to another custodian.
+    action: Literal["check-out", "check-in", "transfer"]
+
+
+class AssetScanEvent(_AssetScanEventRequired, total=False):
+    """One custody move scanned on a device."""
+
+    #: Identifier of the member who takes the item.
+    custodian_membership_id: Optional[str]
+    #: Identifier of the external engagement that takes the item; never together with a member.
+    custodian_engagement_id: Optional[str]
+    #: Identifier of the venue the item returns to; the unit's home venue by default.
+    venue_id: Optional[str]
+    #: Identifier of the project the item is out for.
+    project_id: Optional[str]
+    #: Hand-over note.
+    note: Optional[str]
+    #: Lots only: how many move.
+    quantity: Optional[float]
+
+
 class AssetLotPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -4672,41 +4750,38 @@ class AssetLot(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the asset class.
     asset_class_id: str
-    #: Identifier of the venue.
-    venue_id: Optional[str]
+    #: Identifier of the venue the lot sits at.
+    venue_id: str
     #: Quantity on hand.
     quantity: float
+    #: Quantity on hand: the opening count plus the lot ledger.
+    on_hand: float
 
 
-class _AssetLotCreateRequired(TypedDict):
-    #: Identifier of the asset class.
-    asset_class_id: str
-    #: Quantity on hand.
-    quantity: float
-
-
-class AssetLotCreate(_AssetLotCreateRequired, total=False):
+class AssetLotCreate(TypedDict):
     """Fields accepted when creating a AssetLot."""
 
-    #: Identifier of the venue.
-    venue_id: Optional[str]
+    #: Identifier of the asset class.
+    asset_class_id: str
+    #: Identifier of the venue the lot sits at.
+    venue_id: str
+    #: Quantity on hand.
+    quantity: float
 
 
 class AssetLotUpdate(TypedDict, total=False):
     """Fields accepted when updating a AssetLot. Omitted fields are unchanged."""
 
-    #: Identifier of the venue.
-    venue_id: Optional[str]
-    #: Quantity on hand.
-    quantity: float
+    #: Identifier of the venue the lot sits at.
+    venue_id: str
 
 
 class AssetIdentifierPage(TypedDict):
@@ -4727,18 +4802,20 @@ class AssetIdentifier(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the asset unit.
     asset_unit_id: str
     #: Identifier class.
     identifier_class: str
     #: Identifier value.
     value: str
+    #: Scheme, such as serial, gtin14 or mpn.
+    scheme: str
 
 
 class AssetIdentifierCreate(TypedDict):
@@ -4746,10 +4823,10 @@ class AssetIdentifierCreate(TypedDict):
 
     #: Identifier of the asset unit.
     asset_unit_id: str
-    #: Identifier class.
-    identifier_class: str
     #: Identifier value.
     value: str
+    #: Scheme, such as serial, gtin14 or mpn.
+    scheme: str
 
 
 class AssetCustodyPage(TypedDict):
@@ -4770,22 +4847,24 @@ class AssetCustody(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the asset unit.
     asset_unit_id: str
-    #: Identifier of the custodian person.
-    custodian_person_id: Optional[str]
-    #: Identifier of the custodian organization.
-    custodian_organization_id: Optional[str]
-    #: Identifier of the venue.
-    location_venue_id: Optional[str]
-    #: When custody changed.
-    recorded_at: str
+    #: Identifier of the member who holds the unit.
+    custodian_membership_id: Optional[str]
+    #: Identifier of the external engagement that holds the unit.
+    custodian_engagement_id: Optional[str]
+    #: Identifier of the place the unit is kept.
+    venue_id: Optional[str]
+    #: Identifier of the project the unit is out for.
+    project_id: Optional[str]
+    #: Hand-over note.
+    note: Optional[str]
 
 
 class _AssetCustodyCreateRequired(TypedDict):
@@ -4796,12 +4875,16 @@ class _AssetCustodyCreateRequired(TypedDict):
 class AssetCustodyCreate(_AssetCustodyCreateRequired, total=False):
     """Fields accepted when creating a AssetCustody."""
 
-    #: Identifier of the custodian person.
-    custodian_person_id: Optional[str]
-    #: Identifier of the custodian organization.
-    custodian_organization_id: Optional[str]
-    #: Identifier of the venue.
-    location_venue_id: Optional[str]
+    #: Identifier of the member who holds the unit.
+    custodian_membership_id: Optional[str]
+    #: Identifier of the external engagement that holds the unit.
+    custodian_engagement_id: Optional[str]
+    #: Identifier of the place the unit is kept.
+    venue_id: Optional[str]
+    #: Identifier of the project the unit is out for.
+    project_id: Optional[str]
+    #: Hand-over note.
+    note: Optional[str]
 
 
 class AssetMaintenancePage(TypedDict):
@@ -4822,12 +4905,12 @@ class AssetMaintenance(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the asset unit.
     asset_unit_id: str
     #: When the maintenance was done.
@@ -4837,7 +4920,7 @@ class AssetMaintenance(TypedDict):
     #: Maintenance cost. Integer minor units of the resource currency; null means unpriced, never zero.
     cost_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: Optional[str]
 
 
 class _AssetMaintenanceCreateRequired(TypedDict):
@@ -4847,8 +4930,6 @@ class _AssetMaintenanceCreateRequired(TypedDict):
     performed_on: str
     #: What was done.
     description: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class AssetMaintenanceCreate(_AssetMaintenanceCreateRequired, total=False):
@@ -4856,6 +4937,8 @@ class AssetMaintenanceCreate(_AssetMaintenanceCreateRequired, total=False):
 
     #: Maintenance cost. Integer minor units of the resource currency; null means unpriced, never zero.
     cost_minor: Optional[int]
+    #: ISO 4217 currency code of every money field.
+    currency_code: Optional[str]
 
 
 class AssetMaintenanceUpdate(TypedDict, total=False):
@@ -4868,7 +4951,7 @@ class AssetMaintenanceUpdate(TypedDict, total=False):
     #: Maintenance cost. Integer minor units of the resource currency; null means unpriced, never zero.
     cost_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: Optional[str]
 
 
 class AssetDamagePage(TypedDict):
@@ -4889,27 +4972,27 @@ class AssetDamage(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the asset unit.
     asset_unit_id: str
     #: When the damage was reported.
     reported_at: str
     #: What is damaged.
     description: str
-    #: Identifier of the responsible engagement.
-    engagement_id: Optional[str]
+    #: Identifier of the project during which the damage happened.
+    project_id: Optional[str]
+    #: Identifier of the counterparty responsible.
+    responsible_counterparty_id: Optional[str]
 
 
 class _AssetDamageCreateRequired(TypedDict):
     #: Identifier of the asset unit.
     asset_unit_id: str
-    #: When the damage was reported.
-    reported_at: str
     #: What is damaged.
     description: str
 
@@ -4917,8 +5000,12 @@ class _AssetDamageCreateRequired(TypedDict):
 class AssetDamageCreate(_AssetDamageCreateRequired, total=False):
     """Fields accepted when creating a AssetDamage."""
 
-    #: Identifier of the responsible engagement.
-    engagement_id: Optional[str]
+    #: When the damage was reported.
+    reported_at: str
+    #: Identifier of the project during which the damage happened.
+    project_id: Optional[str]
+    #: Identifier of the counterparty responsible.
+    responsible_counterparty_id: Optional[str]
 
 
 class AssetDamageUpdate(TypedDict, total=False):
@@ -4928,8 +5015,10 @@ class AssetDamageUpdate(TypedDict, total=False):
     reported_at: str
     #: What is damaged.
     description: str
-    #: Identifier of the responsible engagement.
-    engagement_id: Optional[str]
+    #: Identifier of the project during which the damage happened.
+    project_id: Optional[str]
+    #: Identifier of the counterparty responsible.
+    responsible_counterparty_id: Optional[str]
 
 
 class RoleAssignmentPage(TypedDict):
@@ -4950,31 +5039,37 @@ class RoleAssignment(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     role_code: RoleCode
     #: Identifier of the scope node.
     scope_node_id: Optional[str]
     #: Identifier of the assigned person.
-    person_id: Optional[str]
-    #: Positions required.
-    headcount: int
-    #: Staffing ratio basis used to size the role.
-    ratio_basis: Optional[str]
+    person_id: str
+    #: Identifier of the requisition the assignment fills.
+    requisition_id: Optional[str]
+    #: How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
+    staffing_basis: Literal["Declared", "Ratio", "Fixed"]
+    #: First day of the assignment.
+    starts_on: Optional[str]
+    #: Last day of the assignment.
+    ends_on: Optional[str]
+    #: Assignment state.
+    assignment_state: Literal["Proposed", "Active", "Complete", "Canceled"]
 
 
 class _RoleAssignmentCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
     role_code: RoleCode
-    #: Positions required.
-    headcount: int
+    #: Identifier of the assigned person.
+    person_id: str
 
 
 class RoleAssignmentCreate(_RoleAssignmentCreateRequired, total=False):
@@ -4982,10 +5077,14 @@ class RoleAssignmentCreate(_RoleAssignmentCreateRequired, total=False):
 
     #: Identifier of the scope node.
     scope_node_id: Optional[str]
-    #: Identifier of the assigned person.
-    person_id: Optional[str]
-    #: Staffing ratio basis used to size the role.
-    ratio_basis: Optional[str]
+    #: Identifier of the requisition the assignment fills.
+    requisition_id: Optional[str]
+    #: How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
+    staffing_basis: Literal["Declared", "Ratio", "Fixed"]
+    #: First day of the assignment.
+    starts_on: Optional[str]
+    #: Last day of the assignment.
+    ends_on: Optional[str]
 
 
 class RoleAssignmentUpdate(TypedDict, total=False):
@@ -4995,11 +5094,15 @@ class RoleAssignmentUpdate(TypedDict, total=False):
     #: Identifier of the scope node.
     scope_node_id: Optional[str]
     #: Identifier of the assigned person.
-    person_id: Optional[str]
-    #: Positions required.
-    headcount: int
-    #: Staffing ratio basis used to size the role.
-    ratio_basis: Optional[str]
+    person_id: str
+    #: Identifier of the requisition the assignment fills.
+    requisition_id: Optional[str]
+    #: How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
+    staffing_basis: Literal["Declared", "Ratio", "Fixed"]
+    #: First day of the assignment.
+    starts_on: Optional[str]
+    #: Last day of the assignment.
+    ends_on: Optional[str]
 
 
 class RequisitionPage(TypedDict):
@@ -5020,61 +5123,114 @@ class Requisition(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    #: Requisition title.
-    title: str
-    role_code: Optional[RoleCode]
-    urid: UridAtAnyGrain
-    #: Positions requested.
-    positions: int
-    #: Requisition state. A Title Case value from the lifecycle's database enum.
-    requisition_state: str
-    #: Budgeted cost. Integer minor units of the resource currency; null means unpriced, never zero.
-    budget_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    role_code: RoleCode
+    #: Requisition state.
+    requisition_state: Literal["Proposed", "Approved", "Rejected", "Filled", "Canceled"]
+    #: Identifier of the scope node of the same project.
+    scope_node_id: Optional[str]
+    #: Identifier of the budget line the cost is charged to.
+    budget_line_id: Optional[str]
+    #: External role type an opportunity published from the requisition seeks; null when filled internally.
+    role_type: Optional[Literal["Crew", "Contractor", "Staff", "Vendor", "Artist", "Artist Representative", "Client", "Sponsor"]]
+    #: Worker classification, from xpms.worker_classification.
+    worker_classification: Optional[str]
+    #: Pay basis; set with the arrangement.
+    pay_basis: Optional[str]
+    #: Arrangement; set with the pay basis.
+    arrangement: Optional[str]
+    #: People requested.
+    headcount: int
+    #: Pay basis units each person works, such as hours.
+    units_per_head: Optional[float]
+    #: Rate per pay basis unit. Integer minor units of the resource currency; null means unpriced, never zero.
+    rate_minor: Optional[int]
+    #: ISO 4217 currency of the rate.
+    currency_code: str
+    #: First day of the work.
+    starts_on: Optional[str]
+    #: Last day of the work.
+    ends_on: Optional[str]
+    #: Why the staff are needed.
+    justification: str
+    #: Identifier of the person who requested; they cannot approve it.
+    requested_by: Optional[str]
 
 
 class _RequisitionCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    #: Requisition title.
-    title: str
-    #: Positions requested.
-    positions: int
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    role_code: RoleCode
+    #: ISO 4217 currency of the rate.
+    currency_code: str
+    #: Why the staff are needed.
+    justification: str
 
 
 class RequisitionCreate(_RequisitionCreateRequired, total=False):
     """Fields accepted when creating a Requisition."""
 
-    role_code: Optional[RoleCode]
-    urid: UridAtAnyGrain
-    #: Budgeted cost. Integer minor units of the resource currency; null means unpriced, never zero.
-    budget_minor: Optional[int]
+    #: Identifier of the scope node of the same project.
+    scope_node_id: Optional[str]
+    #: Identifier of the budget line the cost is charged to.
+    budget_line_id: Optional[str]
+    #: External role type an opportunity published from the requisition seeks; null when filled internally.
+    role_type: Optional[Literal["Crew", "Contractor", "Staff", "Vendor", "Artist", "Artist Representative", "Client", "Sponsor"]]
+    #: Worker classification, from xpms.worker_classification.
+    worker_classification: Optional[str]
+    #: Pay basis; set with the arrangement.
+    pay_basis: Optional[str]
+    #: Arrangement; set with the pay basis.
+    arrangement: Optional[str]
+    #: People requested.
+    headcount: int
+    #: Pay basis units each person works, such as hours.
+    units_per_head: Optional[float]
+    #: Rate per pay basis unit. Integer minor units of the resource currency; null means unpriced, never zero.
+    rate_minor: Optional[int]
+    #: First day of the work.
+    starts_on: Optional[str]
+    #: Last day of the work.
+    ends_on: Optional[str]
 
 
 class RequisitionUpdate(TypedDict, total=False):
     """Fields accepted when updating a Requisition. Omitted fields are unchanged."""
 
-    #: Requisition title.
-    title: str
-    role_code: Optional[RoleCode]
-    urid: UridAtAnyGrain
-    #: Positions requested.
-    positions: int
-    #: Budgeted cost. Integer minor units of the resource currency; null means unpriced, never zero.
-    budget_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    role_code: RoleCode
+    #: Identifier of the scope node of the same project.
+    scope_node_id: Optional[str]
+    #: Identifier of the budget line the cost is charged to.
+    budget_line_id: Optional[str]
+    #: External role type an opportunity published from the requisition seeks; null when filled internally.
+    role_type: Optional[Literal["Crew", "Contractor", "Staff", "Vendor", "Artist", "Artist Representative", "Client", "Sponsor"]]
+    #: Worker classification, from xpms.worker_classification.
+    worker_classification: Optional[str]
+    #: Pay basis; set with the arrangement.
+    pay_basis: Optional[str]
+    #: Arrangement; set with the pay basis.
+    arrangement: Optional[str]
+    #: People requested.
+    headcount: int
+    #: Pay basis units each person works, such as hours.
+    units_per_head: Optional[float]
+    #: Rate per pay basis unit. Integer minor units of the resource currency; null means unpriced, never zero.
+    rate_minor: Optional[int]
+    #: ISO 4217 currency of the rate.
+    currency_code: str
+    #: First day of the work.
+    starts_on: Optional[str]
+    #: Last day of the work.
+    ends_on: Optional[str]
+    #: Why the staff are needed.
+    justification: str
 
 
 class _RequisitionTransitionRequestRequired(TypedDict):
@@ -5109,74 +5265,110 @@ class Offer(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the application.
-    application_id: Optional[str]
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the application the offer answers.
+    application_id: str
     #: Identifier of the offered person.
     person_id: Optional[str]
     #: Identifier of the offered organization.
     organization_id: Optional[str]
-    rate_type: RateType
-    rate_minor: Optional[Union[int, Masked]]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: When the offer lapses.
-    expires_at: str
+    rate_type: Optional[RateType]
+    #: When the terms in force lapse unanswered.
+    expires_at: Optional[str]
     #: Offer state. A Title Case value from the lifecycle's database enum.
     offer_state: str
     #: When the offer was answered.
     responded_at: Optional[str]
-
-
-class Masked(TypedDict):
-    """A Restricted field the caller may not read. The field stays present."""
-
-    #: Always true for a masked value.
-    masked: Literal[True]
-    #: Why the value is masked, naming the capability that would reveal it.
-    reason: str
+    #: Version of the terms in force, issued by the database; the highest is in force.
+    version_number: int
+    #: Side that proposed the terms in force.
+    proposed_side: Literal["Organization", "Party"]
+    #: Offered amount per rate unit; null when the version leaves the amount open. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_minor: Optional[int]
+    #: ISO 4217 currency of the amount.
+    currency_code: Optional[str]
+    #: First day of the work offered.
+    starts_on: Optional[str]
+    #: Last day of the work offered.
+    ends_on: Optional[str]
+    #: Message to the other side with the terms. Visible to both sides.
+    message: Optional[str]
 
 
 class _OfferCreateRequired(TypedDict):
-    rate_type: RateType
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: When the offer lapses.
-    expires_at: str
+    #: Identifier of the application the offer answers.
+    application_id: str
 
 
 class OfferCreate(_OfferCreateRequired, total=False):
     """Fields accepted when creating a Offer."""
 
-    #: Identifier of the application.
-    application_id: Optional[str]
-    #: Identifier of the offered person.
-    person_id: Optional[str]
-    #: Identifier of the offered organization.
-    organization_id: Optional[str]
-    #: Offered rate. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_minor: Optional[int]
+    rate_type: Optional[RateType]
+    #: When the terms in force lapse unanswered.
+    expires_at: Optional[str]
+    #: Offered amount per rate unit; null when the version leaves the amount open. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_minor: Optional[int]
+    #: ISO 4217 currency of the amount.
+    currency_code: Optional[str]
+    #: First day of the work offered.
+    starts_on: Optional[str]
+    #: Last day of the work offered.
+    ends_on: Optional[str]
+    #: Message to the other side with the terms. Visible to both sides.
+    message: Optional[str]
 
 
 class OfferUpdate(TypedDict, total=False):
     """Fields accepted when updating a Offer. Omitted fields are unchanged."""
 
-    #: Identifier of the offered person.
-    person_id: Optional[str]
-    #: Identifier of the offered organization.
-    organization_id: Optional[str]
-    rate_type: RateType
-    #: Offered rate. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: When the offer lapses.
-    expires_at: str
+    rate_type: Optional[RateType]
+    #: When the terms in force lapse unanswered.
+    expires_at: Optional[str]
+    #: Offered amount per rate unit; null when the version leaves the amount open. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_minor: Optional[int]
+    #: ISO 4217 currency of the amount.
+    currency_code: Optional[str]
+    #: First day of the work offered.
+    starts_on: Optional[str]
+    #: Last day of the work offered.
+    ends_on: Optional[str]
+    #: Message to the other side with the terms. Visible to both sides.
+    message: Optional[str]
+
+
+class OfferDeclineRequest(TypedDict):
+    """Request to decline an offer."""
+
+    #: Why, recorded on the offer's state transition.
+    reason: str
+
+
+class OfferCounterRequest(TypedDict, total=False):
+    """Counter terms for an offer."""
+
+    rate_type: Optional[RateType]
+    #: Offered amount per rate unit; null when the version leaves the amount open. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_minor: Optional[int]
+    #: ISO 4217 currency of the amount.
+    currency_code: Optional[str]
+    #: First day of the work offered.
+    starts_on: Optional[str]
+    #: Last day of the work offered.
+    ends_on: Optional[str]
+    #: Message to the other side with the terms. Visible to both sides.
+    message: Optional[str]
+
+
+class OfferWithdrawRequest(TypedDict):
+    """Request to withdraw an offer."""
+
+    #: Why, recorded on the offer's state transition.
+    reason: str
 
 
 class AgreementPage(TypedDict):
@@ -5197,47 +5389,77 @@ class Agreement(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the engagement.
-    engagement_id: Optional[str]
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Agreement title.
     title: str
-    #: Identifier of the agreement document.
-    document_id: str
-    #: Agreement state. A Title Case value from the lifecycle's database enum.
-    agreement_state: str
+    #: Agreement state.
+    agreement_state: Literal["Proposed", "Sent", "Signed", "Superseded", "Expired", "Canceled"]
     #: When the agreement was signed.
     signed_at: Optional[str]
+    #: Kind of agreement.
+    agreement_kind: Literal["Offer Letter", "Contractor Agreement", "Master Services Agreement", "Non-Disclosure Agreement"]
+    #: Full text the signer reads and signs; changes only while Proposed.
+    body: str
+    #: Identifier of the project the agreement covers.
+    project_id: Optional[str]
+    #: Identifier of the offer the agreement follows.
+    offer_id: Optional[str]
+    #: Identifier of the person party to the agreement.
+    person_id: Optional[str]
+    #: Identifier of the external organization party to the agreement.
+    counterparty_id: Optional[str]
+    #: When the signing link stops working.
+    token_expires_at: Optional[str]
+    #: Name the signer typed as their signature.
+    signed_name: Optional[str]
+    #: SHA-256 of the text that was signed, lowercase hex.
+    signed_body_sha256: Optional[str]
 
 
 class _AgreementCreateRequired(TypedDict):
     #: Agreement title.
     title: str
-    #: Identifier of the agreement document.
-    document_id: str
+    #: Kind of agreement.
+    agreement_kind: Literal["Offer Letter", "Contractor Agreement", "Master Services Agreement", "Non-Disclosure Agreement"]
+    #: Full text the signer reads and signs; changes only while Proposed.
+    body: str
 
 
 class AgreementCreate(_AgreementCreateRequired, total=False):
     """Fields accepted when creating a Agreement."""
 
-    #: Identifier of the engagement.
-    engagement_id: Optional[str]
+    #: Identifier of the project the agreement covers.
+    project_id: Optional[str]
+    #: Identifier of the offer the agreement follows.
+    offer_id: Optional[str]
+    #: Identifier of the person party to the agreement.
+    person_id: Optional[str]
+    #: Identifier of the external organization party to the agreement.
+    counterparty_id: Optional[str]
 
 
 class AgreementUpdate(TypedDict, total=False):
     """Fields accepted when updating a Agreement. Omitted fields are unchanged."""
 
-    #: Identifier of the engagement.
-    engagement_id: Optional[str]
     #: Agreement title.
     title: str
-    #: Identifier of the agreement document.
-    document_id: str
+    #: Kind of agreement.
+    agreement_kind: Literal["Offer Letter", "Contractor Agreement", "Master Services Agreement", "Non-Disclosure Agreement"]
+    #: Full text the signer reads and signs; changes only while Proposed.
+    body: str
+    #: Identifier of the project the agreement covers.
+    project_id: Optional[str]
+    #: Identifier of the offer the agreement follows.
+    offer_id: Optional[str]
+    #: Identifier of the person party to the agreement.
+    person_id: Optional[str]
+    #: Identifier of the external organization party to the agreement.
+    counterparty_id: Optional[str]
 
 
 class ShiftPage(TypedDict):
@@ -5258,39 +5480,42 @@ class Shift(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Identifier of the Shift record.
     record_id: Optional[str]
-    role_code: RoleCode
-    #: Identifier of the assigned person.
-    person_id: Optional[str]
+    role_code: Optional[RoleCode]
     #: Identifier of the engagement.
     engagement_id: Optional[str]
     #: Call time.
     starts_at: str
     #: Wrap time.
     ends_at: str
-    #: Identifier of the geofence for clock in.
-    geofence_id: Optional[str]
-    #: Shift state. A Title Case value from the lifecycle's database enum.
-    shift_state: str
+    #: Shift state.
+    shift_state: Literal["Draft", "Published", "Accepted", "Canceled"]
+    #: Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
+    #: Identifier of the scope node of the same project, such as the show.
+    scope_node_id: Optional[str]
+    #: IANA time zone the call and wrap times are shown in.
+    time_zone: str
 
 
 class _ShiftCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    role_code: RoleCode
     #: Call time.
     starts_at: str
     #: Wrap time.
     ends_at: str
+    #: IANA time zone the call and wrap times are shown in.
+    time_zone: str
 
 
 class ShiftCreate(_ShiftCreateRequired, total=False):
@@ -5298,12 +5523,13 @@ class ShiftCreate(_ShiftCreateRequired, total=False):
 
     #: Identifier of the Shift record.
     record_id: Optional[str]
-    #: Identifier of the assigned person.
-    person_id: Optional[str]
+    role_code: Optional[RoleCode]
     #: Identifier of the engagement.
     engagement_id: Optional[str]
-    #: Identifier of the geofence for clock in.
-    geofence_id: Optional[str]
+    #: Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
+    #: Identifier of the scope node of the same project, such as the show.
+    scope_node_id: Optional[str]
 
 
 class ShiftUpdate(TypedDict, total=False):
@@ -5311,17 +5537,19 @@ class ShiftUpdate(TypedDict, total=False):
 
     #: Identifier of the Shift record.
     record_id: Optional[str]
-    role_code: RoleCode
-    #: Identifier of the assigned person.
-    person_id: Optional[str]
+    role_code: Optional[RoleCode]
     #: Identifier of the engagement.
     engagement_id: Optional[str]
     #: Call time.
     starts_at: str
     #: Wrap time.
     ends_at: str
-    #: Identifier of the geofence for clock in.
-    geofence_id: Optional[str]
+    #: Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
+    #: Identifier of the scope node of the same project, such as the show.
+    scope_node_id: Optional[str]
+    #: IANA time zone the call and wrap times are shown in.
+    time_zone: str
 
 
 class _ShiftTransitionRequestRequired(TypedDict):
@@ -5356,36 +5584,31 @@ class ShiftSwap(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the shift.
     shift_id: str
-    #: Identifier of the requesting person.
-    requested_by: str
-    #: Identifier of the proposed replacement.
-    proposed_person_id: Optional[str]
-    #: Swap state. A Title Case value from the lifecycle's database enum.
-    swap_state: str
-    #: Identifier of the approver.
-    decided_by: Optional[str]
-    #: When it was decided.
-    decided_at: Optional[str]
+    #: Swap state.
+    swap_state: Literal["Proposed", "Approved", "Rejected", "Canceled"]
+    #: Identifier of the project of the shift, copied from it.
+    project_id: str
+    #: Identifier of the membership of the person on the shift who asks to swap.
+    requested_by_membership_id: str
+    #: Identifier of the membership of the person who would take the shift.
+    proposed_membership_id: str
 
 
-class _ShiftSwapCreateRequired(TypedDict):
-    #: Identifier of the shift.
-    shift_id: str
-
-
-class ShiftSwapCreate(_ShiftSwapCreateRequired, total=False):
+class ShiftSwapCreate(TypedDict):
     """Fields accepted when creating a ShiftSwap."""
 
-    #: Identifier of the proposed replacement.
-    proposed_person_id: Optional[str]
+    #: Identifier of the shift.
+    shift_id: str
+    #: Identifier of the membership of the person who would take the shift.
+    proposed_membership_id: str
 
 
 class TimeEntryPage(TypedDict):
@@ -5406,30 +5629,34 @@ class TimeEntry(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the person.
-    person_id: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the shift.
     shift_id: Optional[str]
     #: Clock in.
-    clock_in_at: str
+    clock_in: str
     #: Clock out.
-    clock_out_at: Optional[str]
+    clock_out: Optional[str]
     #: Break minutes.
     break_minutes: int
-    #: WGS 84 latitude.
-    latitude: Optional[float]
-    #: WGS 84 longitude.
-    longitude: Optional[float]
-    #: Whether the entry was closed automatically at 16 hours.
-    auto_closed: bool
     #: Identifier of the kiosk device.
     kiosk_device_id: Optional[str]
+    #: Identifier of the project worked.
+    project_id: str
+    #: Identifier of the membership of the person who worked; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
+    #: Identifier of the engagement of the person who worked when external crew; null for members.
+    engagement_id: Optional[str]
+    #: Where the punch came from.
+    source: Literal["Web", "Mobile", "Kiosk"]
+    #: When a forgotten clock-out was closed automatically at 16 hours.
+    auto_closed_at: Optional[str]
+    #: Whether the entry was closed automatically and awaits review.
+    needs_review: bool
 
 
 class _TimeEntryCreateRequired(TypedDict):
@@ -5474,22 +5701,26 @@ class TimeEntryCorrection(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the time entry.
     time_entry_id: str
-    #: Corrected clock in.
-    clock_in_at: Optional[str]
-    #: Corrected clock out.
-    clock_out_at: Optional[str]
     #: Why the correction is needed.
     reason: str
-    #: Correction state. A Title Case value from the lifecycle's database enum.
-    correction_state: str
+    #: Correction state.
+    correction_state: Literal["Proposed", "Approved", "Rejected"]
+    #: Proposed clock in.
+    proposed_clock_in: str
+    #: Proposed clock out.
+    proposed_clock_out: Optional[str]
+    #: Proposed unpaid break minutes.
+    proposed_break_minutes: int
+    #: Identifier of the person who asked for the correction.
+    requested_by: Optional[str]
 
 
 class _TimeEntryCorrectionCreateRequired(TypedDict):
@@ -5497,15 +5728,17 @@ class _TimeEntryCorrectionCreateRequired(TypedDict):
     time_entry_id: str
     #: Why the correction is needed.
     reason: str
+    #: Proposed clock in.
+    proposed_clock_in: str
 
 
 class TimeEntryCorrectionCreate(_TimeEntryCorrectionCreateRequired, total=False):
     """Fields accepted when creating a TimeEntryCorrection."""
 
-    #: Corrected clock in.
-    clock_in_at: Optional[str]
-    #: Corrected clock out.
-    clock_out_at: Optional[str]
+    #: Proposed clock out.
+    proposed_clock_out: Optional[str]
+    #: Proposed unpaid break minutes.
+    proposed_break_minutes: int
 
 
 class TimeEntryAuditPage(TypedDict):
@@ -5526,22 +5759,18 @@ class TimeEntryAudit(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the time entry.
     time_entry_id: str
-    #: Changed field.
-    field: str
-    #: Previous value.
-    from_value: Optional[str]
-    #: New value.
-    to_value: Optional[str]
-    #: When it changed.
-    changed_at: str
+    #: Changed columns before the change; null on insert.
+    old_values: Optional[Dict[str, Any]]
+    #: Changed columns after the change.
+    new_values: Dict[str, Any]
 
 
 class TimesheetPage(TypedDict):
@@ -5562,29 +5791,44 @@ class Timesheet(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the person.
-    person_id: str
-    #: Identifier of the pay period.
-    pay_period_id: str
-    #: Timesheet state. A Title Case value from the lifecycle's database enum.
-    timesheet_state: str
-    #: Total hours, derived from time entries.
-    total_hours: float
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Timesheet state.
+    timesheet_state: Literal["Proposed", "Submitted", "Approved", "Rejected"]
+    #: Identifier of the project worked.
+    project_id: str
+    #: Identifier of the membership of the person who worked; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
+    #: Identifier of the engagement of the person who worked when external crew; null for members.
+    engagement_id: Optional[str]
+    #: First day of the period.
+    period_start: str
+    #: Last day of the period.
+    period_end: str
+    #: Identifier of the person who submitted the timesheet.
+    submitted_by: Optional[str]
 
 
-class TimesheetCreate(TypedDict):
+class _TimesheetCreateRequired(TypedDict):
+    #: Identifier of the project worked.
+    project_id: str
+    #: First day of the period.
+    period_start: str
+    #: Last day of the period.
+    period_end: str
+
+
+class TimesheetCreate(_TimesheetCreateRequired, total=False):
     """Fields accepted when creating a Timesheet."""
 
-    #: Identifier of the person.
-    person_id: str
-    #: Identifier of the pay period.
-    pay_period_id: str
+    #: Identifier of the membership of the person who worked; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
+    #: Identifier of the engagement of the person who worked when external crew; null for members.
+    engagement_id: Optional[str]
 
 
 class TimesheetApprovalPage(TypedDict):
@@ -5605,22 +5849,20 @@ class TimesheetApproval(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the timesheet.
     timesheet_id: str
     #: Identifier of the approver.
-    approver_id: str
-    #: Decision. A Title Case value from the lifecycle's database enum.
-    decision: str
-    #: When it was decided.
-    decided_at: str
-    #: Whether the approval was voided by an hours change.
-    voided: bool
+    approved_by: str
+    #: Minutes approved.
+    approved_minutes: int
+    #: When an hours change voided the approval.
+    voided_at: Optional[str]
 
 
 class KioskDevicePage(TypedDict):
@@ -5641,32 +5883,32 @@ class KioskDevice(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Device name.
     name: str
-    #: Identifier of the venue.
-    venue_id: Optional[str]
-    #: Whether the kiosk accepts punches.
-    active: bool
+    #: Identifier of the project the kiosk serves.
+    project_id: Optional[str]
+    #: Last time the kiosk checked in.
+    last_seen_at: Optional[str]
+    #: When the kiosk was revoked; it accepts no punches.
+    revoked_at: Optional[str]
 
 
 class _KioskDeviceCreateRequired(TypedDict):
     #: Device name.
     name: str
-    #: Whether the kiosk accepts punches.
-    active: bool
 
 
 class KioskDeviceCreate(_KioskDeviceCreateRequired, total=False):
     """Fields accepted when creating a KioskDevice."""
 
-    #: Identifier of the venue.
-    venue_id: Optional[str]
+    #: Identifier of the project the kiosk serves.
+    project_id: Optional[str]
 
 
 class KioskDeviceUpdate(TypedDict, total=False):
@@ -5674,10 +5916,8 @@ class KioskDeviceUpdate(TypedDict, total=False):
 
     #: Device name.
     name: str
-    #: Identifier of the venue.
-    venue_id: Optional[str]
-    #: Whether the kiosk accepts punches.
-    active: bool
+    #: Identifier of the project the kiosk serves.
+    project_id: Optional[str]
 
 
 class RateCardPage(TypedDict):
@@ -5698,16 +5938,16 @@ class RateCard(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Rate card name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
     #: First day the card applies.
     effective_from: str
     #: Last day the card applies.
@@ -5718,7 +5958,7 @@ class _RateCardCreateRequired(TypedDict):
     #: Rate card name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
     #: First day the card applies.
     effective_from: str
 
@@ -5736,7 +5976,7 @@ class RateCardUpdate(TypedDict, total=False):
     #: Rate card name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
     #: First day the card applies.
     effective_from: str
     #: Last day the card applies.
@@ -5761,28 +6001,49 @@ class RateCardLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the rate card.
     rate_card_id: str
     role_code: RoleCode
-    rate_type: RateType
     rate_minor: Optional[Union[int, Masked]]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Worker classification priced, from xpms.worker_classification.
+    worker_classification: str
+    #: Pay basis; with the classification a permitted pair.
+    pay_basis: str
+    #: Arrangement; with the classification a permitted pair.
+    arrangement: str
+    #: Canon overtime rule whose multipliers apply.
+    overtime_rule_id: str
+    #: Canon rate card the line was adopted from.
+    canon_rate_card_id: Optional[str]
+
+
+class Masked(TypedDict):
+    """A Restricted field the caller may not read. The field stays present."""
+
+    #: Always true for a masked value.
+    masked: Literal[True]
+    #: Why the value is masked, naming the capability that would reveal it.
+    reason: str
 
 
 class _RateCardLineCreateRequired(TypedDict):
     #: Identifier of the rate card.
     rate_card_id: str
     role_code: RoleCode
-    rate_type: RateType
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Worker classification priced, from xpms.worker_classification.
+    worker_classification: str
+    #: Pay basis; with the classification a permitted pair.
+    pay_basis: str
+    #: Arrangement; with the classification a permitted pair.
+    arrangement: str
+    #: Canon overtime rule whose multipliers apply.
+    overtime_rule_id: str
 
 
 class RateCardLineCreate(_RateCardLineCreateRequired, total=False):
@@ -5790,17 +6051,26 @@ class RateCardLineCreate(_RateCardLineCreateRequired, total=False):
 
     #: Rate. Integer minor units of the resource currency; null means unpriced, never zero.
     rate_minor: Optional[int]
+    #: Canon rate card the line was adopted from.
+    canon_rate_card_id: Optional[str]
 
 
 class RateCardLineUpdate(TypedDict, total=False):
     """Fields accepted when updating a RateCardLine. Omitted fields are unchanged."""
 
     role_code: RoleCode
-    rate_type: RateType
     #: Rate. Integer minor units of the resource currency; null means unpriced, never zero.
     rate_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Worker classification priced, from xpms.worker_classification.
+    worker_classification: str
+    #: Pay basis; with the classification a permitted pair.
+    pay_basis: str
+    #: Arrangement; with the classification a permitted pair.
+    arrangement: str
+    #: Canon overtime rule whose multipliers apply.
+    overtime_rule_id: str
+    #: Canon rate card the line was adopted from.
+    canon_rate_card_id: Optional[str]
 
 
 class PayRatePage(TypedDict):
@@ -5821,39 +6091,34 @@ class PayRate(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the person.
-    person_id: str
-    role_code: Optional[RoleCode]
-    rate_type: RateType
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    role_code: RoleCode
     rate_minor: Optional[Union[int, Masked]]
-    #: ISO 4217 currency code of every money field.
-    currency: str
     #: First day the rate applies.
     effective_from: str
+    #: Identifier of the membership of the person paid.
+    membership_id: str
+    #: ISO 4217 currency of the rate.
+    currency_code: str
 
 
-class _PayRateCreateRequired(TypedDict):
-    #: Identifier of the person.
-    person_id: str
-    rate_type: RateType
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: First day the rate applies.
-    effective_from: str
-
-
-class PayRateCreate(_PayRateCreateRequired, total=False):
+class PayRateCreate(TypedDict):
     """Fields accepted when creating a PayRate."""
 
-    role_code: Optional[RoleCode]
-    #: Pay rate. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_minor: Optional[int]
+    role_code: RoleCode
+    #: Pay rate per hour. Integer minor units of the row's currency.
+    rate_minor: int
+    #: First day the rate applies.
+    effective_from: str
+    #: Identifier of the membership of the person paid.
+    membership_id: str
+    #: ISO 4217 currency of the rate.
+    currency_code: str
 
 
 class OvertimeRulePage(TypedDict):
@@ -5866,57 +6131,21 @@ class OvertimeRulePage(TypedDict):
 
 
 class OvertimeRule(TypedDict):
-    """An overtime rule by jurisdiction."""
+    """A jurisdiction's wage and hour rule from canon: daily and weekly overtime thresholds and minimum multipliers. A lower jurisdiction inherits its parent's rule."""
 
-    #: Identifier of the overtime rule.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Rule name.
-    name: str
     jurisdiction_id: JurisdictionId
-    #: Hours after which the multiplier applies.
-    threshold_hours: float
-    #: Pay multiplier.
-    multiplier: float
-    #: Threshold period.
-    period: str
-
-
-class OvertimeRuleCreate(TypedDict):
-    """Fields accepted when creating a OvertimeRule."""
-
-    #: Rule name.
-    name: str
-    jurisdiction_id: JurisdictionId
-    #: Hours after which the multiplier applies.
-    threshold_hours: float
-    #: Pay multiplier.
-    multiplier: float
-    #: Threshold period.
-    period: str
-
-
-class OvertimeRuleUpdate(TypedDict, total=False):
-    """Fields accepted when updating a OvertimeRule. Omitted fields are unchanged."""
-
-    #: Rule name.
-    name: str
-    jurisdiction_id: JurisdictionId
-    #: Hours after which the multiplier applies.
-    threshold_hours: float
-    #: Pay multiplier.
-    multiplier: float
-    #: Threshold period.
-    period: str
+    #: Statute or source of the rule.
+    source: str
+    #: Weekly hours after which overtime applies.
+    weekly_ot_after_hours: Optional[float]
+    #: Daily hours after which overtime applies.
+    daily_ot_after_hours: Optional[float]
+    #: Daily hours after which double time applies.
+    daily_dt_after_hours: Optional[float]
+    #: Minimum overtime multiplier.
+    min_ot_multiplier: Optional[float]
+    #: Minimum double time multiplier.
+    min_dt_multiplier: Optional[float]
 
 
 class UnionLocalRatePage(TypedDict):
@@ -5937,28 +6166,34 @@ class UnionLocalRate(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Union local.
     union_local: str
     role_code: RoleCode
     rate_minor: Optional[Union[int, Masked]]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
     #: First day the rate applies.
     effective_from: str
+    #: Fringe per hour. Integer minor units of the resource currency; null means unpriced, never zero.
+    fringe_minor: Optional[int]
+    #: Last day the rate applies.
+    effective_to: Optional[str]
 
 
 class _UnionLocalRateCreateRequired(TypedDict):
     #: Union local.
     union_local: str
     role_code: RoleCode
+    #: Scale rate per hour. Integer minor units of the row's currency.
+    rate_minor: int
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
     #: First day the rate applies.
     effective_from: str
 
@@ -5966,8 +6201,10 @@ class _UnionLocalRateCreateRequired(TypedDict):
 class UnionLocalRateCreate(_UnionLocalRateCreateRequired, total=False):
     """Fields accepted when creating a UnionLocalRate."""
 
-    #: Scale rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_minor: Optional[int]
+    #: Fringe per hour. Integer minor units of the resource currency; null means unpriced, never zero.
+    fringe_minor: Optional[int]
+    #: Last day the rate applies.
+    effective_to: Optional[str]
 
 
 class UnionLocalRateUpdate(TypedDict, total=False):
@@ -5976,12 +6213,16 @@ class UnionLocalRateUpdate(TypedDict, total=False):
     #: Union local.
     union_local: str
     role_code: RoleCode
-    #: Scale rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_minor: Optional[int]
+    #: Scale rate per hour. Integer minor units of the row's currency.
+    rate_minor: int
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
     #: First day the rate applies.
     effective_from: str
+    #: Fringe per hour. Integer minor units of the resource currency; null means unpriced, never zero.
+    fringe_minor: Optional[int]
+    #: Last day the rate applies.
+    effective_to: Optional[str]
 
 
 class WageDeterminationPage(TypedDict):
@@ -6002,49 +6243,61 @@ class WageDetermination(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     jurisdiction_id: JurisdictionId
-    #: Determination reference.
-    reference: str
     role_code: RoleCode
-    #: Prevailing rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Prevailing minimum rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
+    minimum_rate_minor: Optional[int]
+    #: ISO 4217 currency.
+    currency_code: str
+    #: First day the determination applies.
+    effective_from: str
+    #: Last day the determination applies.
+    effective_to: Optional[str]
+    #: Determination source or reference.
+    source: str
 
 
 class _WageDeterminationCreateRequired(TypedDict):
     jurisdiction_id: JurisdictionId
-    #: Determination reference.
-    reference: str
     role_code: RoleCode
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Prevailing minimum rate per hour. Integer minor units of the row's currency.
+    minimum_rate_minor: int
+    #: ISO 4217 currency.
+    currency_code: str
+    #: First day the determination applies.
+    effective_from: str
+    #: Determination source or reference.
+    source: str
 
 
 class WageDeterminationCreate(_WageDeterminationCreateRequired, total=False):
     """Fields accepted when creating a WageDetermination."""
 
-    #: Prevailing rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_minor: Optional[int]
+    #: Last day the determination applies.
+    effective_to: Optional[str]
 
 
 class WageDeterminationUpdate(TypedDict, total=False):
     """Fields accepted when updating a WageDetermination. Omitted fields are unchanged."""
 
     jurisdiction_id: JurisdictionId
-    #: Determination reference.
-    reference: str
     role_code: RoleCode
-    #: Prevailing rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Prevailing minimum rate per hour. Integer minor units of the row's currency.
+    minimum_rate_minor: int
+    #: ISO 4217 currency.
+    currency_code: str
+    #: First day the determination applies.
+    effective_from: str
+    #: Last day the determination applies.
+    effective_to: Optional[str]
+    #: Determination source or reference.
+    source: str
 
 
 class PayPeriodPage(TypedDict):
@@ -6065,12 +6318,12 @@ class PayPeriod(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: First day.
     starts_on: str
     #: Last day.
@@ -6129,20 +6382,18 @@ class PayrollRun(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the pay period.
     pay_period_id: str
-    #: Payroll run state. A Title Case value from the lifecycle's database enum.
-    payroll_run_state: str
-    #: Gross pay total, derived. Integer minor units of the resource currency; null means unpriced, never zero.
-    gross_total: Optional[int]
+    #: Payroll run state.
+    payroll_run_state: Literal["Draft", "Calculated", "Approved", "Exported", "Accepted", "Canceled"]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class PayrollRunCreate(TypedDict):
@@ -6151,7 +6402,7 @@ class PayrollRunCreate(TypedDict):
     #: Identifier of the pay period.
     pay_period_id: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class _PayrollRunTransitionRequestRequired(TypedDict):
@@ -6184,25 +6435,19 @@ class PayrollLine(TypedDict):
     id: str
     #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
     org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
     #: Identifier of the payroll run.
     payroll_run_id: str
-    #: Identifier of the person.
-    person_id: str
     #: Identifier of the earning code.
     earning_code_id: str
     #: Hours.
     hours: float
     amount_minor: Optional[Union[int, Masked]]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Identifier of the membership of the person paid.
+    membership_id: str
+    rate_minor: Optional[Union[int, Masked]]
+    role_code: Optional[RoleCode]
+    #: Identifier of the cost center charged.
+    cost_center_id: Optional[str]
 
 
 class PayrollExportPage(TypedDict):
@@ -6223,20 +6468,20 @@ class PayrollExport(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the payroll run.
     payroll_run_id: str
     #: Target payroll provider.
     provider: str
-    #: Export state. A Title Case value from the lifecycle's database enum.
-    export_state: str
-    #: Identifier of the export file.
-    document_id: Optional[str]
+    #: Logical location of the export file.
+    file_uri: str
+    #: SHA-256 of the export file, lowercase hex.
+    checksum_sha256: str
 
 
 class PayrollExportCreate(TypedDict):
@@ -6266,40 +6511,43 @@ class EarningCode(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Earning code.
-    earning_code: str
+    code: str
     #: Earning name.
     name: str
     #: Whether it is an overtime code.
-    overtime: bool
+    is_overtime: bool
 
 
-class EarningCodeCreate(TypedDict):
+class _EarningCodeCreateRequired(TypedDict):
+    #: Earning code.
+    code: str
+    #: Earning name.
+    name: str
+
+
+class EarningCodeCreate(_EarningCodeCreateRequired, total=False):
     """Fields accepted when creating a EarningCode."""
 
-    #: Earning code.
-    earning_code: str
-    #: Earning name.
-    name: str
     #: Whether it is an overtime code.
-    overtime: bool
+    is_overtime: bool
 
 
 class EarningCodeUpdate(TypedDict, total=False):
     """Fields accepted when updating a EarningCode. Omitted fields are unchanged."""
 
     #: Earning code.
-    earning_code: str
+    code: str
     #: Earning name.
     name: str
     #: Whether it is an overtime code.
-    overtime: bool
+    is_overtime: bool
 
 
 class PerDiemPage(TypedDict):
@@ -6320,54 +6568,61 @@ class PerDiem(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the engagement.
-    engagement_id: str
-    daily_amount_minor: Optional[Union[int, Masked]]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: First day.
-    starts_on: str
-    #: Last day.
-    ends_on: str
+    engagement_id: Optional[str]
+    #: Identifier of the project worked.
+    project_id: str
+    #: Identifier of the membership of the person paid; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
+    #: Day the allowance covers.
+    day: str
+    #: Allowance for the day. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_minor: Optional[int]
+    #: ISO 4217 currency.
+    currency_code: str
 
 
 class _PerDiemCreateRequired(TypedDict):
-    #: Identifier of the engagement.
-    engagement_id: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: First day.
-    starts_on: str
-    #: Last day.
-    ends_on: str
+    #: Identifier of the project worked.
+    project_id: str
+    #: Day the allowance covers.
+    day: str
+    #: Allowance for the day. Integer minor units of the row's currency.
+    amount_minor: int
+    #: ISO 4217 currency.
+    currency_code: str
 
 
 class PerDiemCreate(_PerDiemCreateRequired, total=False):
     """Fields accepted when creating a PerDiem."""
 
-    #: Daily allowance. Integer minor units of the resource currency; null means unpriced, never zero.
-    daily_amount_minor: Optional[int]
+    #: Identifier of the engagement.
+    engagement_id: Optional[str]
+    #: Identifier of the membership of the person paid; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
 
 
 class PerDiemUpdate(TypedDict, total=False):
     """Fields accepted when updating a PerDiem. Omitted fields are unchanged."""
 
     #: Identifier of the engagement.
-    engagement_id: str
-    #: Daily allowance. Integer minor units of the resource currency; null means unpriced, never zero.
-    daily_amount_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: First day.
-    starts_on: str
-    #: Last day.
-    ends_on: str
+    engagement_id: Optional[str]
+    #: Identifier of the project worked.
+    project_id: str
+    #: Identifier of the membership of the person paid; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
+    #: Day the allowance covers.
+    day: str
+    #: Allowance for the day. Integer minor units of the row's currency.
+    amount_minor: int
+    #: ISO 4217 currency.
+    currency_code: str
 
 
 class TimeOffPolicyPage(TypedDict):
@@ -6388,25 +6643,28 @@ class TimeOffPolicy(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Policy name.
     name: str
     #: Hours accrued per pay period.
-    accrual_hours_per_period: float
+    accrual_hours_per_period: Optional[float]
 
 
-class TimeOffPolicyCreate(TypedDict):
+class _TimeOffPolicyCreateRequired(TypedDict):
+    #: Policy name.
+    name: str
+
+
+class TimeOffPolicyCreate(_TimeOffPolicyCreateRequired, total=False):
     """Fields accepted when creating a TimeOffPolicy."""
 
-    #: Policy name.
-    name: str
     #: Hours accrued per pay period.
-    accrual_hours_per_period: float
+    accrual_hours_per_period: Optional[float]
 
 
 class TimeOffPolicyUpdate(TypedDict, total=False):
@@ -6415,7 +6673,7 @@ class TimeOffPolicyUpdate(TypedDict, total=False):
     #: Policy name.
     name: str
     #: Hours accrued per pay period.
-    accrual_hours_per_period: float
+    accrual_hours_per_period: Optional[float]
 
 
 class TimeOffRequestPage(TypedDict):
@@ -6436,35 +6694,39 @@ class TimeOffRequest(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the person.
-    person_id: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the time off policy.
     time_off_policy_id: str
     #: First day off.
     starts_on: str
     #: Last day off.
     ends_on: str
-    #: Request state. A Title Case value from the lifecycle's database enum.
-    time_off_state: str
+    #: Request state.
+    time_off_state: Literal["Proposed", "Approved", "Rejected", "Canceled"]
+    #: Identifier of the membership of the person requesting.
+    membership_id: str
+    #: Hours requested.
+    hours: float
 
 
 class TimeOffRequestCreate(TypedDict):
     """Fields accepted when creating a TimeOffRequest."""
 
-    #: Identifier of the person.
-    person_id: str
     #: Identifier of the time off policy.
     time_off_policy_id: str
     #: First day off.
     starts_on: str
     #: Last day off.
     ends_on: str
+    #: Identifier of the membership of the person requesting.
+    membership_id: str
+    #: Hours requested.
+    hours: float
 
 
 class CredentialCategoryPage(TypedDict):
@@ -6485,18 +6747,18 @@ class CredentialCategory(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Category name.
     name: str
-    #: Design token for the badge color.
-    color_token: str
-    #: Display order.
-    position: int
+    #: Identifier of the project.
+    project_id: str
+    #: Category code, unique per project.
+    code: str
 
 
 class CredentialCategoryCreate(TypedDict):
@@ -6504,10 +6766,10 @@ class CredentialCategoryCreate(TypedDict):
 
     #: Category name.
     name: str
-    #: Design token for the badge color.
-    color_token: str
-    #: Display order.
-    position: int
+    #: Identifier of the project.
+    project_id: str
+    #: Category code, unique per project.
+    code: str
 
 
 class CredentialCategoryUpdate(TypedDict, total=False):
@@ -6515,10 +6777,8 @@ class CredentialCategoryUpdate(TypedDict, total=False):
 
     #: Category name.
     name: str
-    #: Design token for the badge color.
-    color_token: str
-    #: Display order.
-    position: int
+    #: Category code, unique per project.
+    code: str
 
 
 class CredentialPage(TypedDict):
@@ -6539,43 +6799,39 @@ class Credential(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Identifier of the credential category.
     credential_category_id: str
-    #: Identifier of the holder.
-    person_id: str
     #: Identifier of the engagement.
     engagement_id: Optional[str]
-    #: Credential state. A Title Case value from the lifecycle's database enum.
-    credential_state: str
     #: Identifier of the issuer.
-    issued_by: str
-    #: When it was issued.
-    issued_at: str
+    issued_by: Optional[str]
     #: Start of validity.
     valid_from: str
     #: End of validity.
-    valid_to: str
+    valid_to: Optional[str]
+    #: Identifier of the holder.
+    holder_person_id: str
+    #: Number printed on the badge, issued by the database.
+    credential_number: str
+    #: When the credential was revoked.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked it.
+    revoked_by: Optional[str]
 
 
 class _CredentialCreateRequired(TypedDict):
-    #: Identifier of the project.
-    project_id: str
     #: Identifier of the credential category.
     credential_category_id: str
     #: Identifier of the holder.
-    person_id: str
-    #: Start of validity.
-    valid_from: str
-    #: End of validity.
-    valid_to: str
+    holder_person_id: str
 
 
 class CredentialCreate(_CredentialCreateRequired, total=False):
@@ -6583,6 +6839,10 @@ class CredentialCreate(_CredentialCreateRequired, total=False):
 
     #: Identifier of the engagement.
     engagement_id: Optional[str]
+    #: Start of validity.
+    valid_from: str
+    #: End of validity.
+    valid_to: Optional[str]
 
 
 class AccessGridEntryPage(TypedDict):
@@ -6603,51 +6863,50 @@ class AccessGridEntry(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the zone.
     zone_id: str
     #: Identifier of the credential category.
     credential_category_id: str
-    #: Whether the category may enter the zone.
-    allowed: bool
-    #: Window start.
-    window_starts_at: Optional[str]
-    #: Window end.
-    window_ends_at: Optional[str]
+    #: Access level: a row of the canon Access Level enumeration.
+    access_level_enum_id: str
+    #: When access opens.
+    window_starts_at: str
+    #: When access closes.
+    window_ends_at: str
+    #: Identifier of the project of the category, copied from it.
+    project_id: str
 
 
-class _AccessGridEntryCreateRequired(TypedDict):
-    #: Identifier of the zone.
-    zone_id: str
-    #: Identifier of the credential category.
-    credential_category_id: str
-    #: Whether the category may enter the zone.
-    allowed: bool
-
-
-class AccessGridEntryCreate(_AccessGridEntryCreateRequired, total=False):
+class AccessGridEntryCreate(TypedDict):
     """Fields accepted when creating a AccessGridEntry."""
 
-    #: Window start.
-    window_starts_at: Optional[str]
-    #: Window end.
-    window_ends_at: Optional[str]
+    #: Identifier of the zone.
+    zone_id: str
+    #: Identifier of the credential category.
+    credential_category_id: str
+    #: Access level: a row of the canon Access Level enumeration.
+    access_level_enum_id: str
+    #: When access opens.
+    window_starts_at: str
+    #: When access closes.
+    window_ends_at: str
 
 
 class AccessGridEntryUpdate(TypedDict, total=False):
     """Fields accepted when updating a AccessGridEntry. Omitted fields are unchanged."""
 
-    #: Whether the category may enter the zone.
-    allowed: bool
-    #: Window start.
-    window_starts_at: Optional[str]
-    #: Window end.
-    window_ends_at: Optional[str]
+    #: Access level: a row of the canon Access Level enumeration.
+    access_level_enum_id: str
+    #: When access opens.
+    window_starts_at: str
+    #: When access closes.
+    window_ends_at: str
 
 
 class AccessScanPage(TypedDict):
@@ -6668,33 +6927,42 @@ class AccessScan(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the zone.
     zone_id: str
     #: Identifier of the credential.
     credential_id: str
     #: When the scan happened.
     scanned_at: str
-    #: Whether entry was granted.
-    granted: bool
-    #: Why entry was refused.
-    refusal_reason: Optional[str]
+    #: The database's decision for the scan.
+    result: Literal["Granted", "Denied"]
+    #: Identifier of the project of the credential, copied from it.
+    project_id: str
+    #: When the device scanned, for a scan made offline.
+    device_scanned_at: Optional[str]
+    #: What the device decided offline.
+    offline_result: Optional[Literal["Granted", "Denied"]]
 
 
-class AccessScanCreate(TypedDict):
+class _AccessScanCreateRequired(TypedDict):
+    #: Identifier of the zone.
+    zone_id: str
+    #: Identifier of the credential.
+    credential_id: str
+
+
+class AccessScanCreate(_AccessScanCreateRequired, total=False):
     """Fields accepted when creating a AccessScan."""
 
-    #: Identifier of the zone.
-    zone_id: str
-    #: Identifier of the credential.
-    credential_id: str
-    #: When the scan happened.
-    scanned_at: str
+    #: When the device scanned, for a scan made offline.
+    device_scanned_at: Optional[str]
+    #: What the device decided offline.
+    offline_result: Optional[Literal["Granted", "Denied"]]
 
 
 class CertificationPage(TypedDict):
@@ -6715,34 +6983,25 @@ class Certification(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Certification name.
     name: str
-    tag_id: TagId
-    #: Issuing body.
-    issuer: str
-    #: Months until expiry.
-    validity_months: Optional[int]
+    #: Body that issues the certification.
+    issuing_body: str
 
 
-class _CertificationCreateRequired(TypedDict):
-    #: Certification name.
-    name: str
-    #: Issuing body.
-    issuer: str
-
-
-class CertificationCreate(_CertificationCreateRequired, total=False):
+class CertificationCreate(TypedDict):
     """Fields accepted when creating a Certification."""
 
-    tag_id: TagId
-    #: Months until expiry.
-    validity_months: Optional[int]
+    #: Certification name.
+    name: str
+    #: Body that issues the certification.
+    issuing_body: str
 
 
 class CertificationUpdate(TypedDict, total=False):
@@ -6750,11 +7009,8 @@ class CertificationUpdate(TypedDict, total=False):
 
     #: Certification name.
     name: str
-    tag_id: TagId
-    #: Issuing body.
-    issuer: str
-    #: Months until expiry.
-    validity_months: Optional[int]
+    #: Body that issues the certification.
+    issuing_body: str
 
 
 class CertificationHolderPage(TypedDict):
@@ -6775,26 +7031,24 @@ class CertificationHolder(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the certification.
     certification_id: str
     #: Identifier of the holder.
     person_id: str
-    #: Identifier of the evidence document.
-    evidence_document_id: Optional[str]
     #: Expiry date.
     expires_on: Optional[str]
-    #: When it was verified.
-    verified_at: Optional[str]
     #: Identifier of the verifier.
     verified_by: Optional[str]
-    #: Whether the holder allows public verification.
-    public_verification_consent: bool
+    #: When the certification was issued.
+    issued_on: str
+    #: Whether the holder allows public verification by code.
+    public_verification_consented: bool
 
 
 class _CertificationHolderCreateRequired(TypedDict):
@@ -6802,15 +7056,13 @@ class _CertificationHolderCreateRequired(TypedDict):
     certification_id: str
     #: Identifier of the holder.
     person_id: str
-    #: Whether the holder allows public verification.
-    public_verification_consent: bool
+    #: When the certification was issued.
+    issued_on: str
 
 
 class CertificationHolderCreate(_CertificationHolderCreateRequired, total=False):
     """Fields accepted when creating a CertificationHolder."""
 
-    #: Identifier of the evidence document.
-    evidence_document_id: Optional[str]
     #: Expiry date.
     expires_on: Optional[str]
 
@@ -6818,12 +7070,12 @@ class CertificationHolderCreate(_CertificationHolderCreateRequired, total=False)
 class CertificationHolderUpdate(TypedDict, total=False):
     """Fields accepted when updating a CertificationHolder. Omitted fields are unchanged."""
 
-    #: Identifier of the evidence document.
-    evidence_document_id: Optional[str]
     #: Expiry date.
     expires_on: Optional[str]
-    #: Whether the holder allows public verification.
-    public_verification_consent: bool
+    #: When the certification was issued.
+    issued_on: str
+    #: Whether the holder allows public verification by code.
+    public_verification_consented: bool
 
 
 class BudgetPage(TypedDict):
@@ -6844,22 +7096,20 @@ class Budget(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Budget name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
-    #: Budget state. A Title Case value from the lifecycle's database enum.
-    budget_state: str
-    #: Contingency as a percent of scope.
-    contingency_percent: Optional[float]
+    currency_code: str
+    #: Whether this is the gate 3 baseline the final cost report compares against.
+    is_baseline: bool
 
 
 class _BudgetCreateRequired(TypedDict):
@@ -6868,14 +7118,14 @@ class _BudgetCreateRequired(TypedDict):
     #: Budget name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class BudgetCreate(_BudgetCreateRequired, total=False):
     """Fields accepted when creating a Budget."""
 
-    #: Contingency as a percent of scope.
-    contingency_percent: Optional[float]
+    #: Whether this is the gate 3 baseline the final cost report compares against.
+    is_baseline: bool
 
 
 class BudgetUpdate(TypedDict, total=False):
@@ -6884,9 +7134,9 @@ class BudgetUpdate(TypedDict, total=False):
     #: Budget name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
-    #: Contingency as a percent of scope.
-    contingency_percent: Optional[float]
+    currency_code: str
+    #: Whether this is the gate 3 baseline the final cost report compares against.
+    is_baseline: bool
 
 
 class BudgetSummary(TypedDict):
@@ -6918,63 +7168,62 @@ class BudgetLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the budget.
     budget_id: str
-    account_code: GlAccountCode
     #: Identifier of the cost center.
-    cost_center_id: str
+    cost_center_id: Optional[str]
     urid: UridAtAnyGrain
     xyz: Xyz
     #: Basis for the XYZ tag.
     xyz_basis: str
     line_type: LineType
-    grade: Grade
+    #: Price band grade of the catalog element.
+    grade_code: Optional[str]
     element_id: ItemId
     #: Line description.
     description: str
-    #: Quantity.
-    quantity: Optional[float]
-    unit: UnitCode
+    #: Quantity; defaults to 1.
+    quantity: float
+    unit_basis: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
     #: Line total, generated from quantity and unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     line_total_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    line_state: SharedState
+    #: Line number within the budget.
+    line_number: int
 
 
 class _BudgetLineCreateRequired(TypedDict):
     #: Identifier of the budget.
     budget_id: str
-    #: Identifier of the cost center.
-    cost_center_id: str
     urid: UridAtAnyGrain
     xyz: Xyz
     #: Basis for the XYZ tag.
     xyz_basis: str
-    line_type: LineType
     #: Line description.
     description: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    line_state: SharedState
+    #: Line number within the budget.
+    line_number: int
 
 
 class BudgetLineCreate(_BudgetLineCreateRequired, total=False):
     """Fields accepted when creating a BudgetLine."""
 
-    grade: Grade
+    #: Identifier of the cost center.
+    cost_center_id: Optional[str]
+    line_type: LineType
+    #: Price band grade of the catalog element.
+    grade_code: Optional[str]
     element_id: ItemId
-    #: Quantity.
-    quantity: Optional[float]
-    unit: UnitCode
+    #: Quantity; defaults to 1.
+    quantity: float
+    unit_basis: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
 
@@ -6983,24 +7232,24 @@ class BudgetLineUpdate(TypedDict, total=False):
     """Fields accepted when updating a BudgetLine. Omitted fields are unchanged."""
 
     #: Identifier of the cost center.
-    cost_center_id: str
+    cost_center_id: Optional[str]
     urid: UridAtAnyGrain
     xyz: Xyz
     #: Basis for the XYZ tag.
     xyz_basis: str
     line_type: LineType
-    grade: Grade
+    #: Price band grade of the catalog element.
+    grade_code: Optional[str]
     element_id: ItemId
     #: Line description.
     description: str
-    #: Quantity.
-    quantity: Optional[float]
-    unit: UnitCode
+    #: Quantity; defaults to 1.
+    quantity: float
+    unit_basis: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    line_state: SharedState
+    #: Line number within the budget.
+    line_number: int
 
 
 class ExpensePage(TypedDict):
@@ -7021,27 +7270,28 @@ class Expense(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the budget line.
     budget_line_id: str
-    #: Identifier of the submitter.
-    submitted_by: str
+    #: Identifier of the person who submitted the expense.
+    submitter_person_id: Optional[str]
     #: Expense description.
     description: str
     #: Expense amount. Integer minor units of the resource currency; null means unpriced, never zero.
     amount_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
     #: When it was incurred.
     incurred_on: str
-    #: Identifier of the receipt.
-    receipt_document_id: Optional[str]
-    expense_state: SharedState
+    #: Expense state.
+    expense_state: Literal["Proposed", "Approved", "Rejected", "Paid", "Canceled"]
+    #: Identifier of the counterparty paid, when it is not the submitter.
+    counterparty_id: Optional[str]
 
 
 class _ExpenseCreateRequired(TypedDict):
@@ -7049,8 +7299,10 @@ class _ExpenseCreateRequired(TypedDict):
     budget_line_id: str
     #: Expense description.
     description: str
+    #: Expense amount. Integer minor units of the document currency.
+    amount_minor: int
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
     #: When it was incurred.
     incurred_on: str
 
@@ -7058,10 +7310,8 @@ class _ExpenseCreateRequired(TypedDict):
 class ExpenseCreate(_ExpenseCreateRequired, total=False):
     """Fields accepted when creating a Expense."""
 
-    #: Expense amount. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
-    #: Identifier of the receipt.
-    receipt_document_id: Optional[str]
+    #: Identifier of the counterparty paid, when it is not the submitter.
+    counterparty_id: Optional[str]
 
 
 class ExpenseUpdate(TypedDict, total=False):
@@ -7069,14 +7319,14 @@ class ExpenseUpdate(TypedDict, total=False):
 
     #: Expense description.
     description: str
-    #: Expense amount. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
+    #: Expense amount. Integer minor units of the document currency.
+    amount_minor: int
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
     #: When it was incurred.
     incurred_on: str
-    #: Identifier of the receipt.
-    receipt_document_id: Optional[str]
+    #: Identifier of the counterparty paid, when it is not the submitter.
+    counterparty_id: Optional[str]
 
 
 class ContingencyDrawPage(TypedDict):
@@ -7097,40 +7347,33 @@ class ContingencyDraw(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the contingency budget line.
     from_budget_line_id: str
     #: Identifier of the receiving budget line.
     to_budget_line_id: str
     #: Amount drawn. Integer minor units of the resource currency; null means unpriced, never zero.
     amount_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
     #: Why contingency is drawn.
     reason: str
 
 
-class _ContingencyDrawCreateRequired(TypedDict):
-    #: Identifier of the contingency budget line.
-    from_budget_line_id: str
-    #: Identifier of the receiving budget line.
-    to_budget_line_id: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: Why contingency is drawn.
-    reason: str
-
-
-class ContingencyDrawCreate(_ContingencyDrawCreateRequired, total=False):
+class ContingencyDrawCreate(TypedDict):
     """Fields accepted when creating a ContingencyDraw."""
 
-    #: Amount drawn. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
+    #: Identifier of the contingency budget line.
+    from_budget_line_id: str
+    #: Identifier of the receiving budget line.
+    to_budget_line_id: str
+    #: Amount drawn. Integer minor units of the document currency.
+    amount_minor: int
+    #: Why contingency is drawn.
+    reason: str
 
 
 class ChangeOrderPage(TypedDict):
@@ -7151,33 +7394,49 @@ class ChangeOrder(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Change order title.
     title: str
     #: What changes and why.
-    description: str
+    reason: Optional[str]
     #: Identifier of the requester.
-    requested_by: str
-    change_order_state: SharedState
+    requested_by: Optional[str]
+    #: Change order state.
+    change_order_state: Literal["Proposed", "Priced", "Approved", "Rejected", "Canceled"]
     total: MoneyTotal
+    #: Identifier of the budget the change order revises.
+    budget_id: str
+    #: Change order number within the project.
+    change_order_number: int
+    #: Canon change order type.
+    order_type_enum_id: Optional[str]
+    #: Identifier of the person who priced the change order.
+    priced_by: Optional[str]
 
 
-class ChangeOrderCreate(TypedDict):
+class _ChangeOrderCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Change order title.
+    title: str
+    #: Identifier of the budget the change order revises.
+    budget_id: str
+
+
+class ChangeOrderCreate(_ChangeOrderCreateRequired, total=False):
     """Fields accepted when creating a ChangeOrder."""
 
-    #: Identifier of the project.
-    project_id: str
-    #: Change order title.
-    title: str
     #: What changes and why.
-    description: str
+    reason: Optional[str]
+    #: Canon change order type.
+    order_type_enum_id: Optional[str]
 
 
 class ChangeOrderUpdate(TypedDict, total=False):
@@ -7186,14 +7445,16 @@ class ChangeOrderUpdate(TypedDict, total=False):
     #: Change order title.
     title: str
     #: What changes and why.
-    description: str
+    reason: Optional[str]
+    #: Canon change order type.
+    order_type_enum_id: Optional[str]
 
 
 class _ChangeOrderTransitionRequestRequired(TypedDict):
     #: The state the caller believes the row is in (compare-and-set).
-    expected_state: str
+    expected_state: Literal["Proposed", "Priced", "Approved", "Rejected", "Canceled"]
     #: Target state.
-    to_state: str
+    to_state: Literal["Proposed", "Priced", "Approved", "Rejected", "Canceled"]
 
 
 class ChangeOrderTransitionRequest(_ChangeOrderTransitionRequestRequired, total=False):
@@ -7221,12 +7482,12 @@ class ChangeOrderLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the change order.
     change_order_id: str
     #: Identifier of the affected budget line.
@@ -7234,10 +7495,12 @@ class ChangeOrderLine(TypedDict):
     urid: UridAtAnyGrain
     #: Line description.
     description: str
-    #: Line amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Quantity; defaults to 1.
+    quantity: float
+    #: Unit price; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    unit_price_minor: Optional[int]
+    #: Whether the line is deliberately free of charge.
+    is_no_cost: bool
 
 
 class _ChangeOrderLineCreateRequired(TypedDict):
@@ -7246,8 +7509,6 @@ class _ChangeOrderLineCreateRequired(TypedDict):
     urid: UridAtAnyGrain
     #: Line description.
     description: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class ChangeOrderLineCreate(_ChangeOrderLineCreateRequired, total=False):
@@ -7255,8 +7516,12 @@ class ChangeOrderLineCreate(_ChangeOrderLineCreateRequired, total=False):
 
     #: Identifier of the affected budget line.
     budget_line_id: Optional[str]
-    #: Line amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
+    #: Quantity; defaults to 1.
+    quantity: float
+    #: Unit price; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    unit_price_minor: Optional[int]
+    #: Whether the line is deliberately free of charge.
+    is_no_cost: bool
 
 
 class ChangeOrderLineUpdate(TypedDict, total=False):
@@ -7267,10 +7532,12 @@ class ChangeOrderLineUpdate(TypedDict, total=False):
     urid: UridAtAnyGrain
     #: Line description.
     description: str
-    #: Line amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Quantity; defaults to 1.
+    quantity: float
+    #: Unit price; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    unit_price_minor: Optional[int]
+    #: Whether the line is deliberately free of charge.
+    is_no_cost: bool
 
 
 class AccountingPeriodPage(TypedDict):
@@ -7291,17 +7558,17 @@ class AccountingPeriod(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: First day.
     starts_on: str
     #: Last day.
     ends_on: str
-    accounting_period_state: AccountingPeriodState
+    period_state: AccountingPeriodState
 
 
 class AccountingPeriodCreate(TypedDict):
@@ -7345,34 +7612,48 @@ class JournalEntry(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the accounting period.
     accounting_period_id: str
     #: Entry date.
     entry_date: str
     #: Memo.
     memo: str
-    journal_state: SharedState
+    #: Journal state.
+    journal_state: Literal["Proposed", "Posted", "Canceled"]
     #: When it was posted.
     posted_at: Optional[str]
     #: Identifier of the poster.
     posted_by: Optional[str]
+    #: Identifier of the project.
+    project_id: Optional[str]
+    #: Identifier of the person who prepared the entry.
+    prepared_by: Optional[str]
+    #: Table of the document that produced the entry.
+    source_table: Optional[str]
+    #: Identifier of the document that produced the entry.
+    source_id: Optional[str]
 
 
-class JournalEntryCreate(TypedDict):
-    """Fields accepted when creating a JournalEntry."""
-
+class _JournalEntryCreateRequired(TypedDict):
     #: Identifier of the accounting period.
     accounting_period_id: str
     #: Entry date.
     entry_date: str
     #: Memo.
     memo: str
+
+
+class JournalEntryCreate(_JournalEntryCreateRequired, total=False):
+    """Fields accepted when creating a JournalEntry."""
+
+    #: Identifier of the project.
+    project_id: Optional[str]
 
 
 class JournalEntryUpdate(TypedDict, total=False):
@@ -7384,6 +7665,8 @@ class JournalEntryUpdate(TypedDict, total=False):
     entry_date: str
     #: Memo.
     memo: str
+    #: Identifier of the project.
+    project_id: Optional[str]
 
 
 class JournalLinePage(TypedDict):
@@ -7404,40 +7687,64 @@ class JournalLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the journal entry.
     journal_entry_id: str
     account_code: GlAccountCode
     #: Identifier of the cost center.
-    cost_center_id: str
+    cost_center_id: Optional[str]
     urid: UridAtAnyGrain
-    #: Signed amount; negative for credits. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Line number within the entry.
+    line_number: int
+    #: Line description.
+    description: str
+    #: Debit amount; zero on a credit line. Integer minor units of the resource currency; null means unpriced, never zero.
+    debit_minor: Optional[int]
+    #: Credit amount; zero on a debit line. Integer minor units of the resource currency; null means unpriced, never zero.
+    credit_minor: Optional[int]
+    #: ISO 4217 currency code of every money field on the row.
+    currency_code: str
+    #: Identifier of the counterparty.
+    counterparty_id: Optional[str]
+    element_id: Optional[ItemId]
+    #: Quantity.
+    quantity: Optional[float]
+    unit_basis: Optional[UnitCode]
 
 
 class _JournalLineCreateRequired(TypedDict):
     #: Identifier of the journal entry.
     journal_entry_id: str
     account_code: GlAccountCode
-    #: Identifier of the cost center.
-    cost_center_id: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Line number within the entry.
+    line_number: int
+    #: Line description.
+    description: str
+    #: ISO 4217 currency code of every money field on the row.
+    currency_code: str
 
 
 class JournalLineCreate(_JournalLineCreateRequired, total=False):
     """Fields accepted when creating a JournalLine."""
 
+    #: Identifier of the cost center.
+    cost_center_id: Optional[str]
     urid: UridAtAnyGrain
-    #: Signed amount; negative for credits. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
+    #: Debit amount; zero on a credit line. Integer minor units of the document currency.
+    debit_minor: int
+    #: Credit amount; zero on a debit line. Integer minor units of the document currency.
+    credit_minor: int
+    #: Identifier of the counterparty.
+    counterparty_id: Optional[str]
+    element_id: Optional[ItemId]
+    #: Quantity.
+    quantity: Optional[float]
+    unit_basis: Optional[UnitCode]
 
 
 class JournalLineUpdate(TypedDict, total=False):
@@ -7445,12 +7752,24 @@ class JournalLineUpdate(TypedDict, total=False):
 
     account_code: GlAccountCode
     #: Identifier of the cost center.
-    cost_center_id: str
+    cost_center_id: Optional[str]
     urid: UridAtAnyGrain
-    #: Signed amount; negative for credits. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Line number within the entry.
+    line_number: int
+    #: Line description.
+    description: str
+    #: Debit amount; zero on a credit line. Integer minor units of the document currency.
+    debit_minor: int
+    #: Credit amount; zero on a debit line. Integer minor units of the document currency.
+    credit_minor: int
+    #: ISO 4217 currency code of every money field on the row.
+    currency_code: str
+    #: Identifier of the counterparty.
+    counterparty_id: Optional[str]
+    element_id: Optional[ItemId]
+    #: Quantity.
+    quantity: Optional[float]
+    unit_basis: Optional[UnitCode]
 
 
 class PostingLinePage(TypedDict):
@@ -7465,23 +7784,13 @@ class PostingLinePage(TypedDict):
 class PostingLine(TypedDict):
     """A Universal Posting Line (Bible tab 36): the one export shape, projected to every accounting platform."""
 
-    #: Identifier of the posting line.
-    id: str
     #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
     org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
     #: Date the cost or revenue is recognized.
     date: str
     account_code: GlAccountCode
-    cost_center_id: CostCenterCode
-    urid: UridAtAnyGrain
+    cost_center_id: Optional[CostCenterCode]
+    urid: Optional[UridAtAnyGrain]
     #: Identifier of the vendor organization; null for revenue.
     vendor_id: Optional[str]
     item_id: ItemId
@@ -7491,25 +7800,42 @@ class PostingLine(TypedDict):
     quantity: Optional[float]
     unit_basis: UnitCode
     #: Signed amount; negative for credits. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount: Optional[int]
+    amount_minor: Optional[int]
     tax_type: TaxType
     #: ISO 4217 currency code of every money field.
     currency: str
     #: Invoice, card transaction or record identifier.
     external_ref: Optional[str]
     line_state: SharedState
+    #: Identifier of the posting line.
+    posting_line_id: str
+    #: Identifier of the project.
+    project_id: Optional[str]
 
 
-class PostingExportAccepted(TypedDict):
-    """The PostingExportAccepted object."""
+class PostingExport(TypedDict):
+    """Universal Posting Lines of one period projected to one platform through the canon mapping."""
 
-    export_job_id: str
+    #: Accounting platform the rows were projected to.
+    target: Literal["xero", "quickbooks", "netsuite", "ramp"]
+    #: Identifier of the accounting period exported.
+    accounting_period_id: str
+    #: Suggested file name.
+    filename: str
+    #: Media type.
+    content_type: Literal["text/csv"]
+    #: Column names after the canon mapping.
+    header: List[str]
+    #: Posting lines exported.
+    row_count: int
+    #: RFC 4180 CSV with CRLF line endings: the header, then one row per line.
+    csv: str
 
 
 class PostingExportRequest(TypedDict):
     """Request to export posting lines for a period."""
 
-    #: Accounting platform the UPL rows are projected to (Section 3.11).
+    #: Accounting platform the rows are projected to.
     target: Literal["xero", "quickbooks", "netsuite", "ramp"]
     #: Identifier of the accounting period.
     accounting_period_id: str
@@ -7533,56 +7859,49 @@ class Invoice(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    #: Identifier of the counterparty organization.
-    counterparty_organization_id: Optional[str]
-    #: Identifier of the engagement.
-    engagement_id: Optional[str]
-    #: Identifier of the purchase order.
-    purchase_order_id: Optional[str]
-    #: Payable or receivable.
-    direction: str
+    #: Whether the invoice is owed or owing.
+    direction: Literal["Payable", "Receivable"]
     #: Invoice number.
-    invoice_number: str
+    invoice_number: Optional[str]
     #: Issue date.
-    issued_on: str
+    issued_on: Optional[str]
     #: Due date.
     due_on: Optional[str]
     #: ISO 4217 currency code of every money field.
-    currency: str
-    invoice_state: SharedState
+    currency_code: str
+    #: Invoice state.
+    invoice_state: Literal["Proposed", "Issued", "Approved", "Disputed", "Canceled"]
     total: MoneyTotal
+    #: Identifier of the counterparty billed or billing.
+    counterparty_id: str
 
 
 class _InvoiceCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    #: Payable or receivable.
-    direction: str
-    #: Invoice number.
-    invoice_number: str
-    #: Issue date.
-    issued_on: str
+    #: Whether the invoice is owed or owing.
+    direction: Literal["Payable", "Receivable"]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
+    #: Identifier of the counterparty billed or billing.
+    counterparty_id: str
 
 
 class InvoiceCreate(_InvoiceCreateRequired, total=False):
     """Fields accepted when creating a Invoice."""
 
-    #: Identifier of the counterparty organization.
-    counterparty_organization_id: Optional[str]
-    #: Identifier of the engagement.
-    engagement_id: Optional[str]
-    #: Identifier of the purchase order.
-    purchase_order_id: Optional[str]
+    #: Invoice number.
+    invoice_number: Optional[str]
+    #: Issue date.
+    issued_on: Optional[str]
     #: Due date.
     due_on: Optional[str]
 
@@ -7592,29 +7911,23 @@ class InvoiceUpdate(TypedDict, total=False):
 
     #: Identifier of the project.
     project_id: str
-    #: Identifier of the counterparty organization.
-    counterparty_organization_id: Optional[str]
-    #: Identifier of the engagement.
-    engagement_id: Optional[str]
-    #: Identifier of the purchase order.
-    purchase_order_id: Optional[str]
-    #: Payable or receivable.
-    direction: str
     #: Invoice number.
-    invoice_number: str
+    invoice_number: Optional[str]
     #: Issue date.
-    issued_on: str
+    issued_on: Optional[str]
     #: Due date.
     due_on: Optional[str]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
+    #: Identifier of the counterparty billed or billing.
+    counterparty_id: str
 
 
 class _InvoiceTransitionRequestRequired(TypedDict):
     #: The state the caller believes the row is in (compare-and-set).
-    expected_state: str
+    expected_state: Literal["Proposed", "Issued", "Approved", "Disputed", "Canceled"]
     #: Target state.
-    to_state: str
+    to_state: Literal["Proposed", "Issued", "Approved", "Disputed", "Canceled"]
 
 
 class InvoiceTransitionRequest(_InvoiceTransitionRequestRequired, total=False):
@@ -7642,24 +7955,27 @@ class InvoiceLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the invoice.
     invoice_id: str
-    #: Identifier of the purchase order line.
-    po_line_id: Optional[str]
     #: Line description.
     description: str
     #: Quantity.
     quantity: Optional[float]
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Line number within the invoice.
+    line_number: int
+    #: Identifier of the budget line.
+    budget_line_id: Optional[str]
+    #: Identifier of the tax rate.
+    tax_rate_id: Optional[str]
+    urid: Optional[UridAtAnyGrain]
 
 
 class _InvoiceLineCreateRequired(TypedDict):
@@ -7667,34 +7983,40 @@ class _InvoiceLineCreateRequired(TypedDict):
     invoice_id: str
     #: Line description.
     description: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Line number within the invoice.
+    line_number: int
 
 
 class InvoiceLineCreate(_InvoiceLineCreateRequired, total=False):
     """Fields accepted when creating a InvoiceLine."""
 
-    #: Identifier of the purchase order line.
-    po_line_id: Optional[str]
     #: Quantity.
     quantity: Optional[float]
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: Identifier of the budget line.
+    budget_line_id: Optional[str]
+    #: Identifier of the tax rate.
+    tax_rate_id: Optional[str]
+    urid: Optional[UridAtAnyGrain]
 
 
 class InvoiceLineUpdate(TypedDict, total=False):
     """Fields accepted when updating a InvoiceLine. Omitted fields are unchanged."""
 
-    #: Identifier of the purchase order line.
-    po_line_id: Optional[str]
     #: Line description.
     description: str
     #: Quantity.
     quantity: Optional[float]
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Line number within the invoice.
+    line_number: int
+    #: Identifier of the budget line.
+    budget_line_id: Optional[str]
+    #: Identifier of the tax rate.
+    tax_rate_id: Optional[str]
+    urid: Optional[UridAtAnyGrain]
 
 
 class PaymentApplicationPage(TypedDict):
@@ -7715,12 +8037,12 @@ class PaymentApplication(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the invoice.
     invoice_id: str
     #: Payment date.
@@ -7728,27 +8050,22 @@ class PaymentApplication(TypedDict):
     #: Amount applied. Integer minor units of the resource currency; null means unpriced, never zero.
     amount_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
     #: Bank or card reference.
     external_ref: Optional[str]
+    #: Identifier of the payment applied.
+    payment_id: str
 
 
-class _PaymentApplicationCreateRequired(TypedDict):
-    #: Identifier of the invoice.
-    invoice_id: str
-    #: Payment date.
-    paid_on: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
-
-
-class PaymentApplicationCreate(_PaymentApplicationCreateRequired, total=False):
+class PaymentApplicationCreate(TypedDict):
     """Fields accepted when creating a PaymentApplication."""
 
-    #: Amount applied. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
-    #: Bank or card reference.
-    external_ref: Optional[str]
+    #: Identifier of the invoice.
+    invoice_id: str
+    #: Amount applied. Integer minor units of the document currency.
+    amount_minor: int
+    #: Identifier of the payment applied.
+    payment_id: str
 
 
 class BillingDrawPage(TypedDict):
@@ -7769,53 +8086,52 @@ class BillingDraw(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    #: Draw title.
-    title: str
-    #: Draw amount. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: Due date.
-    due_on: str
+    #: Draw number within the project.
+    draw_number: int
+    #: Last day the draw bills for.
+    period_end: str
+    #: Amount requested. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_requested_minor: Optional[int]
+    #: ISO 4217 currency code of every money field on the row.
+    currency_code: str
+    #: Identifier of the receivable invoice of the draw.
+    invoice_id: Optional[str]
 
 
-class _BillingDrawCreateRequired(TypedDict):
-    #: Identifier of the project.
-    project_id: str
-    #: Draw title.
-    title: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: Due date.
-    due_on: str
-
-
-class BillingDrawCreate(_BillingDrawCreateRequired, total=False):
+class BillingDrawCreate(TypedDict):
     """Fields accepted when creating a BillingDraw."""
 
-    #: Draw amount. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
+    #: Identifier of the project.
+    project_id: str
+    #: Draw number within the project.
+    draw_number: int
+    #: Last day the draw bills for.
+    period_end: str
+    #: Amount requested. Integer minor units of the document currency.
+    amount_requested_minor: int
+    #: ISO 4217 currency code of every money field on the row.
+    currency_code: str
 
 
 class BillingDrawUpdate(TypedDict, total=False):
     """Fields accepted when updating a BillingDraw. Omitted fields are unchanged."""
 
-    #: Draw title.
-    title: str
-    #: Draw amount. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: Due date.
-    due_on: str
+    #: Draw number within the project.
+    draw_number: int
+    #: Last day the draw bills for.
+    period_end: str
+    #: Amount requested. Integer minor units of the document currency.
+    amount_requested_minor: int
+    #: ISO 4217 currency code of every money field on the row.
+    currency_code: str
 
 
 class CostCenterPage(TypedDict):
@@ -7836,27 +8152,29 @@ class CostCenter(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    cost_center_id: CostCenterCode
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    code: CostCenterCode
     #: Cost center name.
     name: str
-    #: Cost center kind. A Title Case value from the lifecycle's database enum.
-    kind: str
+    #: Cost center kind.
+    kind: Literal["Standing", "Overhead", "Event"]
     #: Identifier of the scope node.
     scope_node_id: Optional[str]
+    #: Canon cost center template.
+    template_id: Optional[str]
 
 
 class _CostCenterCreateRequired(TypedDict):
-    cost_center_id: CostCenterCode
+    code: CostCenterCode
     #: Cost center name.
     name: str
-    #: Cost center kind. A Title Case value from the lifecycle's database enum.
-    kind: str
+    #: Cost center kind.
+    kind: Literal["Standing", "Overhead", "Event"]
 
 
 class CostCenterCreate(_CostCenterCreateRequired, total=False):
@@ -7869,11 +8187,11 @@ class CostCenterCreate(_CostCenterCreateRequired, total=False):
 class CostCenterUpdate(TypedDict, total=False):
     """Fields accepted when updating a CostCenter. Omitted fields are unchanged."""
 
-    cost_center_id: CostCenterCode
+    code: CostCenterCode
     #: Cost center name.
     name: str
-    #: Cost center kind. A Title Case value from the lifecycle's database enum.
-    kind: str
+    #: Cost center kind.
+    kind: Literal["Standing", "Overhead", "Event"]
     #: Identifier of the scope node.
     scope_node_id: Optional[str]
 
@@ -7896,12 +8214,12 @@ class TaxJurisdiction(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     jurisdiction_id: JurisdictionId
     #: Tax jurisdiction name.
     name: str
@@ -7941,12 +8259,12 @@ class TaxRate(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the tax jurisdiction.
     tax_jurisdiction_id: str
     #: Rate in percent.
@@ -7955,6 +8273,7 @@ class TaxRate(TypedDict):
     effective_from: str
     #: Last day the rate applies.
     effective_to: Optional[str]
+    tax_type: TaxType
 
 
 class _TaxRateCreateRequired(TypedDict):
@@ -7964,6 +8283,7 @@ class _TaxRateCreateRequired(TypedDict):
     rate_percent: float
     #: First day the rate applies.
     effective_from: str
+    tax_type: TaxType
 
 
 class TaxRateCreate(_TaxRateCreateRequired, total=False):
@@ -7982,6 +8302,7 @@ class TaxRateUpdate(TypedDict, total=False):
     effective_from: str
     #: Last day the rate applies.
     effective_to: Optional[str]
+    tax_type: TaxType
 
 
 class FxRatePage(TypedDict):
@@ -8003,7 +8324,7 @@ class FxRate(TypedDict):
     #: Units of quote currency per unit of base currency.
     rate: float
     #: Reference rate date.
-    rate_date: str
+    effective_on: str
     #: Rate source.
     source: str
 
@@ -8026,12 +8347,12 @@ class PriceBook(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Price book name.
     name: str
     #: ISO 4217 currency code of every money field.
@@ -8074,32 +8395,36 @@ class Rfq(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: RFQ title.
     title: str
-    urid: UridAtAnyGrain
-    #: Bid deadline; bids unseal after it.
-    deadline_at: str
-    rfq_state: SharedState
+    #: RFQ state.
+    rfq_state: Literal["Proposed", "Issued", "Closed", "Awarded", "Canceled"]
+    #: Number from the project's display key sequence.
+    rfq_number: int
+    #: Deadline for responses; responses unseal when the RFQ closes.
+    responses_due_at: Optional[str]
 
 
-class RfqCreate(TypedDict):
+class _RfqCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: RFQ title.
+    title: str
+
+
+class RfqCreate(_RfqCreateRequired, total=False):
     """Fields accepted when creating a Rfq."""
 
-    #: Identifier of the project.
-    project_id: str
-    #: RFQ title.
-    title: str
-    urid: UridAtAnyGrain
-    #: Bid deadline; bids unseal after it.
-    deadline_at: str
+    #: Deadline for responses; responses unseal when the RFQ closes.
+    responses_due_at: Optional[str]
 
 
 class RfqUpdate(TypedDict, total=False):
@@ -8107,9 +8432,8 @@ class RfqUpdate(TypedDict, total=False):
 
     #: RFQ title.
     title: str
-    urid: UridAtAnyGrain
-    #: Bid deadline; bids unseal after it.
-    deadline_at: str
+    #: Deadline for responses; responses unseal when the RFQ closes.
+    responses_due_at: Optional[str]
 
 
 class _RFQTransitionRequestRequired(TypedDict):
@@ -8144,16 +8468,16 @@ class RfqInvitation(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the RFQ.
     rfq_id: str
-    #: Identifier of the invited vendor organization.
-    organization_id: str
+    #: Identifier of the invited vendor of the same org.
+    vendor_id: str
 
 
 class RfqInvitationCreate(TypedDict):
@@ -8161,8 +8485,8 @@ class RfqInvitationCreate(TypedDict):
 
     #: Identifier of the RFQ.
     rfq_id: str
-    #: Identifier of the invited vendor organization.
-    organization_id: str
+    #: Identifier of the invited vendor of the same org.
+    vendor_id: str
 
 
 class RfqResponsePage(TypedDict):
@@ -8183,28 +8507,34 @@ class RfqResponse(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the RFQ.
     rfq_id: str
-    #: Identifier of the responding vendor.
-    organization_id: str
     #: When the response was submitted.
     submitted_at: Optional[str]
-    total: MoneyTotal
+    #: Identifier of the responding vendor; must have been invited.
+    vendor_id: str
+    #: Last day the quoted prices hold.
+    valid_until: Optional[str]
 
 
-class RfqResponseCreate(TypedDict):
-    """Fields accepted when creating a RfqResponse."""
-
+class _RfqResponseCreateRequired(TypedDict):
     #: Identifier of the RFQ.
     rfq_id: str
-    #: Identifier of the responding vendor.
-    organization_id: str
+    #: Identifier of the responding vendor; must have been invited.
+    vendor_id: str
+
+
+class RfqResponseCreate(_RfqResponseCreateRequired, total=False):
+    """Fields accepted when creating a RfqResponse."""
+
+    #: Last day the quoted prices hold.
+    valid_until: Optional[str]
 
 
 class RfqResponseLinePage(TypedDict):
@@ -8225,12 +8555,12 @@ class RfqResponseLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the RFQ response.
     rfq_response_id: str
     #: Line description.
@@ -8240,7 +8570,9 @@ class RfqResponseLine(TypedDict):
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
+    #: Catalog element quoted.
+    element_id: Optional[str]
 
 
 class _RfqResponseLineCreateRequired(TypedDict):
@@ -8249,7 +8581,7 @@ class _RfqResponseLineCreateRequired(TypedDict):
     #: Line description.
     description: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class RfqResponseLineCreate(_RfqResponseLineCreateRequired, total=False):
@@ -8259,6 +8591,8 @@ class RfqResponseLineCreate(_RfqResponseLineCreateRequired, total=False):
     quantity: Optional[float]
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: Catalog element quoted.
+    element_id: Optional[str]
 
 
 class RfqResponseLineUpdate(TypedDict, total=False):
@@ -8271,7 +8605,9 @@ class RfqResponseLineUpdate(TypedDict, total=False):
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
+    #: Catalog element quoted.
+    element_id: Optional[str]
 
 
 class PurchaseOrderPage(TypedDict):
@@ -8292,24 +8628,24 @@ class PurchaseOrder(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Identifier of the vendor.
     vendor_id: str
-    #: PO number issued by `next_sequence`.
-    po_number: str
+    #: Number from the project's display key sequence.
+    po_number: int
     #: ISO 4217 currency code of every money field.
-    currency: str
-    po_state: SharedState
-    total: MoneyTotal
-    #: Date the goods or services are required.
-    required_on: Optional[str]
+    currency_code: str
+    #: Purchase order state.
+    po_state: Literal["Proposed", "Approved", "Sent", "Closed", "Canceled"]
+    #: Identifier of the awarded RFQ response the order comes from.
+    rfq_response_id: Optional[str]
 
 
 class _PurchaseOrderCreateRequired(TypedDict):
@@ -8318,25 +8654,28 @@ class _PurchaseOrderCreateRequired(TypedDict):
     #: Identifier of the vendor.
     vendor_id: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class PurchaseOrderCreate(_PurchaseOrderCreateRequired, total=False):
     """Fields accepted when creating a PurchaseOrder."""
 
-    #: Date the goods or services are required.
-    required_on: Optional[str]
+    #: Identifier of the awarded RFQ response the order comes from.
+    rfq_response_id: Optional[str]
 
 
 class PurchaseOrderUpdate(TypedDict, total=False):
     """Fields accepted when updating a PurchaseOrder. Omitted fields are unchanged."""
 
-    #: Identifier of the vendor.
-    vendor_id: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: Date the goods or services are required.
-    required_on: Optional[str]
+    #: Identifier of the awarded RFQ response the order comes from.
+    rfq_response_id: Optional[str]
+
+
+class PurchaseOrderApproveRequest(TypedDict):
+    """Request to approve the order."""
+
+    #: Why approve the order.
+    reason: str
 
 
 class _PurchaseOrderTransitionRequestRequired(TypedDict):
@@ -8371,65 +8710,65 @@ class PoLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the purchase order.
     purchase_order_id: str
     #: Identifier of the budget line.
-    budget_line_id: str
+    budget_line_id: Optional[str]
     element_id: ItemId
     #: Line description.
     description: str
     #: Quantity ordered.
     quantity: float
-    unit: UnitCode
+    unit_basis: Optional[UnitCode]
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Order of the line within the purchase order.
+    line_number: int
 
 
 class _PoLineCreateRequired(TypedDict):
     #: Identifier of the purchase order.
     purchase_order_id: str
-    #: Identifier of the budget line.
-    budget_line_id: str
     #: Line description.
     description: str
     #: Quantity ordered.
     quantity: float
-    unit: UnitCode
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class PoLineCreate(_PoLineCreateRequired, total=False):
     """Fields accepted when creating a PoLine."""
 
+    #: Identifier of the budget line.
+    budget_line_id: Optional[str]
     element_id: ItemId
+    unit_basis: Optional[UnitCode]
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: Order of the line within the purchase order.
+    line_number: int
 
 
 class PoLineUpdate(TypedDict, total=False):
     """Fields accepted when updating a PoLine. Omitted fields are unchanged."""
 
     #: Identifier of the budget line.
-    budget_line_id: str
+    budget_line_id: Optional[str]
     element_id: ItemId
     #: Line description.
     description: str
     #: Quantity ordered.
     quantity: float
-    unit: UnitCode
+    unit_basis: Optional[UnitCode]
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Order of the line within the purchase order.
+    line_number: int
 
 
 class PoChangeOrderPage(TypedDict):
@@ -8450,21 +8789,20 @@ class PoChangeOrder(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the purchase order.
     purchase_order_id: str
     #: What changes.
     description: str
     #: Change amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    po_change_state: SharedState
+    amount_delta_minor: Optional[int]
+    #: PO change order state.
+    po_change_order_state: Literal["Proposed", "Approved", "Rejected", "Canceled"]
 
 
 class _PoChangeOrderCreateRequired(TypedDict):
@@ -8472,15 +8810,13 @@ class _PoChangeOrderCreateRequired(TypedDict):
     purchase_order_id: str
     #: What changes.
     description: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class PoChangeOrderCreate(_PoChangeOrderCreateRequired, total=False):
     """Fields accepted when creating a PoChangeOrder."""
 
     #: Change amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
+    amount_delta_minor: Optional[int]
 
 
 class PoChangeOrderUpdate(TypedDict, total=False):
@@ -8489,9 +8825,21 @@ class PoChangeOrderUpdate(TypedDict, total=False):
     #: What changes.
     description: str
     #: Change amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
-    amount_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    amount_delta_minor: Optional[int]
+
+
+class PoChangeOrderApproveRequest(TypedDict):
+    """Request to approve the change."""
+
+    #: Why approve the change.
+    reason: str
+
+
+class PoChangeOrderRejectRequest(TypedDict):
+    """Request to reject the change."""
+
+    #: Why reject the change.
+    reason: str
 
 
 class GoodsReceiptPage(TypedDict):
@@ -8512,36 +8860,34 @@ class GoodsReceipt(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the purchase order.
     purchase_order_id: str
     #: When the goods arrived.
     received_at: str
     #: Identifier of the receiver.
-    received_by: str
-    #: Identifier of the dock slot.
-    dock_slot_id: Optional[str]
+    received_by: Optional[str]
+    #: Condition or exceptions noted.
+    note: Optional[str]
 
 
 class _GoodsReceiptCreateRequired(TypedDict):
     #: Identifier of the purchase order.
     purchase_order_id: str
-    #: When the goods arrived.
-    received_at: str
-    #: Identifier of the receiver.
-    received_by: str
 
 
 class GoodsReceiptCreate(_GoodsReceiptCreateRequired, total=False):
     """Fields accepted when creating a GoodsReceipt."""
 
-    #: Identifier of the dock slot.
-    dock_slot_id: Optional[str]
+    #: When the goods arrived.
+    received_at: str
+    #: Condition or exceptions noted.
+    note: Optional[str]
 
 
 class ReceiptLinePage(TypedDict):
@@ -8562,12 +8908,12 @@ class ReceiptLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the goods receipt.
     goods_receipt_id: str
     #: Identifier of the PO line.
@@ -8605,12 +8951,12 @@ class InvoiceMatch(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the invoice.
     invoice_id: str
     #: Identifier of the purchase order.
@@ -8619,7 +8965,14 @@ class InvoiceMatch(TypedDict):
     goods_receipt_id: str
     #: Whether all three agree.
     matched: bool
-    variance: MoneyTotal
+    #: Invoice total minus value received at order prices. Integer minor units of the resource currency; null means unpriced, never zero.
+    variance_minor: Optional[int]
+    #: Why a mismatch was accepted.
+    resolution_note: Optional[str]
+    #: Identifier of the person who accepted the mismatch.
+    resolved_by: Optional[str]
+    #: When the mismatch was accepted.
+    resolved_at: Optional[str]
 
 
 class InvoiceMatchCreate(TypedDict):
@@ -8631,6 +8984,13 @@ class InvoiceMatchCreate(TypedDict):
     purchase_order_id: str
     #: Identifier of the goods receipt.
     goods_receipt_id: str
+
+
+class InvoiceMatchResolveRequest(TypedDict):
+    """Request to accept a mismatch."""
+
+    #: Why the difference is accepted.
+    resolution_note: str
 
 
 class CatalogBindingPage(TypedDict):
@@ -8651,37 +9011,53 @@ class CatalogBinding(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Tenant's own item code.
-    tenant_item_code: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     element_id: ItemId
-    #: Identifier of the person who confirmed the binding.
-    confirmed_by: str
+    #: Item ID {URID}-{ORG}-{SEQ}, issued by the database.
+    item_id: str
+    #: Name the org uses for the item.
+    name: str
+    #: Unit the item is bought in.
+    unit_basis: Optional[str]
+    #: Default unit price. Integer minor units of the resource currency; null means unpriced, never zero.
+    default_unit_price_minor: Optional[int]
+    #: ISO 4217 currency of the default price.
+    currency_code: Optional[str]
 
 
-class CatalogBindingCreate(TypedDict):
+class _CatalogBindingCreateRequired(TypedDict):
+    element_id: ItemId
+    #: Name the org uses for the item.
+    name: str
+
+
+class CatalogBindingCreate(_CatalogBindingCreateRequired, total=False):
     """Fields accepted when creating a CatalogBinding."""
 
-    #: Tenant's own item code.
-    tenant_item_code: str
-    element_id: ItemId
-    #: Identifier of the person who confirmed the binding.
-    confirmed_by: str
+    #: Unit the item is bought in.
+    unit_basis: Optional[str]
+    #: Default unit price. Integer minor units of the resource currency; null means unpriced, never zero.
+    default_unit_price_minor: Optional[int]
+    #: ISO 4217 currency of the default price.
+    currency_code: Optional[str]
 
 
 class CatalogBindingUpdate(TypedDict, total=False):
     """Fields accepted when updating a CatalogBinding. Omitted fields are unchanged."""
 
-    #: Tenant's own item code.
-    tenant_item_code: str
-    element_id: ItemId
-    #: Identifier of the person who confirmed the binding.
-    confirmed_by: str
+    #: Name the org uses for the item.
+    name: str
+    #: Unit the item is bought in.
+    unit_basis: Optional[str]
+    #: Default unit price. Integer minor units of the resource currency; null means unpriced, never zero.
+    default_unit_price_minor: Optional[int]
+    #: ISO 4217 currency of the default price.
+    currency_code: Optional[str]
 
 
 class VendorProductPage(TypedDict):
@@ -8702,30 +9078,32 @@ class VendorProduct(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the vendor.
     vendor_id: str
-    #: Product name.
-    name: str
     element_id: ItemId
     #: List unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: Optional[str]
+    #: The vendor's product identifier.
+    vendor_sku: str
+    #: Identifier of the catalog item the product fulfills.
+    catalog_binding_id: Optional[str]
+    #: Days from order to delivery.
+    lead_time_days: Optional[int]
 
 
 class _VendorProductCreateRequired(TypedDict):
     #: Identifier of the vendor.
     vendor_id: str
-    #: Product name.
-    name: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: The vendor's product identifier.
+    vendor_sku: str
 
 
 class VendorProductCreate(_VendorProductCreateRequired, total=False):
@@ -8734,18 +9112,28 @@ class VendorProductCreate(_VendorProductCreateRequired, total=False):
     element_id: ItemId
     #: List unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: ISO 4217 currency code of every money field.
+    currency_code: Optional[str]
+    #: Identifier of the catalog item the product fulfills.
+    catalog_binding_id: Optional[str]
+    #: Days from order to delivery.
+    lead_time_days: Optional[int]
 
 
 class VendorProductUpdate(TypedDict, total=False):
     """Fields accepted when updating a VendorProduct. Omitted fields are unchanged."""
 
-    #: Product name.
-    name: str
     element_id: ItemId
     #: List unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: Optional[str]
+    #: The vendor's product identifier.
+    vendor_sku: str
+    #: Identifier of the catalog item the product fulfills.
+    catalog_binding_id: Optional[str]
+    #: Days from order to delivery.
+    lead_time_days: Optional[int]
 
 
 class VendorPage(TypedDict):
@@ -8766,39 +9154,58 @@ class Vendor(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the vendor organization.
-    organization_id: str
-    counterparty_type: CounterpartyType
-    vendor_state: SharedState
-    #: Internal notes; never visible externally.
-    internal_notes: Optional[str]
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    counterparty_type: Optional[CounterpartyType]
+    #: Vendor state.
+    vendor_state: Literal["Prospect", "Onboarded", "Active", "Blocked", "Canceled"]
+    #: Identifier of the counterparty the vendor facet belongs to.
+    counterparty_id: str
+    #: Days after invoice the vendor is paid.
+    payment_terms_days: Optional[int]
+    #: ISO 4217 currency the vendor bills in by default.
+    default_currency_code: Optional[str]
 
 
 class _VendorCreateRequired(TypedDict):
-    #: Identifier of the vendor organization.
-    organization_id: str
-    counterparty_type: CounterpartyType
+    #: Identifier of the counterparty the vendor facet belongs to.
+    counterparty_id: str
 
 
 class VendorCreate(_VendorCreateRequired, total=False):
     """Fields accepted when creating a Vendor."""
 
-    #: Internal notes; never visible externally.
-    internal_notes: Optional[str]
+    #: Days after invoice the vendor is paid.
+    payment_terms_days: Optional[int]
+    #: ISO 4217 currency the vendor bills in by default.
+    default_currency_code: Optional[str]
 
 
 class VendorUpdate(TypedDict, total=False):
     """Fields accepted when updating a Vendor. Omitted fields are unchanged."""
 
-    counterparty_type: CounterpartyType
-    #: Internal notes; never visible externally.
-    internal_notes: Optional[str]
+    #: Days after invoice the vendor is paid.
+    payment_terms_days: Optional[int]
+    #: ISO 4217 currency the vendor bills in by default.
+    default_currency_code: Optional[str]
+
+
+class _VendorTransitionRequestRequired(TypedDict):
+    #: The state the caller believes the row is in (compare-and-set).
+    expected_state: str
+    #: Target state.
+    to_state: str
+
+
+class VendorTransitionRequest(_VendorTransitionRequestRequired, total=False):
+    """Request to move a lifecycle to another state."""
+
+    #: Reason, required by some transitions.
+    reason: str
 
 
 class VendorClassPage(TypedDict):
@@ -8819,15 +9226,18 @@ class VendorClass(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Vendor class name.
     name: str
-    counterparty_type: Optional[CounterpartyType]
+    #: Standard Library vendor class adopted.
+    std_vendor_class_id: Optional[str]
+    #: What the class covers.
+    description: Optional[str]
 
 
 class _VendorClassCreateRequired(TypedDict):
@@ -8838,7 +9248,10 @@ class _VendorClassCreateRequired(TypedDict):
 class VendorClassCreate(_VendorClassCreateRequired, total=False):
     """Fields accepted when creating a VendorClass."""
 
-    counterparty_type: Optional[CounterpartyType]
+    #: Standard Library vendor class adopted.
+    std_vendor_class_id: Optional[str]
+    #: What the class covers.
+    description: Optional[str]
 
 
 class VendorClassUpdate(TypedDict, total=False):
@@ -8846,7 +9259,10 @@ class VendorClassUpdate(TypedDict, total=False):
 
     #: Vendor class name.
     name: str
-    counterparty_type: Optional[CounterpartyType]
+    #: Standard Library vendor class adopted.
+    std_vendor_class_id: Optional[str]
+    #: What the class covers.
+    description: Optional[str]
 
 
 class VendorClassAssignmentPage(TypedDict):
@@ -8867,12 +9283,12 @@ class VendorClassAssignment(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the vendor.
     vendor_id: str
     #: Identifier of the vendor class.
@@ -8906,22 +9322,31 @@ class Prequalification(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the vendor.
     vendor_id: str
     #: Expiry.
     valid_to: Optional[str]
-    prequalification_state: SharedState
+    #: What the vendor is prequalified for.
+    scope_note: str
+    #: Decision; null while pending.
+    decision: Optional[Literal["Approved", "Rejected"]]
+    #: Identifier of the person who decided.
+    decided_by: Optional[str]
+    #: When it was decided.
+    decided_at: Optional[str]
 
 
 class _PrequalificationCreateRequired(TypedDict):
     #: Identifier of the vendor.
     vendor_id: str
+    #: What the vendor is prequalified for.
+    scope_note: str
 
 
 class PrequalificationCreate(_PrequalificationCreateRequired, total=False):
@@ -8936,20 +9361,20 @@ class PrequalificationUpdate(TypedDict, total=False):
 
     #: Expiry.
     valid_to: Optional[str]
+    #: What the vendor is prequalified for.
+    scope_note: str
 
 
-class _PrequalificationTransitionRequestRequired(TypedDict):
-    #: The state the caller believes the row is in (compare-and-set).
-    expected_state: str
-    #: Target state.
-    to_state: str
+class _PrequalificationDecideRequestRequired(TypedDict):
+    #: Decision.
+    decision: Literal["Approved", "Rejected"]
 
 
-class PrequalificationTransitionRequest(_PrequalificationTransitionRequestRequired, total=False):
-    """Request to move a lifecycle to another state."""
+class PrequalificationDecideRequest(_PrequalificationDecideRequestRequired, total=False):
+    """Request to decide a prequalification."""
 
-    #: Reason, required by some transitions.
-    reason: str
+    #: Last day an approval holds.
+    valid_to: str
 
 
 class InsuranceCertificatePage(TypedDict):
@@ -8970,61 +9395,79 @@ class InsuranceCertificate(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the insured organization.
-    organization_id: str
-    #: Identifier of the certificate document.
-    document_id: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Coverage type.
     coverage_type: str
     #: Each occurrence limit. Integer minor units of the resource currency; null means unpriced, never zero.
-    each_occurrence_minor: Optional[int]
+    coverage_limit_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: Optional[str]
     #: Expiry.
-    expires_on: str
+    valid_to: str
+    #: Identifier of the insured vendor.
+    vendor_id: str
+    #: Insurance carrier.
+    insurer: str
+    #: Policy number.
+    policy_identifier: str
+    #: First day of coverage.
+    valid_from: str
+    #: Where the certificate document is stored.
+    document_uri: Optional[str]
 
 
 class _InsuranceCertificateCreateRequired(TypedDict):
-    #: Identifier of the insured organization.
-    organization_id: str
-    #: Identifier of the certificate document.
-    document_id: str
     #: Coverage type.
     coverage_type: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
     #: Expiry.
-    expires_on: str
+    valid_to: str
+    #: Identifier of the insured vendor.
+    vendor_id: str
+    #: Insurance carrier.
+    insurer: str
+    #: Policy number.
+    policy_identifier: str
+    #: First day of coverage.
+    valid_from: str
 
 
 class InsuranceCertificateCreate(_InsuranceCertificateCreateRequired, total=False):
     """Fields accepted when creating a InsuranceCertificate."""
 
     #: Each occurrence limit. Integer minor units of the resource currency; null means unpriced, never zero.
-    each_occurrence_minor: Optional[int]
+    coverage_limit_minor: Optional[int]
+    #: ISO 4217 currency code of every money field.
+    currency_code: Optional[str]
+    #: Where the certificate document is stored.
+    document_uri: Optional[str]
 
 
 class InsuranceCertificateUpdate(TypedDict, total=False):
     """Fields accepted when updating a InsuranceCertificate. Omitted fields are unchanged."""
 
-    #: Identifier of the insured organization.
-    organization_id: str
-    #: Identifier of the certificate document.
-    document_id: str
     #: Coverage type.
     coverage_type: str
     #: Each occurrence limit. Integer minor units of the resource currency; null means unpriced, never zero.
-    each_occurrence_minor: Optional[int]
+    coverage_limit_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: Optional[str]
     #: Expiry.
-    expires_on: str
+    valid_to: str
+    #: Identifier of the insured vendor.
+    vendor_id: str
+    #: Insurance carrier.
+    insurer: str
+    #: Policy number.
+    policy_identifier: str
+    #: First day of coverage.
+    valid_from: str
+    #: Where the certificate document is stored.
+    document_uri: Optional[str]
 
 
 class VendorScorecardPage(TypedDict):
@@ -9045,27 +9488,33 @@ class VendorScorecard(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the vendor.
     vendor_id: str
     #: Identifier of the project.
     project_id: Optional[str]
-    #: Score from 1 to 5.
-    score: int
     #: Internal notes.
-    notes: Optional[str]
+    note: Optional[str]
+    #: Last day of the period scored.
+    period_end: str
+    #: Quality, 1 to 5; null when not scored.
+    quality_score: Optional[int]
+    #: On-time delivery, 1 to 5; null when not scored.
+    delivery_score: Optional[int]
+    #: Safety, 1 to 5; null when not scored.
+    safety_score: Optional[int]
 
 
 class _VendorScorecardCreateRequired(TypedDict):
     #: Identifier of the vendor.
     vendor_id: str
-    #: Score from 1 to 5.
-    score: int
+    #: Last day of the period scored.
+    period_end: str
 
 
 class VendorScorecardCreate(_VendorScorecardCreateRequired, total=False):
@@ -9074,7 +9523,13 @@ class VendorScorecardCreate(_VendorScorecardCreateRequired, total=False):
     #: Identifier of the project.
     project_id: Optional[str]
     #: Internal notes.
-    notes: Optional[str]
+    note: Optional[str]
+    #: Quality, 1 to 5; null when not scored.
+    quality_score: Optional[int]
+    #: On-time delivery, 1 to 5; null when not scored.
+    delivery_score: Optional[int]
+    #: Safety, 1 to 5; null when not scored.
+    safety_score: Optional[int]
 
 
 class VendorScorecardUpdate(TypedDict, total=False):
@@ -9082,10 +9537,16 @@ class VendorScorecardUpdate(TypedDict, total=False):
 
     #: Identifier of the project.
     project_id: Optional[str]
-    #: Score from 1 to 5.
-    score: int
     #: Internal notes.
-    notes: Optional[str]
+    note: Optional[str]
+    #: Last day of the period scored.
+    period_end: str
+    #: Quality, 1 to 5; null when not scored.
+    quality_score: Optional[int]
+    #: On-time delivery, 1 to 5; null when not scored.
+    delivery_score: Optional[int]
+    #: Safety, 1 to 5; null when not scored.
+    safety_score: Optional[int]
 
 
 class SponsorEntitlementPage(TypedDict):
@@ -9106,26 +9567,33 @@ class SponsorEntitlement(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the sponsor engagement.
-    engagement_id: str
-    #: Entitlement.
-    name: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: The entitlement.
+    description: str
     #: Committed quantity.
     quantity: Optional[float]
-    fulfillment_state: SharedState
+    #: Identifier of the project the entitlement is delivered on.
+    project_id: str
+    #: Identifier of the sponsor counterparty.
+    counterparty_id: str
+    #: When the entitlement is owed.
+    due_on: Optional[str]
+    #: When it was delivered; null while owed.
+    fulfilled_at: Optional[str]
 
 
 class _SponsorEntitlementCreateRequired(TypedDict):
-    #: Identifier of the sponsor engagement.
-    engagement_id: str
-    #: Entitlement.
-    name: str
+    #: The entitlement.
+    description: str
+    #: Identifier of the project the entitlement is delivered on.
+    project_id: str
+    #: Identifier of the sponsor counterparty.
+    counterparty_id: str
 
 
 class SponsorEntitlementCreate(_SponsorEntitlementCreateRequired, total=False):
@@ -9133,31 +9601,21 @@ class SponsorEntitlementCreate(_SponsorEntitlementCreateRequired, total=False):
 
     #: Committed quantity.
     quantity: Optional[float]
+    #: When the entitlement is owed.
+    due_on: Optional[str]
 
 
 class SponsorEntitlementUpdate(TypedDict, total=False):
     """Fields accepted when updating a SponsorEntitlement. Omitted fields are unchanged."""
 
-    #: Identifier of the sponsor engagement.
-    engagement_id: str
-    #: Entitlement.
-    name: str
+    #: The entitlement.
+    description: str
     #: Committed quantity.
     quantity: Optional[float]
-
-
-class _EntitlementFulfillmentTransitionRequestRequired(TypedDict):
-    #: The state the caller believes the row is in (compare-and-set).
-    expected_state: str
-    #: Target state.
-    to_state: str
-
-
-class EntitlementFulfillmentTransitionRequest(_EntitlementFulfillmentTransitionRequestRequired, total=False):
-    """Request to move a lifecycle to another state."""
-
-    #: Reason, required by some transitions.
-    reason: str
+    #: Identifier of the sponsor counterparty.
+    counterparty_id: str
+    #: When the entitlement is owed.
+    due_on: Optional[str]
 
 
 class InspectionTemplatePage(TypedDict):
@@ -9178,26 +9636,21 @@ class InspectionTemplate(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Template name.
-    name: str
-    tag_id: TagId
-
-
-class _InspectionTemplateCreateRequired(TypedDict):
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Template name.
     name: str
 
 
-class InspectionTemplateCreate(_InspectionTemplateCreateRequired, total=False):
+class InspectionTemplateCreate(TypedDict):
     """Fields accepted when creating a InspectionTemplate."""
 
-    tag_id: TagId
+    #: Template name.
+    name: str
 
 
 class InspectionTemplateUpdate(TypedDict, total=False):
@@ -9205,7 +9658,6 @@ class InspectionTemplateUpdate(TypedDict, total=False):
 
     #: Template name.
     name: str
-    tag_id: TagId
 
 
 class InspectionItemPage(TypedDict):
@@ -9226,33 +9678,36 @@ class InspectionItem(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the inspection template.
     inspection_template_id: str
     #: Item order.
     position: int
     #: What to check.
     prompt: str
-    #: Whether a photo is required.
-    requires_photo: bool
+    #: Whether a failure of this item stops use.
+    is_critical: bool
 
 
-class InspectionItemCreate(TypedDict):
+class _InspectionItemCreateRequired(TypedDict):
+    #: Identifier of the inspection template.
+    inspection_template_id: str
+    #: Item order.
+    position: int
+    #: What to check.
+    prompt: str
+
+
+class InspectionItemCreate(_InspectionItemCreateRequired, total=False):
     """Fields accepted when creating a InspectionItem."""
 
-    #: Identifier of the inspection template.
-    inspection_template_id: str
-    #: Item order.
-    position: int
-    #: What to check.
-    prompt: str
-    #: Whether a photo is required.
-    requires_photo: bool
+    #: Whether a failure of this item stops use.
+    is_critical: bool
 
 
 class InspectionItemUpdate(TypedDict, total=False):
@@ -9262,8 +9717,8 @@ class InspectionItemUpdate(TypedDict, total=False):
     position: int
     #: What to check.
     prompt: str
-    #: Whether a photo is required.
-    requires_photo: bool
+    #: Whether a failure of this item stops use.
+    is_critical: bool
 
 
 class InspectionPage(TypedDict):
@@ -9284,26 +9739,26 @@ class Inspection(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Identifier of the inspection template.
     inspection_template_id: str
-    #: Identifier of the zone.
-    zone_id: Optional[str]
-    #: Identifier of the inspector.
-    inspector_id: str
-    #: Inspection state. A Title Case value from the lifecycle's database enum.
-    inspection_state: str
+    #: Identifier of the inspector, from the session.
+    inspector_person_id: Optional[str]
     #: Identifier of the person who signed off.
     signed_off_by: Optional[str]
     #: When it was signed off.
     signed_off_at: Optional[str]
+    #: Identifier of the Inspection record of the same project.
+    record_id: Optional[str]
+    #: When the inspection took place.
+    inspected_at: str
 
 
 class _InspectionCreateRequired(TypedDict):
@@ -9311,24 +9766,22 @@ class _InspectionCreateRequired(TypedDict):
     project_id: str
     #: Identifier of the inspection template.
     inspection_template_id: str
-    #: Identifier of the inspector.
-    inspector_id: str
 
 
 class InspectionCreate(_InspectionCreateRequired, total=False):
     """Fields accepted when creating a Inspection."""
 
-    #: Identifier of the zone.
-    zone_id: Optional[str]
+    #: Identifier of the Inspection record of the same project.
+    record_id: Optional[str]
+    #: When the inspection took place.
+    inspected_at: str
 
 
 class InspectionUpdate(TypedDict, total=False):
     """Fields accepted when updating a Inspection. Omitted fields are unchanged."""
 
-    #: Identifier of the zone.
-    zone_id: Optional[str]
-    #: Identifier of the inspector.
-    inspector_id: str
+    #: Identifier of the Inspection record of the same project.
+    record_id: Optional[str]
 
 
 class InspectionResultPage(TypedDict):
@@ -9349,22 +9802,24 @@ class InspectionResult(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the inspection.
     inspection_id: str
     #: Identifier of the inspection item.
     inspection_item_id: str
-    #: Whether the item passed.
-    passed: bool
     #: Notes.
-    notes: Optional[str]
-    #: Identifier of the photo.
-    photo_document_id: Optional[str]
+    note: Optional[str]
+    #: Row of the canon Inspection Result enumeration, for example ENM-084 (Failed).
+    result_enum_id: str
+    #: Object name of the finding's photo in the field-media bucket.
+    photo_uri: Optional[str]
+    #: Identifier of the project, from the inspection.
+    project_id: str
 
 
 class _InspectionResultCreateRequired(TypedDict):
@@ -9372,28 +9827,28 @@ class _InspectionResultCreateRequired(TypedDict):
     inspection_id: str
     #: Identifier of the inspection item.
     inspection_item_id: str
-    #: Whether the item passed.
-    passed: bool
+    #: Row of the canon Inspection Result enumeration, for example ENM-084 (Failed).
+    result_enum_id: str
 
 
 class InspectionResultCreate(_InspectionResultCreateRequired, total=False):
     """Fields accepted when creating a InspectionResult."""
 
     #: Notes.
-    notes: Optional[str]
-    #: Identifier of the photo.
-    photo_document_id: Optional[str]
+    note: Optional[str]
+    #: Object name of the finding's photo in the field-media bucket.
+    photo_uri: Optional[str]
 
 
 class InspectionResultUpdate(TypedDict, total=False):
     """Fields accepted when updating a InspectionResult. Omitted fields are unchanged."""
 
-    #: Whether the item passed.
-    passed: bool
     #: Notes.
-    notes: Optional[str]
-    #: Identifier of the photo.
-    photo_document_id: Optional[str]
+    note: Optional[str]
+    #: Row of the canon Inspection Result enumeration, for example ENM-084 (Failed).
+    result_enum_id: str
+    #: Object name of the finding's photo in the field-media bucket.
+    photo_uri: Optional[str]
 
 
 class PermitRequirementPage(TypedDict):
@@ -9414,12 +9869,12 @@ class PermitRequirement(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Canon permit rule that triggered it.
@@ -9429,10 +9884,14 @@ class PermitRequirement(TypedDict):
     permit: str
     #: Authority having jurisdiction.
     ahj: str
-    #: Latest filing date from the lead time.
-    due_on: Optional[str]
     #: Permit state. A Title Case value from the lifecycle's database enum.
-    permit_state: str
+    permit_state: Optional[str]
+    #: Lead time as canon states it.
+    lead_time: str
+    #: What triggers the canon rule: threshold, project, element or condition.
+    trigger_type: str
+    #: Identifier of the Permit record tracking the requirement.
+    record_id: Optional[str]
 
 
 class PermitEngineRequest(TypedDict):
@@ -9455,6 +9914,13 @@ class PermitTransitionRequest(_PermitTransitionRequestRequired, total=False):
     reason: str
 
 
+class PermitTrackRequest(TypedDict, total=False):
+    """The PermitTrackRequest object."""
+
+    #: Record title; defaults to the canon permit text.
+    title: str
+
+
 class IncidentPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -9473,18 +9939,14 @@ class Incident(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    #: Incident number.
-    incident_number: str
-    #: Severity. A Title Case value from the lifecycle's database enum.
-    severity: str
     #: Short description.
     title: str
     #: When it happened.
@@ -9495,21 +9957,31 @@ class Incident(TypedDict):
     latitude: Optional[float]
     #: WGS 84 longitude.
     longitude: Optional[float]
-    #: Incident state. A Title Case value from the lifecycle's database enum.
-    incident_state: str
-    #: Identifier of the emergency code.
-    emergency_code_id: Optional[str]
+    #: Severity: a row of the canon Incident Severity enumeration.
+    severity_enum_id: str
+    #: Number from the project's display key sequence.
+    incident_number: int
+    #: Incident state.
+    incident_state: Literal["Reported", "Dispatched", "Contained", "Closed"]
+    #: Identifier of the reporter, from the session.
+    reported_by: Optional[str]
+    #: Identifier of the person who signed off the closure.
+    closed_signed_off_by: Optional[str]
+    #: Horizontal accuracy of the location in meters.
+    accuracy_m: Optional[float]
+    #: When the reporter filed it on the device, for a report queued offline.
+    device_reported_at: Optional[str]
 
 
 class _IncidentCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    #: Severity. A Title Case value from the lifecycle's database enum.
-    severity: str
     #: Short description.
     title: str
     #: When it happened.
     occurred_at: str
+    #: Severity: a row of the canon Incident Severity enumeration.
+    severity_enum_id: str
 
 
 class IncidentCreate(_IncidentCreateRequired, total=False):
@@ -9521,15 +9993,15 @@ class IncidentCreate(_IncidentCreateRequired, total=False):
     latitude: Optional[float]
     #: WGS 84 longitude.
     longitude: Optional[float]
-    #: Identifier of the emergency code.
-    emergency_code_id: Optional[str]
+    #: Horizontal accuracy of the location in meters.
+    accuracy_m: Optional[float]
+    #: When the reporter filed it on the device, for a report queued offline.
+    device_reported_at: Optional[str]
 
 
 class IncidentUpdate(TypedDict, total=False):
     """Fields accepted when updating a Incident. Omitted fields are unchanged."""
 
-    #: Severity. A Title Case value from the lifecycle's database enum.
-    severity: str
     #: Short description.
     title: str
     #: When it happened.
@@ -9540,15 +10012,19 @@ class IncidentUpdate(TypedDict, total=False):
     latitude: Optional[float]
     #: WGS 84 longitude.
     longitude: Optional[float]
-    #: Identifier of the emergency code.
-    emergency_code_id: Optional[str]
+    #: Severity: a row of the canon Incident Severity enumeration.
+    severity_enum_id: str
+    #: Horizontal accuracy of the location in meters.
+    accuracy_m: Optional[float]
+    #: When the reporter filed it on the device, for a report queued offline.
+    device_reported_at: Optional[str]
 
 
 class _IncidentTransitionRequestRequired(TypedDict):
     #: The state the caller believes the row is in (compare-and-set).
-    expected_state: str
+    expected_state: Literal["Reported", "Dispatched", "Contained"]
     #: Target state.
-    to_state: str
+    to_state: Literal["Reported", "Dispatched", "Contained"]
 
 
 class IncidentTransitionRequest(_IncidentTransitionRequestRequired, total=False):
@@ -9556,6 +10032,13 @@ class IncidentTransitionRequest(_IncidentTransitionRequestRequired, total=False)
 
     #: Reason, required by some transitions.
     reason: str
+
+
+class IncidentCloseRequest(TypedDict):
+    """Request to close an incident with sign-off."""
+
+    #: Sign-off note.
+    note: str
 
 
 class IncidentPartyPage(TypedDict):
@@ -9576,27 +10059,25 @@ class IncidentParty(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the incident.
     incident_id: str
     #: Identifier of the involved person.
     person_id: Optional[str]
-    #: Involvement. A Title Case value from the lifecycle's database enum.
-    involvement: str
-    #: Name when the person has no record.
-    name_if_unknown: Optional[str]
+    #: Role in the incident, or a description of an unknown person.
+    description: str
 
 
 class _IncidentPartyCreateRequired(TypedDict):
     #: Identifier of the incident.
     incident_id: str
-    #: Involvement. A Title Case value from the lifecycle's database enum.
-    involvement: str
+    #: Role in the incident, or a description of an unknown person.
+    description: str
 
 
 class IncidentPartyCreate(_IncidentPartyCreateRequired, total=False):
@@ -9604,8 +10085,6 @@ class IncidentPartyCreate(_IncidentPartyCreateRequired, total=False):
 
     #: Identifier of the involved person.
     person_id: Optional[str]
-    #: Name when the person has no record.
-    name_if_unknown: Optional[str]
 
 
 class IncidentPartyUpdate(TypedDict, total=False):
@@ -9613,10 +10092,8 @@ class IncidentPartyUpdate(TypedDict, total=False):
 
     #: Identifier of the involved person.
     person_id: Optional[str]
-    #: Involvement. A Title Case value from the lifecycle's database enum.
-    involvement: str
-    #: Name when the person has no record.
-    name_if_unknown: Optional[str]
+    #: Role in the incident, or a description of an unknown person.
+    description: str
 
 
 class IncidentMediaPage(TypedDict):
@@ -9637,25 +10114,34 @@ class IncidentMedia(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the incident.
     incident_id: str
-    #: Identifier of the media document.
-    document_id: str
+    #: Where the photo or video is stored.
+    media_uri: str
+    #: When it was captured.
+    captured_at: Optional[str]
+    #: Identifier of the project of the incident, copied from it.
+    project_id: str
 
 
-class IncidentMediaCreate(TypedDict):
+class _IncidentMediaCreateRequired(TypedDict):
+    #: Identifier of the incident.
+    incident_id: str
+    #: Where the photo or video is stored.
+    media_uri: str
+
+
+class IncidentMediaCreate(_IncidentMediaCreateRequired, total=False):
     """Fields accepted when creating a IncidentMedia."""
 
-    #: Identifier of the incident.
-    incident_id: str
-    #: Identifier of the media document.
-    document_id: str
+    #: When it was captured.
+    captured_at: Optional[str]
 
 
 class DispatchAssignmentPage(TypedDict):
@@ -9676,31 +10162,27 @@ class DispatchAssignment(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the incident.
     incident_id: str
-    #: Identifier of the responder.
-    responder_id: str
     #: When the responder was dispatched.
     dispatched_at: str
     #: When the responder arrived.
     arrived_at: Optional[str]
-    #: When the responder cleared.
-    cleared_at: Optional[str]
+    #: Identifier of the responder's membership.
+    membership_id: str
 
 
 class _DispatchAssignmentCreateRequired(TypedDict):
     #: Identifier of the incident.
     incident_id: str
-    #: Identifier of the responder.
-    responder_id: str
-    #: When the responder was dispatched.
-    dispatched_at: str
+    #: Identifier of the responder's membership.
+    membership_id: str
 
 
 class DispatchAssignmentCreate(_DispatchAssignmentCreateRequired, total=False):
@@ -9708,21 +10190,13 @@ class DispatchAssignmentCreate(_DispatchAssignmentCreateRequired, total=False):
 
     #: When the responder arrived.
     arrived_at: Optional[str]
-    #: When the responder cleared.
-    cleared_at: Optional[str]
 
 
 class DispatchAssignmentUpdate(TypedDict, total=False):
     """Fields accepted when updating a DispatchAssignment. Omitted fields are unchanged."""
 
-    #: Identifier of the responder.
-    responder_id: str
-    #: When the responder was dispatched.
-    dispatched_at: str
     #: When the responder arrived.
     arrived_at: Optional[str]
-    #: When the responder cleared.
-    cleared_at: Optional[str]
 
 
 class MedicalEncounterPage(TypedDict):
@@ -9743,43 +10217,47 @@ class MedicalEncounter(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the incident.
     incident_id: str
-    #: Identifier of the treating medic.
-    treated_by: str
-    #: Disposition. A Title Case value from the lifecycle's database enum.
-    disposition: str
-    notes: Union[str, Masked]
+    #: Who was treated, without identifying medical detail.
+    patient_description: str
+    #: Treatment given. Restricted.
+    treatment_notes: Optional[str]
+    #: Outcome, such as released or transported.
+    disposition: Optional[str]
 
 
-class MedicalEncounterCreate(TypedDict):
+class _MedicalEncounterCreateRequired(TypedDict):
+    #: Identifier of the incident.
+    incident_id: str
+    #: Who was treated, without identifying medical detail.
+    patient_description: str
+
+
+class MedicalEncounterCreate(_MedicalEncounterCreateRequired, total=False):
     """Fields accepted when creating a MedicalEncounter."""
 
-    #: Identifier of the incident.
-    incident_id: str
-    #: Identifier of the treating medic.
-    treated_by: str
-    #: Disposition. A Title Case value from the lifecycle's database enum.
-    disposition: str
-    #: Clinical notes.
-    notes: str
+    #: Treatment given. Restricted.
+    treatment_notes: Optional[str]
+    #: Outcome, such as released or transported.
+    disposition: Optional[str]
 
 
 class MedicalEncounterUpdate(TypedDict, total=False):
     """Fields accepted when updating a MedicalEncounter. Omitted fields are unchanged."""
 
-    #: Identifier of the treating medic.
-    treated_by: str
-    #: Disposition. A Title Case value from the lifecycle's database enum.
-    disposition: str
-    #: Clinical notes.
-    notes: str
+    #: Who was treated, without identifying medical detail.
+    patient_description: str
+    #: Treatment given. Restricted.
+    treatment_notes: Optional[str]
+    #: Outcome, such as released or transported.
+    disposition: Optional[str]
 
 
 class CrisisAlertPage(TypedDict):
@@ -9800,40 +10278,38 @@ class CrisisAlert(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    #: Identifier of the emergency code.
-    emergency_code_id: str
     #: Alert message.
     message: str
     #: When the alert was issued.
     issued_at: str
     #: When the alert was cleared.
-    cleared_at: Optional[str]
+    ended_at: Optional[str]
+    #: Canon emergency code announced.
+    emergency_code: str
 
 
 class _CrisisAlertCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    #: Identifier of the emergency code.
-    emergency_code_id: str
     #: Alert message.
     message: str
-    #: When the alert was issued.
-    issued_at: str
+    #: Canon emergency code announced.
+    emergency_code: str
 
 
 class CrisisAlertCreate(_CrisisAlertCreateRequired, total=False):
     """Fields accepted when creating a CrisisAlert."""
 
     #: When the alert was cleared.
-    cleared_at: Optional[str]
+    ended_at: Optional[str]
 
 
 class EmergencyCodePage(TypedDict):
@@ -9848,46 +10324,16 @@ class EmergencyCodePage(TypedDict):
 class EmergencyCode(TypedDict):
     """An org emergency code, seeded from the Standard Library and listed in numeric order."""
 
-    #: Identifier of the emergency code.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Emergency code.
+    #: Code token.
     code: str
-    #: Code name.
-    name: str
-    #: Response procedure.
-    response: str
-
-
-class EmergencyCodeCreate(TypedDict):
-    """Fields accepted when creating a EmergencyCode."""
-
-    #: Emergency code.
-    code: str
-    #: Code name.
-    name: str
-    #: Response procedure.
-    response: str
-
-
-class EmergencyCodeUpdate(TypedDict, total=False):
-    """Fields accepted when updating a EmergencyCode. Omitted fields are unchanged."""
-
-    #: Emergency code.
-    code: str
-    #: Code name.
-    name: str
-    #: Response procedure.
-    response: str
+    #: Code word.
+    label: str
+    #: The emergency the code announces.
+    emergency: str
+    #: Design token of the swatch.
+    swatch: str
+    #: Canon order.
+    sort_order: int
 
 
 class RadioChannelPage(TypedDict):
@@ -9908,49 +10354,47 @@ class RadioChannel(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Channel number.
-    channel: int
+    channel_number: int
     #: Channel name.
     name: str
-    #: Frequency in MHz.
-    frequency_mhz: Optional[float]
     #: Identifier of the project.
-    project_id: Optional[str]
+    project_id: str
+    #: Identifier of the zone the channel covers.
+    zone_id: Optional[str]
 
 
 class _RadioChannelCreateRequired(TypedDict):
     #: Channel number.
-    channel: int
+    channel_number: int
     #: Channel name.
     name: str
+    #: Identifier of the project.
+    project_id: str
 
 
 class RadioChannelCreate(_RadioChannelCreateRequired, total=False):
     """Fields accepted when creating a RadioChannel."""
 
-    #: Frequency in MHz.
-    frequency_mhz: Optional[float]
-    #: Identifier of the project.
-    project_id: Optional[str]
+    #: Identifier of the zone the channel covers.
+    zone_id: Optional[str]
 
 
 class RadioChannelUpdate(TypedDict, total=False):
     """Fields accepted when updating a RadioChannel. Omitted fields are unchanged."""
 
     #: Channel number.
-    channel: int
+    channel_number: int
     #: Channel name.
     name: str
-    #: Frequency in MHz.
-    frequency_mhz: Optional[float]
-    #: Identifier of the project.
-    project_id: Optional[str]
+    #: Identifier of the zone the channel covers.
+    zone_id: Optional[str]
 
 
 class OpportunityPage(TypedDict):
@@ -9971,14 +10415,14 @@ class Opportunity(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the approved requisition.
-    requisition_id: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the approved requisition the opportunity is published from; required to publish Contractor, Crew and Staff opportunities and fixed once published.
+    requisition_id: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Identifier of the scope node.
@@ -9987,69 +10431,69 @@ class Opportunity(TypedDict):
     title: str
     role_type: ExternalRoleType
     role_code: Optional[RoleCode]
-    urid: UridAtAnyGrain
+    cat_urid: UridAtAnyGrain
     #: Description.
-    description: str
+    description: Optional[str]
     #: Identifier of the venue.
     venue_id: Optional[str]
-    #: First call.
-    starts_at: Optional[str]
-    #: Last wrap.
-    ends_at: Optional[str]
-    #: Number of positions.
-    positions: int
     rate_type: Optional[RateType]
-    #: Lowest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_min_minor: Optional[int]
-    #: Highest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_max_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
     visibility: OpportunityVisibility
-    #: Application deadline.
-    application_deadline_at: Optional[str]
     opportunity_state: OpportunityState
-    #: When it was published.
-    published_at: Optional[str]
+    jurisdiction_id: Optional[JurisdictionId]
+    #: First day of the work.
+    starts_on: Optional[str]
+    #: Last day of the work.
+    ends_on: Optional[str]
+    #: Lower end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+    pay_min_minor: Optional[int]
+    #: Upper end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+    pay_max_minor: Optional[int]
+    #: ISO 4217 currency of the posted pay.
+    currency_code: Optional[str]
+    #: Deadline for applications and bids. Bids stay sealed until it passes.
+    deadline_at: Optional[str]
+    #: Minimum age for the work, 16 or older (Section 14.9).
+    minimum_age: Optional[int]
 
 
 class _OpportunityCreateRequired(TypedDict):
-    #: Identifier of the approved requisition.
-    requisition_id: str
     #: Identifier of the project.
     project_id: str
     #: Opportunity title, Title Case.
     title: str
     role_type: ExternalRoleType
-    #: Description.
-    description: str
-    #: Number of positions.
-    positions: int
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    visibility: OpportunityVisibility
 
 
 class OpportunityCreate(_OpportunityCreateRequired, total=False):
     """Fields accepted when creating a Opportunity."""
 
+    #: Identifier of the approved requisition the opportunity is published from; required to publish Contractor, Crew and Staff opportunities and fixed once published.
+    requisition_id: Optional[str]
     #: Identifier of the scope node.
     scope_node_id: Optional[str]
     role_code: Optional[RoleCode]
-    urid: UridAtAnyGrain
+    cat_urid: UridAtAnyGrain
+    #: Description.
+    description: Optional[str]
     #: Identifier of the venue.
     venue_id: Optional[str]
-    #: First call.
-    starts_at: Optional[str]
-    #: Last wrap.
-    ends_at: Optional[str]
     rate_type: Optional[RateType]
-    #: Lowest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_min_minor: Optional[int]
-    #: Highest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_max_minor: Optional[int]
-    #: Application deadline.
-    application_deadline_at: Optional[str]
+    visibility: OpportunityVisibility
+    jurisdiction_id: Optional[JurisdictionId]
+    #: First day of the work.
+    starts_on: Optional[str]
+    #: Last day of the work.
+    ends_on: Optional[str]
+    #: Lower end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+    pay_min_minor: Optional[int]
+    #: Upper end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+    pay_max_minor: Optional[int]
+    #: ISO 4217 currency of the posted pay.
+    currency_code: Optional[str]
+    #: Deadline for applications and bids. Bids stay sealed until it passes.
+    deadline_at: Optional[str]
+    #: Minimum age for the work, 16 or older (Section 14.9).
+    minimum_age: Optional[int]
 
 
 class OpportunityUpdate(TypedDict, total=False):
@@ -10063,27 +10507,30 @@ class OpportunityUpdate(TypedDict, total=False):
     title: str
     role_type: ExternalRoleType
     role_code: Optional[RoleCode]
-    urid: UridAtAnyGrain
+    cat_urid: UridAtAnyGrain
     #: Description.
-    description: str
+    description: Optional[str]
     #: Identifier of the venue.
     venue_id: Optional[str]
-    #: First call.
-    starts_at: Optional[str]
-    #: Last wrap.
-    ends_at: Optional[str]
-    #: Number of positions.
-    positions: int
     rate_type: Optional[RateType]
-    #: Lowest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_min_minor: Optional[int]
-    #: Highest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_max_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
     visibility: OpportunityVisibility
-    #: Application deadline.
-    application_deadline_at: Optional[str]
+    #: Identifier of the approved requisition the opportunity is published from; required to publish Contractor, Crew and Staff opportunities and fixed once published.
+    requisition_id: Optional[str]
+    jurisdiction_id: Optional[JurisdictionId]
+    #: First day of the work.
+    starts_on: Optional[str]
+    #: Last day of the work.
+    ends_on: Optional[str]
+    #: Lower end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+    pay_min_minor: Optional[int]
+    #: Upper end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+    pay_max_minor: Optional[int]
+    #: ISO 4217 currency of the posted pay.
+    currency_code: Optional[str]
+    #: Deadline for applications and bids. Bids stay sealed until it passes.
+    deadline_at: Optional[str]
+    #: Minimum age for the work, 16 or older (Section 14.9).
+    minimum_age: Optional[int]
 
 
 class _OpportunityTransitionRequestRequired(TypedDict):
@@ -10118,44 +10565,47 @@ class OpportunityPosition(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the opportunity.
     opportunity_id: str
-    #: Position title.
-    title: str
-    role_code: Optional[RoleCode]
-    #: Openings.
-    count: int
+    #: Position label, for example Rigger 2.
+    label: str
+    #: Call time.
+    call_at: Optional[str]
+    #: When the position's work ends.
+    ends_at: Optional[str]
 
 
 class _OpportunityPositionCreateRequired(TypedDict):
     #: Identifier of the opportunity.
     opportunity_id: str
-    #: Position title.
-    title: str
-    #: Openings.
-    count: int
+    #: Position label, for example Rigger 2.
+    label: str
 
 
 class OpportunityPositionCreate(_OpportunityPositionCreateRequired, total=False):
     """Fields accepted when creating a OpportunityPosition."""
 
-    role_code: Optional[RoleCode]
+    #: Call time.
+    call_at: Optional[str]
+    #: When the position's work ends.
+    ends_at: Optional[str]
 
 
 class OpportunityPositionUpdate(TypedDict, total=False):
     """Fields accepted when updating a OpportunityPosition. Omitted fields are unchanged."""
 
-    #: Position title.
-    title: str
-    role_code: Optional[RoleCode]
-    #: Openings.
-    count: int
+    #: Position label, for example Rigger 2.
+    label: str
+    #: Call time.
+    call_at: Optional[str]
+    #: When the position's work ends.
+    ends_at: Optional[str]
 
 
 class OpportunityRequirementPage(TypedDict):
@@ -10176,56 +10626,59 @@ class OpportunityRequirement(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the opportunity.
     opportunity_id: str
-    tag_id: TagId
     #: Identifier of the certification.
     certification_id: Optional[str]
-    #: Requirement statement.
-    statement: str
     #: Insurance minimum, when the requirement is insurance. Integer minor units of the resource currency; null means unpriced, never zero.
     insurance_minimum_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Kind of requirement.
+    requirement_kind: Literal["Certification", "Insurance", "Equipment"]
+    #: What is required.
+    description: str
+    #: ISO 4217 currency of the insurance minimum.
+    currency_code: Optional[str]
 
 
 class _OpportunityRequirementCreateRequired(TypedDict):
     #: Identifier of the opportunity.
     opportunity_id: str
-    #: Requirement statement.
-    statement: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Kind of requirement.
+    requirement_kind: Literal["Certification", "Insurance", "Equipment"]
+    #: What is required.
+    description: str
 
 
 class OpportunityRequirementCreate(_OpportunityRequirementCreateRequired, total=False):
     """Fields accepted when creating a OpportunityRequirement."""
 
-    tag_id: TagId
     #: Identifier of the certification.
     certification_id: Optional[str]
     #: Insurance minimum, when the requirement is insurance. Integer minor units of the resource currency; null means unpriced, never zero.
     insurance_minimum_minor: Optional[int]
+    #: ISO 4217 currency of the insurance minimum.
+    currency_code: Optional[str]
 
 
 class OpportunityRequirementUpdate(TypedDict, total=False):
     """Fields accepted when updating a OpportunityRequirement. Omitted fields are unchanged."""
 
-    tag_id: TagId
     #: Identifier of the certification.
     certification_id: Optional[str]
-    #: Requirement statement.
-    statement: str
     #: Insurance minimum, when the requirement is insurance. Integer minor units of the resource currency; null means unpriced, never zero.
     insurance_minimum_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: Kind of requirement.
+    requirement_kind: Literal["Certification", "Insurance", "Equipment"]
+    #: What is required.
+    description: str
+    #: ISO 4217 currency of the insurance minimum.
+    currency_code: Optional[str]
 
 
 class OpportunityQuestionPage(TypedDict):
@@ -10246,12 +10699,12 @@ class OpportunityQuestion(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the opportunity.
     opportunity_id: str
     #: Question order.
@@ -10323,51 +10776,55 @@ class Application(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the opportunity.
     opportunity_id: str
-    #: Identifier of the applying person.
-    person_id: Optional[str]
-    #: Identifier of the applying external account.
-    organization_id: Optional[str]
     #: Identifier of the consented profile snapshot.
-    profile_share_id: str
+    profile_share_id: Optional[str]
     #: Whether the applicant confirmed availability.
     availability_confirmed: bool
-    #: Fee proposed by an artist instead of the posted fee. Integer minor units of the resource currency; null means unpriced, never zero.
-    proposed_rate_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
     application_state: ApplicationState
-    #: When it was submitted.
-    submitted_at: str
+    #: Identifier of the applying person.
+    applicant_person_id: Optional[str]
+    #: Identifier of the applying external account.
+    applicant_organization_id: Optional[str]
+    #: Identifier of the person who submitted, set from the session: the applicant, their representative or an account administrator.
+    submitted_by: Optional[str]
+    #: Note from the applicant.
+    cover_note: Optional[str]
+    #: Fee the applicant proposes instead of the posted one (artists). Integer minor units of the resource currency; null means unpriced, never zero.
+    proposed_fee_minor: Optional[int]
+    #: ISO 4217 currency of the proposed fee.
+    currency_code: Optional[str]
 
 
 class _ApplicationCreateRequired(TypedDict):
     #: Identifier of the opportunity.
     opportunity_id: str
-    #: Identifier of the consented profile snapshot.
-    profile_share_id: str
-    #: Whether the applicant confirmed availability.
-    availability_confirmed: bool
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class ApplicationCreate(_ApplicationCreateRequired, total=False):
     """Fields accepted when creating a Application."""
 
+    #: Identifier of the consented profile snapshot.
+    profile_share_id: Optional[str]
+    #: Whether the applicant confirmed availability.
+    availability_confirmed: bool
     #: Identifier of the applying person.
-    person_id: Optional[str]
+    applicant_person_id: Optional[str]
     #: Identifier of the applying external account.
-    organization_id: Optional[str]
-    #: Fee proposed by an artist instead of the posted fee. Integer minor units of the resource currency; null means unpriced, never zero.
-    proposed_rate_minor: Optional[int]
+    applicant_organization_id: Optional[str]
+    #: Note from the applicant.
+    cover_note: Optional[str]
+    #: Fee the applicant proposes instead of the posted one (artists). Integer minor units of the resource currency; null means unpriced, never zero.
+    proposed_fee_minor: Optional[int]
+    #: ISO 4217 currency of the proposed fee.
+    currency_code: Optional[str]
 
 
 class _ApplicationTransitionRequestRequired(TypedDict):
@@ -10402,12 +10859,12 @@ class ApplicationAnswer(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the application.
     application_id: str
     #: Identifier of the question.
@@ -10445,38 +10902,44 @@ class Bid(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the application.
     application_id: str
     total: MoneyTotal
     #: Whether the bid is still sealed.
     sealed: bool
-    #: Bid notes.
-    notes: Optional[str]
+    #: ISO 4217 currency of every line.
+    currency_code: str
+    #: Last day the bid holds.
+    valid_until: Optional[str]
+    #: When the bid was submitted, set by the database.
+    submitted_at: str
 
 
 class _BidCreateRequired(TypedDict):
     #: Identifier of the application.
     application_id: str
+    #: ISO 4217 currency of every line.
+    currency_code: str
 
 
 class BidCreate(_BidCreateRequired, total=False):
     """Fields accepted when creating a Bid."""
 
-    #: Bid notes.
-    notes: Optional[str]
+    #: Last day the bid holds.
+    valid_until: Optional[str]
 
 
 class BidUpdate(TypedDict, total=False):
     """Fields accepted when updating a Bid. Omitted fields are unchanged."""
 
-    #: Bid notes.
-    notes: Optional[str]
+    #: Last day the bid holds.
+    valid_until: Optional[str]
 
 
 class BidLinePage(TypedDict):
@@ -10497,12 +10960,12 @@ class BidLine(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the bid.
     bid_id: str
     #: Line description.
@@ -10564,12 +11027,12 @@ class AgencySlate(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the agency application.
     application_id: str
     #: Identifier of the slated staff member.
@@ -10603,12 +11066,12 @@ class Shortlist(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the opportunity.
     opportunity_id: str
     #: Identifier of the application.
@@ -10656,20 +11119,24 @@ class Interview(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the application.
     application_id: str
     #: When it is scheduled.
     scheduled_at: str
-    #: Video meeting link.
-    meeting_url: Optional[str]
-    #: Internal notes.
-    outcome_notes: Optional[str]
+    #: Interview or Audition.
+    interview_kind: Literal["Interview", "Audition"]
+    #: Length in minutes.
+    duration_minutes: int
+    #: Place or meeting link.
+    location_text: Optional[str]
+    #: Internal note. Never visible externally.
+    internal_note: Optional[str]
 
 
 class _InterviewCreateRequired(TypedDict):
@@ -10677,15 +11144,19 @@ class _InterviewCreateRequired(TypedDict):
     application_id: str
     #: When it is scheduled.
     scheduled_at: str
+    #: Interview or Audition.
+    interview_kind: Literal["Interview", "Audition"]
+    #: Length in minutes.
+    duration_minutes: int
 
 
 class InterviewCreate(_InterviewCreateRequired, total=False):
     """Fields accepted when creating a Interview."""
 
-    #: Video meeting link.
-    meeting_url: Optional[str]
-    #: Internal notes.
-    outcome_notes: Optional[str]
+    #: Place or meeting link.
+    location_text: Optional[str]
+    #: Internal note. Never visible externally.
+    internal_note: Optional[str]
 
 
 class InterviewUpdate(TypedDict, total=False):
@@ -10693,10 +11164,14 @@ class InterviewUpdate(TypedDict, total=False):
 
     #: When it is scheduled.
     scheduled_at: str
-    #: Video meeting link.
-    meeting_url: Optional[str]
-    #: Internal notes.
-    outcome_notes: Optional[str]
+    #: Interview or Audition.
+    interview_kind: Literal["Interview", "Audition"]
+    #: Length in minutes.
+    duration_minutes: int
+    #: Place or meeting link.
+    location_text: Optional[str]
+    #: Internal note. Never visible externally.
+    internal_note: Optional[str]
 
 
 class EngagementPage(TypedDict):
@@ -10717,12 +11192,12 @@ class Engagement(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the engaged person.
     person_id: Optional[str]
     #: Identifier of the engaged external account.
@@ -10788,31 +11263,42 @@ class EngagementDocument(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the engagement.
     engagement_id: str
     #: Identifier of the document.
-    document_id: str
+    document_id: Optional[str]
     #: Document title.
     title: str
     #: Engagement-Document lifecycle state. A Title Case value from the lifecycle's database enum.
     engagement_document_state: str
+    #: Kind of document.
+    document_kind: Literal["Offer", "Agreement", "Statement of Work", "Non-Disclosure Agreement", "Rider", "Advance Packet", "Insurance Certificate", "Lien Waiver", "Settlement", "Proof of Performance", "Content Consent"]
+    #: Last day the document is valid, for documents that expire.
+    expires_on: Optional[str]
 
 
-class EngagementDocumentCreate(TypedDict):
-    """Fields accepted when creating a EngagementDocument."""
-
+class _EngagementDocumentCreateRequired(TypedDict):
     #: Identifier of the engagement.
     engagement_id: str
-    #: Identifier of the document.
-    document_id: str
     #: Document title.
     title: str
+    #: Kind of document.
+    document_kind: Literal["Offer", "Agreement", "Statement of Work", "Non-Disclosure Agreement", "Rider", "Advance Packet", "Insurance Certificate", "Lien Waiver", "Settlement", "Proof of Performance", "Content Consent"]
+
+
+class EngagementDocumentCreate(_EngagementDocumentCreateRequired, total=False):
+    """Fields accepted when creating a EngagementDocument."""
+
+    #: Identifier of the document.
+    document_id: Optional[str]
+    #: Last day the document is valid, for documents that expire.
+    expires_on: Optional[str]
 
 
 class _EngagementDocumentTransitionRequestRequired(TypedDict):
@@ -10847,61 +11333,67 @@ class OnboardingRequirement(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    role_type: ExternalRoleType
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    role_type: Optional[ExternalRoleType]
     jurisdiction_id: JurisdictionId
-    #: Item type. A Title Case value from the lifecycle's database enum.
-    item_type: str
-    #: Requirement title.
-    title: str
-    #: Whether it blocks Active.
-    blocking: bool
     #: Verification method. A Title Case value from the lifecycle's database enum.
     verification_method: str
-    #: Months until expiry.
-    validity_months: Optional[int]
+    #: Requirement name, for example Certificate of Insurance.
+    name: str
+    #: Kind of onboarding item.
+    item_kind: Literal["Document Upload", "Electronic Signature", "Form", "Certification", "Training", "Acknowledgment", "Background Check", "Tax Form", "Payout Details"]
+    #: True when the engagement cannot become Active until the item passes.
+    is_blocking: bool
+    #: Days a verification stays valid; null when it does not expire.
+    valid_for_days: Optional[int]
+    #: Days before expiry the party is reminded.
+    remind_days_before: Optional[int]
 
 
 class _OnboardingRequirementCreateRequired(TypedDict):
-    role_type: ExternalRoleType
-    #: Item type. A Title Case value from the lifecycle's database enum.
-    item_type: str
-    #: Requirement title.
-    title: str
-    #: Whether it blocks Active.
-    blocking: bool
     #: Verification method. A Title Case value from the lifecycle's database enum.
     verification_method: str
+    #: Requirement name, for example Certificate of Insurance.
+    name: str
+    #: Kind of onboarding item.
+    item_kind: Literal["Document Upload", "Electronic Signature", "Form", "Certification", "Training", "Acknowledgment", "Background Check", "Tax Form", "Payout Details"]
 
 
 class OnboardingRequirementCreate(_OnboardingRequirementCreateRequired, total=False):
     """Fields accepted when creating a OnboardingRequirement."""
 
+    role_type: Optional[ExternalRoleType]
     jurisdiction_id: JurisdictionId
-    #: Months until expiry.
-    validity_months: Optional[int]
+    #: True when the engagement cannot become Active until the item passes.
+    is_blocking: bool
+    #: Days a verification stays valid; null when it does not expire.
+    valid_for_days: Optional[int]
+    #: Days before expiry the party is reminded.
+    remind_days_before: Optional[int]
 
 
 class OnboardingRequirementUpdate(TypedDict, total=False):
     """Fields accepted when updating a OnboardingRequirement. Omitted fields are unchanged."""
 
-    role_type: ExternalRoleType
+    role_type: Optional[ExternalRoleType]
     jurisdiction_id: JurisdictionId
-    #: Item type. A Title Case value from the lifecycle's database enum.
-    item_type: str
-    #: Requirement title.
-    title: str
-    #: Whether it blocks Active.
-    blocking: bool
     #: Verification method. A Title Case value from the lifecycle's database enum.
     verification_method: str
-    #: Months until expiry.
-    validity_months: Optional[int]
+    #: Requirement name, for example Certificate of Insurance.
+    name: str
+    #: Kind of onboarding item.
+    item_kind: Literal["Document Upload", "Electronic Signature", "Form", "Certification", "Training", "Acknowledgment", "Background Check", "Tax Form", "Payout Details"]
+    #: True when the engagement cannot become Active until the item passes.
+    is_blocking: bool
+    #: Days a verification stays valid; null when it does not expire.
+    valid_for_days: Optional[int]
+    #: Days before expiry the party is reminded.
+    remind_days_before: Optional[int]
 
 
 class OnboardingItemPage(TypedDict):
@@ -10922,12 +11414,12 @@ class OnboardingItem(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the engagement.
     engagement_id: str
     #: Identifier of the onboarding requirement.
@@ -10985,18 +11477,18 @@ class OnboardingVerification(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the onboarding item.
     onboarding_item_id: str
     #: Whether the item passed.
     passed: bool
     #: Identifier of the verifier.
-    verified_by: str
+    verified_by: Optional[str]
     #: When it was verified.
     verified_at: str
     #: Reviewer notes.
@@ -11035,15 +11527,16 @@ class TalentPool(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Pool name.
     name: str
-    role_type: ExternalRoleType
+    #: Talent (people) or Vendor (external accounts).
+    pool_kind: Literal["Talent", "Vendor"]
 
 
 class TalentPoolCreate(TypedDict):
@@ -11051,7 +11544,8 @@ class TalentPoolCreate(TypedDict):
 
     #: Pool name.
     name: str
-    role_type: ExternalRoleType
+    #: Talent (people) or Vendor (external accounts).
+    pool_kind: Literal["Talent", "Vendor"]
 
 
 class TalentPoolUpdate(TypedDict, total=False):
@@ -11059,7 +11553,6 @@ class TalentPoolUpdate(TypedDict, total=False):
 
     #: Pool name.
     name: str
-    role_type: ExternalRoleType
 
 
 class PoolMemberPage(TypedDict):
@@ -11080,12 +11573,12 @@ class PoolMember(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the pool.
     talent_pool_id: str
     #: Identifier of the member person.
@@ -11156,12 +11649,12 @@ class Rating(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the completed engagement.
     engagement_id: str
     #: Which side rated.
@@ -11208,12 +11701,12 @@ class RatingReply(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the rating.
     rating_id: str
     #: Reply.
@@ -11242,26 +11735,48 @@ class MarketplaceListing(TypedDict):
     """A marketplace view of an opportunity the caller may see. Internal columns never appear. Unposted compensation reads Rate on Request."""
 
     #: Identifier of the opportunity.
-    opportunity_id: str
+    id: str
     #: Identifier of the posting organization.
-    organization_id: str
+    org_id: str
     #: Opportunity title.
     title: str
     role_type: ExternalRoleType
     role_code: Optional[RoleCode]
     #: City.
-    locality: Optional[str]
-    #: First call.
-    starts_at: Optional[str]
+    venue_locality: Optional[str]
     rate_type: Optional[RateType]
     #: Lowest posted rate. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_min_minor: Optional[int]
+    pay_min_minor: Optional[int]
     #: Highest posted rate. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_max_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    pay_max_minor: Optional[int]
     #: Distance from the search location.
     distance_km: Optional[float]
+    #: Posting organization name.
+    org_name: str
+    #: True when the posting organization is verified.
+    org_verified: bool
+    #: Description of the work.
+    description: Optional[str]
+    cat_urid: Optional[UridAtAnyGrain]
+    #: Venue name.
+    venue_name: Optional[str]
+    jurisdiction_id: Optional[JurisdictionId]
+    #: First day of the work.
+    starts_on: Optional[str]
+    #: Last day of the work.
+    ends_on: Optional[str]
+    visibility: OpportunityVisibility
+    #: ISO 4217 currency of the posted pay; null when unposted.
+    currency_code: Optional[str]
+    #: True when no pay is posted: the listing shows Rate on Request.
+    rate_on_request: bool
+    #: Deadline for applications and bids.
+    deadline_at: Optional[str]
+    #: Minimum age for the work.
+    minimum_age: Optional[int]
+    opportunity_state: OpportunityState
+    #: Number of open positions.
+    position_count: int
 
 
 class SavedSearchPage(TypedDict):
@@ -11286,23 +11801,46 @@ class SavedSearch(TypedDict):
     person_id: str
     #: Search name.
     name: str
-    #: Search query in the filter grammar.
-    query: str
     #: Whether alerts are sent by email and push.
     alerts_enabled: bool
+    role_type: Optional[ExternalRoleType]
+    role_code: Optional[RoleCode]
+    cat_urid: Optional[UridAtAnyGrain]
+    jurisdiction_id: Optional[JurisdictionId]
+    #: Earliest start date.
+    starts_after: Optional[str]
+    #: Latest end date.
+    ends_before: Optional[str]
+    #: Minimum posted pay. Integer minor units of the resource currency; null means unpriced, never zero.
+    min_rate_minor: Optional[int]
+    #: ISO 4217 currency of the minimum pay.
+    currency_code: Optional[str]
 
 
-class SavedSearchCreate(TypedDict):
-    """Fields accepted when creating a SavedSearch."""
-
+class _SavedSearchCreateRequired(TypedDict):
     #: Identifier of the owner.
     person_id: str
     #: Search name.
     name: str
-    #: Search query in the filter grammar.
-    query: str
+
+
+class SavedSearchCreate(_SavedSearchCreateRequired, total=False):
+    """Fields accepted when creating a SavedSearch."""
+
     #: Whether alerts are sent by email and push.
     alerts_enabled: bool
+    role_type: Optional[ExternalRoleType]
+    role_code: Optional[RoleCode]
+    cat_urid: Optional[UridAtAnyGrain]
+    jurisdiction_id: Optional[JurisdictionId]
+    #: Earliest start date.
+    starts_after: Optional[str]
+    #: Latest end date.
+    ends_before: Optional[str]
+    #: Minimum posted pay. Integer minor units of the resource currency; null means unpriced, never zero.
+    min_rate_minor: Optional[int]
+    #: ISO 4217 currency of the minimum pay.
+    currency_code: Optional[str]
 
 
 class SavedSearchUpdate(TypedDict, total=False):
@@ -11310,10 +11848,20 @@ class SavedSearchUpdate(TypedDict, total=False):
 
     #: Search name.
     name: str
-    #: Search query in the filter grammar.
-    query: str
     #: Whether alerts are sent by email and push.
     alerts_enabled: bool
+    role_type: Optional[ExternalRoleType]
+    role_code: Optional[RoleCode]
+    cat_urid: Optional[UridAtAnyGrain]
+    jurisdiction_id: Optional[JurisdictionId]
+    #: Earliest start date.
+    starts_after: Optional[str]
+    #: Latest end date.
+    ends_before: Optional[str]
+    #: Minimum posted pay. Integer minor units of the resource currency; null means unpriced, never zero.
+    min_rate_minor: Optional[int]
+    #: ISO 4217 currency of the minimum pay.
+    currency_code: Optional[str]
 
 
 class OpportunityAlertPage(TypedDict):
@@ -11339,7 +11887,9 @@ class OpportunityAlert(TypedDict):
     #: Identifier of the opportunity.
     opportunity_id: str
     #: When the alert was sent.
-    sent_at: str
+    delivered_at: Optional[str]
+    #: When the match was found.
+    matched_at: str
 
 
 class ListingReportPage(TypedDict):
@@ -11360,21 +11910,30 @@ class ListingReport(TypedDict):
     created_at: str
     #: When the row was last updated.
     updated_at: str
-    #: URN of the reported listing or profile.
-    subject_urn: str
-    #: Why it is reported.
-    reason: str
-    #: Report state. A Title Case value from the lifecycle's database enum.
-    report_state: str
+    #: Ground for the report.
+    reason: Literal["Illegal Content", "Discrimination", "Fraud", "Misleading Information", "Missing Pay Range", "Safety"]
+    #: Identifier of the reported opportunity.
+    opportunity_id: str
+    #: Identifier of the person who reported, set from the session.
+    reporter_person_id: str
+    #: What the reporter saw.
+    details: Optional[str]
+    #: When the report was made, set by the database.
+    reported_at: str
 
 
-class ListingReportCreate(TypedDict):
+class _ListingReportCreateRequired(TypedDict):
+    #: Ground for the report.
+    reason: Literal["Illegal Content", "Discrimination", "Fraud", "Misleading Information", "Missing Pay Range", "Safety"]
+    #: Identifier of the reported opportunity.
+    opportunity_id: str
+
+
+class ListingReportCreate(_ListingReportCreateRequired, total=False):
     """Fields accepted when creating a ListingReport."""
 
-    #: URN of the reported listing or profile.
-    subject_urn: str
-    #: Why it is reported.
-    reason: str
+    #: What the reporter saw.
+    details: Optional[str]
 
 
 class ModerationActionPage(TypedDict):
@@ -11396,22 +11955,31 @@ class ModerationAction(TypedDict):
     #: When the row was last updated.
     updated_at: str
     #: Identifier of the listing report.
-    listing_report_id: str
-    #: Action taken. A Title Case value from the lifecycle's database enum.
-    action: str
+    listing_report_id: Optional[str]
+    #: Decision taken.
+    action: Literal["Removed", "Restricted", "Restored", "No Action"]
     #: Statement of reasons.
     statement_of_reasons: str
+    #: Identifier of the opportunity decided on.
+    opportunity_id: str
+    #: When the decision was made.
+    decided_at: str
 
 
-class ModerationActionCreate(TypedDict):
+class _ModerationActionCreateRequired(TypedDict):
+    #: Decision taken.
+    action: Literal["Removed", "Restricted", "Restored", "No Action"]
+    #: Statement of reasons.
+    statement_of_reasons: str
+    #: Identifier of the opportunity decided on.
+    opportunity_id: str
+
+
+class ModerationActionCreate(_ModerationActionCreateRequired, total=False):
     """Fields accepted when creating a ModerationAction."""
 
     #: Identifier of the listing report.
-    listing_report_id: str
-    #: Action taken. A Title Case value from the lifecycle's database enum.
-    action: str
-    #: Statement of reasons.
-    statement_of_reasons: str
+    listing_report_id: Optional[str]
 
 
 class ProfileSharePage(TypedDict):
@@ -11434,32 +12002,30 @@ class ProfileShare(TypedDict):
     updated_at: str
     #: Identifier of the sharing person.
     person_id: Optional[str]
-    #: Identifier of the receiving organization.
-    organization_id: str
-    #: Profile field keys shared with the org.
-    shared_fields: List[str]
-    #: Whether live updates flow while the engagement is active.
-    live_updates: bool
+    #: Identifier of the external account sharing its company profile; null when a person shares their own.
+    organization_id: Optional[str]
+    #: Each shared field with the value at the time of sharing.
+    shared_fields: List[Dict[str, Any]]
     #: When the snapshot was taken.
-    snapshot_at: str
+    shared_at: str
     #: When consent was revoked.
     revoked_at: Optional[str]
+    #: Identifier of the engagement the share serves; live updates flow only while it is open.
+    engagement_id: Optional[str]
 
 
 class _ProfileShareCreateRequired(TypedDict):
-    #: Identifier of the receiving organization.
-    organization_id: str
-    #: Profile field keys shared with the org.
-    shared_fields: List[str]
-    #: Whether live updates flow while the engagement is active.
-    live_updates: bool
+    #: Each shared field with the value at the time of sharing.
+    shared_fields: List[Dict[str, Any]]
 
 
 class ProfileShareCreate(_ProfileShareCreateRequired, total=False):
     """Fields accepted when creating a ProfileShare."""
 
-    #: Identifier of the sharing person.
-    person_id: Optional[str]
+    #: Identifier of the external account sharing its company profile; null when a person shares their own.
+    organization_id: Optional[str]
+    #: Identifier of the engagement the share serves; live updates flow only while it is open.
+    engagement_id: Optional[str]
 
 
 class AvailabilityCalendarPage(TypedDict):
@@ -11484,15 +12050,22 @@ class AvailabilityCalendar(TypedDict):
     person_id: str
     #: IANA time zone the local time was entered in.
     time_zone: str
+    #: Who reads the calendar.
+    visibility: Literal["Private", "Shared on Application", "Public"]
 
 
-class AvailabilityCalendarCreate(TypedDict):
-    """Fields accepted when creating a AvailabilityCalendar."""
-
+class _AvailabilityCalendarCreateRequired(TypedDict):
     #: Identifier of the owner.
     person_id: str
     #: IANA time zone the local time was entered in.
     time_zone: str
+
+
+class AvailabilityCalendarCreate(_AvailabilityCalendarCreateRequired, total=False):
+    """Fields accepted when creating a AvailabilityCalendar."""
+
+    #: Who reads the calendar.
+    visibility: Literal["Private", "Shared on Application", "Public"]
 
 
 class AvailabilityCalendarUpdate(TypedDict, total=False):
@@ -11500,6 +12073,8 @@ class AvailabilityCalendarUpdate(TypedDict, total=False):
 
     #: IANA time zone the local time was entered in.
     time_zone: str
+    #: Who reads the calendar.
+    visibility: Literal["Private", "Shared on Application", "Public"]
 
 
 class AvailabilityBlockPage(TypedDict):
@@ -11526,21 +12101,28 @@ class AvailabilityBlock(TypedDict):
     starts_at: str
     #: Block end.
     ends_at: str
-    #: Whether the person is available.
-    available: bool
+    #: Kind of block.
+    availability_kind: Literal["Available", "Unavailable", "Tentative"]
+    #: Private note of the owner.
+    note: Optional[str]
 
 
-class AvailabilityBlockCreate(TypedDict):
-    """Fields accepted when creating a AvailabilityBlock."""
-
+class _AvailabilityBlockCreateRequired(TypedDict):
     #: Identifier of the availability calendar.
     availability_calendar_id: str
     #: Block start.
     starts_at: str
     #: Block end.
     ends_at: str
-    #: Whether the person is available.
-    available: bool
+    #: Kind of block.
+    availability_kind: Literal["Available", "Unavailable", "Tentative"]
+
+
+class AvailabilityBlockCreate(_AvailabilityBlockCreateRequired, total=False):
+    """Fields accepted when creating a AvailabilityBlock."""
+
+    #: Private note of the owner.
+    note: Optional[str]
 
 
 class AvailabilityBlockUpdate(TypedDict, total=False):
@@ -11550,8 +12132,10 @@ class AvailabilityBlockUpdate(TypedDict, total=False):
     starts_at: str
     #: Block end.
     ends_at: str
-    #: Whether the person is available.
-    available: bool
+    #: Kind of block.
+    availability_kind: Literal["Available", "Unavailable", "Tentative"]
+    #: Private note of the owner.
+    note: Optional[str]
 
 
 class EngagementThreadPage(TypedDict):
@@ -11572,12 +12156,12 @@ class EngagementThread(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the engagement.
     engagement_id: str
     #: Thread subject.
@@ -11618,18 +12202,18 @@ class EngagementMessage(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the thread.
     engagement_thread_id: str
     #: Message body.
     body: str
     #: Identifier of the sender.
-    sent_by: str
+    author_person_id: Optional[str]
     #: When it was sent.
     sent_at: str
 
@@ -11661,34 +12245,40 @@ class TaxForm(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the engagement.
-    engagement_id: str
-    #: Form type.
-    form_type: str
-    tax_identifier: Union[str, Masked]
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Last four digits of the tax identifier.
-    tax_identifier_last4: str
+    tin_last4: str
     #: Foreign performer withholding flag.
     foreign_performer_withholding: bool
+    #: Identifier of the payee person, set from the session.
+    person_id: Optional[str]
+    #: Identifier of the payee external account.
+    organization_id: Optional[str]
+    #: Tax form.
+    form_kind: Literal["W-9", "W-8BEN", "W-8BEN-E"]
+    #: When the payee signed the form, set by the database.
+    signed_at: str
 
 
-class TaxFormCreate(TypedDict):
+class _TaxFormCreateRequired(TypedDict):
+    #: Tax form.
+    form_kind: Literal["W-9", "W-8BEN", "W-8BEN-E"]
+    #: Tax identifier. Write-only: it is encrypted and never returned.
+    tax_identifier: str
+
+
+class TaxFormCreate(_TaxFormCreateRequired, total=False):
     """Fields accepted when creating a TaxForm."""
 
-    #: Identifier of the engagement.
-    engagement_id: str
-    #: Form type.
-    form_type: str
-    #: Tax identifier, write-only after entry.
-    tax_identifier: str
     #: Foreign performer withholding flag.
     foreign_performer_withholding: bool
+    #: Identifier of the payee external account.
+    organization_id: Optional[str]
 
 
 class PayoutAccountPage(TypedDict):
@@ -11709,29 +12299,29 @@ class PayoutAccount(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the payee person.
     person_id: Optional[str]
     #: Identifier of the payee organization.
     organization_id: Optional[str]
     #: Payment provider.
-    provider: str
+    provider: Literal["Stripe Connect", "Accounting System"]
     #: Provider account reference.
-    provider_account_ref: str
+    provider_account_reference: str
     #: Last four digits of the account.
-    account_last4: str
+    account_last4: Optional[str]
 
 
 class _PayoutAccountCreateRequired(TypedDict):
     #: Payment provider.
-    provider: str
+    provider: Literal["Stripe Connect", "Accounting System"]
     #: Provider account reference.
-    provider_account_ref: str
+    provider_account_reference: str
 
 
 class PayoutAccountCreate(_PayoutAccountCreateRequired, total=False):
@@ -11761,33 +12351,36 @@ class BackgroundCheck(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the engagement.
     engagement_id: str
     #: Background check provider.
     provider: str
     #: Provider reference.
     provider_reference: str
-    #: Provider result. A Title Case value from the lifecycle's database enum.
-    provider_result: Optional[str]
     #: When the provider completed it.
     completed_at: Optional[str]
+    #: Result as the provider reports it.
+    result: Literal["Pending", "Clear", "Consider", "Suspended", "Canceled"]
 
 
-class BackgroundCheckCreate(TypedDict):
-    """Fields accepted when creating a BackgroundCheck."""
-
+class _BackgroundCheckCreateRequired(TypedDict):
     #: Identifier of the engagement.
     engagement_id: str
-    #: Background check provider.
-    provider: str
     #: Provider reference.
     provider_reference: str
+
+
+class BackgroundCheckCreate(_BackgroundCheckCreateRequired, total=False):
+    """Fields accepted when creating a BackgroundCheck."""
+
+    #: Background check provider.
+    provider: str
 
 
 class CanonDepartmentPage(TypedDict):
@@ -11865,9 +12458,7 @@ class CanonAct(TypedDict):
 
     #: Act ordinal.
     ordinal: int
-    act: ActCode
-    #: Gate range the act groups.
-    gates: str
+    act_code: ActCode
     #: Definition, in sentence case.
     definition: str
 
@@ -11889,11 +12480,13 @@ class CanonPhase(TypedDict):
     phase_code: PhaseCode
     #: Phase name.
     phase: str
-    act: ActCode
+    act_code: ActCode
     #: Definition, in sentence case.
     definition: str
     #: What must be true to pass the gate.
     gate_exit: str
+    #: True when 4.0 kept the code but redefined the phase (Advance).
+    is_redefined: bool
 
 
 class CanonGateCriterionPage(TypedDict):
@@ -11914,7 +12507,7 @@ class CanonGateCriterion(TypedDict):
     #: Criterion statement.
     statement: str
     #: Whether the criterion blocks the gate.
-    blocking: bool
+    is_blocking: bool
 
 
 class CanonTierPage(TypedDict):
@@ -11949,7 +12542,13 @@ class CanonTeam(TypedDict):
     team_id: TeamId
     #: Team name.
     team: str
-    rolls_to_dept_code: DeptCode
+    dept_code: DeptCode
+    #: Workgroup tag.
+    workgroup_tag: Optional[str]
+    #: Lead role of the team.
+    lead_role: Optional[str]
+    #: What the team is responsible for.
+    responsibilities: Optional[str]
 
 
 class CanonTagPage(TypedDict):
@@ -12021,11 +12620,9 @@ class CanonJurisdiction(TypedDict):
     country: str
     parent: JurisdictionId
     #: Unit system.
-    unit_system: str
+    unit_system: Optional[str]
     #: Default currency of the jurisdiction.
-    currency: str
-    #: Primary code sets in force.
-    primary_code_sets: str
+    currency: Optional[str]
     #: Population status of the jurisdiction's rules.
     status: str
     #: Note from the Bible.
@@ -12049,11 +12646,7 @@ class CanonRegion(TypedDict):
     name: str
     jurisdiction_id: JurisdictionId
     #: Currency of the region.
-    currency: str
-    #: Ratified cost multiplier; null when unratified.
-    cost_multiplier: Optional[float]
-    #: Whether the region is the basis region.
-    basis: bool
+    currency_code: str
     #: Note from the Bible.
     note: Optional[str]
 
@@ -12072,9 +12665,9 @@ class CanonRegionMultiplier(TypedDict):
 
     region_code: RegionCode
     #: Cost multiplier.
-    multiplier: float
-    #: Whether the multiplier is ratified.
-    ratified: bool
+    cost_multiplier: float
+    #: True for the basis region the price bands were sourced in.
+    is_basis: bool
 
 
 class CanonEscalationIndexPage(TypedDict):
@@ -12115,7 +12708,7 @@ class CanonStalenessPolicy(TypedDict):
     #: Action taken at that age.
     action: str
     #: Detail of the action.
-    detail: str
+    detail: Optional[str]
 
 
 class CanonPermitRulePage(TypedDict):
@@ -12165,17 +12758,19 @@ class CanonMetric(TypedDict):
     #: Metric item.
     item: str
     #: Metric value.
-    value: float
-    #: Qualifier of the value.
+    value_numeric: Optional[float]
+    #: Qualifier of the value: the code section or modelling note it follows.
     qualifier: Optional[str]
     #: Source of the value.
-    source: str
+    source: Optional[str]
     #: Whether the value comes from a code.
-    code_derived: bool
+    is_code_derived: bool
     jurisdiction_id: JurisdictionId
     #: Whether the value holds in every jurisdiction.
-    jurisdiction_neutral: bool
+    is_jurisdiction_neutral: bool
     provenance: Provenance
+    #: Value as text, when canon states it in words.
+    value_text: Optional[str]
 
 
 class CanonIdentifierClassPage(TypedDict):
@@ -12194,7 +12789,7 @@ CanonIdentifierClass = TypedDict(
     "class": str,
     "issued_by": str,
     "scope": str,
-    "mutable": bool,
+    "is_mutable": bool,
     "rule": str,
     "examples": str,
     },
@@ -12262,10 +12857,10 @@ class CanonFacet(TypedDict):
     #: Facet name.
     facet: str
     #: Form of the facet.
-    form: str
+    form: Optional[str]
     #: What the facet rolls up to.
     rolls_up_to: Optional[str]
-    #: Version that introduced it.
+    #: Version that introduced it, as written in canon.
     since: Optional[str]
     #: Note from the Bible.
     note: Optional[str]
@@ -12287,9 +12882,6 @@ class CanonAssertionRank(TypedDict):
     rank: int
     #: Meaning of the rank.
     meaning: str
-    economics: Optional[AssertionLabel]
-    compliance: Optional[AssertionLabel]
-    capability: Optional[AssertionLabel]
     #: Note from the Bible.
     note: Optional[str]
 
@@ -12330,11 +12922,8 @@ class CanonRecordSubtype(TypedDict):
 
     record_kind: RecordKind
     record_subtype: RecordSubtype
-    #: UNSPSC segment.
+    #: UNSPSC segment code and name.
     unspsc_segment: Optional[str]
-    #: Gate the subtype belongs to.
-    gate: Optional[int]
-    phase_code: Optional[PhaseCode]
 
 
 class CanonRecordStatePage(TypedDict):
@@ -12370,8 +12959,8 @@ class CanonRole(TypedDict):
     #: Role function name.
     role: str
     dept_code: DeptCode
-    #: Staffing ratio.
-    staffing_ratio: Optional[str]
+    #: Staffing ratio from canon: how many people one role holder covers.
+    staffing_ratio: Optional[float]
     #: Basis of the ratio.
     ratio_basis: Optional[str]
     #: Kit basis.
@@ -12455,9 +13044,8 @@ class CanonCategoryGl(TypedDict):
     """The GL account each category posts to."""
 
     cat_urid: Urid
-    disc_code: DiscCode
-    dept_code: DeptCode
-    account_code: GlAccountCode
+    #: Default cost center (dimension 1) of the category.
+    default_cost_center: str
 
 
 class CanonUnitAliasPage(TypedDict):
@@ -12474,7 +13062,10 @@ class CanonUnitAlias(TypedDict):
 
     #: Alias as written.
     alias: str
-    unit: UnitCode
+    #: Unit the alias maps to.
+    unit_code: str
+    #: Dimension of the unit, once ratified.
+    dimension_code: Optional[str]
 
 
 class CanonUnitDimensionPage(TypedDict):
@@ -12489,9 +13080,10 @@ class CanonUnitDimensionPage(TypedDict):
 class CanonUnitDimension(TypedDict):
     """A controlled unit and the dimension it measures."""
 
-    unit: UnitCode
-    #: Dimension measured.
-    dimension: str
+    #: Dimension code.
+    dimension_code: str
+    #: Dimension name.
+    name: str
 
 
 class CanonUrnNamespacePage(TypedDict):
@@ -12508,8 +13100,12 @@ class CanonUrnNamespace(TypedDict):
 
     #: URN kind.
     kind: str
-    #: Table the kind resolves to.
-    resolves_to: str
+    #: xpms table holding the kind.
+    table_name: str
+    #: Natural key column of that table.
+    key_column: str
+    #: Column holding the display label.
+    label_column: str
 
 
 class CanonLocalePage(TypedDict):
@@ -12525,9 +13121,13 @@ class CanonLocale(TypedDict):
     """A supported locale."""
 
     #: BCP 47 locale tag.
-    locale: str
+    locale_code: str
     #: Locale name.
     name: str
+    #: True for the source locale, en-US.
+    is_source: bool
+    #: Release stage.
+    release_stage: Literal["general", "beta"]
 
 
 class CanonElementPage(TypedDict):
@@ -12550,11 +13150,26 @@ class CanonElement(TypedDict):
     common_name: Optional[str]
     #: Element kind.
     kind: str
-    unit_basis: UnitCode
-    grain: GrainCode
+    #: Unit basis of the element.
+    unit_basis: str
     xyz: Xyz
     #: Basis for the XYZ tag.
     xyz_basis: str
+    #: Experience grade of the element: Standard, Base, Elevated or Premium.
+    grade: str
+    #: Description, sentence case.
+    description: Optional[str]
+    #: Specification.
+    specification: Optional[str]
+    tier_code: TierCode
+    #: Lead time in hours.
+    lead_time_hours: Optional[float]
+    #: Crew the element needs.
+    crew: Optional[str]
+    #: UNSPSC identifier; recorded, never minted.
+    unspsc: Optional[str]
+    #: Lifecycle state from the shared vocabulary.
+    lifecycle_state: str
 
 
 class ElementResolution(TypedDict):
@@ -12581,19 +13196,18 @@ class CanonElementPriceBand(TypedDict):
     """A price band for an element at one grade. Effective confidence is computed at read time from the staleness policy."""
 
     element_id: ItemId
-    grade: Grade
-    #: Band unit price. Integer minor units of the resource currency; null means unpriced, never zero.
-    unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    #: Assertion rank of the price.
-    assertion_rank: int
-    effective_confidence: Optional[AssertionLabel]
     #: First day the band is valid.
-    valid_from: str
+    valid_from: Optional[str]
     #: Last day the band is valid.
     valid_to: Optional[str]
-    region_code: RegionCode
+    #: Price grade.
+    grade_code: str
+    #: Amount per unit in the basis region. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_minor: Optional[int]
+    #: ISO 4217 currency of the amount.
+    currency_code: str
+    #: Economics assertion word; null means canon states none and confidence resolves as no answer.
+    assertion_word: Optional[str]
 
 
 class CanonElementGtinPage(TypedDict):
@@ -12745,9 +13359,13 @@ class StdEmergencyCode(TypedDict):
 
     code: StdCode
     #: Code name.
-    name: str
+    label: str
     #: Response procedure.
-    response: str
+    emergency: str
+    #: Design token of the swatch.
+    swatch: str
+    #: Order of first appearance in the Playbook.
+    sort_order: int
 
 
 class StdEnumerationPage(TypedDict):
@@ -12977,11 +13595,11 @@ class CanonVersion(TypedDict):
     """The current canon version and generation. Canon responses are cached by generation."""
 
     #: Canon version.
-    version: str
+    version_code: str
     #: Canon generation, incremented by every canon data migration.
     generation: int
-    #: When the generation was imported.
-    imported_at: str
+    #: Generation time stated in the Bible _generated tab: a wall-clock time without a zone.
+    bible_generated_at: str
 
 
 class CanonIntakePage(TypedDict):
@@ -13060,8 +13678,16 @@ class PhaseCoverage(TypedDict):
     phase_code: PhaseCode
     #: Active elements in the phase.
     active_element_count: int
-    #: Whether the phase carries a declared gap.
-    declared_gap: bool
+    #: Gate ordinal.
+    gate: Optional[int]
+    #: Phase label.
+    phase: Optional[str]
+    #: Elements participating in the phase.
+    element_count: Optional[int]
+    #: Distinct categories among participating elements.
+    category_count: Optional[int]
+    #: True when at least one participating element is Active.
+    has_active_element: Optional[bool]
 
 
 class ElementEconomicsPage(TypedDict):
@@ -13077,12 +13703,27 @@ class ElementEconomics(TypedDict):
     """Element economics with effective confidence at read time."""
 
     element_id: ItemId
-    grade: Grade
-    #: Effective unit price. Integer minor units of the resource currency; null means unpriced, never zero.
-    unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    effective_confidence: Optional[AssertionLabel]
+    #: ISO 4217 currency of the amount; null when unpriced.
+    currency_code: Optional[str]
+    #: Confidence at read time from the staleness policy: an assertion label, or NO_ANSWER.
+    effective_confidence: Optional[str]
+    #: Item name.
+    item: Optional[str]
+    urid: Optional[Urid]
+    #: Unit basis of the amount.
+    unit_basis: Optional[str]
+    #: Price grade.
+    grade_code: Optional[str]
+    #: Amount per unit. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_minor: Optional[int]
+    #: Stated economics assertion of the band.
+    assertion_word: Optional[str]
+    #: Date the band was sourced.
+    valid_from: Optional[str]
+    #: Date the band stops applying.
+    valid_to: Optional[str]
+    #: True when the element has no band at this grade.
+    is_unpriced: Optional[bool]
 
 
 class CrosswalkCoveragePage(TypedDict):
@@ -13097,11 +13738,17 @@ class CrosswalkCoveragePage(TypedDict):
 class CrosswalkCoverage(TypedDict):
     """Crosswalk coverage from GTIN to GPC brick to UNSPSC to URID."""
 
-    urid: Urid
+    cat_urid: Optional[Urid]
     #: Elements under the URID.
     element_count: int
+    #: Category name.
+    category: str
+    #: Elements carrying an UNSPSC identifier.
+    unspsc_element_count: Optional[int]
     #: Elements with at least one confirmed GTIN.
-    gtin_mapped_count: int
+    gtin_element_count: Optional[int]
+    #: Confirmed GTINs bound to elements of the category.
+    gtin_count: Optional[int]
 
 
 class UrnResolution(TypedDict):
@@ -13148,30 +13795,14 @@ class Person(TypedDict):
     #: When the row was last updated.
     updated_at: str
     #: Legal or full name.
-    name: str
-    #: Preferred name.
-    preferred_name: Optional[str]
-    #: Verified primary email.
-    primary_email: str
-    #: BCP 47 locale tag.
-    locale: str
-    #: Home time zone.
-    time_zone: str
+    full_name: Optional[str]
 
 
 class PersonUpdate(TypedDict, total=False):
     """Fields accepted when updating a Person. Omitted fields are unchanged."""
 
     #: Legal or full name.
-    name: str
-    #: Preferred name.
-    preferred_name: Optional[str]
-    #: Verified primary email.
-    primary_email: str
-    #: BCP 47 locale tag.
-    locale: str
-    #: Home time zone.
-    time_zone: str
+    full_name: Optional[str]
 
 
 class OrganizationPage(TypedDict):
@@ -13194,18 +13825,12 @@ class Organization(TypedDict):
     updated_at: str
     #: Trade name.
     name: str
-    #: Legal name.
-    legal_name: Optional[str]
     #: URL slug.
     slug: str
     #: Identifier of the partner organization.
     parent_org_id: Optional[str]
-    #: Whether the organization holds a subscription and uses Atlas.
-    is_tenant: bool
-    #: Base currency.
-    base_currency: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
+    #: Legal form from `xpms.organization_type` (decision D17): For-Profit, Nonprofit or Public Agency. It decides which worker classifications engagements may use.
+    organization_type: str
 
 
 class OrganizationUpdate(TypedDict, total=False):
@@ -13213,16 +13838,12 @@ class OrganizationUpdate(TypedDict, total=False):
 
     #: Trade name.
     name: str
-    #: Legal name.
-    legal_name: Optional[str]
     #: URL slug.
     slug: str
     #: Identifier of the partner organization.
     parent_org_id: Optional[str]
-    #: Base currency.
-    base_currency: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
+    #: Legal form from `xpms.organization_type` (decision D17): For-Profit, Nonprofit or Public Agency. It decides which worker classifications engagements may use.
+    organization_type: str
 
 
 class CreateOrganizationRequest(TypedDict):
@@ -13279,20 +13900,18 @@ class Membership(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the member.
     person_id: str
     #: Start of membership.
     valid_from: str
     #: End of membership.
     valid_to: Optional[str]
-    #: Primary persona. A Title Case value from the lifecycle's database enum.
-    persona: Optional[str]
 
 
 class MembershipUpdate(TypedDict, total=False):
@@ -13302,8 +13921,6 @@ class MembershipUpdate(TypedDict, total=False):
     valid_from: str
     #: End of membership.
     valid_to: Optional[str]
-    #: Primary persona. A Title Case value from the lifecycle's database enum.
-    persona: Optional[str]
 
 
 class MembershipRolePage(TypedDict):
@@ -13324,30 +13941,27 @@ class MembershipRole(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the membership.
     membership_id: str
-    role: OrgRole
-    #: Identifier of the custom role.
-    custom_role_id: Optional[str]
+    #: Identifier of the held role: a system role or a custom role of the same org.
+    role_id: str
+    #: Identifier of the person accountable for the grant; null when the platform granted the first Owner of a new org.
+    granted_by: Optional[str]
 
 
-class _MembershipRoleCreateRequired(TypedDict):
-    #: Identifier of the membership.
-    membership_id: str
-
-
-class MembershipRoleCreate(_MembershipRoleCreateRequired, total=False):
+class MembershipRoleCreate(TypedDict):
     """Fields accepted when creating a MembershipRole."""
 
-    role: OrgRole
-    #: Identifier of the custom role.
-    custom_role_id: Optional[str]
+    #: Identifier of the membership.
+    membership_id: str
+    #: Identifier of the held role: a system role or a custom role of the same org.
+    role_id: str
 
 
 class ProjectAssignmentPage(TypedDict):
@@ -13368,45 +13982,51 @@ class ProjectAssignment(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    #: Identifier of the person.
-    person_id: str
-    #: First day on the project.
+    #: When the assignment starts.
     valid_from: str
-    #: Last day on the project.
+    #: When the assignment ends; null while open.
     valid_to: Optional[str]
+    #: Identifier of the org membership of the person, in the project's org.
+    membership_id: str
+    #: Project role.
+    project_role: Literal["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]
 
 
 class _ProjectAssignmentCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    #: Identifier of the person.
-    person_id: str
-    #: First day on the project.
-    valid_from: str
+    #: Identifier of the org membership of the person, in the project's org.
+    membership_id: str
+    #: Project role.
+    project_role: Literal["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]
 
 
 class ProjectAssignmentCreate(_ProjectAssignmentCreateRequired, total=False):
     """Fields accepted when creating a ProjectAssignment."""
 
-    #: Last day on the project.
+    #: When the assignment starts.
+    valid_from: str
+    #: When the assignment ends; null while open.
     valid_to: Optional[str]
 
 
 class ProjectAssignmentUpdate(TypedDict, total=False):
     """Fields accepted when updating a ProjectAssignment. Omitted fields are unchanged."""
 
-    #: First day on the project.
+    #: When the assignment starts.
     valid_from: str
-    #: Last day on the project.
+    #: When the assignment ends; null while open.
     valid_to: Optional[str]
+    #: Project role.
+    project_role: Literal["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]
 
 
 class ProjectAssignmentRolePage(TypedDict):
@@ -13427,12 +14047,12 @@ class ProjectAssignmentRole(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project assignment.
     project_assignment_id: str
     role: ProjectRole
@@ -13464,8 +14084,6 @@ class AccountMembership(TypedDict):
     created_at: str
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the external account organization.
-    organization_id: str
     #: Identifier of the member.
     person_id: str
     #: Start of account membership.
@@ -13475,17 +14093,15 @@ class AccountMembership(TypedDict):
 
 
 class _AccountMembershipCreateRequired(TypedDict):
-    #: Identifier of the external account organization.
-    organization_id: str
     #: Identifier of the member.
     person_id: str
-    #: Start of account membership.
-    valid_from: str
 
 
 class AccountMembershipCreate(_AccountMembershipCreateRequired, total=False):
     """Fields accepted when creating a AccountMembership."""
 
+    #: Start of account membership.
+    valid_from: str
     #: End of account membership.
     valid_to: Optional[str]
 
@@ -13519,7 +14135,9 @@ class AccountMembershipRole(TypedDict):
     updated_at: str
     #: Identifier of the account membership.
     account_membership_id: str
-    role: AccountRole
+    account_role: AccountRole
+    #: Identifier of the person who granted the role; null for the creator's own Account Owner role.
+    granted_by: Optional[str]
 
 
 class AccountMembershipRoleCreate(TypedDict):
@@ -13527,7 +14145,7 @@ class AccountMembershipRoleCreate(TypedDict):
 
     #: Identifier of the account membership.
     account_membership_id: str
-    role: AccountRole
+    account_role: AccountRole
 
 
 class OrganizationRelationshipPage(TypedDict):
@@ -13548,12 +14166,12 @@ class OrganizationRelationship(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the related organization.
     related_organization_id: str
     kind: OrganizationRelationshipKind
@@ -13603,9 +14221,7 @@ class Representation(TypedDict):
     #: When the row was last updated.
     updated_at: str
     #: Identifier of the representative.
-    representative_person_id: str
-    #: Identifier of the agency or management company.
-    representative_organization_id: Optional[str]
+    representative_person_id: Optional[str]
     #: Identifier of the represented artist.
     artist_person_id: str
     #: Delegated scopes, stored as junction rows.
@@ -13614,11 +14230,11 @@ class Representation(TypedDict):
     expires_on: str
     #: When the artist accepted.
     accepted_at: Optional[str]
+    #: When the artist or the account revoked it.
+    revoked_at: Optional[str]
 
 
 class _RepresentationCreateRequired(TypedDict):
-    #: Identifier of the representative.
-    representative_person_id: str
     #: Identifier of the represented artist.
     artist_person_id: str
     #: Delegated scopes, stored as junction rows.
@@ -13630,15 +14246,13 @@ class _RepresentationCreateRequired(TypedDict):
 class RepresentationCreate(_RepresentationCreateRequired, total=False):
     """Fields accepted when creating a Representation."""
 
-    #: Identifier of the agency or management company.
-    representative_organization_id: Optional[str]
+    #: Identifier of the representative.
+    representative_person_id: Optional[str]
 
 
 class RepresentationUpdate(TypedDict, total=False):
     """Fields accepted when updating a Representation. Omitted fields are unchanged."""
 
-    #: Identifier of the agency or management company.
-    representative_organization_id: Optional[str]
     #: Delegated scopes, stored as junction rows.
     scopes: List[RepresentationScope]
     #: Expiry.
@@ -13663,12 +14277,12 @@ class JoinRequest(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the requesting person.
     person_id: str
     #: Message to the admins.
@@ -13709,13 +14323,13 @@ class InvitationLink(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    role: OrgRole
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    role: Optional[OrgRole]
     #: When the link expires.
     expires_at: str
     #: Maximum uses.
@@ -13755,12 +14369,12 @@ class Invite(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Invitee email.
     email: str
     #: Identifier of the role offered.
@@ -13773,6 +14387,10 @@ class Invite(TypedDict):
     accepted_at: Optional[str]
     #: When it was revoked or replaced.
     revoked_at: Optional[str]
+    #: True for the first Owner invite a partner issues when it creates a client org (Section 4.6.1).
+    partner_bootstrap: bool
+    #: Identifier of the person who accepted.
+    accepted_person_id: Optional[str]
 
 
 class InviteMemberResult(TypedDict):
@@ -13843,39 +14461,45 @@ class VerifiedDomain(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Domain.
-    domain: str
-    #: Whether verified emails join automatically.
-    auto_join: bool
-    default_role: OrgRole
-    #: When the domain was verified.
-    verified_at: Optional[str]
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Lowercase host name, for example gateway.northwindlive.example.
+    hostname: str
+    #: What the domain is for.
+    purpose: Literal["Atlas", "Gateway", "Email Sending", "Verified Domain"]
+    #: DNS verification state; changed only by app.record_domain_verification.
+    verification_state: Literal["Pending", "Verified", "Failed"]
+    #: Value the org publishes in a DNS TXT record to prove control.
+    verification_token: str
+    #: When the verification service last checked DNS.
+    last_checked_at: Optional[str]
+    #: Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.
+    auto_join_role_id: Optional[str]
 
 
-class VerifiedDomainCreate(TypedDict):
+class _VerifiedDomainCreateRequired(TypedDict):
+    #: Lowercase host name, for example gateway.northwindlive.example.
+    hostname: str
+    #: What the domain is for.
+    purpose: Literal["Atlas", "Gateway", "Email Sending", "Verified Domain"]
+
+
+class VerifiedDomainCreate(_VerifiedDomainCreateRequired, total=False):
     """Fields accepted when creating a VerifiedDomain."""
 
-    #: Domain.
-    domain: str
-    #: Whether verified emails join automatically.
-    auto_join: bool
-    default_role: OrgRole
+    #: Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.
+    auto_join_role_id: Optional[str]
 
 
 class VerifiedDomainUpdate(TypedDict, total=False):
     """Fields accepted when updating a VerifiedDomain. Omitted fields are unchanged."""
 
-    #: Domain.
-    domain: str
-    #: Whether verified emails join automatically.
-    auto_join: bool
-    default_role: OrgRole
+    #: Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.
+    auto_join_role_id: Optional[str]
 
 
 class OffboardingChecklistPage(TypedDict):
@@ -13896,12 +14520,12 @@ class OffboardingChecklist(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the ending membership.
     membership_id: str
     #: Identifier of the default reassignee.
@@ -14116,31 +14740,30 @@ class ProfileVisibilityRule(TypedDict):
     created_at: str
     #: When the row was last updated.
     updated_at: str
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Section or field key.
-    target: str
-    level: ProfileVisibility
+    #: Identifier of the profile owner.
+    person_id: str
+    #: Profile section.
+    section: Literal["photo", "pronouns", "headline", "bio", "location", "skills", "certifications", "portfolio", "rates", "availability", "languages", "references", "links", "organizations"]
+    #: Visibility chosen for the section.
+    visibility: Literal["Private", "Network", "Public"]
 
 
 class ProfileVisibilityRuleCreate(TypedDict):
     """Fields accepted when creating a ProfileVisibilityRule."""
 
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Section or field key.
-    target: str
-    level: ProfileVisibility
+    #: Identifier of the profile owner.
+    person_id: str
+    #: Profile section.
+    section: Literal["photo", "pronouns", "headline", "bio", "location", "skills", "certifications", "portfolio", "rates", "availability", "languages", "references", "links", "organizations"]
+    #: Visibility chosen for the section.
+    visibility: Literal["Private", "Network", "Public"]
 
 
 class ProfileVisibilityRuleUpdate(TypedDict, total=False):
     """Fields accepted when updating a ProfileVisibilityRule. Omitted fields are unchanged."""
 
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Section or field key.
-    target: str
-    level: ProfileVisibility
+    #: Visibility chosen for the section.
+    visibility: Literal["Private", "Network", "Public"]
 
 
 class ProfileHandlePage(TypedDict):
@@ -14205,23 +14828,32 @@ class Verification(TypedDict):
     created_at: str
     #: When the row was last updated.
     updated_at: str
-    #: URN of the verified profile.
-    owner_urn: str
-    #: What is verified. A Title Case value from the lifecycle's database enum.
-    claim: str
-    #: Who verified it.
-    verifier: str
     #: When it was verified.
     verified_at: Optional[str]
+    #: How the organization was verified.
+    method: Literal["Stripe Identity", "Business Registry"]
+    #: The provider's verification or registry record reference.
+    provider_reference: str
+    #: When the verification lapses; null when it does not.
+    expires_at: Optional[str]
+    #: When the platform revoked it.
+    revoked_at: Optional[str]
+    #: Why it was revoked.
+    revocation_reason: Optional[str]
 
 
-class VerificationCreate(TypedDict):
+class _VerificationCreateRequired(TypedDict):
+    #: How the organization was verified.
+    method: Literal["Stripe Identity", "Business Registry"]
+    #: The provider's verification or registry record reference.
+    provider_reference: str
+
+
+class VerificationCreate(_VerificationCreateRequired, total=False):
     """Fields accepted when creating a Verification."""
 
-    #: URN of the verified profile.
-    owner_urn: str
-    #: What is verified. A Title Case value from the lifecycle's database enum.
-    claim: str
+    #: When the verification lapses; null when it does not.
+    expires_at: Optional[str]
 
 
 class BlockPage(TypedDict):
@@ -14271,20 +14903,16 @@ class Subscription(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Plan code from `plans.yaml`.
     plan_code: str
-    #: Subscription lifecycle state. A Title Case value from the lifecycle's database enum.
-    subscription_state: str
-    #: End of the current billing period.
-    current_period_end: str
-    #: Licensed seats.
-    seats: Optional[int]
+    #: Subscription status as Stripe reports it; read_only after the grace period.
+    subscription_state: Literal["trialing", "active", "past_due", "read_only", "canceled"]
 
 
 class SubscriptionUpdate(TypedDict, total=False):
@@ -14292,8 +14920,6 @@ class SubscriptionUpdate(TypedDict, total=False):
 
     #: Plan code from `plans.yaml`.
     plan_code: str
-    #: Licensed seats.
-    seats: Optional[int]
 
 
 class PlanPage(TypedDict):
@@ -14309,13 +14935,9 @@ class Plan(TypedDict):
     """A plan generated from `plans.yaml`."""
 
     #: Plan code.
-    plan_code: str
-    #: Plan name.
-    name: str
-    #: Monthly price per seat. Integer minor units of the resource currency; null means unpriced, never zero.
-    monthly_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    code: str
+    #: Plan order from the free plan upward.
+    sort_order: int
 
 
 class WorkspacePage(TypedDict):
@@ -14336,12 +14958,12 @@ class Workspace(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Workspace name.
     name: str
     #: URL slug.
@@ -14384,16 +15006,16 @@ class WorkspaceMember(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the workspace.
     workspace_id: str
-    #: Identifier of the member.
-    person_id: str
+    #: Identifier of the membership assigned to the workspace, in the same org.
+    membership_id: str
 
 
 class WorkspaceMemberCreate(TypedDict):
@@ -14401,8 +15023,8 @@ class WorkspaceMemberCreate(TypedDict):
 
     #: Identifier of the workspace.
     workspace_id: str
-    #: Identifier of the member.
-    person_id: str
+    #: Identifier of the membership assigned to the workspace, in the same org.
+    membership_id: str
 
 
 class TeamPage(TypedDict):
@@ -14423,12 +15045,12 @@ class Team(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Team name.
     name: str
 
@@ -14465,16 +15087,16 @@ class TeamMember(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the team.
     team_id: str
-    #: Identifier of the member.
-    person_id: str
+    #: Identifier of the member of the team, in the same org.
+    membership_id: str
 
 
 class TeamMemberCreate(TypedDict):
@@ -14482,8 +15104,8 @@ class TeamMemberCreate(TypedDict):
 
     #: Identifier of the team.
     team_id: str
-    #: Identifier of the member.
-    person_id: str
+    #: Identifier of the member of the team, in the same org.
+    membership_id: str
 
 
 class OrgBrandingPage(TypedDict):
@@ -14504,49 +15126,100 @@ class OrgBranding(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Brand display name.
-    display_name: str
-    #: Identifier of the logo file.
-    logo_document_id: Optional[str]
-    #: Accent color token.
-    accent_token: str
-    #: Custom Gateway domain.
-    gateway_domain: Optional[str]
+    display_name: Optional[str]
+    #: Logo for light themes: object path in the org-brand bucket, starting with the org id.
+    logo_light_path: Optional[str]
+    #: Logo for dark themes: object path in the org-brand bucket.
+    logo_dark_path: Optional[str]
+    #: Favicon: object path in the org-brand bucket.
+    favicon_path: Optional[str]
+    #: App icon: object path in the org-brand bucket.
+    app_icon_path: Optional[str]
+    #: Accent color as uppercase #RRGGBB, replacing accent-default in every theme; null keeps the platform accent.
+    accent_hex: Optional[str]
+    #: Optional neutral tint as uppercase #RRGGBB.
+    neutral_tint_hex: Optional[str]
+    #: Font family from the approved list; null keeps the platform font.
+    font_family: Optional[str]
+    #: Corner radius scale.
+    radius_scale: Literal["Compact", "Default", "Rounded"]
+    #: Sender name on emails sent for the org.
+    email_sender_name: Optional[str]
+    #: Support address shown on branded surfaces.
+    support_email: Optional[str]
+    #: Legal entity named on generated documents and emails.
+    legal_entity_name: Optional[str]
+    #: True hides Powered by XOS; it takes effect only while the plan includes white label.
+    suppress_powered_by: bool
 
 
-class _OrgBrandingCreateRequired(TypedDict):
-    #: Brand display name.
-    display_name: str
-    #: Accent color token.
-    accent_token: str
-
-
-class OrgBrandingCreate(_OrgBrandingCreateRequired, total=False):
+class OrgBrandingCreate(TypedDict, total=False):
     """Fields accepted when creating a OrgBranding."""
 
-    #: Identifier of the logo file.
-    logo_document_id: Optional[str]
-    #: Custom Gateway domain.
-    gateway_domain: Optional[str]
+    #: Brand display name.
+    display_name: Optional[str]
+    #: Logo for light themes: object path in the org-brand bucket, starting with the org id.
+    logo_light_path: Optional[str]
+    #: Logo for dark themes: object path in the org-brand bucket.
+    logo_dark_path: Optional[str]
+    #: Favicon: object path in the org-brand bucket.
+    favicon_path: Optional[str]
+    #: App icon: object path in the org-brand bucket.
+    app_icon_path: Optional[str]
+    #: Accent color as uppercase #RRGGBB, replacing accent-default in every theme; null keeps the platform accent.
+    accent_hex: Optional[str]
+    #: Optional neutral tint as uppercase #RRGGBB.
+    neutral_tint_hex: Optional[str]
+    #: Font family from the approved list; null keeps the platform font.
+    font_family: Optional[str]
+    #: Corner radius scale.
+    radius_scale: Literal["Compact", "Default", "Rounded"]
+    #: Sender name on emails sent for the org.
+    email_sender_name: Optional[str]
+    #: Support address shown on branded surfaces.
+    support_email: Optional[str]
+    #: Legal entity named on generated documents and emails.
+    legal_entity_name: Optional[str]
+    #: True hides Powered by XOS; it takes effect only while the plan includes white label.
+    suppress_powered_by: bool
 
 
 class OrgBrandingUpdate(TypedDict, total=False):
     """Fields accepted when updating a OrgBranding. Omitted fields are unchanged."""
 
     #: Brand display name.
-    display_name: str
-    #: Identifier of the logo file.
-    logo_document_id: Optional[str]
-    #: Accent color token.
-    accent_token: str
-    #: Custom Gateway domain.
-    gateway_domain: Optional[str]
+    display_name: Optional[str]
+    #: Logo for light themes: object path in the org-brand bucket, starting with the org id.
+    logo_light_path: Optional[str]
+    #: Logo for dark themes: object path in the org-brand bucket.
+    logo_dark_path: Optional[str]
+    #: Favicon: object path in the org-brand bucket.
+    favicon_path: Optional[str]
+    #: App icon: object path in the org-brand bucket.
+    app_icon_path: Optional[str]
+    #: Accent color as uppercase #RRGGBB, replacing accent-default in every theme; null keeps the platform accent.
+    accent_hex: Optional[str]
+    #: Optional neutral tint as uppercase #RRGGBB.
+    neutral_tint_hex: Optional[str]
+    #: Font family from the approved list; null keeps the platform font.
+    font_family: Optional[str]
+    #: Corner radius scale.
+    radius_scale: Literal["Compact", "Default", "Rounded"]
+    #: Sender name on emails sent for the org.
+    email_sender_name: Optional[str]
+    #: Support address shown on branded surfaces.
+    support_email: Optional[str]
+    #: Legal entity named on generated documents and emails.
+    legal_entity_name: Optional[str]
+    #: True hides Powered by XOS; it takes effect only while the plan includes white label.
+    suppress_powered_by: bool
 
 
 class OrgLegalEntityPage(TypedDict):
@@ -14567,12 +15240,12 @@ class OrgLegalEntity(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Legal name.
     legal_name: str
     #: ISO 3166-1 alpha-2 country code.
@@ -14635,12 +15308,12 @@ class OrgIpAllowlistEntry(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: CIDR block.
     cidr: str
     #: Label.
@@ -14680,31 +15353,37 @@ class Role(TypedDict):
     #: Identifier of the role.
     id: str
     #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
+    org_id: Optional[str]
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Role name.
-    name: str
-    base_role: OrgRole
+    name: Optional[str]
     #: What the role is for.
     description: Optional[str]
+    #: Role code. System role labels come from the i18n catalogs keyed by it; custom role codes never reuse a system code.
+    code: str
+    #: Band in Section 8 order, 1 Owner to 7 Viewer. Custom roles take 2 to 7, and a person assigns only roles at or below their own band.
+    band: int
 
 
 class _RoleCreateRequired(TypedDict):
-    #: Role name.
-    name: str
+    #: Role code. System role labels come from the i18n catalogs keyed by it; custom role codes never reuse a system code.
+    code: str
+    #: Band in Section 8 order, 1 Owner to 7 Viewer. Custom roles take 2 to 7, and a person assigns only roles at or below their own band.
+    band: int
 
 
 class RoleCreate(_RoleCreateRequired, total=False):
     """Fields accepted when creating a Role."""
 
-    base_role: OrgRole
+    #: Role name.
+    name: Optional[str]
     #: What the role is for.
     description: Optional[str]
 
@@ -14713,10 +15392,11 @@ class RoleUpdate(TypedDict, total=False):
     """Fields accepted when updating a Role. Omitted fields are unchanged."""
 
     #: Role name.
-    name: str
-    base_role: OrgRole
+    name: Optional[str]
     #: What the role is for.
     description: Optional[str]
+    #: Band in Section 8 order, 1 Owner to 7 Viewer. Custom roles take 2 to 7, and a person assigns only roles at or below their own band.
+    band: int
 
 
 class CapabilityPage(TypedDict):
@@ -14732,10 +15412,15 @@ class Capability(TypedDict):
     """A capability from `packages/schemas/capabilities.yaml`. Read-only."""
 
     #: Capability verb.
-    capability: str
+    code: str
     #: Capability group; OAuth scopes map one to one to groups.
-    group: str
-    classification: Classification
+    module_code: str
+    #: Kind of act the capability authorizes.
+    capability_class: Literal["read", "write", "approve", "manage", "export"]
+    #: What the capability allows, for documentation and the roles page.
+    description: str
+    #: Registry order, the default sort.
+    sort_order: int
 
 
 class RoleCapabilityPage(TypedDict):
@@ -14753,19 +15438,21 @@ class RoleCapability(TypedDict):
     #: Identifier of the role capability.
     id: str
     #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
+    org_id: Optional[str]
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the role.
     role_id: str
     #: Capability verb.
-    capability: str
+    capability_code: str
+    #: Own rows, assigned scopes or the whole org.
+    reach: Literal["own", "assigned", "organization"]
 
 
 class RoleCapabilityCreate(TypedDict):
@@ -14774,7 +15461,9 @@ class RoleCapabilityCreate(TypedDict):
     #: Identifier of the role.
     role_id: str
     #: Capability verb.
-    capability: str
+    capability_code: str
+    #: Own rows, assigned scopes or the whole org.
+    reach: Literal["own", "assigned", "organization"]
 
 
 class UserCapabilityGrantPage(TypedDict):
@@ -14795,36 +15484,50 @@ class UserCapabilityGrant(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the grantee.
-    person_id: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Capability verb.
-    capability: str
+    capability_code: str
     #: Start of the grant.
     valid_from: str
     #: End of the grant.
     valid_to: Optional[str]
+    #: Identifier of the membership that receives the capability.
+    membership_id: str
+    #: Kind of scope the grant is limited to; null for an org-wide grant.
+    scope_kind: Optional[Literal["organization", "workspace", "team", "project", "record"]]
+    #: Identifier of the workspace, team, project or record the grant is limited to; null for an org-wide grant.
+    scope_id: Optional[str]
+    #: Identifier of the person who granted it; never the grantee.
+    granted_by: Optional[str]
+    #: Why the grant was made.
+    reason: str
 
 
 class _UserCapabilityGrantCreateRequired(TypedDict):
-    #: Identifier of the grantee.
-    person_id: str
     #: Capability verb.
-    capability: str
-    #: Start of the grant.
-    valid_from: str
+    capability_code: str
+    #: Identifier of the membership that receives the capability.
+    membership_id: str
+    #: Why the grant was made.
+    reason: str
 
 
 class UserCapabilityGrantCreate(_UserCapabilityGrantCreateRequired, total=False):
     """Fields accepted when creating a UserCapabilityGrant."""
 
+    #: Start of the grant.
+    valid_from: str
     #: End of the grant.
     valid_to: Optional[str]
+    #: Kind of scope the grant is limited to; null for an org-wide grant.
+    scope_kind: Optional[Literal["organization", "workspace", "team", "project", "record"]]
+    #: Identifier of the workspace, team, project or record the grant is limited to; null for an org-wide grant.
+    scope_id: Optional[str]
 
 
 class UserCapabilityGrantUpdate(TypedDict, total=False):
@@ -14834,6 +15537,12 @@ class UserCapabilityGrantUpdate(TypedDict, total=False):
     valid_from: str
     #: End of the grant.
     valid_to: Optional[str]
+    #: Kind of scope the grant is limited to; null for an org-wide grant.
+    scope_kind: Optional[Literal["organization", "workspace", "team", "project", "record"]]
+    #: Identifier of the workspace, team, project or record the grant is limited to; null for an org-wide grant.
+    scope_id: Optional[str]
+    #: Why the grant was made.
+    reason: str
 
 
 class RecordGrantPage(TypedDict):
@@ -14854,49 +15563,71 @@ class RecordGrant(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: URN of the grantee.
-    grantee_urn: str
-    #: URN of the record.
-    subject_urn: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Capability verb.
-    capability: str
+    capability_code: str
     #: End of the grant.
     valid_to: Optional[str]
+    #: Kind of target.
+    target_kind: Literal["organization", "workspace", "team", "project", "record"]
+    #: Identifier of the target row.
+    target_id: str
+    #: Identifier of the person who receives access; null when an organization does.
+    grantee_person_id: Optional[str]
+    #: Identifier of the organization whose active members receive access; null when a person does.
+    grantee_org_id: Optional[str]
+    #: When access starts.
+    valid_from: str
+    #: Identifier of the person who granted it; never the grantee.
+    granted_by: Optional[str]
+    #: Why the grant was made, for example the partner agreement clause.
+    reason: str
 
 
 class _RecordGrantCreateRequired(TypedDict):
-    #: URN of the grantee.
-    grantee_urn: str
-    #: URN of the record.
-    subject_urn: str
     #: Capability verb.
-    capability: str
+    capability_code: str
+    #: End of the grant.
+    valid_to: Optional[str]
+    #: Kind of target.
+    target_kind: Literal["organization", "workspace", "team", "project", "record"]
+    #: Identifier of the target row.
+    target_id: str
+    #: Why the grant was made, for example the partner agreement clause.
+    reason: str
 
 
 class RecordGrantCreate(_RecordGrantCreateRequired, total=False):
     """Fields accepted when creating a RecordGrant."""
 
-    #: End of the grant.
-    valid_to: Optional[str]
+    #: Identifier of the person who receives access; null when an organization does.
+    grantee_person_id: Optional[str]
+    #: Identifier of the organization whose active members receive access; null when a person does.
+    grantee_org_id: Optional[str]
+    #: When access starts.
+    valid_from: str
 
 
 class RecordGrantUpdate(TypedDict, total=False):
     """Fields accepted when updating a RecordGrant. Omitted fields are unchanged."""
 
-    #: URN of the grantee.
-    grantee_urn: str
-    #: URN of the record.
-    subject_urn: str
     #: Capability verb.
-    capability: str
+    capability_code: str
     #: End of the grant.
     valid_to: Optional[str]
+    #: Identifier of the person who receives access; null when an organization does.
+    grantee_person_id: Optional[str]
+    #: Identifier of the organization whose active members receive access; null when a person does.
+    grantee_org_id: Optional[str]
+    #: When access starts.
+    valid_from: str
+    #: Why the grant was made, for example the partner agreement clause.
+    reason: str
 
 
 class DelegationPage(TypedDict):
@@ -14917,46 +15648,57 @@ class Delegation(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the delegating person.
-    from_person_id: str
-    #: Identifier of the delegate.
-    to_person_id: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Start.
     valid_from: str
     #: End.
     valid_to: str
+    #: Identifier of the member who delegates.
+    delegator_membership_id: str
+    #: Identifier of the member who acts for the delegator; never the delegator.
+    delegate_membership_id: str
+    #: Delegated capability; null delegates every approve-class capability the delegator holds.
+    capability_code: Optional[str]
+    #: Why the delegation exists.
+    reason: str
 
 
-class DelegationCreate(TypedDict):
+class _DelegationCreateRequired(TypedDict):
+    #: Start.
+    valid_from: str
+    #: End.
+    valid_to: str
+    #: Identifier of the member who delegates.
+    delegator_membership_id: str
+    #: Identifier of the member who acts for the delegator; never the delegator.
+    delegate_membership_id: str
+    #: Why the delegation exists.
+    reason: str
+
+
+class DelegationCreate(_DelegationCreateRequired, total=False):
     """Fields accepted when creating a Delegation."""
 
-    #: Identifier of the delegating person.
-    from_person_id: str
-    #: Identifier of the delegate.
-    to_person_id: str
-    #: Start.
-    valid_from: str
-    #: End.
-    valid_to: str
+    #: Delegated capability; null delegates every approve-class capability the delegator holds.
+    capability_code: Optional[str]
 
 
 class DelegationUpdate(TypedDict, total=False):
     """Fields accepted when updating a Delegation. Omitted fields are unchanged."""
 
-    #: Identifier of the delegating person.
-    from_person_id: str
-    #: Identifier of the delegate.
-    to_person_id: str
     #: Start.
     valid_from: str
     #: End.
     valid_to: str
+    #: Delegated capability; null delegates every approve-class capability the delegator holds.
+    capability_code: Optional[str]
+    #: Why the delegation exists.
+    reason: str
 
 
 class SpendAuthorityPage(TypedDict):
@@ -14977,29 +15719,41 @@ class SpendAuthority(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the role.
     role_id: Optional[str]
-    #: Identifier of the person.
-    person_id: Optional[str]
-    document_type: SpendDocumentType
+    #: Document type the limit applies to.
+    document_type: Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Contract", "Payroll Run", "Requisition"]
     #: Single-approver limit in the org currency. Integer minor units of the resource currency; null means unpriced, never zero.
     limit_minor: Optional[int]
     #: Amount above which two approvers are required. Integer minor units of the resource currency; null means unpriced, never zero.
     dual_approval_above_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
+    #: Identifier of the membership of the one person the limit applies to; null when it applies to a role.
+    membership_id: Optional[str]
+    #: GL account the limit is scoped to; null for every account.
+    account_code: Optional[str]
+    #: Identifier of the cost center the limit is scoped to; null for every cost center.
+    cost_center_id: Optional[str]
+    #: When the limit starts.
+    valid_from: str
+    #: When the limit ends; null while open-ended.
+    valid_to: Optional[str]
 
 
 class _SpendAuthorityCreateRequired(TypedDict):
-    document_type: SpendDocumentType
+    #: Document type the limit applies to.
+    document_type: Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Contract", "Payroll Run", "Requisition"]
+    #: Single-approver limit in the org currency. Integer minor units of the resource currency; null means unpriced, never zero.
+    limit_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class SpendAuthorityCreate(_SpendAuthorityCreateRequired, total=False):
@@ -15007,12 +15761,18 @@ class SpendAuthorityCreate(_SpendAuthorityCreateRequired, total=False):
 
     #: Identifier of the role.
     role_id: Optional[str]
-    #: Identifier of the person.
-    person_id: Optional[str]
-    #: Single-approver limit in the org currency. Integer minor units of the resource currency; null means unpriced, never zero.
-    limit_minor: Optional[int]
     #: Amount above which two approvers are required. Integer minor units of the resource currency; null means unpriced, never zero.
     dual_approval_above_minor: Optional[int]
+    #: Identifier of the membership of the one person the limit applies to; null when it applies to a role.
+    membership_id: Optional[str]
+    #: GL account the limit is scoped to; null for every account.
+    account_code: Optional[str]
+    #: Identifier of the cost center the limit is scoped to; null for every cost center.
+    cost_center_id: Optional[str]
+    #: When the limit starts.
+    valid_from: str
+    #: When the limit ends; null while open-ended.
+    valid_to: Optional[str]
 
 
 class SpendAuthorityUpdate(TypedDict, total=False):
@@ -15020,15 +15780,24 @@ class SpendAuthorityUpdate(TypedDict, total=False):
 
     #: Identifier of the role.
     role_id: Optional[str]
-    #: Identifier of the person.
-    person_id: Optional[str]
-    document_type: SpendDocumentType
+    #: Document type the limit applies to.
+    document_type: Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Contract", "Payroll Run", "Requisition"]
     #: Single-approver limit in the org currency. Integer minor units of the resource currency; null means unpriced, never zero.
     limit_minor: Optional[int]
     #: Amount above which two approvers are required. Integer minor units of the resource currency; null means unpriced, never zero.
     dual_approval_above_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
+    #: Identifier of the membership of the one person the limit applies to; null when it applies to a role.
+    membership_id: Optional[str]
+    #: GL account the limit is scoped to; null for every account.
+    account_code: Optional[str]
+    #: Identifier of the cost center the limit is scoped to; null for every cost center.
+    cost_center_id: Optional[str]
+    #: When the limit starts.
+    valid_from: str
+    #: When the limit ends; null while open-ended.
+    valid_to: Optional[str]
 
 
 class SeparationOfDutiesRulePage(TypedDict):
@@ -15043,42 +15812,12 @@ class SeparationOfDutiesRulePage(TypedDict):
 class SeparationOfDutiesRule(TypedDict):
     """A separation of duties rule. Orgs may tighten defaults but never remove them."""
 
-    #: Identifier of the separation of duties rule.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Rule key, named in refusals.
-    rule: str
+    #: Rule code, the rule a refusal names.
+    code: str
     #: What the rule is enforced on.
     enforced_on: str
-    #: Whether it is a platform default that cannot be removed.
-    is_default: bool
-
-
-class SeparationOfDutiesRuleCreate(TypedDict):
-    """Fields accepted when creating a SeparationOfDutiesRule."""
-
-    #: Rule key, named in refusals.
-    rule: str
-    #: What the rule is enforced on.
-    enforced_on: str
-
-
-class SeparationOfDutiesRuleUpdate(TypedDict, total=False):
-    """Fields accepted when updating a SeparationOfDutiesRule. Omitted fields are unchanged."""
-
-    #: Rule key, named in refusals.
-    rule: str
-    #: What the rule is enforced on.
-    enforced_on: str
+    #: What the rule forbids.
+    description: str
 
 
 class ColumnClassificationPage(TypedDict):
@@ -15099,7 +15838,7 @@ class ColumnClassification(TypedDict):
     column_name: str
     classification: Classification
     #: Capability that unmasks it.
-    reveal_capability: Optional[str]
+    read_capability: Optional[str]
 
 
 class AccessReviewCampaignPage(TypedDict):
@@ -15120,12 +15859,12 @@ class AccessReviewCampaign(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Campaign name.
     name: str
     #: Due date.
@@ -15176,12 +15915,12 @@ class AccessReviewItem(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the campaign.
     access_review_campaign_id: str
     #: Identifier of the membership role.
@@ -15215,12 +15954,12 @@ class BreakGlassSession(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the Owner.
     person_id: str
     #: Written reason.
@@ -15256,12 +15995,12 @@ class ProjectShare(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
     #: Identifier of the partner organization.
@@ -15309,12 +16048,12 @@ class ScimGroupMapping(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identity-provider group name.
     idp_group: str
     #: Identifier of the role.
@@ -15366,12 +16105,12 @@ class ApiKey(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Key name.
     name: str
     #: Identifier of the service account.
@@ -15386,22 +16125,8 @@ class ApiKey(TypedDict):
     last_used_at: Optional[str]
     #: When it was revoked.
     revoked_at: Optional[str]
-
-
-class _ApiKeyCreateRequired(TypedDict):
-    #: Key name.
-    name: str
-    #: Capability groups the key may use.
-    scopes: List[str]
-    #: Expiry.
-    expires_at: str
-
-
-class ApiKeyCreate(_ApiKeyCreateRequired, total=False):
-    """Fields accepted when creating a ApiKey."""
-
-    #: Identifier of the service account.
-    service_account_id: Optional[str]
+    #: Identifier of the person who revoked the key.
+    revoked_by: Optional[str]
 
 
 class ApiKeyUpdate(TypedDict, total=False):
@@ -15426,6 +16151,22 @@ class ApiKeySecret(TypedDict):
     secret: str
 
 
+class _ApiKeyCreateRequired(TypedDict):
+    #: Key name.
+    name: str
+    #: Capability groups the key may use.
+    scopes: List[str]
+    #: Expiry.
+    expires_at: str
+
+
+class ApiKeyCreate(_ApiKeyCreateRequired, total=False):
+    """Fields accepted when creating a ApiKey."""
+
+    #: Identifier of the service account.
+    service_account_id: Optional[str]
+
+
 class ServiceAccountPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -15444,25 +16185,31 @@ class ServiceAccount(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Service account name.
     name: str
     #: Identifier of the owner.
     owner_person_id: str
     #: Expiry.
     expires_at: Optional[str]
+    #: Identifier of the sign-in of the service account, which never signs in interactively.
+    user_id: str
+    #: Identifier of the person row of the service account, the actor in audit columns.
+    person_id: str
+    #: Identifier of the membership that carries the service account's role in the org.
+    membership_id: str
 
 
 class _ServiceAccountCreateRequired(TypedDict):
     #: Service account name.
     name: str
-    #: Identifier of the owner.
-    owner_person_id: str
+    #: Identifier of the role the service account's membership holds.
+    role_id: str
 
 
 class ServiceAccountCreate(_ServiceAccountCreateRequired, total=False):
@@ -15501,12 +16248,12 @@ class OauthApp(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: App name.
     name: str
     #: OAuth client identifier.
@@ -15551,12 +16298,12 @@ class OauthGrant(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the OAuth app.
     oauth_app_id: str
     #: Identifier of the granting person.
@@ -15585,12 +16332,12 @@ class Integration(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Provider.
     provider: str
     #: Whether the integration is on.
@@ -15635,29 +16382,20 @@ class WebhookEndpoint(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: HTTPS endpoint URL.
     url: str
     #: Subscribed event names.
     events: List[str]
-    #: Whether deliveries are sent.
-    enabled: bool
-
-
-class WebhookEndpointCreate(TypedDict):
-    """Fields accepted when creating a WebhookEndpoint."""
-
-    #: HTTPS endpoint URL.
-    url: str
-    #: Subscribed event names.
-    events: List[str]
-    #: Whether deliveries are sent.
-    enabled: bool
+    #: What the endpoint is for.
+    description: Optional[str]
+    #: When the endpoint was turned off; disabled endpoints get no new deliveries.
+    disabled_at: Optional[str]
 
 
 class WebhookEndpointUpdate(TypedDict, total=False):
@@ -15667,8 +16405,33 @@ class WebhookEndpointUpdate(TypedDict, total=False):
     url: str
     #: Subscribed event names.
     events: List[str]
-    #: Whether deliveries are sent.
-    enabled: bool
+    #: What the endpoint is for.
+    description: Optional[str]
+    #: When the endpoint was turned off; disabled endpoints get no new deliveries.
+    disabled_at: Optional[str]
+
+
+class WebhookEndpointSecret(TypedDict):
+    """A newly created webhook endpoint and its signing secret, shown once."""
+
+    #: Identifier of the webhook endpoint.
+    webhook_endpoint_id: str
+    #: The endpoint's signing secret. Shown once; it is stored in Vault and never read back.
+    signing_secret: str
+
+
+class _WebhookEndpointCreateRequired(TypedDict):
+    #: HTTPS endpoint URL.
+    url: str
+    #: Subscribed event names.
+    events: List[str]
+
+
+class WebhookEndpointCreate(_WebhookEndpointCreateRequired, total=False):
+    """Fields accepted when creating a WebhookEndpoint."""
+
+    #: What the endpoint is for.
+    description: Optional[str]
 
 
 class WebhookDeliveryPage(TypedDict):
@@ -15689,24 +16452,32 @@ class WebhookDelivery(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the endpoint.
     webhook_endpoint_id: str
-    #: Event name.
-    event: str
     #: Delivery status. A Title Case value from the lifecycle's database enum.
     delivery_status: str
-    #: Attempt number.
-    attempt: int
-    #: Endpoint HTTP status.
-    response_status: Optional[int]
     #: When it was delivered.
     delivered_at: Optional[str]
+    #: Identifier of the domain event delivered; every attempt sends the same body built from it.
+    domain_event_id: str
+    #: Attempts started.
+    attempt_count: int
+    #: When the dispatcher may try next.
+    next_attempt_at: str
+    #: When the latest attempt started.
+    last_attempt_at: Optional[str]
+    #: HTTP status of the latest response; null when no response arrived.
+    last_response_status: Optional[int]
+    #: Network or HTTP error of the latest failed attempt.
+    last_error: Optional[str]
+    #: Identifier of the person who replayed the event from Atlas.
+    replay_requested_by: Optional[str]
 
 
 class WebhookEventTypePage(TypedDict):
@@ -15722,9 +16493,11 @@ class WebhookEventType(TypedDict):
     """A webhook event from the domain event table."""
 
     #: Event name `{resource}.{event}`.
-    event: str
+    code: str
     #: When it fires.
     description: str
+    #: Table whose rows the event describes.
+    subject: str
 
 
 class SettingDefinitionPage(TypedDict):
@@ -15768,12 +16541,12 @@ class SettingValue(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     scope_type: SettingScope
     #: Identifier of the scope row.
     scope_id: Optional[str]
@@ -15823,12 +16596,12 @@ class SettingLock(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Setting key.
     setting_key: str
 
@@ -15858,24 +16631,32 @@ class AuditEvent(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: URN of the actor.
-    actor_urn: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Action.
     action: str
-    #: URN of the subject.
-    subject_urn: str
-    #: Capacity the actor acted in.
-    capacity: str
-    #: When it happened.
-    occurred_at: str
     #: Redacted audit diff.
     diff: Dict[str, Any]
+    #: Who acted.
+    actor_kind: Literal["Person", "Service", "System"]
+    #: Identifier of the person who acted, when a person acted.
+    actor_person_id: Optional[str]
+    #: Table of the row acted on.
+    subject_table: str
+    #: Identifier of the row acted on.
+    subject_id: Optional[str]
+    #: Client IP address of the request. Removed at redaction.
+    actor_ip: Optional[str]
+    #: Client user agent of the request. Removed at redaction.
+    user_agent: Optional[str]
+    #: API request id, for correlating with logs.
+    request_id: Optional[str]
+    #: When personal data in the event was redacted.
+    redacted_at: Optional[str]
 
 
 class ConsentRecordPage(TypedDict):
@@ -15899,11 +16680,17 @@ class ConsentRecord(TypedDict):
     #: Identifier of the person.
     person_id: str
     #: Consent purpose.
-    purpose: str
-    #: Whether consent is granted.
-    granted: bool
-    #: When it was recorded.
-    recorded_at: str
+    purpose_code: str
+    #: Version of the notice shown when consent was given.
+    notice_version: str
+    #: Where consent was captured.
+    source: Literal["Web", "Mobile", "Email", "SMS", "Import", "Support"]
+    #: When consent was given, set by the database.
+    captured_at: str
+    #: Client IP address at capture, set by the database.
+    captured_ip: Optional[str]
+    #: When the person withdrew consent; null while it stands.
+    withdrawn_at: Optional[str]
 
 
 class ConsentRecordCreate(TypedDict):
@@ -15912,9 +16699,11 @@ class ConsentRecordCreate(TypedDict):
     #: Identifier of the person.
     person_id: str
     #: Consent purpose.
-    purpose: str
-    #: Whether consent is granted.
-    granted: bool
+    purpose_code: str
+    #: Version of the notice shown when consent was given.
+    notice_version: str
+    #: Where consent was captured.
+    source: Literal["Web", "Mobile", "Email", "SMS", "Import", "Support"]
 
 
 class DsarRequestPage(TypedDict):
@@ -15935,29 +16724,40 @@ class DsarRequest(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the data subject.
-    person_id: str
-    #: Request type.
-    request_type: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: What the requester exercises.
+    request_type: Literal["Access", "Rectification", "Erasure", "Restriction", "Portability", "Objection", "Opt Out of Sale"]
     #: Request state. A Title Case value from the lifecycle's database enum.
     dsar_state: str
-    #: When it completed.
-    completed_at: Optional[str]
+    #: Identifier of the person the request is about, when they have an account.
+    subject_person_id: Optional[str]
+    #: Email the requester gave, used to verify identity and to reply.
+    subject_email: str
+    #: What the requester asked for, in their words.
+    details: Optional[str]
+    #: When the request was received; the clock starts here.
+    received_at: str
 
 
-class DsarRequestCreate(TypedDict):
+class _DsarRequestCreateRequired(TypedDict):
+    #: What the requester exercises.
+    request_type: Literal["Access", "Rectification", "Erasure", "Restriction", "Portability", "Objection", "Opt Out of Sale"]
+    #: Email the requester gave, used to verify identity and to reply.
+    subject_email: str
+
+
+class DsarRequestCreate(_DsarRequestCreateRequired, total=False):
     """Fields accepted when creating a DsarRequest."""
 
-    #: Identifier of the data subject.
-    person_id: str
-    #: Request type.
-    request_type: str
+    #: Identifier of the person the request is about, when they have an account.
+    subject_person_id: Optional[str]
+    #: What the requester asked for, in their words.
+    details: Optional[str]
 
 
 class RetentionPolicyPage(TypedDict):
@@ -15974,8 +16774,18 @@ class RetentionPolicy(TypedDict):
 
     #: Table.
     table_name: str
-    #: Days kept after soft delete.
-    retention_days: int
+    #: What starts the retention clock.
+    basis: Optional[Literal["Soft Deleted", "Age"]]
+    #: Column that starts the clock.
+    time_column: Optional[str]
+    #: How long rows are kept, as an interval.
+    retention: Optional[str]
+    #: How expired rows leave.
+    purge_method: Optional[Literal["Delete", "Drop Partition", "Account Lifecycle"]]
+    #: When personal data in the table is redacted, if ever.
+    redact_personal_data_after: Optional[str]
+    #: Why the period was chosen.
+    rationale: Optional[str]
 
 
 class OrgExportPage(TypedDict):
@@ -15996,12 +16806,12 @@ class OrgExport(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     format: ExportFormat
     #: Export state. A Title Case value from the lifecycle's database enum.
     export_state: str
@@ -16033,12 +16843,12 @@ class AiSettings(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Assistant.
     assistant_enabled: bool
     #: Document extraction.
@@ -16076,29 +16886,46 @@ class ReportDefinition(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Report name.
     name: str
     #: Source.
-    source: str
-    #: Fields, filters, grouping and chart type.
-    definition: Dict[str, Any]
+    source_code: str
+    #: Chart type.
+    chart: Literal["Table", "Bar", "Line", "Area", "Pie", "Number"]
+    #: Field the rows are grouped by.
+    group_by_field: Optional[str]
+    #: Whether everyone who may read the source sees it.
+    shared: bool
+    #: Identifier of the custom object type, when the source is custom_object.
+    custom_object_type_id: Optional[str]
+    #: Identifier of the membership that owns the report.
+    membership_id: str
 
 
-class ReportDefinitionCreate(TypedDict):
+class _ReportDefinitionCreateRequired(TypedDict):
+    #: Report name.
+    name: str
+    #: Source.
+    source_code: str
+
+
+class ReportDefinitionCreate(_ReportDefinitionCreateRequired, total=False):
     """Fields accepted when creating a ReportDefinition."""
 
-    #: Report name.
-    name: str
-    #: Source.
-    source: str
-    #: Fields, filters, grouping and chart type.
-    definition: Dict[str, Any]
+    #: Chart type.
+    chart: Literal["Table", "Bar", "Line", "Area", "Pie", "Number"]
+    #: Field the rows are grouped by.
+    group_by_field: Optional[str]
+    #: Whether everyone who may read the source sees it.
+    shared: bool
+    #: Identifier of the custom object type, when the source is custom_object.
+    custom_object_type_id: Optional[str]
 
 
 class ReportDefinitionUpdate(TypedDict, total=False):
@@ -16107,9 +16934,15 @@ class ReportDefinitionUpdate(TypedDict, total=False):
     #: Report name.
     name: str
     #: Source.
-    source: str
-    #: Fields, filters, grouping and chart type.
-    definition: Dict[str, Any]
+    source_code: str
+    #: Chart type.
+    chart: Literal["Table", "Bar", "Line", "Area", "Pie", "Number"]
+    #: Field the rows are grouped by.
+    group_by_field: Optional[str]
+    #: Whether everyone who may read the source sees it.
+    shared: bool
+    #: Identifier of the custom object type, when the source is custom_object.
+    custom_object_type_id: Optional[str]
 
 
 class ReportRunPage(TypedDict):
@@ -16130,21 +16963,29 @@ class ReportRun(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the report definition.
     report_definition_id: str
-    format: ExportFormat
-    #: Run state. A Title Case value from the lifecycle's database enum.
-    run_state: str
-    #: Identifier of the output file.
-    document_id: Optional[str]
+    export_format: ExportFormat
+    #: Run status.
+    run_status: Literal["Queued", "Running", "Succeeded", "Failed"]
     #: When the run finished.
-    ran_at: Optional[str]
+    finished_at: Optional[str]
+    #: Identifier of the membership the run is for.
+    run_for_membership_id: str
+    #: When the run started.
+    started_at: Optional[str]
+    #: Rows in the output.
+    row_count: Optional[int]
+    #: Unpriced inputs left out of the money totals.
+    unpriced_count: Optional[int]
+    #: Why the run failed.
+    last_error: Optional[str]
 
 
 class ReportRunCreate(TypedDict):
@@ -16152,7 +16993,7 @@ class ReportRunCreate(TypedDict):
 
     #: Identifier of the report definition.
     report_definition_id: str
-    format: ExportFormat
+    export_format: ExportFormat
 
 
 class ReportSchedulePage(TypedDict):
@@ -16173,12 +17014,12 @@ class ReportSchedule(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the report definition.
     report_definition_id: str
     #: RFC 5545 recurrence rule.
@@ -16228,12 +17069,12 @@ class Dashboard(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Dashboard name.
     name: str
     #: Identifier of the team.
@@ -16279,12 +17120,12 @@ class DashboardTile(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the dashboard.
     dashboard_id: str
     #: Identifier of the report definition.
@@ -16355,12 +17196,12 @@ class CustomObjectType(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Object key used in the route.
     object_key: str
     #: Title Case label.
@@ -16371,15 +17212,18 @@ class CustomObjectType(TypedDict):
     default_view: str
 
 
-class CustomObjectTypeCreate(TypedDict):
-    """Fields accepted when creating a CustomObjectType."""
-
+class _CustomObjectTypeCreateRequired(TypedDict):
     #: Object key used in the route.
     object_key: str
     #: Title Case label.
     label: str
     #: Icon name.
     icon: str
+
+
+class CustomObjectTypeCreate(_CustomObjectTypeCreateRequired, total=False):
+    """Fields accepted when creating a CustomObjectType."""
+
     #: Default view type.
     default_view: str
 
@@ -16413,12 +17257,12 @@ class CustomObjectField(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the custom object type.
     custom_object_type_id: str
     #: Field key.
@@ -16431,11 +17275,11 @@ class CustomObjectField(TypedDict):
     required: bool
     #: Whether the field gets a partial index.
     filterable: bool
+    #: Position in forms and tables.
+    sort_order: int
 
 
-class CustomObjectFieldCreate(TypedDict):
-    """Fields accepted when creating a CustomObjectField."""
-
+class _CustomObjectFieldCreateRequired(TypedDict):
     #: Identifier of the custom object type.
     custom_object_type_id: str
     #: Field key.
@@ -16444,6 +17288,13 @@ class CustomObjectFieldCreate(TypedDict):
     label: str
     #: Data type.
     data_type: str
+    #: Position in forms and tables.
+    sort_order: int
+
+
+class CustomObjectFieldCreate(_CustomObjectFieldCreateRequired, total=False):
+    """Fields accepted when creating a CustomObjectField."""
+
     #: Whether a value is required.
     required: bool
     #: Whether the field gets a partial index.
@@ -16461,6 +17312,8 @@ class CustomObjectFieldUpdate(TypedDict, total=False):
     required: bool
     #: Whether the field gets a partial index.
     filterable: bool
+    #: Position in forms and tables.
+    sort_order: int
 
 
 class CustomObjectRecordPage(TypedDict):
@@ -16481,16 +17334,18 @@ class CustomObjectRecord(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Record title.
     title: str
     #: Field values keyed by field key. Stored normalized in `custom_object_values`.
     values: Dict[str, Optional[Union[str, float, bool]]]
+    #: Identifier of the object type the record is an instance of.
+    custom_object_type_id: str
 
 
 class CustomObjectRecordCreate(TypedDict):
@@ -16529,25 +17384,48 @@ class CustomObjectRelation(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the custom object record.
-    custom_object_record_id: str
-    #: URN of the related record.
-    target_urn: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the custom object record the link starts from.
+    from_record_id: str
+    #: Name of the relation, such as sponsor or venue.
+    relation_key: str
+    #: Identifier of the linked custom object record.
+    to_custom_record_id: Optional[str]
+    #: Identifier of the linked record.
+    to_record_id: Optional[str]
+    #: Identifier of the linked project.
+    to_project_id: Optional[str]
+    #: Identifier of the linked counterparty organization.
+    to_counterparty_id: Optional[str]
+    #: Identifier of the linked person.
+    to_person_id: Optional[str]
 
 
-class CustomObjectRelationCreate(TypedDict):
+class _CustomObjectRelationCreateRequired(TypedDict):
+    #: Identifier of the custom object record the link starts from.
+    from_record_id: str
+    #: Name of the relation, such as sponsor or venue.
+    relation_key: str
+
+
+class CustomObjectRelationCreate(_CustomObjectRelationCreateRequired, total=False):
     """Fields accepted when creating a CustomObjectRelation."""
 
-    #: Identifier of the custom object record.
-    custom_object_record_id: str
-    #: URN of the related record.
-    target_urn: str
+    #: Identifier of the linked custom object record.
+    to_custom_record_id: Optional[str]
+    #: Identifier of the linked record.
+    to_record_id: Optional[str]
+    #: Identifier of the linked project.
+    to_project_id: Optional[str]
+    #: Identifier of the linked counterparty organization.
+    to_counterparty_id: Optional[str]
+    #: Identifier of the linked person.
+    to_person_id: Optional[str]
 
 
 class CustomFieldDefinitionPage(TypedDict):
@@ -16568,12 +17446,12 @@ class CustomFieldDefinition(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Table the field extends.
     target_table: str
     #: Field key.
@@ -16582,19 +17460,34 @@ class CustomFieldDefinition(TypedDict):
     label: str
     #: Data type.
     data_type: str
+    #: True when forms require a value.
+    required: bool
+    #: True when views filter on the field; it adds a partial index.
+    filterable: bool
+    #: Position in forms.
+    sort_order: int
 
 
-class CustomFieldDefinitionCreate(TypedDict):
+class _CustomFieldDefinitionCreateRequired(TypedDict):
+    #: Table the field extends.
+    target_table: str
+    #: Field key.
+    field_key: str
+    #: Label.
+    label: str
+    #: Data type.
+    data_type: str
+    #: Position in forms.
+    sort_order: int
+
+
+class CustomFieldDefinitionCreate(_CustomFieldDefinitionCreateRequired, total=False):
     """Fields accepted when creating a CustomFieldDefinition."""
 
-    #: Table the field extends.
-    target_table: str
-    #: Field key.
-    field_key: str
-    #: Label.
-    label: str
-    #: Data type.
-    data_type: str
+    #: True when forms require a value.
+    required: bool
+    #: True when views filter on the field; it adds a partial index.
+    filterable: bool
 
 
 class CustomFieldDefinitionUpdate(TypedDict, total=False):
@@ -16604,6 +17497,12 @@ class CustomFieldDefinitionUpdate(TypedDict, total=False):
     label: str
     #: Data type.
     data_type: str
+    #: True when forms require a value.
+    required: bool
+    #: True when views filter on the field; it adds a partial index.
+    filterable: bool
+    #: Position in forms.
+    sort_order: int
 
 
 class CustomFieldValuePage(TypedDict):
@@ -16624,39 +17523,87 @@ class CustomFieldValue(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the custom field definition.
     custom_field_definition_id: str
-    #: Identifier of the extended row.
-    row_id: str
     #: Typed value.
-    value: Optional[Union[str, float, bool]]
+    value_text: Optional[Union[str, float, bool]]
+    #: Identifier of the row of the field's target table the value belongs to.
+    target_id: str
+    #: Number value.
+    value_number: Optional[float]
+    #: Money value in minor units of value_currency. Integer minor units of the resource currency; null means unpriced, never zero.
+    value_money_minor: Optional[int]
+    #: ISO 4217 currency of a money value.
+    value_currency: Optional[str]
+    #: Date value.
+    value_date: Optional[str]
+    #: Timestamp value.
+    value_timestamp: Optional[str]
+    #: Boolean value.
+    value_boolean: Optional[bool]
+    #: Identifier of the chosen option of the field.
+    value_choice_id: Optional[str]
+    #: Identifier of the person value.
+    value_person_id: Optional[str]
 
 
 class _CustomFieldValueCreateRequired(TypedDict):
     #: Identifier of the custom field definition.
     custom_field_definition_id: str
-    #: Identifier of the extended row.
-    row_id: str
+    #: Identifier of the row of the field's target table the value belongs to.
+    target_id: str
 
 
 class CustomFieldValueCreate(_CustomFieldValueCreateRequired, total=False):
     """Fields accepted when creating a CustomFieldValue."""
 
     #: Typed value.
-    value: Optional[Union[str, float, bool]]
+    value_text: Optional[Union[str, float, bool]]
+    #: Number value.
+    value_number: Optional[float]
+    #: Money value in minor units of value_currency. Integer minor units of the resource currency; null means unpriced, never zero.
+    value_money_minor: Optional[int]
+    #: ISO 4217 currency of a money value.
+    value_currency: Optional[str]
+    #: Date value.
+    value_date: Optional[str]
+    #: Timestamp value.
+    value_timestamp: Optional[str]
+    #: Boolean value.
+    value_boolean: Optional[bool]
+    #: Identifier of the chosen option of the field.
+    value_choice_id: Optional[str]
+    #: Identifier of the person value.
+    value_person_id: Optional[str]
 
 
 class CustomFieldValueUpdate(TypedDict, total=False):
     """Fields accepted when updating a CustomFieldValue. Omitted fields are unchanged."""
 
     #: Typed value.
-    value: Optional[Union[str, float, bool]]
+    value_text: Optional[Union[str, float, bool]]
+    #: Number value.
+    value_number: Optional[float]
+    #: Money value in minor units of value_currency. Integer minor units of the resource currency; null means unpriced, never zero.
+    value_money_minor: Optional[int]
+    #: ISO 4217 currency of a money value.
+    value_currency: Optional[str]
+    #: Date value.
+    value_date: Optional[str]
+    #: Timestamp value.
+    value_timestamp: Optional[str]
+    #: Boolean value.
+    value_boolean: Optional[bool]
+    #: Identifier of the chosen option of the field.
+    value_choice_id: Optional[str]
+    #: Identifier of the person value.
+    value_person_id: Optional[str]
 
 
 class OrgStateLabelPage(TypedDict):
@@ -16677,12 +17624,12 @@ class OrgStateLabel(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Record state relabeled. A Title Case value from the lifecycle's database enum.
     record_state: str
     #: Display label.
@@ -16723,29 +17670,37 @@ class ImportJob(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the uploaded spreadsheet.
-    source_document_id: str
-    #: Target entity.
-    target_table: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the saved mapping profile.
     import_mapping_profile_id: Optional[str]
-    #: Import job state. A Title Case value from the lifecycle's database enum.
-    import_state: str
-    #: Identifier of the committed batch.
-    import_batch_id: Optional[str]
+    #: Import target the rows are written to.
+    target_code: str
+    #: Source format.
+    source: Literal["CSV", "XLSX", "XLS", "Google Sheets"]
+    #: File name as uploaded.
+    original_filename: str
+    #: Object path of the uploaded file in the tenant import bucket.
+    storage_object_path: str
+    #: Wizard progress.
+    import_status: Literal["Uploaded", "Detected", "Mapped", "Validated", "Committing", "Committed", "Undone", "Failed", "Canceled"]
+    #: When the person confirmed every column mapping; nothing is validated before it.
+    mapping_confirmed_at: Optional[str]
 
 
 class _ImportJobCreateRequired(TypedDict):
-    #: Identifier of the uploaded spreadsheet.
-    source_document_id: str
-    #: Target entity.
-    target_table: str
+    #: Import target the rows are written to.
+    target_code: str
+    #: Source format.
+    source: Literal["CSV", "XLSX", "XLS", "Google Sheets"]
+    #: File name as uploaded.
+    original_filename: str
+    #: Object path of the uploaded file in the tenant import bucket.
+    storage_object_path: str
 
 
 class ImportJobCreate(_ImportJobCreateRequired, total=False):
@@ -16773,20 +17728,20 @@ class ImportBatch(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the import job.
     import_job_id: str
     #: When the batch was committed.
-    committed_at: str
+    committed_at: Optional[str]
     #: When the batch was undone.
     undone_at: Optional[str]
-    #: Rows written.
-    row_count: int
+    #: Why the batch was undone.
+    undo_reason: Optional[str]
 
 
 class ImportRowResultPage(TypedDict):
@@ -16807,19 +17762,35 @@ class ImportRowResult(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the import job.
     import_job_id: str
-    #: Source row number.
-    source_row: int
     row_state: ImportRowState
     #: Why the row is invalid or refused.
     reason: Optional[str]
+    #: Identifier of the batch that wrote the row; set exactly when the row is written.
+    import_batch_id: Optional[str]
+    #: Source sheet.
+    sheet_name: str
+    #: One-based row number in the sheet, as the person sees it.
+    row_number: int
+    #: Table the row was written to.
+    target_table: Optional[str]
+    #: Identifier of the row written, created, updated or merged into.
+    target_id: Optional[str]
+    #: What the write did.
+    write_action: Optional[Literal["Created", "Updated", "Merged"]]
+    #: The columns an update or merge changed, as they were before the write; undo restores them.
+    before_image: Optional[Dict[str, Any]]
+    #: Outcome when the batch was undone.
+    undo_outcome: Optional[Literal["Reverted", "Kept"]]
+    #: Why a row was kept: the later edit or the dependent row.
+    undo_reason: Optional[str]
 
 
 class ImportMappingProfilePage(TypedDict):
@@ -16840,16 +17811,16 @@ class ImportMappingProfile(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Profile name.
     name: str
-    #: Target entity.
-    target_table: str
+    #: Import target the profile maps onto.
+    target_code: str
 
 
 class ImportMappingProfileCreate(TypedDict):
@@ -16857,8 +17828,8 @@ class ImportMappingProfileCreate(TypedDict):
 
     #: Profile name.
     name: str
-    #: Target entity.
-    target_table: str
+    #: Import target the profile maps onto.
+    target_code: str
 
 
 class ImportMappingProfileUpdate(TypedDict, total=False):
@@ -16866,8 +17837,8 @@ class ImportMappingProfileUpdate(TypedDict, total=False):
 
     #: Profile name.
     name: str
-    #: Target entity.
-    target_table: str
+    #: Import target the profile maps onto.
+    target_code: str
 
 
 class MergeReviewPage(TypedDict):
@@ -16888,22 +17859,26 @@ class MergeReview(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Identifier of the import job.
-    import_job_id: str
-    #: URN of the incoming row.
-    candidate_urn: str
-    #: URN of the existing row.
-    existing_urn: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Similarity score, 0.85 or higher.
     similarity: float
     #: Reviewer decision. A Title Case value from the lifecycle's database enum.
     decision: Optional[str]
+    #: Identifier of the import row that matched.
+    import_row_result_id: str
+    #: Table of the existing row.
+    candidate_table: str
+    #: Identifier of the existing row it may duplicate.
+    candidate_id: str
+    #: Identifier of the person who decided, set from the session.
+    decided_by: Optional[str]
+    #: When they decided, set by the database.
+    decided_at: Optional[str]
 
 
 class MergeReviewUpdate(TypedDict, total=False):
@@ -16931,27 +17906,36 @@ class ExportJob(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: What is exported, as a saved view or report URN.
-    source: str
-    format: ExportFormat
-    #: Export state. A Title Case value from the lifecycle's database enum.
-    export_state: str
-    #: Identifier of the export file.
-    document_id: Optional[str]
+    source_label: str
+    export_format: ExportFormat
+    classification: Classification
+    #: True for Confidential and Restricted exports: PDFs and images carry the viewer email and time.
+    watermark: bool
+    #: Export progress.
+    export_status: Literal["Queued", "Rendering", "Ready", "Failed", "Expired"]
+    #: Object path of the file once ready.
+    storage_object_path: Optional[str]
+    #: Rows exported.
+    row_count: Optional[int]
+    #: When the download link stops working.
+    expires_at: Optional[str]
 
 
 class ExportJobCreate(TypedDict):
     """Fields accepted when creating a ExportJob."""
 
     #: What is exported, as a saved view or report URN.
-    source: str
-    format: ExportFormat
+    source_label: str
+    export_format: ExportFormat
+    #: Columns the export contains, as app.table.column.
+    columns: List[str]
 
 
 class SavedViewPage(TypedDict):
@@ -16972,52 +17956,57 @@ class SavedView(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: Collection key.
-    collection: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: View name.
     name: str
     #: View type from `views.yaml`.
     view_type: str
-    #: Query in the filter grammar.
-    query: str
     #: Whether the view is shared with the org.
     shared: bool
+    #: Identifier of the member who owns the view.
+    membership_id: str
+    #: Collection the view shows, such as records or objects/sponsors.
+    collection_key: str
+    #: Field rows are grouped by, if any.
+    group_by_field: Optional[str]
 
 
-class SavedViewCreate(TypedDict):
+class _SavedViewCreateRequired(TypedDict):
+    #: View name.
+    name: str
+    #: View type from `views.yaml`.
+    view_type: str
+    #: Identifier of the member who owns the view.
+    membership_id: str
+    #: Collection the view shows, such as records or objects/sponsors.
+    collection_key: str
+
+
+class SavedViewCreate(_SavedViewCreateRequired, total=False):
     """Fields accepted when creating a SavedView."""
 
-    #: Collection key.
-    collection: str
-    #: View name.
-    name: str
-    #: View type from `views.yaml`.
-    view_type: str
-    #: Query in the filter grammar.
-    query: str
     #: Whether the view is shared with the org.
     shared: bool
+    #: Field rows are grouped by, if any.
+    group_by_field: Optional[str]
 
 
 class SavedViewUpdate(TypedDict, total=False):
     """Fields accepted when updating a SavedView. Omitted fields are unchanged."""
 
-    #: Collection key.
-    collection: str
     #: View name.
     name: str
     #: View type from `views.yaml`.
     view_type: str
-    #: Query in the filter grammar.
-    query: str
     #: Whether the view is shared with the org.
     shared: bool
+    #: Field rows are grouped by, if any.
+    group_by_field: Optional[str]
 
 
 class ApprovalPolicyPage(TypedDict):
@@ -17038,12 +18027,12 @@ class ApprovalPolicy(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Policy name.
     name: str
     document_type: SpendDocumentType
@@ -17083,12 +18072,12 @@ class ApprovalInstance(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the approval policy.
     approval_policy_id: str
     #: URN of the subject.
@@ -17126,12 +18115,12 @@ class ApprovalDecision(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the approval instance.
     approval_instance_id: str
     #: Whether the step is approved.
@@ -17176,32 +18165,45 @@ class CommentThread(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
-    #: URN of the commented record.
-    subject_urn: str
-    #: Whether the thread is resolved.
-    resolved: bool
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Table of the subject, one of app.comment_subjects.
+    subject_table: str
+    #: Identifier of the row the thread is about.
+    subject_id: str
+    #: Part of the subject the thread is anchored to; null for the main thread.
+    anchor: Optional[str]
+    #: When the thread was resolved; null while open.
+    resolved_at: Optional[str]
+    #: Identifier of the person who resolved it, set from the session.
+    resolved_by: Optional[str]
 
 
-class CommentThreadCreate(TypedDict):
+class _CommentThreadCreateRequired(TypedDict):
+    #: Table of the subject, one of app.comment_subjects.
+    subject_table: str
+    #: Identifier of the row the thread is about.
+    subject_id: str
+
+
+class CommentThreadCreate(_CommentThreadCreateRequired, total=False):
     """Fields accepted when creating a CommentThread."""
 
-    #: URN of the commented record.
-    subject_urn: str
-    #: Whether the thread is resolved.
-    resolved: bool
+    #: Part of the subject the thread is anchored to; null for the main thread.
+    anchor: Optional[str]
 
 
 class CommentThreadUpdate(TypedDict, total=False):
     """Fields accepted when updating a CommentThread. Omitted fields are unchanged."""
 
-    #: Whether the thread is resolved.
-    resolved: bool
+    #: Part of the subject the thread is anchored to; null for the main thread.
+    anchor: Optional[str]
+    #: When the thread was resolved; null while open.
+    resolved_at: Optional[str]
 
 
 class CommentPage(TypedDict):
@@ -17222,34 +18224,45 @@ class Comment(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the thread.
     comment_thread_id: str
-    #: Comment body as a rich text document.
-    body: Dict[str, Any]
+    #: Comment text; mentions are recorded separately.
+    body: str
     #: Identifier of the author.
-    author_id: str
+    author_person_id: str
+    #: Where the comment came from.
+    source: Literal["App", "Email", "API"]
+    #: When the text was last edited.
+    edited_at: Optional[str]
 
 
-class CommentCreate(TypedDict):
+class _CommentCreateRequired(TypedDict):
+    #: Identifier of the thread.
+    comment_thread_id: str
+    #: Comment text; mentions are recorded separately.
+    body: str
+
+
+class CommentCreate(_CommentCreateRequired, total=False):
     """Fields accepted when creating a Comment."""
 
-    #: Identifier of the thread.
-    comment_thread_id: str
-    #: Comment body as a rich text document.
-    body: Dict[str, Any]
+    #: Where the comment came from.
+    source: Literal["App", "Email", "API"]
 
 
 class CommentUpdate(TypedDict, total=False):
     """Fields accepted when updating a Comment. Omitted fields are unchanged."""
 
-    #: Comment body as a rich text document.
-    body: Dict[str, Any]
+    #: Comment text; mentions are recorded separately.
+    body: str
+    #: Where the comment came from.
+    source: Literal["App", "Email", "API"]
 
 
 class NotificationPage(TypedDict):
@@ -17270,22 +18283,30 @@ class Notification(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Notification kind from `notification-kinds.yaml`.
     kind: str
-    #: URN of the subject.
-    subject_urn: str
-    #: Identifier of the recipient.
-    created_for: str
-    #: Path to open.
-    deep_link: str
+    #: Identifier of the person the notification is for.
+    recipient_person_id: str
     #: When it was read.
     read_at: Optional[str]
+    #: Identifier of the person whose action caused it, when one did.
+    actor_person_id: Optional[str]
+    #: Table of the record it is about.
+    subject_table: Optional[str]
+    #: Identifier of the record it is about.
+    subject_id: Optional[str]
+    #: Identifier of the project of the record, when it belongs to one.
+    project_id: Optional[str]
+    #: ICU message arguments for the kind's catalog messages, such as a record title.
+    message_args: Dict[str, Any]
+    #: When the recipient archived it.
+    archived_at: Optional[str]
 
 
 class NotificationUpdate(TypedDict, total=False):
@@ -17293,6 +18314,8 @@ class NotificationUpdate(TypedDict, total=False):
 
     #: When it was read.
     read_at: Optional[str]
+    #: When the recipient archived it.
+    archived_at: Optional[str]
 
 
 class MarkAllReadResult(TypedDict):
@@ -17319,23 +18342,27 @@ class NotificationPreference(TypedDict):
     created_at: str
     #: When the row was last updated.
     updated_at: str
-    #: Notification kind.
-    kind: str
     #: Delivery channel.
-    channel: str
+    channel: Literal["In App", "Email", "SMS", "Push"]
     #: Whether the channel is on for the kind.
     enabled: bool
+    #: Identifier of the membership whose preference this is; preferences are per org.
+    membership_id: str
+    #: Notification category.
+    category_code: str
 
 
 class NotificationPreferenceCreate(TypedDict):
     """Fields accepted when creating a NotificationPreference."""
 
-    #: Notification kind.
-    kind: str
     #: Delivery channel.
-    channel: str
+    channel: Literal["In App", "Email", "SMS", "Push"]
     #: Whether the channel is on for the kind.
     enabled: bool
+    #: Identifier of the membership whose preference this is; preferences are per org.
+    membership_id: str
+    #: Notification category.
+    category_code: str
 
 
 class NotificationPreferenceUpdate(TypedDict, total=False):
@@ -17363,16 +18390,29 @@ class CalendarFeed(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the project.
     project_id: Optional[str]
     #: When it was revoked.
     revoked_at: Optional[str]
+    #: Identifier of the member who owns the feed; it shows what they may see.
+    membership_id: str
+    #: Last time a calendar fetched the feed.
+    last_accessed_at: Optional[str]
+
+
+class CalendarFeedToken(TypedDict):
+    """A newly created calendar feed and its subscription token, shown once."""
+
+    #: Identifier of the calendar feed.
+    calendar_feed_id: str
+    #: The token of the feed's subscription URL. Shown once; only its hash is stored, and revoking the feed ends it.
+    feed_token: str
 
 
 class CalendarFeedCreate(TypedDict, total=False):
@@ -17426,12 +18466,12 @@ class Template(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Template name.
     name: str
     #: Identifier of the current version.
@@ -17470,12 +18510,12 @@ class TemplateApplication(TypedDict):
     org_id: str
     #: When the row was created.
     created_at: str
-    #: Identifier of the person who created the row.
-    created_by: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
     #: When the row was last updated.
     updated_at: str
-    #: Identifier of the person who last updated the row.
-    updated_by: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
     #: Identifier of the template.
     template_id: str
     #: Identifier of the created project.
@@ -17487,6 +18527,426 @@ class TemplateApplicationCreate(TypedDict):
 
     #: Identifier of the template.
     template_id: str
+
+
+class GuestListEntryPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[GuestListEntry]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class GuestListEntry(TypedDict):
+    """A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door."""
+
+    #: Identifier of the guest list entry.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the show or other scope node of the same project.
+    scope_node_id: Optional[str]
+    #: Identifier of the person whose list the guest is on.
+    person_id: Optional[str]
+    #: Identifier of the organization whose list the guest is on.
+    counterparty_id: Optional[str]
+    #: Identifier of the engagement the guest was requested under in Gateway.
+    engagement_id: Optional[str]
+    #: Name the guest gives at the door.
+    guest_name: str
+    #: Additional guests admitted with this guest, 0 to 20.
+    plus_ones: int
+    #: Notes for the door.
+    note: Optional[str]
+    #: Requested, Approved, Declined or Checked In; moved by the decide and check-in actions.
+    entry_state: Literal["Requested", "Approved", "Declined", "Checked In"]
+    #: When the request was approved or declined. Set by the database.
+    decided_at: Optional[str]
+    #: Identifier of the person who decided, set by the database.
+    decided_by: Optional[str]
+    #: When the guest was checked in. Set by the database.
+    checked_in_at: Optional[str]
+    #: Identifier of the person who checked the guest in, set by the database.
+    checked_in_by: Optional[str]
+
+
+class _GuestListEntryCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Name the guest gives at the door.
+    guest_name: str
+    #: Additional guests admitted with this guest, 0 to 20.
+    plus_ones: int
+
+
+class GuestListEntryCreate(_GuestListEntryCreateRequired, total=False):
+    """Fields accepted when creating a GuestListEntry."""
+
+    #: Identifier of the show or other scope node of the same project.
+    scope_node_id: Optional[str]
+    #: Notes for the door.
+    note: Optional[str]
+
+
+class GuestListEntryUpdate(TypedDict, total=False):
+    """Fields accepted when updating a GuestListEntry. Omitted fields are unchanged."""
+
+    #: Identifier of the show or other scope node of the same project.
+    scope_node_id: Optional[str]
+    #: Name the guest gives at the door.
+    guest_name: str
+    #: Additional guests admitted with this guest, 0 to 20.
+    plus_ones: int
+    #: Notes for the door.
+    note: Optional[str]
+
+
+class GuestDecisionRequest(TypedDict):
+    """Decision on a requested guest."""
+
+    #: Approved or Declined.
+    outcome: Literal["Approved", "Declined"]
+
+
+class SavedViewSharePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SavedViewShare]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SavedViewShare(TypedDict):
+    """A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows."""
+
+    #: Identifier of the saved view share.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the saved view.
+    saved_view_id: str
+    #: Identifier of the team of the same org.
+    team_id: str
+
+
+class SavedViewShareCreate(TypedDict):
+    """Fields accepted when creating a SavedViewShare."""
+
+    #: Identifier of the saved view.
+    saved_view_id: str
+    #: Identifier of the team of the same org.
+    team_id: str
+
+
+class SavedViewDefaultPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SavedViewDefault]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SavedViewDefault(TypedDict):
+    """The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default)."""
+
+    #: Identifier of the saved view default.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the membership of the caller, set by the server.
+    membership_id: str
+    #: Collection (page) the default applies to, as saved views name it.
+    collection_key: str
+    #: Identifier of the saved view the caller can read, of the same collection.
+    saved_view_id: str
+
+
+class SavedViewDefaultCreate(TypedDict):
+    """Fields accepted when creating a SavedViewDefault."""
+
+    #: Identifier of the saved view the caller can read, of the same collection.
+    saved_view_id: str
+
+
+class TourProgressPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TourProgress]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TourProgress(TypedDict):
+    """The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again."""
+
+    #: Identifier of the tour progress.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the membership of the caller, set by the server.
+    membership_id: str
+    #: Tour key from the help content.
+    tour_key: str
+    #: Offered, Started, Completed or Dismissed.
+    tour_state: Literal["Offered", "Started", "Completed", "Dismissed"]
+    #: Last step reached, from 0.
+    step: int
+
+
+class TourProgressCreate(TypedDict):
+    """Fields accepted when creating a TourProgress."""
+
+    #: Tour key from the help content.
+    tour_key: str
+    #: Offered, Started, Completed or Dismissed.
+    tour_state: Literal["Offered", "Started", "Completed", "Dismissed"]
+    #: Last step reached, from 0.
+    step: int
+
+
+class TourProgressUpdate(TypedDict, total=False):
+    """Fields accepted when updating a TourProgress. Omitted fields are unchanged."""
+
+    #: Offered, Started, Completed or Dismissed.
+    tour_state: Literal["Offered", "Started", "Completed", "Dismissed"]
+    #: Last step reached, from 0.
+    step: int
+
+
+class TipDismissalPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TipDismissal]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TipDismissal(TypedDict):
+    """A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived."""
+
+    #: Identifier of the tip dismissal.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the membership of the caller, set by the server.
+    membership_id: str
+    #: Tip key from the help content.
+    tip_key: str
+
+
+class TipDismissalCreate(TypedDict):
+    """Fields accepted when creating a TipDismissal."""
+
+    #: Tip key from the help content.
+    tip_key: str
+
+
+class SupportTicketPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SupportTicket]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SupportTicket(TypedDict):
+    """A request for help (0643): to the org's own admins (Organization queue) or, from holders of org.help.write, to the platform team (Platform queue), whose channel and first response deadline follow the plan. Readable by the requester and by those who answer support for the org."""
+
+    #: Identifier of the support ticket.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the membership of the requester, set by the server.
+    membership_id: str
+    #: Display number, SUP-0001 upward per org.
+    ticket_number: str
+    #: Organization or Platform.
+    queue: Literal["Organization", "Platform"]
+    #: What the request is about.
+    category: Literal["Question", "Problem", "Access", "Billing", "Account", "Feature Request"]
+    #: Severity 1 (outage) to Severity 4 (question).
+    severity: Literal["Severity 1", "Severity 2", "Severity 3", "Severity 4"]
+    #: One-line summary.
+    subject: str
+    #: What happened and what the requester needs.
+    body: str
+    #: Open, Waiting, Resolved or Closed; moved by the transition action.
+    ticket_state: Literal["Open", "Waiting", "Resolved", "Closed"]
+    #: In App for the Organization queue; by plan for the Platform queue.
+    channel: Literal["In App", "Email", "Chat", "Priority Queue", "Dedicated Channel"]
+    #: Platform first response deadline from the plan; null for best effort.
+    first_response_due_at: Optional[str]
+    #: When a responder first answered.
+    first_responded_at: Optional[str]
+
+
+class _SupportTicketOpenRequestRequired(TypedDict):
+    #: Organization or Platform.
+    queue: Literal["Organization", "Platform"]
+    #: What the request is about.
+    category: Literal["Question", "Problem", "Access", "Billing", "Account", "Feature Request"]
+    #: One-line summary.
+    subject: str
+    #: What happened and what the requester needs.
+    body: str
+
+
+class SupportTicketOpenRequest(_SupportTicketOpenRequestRequired, total=False):
+    """A new support request."""
+
+    #: Severity 1 to 4; Severity 3 when omitted.
+    severity: Literal["Severity 1", "Severity 2", "Severity 3", "Severity 4"]
+    #: Diagnostics to attach, with consent.
+    diagnostics: Dict[str, Any]
+
+
+class _SupportTicketTransitionRequestRequired(TypedDict):
+    #: The state the caller believes the row is in (compare-and-set).
+    expected_state: Literal["Open", "Waiting", "Resolved", "Closed"]
+    #: Target state.
+    to_state: Literal["Open", "Waiting", "Resolved", "Closed"]
+
+
+class SupportTicketTransitionRequest(_SupportTicketTransitionRequestRequired, total=False):
+    """Request to move a lifecycle to another state."""
+
+    #: Reason, required by some transitions.
+    reason: str
+
+
+class SupportTicketMessage(TypedDict):
+    """One message on a support request (0643), oldest first. Append-only; posted with the reply action."""
+
+    #: Identifier of the support ticket message.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the support request.
+    support_ticket_id: str
+    #: Identifier of the member who wrote it; null for the platform team.
+    author_membership_id: Optional[str]
+    #: Message text.
+    body: str
+
+
+class SupportTicketReplyRequest(TypedDict):
+    """A reply on a support request."""
+
+    #: Message text.
+    body: str
+
+
+class SupportTicketMessagePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SupportTicketMessage]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SupportTicketDiagnosticsPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SupportTicketDiagnostics]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SupportTicketDiagnostics(TypedDict):
+    """Diagnostics the requester chose to attach to a support request (0643), with the moment they consented. Append-only."""
+
+    #: Identifier of the support ticket diagnostics.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the support request.
+    support_ticket_id: str
+    #: When the requester agreed to send the diagnostics.
+    consented_at: str
+    #: Page the requester was on.
+    route: Optional[str]
+    #: App version and build.
+    app_version: Optional[str]
+    #: Browser or device and operating system.
+    device: Optional[str]
+    #: Recent client errors, newest first.
+    recent_errors: Optional[str]
+    #: Storage path of a screenshot.
+    screenshot_path: Optional[str]
 
 
 #: Refusal outcome (Section 3.7). NO_ANSWER: the data does not support an answer. UNRATIFIED: the value is proposed and not ratified. REFUSE: a rule forbids the action.
@@ -17542,11 +19002,8 @@ Xyz = str
 #: External role type (Section 4.4.2).
 ExternalRoleType = Literal["Client", "Vendor", "Contractor", "Crew", "Staff", "Artist", "Artist Representative", "Sponsor"]
 
-#: Department class code from `xpms.dim_department` (Section 3.2).
-DeptCode = Optional[str]
-
-#: Require (a requirement) or provide (a capability).
-Direction = Literal["require", "provide"]
+#: Category URID `DDDD.DD.DD` from `xpms.dim_category` (Section 3.3). There is no fourth segment.
+Urid = str
 
 #: Unit basis from the controlled unit list in `xpms.dim_unit_alias`.
 UnitCode = Optional[str]
@@ -17557,41 +19014,32 @@ ReconciliationResult = Literal["Met", "Gap", "Unknown"]
 #: Hospitality fulfillment kind.
 FulfillmentKind = Literal["Lodging", "Catering", "Travel", "Amenity"]
 
-#: Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).
-ItemId = Optional[str]
-
-#: Category URID `DDDD.DD.DD` from `xpms.dim_category` (Section 3.3). There is no fourth segment.
-Urid = str
-
 #: Workforce role code from `xpms.dim_role`, on URID grammar.
 RoleCode = str
 
 #: Compensation rate type.
 RateType = Literal["Hourly", "Day", "Flat", "Milestone", "Bid"]
 
-#: Sustainability or compliance tag from `xpms.dim_tag`.
-TagId = Optional[str]
-
-#: GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).
-GlAccountCode = str
-
 #: Budget line type from the budget template specification (Bible tab 34). Fee and Contingency are line types, not accounts.
 LineType = str
 
-#: Price band grade from `xpms.element_price_bands`.
-Grade = Optional[str]
-
-#: A value from the shared finance and commercial state vocabulary (Bible tab 37): the five core states plus declared domain extensions.
-SharedState = str
+#: Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).
+ItemId = Optional[str]
 
 #: Accounting period lifecycle. A closed period refuses postings.
 AccountingPeriodState = Literal["Open", "In Period", "Closing", "Closed", "Audited", "Archived"]
+
+#: GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).
+GlAccountCode = str
 
 #: Cost center identifier (GL dimension 1).
 CostCenterCode = str
 
 #: Tax type from the Universal Posting Line specification (Bible tab 36).
 TaxType = str
+
+#: A value from the shared finance and commercial state vocabulary (Bible tab 37): the five core states plus declared domain extensions.
+SharedState = str
 
 #: Counterparty type from `xpms.dim_counterparty_type`.
 CounterpartyType = str
@@ -17611,6 +19059,9 @@ EngagementState = Literal["Onboarding", "Blocked", "Active", "Closing", "Complet
 #: Talent or vendor pool level. Do Not Engage is internal only and needs a reason and review date.
 PoolLevel = Literal["Preferred", "Approved", "Do Not Engage"]
 
+#: Department class code from `xpms.dim_department` (Section 3.2).
+DeptCode = str
+
 #: Discipline code `DDDD.DD` from `xpms.dim_discipline`. Canon holds .01 to .49; tenant extensions hold .50 to .99.
 DiscCode = str
 
@@ -17619,6 +19070,9 @@ ActCode = str
 
 #: Canon team identifier from `xpms.dim_team`.
 TeamId = str
+
+#: Sustainability or compliance tag from `xpms.dim_tag`.
+TagId = str
 
 #: Five-sense touchpoint identifier from `xpms.dim_touchpoint`.
 TouchpointId = str
@@ -17638,9 +19092,6 @@ StdCode = str
 #: URN in the `urn:xpms` namespace.
 Urn = str
 
-#: Platform role in band order (Section 8).
-OrgRole = Optional[Literal["Owner", "Admin", "Manager", "Member", "Collaborator", "Field", "Viewer"]]
-
 #: Project role (Section 8).
 ProjectRole = Literal["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]
 
@@ -17653,14 +19104,14 @@ OrganizationRelationshipKind = Literal["Vendor Of", "Client Of", "Partner Of", "
 #: Scope a representation delegates.
 RepresentationScope = Literal["Offers", "Advance", "Settlement", "Documents"]
 
+#: Platform role in band order (Section 8).
+OrgRole = Literal["Owner", "Admin", "Manager", "Member", "Collaborator", "Field", "Viewer"]
+
 #: Profile visibility. Sections and fields may be set lower than the profile, never higher.
 ProfileVisibility = Literal["Public", "Network", "Private"]
 
 #: Column classification (Section 8.3).
-Classification = Optional[Literal["Public", "Internal", "Confidential", "Restricted"]]
-
-#: Document type a spend limit applies to.
-SpendDocumentType = Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Contract", "Payroll Run"]
+Classification = Literal["Public", "Internal", "Confidential", "Restricted"]
 
 #: Scope a setting value applies to, most specific first (Section 4.5.6).
 SettingScope = Literal["Personal", "Project", "Team", "Workspace", "Organization", "Platform"]
@@ -17670,3 +19121,6 @@ ExportFormat = Literal["CSV", "XLSX", "PDF"]
 
 #: Import row result state.
 ImportRowState = Literal["Valid", "Invalid", "Written", "Refused", "Skipped"]
+
+#: Document type a spend limit applies to.
+SpendDocumentType = Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Contract", "Payroll Run"]

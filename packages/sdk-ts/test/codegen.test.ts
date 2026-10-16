@@ -83,7 +83,7 @@ describe("intermediate representation", () => {
       /header parameter/,
     );
     refuse(
-      (d) => delete (op(d, "/projects/{id}", "delete")["responses"] as Mutable)["204"],
+      (d) => delete (op(d, "/calendars/{id}", "delete")["responses"] as Mutable)["204"],
       /no success/,
     );
     refuse((d) => (op(d, "/projects/{id}", "get")["parameters"] = []), /path template/);

@@ -44,12 +44,16 @@ describe("every operation", () => {
       const args: unknown[] = op.pathParams.map((p) => input.path[p.name]);
       let body = input.body;
       if (op.verb === "transition") {
-        // Compare-and-set: name the state the row is in now.
+        // Compare-and-set: name the state the row is in now; moving to the same state keeps the row valid.
         const read = (await resource["get"]?.call(resource, ...args)) as {
           data: Record<string, unknown>;
         };
         const field = Object.keys(read.data).find((k) => k.endsWith("_state")) as string;
-        body = { ...(body as object), expected_state: read.data[field] };
+        body = {
+          ...(body as object),
+          expected_state: read.data[field],
+          to_state: read.data[field],
+        };
       }
       if (op.body) args.push(body);
       const hasParams = op.paged || op.fields || op.queryParams.length > 0;

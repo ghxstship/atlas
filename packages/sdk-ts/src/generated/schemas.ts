@@ -217,22 +217,22 @@ export interface Project {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Display key issued by `next_sequence`.
+   * Project key, chosen by the caller and unique in the organization; it addresses the project in Atlas URLs.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly project_key: string;
@@ -253,7 +253,7 @@ export interface Project {
   readonly workspace_id: string | null;
   readonly jurisdiction_id: JurisdictionId;
   readonly region_code: RegionCode;
-  readonly tier_code: TierCode;
+  readonly tier_code: TierCode | null;
   readonly current_phase_code: PhaseCode;
   /**
    * Project lifecycle state. A Title Case value from the lifecycle's database enum.
@@ -275,6 +275,31 @@ export interface Project {
    * Format: `date`.
    */
   readonly ends_on: string | null;
+  /**
+   * IANA time zone of the project; local times are entered in it.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+  /**
+   * Identifier of the primary venue of the project.
+   * Format: `uuid`.
+   */
+  readonly venue_id: string | null;
+  /**
+   * Identifier of the client counterparty the project is produced for.
+   * Format: `uuid`.
+   */
+  readonly client_counterparty_id: string | null;
+  /**
+   * Production lifecycle state, which runs beside the project state; changes only through its transition RPC. A Title Case value from the lifecycle's database enum.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   */
+  readonly production_state: string;
+  /**
+   * When the project was archived; archived projects leave the default lists.
+   * Format: `date-time`.
+   */
+  readonly archived_at: string | null;
 }
 
 /**
@@ -318,12 +343,12 @@ export interface ProjectCreate {
   readonly workspace_id?: string | null;
   readonly jurisdiction_id?: JurisdictionId;
   readonly region_code?: RegionCode;
-  readonly tier_code: TierCode;
+  readonly tier_code?: TierCode | null;
   /**
    * Base currency of the project.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency?: string;
   /**
    * First show day.
    * Format: `date`.
@@ -334,6 +359,21 @@ export interface ProjectCreate {
    * Format: `date`.
    */
   readonly ends_on?: string | null;
+  /**
+   * Project key, chosen by the caller and unique in the organization; it addresses the project in Atlas URLs.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly project_key: string;
+  /**
+   * IANA time zone of the project; local times are entered in it.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+  /**
+   * Identifier of the primary venue of the project.
+   * Format: `uuid`.
+   */
+  readonly venue_id?: string | null;
 }
 
 /**
@@ -357,7 +397,7 @@ export interface ProjectUpdate {
   readonly workspace_id?: string | null;
   readonly jurisdiction_id?: JurisdictionId;
   readonly region_code?: RegionCode;
-  readonly tier_code?: TierCode;
+  readonly tier_code?: TierCode | null;
   /**
    * Base currency of the project.
    * Pattern: `^[A-Z]{3}$`.
@@ -373,6 +413,26 @@ export interface ProjectUpdate {
    * Format: `date`.
    */
   readonly ends_on?: string | null;
+  /**
+   * Project key, chosen by the caller and unique in the organization; it addresses the project in Atlas URLs.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly project_key?: string;
+  /**
+   * IANA time zone of the project; local times are entered in it.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone?: string;
+  /**
+   * Identifier of the primary venue of the project.
+   * Format: `uuid`.
+   */
+  readonly venue_id?: string | null;
+  /**
+   * Identifier of the client counterparty the project is produced for.
+   * Format: `uuid`.
+   */
+  readonly client_counterparty_id?: string | null;
 }
 
 /**
@@ -486,20 +546,20 @@ export interface ScopeNode {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -618,27 +678,27 @@ export interface ProjectPhaseTransition {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
    */
   readonly project_id: string;
   readonly from_phase_code: PhaseCode;
-  readonly to_phase_code: PhaseCode;
+  readonly to_phase_code: PhaseCode | null;
   /**
    * When the gate was passed.
    * Format: `date-time`.
@@ -685,20 +745,20 @@ export interface GateEvidence {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -711,15 +771,10 @@ export interface GateEvidence {
    */
   readonly record_id: string | null;
   /**
-   * Identifier of the evidence document.
-   * Format: `uuid`.
-   */
-  readonly evidence_document_id: string | null;
-  /**
    * Identifier of the person who attested the evidence.
    * Format: `uuid`.
    */
-  readonly attested_by: string;
+  readonly attested_by: string | null;
   /**
    * When the evidence was attested.
    * Format: `date-time`.
@@ -730,6 +785,16 @@ export interface GateEvidence {
    * Range: 0 to unbounded.
    */
   readonly assertion_rank: number;
+  /**
+   * Where the evidence lives: a document or record URI.
+   * Length: 1 to 2000.
+   */
+  readonly evidence_uri: string | null;
+  /**
+   * Note on the evidence.
+   * Length: 1 to 2000.
+   */
+  readonly note: string | null;
 }
 
 /**
@@ -748,56 +813,20 @@ export interface GateEvidenceCreate {
    */
   readonly record_id?: string | null;
   /**
-   * Identifier of the evidence document.
-   * Format: `uuid`.
-   */
-  readonly evidence_document_id?: string | null;
-  /**
-   * Identifier of the person who attested the evidence.
-   * Format: `uuid`.
-   */
-  readonly attested_by: string;
-  /**
-   * When the evidence was attested.
-   * Format: `date-time`.
-   */
-  readonly attested_at: string;
-  /**
    * Assertion rank of the evidence, 0 to 4.
    * Range: 0 to unbounded.
    */
   readonly assertion_rank: number;
-}
-
-/**
- * Fields accepted when updating a GateEvidence. Omitted fields are unchanged.
- */
-export interface GateEvidenceUpdate {
   /**
-   * Identifier of the record that evidences the criterion.
-   * Format: `uuid`.
+   * Where the evidence lives: a document or record URI.
+   * Length: 1 to 2000.
    */
-  readonly record_id?: string | null;
+  readonly evidence_uri: string;
   /**
-   * Identifier of the evidence document.
-   * Format: `uuid`.
+   * Note on the evidence.
+   * Length: 1 to 2000.
    */
-  readonly evidence_document_id?: string | null;
-  /**
-   * Identifier of the person who attested the evidence.
-   * Format: `uuid`.
-   */
-  readonly attested_by?: string;
-  /**
-   * When the evidence was attested.
-   * Format: `date-time`.
-   */
-  readonly attested_at?: string;
-  /**
-   * Assertion rank of the evidence, 0 to 4.
-   * Range: 0 to unbounded.
-   */
-  readonly assertion_rank?: number;
+  readonly note?: string | null;
 }
 
 /**
@@ -834,25 +863,25 @@ export interface ActivityEvent {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the person who acted.
    * Format: `uuid`.
    */
-  readonly actor_id: string;
+  readonly actor_id: string | null;
   /**
    * What happened.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -914,20 +943,20 @@ export interface ScheduleBaseline {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -995,20 +1024,20 @@ export interface ScheduleActual {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the record.
    * Format: `uuid`.
@@ -1097,20 +1126,20 @@ export interface Calendar {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Calendar name.
    * Length: 1 to 300.
@@ -1204,20 +1233,20 @@ export interface RecordDependency {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the predecessor record.
    * Format: `uuid`.
@@ -1300,20 +1329,20 @@ export interface RecordRecurrence {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the template record.
    * Format: `uuid`.
@@ -1417,20 +1446,20 @@ export interface Record {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Display key issued by `next_sequence`.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -1729,20 +1758,20 @@ export interface RecordStateTransition {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the record.
    * Format: `uuid`.
@@ -1796,40 +1825,25 @@ export interface RecordReplan {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the record.
    * Format: `uuid`.
    */
   readonly record_id: string;
-  /**
-   * Changed field.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly field: string;
-  /**
-   * Previous value.
-   * Length: 1 to 300.
-   */
-  readonly from_value: string | null;
-  /**
-   * New value.
-   * Length: 1 to 300.
-   */
-  readonly to_value: string | null;
   /**
    * Replan reason.
    * Length: 1 to 20000.
@@ -1840,6 +1854,46 @@ export interface RecordReplan {
    * Format: `date-time`.
    */
   readonly replanned_at: string;
+  /**
+   * Record state before the change. A Title Case value from the lifecycle's database enum.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   */
+  readonly from_state: string;
+  /**
+   * Record state after the change. A Title Case value from the lifecycle's database enum.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   */
+  readonly to_state: string;
+  /**
+   * Start before the change.
+   * Format: `date-time`.
+   */
+  readonly old_starts_at: string | null;
+  /**
+   * Start after the change.
+   * Format: `date-time`.
+   */
+  readonly new_starts_at: string | null;
+  /**
+   * End before the change.
+   * Format: `date-time`.
+   */
+  readonly old_ends_at: string | null;
+  /**
+   * End after the change.
+   * Format: `date-time`.
+   */
+  readonly new_ends_at: string | null;
+  /**
+   * Due time before the change.
+   * Format: `date-time`.
+   */
+  readonly old_due_at: string | null;
+  /**
+   * Due time after the change.
+   * Format: `date-time`.
+   */
+  readonly new_due_at: string | null;
 }
 
 /**
@@ -1876,20 +1930,20 @@ export interface RecordChecklistItem {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the record.
    * Format: `uuid`.
@@ -2015,20 +2069,20 @@ export interface RecordWatcher {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the record.
    * Format: `uuid`.
@@ -2091,20 +2145,20 @@ export interface WorkOrder {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -2267,20 +2321,20 @@ export interface WorkOrderBid {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the work order.
    * Format: `uuid`.
@@ -2399,44 +2453,40 @@ export interface RunOfShow {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the show scope node.
    * Format: `uuid`.
    */
-  readonly scope_node_id: string;
+  readonly scope_node_id: string | null;
   /**
    * Run of show title.
    * Length: 1 to 300.
    */
-  readonly title: string;
+  readonly name: string;
   /**
    * Show date.
    * Format: `date`.
    */
   readonly show_date: string;
   /**
-   * IANA time zone the local time was entered in.
-   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   * Identifier of the project of the running order.
+   * Format: `uuid`.
    */
-  readonly time_zone: string;
-  /**
-   * Whether the run of show is published to crew and clients.
-   */
-  readonly published: boolean;
+  readonly project_id: string;
 }
 
 /**
@@ -2447,26 +2497,22 @@ export interface RunOfShowCreate {
    * Identifier of the show scope node.
    * Format: `uuid`.
    */
-  readonly scope_node_id: string;
+  readonly scope_node_id?: string | null;
   /**
    * Run of show title.
    * Length: 1 to 300.
    */
-  readonly title: string;
+  readonly name: string;
   /**
    * Show date.
    * Format: `date`.
    */
   readonly show_date: string;
   /**
-   * IANA time zone the local time was entered in.
-   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   * Identifier of the project of the running order.
+   * Format: `uuid`.
    */
-  readonly time_zone: string;
-  /**
-   * Whether the run of show is published to crew and clients.
-   */
-  readonly published: boolean;
+  readonly project_id: string;
 }
 
 /**
@@ -2477,21 +2523,12 @@ export interface RunOfShowUpdate {
    * Run of show title.
    * Length: 1 to 300.
    */
-  readonly title?: string;
+  readonly name?: string;
   /**
    * Show date.
    * Format: `date`.
    */
   readonly show_date?: string;
-  /**
-   * IANA time zone the local time was entered in.
-   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
-   */
-  readonly time_zone?: string;
-  /**
-   * Whether the run of show is published to crew and clients.
-   */
-  readonly published?: boolean;
 }
 
 /**
@@ -2528,20 +2565,20 @@ export interface Cue {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the run of show.
    * Format: `uuid`.
@@ -2553,37 +2590,36 @@ export interface Cue {
    */
   readonly position: number;
   /**
-   * Cue number.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly cue_code: string;
-  /**
    * Cue title.
    * Length: 1 to 300.
    */
-  readonly title: string;
+  readonly label: string;
   /**
    * Planned cue time.
    * Format: `date-time`.
    */
-  readonly planned_at: string;
-  /**
-   * Planned duration in seconds.
-   * Range: 0 to unbounded.
-   */
-  readonly duration_seconds: number;
-  readonly department_dept_code: DeptCode;
+  readonly planned_at: string | null;
   /**
    * When the cue was called.
    * Format: `date-time`.
    */
-  readonly fired_at: string | null;
+  readonly called_at: string | null;
+  /**
+   * Planned length as hours:minutes:seconds.
+   * Pattern: `^\d{2,}:\d{2}:\d{2}(\.\d+)?$`.
+   */
+  readonly duration: string | null;
+  /**
+   * Identifier of the person who called the cue, set by app.call_cue.
+   * Format: `uuid`.
+   */
+  readonly called_by: string | null;
+  /**
+   * Identifier of the project of the running order, stamped by the database.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
 }
-
-/**
- * Department class code from `xpms.dim_department` (Section 3.2).
- */
-export type DeptCode = string | null;
 
 /**
  * Fields accepted when creating a Cue.
@@ -2600,26 +2636,20 @@ export interface CueCreate {
    */
   readonly position: number;
   /**
-   * Cue number.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly cue_code: string;
-  /**
    * Cue title.
    * Length: 1 to 300.
    */
-  readonly title: string;
+  readonly label: string;
   /**
    * Planned cue time.
    * Format: `date-time`.
    */
-  readonly planned_at: string;
+  readonly planned_at?: string | null;
   /**
-   * Planned duration in seconds.
-   * Range: 0 to unbounded.
+   * Planned length as hours:minutes:seconds.
+   * Pattern: `^\d{2,}:\d{2}:\d{2}(\.\d+)?$`.
    */
-  readonly duration_seconds: number;
-  readonly department_dept_code?: DeptCode;
+  readonly duration?: string | null;
 }
 
 /**
@@ -2632,26 +2662,20 @@ export interface CueUpdate {
    */
   readonly position?: number;
   /**
-   * Cue number.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly cue_code?: string;
-  /**
    * Cue title.
    * Length: 1 to 300.
    */
-  readonly title?: string;
+  readonly label?: string;
   /**
    * Planned cue time.
    * Format: `date-time`.
    */
-  readonly planned_at?: string;
+  readonly planned_at?: string | null;
   /**
-   * Planned duration in seconds.
-   * Range: 0 to unbounded.
+   * Planned length as hours:minutes:seconds.
+   * Pattern: `^\d{2,}:\d{2}:\d{2}(\.\d+)?$`.
    */
-  readonly duration_seconds?: number;
-  readonly department_dept_code?: DeptCode;
+  readonly duration?: string | null;
 }
 
 /**
@@ -2688,38 +2712,40 @@ export interface DaySheet {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Identifier of the scope node.
-   * Format: `uuid`.
-   */
-  readonly scope_node_id: string;
-  /**
-   * Day the sheet covers.
+   * Day the sheet covers; one sheet per project and day.
    * Format: `date`.
    */
-  readonly sheet_date: string;
+  readonly day: string;
   /**
-   * Day sheet body as a rich text document.
+   * Day sheet content as rich text.
+   * Length: 1 to 20000.
    */
-  readonly body: { readonly [key: string]: unknown };
+  readonly body: string;
   /**
-   * Whether the sheet is published.
+   * Identifier of the project of the day sheet.
+   * Format: `uuid`.
    */
-  readonly published: boolean;
+  readonly project_id: string;
+  /**
+   * When the day sheet was published, stamped by the database; set once by the publish action.
+   * Format: `date-time`.
+   */
+  readonly published_at: string | null;
 }
 
 /**
@@ -2727,23 +2753,20 @@ export interface DaySheet {
  */
 export interface DaySheetCreate {
   /**
-   * Identifier of the scope node.
-   * Format: `uuid`.
-   */
-  readonly scope_node_id: string;
-  /**
-   * Day the sheet covers.
+   * Day the sheet covers; one sheet per project and day.
    * Format: `date`.
    */
-  readonly sheet_date: string;
+  readonly day: string;
   /**
-   * Day sheet body as a rich text document.
+   * Day sheet content as rich text.
+   * Length: 1 to 20000.
    */
-  readonly body: { readonly [key: string]: unknown };
+  readonly body: string;
   /**
-   * Whether the sheet is published.
+   * Identifier of the project of the day sheet.
+   * Format: `uuid`.
    */
-  readonly published: boolean;
+  readonly project_id: string;
 }
 
 /**
@@ -2751,18 +2774,15 @@ export interface DaySheetCreate {
  */
 export interface DaySheetUpdate {
   /**
-   * Day the sheet covers.
+   * Day the sheet covers; one sheet per project and day.
    * Format: `date`.
    */
-  readonly sheet_date?: string;
+  readonly day?: string;
   /**
-   * Day sheet body as a rich text document.
+   * Day sheet content as rich text.
+   * Length: 1 to 20000.
    */
-  readonly body?: { readonly [key: string]: unknown };
-  /**
-   * Whether the sheet is published.
-   */
-  readonly published?: boolean;
+  readonly body?: string;
 }
 
 /**
@@ -2799,43 +2819,35 @@ export interface CallSheet {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Identifier of the scope node.
-   * Format: `uuid`.
-   */
-  readonly scope_node_id: string;
-  /**
-   * Day the sheet covers.
+   * Day the sheet covers; one sheet per project and day.
    * Format: `date`.
    */
-  readonly sheet_date: string;
+  readonly day: string;
   /**
-   * General crew call.
+   * Identifier of the project of the call sheet.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * When the call sheet was published, stamped by the database; set once by the publish action.
    * Format: `date-time`.
    */
-  readonly general_call_at: string;
-  /**
-   * Call sheet body as a rich text document.
-   */
-  readonly body: { readonly [key: string]: unknown };
-  /**
-   * Whether the sheet is published.
-   */
-  readonly published: boolean;
+  readonly published_at: string | null;
 }
 
 /**
@@ -2843,28 +2855,15 @@ export interface CallSheet {
  */
 export interface CallSheetCreate {
   /**
-   * Identifier of the scope node.
-   * Format: `uuid`.
-   */
-  readonly scope_node_id: string;
-  /**
-   * Day the sheet covers.
+   * Day the sheet covers; one sheet per project and day.
    * Format: `date`.
    */
-  readonly sheet_date: string;
+  readonly day: string;
   /**
-   * General crew call.
-   * Format: `date-time`.
+   * Identifier of the project of the call sheet.
+   * Format: `uuid`.
    */
-  readonly general_call_at: string;
-  /**
-   * Call sheet body as a rich text document.
-   */
-  readonly body: { readonly [key: string]: unknown };
-  /**
-   * Whether the sheet is published.
-   */
-  readonly published: boolean;
+  readonly project_id: string;
 }
 
 /**
@@ -2872,23 +2871,10 @@ export interface CallSheetCreate {
  */
 export interface CallSheetUpdate {
   /**
-   * Day the sheet covers.
+   * Day the sheet covers; one sheet per project and day.
    * Format: `date`.
    */
-  readonly sheet_date?: string;
-  /**
-   * General crew call.
-   * Format: `date-time`.
-   */
-  readonly general_call_at?: string;
-  /**
-   * Call sheet body as a rich text document.
-   */
-  readonly body?: { readonly [key: string]: unknown };
-  /**
-   * Whether the sheet is published.
-   */
-  readonly published?: boolean;
+  readonly day?: string;
 }
 
 /**
@@ -2925,39 +2911,45 @@ export interface Sop {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * SOP title.
    * Length: 1 to 300.
    */
   readonly title: string;
   /**
-   * SOP body as a rich text document.
+   * Procedure text.
+   * Length: 1 to 20000.
    */
-  readonly body: { readonly [key: string]: unknown };
-  readonly urid: UridAtAnyGrain;
+  readonly body: string;
   /**
-   * SOP state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * SOP code, SOP- and three to five digits.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly sop_state: string;
+  readonly code: string;
   /**
-   * Whether members must acknowledge it.
+   * Version number, raised on each publish.
+   * Range: 1 to unbounded.
    */
-  readonly requires_acknowledgment: boolean;
+  readonly version: number;
+  /**
+   * When the current version was published; null while draft.
+   * Format: `date-time`.
+   */
+  readonly published_at: string | null;
 }
 
 /**
@@ -2970,14 +2962,15 @@ export interface SopCreate {
    */
   readonly title: string;
   /**
-   * SOP body as a rich text document.
+   * Procedure text.
+   * Length: 1 to 20000.
    */
-  readonly body: { readonly [key: string]: unknown };
-  readonly urid?: UridAtAnyGrain;
+  readonly body: string;
   /**
-   * Whether members must acknowledge it.
+   * SOP code, SOP- and three to five digits.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly requires_acknowledgment: boolean;
+  readonly code: string;
 }
 
 /**
@@ -2990,14 +2983,10 @@ export interface SopUpdate {
    */
   readonly title?: string;
   /**
-   * SOP body as a rich text document.
+   * Procedure text.
+   * Length: 1 to 20000.
    */
-  readonly body?: { readonly [key: string]: unknown };
-  readonly urid?: UridAtAnyGrain;
-  /**
-   * Whether members must acknowledge it.
-   */
-  readonly requires_acknowledgment?: boolean;
+  readonly body?: string;
 }
 
 /**
@@ -3034,20 +3023,20 @@ export interface SopAcknowledgment {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the SOP.
    * Format: `uuid`.
@@ -3063,6 +3052,11 @@ export interface SopAcknowledgment {
    * Format: `date-time`.
    */
   readonly acknowledged_at: string;
+  /**
+   * Version acknowledged.
+   * Range: 1 to unbounded.
+   */
+  readonly sop_version: number;
 }
 
 /**
@@ -3074,11 +3068,6 @@ export interface SopAcknowledgmentCreate {
    * Format: `uuid`.
    */
   readonly sop_id: string;
-  /**
-   * Identifier of the acknowledging person.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
 }
 
 /**
@@ -3115,20 +3104,20 @@ export interface Document {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Document title.
    * Length: 1 to 300.
@@ -3139,21 +3128,6 @@ export interface Document {
    * Format: `uuid`.
    */
   readonly project_id: string | null;
-  /**
-   * Identifier of the record the document belongs to.
-   * Format: `uuid`.
-   */
-  readonly record_id: string | null;
-  /**
-   * Column classification of the content. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly classification: string;
-  /**
-   * Identifier of the current version.
-   * Format: `uuid`.
-   */
-  readonly current_version_id: string | null;
 }
 
 /**
@@ -3170,16 +3144,6 @@ export interface DocumentCreate {
    * Format: `uuid`.
    */
   readonly project_id?: string | null;
-  /**
-   * Identifier of the record the document belongs to.
-   * Format: `uuid`.
-   */
-  readonly record_id?: string | null;
-  /**
-   * Column classification of the content. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly classification: string;
 }
 
 /**
@@ -3196,16 +3160,6 @@ export interface DocumentUpdate {
    * Format: `uuid`.
    */
   readonly project_id?: string | null;
-  /**
-   * Identifier of the record the document belongs to.
-   * Format: `uuid`.
-   */
-  readonly record_id?: string | null;
-  /**
-   * Column classification of the content. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly classification?: string;
 }
 
 /**
@@ -3242,20 +3196,20 @@ export interface DocumentVersion {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the document.
    * Format: `uuid`.
@@ -3267,25 +3221,15 @@ export interface DocumentVersion {
    */
   readonly version_number: number;
   /**
-   * Original file name.
-   * Length: 1 to 300.
+   * Where the file is stored.
+   * Length: 1 to 2000.
    */
-  readonly file_name: string;
+  readonly storage_uri: string;
   /**
-   * Sniffed MIME type.
-   * Length: 1 to 300.
-   */
-  readonly mime_type: string;
-  /**
-   * File size in bytes.
-   * Range: 0 to unbounded.
-   */
-  readonly byte_size: number;
-  /**
-   * SHA-256 of the file.
+   * SHA-256 of the file, lowercase hex.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly sha256: string;
+  readonly checksum_sha256: string;
 }
 
 /**
@@ -3298,15 +3242,15 @@ export interface DocumentVersionCreate {
    */
   readonly document_id: string;
   /**
-   * Original file name.
-   * Length: 1 to 300.
+   * Where the file is stored.
+   * Length: 1 to 2000.
    */
-  readonly file_name: string;
+  readonly storage_uri: string;
   /**
-   * Sniffed MIME type.
-   * Length: 1 to 300.
+   * SHA-256 of the file, lowercase hex.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly mime_type: string;
+  readonly checksum_sha256: string;
 }
 
 /**
@@ -3343,20 +3287,20 @@ export interface VerbiageTerm {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Term.
    * Length: 1 to 300.
@@ -3368,10 +3312,10 @@ export interface VerbiageTerm {
    */
   readonly casing_rule: string;
   /**
-   * Usage note.
+   * Definition, a sentence ending in a period.
    * Length: 1 to 20000.
    */
-  readonly usage: string;
+  readonly definition: string;
 }
 
 /**
@@ -3389,10 +3333,10 @@ export interface VerbiageTermCreate {
    */
   readonly casing_rule: string;
   /**
-   * Usage note.
+   * Definition, a sentence ending in a period.
    * Length: 1 to 20000.
    */
-  readonly usage: string;
+  readonly definition: string;
 }
 
 /**
@@ -3410,10 +3354,10 @@ export interface VerbiageTermUpdate {
    */
   readonly casing_rule?: string;
   /**
-   * Usage note.
+   * Definition, a sentence ending in a period.
    * Length: 1 to 20000.
    */
-  readonly usage?: string;
+  readonly definition?: string;
 }
 
 /**
@@ -3450,20 +3394,20 @@ export interface Venue {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Venue name.
    * Length: 1 to 300.
@@ -3473,27 +3417,17 @@ export interface Venue {
    * Street address.
    * Length: 1 to 300.
    */
-  readonly address_line1: string;
+  readonly street_address: string | null;
   /**
    * City.
    * Length: 1 to 300.
    */
-  readonly locality: string;
-  /**
-   * State or region.
-   * Length: 1 to 300.
-   */
-  readonly region: string;
+  readonly locality: string | null;
   /**
    * Postal code.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly postal_code: string;
-  /**
-   * ISO 3166-1 alpha-2 country code.
-   * Pattern: `^[A-Z]{2}$`.
-   */
-  readonly country: string;
+  readonly postal_code: string | null;
   readonly jurisdiction_id: JurisdictionId;
   /**
    * IANA time zone the local time was entered in.
@@ -3525,28 +3459,18 @@ export interface VenueCreate {
    * Street address.
    * Length: 1 to 300.
    */
-  readonly address_line1: string;
+  readonly street_address?: string | null;
   /**
    * City.
    * Length: 1 to 300.
    */
-  readonly locality: string;
-  /**
-   * State or region.
-   * Length: 1 to 300.
-   */
-  readonly region: string;
+  readonly locality?: string | null;
   /**
    * Postal code.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly postal_code: string;
-  /**
-   * ISO 3166-1 alpha-2 country code.
-   * Pattern: `^[A-Z]{2}$`.
-   */
-  readonly country: string;
-  readonly jurisdiction_id?: JurisdictionId;
+  readonly postal_code?: string | null;
+  readonly jurisdiction_id: JurisdictionId;
   /**
    * IANA time zone the local time was entered in.
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
@@ -3577,27 +3501,17 @@ export interface VenueUpdate {
    * Street address.
    * Length: 1 to 300.
    */
-  readonly address_line1?: string;
+  readonly street_address?: string | null;
   /**
    * City.
    * Length: 1 to 300.
    */
-  readonly locality?: string;
-  /**
-   * State or region.
-   * Length: 1 to 300.
-   */
-  readonly region?: string;
+  readonly locality?: string | null;
   /**
    * Postal code.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly postal_code?: string;
-  /**
-   * ISO 3166-1 alpha-2 country code.
-   * Pattern: `^[A-Z]{2}$`.
-   */
-  readonly country?: string;
+  readonly postal_code?: string | null;
   readonly jurisdiction_id?: JurisdictionId;
   /**
    * IANA time zone the local time was entered in.
@@ -3650,20 +3564,20 @@ export interface Space {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
@@ -3683,7 +3597,13 @@ export interface Space {
    * Floor area in square feet.
    */
   readonly area_sq_ft: number | null;
+  readonly urid: Urid | null;
 }
+
+/**
+ * Category URID `DDDD.DD.DD` from `xpms.dim_category` (Section 3.3). There is no fourth segment.
+ */
+export type Urid = string;
 
 /**
  * Fields accepted when creating a Space.
@@ -3708,6 +3628,7 @@ export interface SpaceCreate {
    * Floor area in square feet.
    */
   readonly area_sq_ft?: number | null;
+  readonly urid?: Urid | null;
 }
 
 /**
@@ -3728,6 +3649,7 @@ export interface SpaceUpdate {
    * Floor area in square feet.
    */
   readonly area_sq_ft?: number | null;
+  readonly urid?: Urid | null;
 }
 
 /**
@@ -3764,25 +3686,25 @@ export interface Zone {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Identifier of the space.
+   * Identifier of the space the zone sits in.
    * Format: `uuid`.
    */
-  readonly space_id: string;
+  readonly space_id: string | null;
   /**
    * Zone name.
    * Length: 1 to 300.
@@ -3792,7 +3714,12 @@ export interface Zone {
    * Zone code used on credentials.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly zone_code: string;
+  readonly code: string;
+  /**
+   * Identifier of the venue.
+   * Format: `uuid`.
+   */
+  readonly venue_id: string;
 }
 
 /**
@@ -3800,10 +3727,10 @@ export interface Zone {
  */
 export interface ZoneCreate {
   /**
-   * Identifier of the space.
+   * Identifier of the space the zone sits in.
    * Format: `uuid`.
    */
-  readonly space_id: string;
+  readonly space_id?: string | null;
   /**
    * Zone name.
    * Length: 1 to 300.
@@ -3813,7 +3740,12 @@ export interface ZoneCreate {
    * Zone code used on credentials.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly zone_code: string;
+  readonly code: string;
+  /**
+   * Identifier of the venue.
+   * Format: `uuid`.
+   */
+  readonly venue_id: string;
 }
 
 /**
@@ -3829,7 +3761,12 @@ export interface ZoneUpdate {
    * Zone code used on credentials.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly zone_code?: string;
+  readonly code?: string;
+  /**
+   * Identifier of the space the zone sits in.
+   * Format: `uuid`.
+   */
+  readonly space_id?: string | null;
 }
 
 /**
@@ -3866,30 +3803,25 @@ export interface CapabilityDocument {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
    */
   readonly venue_id: string;
-  /**
-   * Identifier of the document.
-   * Format: `uuid`.
-   */
-  readonly document_id: string;
   /**
    * First day the document is valid.
    * Format: `date`.
@@ -3904,6 +3836,16 @@ export interface CapabilityDocument {
    * Whether the document is frozen.
    */
   readonly frozen: boolean;
+  /**
+   * Document title.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * Where the document is stored.
+   * Length: 1 to 2000.
+   */
+  readonly document_uri: string;
 }
 
 /**
@@ -3916,11 +3858,6 @@ export interface CapabilityDocumentCreate {
    */
   readonly venue_id: string;
   /**
-   * Identifier of the document.
-   * Format: `uuid`.
-   */
-  readonly document_id: string;
-  /**
    * First day the document is valid.
    * Format: `date`.
    */
@@ -3930,17 +3867,22 @@ export interface CapabilityDocumentCreate {
    * Format: `date`.
    */
   readonly valid_to?: string | null;
+  /**
+   * Document title.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * Where the document is stored.
+   * Length: 1 to 2000.
+   */
+  readonly document_uri: string;
 }
 
 /**
  * Fields accepted when updating a CapabilityDocument. Omitted fields are unchanged.
  */
 export interface CapabilityDocumentUpdate {
-  /**
-   * Identifier of the document.
-   * Format: `uuid`.
-   */
-  readonly document_id?: string;
   /**
    * First day the document is valid.
    * Format: `date`.
@@ -3951,6 +3893,16 @@ export interface CapabilityDocumentUpdate {
    * Format: `date`.
    */
   readonly valid_to?: string | null;
+  /**
+   * Document title.
+   * Length: 1 to 300.
+   */
+  readonly title?: string;
+  /**
+   * Where the document is stored.
+   * Length: 1 to 2000.
+   */
+  readonly document_uri?: string;
 }
 
 /**
@@ -3987,35 +3939,40 @@ export interface SitePlan {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Identifier of the venue.
+   * Identifier of the venue drawn.
    * Format: `uuid`.
    */
-  readonly venue_id: string;
+  readonly venue_id: string | null;
   /**
    * Site plan title.
    * Length: 1 to 300.
    */
   readonly title: string;
   /**
-   * Identifier of the drawing document.
+   * Identifier of the project.
    * Format: `uuid`.
    */
-  readonly document_id: string;
+  readonly project_id: string;
+  /**
+   * Where the drawing is stored.
+   * Length: 1 to 2000.
+   */
+  readonly image_uri: string;
 }
 
 /**
@@ -4023,20 +3980,25 @@ export interface SitePlan {
  */
 export interface SitePlanCreate {
   /**
-   * Identifier of the venue.
+   * Identifier of the venue drawn.
    * Format: `uuid`.
    */
-  readonly venue_id: string;
+  readonly venue_id?: string | null;
   /**
    * Site plan title.
    * Length: 1 to 300.
    */
   readonly title: string;
   /**
-   * Identifier of the drawing document.
+   * Identifier of the project.
    * Format: `uuid`.
    */
-  readonly document_id: string;
+  readonly project_id: string;
+  /**
+   * Where the drawing is stored.
+   * Length: 1 to 2000.
+   */
+  readonly image_uri: string;
 }
 
 /**
@@ -4049,10 +4011,15 @@ export interface SitePlanUpdate {
    */
   readonly title?: string;
   /**
-   * Identifier of the drawing document.
+   * Identifier of the venue drawn.
    * Format: `uuid`.
    */
-  readonly document_id?: string;
+  readonly venue_id?: string | null;
+  /**
+   * Where the drawing is stored.
+   * Length: 1 to 2000.
+   */
+  readonly image_uri?: string;
 }
 
 /**
@@ -4089,20 +4056,20 @@ export interface SitePlanPin {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the site plan.
    * Format: `uuid`.
@@ -4121,6 +4088,16 @@ export interface SitePlanPin {
    * Vertical position, 0 to 1.
    */
   readonly y: number;
+  /**
+   * Identifier of the zone the pin marks.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string | null;
+  /**
+   * Identifier of the record the pin marks.
+   * Format: `uuid`.
+   */
+  readonly record_id: string | null;
 }
 
 /**
@@ -4145,6 +4122,16 @@ export interface SitePlanPinCreate {
    * Vertical position, 0 to 1.
    */
   readonly y: number;
+  /**
+   * Identifier of the zone the pin marks.
+   * Format: `uuid`.
+   */
+  readonly zone_id?: string | null;
+  /**
+   * Identifier of the record the pin marks.
+   * Format: `uuid`.
+   */
+  readonly record_id?: string | null;
 }
 
 /**
@@ -4164,6 +4151,16 @@ export interface SitePlanPinUpdate {
    * Vertical position, 0 to 1.
    */
   readonly y?: number;
+  /**
+   * Identifier of the zone the pin marks.
+   * Format: `uuid`.
+   */
+  readonly zone_id?: string | null;
+  /**
+   * Identifier of the record the pin marks.
+   * Format: `uuid`.
+   */
+  readonly record_id?: string | null;
 }
 
 /**
@@ -4200,20 +4197,20 @@ export interface Geofence {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Geofence name.
    * Length: 1 to 300.
@@ -4223,22 +4220,21 @@ export interface Geofence {
    * Identifier of the venue.
    * Format: `uuid`.
    */
-  readonly venue_id: string | null;
+  readonly venue_id: string;
   /**
-   * WGS 84 latitude.
-   * Range: -90 to 90.
+   * Identifier of the zone the geofence outlines.
+   * Format: `uuid`.
    */
-  readonly latitude: number;
-  /**
-   * WGS 84 longitude.
-   * Range: -180 to 180.
-   */
-  readonly longitude: number;
-  /**
-   * Radius in meters.
-   * Range: 1 to unbounded.
-   */
-  readonly radius_m: number;
+  readonly zone_id: string | null;
+  readonly boundary: GeoJsonPolygon;
+}
+
+/**
+ * A GeoJSON Polygon in WGS 84 (RFC 7946): rings of [longitude, latitude] positions.
+ */
+export interface GeoJsonPolygon {
+  readonly type: "Polygon";
+  readonly coordinates: ReadonlyArray<ReadonlyArray<ReadonlyArray<unknown>>>;
 }
 
 /**
@@ -4254,22 +4250,13 @@ export interface GeofenceCreate {
    * Identifier of the venue.
    * Format: `uuid`.
    */
-  readonly venue_id?: string | null;
+  readonly venue_id: string;
   /**
-   * WGS 84 latitude.
-   * Range: -90 to 90.
+   * Identifier of the zone the geofence outlines.
+   * Format: `uuid`.
    */
-  readonly latitude: number;
-  /**
-   * WGS 84 longitude.
-   * Range: -180 to 180.
-   */
-  readonly longitude: number;
-  /**
-   * Radius in meters.
-   * Range: 1 to unbounded.
-   */
-  readonly radius_m: number;
+  readonly zone_id?: string | null;
+  readonly boundary: GeoJsonPolygon;
 }
 
 /**
@@ -4282,25 +4269,11 @@ export interface GeofenceUpdate {
    */
   readonly name?: string;
   /**
-   * Identifier of the venue.
+   * Identifier of the zone the geofence outlines.
    * Format: `uuid`.
    */
-  readonly venue_id?: string | null;
-  /**
-   * WGS 84 latitude.
-   * Range: -90 to 90.
-   */
-  readonly latitude?: number;
-  /**
-   * WGS 84 longitude.
-   * Range: -180 to 180.
-   */
-  readonly longitude?: number;
-  /**
-   * Radius in meters.
-   * Range: 1 to unbounded.
-   */
-  readonly radius_m?: number;
+  readonly zone_id?: string | null;
+  readonly boundary?: GeoJsonPolygon;
 }
 
 /**
@@ -4337,26 +4310,29 @@ export interface Requirement {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  readonly direction: Direction;
+  readonly updated_by: string | null;
+  /**
+   * Require for a requirement of the project, Provide for a capability a venue or counterparty offers.
+   */
+  readonly direction: "Require" | "Provide";
   /**
    * Identifier of the project.
    * Format: `uuid`.
    */
-  readonly project_id: string | null;
+  readonly project_id: string;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
@@ -4367,27 +4343,26 @@ export interface Requirement {
    * What is required or provided.
    * Length: 1 to 20000.
    */
-  readonly statement: string;
+  readonly description: string;
   /**
    * Quantity required or provided.
    */
   readonly quantity: number | null;
-  readonly unit: UnitCode;
+  readonly unit_basis: UnitCode;
   /**
    * Whether the requirement is critical.
    */
-  readonly critical: boolean;
+  readonly is_critical: boolean;
   /**
-   * Assertion rank of the claim, 0 to 4.
-   * Range: 0 to unbounded.
+   * Identifier of the counterparty that provides a capability.
+   * Format: `uuid`.
    */
-  readonly assertion_rank: number;
+  readonly counterparty_id: string | null;
+  /**
+   * Canon capability assertion word (Bible tab 22); silence is UNKNOWN, which reconciles as Unknown.
+   */
+  readonly assertion_word: "CERTIFIED" | "DOCUMENTED" | "CLAIMED" | "INFERRED" | "UNKNOWN";
 }
-
-/**
- * Require (a requirement) or provide (a capability).
- */
-export type Direction = "require" | "provide";
 
 /**
  * Unit basis from the controlled unit list in `xpms.dim_unit_alias`.
@@ -4398,12 +4373,15 @@ export type UnitCode = string | null;
  * Fields accepted when creating a Requirement.
  */
 export interface RequirementCreate {
-  readonly direction: Direction;
+  /**
+   * Require for a requirement of the project, Provide for a capability a venue or counterparty offers.
+   */
+  readonly direction: "Require" | "Provide";
   /**
    * Identifier of the project.
    * Format: `uuid`.
    */
-  readonly project_id?: string | null;
+  readonly project_id: string;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
@@ -4414,33 +4392,31 @@ export interface RequirementCreate {
    * What is required or provided.
    * Length: 1 to 20000.
    */
-  readonly statement: string;
+  readonly description: string;
   /**
    * Quantity required or provided.
    */
   readonly quantity?: number | null;
-  readonly unit?: UnitCode;
+  readonly unit_basis?: UnitCode;
   /**
    * Whether the requirement is critical.
    */
-  readonly critical: boolean;
+  readonly is_critical?: boolean;
   /**
-   * Assertion rank of the claim, 0 to 4.
-   * Range: 0 to unbounded.
+   * Identifier of the counterparty that provides a capability.
+   * Format: `uuid`.
    */
-  readonly assertion_rank: number;
+  readonly counterparty_id?: string | null;
+  /**
+   * Canon capability assertion word (Bible tab 22); silence is UNKNOWN, which reconciles as Unknown.
+   */
+  readonly assertion_word?: "CERTIFIED" | "DOCUMENTED" | "CLAIMED" | "INFERRED" | "UNKNOWN";
 }
 
 /**
  * Fields accepted when updating a Requirement. Omitted fields are unchanged.
  */
 export interface RequirementUpdate {
-  readonly direction?: Direction;
-  /**
-   * Identifier of the project.
-   * Format: `uuid`.
-   */
-  readonly project_id?: string | null;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
@@ -4451,21 +4427,25 @@ export interface RequirementUpdate {
    * What is required or provided.
    * Length: 1 to 20000.
    */
-  readonly statement?: string;
+  readonly description?: string;
   /**
    * Quantity required or provided.
    */
   readonly quantity?: number | null;
-  readonly unit?: UnitCode;
+  readonly unit_basis?: UnitCode;
   /**
    * Whether the requirement is critical.
    */
-  readonly critical?: boolean;
+  readonly is_critical?: boolean;
   /**
-   * Assertion rank of the claim, 0 to 4.
-   * Range: 0 to unbounded.
+   * Identifier of the counterparty that provides a capability.
+   * Format: `uuid`.
    */
-  readonly assertion_rank?: number;
+  readonly counterparty_id?: string | null;
+  /**
+   * Canon capability assertion word (Bible tab 22); silence is UNKNOWN, which reconciles as Unknown.
+   */
+  readonly assertion_word?: "CERTIFIED" | "DOCUMENTED" | "CLAIMED" | "INFERRED" | "UNKNOWN";
 }
 
 /**
@@ -4502,30 +4482,25 @@ export interface Reconciliation {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
    */
   readonly project_id: string;
-  /**
-   * Identifier of the venue.
-   * Format: `uuid`.
-   */
-  readonly venue_id: string | null;
   /**
    * When the reconciliation ran.
    * Format: `date-time`.
@@ -4546,6 +4521,11 @@ export interface Reconciliation {
    * Range: 0 to unbounded.
    */
   readonly unknown_count: number;
+  /**
+   * Notes on the run.
+   * Length: 1 to 20000.
+   */
+  readonly note: string | null;
 }
 
 /**
@@ -4558,10 +4538,10 @@ export interface ReconciliationCreate {
    */
   readonly project_id: string;
   /**
-   * Identifier of the venue.
-   * Format: `uuid`.
+   * Notes on the run.
+   * Length: 1 to 20000.
    */
-  readonly venue_id?: string | null;
+  readonly note?: string | null;
 }
 
 /**
@@ -4598,20 +4578,20 @@ export interface ReconciliationLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the reconciliation.
    * Format: `uuid`.
@@ -4669,20 +4649,20 @@ export interface Shipment {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -4827,20 +4807,20 @@ export interface ShipmentLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the shipment.
    * Format: `uuid`.
@@ -4944,20 +4924,20 @@ export interface DockSlot {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
@@ -5081,20 +5061,20 @@ export interface GateQueueEntry {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
@@ -5213,20 +5193,20 @@ export interface MarshallingLogEntry {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
@@ -5319,20 +5299,20 @@ export interface AdvancePacket {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -5344,15 +5324,10 @@ export interface AdvancePacket {
    */
   readonly title: string;
   /**
-   * Advance state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly advance_state: string;
-  /**
    * When submissions are due.
    * Format: `date-time`.
    */
-  readonly due_at: string;
+  readonly due_at: string | null;
   /**
    * When the packet was sent.
    * Format: `date-time`.
@@ -5378,7 +5353,7 @@ export interface AdvancePacketCreate {
    * When submissions are due.
    * Format: `date-time`.
    */
-  readonly due_at: string;
+  readonly due_at?: string | null;
 }
 
 /**
@@ -5394,28 +5369,7 @@ export interface AdvancePacketUpdate {
    * When submissions are due.
    * Format: `date-time`.
    */
-  readonly due_at?: string;
-}
-
-/**
- * Request to move a lifecycle to another state.
- */
-export interface AdvanceTransitionRequest {
-  /**
-   * The state the caller believes the row is in (compare-and-set).
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
-   */
-  readonly expected_state: string;
-  /**
-   * Target state.
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
-   */
-  readonly to_state: string;
-  /**
-   * Reason, required by some transitions.
-   * Length: 1 to unbounded.
-   */
-  readonly reason?: string;
+  readonly due_at?: string | null;
 }
 
 /**
@@ -5452,20 +5406,20 @@ export interface AdvanceSection {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the advance packet.
    * Format: `uuid`.
@@ -5482,10 +5436,10 @@ export interface AdvanceSection {
    */
   readonly title: string;
   /**
-   * Identifier of the form the section collects.
-   * Format: `uuid`.
+   * What the recipient is asked.
+   * Length: 1 to 2000.
    */
-  readonly form_definition_id: string | null;
+  readonly prompt: string | null;
 }
 
 /**
@@ -5508,10 +5462,10 @@ export interface AdvanceSectionCreate {
    */
   readonly title: string;
   /**
-   * Identifier of the form the section collects.
-   * Format: `uuid`.
+   * What the recipient is asked.
+   * Length: 1 to 2000.
    */
-  readonly form_definition_id?: string | null;
+  readonly prompt?: string | null;
 }
 
 /**
@@ -5529,10 +5483,10 @@ export interface AdvanceSectionUpdate {
    */
   readonly title?: string;
   /**
-   * Identifier of the form the section collects.
-   * Format: `uuid`.
+   * What the recipient is asked.
+   * Length: 1 to 2000.
    */
-  readonly form_definition_id?: string | null;
+  readonly prompt?: string | null;
 }
 
 /**
@@ -5569,20 +5523,20 @@ export interface AdvanceRecipient {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the advance packet.
    * Format: `uuid`.
@@ -5594,15 +5548,10 @@ export interface AdvanceRecipient {
    */
   readonly person_id: string | null;
   /**
-   * Identifier of the recipient organization.
+   * Identifier of the recipient counterparty.
    * Format: `uuid`.
    */
-  readonly organization_id: string | null;
-  /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id: string | null;
+  readonly counterparty_id: string | null;
 }
 
 /**
@@ -5620,15 +5569,10 @@ export interface AdvanceRecipientCreate {
    */
   readonly person_id?: string | null;
   /**
-   * Identifier of the recipient organization.
+   * Identifier of the recipient counterparty.
    * Format: `uuid`.
    */
-  readonly organization_id?: string | null;
-  /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id?: string | null;
+  readonly counterparty_id?: string | null;
 }
 
 /**
@@ -5665,20 +5609,20 @@ export interface AdvanceSubmission {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the advance section.
    * Format: `uuid`.
@@ -5690,15 +5634,38 @@ export interface AdvanceSubmission {
    */
   readonly advance_recipient_id: string;
   /**
-   * Identifier of the form submission.
-   * Format: `uuid`.
-   */
-  readonly form_submission_id: string;
-  /**
    * When it was submitted.
    * Format: `date-time`.
    */
   readonly submitted_at: string;
+  /**
+   * The answer as rich text.
+   * Length: 1 to 20000.
+   */
+  readonly body: string;
+  /**
+   * When the answer was reviewed.
+   * Format: `date-time`.
+   */
+  readonly reviewed_at: string | null;
+  /**
+   * Identifier of the person who reviewed the answer.
+   * Format: `uuid`.
+   */
+  readonly reviewed_by: string | null;
+  /**
+   * Accepted or Returned.
+   */
+  readonly review_outcome: "Accepted" | "Returned" | null;
+  /**
+   * Why the answer was returned.
+   * Length: 1 to 1000.
+   */
+  readonly return_reason: string | null;
+  /**
+   * True when the recipient answered through a Gateway link.
+   */
+  readonly via_link: boolean;
 }
 
 /**
@@ -5716,10 +5683,25 @@ export interface AdvanceSubmissionCreate {
    */
   readonly advance_recipient_id: string;
   /**
-   * Identifier of the form submission.
-   * Format: `uuid`.
+   * The answer as rich text.
+   * Length: 1 to 20000.
    */
-  readonly form_submission_id: string;
+  readonly body: string;
+}
+
+/**
+ * Review of one advance answer.
+ */
+export interface AdvanceSubmissionReviewRequest {
+  /**
+   * Accepted, or Returned to the recipient to answer again.
+   */
+  readonly outcome: "Accepted" | "Returned";
+  /**
+   * Why the answer is returned; required when Returned, shown to the recipient.
+   * Length: 1 to 1000.
+   */
+  readonly return_reason?: string;
 }
 
 /**
@@ -5756,30 +5738,30 @@ export interface AdvancePromotion {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the advance submission.
    * Format: `uuid`.
    */
   readonly advance_submission_id: string;
   /**
-   * URN of the record created from the submission.
-   * Length: 1 to 300.
+   * Identifier of the record created from the answer.
+   * Format: `uuid`.
    */
-  readonly target_urn: string;
+  readonly record_id: string;
 }
 
 /**
@@ -5792,10 +5774,10 @@ export interface AdvancePromotionCreate {
    */
   readonly advance_submission_id: string;
   /**
-   * URN of the record created from the submission.
-   * Length: 1 to 300.
+   * Identifier of the record created from the answer.
+   * Format: `uuid`.
    */
-  readonly target_urn: string;
+  readonly record_id: string;
 }
 
 /**
@@ -5832,35 +5814,35 @@ export interface Rider {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id: string;
+  readonly updated_by: string | null;
   /**
    * Rider title.
    * Length: 1 to 300.
    */
   readonly title: string;
   /**
-   * Identifier of the source document.
+   * Identifier of the project.
    * Format: `uuid`.
    */
-  readonly document_id: string | null;
+  readonly project_id: string;
+  /**
+   * Identifier of the counterparty whose rider it is.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string | null;
 }
 
 /**
@@ -5868,20 +5850,20 @@ export interface Rider {
  */
 export interface RiderCreate {
   /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id: string;
-  /**
    * Rider title.
    * Length: 1 to 300.
    */
   readonly title: string;
   /**
-   * Identifier of the source document.
+   * Identifier of the project.
    * Format: `uuid`.
    */
-  readonly document_id?: string | null;
+  readonly project_id: string;
+  /**
+   * Identifier of the counterparty whose rider it is.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id?: string | null;
 }
 
 /**
@@ -5889,20 +5871,15 @@ export interface RiderCreate {
  */
 export interface RiderUpdate {
   /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id?: string;
-  /**
    * Rider title.
    * Length: 1 to 300.
    */
   readonly title?: string;
   /**
-   * Identifier of the source document.
+   * Identifier of the counterparty whose rider it is.
    * Format: `uuid`.
    */
-  readonly document_id?: string | null;
+  readonly counterparty_id?: string | null;
 }
 
 /**
@@ -5939,40 +5916,44 @@ export interface RiderLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the rider.
    * Format: `uuid`.
    */
   readonly rider_id: string;
-  readonly urid: UridAtAnyGrain;
-  /**
-   * What the rider asks for.
-   * Length: 1 to 20000.
-   */
-  readonly statement: string;
   /**
    * Quantity.
    */
   readonly quantity: number | null;
   /**
-   * Identifier of the requirement created from the line.
-   * Format: `uuid`.
+   * What is asked.
+   * Length: 1 to 500.
    */
-  readonly requirement_id: string | null;
+  readonly description: string;
+  /**
+   * Catalog element that fulfills the ask.
+   * Length: 1 to 64.
+   */
+  readonly element_id: string | null;
+  /**
+   * When the ask was fulfilled; NULL while open.
+   * Format: `date-time`.
+   */
+  readonly fulfilled_at: string | null;
 }
 
 /**
@@ -5984,42 +5965,50 @@ export interface RiderLineCreate {
    * Format: `uuid`.
    */
   readonly rider_id: string;
-  readonly urid?: UridAtAnyGrain;
-  /**
-   * What the rider asks for.
-   * Length: 1 to 20000.
-   */
-  readonly statement: string;
   /**
    * Quantity.
    */
   readonly quantity?: number | null;
   /**
-   * Identifier of the requirement created from the line.
-   * Format: `uuid`.
+   * What is asked.
+   * Length: 1 to 500.
    */
-  readonly requirement_id?: string | null;
+  readonly description: string;
+  /**
+   * Catalog element that fulfills the ask.
+   * Length: 1 to 64.
+   */
+  readonly element_id?: string | null;
+  /**
+   * When the ask was fulfilled; NULL while open.
+   * Format: `date-time`.
+   */
+  readonly fulfilled_at?: string | null;
 }
 
 /**
  * Fields accepted when updating a RiderLine. Omitted fields are unchanged.
  */
 export interface RiderLineUpdate {
-  readonly urid?: UridAtAnyGrain;
-  /**
-   * What the rider asks for.
-   * Length: 1 to 20000.
-   */
-  readonly statement?: string;
   /**
    * Quantity.
    */
   readonly quantity?: number | null;
   /**
-   * Identifier of the requirement created from the line.
-   * Format: `uuid`.
+   * What is asked.
+   * Length: 1 to 500.
    */
-  readonly requirement_id?: string | null;
+  readonly description?: string;
+  /**
+   * Catalog element that fulfills the ask.
+   * Length: 1 to 64.
+   */
+  readonly element_id?: string | null;
+  /**
+   * When the ask was fulfilled; NULL while open.
+   * Format: `date-time`.
+   */
+  readonly fulfilled_at?: string | null;
 }
 
 /**
@@ -6056,20 +6045,20 @@ export interface Fulfillment {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -6222,20 +6211,20 @@ export interface FulfillmentLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the fulfillment.
    * Format: `uuid`.
@@ -6354,20 +6343,20 @@ export interface Beo {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -6486,20 +6475,20 @@ export interface BeoLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the BEO.
    * Format: `uuid`.
@@ -6615,38 +6604,31 @@ export interface AssetClass {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Asset class name.
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly element_id: ItemId;
-  readonly urid: Urid;
+  /**
+   * Canon element the class is.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id: string;
 }
-
-/**
- * Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).
- */
-export type ItemId = string | null;
-
-/**
- * Category URID `DDDD.DD.DD` from `xpms.dim_category` (Section 3.3). There is no fourth segment.
- */
-export type Urid = string;
 
 /**
  * Fields accepted when creating a AssetClass.
@@ -6657,8 +6639,11 @@ export interface AssetClassCreate {
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly element_id?: ItemId;
-  readonly urid: Urid;
+  /**
+   * Canon element the class is.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id: string;
 }
 
 /**
@@ -6670,8 +6655,11 @@ export interface AssetClassUpdate {
    * Length: 1 to 300.
    */
   readonly name?: string;
-  readonly element_id?: ItemId;
-  readonly urid?: Urid;
+  /**
+   * Canon element the class is.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string;
 }
 
 /**
@@ -6708,20 +6696,20 @@ export interface AssetUnit {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the asset class.
    * Format: `uuid`.
@@ -6733,15 +6721,28 @@ export interface AssetUnit {
    */
   readonly asset_tag: string;
   /**
-   * Manufacturer serial (an identifier).
+   * Asset lifecycle state.
+   */
+  readonly asset_state:
+    | "Proposed"
+    | "Received"
+    | "Available"
+    | "Reserved"
+    | "Deployed"
+    | "In Maintenance"
+    | "Damaged"
+    | "Lost"
+    | "Retired";
+  /**
+   * Condition: a row of the canon Asset Condition enumeration.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly serial_number: string | null;
+  readonly condition_enum_id: string | null;
   /**
-   * Asset lifecycle state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Identifier of the venue the unit returns to.
+   * Format: `uuid`.
    */
-  readonly asset_state: string;
+  readonly home_venue_id: string | null;
 }
 
 /**
@@ -6759,10 +6760,15 @@ export interface AssetUnitCreate {
    */
   readonly asset_tag: string;
   /**
-   * Manufacturer serial (an identifier).
+   * Condition: a row of the canon Asset Condition enumeration.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly serial_number?: string | null;
+  readonly condition_enum_id?: string | null;
+  /**
+   * Identifier of the venue the unit returns to.
+   * Format: `uuid`.
+   */
+  readonly home_venue_id?: string | null;
 }
 
 /**
@@ -6770,15 +6776,15 @@ export interface AssetUnitCreate {
  */
 export interface AssetUnitUpdate {
   /**
-   * Asset tag (a code that is ours).
+   * Condition: a row of the canon Asset Condition enumeration.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly asset_tag?: string;
+  readonly condition_enum_id?: string | null;
   /**
-   * Manufacturer serial (an identifier).
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Identifier of the venue the unit returns to.
+   * Format: `uuid`.
    */
-  readonly serial_number?: string | null;
+  readonly home_venue_id?: string | null;
 }
 
 /**
@@ -6819,6 +6825,97 @@ export interface ScanRequest {
 }
 
 /**
+ * The outcome of one scan event.
+ */
+export interface AssetScanResult {
+  /**
+   * applied for a new event; duplicate when the event id was already applied.
+   */
+  readonly outcome: "applied" | "duplicate";
+  /**
+   * What the code named.
+   */
+  readonly subject_kind: "unit" | "lot";
+  /**
+   * The asset unit or lot moved.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string;
+  /**
+   * The custody entry or lot movement, equal to the event id.
+   * Format: `uuid`.
+   */
+  readonly ledger_id: string;
+  /**
+   * Units: the state after the move.
+   */
+  readonly asset_state:
+    | "Proposed"
+    | "Received"
+    | "Available"
+    | "Reserved"
+    | "Deployed"
+    | "In Maintenance"
+    | "Damaged"
+    | "Lost"
+    | "Retired"
+    | null;
+  /**
+   * Lots: the quantity on hand after the move.
+   */
+  readonly on_hand: number | null;
+}
+
+/**
+ * One custody move scanned on a device.
+ */
+export interface AssetScanEvent {
+  /**
+   * UUID the device minted when the scan happened and keeps in its offline queue. It becomes the custody entry or lot movement id, so replaying the event at any later time changes nothing.
+   * Format: `uuid`.
+   */
+  readonly event_id: string;
+  /**
+   * The scanned asset tag, external identifier (serial, GTIN) or lot label (LOT:<lot id>).
+   * Length: 1 to 200.
+   */
+  readonly code: string;
+  /**
+   * check-out hands the item to one custodian (the unit becomes Deployed); check-in returns it to a venue (the unit becomes Available); transfer passes a deployed unit to another custodian.
+   */
+  readonly action: "check-out" | "check-in" | "transfer";
+  /**
+   * Identifier of the member who takes the item.
+   * Format: `uuid`.
+   */
+  readonly custodian_membership_id?: string | null;
+  /**
+   * Identifier of the external engagement that takes the item; never together with a member.
+   * Format: `uuid`.
+   */
+  readonly custodian_engagement_id?: string | null;
+  /**
+   * Identifier of the venue the item returns to; the unit's home venue by default.
+   * Format: `uuid`.
+   */
+  readonly venue_id?: string | null;
+  /**
+   * Identifier of the project the item is out for.
+   * Format: `uuid`.
+   */
+  readonly project_id?: string | null;
+  /**
+   * Hand-over note.
+   * Length: 0 to 1000.
+   */
+  readonly note?: string | null;
+  /**
+   * Lots only: how many move.
+   */
+  readonly quantity?: number | null;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface AssetLotPage {
@@ -6852,34 +6949,38 @@ export interface AssetLot {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the asset class.
    * Format: `uuid`.
    */
   readonly asset_class_id: string;
   /**
-   * Identifier of the venue.
+   * Identifier of the venue the lot sits at.
    * Format: `uuid`.
    */
-  readonly venue_id: string | null;
+  readonly venue_id: string;
   /**
    * Quantity on hand.
    */
   readonly quantity: number;
+  /**
+   * Quantity on hand: the opening count plus the lot ledger.
+   */
+  readonly on_hand: number;
 }
 
 /**
@@ -6892,10 +6993,10 @@ export interface AssetLotCreate {
    */
   readonly asset_class_id: string;
   /**
-   * Identifier of the venue.
+   * Identifier of the venue the lot sits at.
    * Format: `uuid`.
    */
-  readonly venue_id?: string | null;
+  readonly venue_id: string;
   /**
    * Quantity on hand.
    */
@@ -6907,14 +7008,10 @@ export interface AssetLotCreate {
  */
 export interface AssetLotUpdate {
   /**
-   * Identifier of the venue.
+   * Identifier of the venue the lot sits at.
    * Format: `uuid`.
    */
-  readonly venue_id?: string | null;
-  /**
-   * Quantity on hand.
-   */
-  readonly quantity?: number;
+  readonly venue_id?: string;
 }
 
 /**
@@ -6951,20 +7048,20 @@ export interface AssetIdentifier {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the asset unit.
    * Format: `uuid`.
@@ -6980,6 +7077,11 @@ export interface AssetIdentifier {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly value: string;
+  /**
+   * Scheme, such as serial, gtin14 or mpn.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly scheme: string;
 }
 
 /**
@@ -6992,15 +7094,15 @@ export interface AssetIdentifierCreate {
    */
   readonly asset_unit_id: string;
   /**
-   * Identifier class.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly identifier_class: string;
-  /**
    * Identifier value.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly value: string;
+  /**
+   * Scheme, such as serial, gtin14 or mpn.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly scheme: string;
 }
 
 /**
@@ -7037,45 +7139,50 @@ export interface AssetCustody {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the asset unit.
    * Format: `uuid`.
    */
   readonly asset_unit_id: string;
   /**
-   * Identifier of the custodian person.
+   * Identifier of the member who holds the unit.
    * Format: `uuid`.
    */
-  readonly custodian_person_id: string | null;
+  readonly custodian_membership_id: string | null;
   /**
-   * Identifier of the custodian organization.
+   * Identifier of the external engagement that holds the unit.
    * Format: `uuid`.
    */
-  readonly custodian_organization_id: string | null;
+  readonly custodian_engagement_id: string | null;
   /**
-   * Identifier of the venue.
+   * Identifier of the place the unit is kept.
    * Format: `uuid`.
    */
-  readonly location_venue_id: string | null;
+  readonly venue_id: string | null;
   /**
-   * When custody changed.
-   * Format: `date-time`.
+   * Identifier of the project the unit is out for.
+   * Format: `uuid`.
    */
-  readonly recorded_at: string;
+  readonly project_id: string | null;
+  /**
+   * Hand-over note.
+   * Length: 0 to 1000.
+   */
+  readonly note: string | null;
 }
 
 /**
@@ -7088,20 +7195,30 @@ export interface AssetCustodyCreate {
    */
   readonly asset_unit_id: string;
   /**
-   * Identifier of the custodian person.
+   * Identifier of the member who holds the unit.
    * Format: `uuid`.
    */
-  readonly custodian_person_id?: string | null;
+  readonly custodian_membership_id?: string | null;
   /**
-   * Identifier of the custodian organization.
+   * Identifier of the external engagement that holds the unit.
    * Format: `uuid`.
    */
-  readonly custodian_organization_id?: string | null;
+  readonly custodian_engagement_id?: string | null;
   /**
-   * Identifier of the venue.
+   * Identifier of the place the unit is kept.
    * Format: `uuid`.
    */
-  readonly location_venue_id?: string | null;
+  readonly venue_id?: string | null;
+  /**
+   * Identifier of the project the unit is out for.
+   * Format: `uuid`.
+   */
+  readonly project_id?: string | null;
+  /**
+   * Hand-over note.
+   * Length: 0 to 1000.
+   */
+  readonly note?: string | null;
 }
 
 /**
@@ -7138,20 +7255,20 @@ export interface AssetMaintenance {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the asset unit.
    * Format: `uuid`.
@@ -7176,7 +7293,7 @@ export interface AssetMaintenance {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string | null;
 }
 
 /**
@@ -7207,7 +7324,7 @@ export interface AssetMaintenanceCreate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code?: string | null;
 }
 
 /**
@@ -7233,7 +7350,7 @@ export interface AssetMaintenanceUpdate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string | null;
 }
 
 /**
@@ -7270,20 +7387,20 @@ export interface AssetDamage {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the asset unit.
    * Format: `uuid`.
@@ -7300,10 +7417,15 @@ export interface AssetDamage {
    */
   readonly description: string;
   /**
-   * Identifier of the responsible engagement.
+   * Identifier of the project during which the damage happened.
    * Format: `uuid`.
    */
-  readonly engagement_id: string | null;
+  readonly project_id: string | null;
+  /**
+   * Identifier of the counterparty responsible.
+   * Format: `uuid`.
+   */
+  readonly responsible_counterparty_id: string | null;
 }
 
 /**
@@ -7319,17 +7441,22 @@ export interface AssetDamageCreate {
    * When the damage was reported.
    * Format: `date-time`.
    */
-  readonly reported_at: string;
+  readonly reported_at?: string;
   /**
    * What is damaged.
    * Length: 1 to 20000.
    */
   readonly description: string;
   /**
-   * Identifier of the responsible engagement.
+   * Identifier of the project during which the damage happened.
    * Format: `uuid`.
    */
-  readonly engagement_id?: string | null;
+  readonly project_id?: string | null;
+  /**
+   * Identifier of the counterparty responsible.
+   * Format: `uuid`.
+   */
+  readonly responsible_counterparty_id?: string | null;
 }
 
 /**
@@ -7347,10 +7474,15 @@ export interface AssetDamageUpdate {
    */
   readonly description?: string;
   /**
-   * Identifier of the responsible engagement.
+   * Identifier of the project during which the damage happened.
    * Format: `uuid`.
    */
-  readonly engagement_id?: string | null;
+  readonly project_id?: string | null;
+  /**
+   * Identifier of the counterparty responsible.
+   * Format: `uuid`.
+   */
+  readonly responsible_counterparty_id?: string | null;
 }
 
 /**
@@ -7387,20 +7519,20 @@ export interface RoleAssignment {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -7416,17 +7548,30 @@ export interface RoleAssignment {
    * Identifier of the assigned person.
    * Format: `uuid`.
    */
-  readonly person_id: string | null;
+  readonly person_id: string;
   /**
-   * Positions required.
-   * Range: 1 to unbounded.
+   * Identifier of the requisition the assignment fills.
+   * Format: `uuid`.
    */
-  readonly headcount: number;
+  readonly requisition_id: string | null;
   /**
-   * Staffing ratio basis used to size the role.
-   * Length: 1 to 300.
+   * How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
    */
-  readonly ratio_basis: string | null;
+  readonly staffing_basis: "Declared" | "Ratio" | "Fixed";
+  /**
+   * First day of the assignment.
+   * Format: `date`.
+   */
+  readonly starts_on: string | null;
+  /**
+   * Last day of the assignment.
+   * Format: `date`.
+   */
+  readonly ends_on: string | null;
+  /**
+   * Assignment state.
+   */
+  readonly assignment_state: "Proposed" | "Active" | "Complete" | "Canceled";
 }
 
 /**
@@ -7453,17 +7598,26 @@ export interface RoleAssignmentCreate {
    * Identifier of the assigned person.
    * Format: `uuid`.
    */
-  readonly person_id?: string | null;
+  readonly person_id: string;
   /**
-   * Positions required.
-   * Range: 1 to unbounded.
+   * Identifier of the requisition the assignment fills.
+   * Format: `uuid`.
    */
-  readonly headcount: number;
+  readonly requisition_id?: string | null;
   /**
-   * Staffing ratio basis used to size the role.
-   * Length: 1 to 300.
+   * How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
    */
-  readonly ratio_basis?: string | null;
+  readonly staffing_basis?: "Declared" | "Ratio" | "Fixed";
+  /**
+   * First day of the assignment.
+   * Format: `date`.
+   */
+  readonly starts_on?: string | null;
+  /**
+   * Last day of the assignment.
+   * Format: `date`.
+   */
+  readonly ends_on?: string | null;
 }
 
 /**
@@ -7480,17 +7634,26 @@ export interface RoleAssignmentUpdate {
    * Identifier of the assigned person.
    * Format: `uuid`.
    */
-  readonly person_id?: string | null;
+  readonly person_id?: string;
   /**
-   * Positions required.
-   * Range: 1 to unbounded.
+   * Identifier of the requisition the assignment fills.
+   * Format: `uuid`.
    */
-  readonly headcount?: number;
+  readonly requisition_id?: string | null;
   /**
-   * Staffing ratio basis used to size the role.
-   * Length: 1 to 300.
+   * How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
    */
-  readonly ratio_basis?: string | null;
+  readonly staffing_basis?: "Declared" | "Ratio" | "Fixed";
+  /**
+   * First day of the assignment.
+   * Format: `date`.
+   */
+  readonly starts_on?: string | null;
+  /**
+   * Last day of the assignment.
+   * Format: `date`.
+   */
+  readonly ends_on?: string | null;
 }
 
 /**
@@ -7527,52 +7690,107 @@ export interface Requisition {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
    */
   readonly project_id: string;
+  readonly role_code: RoleCode;
   /**
-   * Requisition title.
+   * Requisition state.
+   */
+  readonly requisition_state: "Proposed" | "Approved" | "Rejected" | "Filled" | "Canceled";
+  /**
+   * Identifier of the scope node of the same project.
+   * Format: `uuid`.
+   */
+  readonly scope_node_id: string | null;
+  /**
+   * Identifier of the budget line the cost is charged to.
+   * Format: `uuid`.
+   */
+  readonly budget_line_id: string | null;
+  /**
+   * External role type an opportunity published from the requisition seeks; null when filled internally.
+   */
+  readonly role_type:
+    | "Crew"
+    | "Contractor"
+    | "Staff"
+    | "Vendor"
+    | "Artist"
+    | "Artist Representative"
+    | "Client"
+    | "Sponsor"
+    | null;
+  /**
+   * Worker classification, from xpms.worker_classification.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly worker_classification: string | null;
+  /**
+   * Pay basis; set with the arrangement.
    * Length: 1 to 300.
    */
-  readonly title: string;
-  readonly role_code: RoleCode | null;
-  readonly urid: UridAtAnyGrain;
+  readonly pay_basis: string | null;
   /**
-   * Positions requested.
+   * Arrangement; set with the pay basis.
+   * Length: 1 to 300.
+   */
+  readonly arrangement: string | null;
+  /**
+   * People requested.
    * Range: 1 to unbounded.
    */
-  readonly positions: number;
+  readonly headcount: number;
   /**
-   * Requisition state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Pay basis units each person works, such as hours.
    */
-  readonly requisition_state: string;
+  readonly units_per_head: number | null;
   /**
-   * Budgeted cost. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Rate per pay basis unit. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly budget_minor: number | null;
+  readonly rate_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the rate.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * First day of the work.
+   * Format: `date`.
+   */
+  readonly starts_on: string | null;
+  /**
+   * Last day of the work.
+   * Format: `date`.
+   */
+  readonly ends_on: string | null;
+  /**
+   * Why the staff are needed.
+   * Length: 1 to 2000.
+   */
+  readonly justification: string;
+  /**
+   * Identifier of the person who requested; they cannot approve it.
+   * Format: `uuid`.
+   */
+  readonly requested_by: string | null;
 }
 
 /**
@@ -7584,56 +7802,158 @@ export interface RequisitionCreate {
    * Format: `uuid`.
    */
   readonly project_id: string;
+  readonly role_code: RoleCode;
   /**
-   * Requisition title.
+   * Identifier of the scope node of the same project.
+   * Format: `uuid`.
+   */
+  readonly scope_node_id?: string | null;
+  /**
+   * Identifier of the budget line the cost is charged to.
+   * Format: `uuid`.
+   */
+  readonly budget_line_id?: string | null;
+  /**
+   * External role type an opportunity published from the requisition seeks; null when filled internally.
+   */
+  readonly role_type?:
+    | "Crew"
+    | "Contractor"
+    | "Staff"
+    | "Vendor"
+    | "Artist"
+    | "Artist Representative"
+    | "Client"
+    | "Sponsor"
+    | null;
+  /**
+   * Worker classification, from xpms.worker_classification.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly worker_classification?: string | null;
+  /**
+   * Pay basis; set with the arrangement.
    * Length: 1 to 300.
    */
-  readonly title: string;
-  readonly role_code?: RoleCode | null;
-  readonly urid?: UridAtAnyGrain;
+  readonly pay_basis?: string | null;
   /**
-   * Positions requested.
+   * Arrangement; set with the pay basis.
+   * Length: 1 to 300.
+   */
+  readonly arrangement?: string | null;
+  /**
+   * People requested.
    * Range: 1 to unbounded.
    */
-  readonly positions: number;
+  readonly headcount?: number;
   /**
-   * Budgeted cost. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Pay basis units each person works, such as hours.
+   */
+  readonly units_per_head?: number | null;
+  /**
+   * Rate per pay basis unit. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly budget_minor?: number | null;
+  readonly rate_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the rate.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * First day of the work.
+   * Format: `date`.
+   */
+  readonly starts_on?: string | null;
+  /**
+   * Last day of the work.
+   * Format: `date`.
+   */
+  readonly ends_on?: string | null;
+  /**
+   * Why the staff are needed.
+   * Length: 1 to 2000.
+   */
+  readonly justification: string;
 }
 
 /**
  * Fields accepted when updating a Requisition. Omitted fields are unchanged.
  */
 export interface RequisitionUpdate {
+  readonly role_code?: RoleCode;
   /**
-   * Requisition title.
+   * Identifier of the scope node of the same project.
+   * Format: `uuid`.
+   */
+  readonly scope_node_id?: string | null;
+  /**
+   * Identifier of the budget line the cost is charged to.
+   * Format: `uuid`.
+   */
+  readonly budget_line_id?: string | null;
+  /**
+   * External role type an opportunity published from the requisition seeks; null when filled internally.
+   */
+  readonly role_type?:
+    | "Crew"
+    | "Contractor"
+    | "Staff"
+    | "Vendor"
+    | "Artist"
+    | "Artist Representative"
+    | "Client"
+    | "Sponsor"
+    | null;
+  /**
+   * Worker classification, from xpms.worker_classification.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly worker_classification?: string | null;
+  /**
+   * Pay basis; set with the arrangement.
    * Length: 1 to 300.
    */
-  readonly title?: string;
-  readonly role_code?: RoleCode | null;
-  readonly urid?: UridAtAnyGrain;
+  readonly pay_basis?: string | null;
   /**
-   * Positions requested.
+   * Arrangement; set with the pay basis.
+   * Length: 1 to 300.
+   */
+  readonly arrangement?: string | null;
+  /**
+   * People requested.
    * Range: 1 to unbounded.
    */
-  readonly positions?: number;
+  readonly headcount?: number;
   /**
-   * Budgeted cost. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Pay basis units each person works, such as hours.
+   */
+  readonly units_per_head?: number | null;
+  /**
+   * Rate per pay basis unit. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly budget_minor?: number | null;
+  readonly rate_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the rate.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
+  /**
+   * First day of the work.
+   * Format: `date`.
+   */
+  readonly starts_on?: string | null;
+  /**
+   * Last day of the work.
+   * Format: `date`.
+   */
+  readonly ends_on?: string | null;
+  /**
+   * Why the staff are needed.
+   * Length: 1 to 2000.
+   */
+  readonly justification?: string;
 }
 
 /**
@@ -7691,25 +8011,25 @@ export interface Offer {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Identifier of the application.
+   * Identifier of the application the offer answers.
    * Format: `uuid`.
    */
-  readonly application_id: string | null;
+  readonly application_id: string;
   /**
    * Identifier of the offered person.
    * Format: `uuid`.
@@ -7720,18 +8040,12 @@ export interface Offer {
    * Format: `uuid`.
    */
   readonly organization_id: string | null;
-  readonly rate_type: RateType;
-  readonly rate_minor: number | Masked | null;
+  readonly rate_type: RateType | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
-  /**
-   * When the offer lapses.
+   * When the terms in force lapse unanswered.
    * Format: `date-time`.
    */
-  readonly expires_at: string;
+  readonly expires_at: string | null;
   /**
    * Offer state. A Title Case value from the lifecycle's database enum.
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
@@ -7742,6 +8056,40 @@ export interface Offer {
    * Format: `date-time`.
    */
   readonly responded_at: string | null;
+  /**
+   * Version of the terms in force, issued by the database; the highest is in force.
+   * Range: 0 to unbounded.
+   */
+  readonly version_number: number;
+  /**
+   * Side that proposed the terms in force.
+   */
+  readonly proposed_side: "Organization" | "Party";
+  /**
+   * Offered amount per rate unit; null when the version leaves the amount open. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor: number | null;
+  /**
+   * ISO 4217 currency of the amount.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string | null;
+  /**
+   * First day of the work offered.
+   * Format: `date`.
+   */
+  readonly starts_on: string | null;
+  /**
+   * Last day of the work offered.
+   * Format: `date`.
+   */
+  readonly ends_on: string | null;
+  /**
+   * Message to the other side with the terms. Visible to both sides.
+   * Length: 1 to 4000.
+   */
+  readonly message: string | null;
 }
 
 /**
@@ -7750,86 +8098,136 @@ export interface Offer {
 export type RateType = "Hourly" | "Day" | "Flat" | "Milestone" | "Bid";
 
 /**
- * A Restricted field the caller may not read. The field stays present.
- */
-export interface Masked {
-  /**
-   * Always true for a masked value.
-   */
-  readonly masked: true;
-  /**
-   * Why the value is masked, naming the capability that would reveal it.
-   */
-  readonly reason: string;
-}
-
-/**
  * Fields accepted when creating a Offer.
  */
 export interface OfferCreate {
   /**
-   * Identifier of the application.
+   * Identifier of the application the offer answers.
    * Format: `uuid`.
    */
-  readonly application_id?: string | null;
+  readonly application_id: string;
+  readonly rate_type?: RateType | null;
   /**
-   * Identifier of the offered person.
-   * Format: `uuid`.
-   */
-  readonly person_id?: string | null;
-  /**
-   * Identifier of the offered organization.
-   * Format: `uuid`.
-   */
-  readonly organization_id?: string | null;
-  readonly rate_type: RateType;
-  /**
-   * Offered rate. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly rate_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
-  /**
-   * When the offer lapses.
+   * When the terms in force lapse unanswered.
    * Format: `date-time`.
    */
-  readonly expires_at: string;
+  readonly expires_at?: string | null;
+  /**
+   * Offered amount per rate unit; null when the version leaves the amount open. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor?: number | null;
+  /**
+   * ISO 4217 currency of the amount.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string | null;
+  /**
+   * First day of the work offered.
+   * Format: `date`.
+   */
+  readonly starts_on?: string | null;
+  /**
+   * Last day of the work offered.
+   * Format: `date`.
+   */
+  readonly ends_on?: string | null;
+  /**
+   * Message to the other side with the terms. Visible to both sides.
+   * Length: 1 to 4000.
+   */
+  readonly message?: string | null;
 }
 
 /**
  * Fields accepted when updating a Offer. Omitted fields are unchanged.
  */
 export interface OfferUpdate {
+  readonly rate_type?: RateType | null;
   /**
-   * Identifier of the offered person.
-   * Format: `uuid`.
-   */
-  readonly person_id?: string | null;
-  /**
-   * Identifier of the offered organization.
-   * Format: `uuid`.
-   */
-  readonly organization_id?: string | null;
-  readonly rate_type?: RateType;
-  /**
-   * Offered rate. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly rate_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency?: string;
-  /**
-   * When the offer lapses.
+   * When the terms in force lapse unanswered.
    * Format: `date-time`.
    */
-  readonly expires_at?: string;
+  readonly expires_at?: string | null;
+  /**
+   * Offered amount per rate unit; null when the version leaves the amount open. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor?: number | null;
+  /**
+   * ISO 4217 currency of the amount.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string | null;
+  /**
+   * First day of the work offered.
+   * Format: `date`.
+   */
+  readonly starts_on?: string | null;
+  /**
+   * Last day of the work offered.
+   * Format: `date`.
+   */
+  readonly ends_on?: string | null;
+  /**
+   * Message to the other side with the terms. Visible to both sides.
+   * Length: 1 to 4000.
+   */
+  readonly message?: string | null;
+}
+
+/**
+ * Request to decline an offer.
+ */
+export interface OfferDeclineRequest {
+  /**
+   * Why, recorded on the offer's state transition.
+   * Length: 1 to 2000.
+   */
+  readonly reason: string;
+}
+
+/**
+ * Counter terms for an offer.
+ */
+export interface OfferCounterRequest {
+  readonly rate_type?: RateType | null;
+  /**
+   * Offered amount per rate unit; null when the version leaves the amount open. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor?: number | null;
+  /**
+   * ISO 4217 currency of the amount.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string | null;
+  /**
+   * First day of the work offered.
+   * Format: `date`.
+   */
+  readonly starts_on?: string | null;
+  /**
+   * Last day of the work offered.
+   * Format: `date`.
+   */
+  readonly ends_on?: string | null;
+  /**
+   * Message to the other side with the terms. Visible to both sides.
+   * Length: 1 to 4000.
+   */
+  readonly message?: string | null;
+}
+
+/**
+ * Request to withdraw an offer.
+ */
+export interface OfferWithdrawRequest {
+  /**
+   * Why, recorded on the offer's state transition.
+   * Length: 1 to 2000.
+   */
+  readonly reason: string;
 }
 
 /**
@@ -7866,45 +8264,82 @@ export interface Agreement {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id: string | null;
+  readonly updated_by: string | null;
   /**
    * Agreement title.
    * Length: 1 to 300.
    */
   readonly title: string;
   /**
-   * Identifier of the agreement document.
-   * Format: `uuid`.
+   * Agreement state.
    */
-  readonly document_id: string;
-  /**
-   * Agreement state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly agreement_state: string;
+  readonly agreement_state: "Proposed" | "Sent" | "Signed" | "Superseded" | "Expired" | "Canceled";
   /**
    * When the agreement was signed.
    * Format: `date-time`.
    */
   readonly signed_at: string | null;
+  /**
+   * Kind of agreement.
+   */
+  readonly agreement_kind:
+    | "Offer Letter"
+    | "Contractor Agreement"
+    | "Master Services Agreement"
+    | "Non-Disclosure Agreement";
+  /**
+   * Full text the signer reads and signs; changes only while Proposed.
+   * Length: 1 to 20000.
+   */
+  readonly body: string;
+  /**
+   * Identifier of the project the agreement covers.
+   * Format: `uuid`.
+   */
+  readonly project_id: string | null;
+  /**
+   * Identifier of the offer the agreement follows.
+   * Format: `uuid`.
+   */
+  readonly offer_id: string | null;
+  /**
+   * Identifier of the person party to the agreement.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Identifier of the external organization party to the agreement.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string | null;
+  /**
+   * When the signing link stops working.
+   * Format: `date-time`.
+   */
+  readonly token_expires_at: string | null;
+  /**
+   * Name the signer typed as their signature.
+   * Length: 1 to 300.
+   */
+  readonly signed_name: string | null;
+  /**
+   * SHA-256 of the text that was signed, lowercase hex.
+   * Pattern: `^[0-9a-f]{64}$`.
+   */
+  readonly signed_body_sha256: string | null;
 }
 
 /**
@@ -7912,20 +8347,43 @@ export interface Agreement {
  */
 export interface AgreementCreate {
   /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id?: string | null;
-  /**
    * Agreement title.
    * Length: 1 to 300.
    */
   readonly title: string;
   /**
-   * Identifier of the agreement document.
+   * Kind of agreement.
+   */
+  readonly agreement_kind:
+    | "Offer Letter"
+    | "Contractor Agreement"
+    | "Master Services Agreement"
+    | "Non-Disclosure Agreement";
+  /**
+   * Full text the signer reads and signs; changes only while Proposed.
+   * Length: 1 to 20000.
+   */
+  readonly body: string;
+  /**
+   * Identifier of the project the agreement covers.
    * Format: `uuid`.
    */
-  readonly document_id: string;
+  readonly project_id?: string | null;
+  /**
+   * Identifier of the offer the agreement follows.
+   * Format: `uuid`.
+   */
+  readonly offer_id?: string | null;
+  /**
+   * Identifier of the person party to the agreement.
+   * Format: `uuid`.
+   */
+  readonly person_id?: string | null;
+  /**
+   * Identifier of the external organization party to the agreement.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id?: string | null;
 }
 
 /**
@@ -7933,20 +8391,43 @@ export interface AgreementCreate {
  */
 export interface AgreementUpdate {
   /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id?: string | null;
-  /**
    * Agreement title.
    * Length: 1 to 300.
    */
   readonly title?: string;
   /**
-   * Identifier of the agreement document.
+   * Kind of agreement.
+   */
+  readonly agreement_kind?:
+    | "Offer Letter"
+    | "Contractor Agreement"
+    | "Master Services Agreement"
+    | "Non-Disclosure Agreement";
+  /**
+   * Full text the signer reads and signs; changes only while Proposed.
+   * Length: 1 to 20000.
+   */
+  readonly body?: string;
+  /**
+   * Identifier of the project the agreement covers.
    * Format: `uuid`.
    */
-  readonly document_id?: string;
+  readonly project_id?: string | null;
+  /**
+   * Identifier of the offer the agreement follows.
+   * Format: `uuid`.
+   */
+  readonly offer_id?: string | null;
+  /**
+   * Identifier of the person party to the agreement.
+   * Format: `uuid`.
+   */
+  readonly person_id?: string | null;
+  /**
+   * Identifier of the external organization party to the agreement.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id?: string | null;
 }
 
 /**
@@ -7983,20 +8464,20 @@ export interface Shift {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -8007,12 +8488,7 @@ export interface Shift {
    * Format: `uuid`.
    */
   readonly record_id: string | null;
-  readonly role_code: RoleCode;
-  /**
-   * Identifier of the assigned person.
-   * Format: `uuid`.
-   */
-  readonly person_id: string | null;
+  readonly role_code: RoleCode | null;
   /**
    * Identifier of the engagement.
    * Format: `uuid`.
@@ -8029,15 +8505,24 @@ export interface Shift {
    */
   readonly ends_at: string;
   /**
-   * Identifier of the geofence for clock in.
+   * Shift state.
+   */
+  readonly shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
+  /**
+   * Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.
    * Format: `uuid`.
    */
-  readonly geofence_id: string | null;
+  readonly membership_id: string | null;
   /**
-   * Shift state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Identifier of the scope node of the same project, such as the show.
+   * Format: `uuid`.
    */
-  readonly shift_state: string;
+  readonly scope_node_id: string | null;
+  /**
+   * IANA time zone the call and wrap times are shown in.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
 }
 
 /**
@@ -8054,12 +8539,7 @@ export interface ShiftCreate {
    * Format: `uuid`.
    */
   readonly record_id?: string | null;
-  readonly role_code: RoleCode;
-  /**
-   * Identifier of the assigned person.
-   * Format: `uuid`.
-   */
-  readonly person_id?: string | null;
+  readonly role_code?: RoleCode | null;
   /**
    * Identifier of the engagement.
    * Format: `uuid`.
@@ -8076,10 +8556,20 @@ export interface ShiftCreate {
    */
   readonly ends_at: string;
   /**
-   * Identifier of the geofence for clock in.
+   * Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.
    * Format: `uuid`.
    */
-  readonly geofence_id?: string | null;
+  readonly membership_id?: string | null;
+  /**
+   * Identifier of the scope node of the same project, such as the show.
+   * Format: `uuid`.
+   */
+  readonly scope_node_id?: string | null;
+  /**
+   * IANA time zone the call and wrap times are shown in.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
 }
 
 /**
@@ -8091,12 +8581,7 @@ export interface ShiftUpdate {
    * Format: `uuid`.
    */
   readonly record_id?: string | null;
-  readonly role_code?: RoleCode;
-  /**
-   * Identifier of the assigned person.
-   * Format: `uuid`.
-   */
-  readonly person_id?: string | null;
+  readonly role_code?: RoleCode | null;
   /**
    * Identifier of the engagement.
    * Format: `uuid`.
@@ -8113,10 +8598,20 @@ export interface ShiftUpdate {
    */
   readonly ends_at?: string;
   /**
-   * Identifier of the geofence for clock in.
+   * Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.
    * Format: `uuid`.
    */
-  readonly geofence_id?: string | null;
+  readonly membership_id?: string | null;
+  /**
+   * Identifier of the scope node of the same project, such as the show.
+   * Format: `uuid`.
+   */
+  readonly scope_node_id?: string | null;
+  /**
+   * IANA time zone the call and wrap times are shown in.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone?: string;
 }
 
 /**
@@ -8174,50 +8669,44 @@ export interface ShiftSwap {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the shift.
    * Format: `uuid`.
    */
   readonly shift_id: string;
   /**
-   * Identifier of the requesting person.
+   * Swap state.
+   */
+  readonly swap_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
+  /**
+   * Identifier of the project of the shift, copied from it.
    * Format: `uuid`.
    */
-  readonly requested_by: string;
+  readonly project_id: string;
   /**
-   * Identifier of the proposed replacement.
+   * Identifier of the membership of the person on the shift who asks to swap.
    * Format: `uuid`.
    */
-  readonly proposed_person_id: string | null;
+  readonly requested_by_membership_id: string;
   /**
-   * Swap state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly swap_state: string;
-  /**
-   * Identifier of the approver.
+   * Identifier of the membership of the person who would take the shift.
    * Format: `uuid`.
    */
-  readonly decided_by: string | null;
-  /**
-   * When it was decided.
-   * Format: `date-time`.
-   */
-  readonly decided_at: string | null;
+  readonly proposed_membership_id: string;
 }
 
 /**
@@ -8230,10 +8719,10 @@ export interface ShiftSwapCreate {
    */
   readonly shift_id: string;
   /**
-   * Identifier of the proposed replacement.
+   * Identifier of the membership of the person who would take the shift.
    * Format: `uuid`.
    */
-  readonly proposed_person_id?: string | null;
+  readonly proposed_membership_id: string;
 }
 
 /**
@@ -8270,25 +8759,20 @@ export interface TimeEntry {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the person.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the shift.
    * Format: `uuid`.
@@ -8298,36 +8782,50 @@ export interface TimeEntry {
    * Clock in.
    * Format: `date-time`.
    */
-  readonly clock_in_at: string;
+  readonly clock_in: string;
   /**
    * Clock out.
    * Format: `date-time`.
    */
-  readonly clock_out_at: string | null;
+  readonly clock_out: string | null;
   /**
    * Break minutes.
    * Range: 0 to unbounded.
    */
   readonly break_minutes: number;
   /**
-   * WGS 84 latitude.
-   * Range: -90 to 90.
-   */
-  readonly latitude: number | null;
-  /**
-   * WGS 84 longitude.
-   * Range: -180 to 180.
-   */
-  readonly longitude: number | null;
-  /**
-   * Whether the entry was closed automatically at 16 hours.
-   */
-  readonly auto_closed: boolean;
-  /**
    * Identifier of the kiosk device.
    * Format: `uuid`.
    */
   readonly kiosk_device_id: string | null;
+  /**
+   * Identifier of the project worked.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the membership of the person who worked; null for external crew, who carry an engagement.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string | null;
+  /**
+   * Identifier of the engagement of the person who worked when external crew; null for members.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * Where the punch came from.
+   */
+  readonly source: "Web" | "Mobile" | "Kiosk";
+  /**
+   * When a forgotten clock-out was closed automatically at 16 hours.
+   * Format: `date-time`.
+   */
+  readonly auto_closed_at: string | null;
+  /**
+   * Whether the entry was closed automatically and awaits review.
+   */
+  readonly needs_review: boolean;
 }
 
 /**
@@ -8410,45 +8908,54 @@ export interface TimeEntryCorrection {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the time entry.
    * Format: `uuid`.
    */
   readonly time_entry_id: string;
   /**
-   * Corrected clock in.
-   * Format: `date-time`.
-   */
-  readonly clock_in_at: string | null;
-  /**
-   * Corrected clock out.
-   * Format: `date-time`.
-   */
-  readonly clock_out_at: string | null;
-  /**
    * Why the correction is needed.
    * Length: 1 to 20000.
    */
   readonly reason: string;
   /**
-   * Correction state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Correction state.
    */
-  readonly correction_state: string;
+  readonly correction_state: "Proposed" | "Approved" | "Rejected";
+  /**
+   * Proposed clock in.
+   * Format: `date-time`.
+   */
+  readonly proposed_clock_in: string;
+  /**
+   * Proposed clock out.
+   * Format: `date-time`.
+   */
+  readonly proposed_clock_out: string | null;
+  /**
+   * Proposed unpaid break minutes.
+   * Range: 0 to unbounded.
+   */
+  readonly proposed_break_minutes: number;
+  /**
+   * Identifier of the person who asked for the correction.
+   * Format: `uuid`.
+   */
+  readonly requested_by: string | null;
 }
 
 /**
@@ -8461,20 +8968,25 @@ export interface TimeEntryCorrectionCreate {
    */
   readonly time_entry_id: string;
   /**
-   * Corrected clock in.
-   * Format: `date-time`.
-   */
-  readonly clock_in_at?: string | null;
-  /**
-   * Corrected clock out.
-   * Format: `date-time`.
-   */
-  readonly clock_out_at?: string | null;
-  /**
    * Why the correction is needed.
    * Length: 1 to 20000.
    */
   readonly reason: string;
+  /**
+   * Proposed clock in.
+   * Format: `date-time`.
+   */
+  readonly proposed_clock_in: string;
+  /**
+   * Proposed clock out.
+   * Format: `date-time`.
+   */
+  readonly proposed_clock_out?: string | null;
+  /**
+   * Proposed unpaid break minutes.
+   * Range: 0 to unbounded.
+   */
+  readonly proposed_break_minutes?: number;
 }
 
 /**
@@ -8511,45 +9023,33 @@ export interface TimeEntryAudit {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the time entry.
    * Format: `uuid`.
    */
   readonly time_entry_id: string;
   /**
-   * Changed field.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Changed columns before the change; null on insert.
    */
-  readonly field: string;
+  readonly old_values: { readonly [key: string]: unknown } | null;
   /**
-   * Previous value.
-   * Length: 1 to 300.
+   * Changed columns after the change.
    */
-  readonly from_value: string | null;
-  /**
-   * New value.
-   * Length: 1 to 300.
-   */
-  readonly to_value: string | null;
-  /**
-   * When it changed.
-   * Format: `date-time`.
-   */
-  readonly changed_at: string;
+  readonly new_values: { readonly [key: string]: unknown };
 }
 
 /**
@@ -8586,39 +9086,54 @@ export interface Timesheet {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Identifier of the person.
+   * Timesheet state.
+   */
+  readonly timesheet_state: "Proposed" | "Submitted" | "Approved" | "Rejected";
+  /**
+   * Identifier of the project worked.
    * Format: `uuid`.
    */
-  readonly person_id: string;
+  readonly project_id: string;
   /**
-   * Identifier of the pay period.
+   * Identifier of the membership of the person who worked; null for external crew, who carry an engagement.
    * Format: `uuid`.
    */
-  readonly pay_period_id: string;
+  readonly membership_id: string | null;
   /**
-   * Timesheet state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Identifier of the engagement of the person who worked when external crew; null for members.
+   * Format: `uuid`.
    */
-  readonly timesheet_state: string;
+  readonly engagement_id: string | null;
   /**
-   * Total hours, derived from time entries.
+   * First day of the period.
+   * Format: `date`.
    */
-  readonly total_hours: number;
+  readonly period_start: string;
+  /**
+   * Last day of the period.
+   * Format: `date`.
+   */
+  readonly period_end: string;
+  /**
+   * Identifier of the person who submitted the timesheet.
+   * Format: `uuid`.
+   */
+  readonly submitted_by: string | null;
 }
 
 /**
@@ -8626,15 +9141,30 @@ export interface Timesheet {
  */
 export interface TimesheetCreate {
   /**
-   * Identifier of the person.
+   * Identifier of the project worked.
    * Format: `uuid`.
    */
-  readonly person_id: string;
+  readonly project_id: string;
   /**
-   * Identifier of the pay period.
+   * Identifier of the membership of the person who worked; null for external crew, who carry an engagement.
    * Format: `uuid`.
    */
-  readonly pay_period_id: string;
+  readonly membership_id?: string | null;
+  /**
+   * Identifier of the engagement of the person who worked when external crew; null for members.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string | null;
+  /**
+   * First day of the period.
+   * Format: `date`.
+   */
+  readonly period_start: string;
+  /**
+   * Last day of the period.
+   * Format: `date`.
+   */
+  readonly period_end: string;
 }
 
 /**
@@ -8671,20 +9201,20 @@ export interface TimesheetApproval {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the timesheet.
    * Format: `uuid`.
@@ -8694,21 +9224,17 @@ export interface TimesheetApproval {
    * Identifier of the approver.
    * Format: `uuid`.
    */
-  readonly approver_id: string;
+  readonly approved_by: string;
   /**
-   * Decision. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Minutes approved.
+   * Range: 0 to unbounded.
    */
-  readonly decision: string;
+  readonly approved_minutes: number;
   /**
-   * When it was decided.
+   * When an hours change voided the approval.
    * Format: `date-time`.
    */
-  readonly decided_at: string;
-  /**
-   * Whether the approval was voided by an hours change.
-   */
-  readonly voided: boolean;
+  readonly voided_at: string | null;
 }
 
 /**
@@ -8745,34 +9271,40 @@ export interface KioskDevice {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Device name.
    * Length: 1 to 300.
    */
   readonly name: string;
   /**
-   * Identifier of the venue.
+   * Identifier of the project the kiosk serves.
    * Format: `uuid`.
    */
-  readonly venue_id: string | null;
+  readonly project_id: string | null;
   /**
-   * Whether the kiosk accepts punches.
+   * Last time the kiosk checked in.
+   * Format: `date-time`.
    */
-  readonly active: boolean;
+  readonly last_seen_at: string | null;
+  /**
+   * When the kiosk was revoked; it accepts no punches.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
 }
 
 /**
@@ -8785,14 +9317,10 @@ export interface KioskDeviceCreate {
    */
   readonly name: string;
   /**
-   * Identifier of the venue.
+   * Identifier of the project the kiosk serves.
    * Format: `uuid`.
    */
-  readonly venue_id?: string | null;
-  /**
-   * Whether the kiosk accepts punches.
-   */
-  readonly active: boolean;
+  readonly project_id?: string | null;
 }
 
 /**
@@ -8805,14 +9333,10 @@ export interface KioskDeviceUpdate {
    */
   readonly name?: string;
   /**
-   * Identifier of the venue.
+   * Identifier of the project the kiosk serves.
    * Format: `uuid`.
    */
-  readonly venue_id?: string | null;
-  /**
-   * Whether the kiosk accepts punches.
-   */
-  readonly active?: boolean;
+  readonly project_id?: string | null;
 }
 
 /**
@@ -8849,20 +9373,20 @@ export interface RateCard {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Rate card name.
    * Length: 1 to 300.
@@ -8872,7 +9396,7 @@ export interface RateCard {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
   /**
    * First day the card applies.
    * Format: `date`.
@@ -8898,7 +9422,7 @@ export interface RateCardCreate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
   /**
    * First day the card applies.
    * Format: `date`.
@@ -8924,7 +9448,7 @@ export interface RateCardUpdate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
   /**
    * First day the card applies.
    * Format: `date`.
@@ -8971,33 +9495,66 @@ export interface RateCardLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the rate card.
    * Format: `uuid`.
    */
   readonly rate_card_id: string;
   readonly role_code: RoleCode;
-  readonly rate_type: RateType;
   readonly rate_minor: number | Masked | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Worker classification priced, from xpms.worker_classification.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly currency: string;
+  readonly worker_classification: string;
+  /**
+   * Pay basis; with the classification a permitted pair.
+   * Length: 1 to 300.
+   */
+  readonly pay_basis: string;
+  /**
+   * Arrangement; with the classification a permitted pair.
+   * Length: 1 to 300.
+   */
+  readonly arrangement: string;
+  /**
+   * Canon overtime rule whose multipliers apply.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly overtime_rule_id: string;
+  /**
+   * Canon rate card the line was adopted from.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly canon_rate_card_id: string | null;
+}
+
+/**
+ * A Restricted field the caller may not read. The field stays present.
+ */
+export interface Masked {
+  /**
+   * Always true for a masked value.
+   */
+  readonly masked: true;
+  /**
+   * Why the value is masked, naming the capability that would reveal it.
+   */
+  readonly reason: string;
 }
 
 /**
@@ -9010,17 +9567,36 @@ export interface RateCardLineCreate {
    */
   readonly rate_card_id: string;
   readonly role_code: RoleCode;
-  readonly rate_type: RateType;
   /**
    * Rate. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly rate_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Worker classification priced, from xpms.worker_classification.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly currency: string;
+  readonly worker_classification: string;
+  /**
+   * Pay basis; with the classification a permitted pair.
+   * Length: 1 to 300.
+   */
+  readonly pay_basis: string;
+  /**
+   * Arrangement; with the classification a permitted pair.
+   * Length: 1 to 300.
+   */
+  readonly arrangement: string;
+  /**
+   * Canon overtime rule whose multipliers apply.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly overtime_rule_id: string;
+  /**
+   * Canon rate card the line was adopted from.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly canon_rate_card_id?: string | null;
 }
 
 /**
@@ -9028,17 +9604,36 @@ export interface RateCardLineCreate {
  */
 export interface RateCardLineUpdate {
   readonly role_code?: RoleCode;
-  readonly rate_type?: RateType;
   /**
    * Rate. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly rate_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Worker classification priced, from xpms.worker_classification.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly currency?: string;
+  readonly worker_classification?: string;
+  /**
+   * Pay basis; with the classification a permitted pair.
+   * Length: 1 to 300.
+   */
+  readonly pay_basis?: string;
+  /**
+   * Arrangement; with the classification a permitted pair.
+   * Length: 1 to 300.
+   */
+  readonly arrangement?: string;
+  /**
+   * Canon overtime rule whose multipliers apply.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly overtime_rule_id?: string;
+  /**
+   * Canon rate card the line was adopted from.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly canon_rate_card_id?: string | null;
 }
 
 /**
@@ -9075,66 +9670,64 @@ export interface PayRate {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the person.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
-  readonly role_code: RoleCode | null;
-  readonly rate_type: RateType;
+  readonly updated_by: string | null;
+  readonly role_code: RoleCode;
   readonly rate_minor: number | Masked | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
   /**
    * First day the rate applies.
    * Format: `date`.
    */
   readonly effective_from: string;
+  /**
+   * Identifier of the membership of the person paid.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * ISO 4217 currency of the rate.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string;
 }
 
 /**
  * Fields accepted when creating a PayRate.
  */
 export interface PayRateCreate {
+  readonly role_code: RoleCode;
   /**
-   * Identifier of the person.
-   * Format: `uuid`.
+   * Pay rate per hour. Integer minor units of the row's currency.
+   * Format: `int64`. Range: 0 to unbounded.
    */
-  readonly person_id: string;
-  readonly role_code?: RoleCode | null;
-  readonly rate_type: RateType;
-  /**
-   * Pay rate. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly rate_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
+  readonly rate_minor: number;
   /**
    * First day the rate applies.
    * Format: `date`.
    */
   readonly effective_from: string;
+  /**
+   * Identifier of the membership of the person paid.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * ISO 4217 currency of the rate.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string;
 }
 
 /**
@@ -9152,108 +9745,35 @@ export interface OvertimeRulePage {
 }
 
 /**
- * An overtime rule by jurisdiction.
+ * A jurisdiction's wage and hour rule from canon: daily and weekly overtime thresholds and minimum multipliers. A lower jurisdiction inherits its parent's rule.
  */
 export interface OvertimeRule {
-  /**
-   * Identifier of the overtime rule.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-   * Format: `uuid`.
-   */
-  readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row.
-   * Format: `uuid`.
-   */
-  readonly created_by: string;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string;
-  /**
-   * Rule name.
-   * Length: 1 to 300.
-   */
-  readonly name: string;
   readonly jurisdiction_id: JurisdictionId;
   /**
-   * Hours after which the multiplier applies.
-   */
-  readonly threshold_hours: number;
-  /**
-   * Pay multiplier.
-   */
-  readonly multiplier: number;
-  /**
-   * Threshold period.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly period: string;
-}
-
-/**
- * Fields accepted when creating a OvertimeRule.
- */
-export interface OvertimeRuleCreate {
-  /**
-   * Rule name.
+   * Statute or source of the rule.
    * Length: 1 to 300.
    */
-  readonly name: string;
-  readonly jurisdiction_id: JurisdictionId;
+  readonly source: string;
   /**
-   * Hours after which the multiplier applies.
+   * Weekly hours after which overtime applies.
    */
-  readonly threshold_hours: number;
+  readonly weekly_ot_after_hours: number | null;
   /**
-   * Pay multiplier.
+   * Daily hours after which overtime applies.
    */
-  readonly multiplier: number;
+  readonly daily_ot_after_hours: number | null;
   /**
-   * Threshold period.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Daily hours after which double time applies.
    */
-  readonly period: string;
-}
-
-/**
- * Fields accepted when updating a OvertimeRule. Omitted fields are unchanged.
- */
-export interface OvertimeRuleUpdate {
+  readonly daily_dt_after_hours: number | null;
   /**
-   * Rule name.
-   * Length: 1 to 300.
+   * Minimum overtime multiplier.
    */
-  readonly name?: string;
-  readonly jurisdiction_id?: JurisdictionId;
+  readonly min_ot_multiplier: number | null;
   /**
-   * Hours after which the multiplier applies.
+   * Minimum double time multiplier.
    */
-  readonly threshold_hours?: number;
-  /**
-   * Pay multiplier.
-   */
-  readonly multiplier?: number;
-  /**
-   * Threshold period.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly period?: string;
+  readonly min_dt_multiplier: number | null;
 }
 
 /**
@@ -9290,20 +9810,20 @@ export interface UnionLocalRate {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Union local.
    * Length: 1 to 300.
@@ -9315,12 +9835,22 @@ export interface UnionLocalRate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
   /**
    * First day the rate applies.
    * Format: `date`.
    */
   readonly effective_from: string;
+  /**
+   * Fringe per hour. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly fringe_minor: number | null;
+  /**
+   * Last day the rate applies.
+   * Format: `date`.
+   */
+  readonly effective_to: string | null;
 }
 
 /**
@@ -9334,20 +9864,30 @@ export interface UnionLocalRateCreate {
   readonly union_local: string;
   readonly role_code: RoleCode;
   /**
-   * Scale rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Scale rate per hour. Integer minor units of the row's currency.
+   * Format: `int64`. Range: 0 to unbounded.
    */
-  readonly rate_minor?: number | null;
+  readonly rate_minor: number;
   /**
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
   /**
    * First day the rate applies.
    * Format: `date`.
    */
   readonly effective_from: string;
+  /**
+   * Fringe per hour. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly fringe_minor?: number | null;
+  /**
+   * Last day the rate applies.
+   * Format: `date`.
+   */
+  readonly effective_to?: string | null;
 }
 
 /**
@@ -9361,20 +9901,30 @@ export interface UnionLocalRateUpdate {
   readonly union_local?: string;
   readonly role_code?: RoleCode;
   /**
-   * Scale rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Scale rate per hour. Integer minor units of the row's currency.
+   * Format: `int64`. Range: 0 to unbounded.
    */
-  readonly rate_minor?: number | null;
+  readonly rate_minor?: number;
   /**
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
   /**
    * First day the rate applies.
    * Format: `date`.
    */
   readonly effective_from?: string;
+  /**
+   * Fringe per hour. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly fringe_minor?: number | null;
+  /**
+   * Last day the rate applies.
+   * Format: `date`.
+   */
+  readonly effective_to?: string | null;
 }
 
 /**
@@ -9411,37 +9961,47 @@ export interface WageDetermination {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   readonly jurisdiction_id: JurisdictionId;
-  /**
-   * Determination reference.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly reference: string;
   readonly role_code: RoleCode;
   /**
-   * Prevailing rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Prevailing minimum rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly rate_minor: number | null;
+  readonly minimum_rate_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * First day the determination applies.
+   * Format: `date`.
+   */
+  readonly effective_from: string;
+  /**
+   * Last day the determination applies.
+   * Format: `date`.
+   */
+  readonly effective_to: string | null;
+  /**
+   * Determination source or reference.
+   * Length: 1 to 300.
+   */
+  readonly source: string;
 }
 
 /**
@@ -9449,22 +10009,32 @@ export interface WageDetermination {
  */
 export interface WageDeterminationCreate {
   readonly jurisdiction_id: JurisdictionId;
-  /**
-   * Determination reference.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly reference: string;
   readonly role_code: RoleCode;
   /**
-   * Prevailing rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Prevailing minimum rate per hour. Integer minor units of the row's currency.
+   * Format: `int64`. Range: 0 to unbounded.
    */
-  readonly rate_minor?: number | null;
+  readonly minimum_rate_minor: number;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * First day the determination applies.
+   * Format: `date`.
+   */
+  readonly effective_from: string;
+  /**
+   * Last day the determination applies.
+   * Format: `date`.
+   */
+  readonly effective_to?: string | null;
+  /**
+   * Determination source or reference.
+   * Length: 1 to 300.
+   */
+  readonly source: string;
 }
 
 /**
@@ -9472,22 +10042,32 @@ export interface WageDeterminationCreate {
  */
 export interface WageDeterminationUpdate {
   readonly jurisdiction_id?: JurisdictionId;
-  /**
-   * Determination reference.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly reference?: string;
   readonly role_code?: RoleCode;
   /**
-   * Prevailing rate per hour. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Prevailing minimum rate per hour. Integer minor units of the row's currency.
+   * Format: `int64`. Range: 0 to unbounded.
    */
-  readonly rate_minor?: number | null;
+  readonly minimum_rate_minor?: number;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
+  /**
+   * First day the determination applies.
+   * Format: `date`.
+   */
+  readonly effective_from?: string;
+  /**
+   * Last day the determination applies.
+   * Format: `date`.
+   */
+  readonly effective_to?: string | null;
+  /**
+   * Determination source or reference.
+   * Length: 1 to 300.
+   */
+  readonly source?: string;
 }
 
 /**
@@ -9524,20 +10104,20 @@ export interface PayPeriod {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * First day.
    * Format: `date`.
@@ -9642,40 +10222,35 @@ export interface PayrollRun {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the pay period.
    * Format: `uuid`.
    */
   readonly pay_period_id: string;
   /**
-   * Payroll run state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Payroll run state.
    */
-  readonly payroll_run_state: string;
-  /**
-   * Gross pay total, derived. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly gross_total: number | null;
+  readonly payroll_run_state:
+    "Draft" | "Calculated" | "Approved" | "Exported" | "Accepted" | "Canceled";
   /**
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
 }
 
 /**
@@ -9691,7 +10266,7 @@ export interface PayrollRunCreate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
 }
 
 /**
@@ -9744,35 +10319,10 @@ export interface PayrollLine {
    */
   readonly org_id: string;
   /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row.
-   * Format: `uuid`.
-   */
-  readonly created_by: string;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string;
-  /**
    * Identifier of the payroll run.
    * Format: `uuid`.
    */
   readonly payroll_run_id: string;
-  /**
-   * Identifier of the person.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
   /**
    * Identifier of the earning code.
    * Format: `uuid`.
@@ -9784,10 +10334,17 @@ export interface PayrollLine {
   readonly hours: number;
   readonly amount_minor: number | Masked | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Identifier of the membership of the person paid.
+   * Format: `uuid`.
    */
-  readonly currency: string;
+  readonly membership_id: string;
+  readonly rate_minor: number | Masked | null;
+  readonly role_code: RoleCode | null;
+  /**
+   * Identifier of the cost center charged.
+   * Format: `uuid`.
+   */
+  readonly cost_center_id: string | null;
 }
 
 /**
@@ -9824,20 +10381,20 @@ export interface PayrollExport {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the payroll run.
    * Format: `uuid`.
@@ -9849,15 +10406,15 @@ export interface PayrollExport {
    */
   readonly provider: string;
   /**
-   * Export state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Logical location of the export file.
+   * Length: 1 to 1000.
    */
-  readonly export_state: string;
+  readonly file_uri: string;
   /**
-   * Identifier of the export file.
-   * Format: `uuid`.
+   * SHA-256 of the export file, lowercase hex.
+   * Pattern: `^[0-9a-f]{64}$`.
    */
-  readonly document_id: string | null;
+  readonly checksum_sha256: string;
 }
 
 /**
@@ -9910,25 +10467,25 @@ export interface EarningCode {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Earning code.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly earning_code: string;
+  readonly code: string;
   /**
    * Earning name.
    * Length: 1 to 300.
@@ -9937,7 +10494,7 @@ export interface EarningCode {
   /**
    * Whether it is an overtime code.
    */
-  readonly overtime: boolean;
+  readonly is_overtime: boolean;
 }
 
 /**
@@ -9948,7 +10505,7 @@ export interface EarningCodeCreate {
    * Earning code.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly earning_code: string;
+  readonly code: string;
   /**
    * Earning name.
    * Length: 1 to 300.
@@ -9957,7 +10514,7 @@ export interface EarningCodeCreate {
   /**
    * Whether it is an overtime code.
    */
-  readonly overtime: boolean;
+  readonly is_overtime?: boolean;
 }
 
 /**
@@ -9968,7 +10525,7 @@ export interface EarningCodeUpdate {
    * Earning code.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly earning_code?: string;
+  readonly code?: string;
   /**
    * Earning name.
    * Length: 1 to 300.
@@ -9977,7 +10534,7 @@ export interface EarningCodeUpdate {
   /**
    * Whether it is an overtime code.
    */
-  readonly overtime?: boolean;
+  readonly is_overtime?: boolean;
 }
 
 /**
@@ -10014,41 +10571,50 @@ export interface PerDiem {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the engagement.
    * Format: `uuid`.
    */
-  readonly engagement_id: string;
-  readonly daily_amount_minor: number | Masked | null;
+  readonly engagement_id: string | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * Identifier of the project worked.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the membership of the person paid; null for external crew, who carry an engagement.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string | null;
+  /**
+   * Day the allowance covers.
+   * Format: `date`.
+   */
+  readonly day: string;
+  /**
+   * Allowance for the day. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor: number | null;
+  /**
+   * ISO 4217 currency.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
-  /**
-   * First day.
-   * Format: `date`.
-   */
-  readonly starts_on: string;
-  /**
-   * Last day.
-   * Format: `date`.
-   */
-  readonly ends_on: string;
+  readonly currency_code: string;
 }
 
 /**
@@ -10059,27 +10625,32 @@ export interface PerDiemCreate {
    * Identifier of the engagement.
    * Format: `uuid`.
    */
-  readonly engagement_id: string;
+  readonly engagement_id?: string | null;
   /**
-   * Daily allowance. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Identifier of the project worked.
+   * Format: `uuid`.
    */
-  readonly daily_amount_minor?: number | null;
+  readonly project_id: string;
   /**
-   * ISO 4217 currency code of every money field.
+   * Identifier of the membership of the person paid; null for external crew, who carry an engagement.
+   * Format: `uuid`.
+   */
+  readonly membership_id?: string | null;
+  /**
+   * Day the allowance covers.
+   * Format: `date`.
+   */
+  readonly day: string;
+  /**
+   * Allowance for the day. Integer minor units of the row's currency.
+   * Format: `int64`. Range: 0 to unbounded.
+   */
+  readonly amount_minor: number;
+  /**
+   * ISO 4217 currency.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
-  /**
-   * First day.
-   * Format: `date`.
-   */
-  readonly starts_on: string;
-  /**
-   * Last day.
-   * Format: `date`.
-   */
-  readonly ends_on: string;
+  readonly currency_code: string;
 }
 
 /**
@@ -10090,27 +10661,32 @@ export interface PerDiemUpdate {
    * Identifier of the engagement.
    * Format: `uuid`.
    */
-  readonly engagement_id?: string;
+  readonly engagement_id?: string | null;
   /**
-   * Daily allowance. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Identifier of the project worked.
+   * Format: `uuid`.
    */
-  readonly daily_amount_minor?: number | null;
+  readonly project_id?: string;
   /**
-   * ISO 4217 currency code of every money field.
+   * Identifier of the membership of the person paid; null for external crew, who carry an engagement.
+   * Format: `uuid`.
+   */
+  readonly membership_id?: string | null;
+  /**
+   * Day the allowance covers.
+   * Format: `date`.
+   */
+  readonly day?: string;
+  /**
+   * Allowance for the day. Integer minor units of the row's currency.
+   * Format: `int64`. Range: 0 to unbounded.
+   */
+  readonly amount_minor?: number;
+  /**
+   * ISO 4217 currency.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
-  /**
-   * First day.
-   * Format: `date`.
-   */
-  readonly starts_on?: string;
-  /**
-   * Last day.
-   * Format: `date`.
-   */
-  readonly ends_on?: string;
+  readonly currency_code?: string;
 }
 
 /**
@@ -10147,20 +10723,20 @@ export interface TimeOffPolicy {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Policy name.
    * Length: 1 to 300.
@@ -10169,7 +10745,7 @@ export interface TimeOffPolicy {
   /**
    * Hours accrued per pay period.
    */
-  readonly accrual_hours_per_period: number;
+  readonly accrual_hours_per_period: number | null;
 }
 
 /**
@@ -10184,7 +10760,7 @@ export interface TimeOffPolicyCreate {
   /**
    * Hours accrued per pay period.
    */
-  readonly accrual_hours_per_period: number;
+  readonly accrual_hours_per_period?: number | null;
 }
 
 /**
@@ -10199,7 +10775,7 @@ export interface TimeOffPolicyUpdate {
   /**
    * Hours accrued per pay period.
    */
-  readonly accrual_hours_per_period?: number;
+  readonly accrual_hours_per_period?: number | null;
 }
 
 /**
@@ -10236,25 +10812,20 @@ export interface TimeOffRequest {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the person.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the time off policy.
    * Format: `uuid`.
@@ -10271,10 +10842,18 @@ export interface TimeOffRequest {
    */
   readonly ends_on: string;
   /**
-   * Request state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Request state.
    */
-  readonly time_off_state: string;
+  readonly time_off_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
+  /**
+   * Identifier of the membership of the person requesting.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Hours requested.
+   */
+  readonly hours: number;
 }
 
 /**
@@ -10282,11 +10861,6 @@ export interface TimeOffRequest {
  */
 export interface TimeOffRequestCreate {
   /**
-   * Identifier of the person.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
-  /**
    * Identifier of the time off policy.
    * Format: `uuid`.
    */
@@ -10301,6 +10875,15 @@ export interface TimeOffRequestCreate {
    * Format: `date`.
    */
   readonly ends_on: string;
+  /**
+   * Identifier of the membership of the person requesting.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Hours requested.
+   */
+  readonly hours: number;
 }
 
 /**
@@ -10337,35 +10920,35 @@ export interface CredentialCategory {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Category name.
    * Length: 1 to 300.
    */
   readonly name: string;
   /**
-   * Design token for the badge color.
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Category code, unique per project.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly color_token: string;
-  /**
-   * Display order.
-   * Range: 1 to unbounded.
-   */
-  readonly position: number;
+  readonly code: string;
 }
 
 /**
@@ -10378,15 +10961,15 @@ export interface CredentialCategoryCreate {
    */
   readonly name: string;
   /**
-   * Design token for the badge color.
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Category code, unique per project.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly color_token: string;
-  /**
-   * Display order.
-   * Range: 1 to unbounded.
-   */
-  readonly position: number;
+  readonly code: string;
 }
 
 /**
@@ -10399,15 +10982,10 @@ export interface CredentialCategoryUpdate {
    */
   readonly name?: string;
   /**
-   * Design token for the badge color.
+   * Category code, unique per project.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly color_token?: string;
-  /**
-   * Display order.
-   * Range: 1 to unbounded.
-   */
-  readonly position?: number;
+  readonly code?: string;
 }
 
 /**
@@ -10444,20 +11022,20 @@ export interface Credential {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -10469,30 +11047,15 @@ export interface Credential {
    */
   readonly credential_category_id: string;
   /**
-   * Identifier of the holder.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
-  /**
    * Identifier of the engagement.
    * Format: `uuid`.
    */
   readonly engagement_id: string | null;
   /**
-   * Credential state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly credential_state: string;
-  /**
    * Identifier of the issuer.
    * Format: `uuid`.
    */
-  readonly issued_by: string;
-  /**
-   * When it was issued.
-   * Format: `date-time`.
-   */
-  readonly issued_at: string;
+  readonly issued_by: string | null;
   /**
    * Start of validity.
    * Format: `date-time`.
@@ -10502,7 +11065,27 @@ export interface Credential {
    * End of validity.
    * Format: `date-time`.
    */
-  readonly valid_to: string;
+  readonly valid_to: string | null;
+  /**
+   * Identifier of the holder.
+   * Format: `uuid`.
+   */
+  readonly holder_person_id: string;
+  /**
+   * Number printed on the badge, issued by the database.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly credential_number: string;
+  /**
+   * When the credential was revoked.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Identifier of the person who revoked it.
+   * Format: `uuid`.
+   */
+  readonly revoked_by: string | null;
 }
 
 /**
@@ -10510,20 +11093,10 @@ export interface Credential {
  */
 export interface CredentialCreate {
   /**
-   * Identifier of the project.
-   * Format: `uuid`.
-   */
-  readonly project_id: string;
-  /**
    * Identifier of the credential category.
    * Format: `uuid`.
    */
   readonly credential_category_id: string;
-  /**
-   * Identifier of the holder.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
   /**
    * Identifier of the engagement.
    * Format: `uuid`.
@@ -10533,12 +11106,17 @@ export interface CredentialCreate {
    * Start of validity.
    * Format: `date-time`.
    */
-  readonly valid_from: string;
+  readonly valid_from?: string;
   /**
    * End of validity.
    * Format: `date-time`.
    */
-  readonly valid_to: string;
+  readonly valid_to?: string | null;
+  /**
+   * Identifier of the holder.
+   * Format: `uuid`.
+   */
+  readonly holder_person_id: string;
 }
 
 /**
@@ -10575,20 +11153,20 @@ export interface AccessGridEntry {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the zone.
    * Format: `uuid`.
@@ -10600,19 +11178,25 @@ export interface AccessGridEntry {
    */
   readonly credential_category_id: string;
   /**
-   * Whether the category may enter the zone.
+   * Access level: a row of the canon Access Level enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly allowed: boolean;
+  readonly access_level_enum_id: string;
   /**
-   * Window start.
+   * When access opens.
    * Format: `date-time`.
    */
-  readonly window_starts_at: string | null;
+  readonly window_starts_at: string;
   /**
-   * Window end.
+   * When access closes.
    * Format: `date-time`.
    */
-  readonly window_ends_at: string | null;
+  readonly window_ends_at: string;
+  /**
+   * Identifier of the project of the category, copied from it.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
 }
 
 /**
@@ -10630,19 +11214,20 @@ export interface AccessGridEntryCreate {
    */
   readonly credential_category_id: string;
   /**
-   * Whether the category may enter the zone.
+   * Access level: a row of the canon Access Level enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly allowed: boolean;
+  readonly access_level_enum_id: string;
   /**
-   * Window start.
+   * When access opens.
    * Format: `date-time`.
    */
-  readonly window_starts_at?: string | null;
+  readonly window_starts_at: string;
   /**
-   * Window end.
+   * When access closes.
    * Format: `date-time`.
    */
-  readonly window_ends_at?: string | null;
+  readonly window_ends_at: string;
 }
 
 /**
@@ -10650,19 +11235,20 @@ export interface AccessGridEntryCreate {
  */
 export interface AccessGridEntryUpdate {
   /**
-   * Whether the category may enter the zone.
+   * Access level: a row of the canon Access Level enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly allowed?: boolean;
+  readonly access_level_enum_id?: string;
   /**
-   * Window start.
+   * When access opens.
    * Format: `date-time`.
    */
-  readonly window_starts_at?: string | null;
+  readonly window_starts_at?: string;
   /**
-   * Window end.
+   * When access closes.
    * Format: `date-time`.
    */
-  readonly window_ends_at?: string | null;
+  readonly window_ends_at?: string;
 }
 
 /**
@@ -10699,20 +11285,20 @@ export interface AccessScan {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the zone.
    * Format: `uuid`.
@@ -10729,14 +11315,23 @@ export interface AccessScan {
    */
   readonly scanned_at: string;
   /**
-   * Whether entry was granted.
+   * The database's decision for the scan.
    */
-  readonly granted: boolean;
+  readonly result: "Granted" | "Denied";
   /**
-   * Why entry was refused.
-   * Length: 1 to 300.
+   * Identifier of the project of the credential, copied from it.
+   * Format: `uuid`.
    */
-  readonly refusal_reason: string | null;
+  readonly project_id: string;
+  /**
+   * When the device scanned, for a scan made offline.
+   * Format: `date-time`.
+   */
+  readonly device_scanned_at: string | null;
+  /**
+   * What the device decided offline.
+   */
+  readonly offline_result: "Granted" | "Denied" | null;
 }
 
 /**
@@ -10754,10 +11349,14 @@ export interface AccessScanCreate {
    */
   readonly credential_id: string;
   /**
-   * When the scan happened.
+   * When the device scanned, for a scan made offline.
    * Format: `date-time`.
    */
-  readonly scanned_at: string;
+  readonly device_scanned_at?: string | null;
+  /**
+   * What the device decided offline.
+   */
+  readonly offline_result?: "Granted" | "Denied" | null;
 }
 
 /**
@@ -10794,42 +11393,31 @@ export interface Certification {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Certification name.
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly tag_id: TagId;
   /**
-   * Issuing body.
+   * Body that issues the certification.
    * Length: 1 to 300.
    */
-  readonly issuer: string;
-  /**
-   * Months until expiry.
-   * Range: 0 to unbounded.
-   */
-  readonly validity_months: number | null;
+  readonly issuing_body: string;
 }
-
-/**
- * Sustainability or compliance tag from `xpms.dim_tag`.
- */
-export type TagId = string | null;
 
 /**
  * Fields accepted when creating a Certification.
@@ -10840,17 +11428,11 @@ export interface CertificationCreate {
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly tag_id?: TagId;
   /**
-   * Issuing body.
+   * Body that issues the certification.
    * Length: 1 to 300.
    */
-  readonly issuer: string;
-  /**
-   * Months until expiry.
-   * Range: 0 to unbounded.
-   */
-  readonly validity_months?: number | null;
+  readonly issuing_body: string;
 }
 
 /**
@@ -10862,17 +11444,11 @@ export interface CertificationUpdate {
    * Length: 1 to 300.
    */
   readonly name?: string;
-  readonly tag_id?: TagId;
   /**
-   * Issuing body.
+   * Body that issues the certification.
    * Length: 1 to 300.
    */
-  readonly issuer?: string;
-  /**
-   * Months until expiry.
-   * Range: 0 to unbounded.
-   */
-  readonly validity_months?: number | null;
+  readonly issuing_body?: string;
 }
 
 /**
@@ -10909,20 +11485,20 @@ export interface CertificationHolder {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the certification.
    * Format: `uuid`.
@@ -10934,29 +11510,24 @@ export interface CertificationHolder {
    */
   readonly person_id: string;
   /**
-   * Identifier of the evidence document.
-   * Format: `uuid`.
-   */
-  readonly evidence_document_id: string | null;
-  /**
    * Expiry date.
    * Format: `date`.
    */
   readonly expires_on: string | null;
-  /**
-   * When it was verified.
-   * Format: `date-time`.
-   */
-  readonly verified_at: string | null;
   /**
    * Identifier of the verifier.
    * Format: `uuid`.
    */
   readonly verified_by: string | null;
   /**
-   * Whether the holder allows public verification.
+   * When the certification was issued.
+   * Format: `date`.
    */
-  readonly public_verification_consent: boolean;
+  readonly issued_on: string;
+  /**
+   * Whether the holder allows public verification by code.
+   */
+  readonly public_verification_consented: boolean;
 }
 
 /**
@@ -10974,19 +11545,15 @@ export interface CertificationHolderCreate {
    */
   readonly person_id: string;
   /**
-   * Identifier of the evidence document.
-   * Format: `uuid`.
-   */
-  readonly evidence_document_id?: string | null;
-  /**
    * Expiry date.
    * Format: `date`.
    */
   readonly expires_on?: string | null;
   /**
-   * Whether the holder allows public verification.
+   * When the certification was issued.
+   * Format: `date`.
    */
-  readonly public_verification_consent: boolean;
+  readonly issued_on: string;
 }
 
 /**
@@ -10994,19 +11561,19 @@ export interface CertificationHolderCreate {
  */
 export interface CertificationHolderUpdate {
   /**
-   * Identifier of the evidence document.
-   * Format: `uuid`.
-   */
-  readonly evidence_document_id?: string | null;
-  /**
    * Expiry date.
    * Format: `date`.
    */
   readonly expires_on?: string | null;
   /**
-   * Whether the holder allows public verification.
+   * When the certification was issued.
+   * Format: `date`.
    */
-  readonly public_verification_consent?: boolean;
+  readonly issued_on?: string;
+  /**
+   * Whether the holder allows public verification by code.
+   */
+  readonly public_verification_consented?: boolean;
 }
 
 /**
@@ -11043,20 +11610,20 @@ export interface Budget {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -11071,16 +11638,11 @@ export interface Budget {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
   /**
-   * Budget state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Whether this is the gate 3 baseline the final cost report compares against.
    */
-  readonly budget_state: string;
-  /**
-   * Contingency as a percent of scope.
-   */
-  readonly contingency_percent: number | null;
+  readonly is_baseline: boolean;
 }
 
 /**
@@ -11101,11 +11663,11 @@ export interface BudgetCreate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
   /**
-   * Contingency as a percent of scope.
+   * Whether this is the gate 3 baseline the final cost report compares against.
    */
-  readonly contingency_percent?: number | null;
+  readonly is_baseline?: boolean;
 }
 
 /**
@@ -11121,11 +11683,11 @@ export interface BudgetUpdate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
   /**
-   * Contingency as a percent of scope.
+   * Whether this is the gate 3 baseline the final cost report compares against.
    */
-  readonly contingency_percent?: number | null;
+  readonly is_baseline?: boolean;
 }
 
 /**
@@ -11177,31 +11739,30 @@ export interface BudgetLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the budget.
    * Format: `uuid`.
    */
   readonly budget_id: string;
-  readonly account_code: GlAccountCode;
   /**
    * Identifier of the cost center.
    * Format: `uuid`.
    */
-  readonly cost_center_id: string;
+  readonly cost_center_id: string | null;
   readonly urid: UridAtAnyGrain;
   readonly xyz: Xyz;
   /**
@@ -11210,7 +11771,11 @@ export interface BudgetLine {
    */
   readonly xyz_basis: string;
   readonly line_type: LineType;
-  readonly grade: Grade;
+  /**
+   * Price band grade of the catalog element.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly grade_code: string | null;
   readonly element_id: ItemId;
   /**
    * Line description.
@@ -11218,10 +11783,10 @@ export interface BudgetLine {
    */
   readonly description: string;
   /**
-   * Quantity.
+   * Quantity; defaults to 1.
    */
-  readonly quantity: number | null;
-  readonly unit: UnitCode;
+  readonly quantity: number;
+  readonly unit_basis: UnitCode;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
@@ -11233,17 +11798,11 @@ export interface BudgetLine {
    */
   readonly line_total_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Line number within the budget.
+   * Range: 1 to unbounded.
    */
-  readonly currency: string;
-  readonly line_state: SharedState;
+  readonly line_number: number;
 }
-
-/**
- * GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).
- */
-export type GlAccountCode = string;
 
 /**
  * Budget line type from the budget template specification (Bible tab 34). Fee and Contingency are line types, not accounts.
@@ -11251,14 +11810,9 @@ export type GlAccountCode = string;
 export type LineType = string;
 
 /**
- * Price band grade from `xpms.element_price_bands`.
+ * Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).
  */
-export type Grade = string | null;
-
-/**
- * A value from the shared finance and commercial state vocabulary (Bible tab 37): the five core states plus declared domain extensions.
- */
-export type SharedState = string;
+export type ItemId = string | null;
 
 /**
  * Fields accepted when creating a BudgetLine.
@@ -11273,7 +11827,7 @@ export interface BudgetLineCreate {
    * Identifier of the cost center.
    * Format: `uuid`.
    */
-  readonly cost_center_id: string;
+  readonly cost_center_id?: string | null;
   readonly urid: UridAtAnyGrain;
   readonly xyz: Xyz;
   /**
@@ -11281,8 +11835,12 @@ export interface BudgetLineCreate {
    * Length: 1 to 300.
    */
   readonly xyz_basis: string;
-  readonly line_type: LineType;
-  readonly grade?: Grade;
+  readonly line_type?: LineType;
+  /**
+   * Price band grade of the catalog element.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly grade_code?: string | null;
   readonly element_id?: ItemId;
   /**
    * Line description.
@@ -11290,21 +11848,20 @@ export interface BudgetLineCreate {
    */
   readonly description: string;
   /**
-   * Quantity.
+   * Quantity; defaults to 1.
    */
-  readonly quantity?: number | null;
-  readonly unit?: UnitCode;
+  readonly quantity?: number;
+  readonly unit_basis?: UnitCode;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Line number within the budget.
+   * Range: 1 to unbounded.
    */
-  readonly currency: string;
-  readonly line_state: SharedState;
+  readonly line_number: number;
 }
 
 /**
@@ -11315,7 +11872,7 @@ export interface BudgetLineUpdate {
    * Identifier of the cost center.
    * Format: `uuid`.
    */
-  readonly cost_center_id?: string;
+  readonly cost_center_id?: string | null;
   readonly urid?: UridAtAnyGrain;
   readonly xyz?: Xyz;
   /**
@@ -11324,7 +11881,11 @@ export interface BudgetLineUpdate {
    */
   readonly xyz_basis?: string;
   readonly line_type?: LineType;
-  readonly grade?: Grade;
+  /**
+   * Price band grade of the catalog element.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly grade_code?: string | null;
   readonly element_id?: ItemId;
   /**
    * Line description.
@@ -11332,21 +11893,20 @@ export interface BudgetLineUpdate {
    */
   readonly description?: string;
   /**
-   * Quantity.
+   * Quantity; defaults to 1.
    */
-  readonly quantity?: number | null;
-  readonly unit?: UnitCode;
+  readonly quantity?: number;
+  readonly unit_basis?: UnitCode;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Line number within the budget.
+   * Range: 1 to unbounded.
    */
-  readonly currency?: string;
-  readonly line_state?: SharedState;
+  readonly line_number?: number;
 }
 
 /**
@@ -11383,30 +11943,30 @@ export interface Expense {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the budget line.
    * Format: `uuid`.
    */
   readonly budget_line_id: string;
   /**
-   * Identifier of the submitter.
+   * Identifier of the person who submitted the expense.
    * Format: `uuid`.
    */
-  readonly submitted_by: string;
+  readonly submitter_person_id: string | null;
   /**
    * Expense description.
    * Length: 1 to 300.
@@ -11421,18 +11981,21 @@ export interface Expense {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
   /**
    * When it was incurred.
    * Format: `date`.
    */
   readonly incurred_on: string;
   /**
-   * Identifier of the receipt.
+   * Expense state.
+   */
+  readonly expense_state: "Proposed" | "Approved" | "Rejected" | "Paid" | "Canceled";
+  /**
+   * Identifier of the counterparty paid, when it is not the submitter.
    * Format: `uuid`.
    */
-  readonly receipt_document_id: string | null;
-  readonly expense_state: SharedState;
+  readonly counterparty_id: string | null;
 }
 
 /**
@@ -11450,25 +12013,25 @@ export interface ExpenseCreate {
    */
   readonly description: string;
   /**
-   * Expense amount. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Expense amount. Integer minor units of the document currency.
+   * Format: `int64`. Range: 0 to unbounded.
    */
-  readonly amount_minor?: number | null;
+  readonly amount_minor: number;
   /**
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
   /**
    * When it was incurred.
    * Format: `date`.
    */
   readonly incurred_on: string;
   /**
-   * Identifier of the receipt.
+   * Identifier of the counterparty paid, when it is not the submitter.
    * Format: `uuid`.
    */
-  readonly receipt_document_id?: string | null;
+  readonly counterparty_id?: string | null;
 }
 
 /**
@@ -11481,25 +12044,25 @@ export interface ExpenseUpdate {
    */
   readonly description?: string;
   /**
-   * Expense amount. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Expense amount. Integer minor units of the document currency.
+   * Format: `int64`. Range: 0 to unbounded.
    */
-  readonly amount_minor?: number | null;
+  readonly amount_minor?: number;
   /**
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
   /**
    * When it was incurred.
    * Format: `date`.
    */
   readonly incurred_on?: string;
   /**
-   * Identifier of the receipt.
+   * Identifier of the counterparty paid, when it is not the submitter.
    * Format: `uuid`.
    */
-  readonly receipt_document_id?: string | null;
+  readonly counterparty_id?: string | null;
 }
 
 /**
@@ -11536,20 +12099,20 @@ export interface ContingencyDraw {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the contingency budget line.
    * Format: `uuid`.
@@ -11565,11 +12128,6 @@ export interface ContingencyDraw {
    * Format: `int64`.
    */
   readonly amount_minor: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
   /**
    * Why contingency is drawn.
    * Length: 1 to 20000.
@@ -11592,15 +12150,10 @@ export interface ContingencyDrawCreate {
    */
   readonly to_budget_line_id: string;
   /**
-   * Amount drawn. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Amount drawn. Integer minor units of the document currency.
+   * Format: `int64`. Range: 1 to unbounded.
    */
-  readonly amount_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
+  readonly amount_minor: number;
   /**
    * Why contingency is drawn.
    * Length: 1 to 20000.
@@ -11642,20 +12195,20 @@ export interface ChangeOrder {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -11670,14 +12223,37 @@ export interface ChangeOrder {
    * What changes and why.
    * Length: 1 to 20000.
    */
-  readonly description: string;
+  readonly reason: string | null;
   /**
    * Identifier of the requester.
    * Format: `uuid`.
    */
-  readonly requested_by: string;
-  readonly change_order_state: SharedState;
+  readonly requested_by: string | null;
+  /**
+   * Change order state.
+   */
+  readonly change_order_state: "Proposed" | "Priced" | "Approved" | "Rejected" | "Canceled";
   readonly total: MoneyTotal;
+  /**
+   * Identifier of the budget the change order revises.
+   * Format: `uuid`.
+   */
+  readonly budget_id: string;
+  /**
+   * Change order number within the project.
+   * Range: 1 to unbounded.
+   */
+  readonly change_order_number: number;
+  /**
+   * Canon change order type.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly order_type_enum_id: string | null;
+  /**
+   * Identifier of the person who priced the change order.
+   * Format: `uuid`.
+   */
+  readonly priced_by: string | null;
 }
 
 /**
@@ -11698,7 +12274,17 @@ export interface ChangeOrderCreate {
    * What changes and why.
    * Length: 1 to 20000.
    */
-  readonly description: string;
+  readonly reason?: string | null;
+  /**
+   * Identifier of the budget the change order revises.
+   * Format: `uuid`.
+   */
+  readonly budget_id: string;
+  /**
+   * Canon change order type.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly order_type_enum_id?: string | null;
 }
 
 /**
@@ -11714,7 +12300,12 @@ export interface ChangeOrderUpdate {
    * What changes and why.
    * Length: 1 to 20000.
    */
-  readonly description?: string;
+  readonly reason?: string | null;
+  /**
+   * Canon change order type.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly order_type_enum_id?: string | null;
 }
 
 /**
@@ -11723,14 +12314,12 @@ export interface ChangeOrderUpdate {
 export interface ChangeOrderTransitionRequest {
   /**
    * The state the caller believes the row is in (compare-and-set).
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
    */
-  readonly expected_state: string;
+  readonly expected_state: "Proposed" | "Priced" | "Approved" | "Rejected" | "Canceled";
   /**
    * Target state.
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
    */
-  readonly to_state: string;
+  readonly to_state: "Proposed" | "Priced" | "Approved" | "Rejected" | "Canceled";
   /**
    * Reason, required by some transitions.
    * Length: 1 to unbounded.
@@ -11772,20 +12361,20 @@ export interface ChangeOrderLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the change order.
    * Format: `uuid`.
@@ -11803,15 +12392,18 @@ export interface ChangeOrderLine {
    */
   readonly description: string;
   /**
-   * Line amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Quantity; defaults to 1.
+   */
+  readonly quantity: number;
+  /**
+   * Unit price; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly amount_minor: number | null;
+  readonly unit_price_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Whether the line is deliberately free of charge.
    */
-  readonly currency: string;
+  readonly is_no_cost: boolean;
 }
 
 /**
@@ -11835,15 +12427,18 @@ export interface ChangeOrderLineCreate {
    */
   readonly description: string;
   /**
-   * Line amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Quantity; defaults to 1.
+   */
+  readonly quantity?: number;
+  /**
+   * Unit price; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly amount_minor?: number | null;
+  readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Whether the line is deliberately free of charge.
    */
-  readonly currency: string;
+  readonly is_no_cost?: boolean;
 }
 
 /**
@@ -11862,15 +12457,18 @@ export interface ChangeOrderLineUpdate {
    */
   readonly description?: string;
   /**
-   * Line amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Quantity; defaults to 1.
+   */
+  readonly quantity?: number;
+  /**
+   * Unit price; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly amount_minor?: number | null;
+  readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Whether the line is deliberately free of charge.
    */
-  readonly currency?: string;
+  readonly is_no_cost?: boolean;
 }
 
 /**
@@ -11907,20 +12505,20 @@ export interface AccountingPeriod {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * First day.
    * Format: `date`.
@@ -11931,7 +12529,7 @@ export interface AccountingPeriod {
    * Format: `date`.
    */
   readonly ends_on: string;
-  readonly accounting_period_state: AccountingPeriodState;
+  readonly period_state: AccountingPeriodState;
 }
 
 /**
@@ -12009,20 +12607,20 @@ export interface JournalEntry {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the accounting period.
    * Format: `uuid`.
@@ -12038,7 +12636,10 @@ export interface JournalEntry {
    * Length: 1 to 300.
    */
   readonly memo: string;
-  readonly journal_state: SharedState;
+  /**
+   * Journal state.
+   */
+  readonly journal_state: "Proposed" | "Posted" | "Canceled";
   /**
    * When it was posted.
    * Format: `date-time`.
@@ -12049,6 +12650,26 @@ export interface JournalEntry {
    * Format: `uuid`.
    */
   readonly posted_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string | null;
+  /**
+   * Identifier of the person who prepared the entry.
+   * Format: `uuid`.
+   */
+  readonly prepared_by: string | null;
+  /**
+   * Table of the document that produced the entry.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly source_table: string | null;
+  /**
+   * Identifier of the document that produced the entry.
+   * Format: `uuid`.
+   */
+  readonly source_id: string | null;
 }
 
 /**
@@ -12070,6 +12691,11 @@ export interface JournalEntryCreate {
    * Length: 1 to 300.
    */
   readonly memo: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id?: string | null;
 }
 
 /**
@@ -12091,6 +12717,11 @@ export interface JournalEntryUpdate {
    * Length: 1 to 300.
    */
   readonly memo?: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id?: string | null;
 }
 
 /**
@@ -12127,20 +12758,20 @@ export interface JournalLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the journal entry.
    * Format: `uuid`.
@@ -12151,19 +12782,50 @@ export interface JournalLine {
    * Identifier of the cost center.
    * Format: `uuid`.
    */
-  readonly cost_center_id: string;
+  readonly cost_center_id: string | null;
   readonly urid: UridAtAnyGrain;
   /**
-   * Signed amount; negative for credits. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Line number within the entry.
+   * Range: 1 to unbounded.
+   */
+  readonly line_number: number;
+  /**
+   * Line description.
+   * Length: 1 to 300.
+   */
+  readonly description: string;
+  /**
+   * Debit amount; zero on a credit line. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly amount_minor: number | null;
+  readonly debit_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * Credit amount; zero on a debit line. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly credit_minor: number | null;
+  /**
+   * ISO 4217 currency code of every money field on the row.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * Identifier of the counterparty.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string | null;
+  readonly element_id: ItemId | null;
+  /**
+   * Quantity.
+   */
+  readonly quantity: number | null;
+  readonly unit_basis: UnitCode | null;
 }
+
+/**
+ * GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).
+ */
+export type GlAccountCode = string;
 
 /**
  * Fields accepted when creating a JournalLine.
@@ -12179,18 +12841,44 @@ export interface JournalLineCreate {
    * Identifier of the cost center.
    * Format: `uuid`.
    */
-  readonly cost_center_id: string;
+  readonly cost_center_id?: string | null;
   readonly urid?: UridAtAnyGrain;
   /**
-   * Signed amount; negative for credits. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Line number within the entry.
+   * Range: 1 to unbounded.
    */
-  readonly amount_minor?: number | null;
+  readonly line_number: number;
   /**
-   * ISO 4217 currency code of every money field.
+   * Line description.
+   * Length: 1 to 300.
+   */
+  readonly description: string;
+  /**
+   * Debit amount; zero on a credit line. Integer minor units of the document currency.
+   * Format: `int64`. Range: 0 to unbounded.
+   */
+  readonly debit_minor?: number;
+  /**
+   * Credit amount; zero on a debit line. Integer minor units of the document currency.
+   * Format: `int64`. Range: 0 to unbounded.
+   */
+  readonly credit_minor?: number;
+  /**
+   * ISO 4217 currency code of every money field on the row.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * Identifier of the counterparty.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id?: string | null;
+  readonly element_id?: ItemId | null;
+  /**
+   * Quantity.
+   */
+  readonly quantity?: number | null;
+  readonly unit_basis?: UnitCode | null;
 }
 
 /**
@@ -12202,18 +12890,44 @@ export interface JournalLineUpdate {
    * Identifier of the cost center.
    * Format: `uuid`.
    */
-  readonly cost_center_id?: string;
+  readonly cost_center_id?: string | null;
   readonly urid?: UridAtAnyGrain;
   /**
-   * Signed amount; negative for credits. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Line number within the entry.
+   * Range: 1 to unbounded.
    */
-  readonly amount_minor?: number | null;
+  readonly line_number?: number;
   /**
-   * ISO 4217 currency code of every money field.
+   * Line description.
+   * Length: 1 to 300.
+   */
+  readonly description?: string;
+  /**
+   * Debit amount; zero on a credit line. Integer minor units of the document currency.
+   * Format: `int64`. Range: 0 to unbounded.
+   */
+  readonly debit_minor?: number;
+  /**
+   * Credit amount; zero on a debit line. Integer minor units of the document currency.
+   * Format: `int64`. Range: 0 to unbounded.
+   */
+  readonly credit_minor?: number;
+  /**
+   * ISO 4217 currency code of every money field on the row.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
+  /**
+   * Identifier of the counterparty.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id?: string | null;
+  readonly element_id?: ItemId | null;
+  /**
+   * Quantity.
+   */
+  readonly quantity?: number | null;
+  readonly unit_basis?: UnitCode | null;
 }
 
 /**
@@ -12235,43 +12949,18 @@ export interface PostingLinePage {
  */
 export interface PostingLine {
   /**
-   * Identifier of the posting line.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
    * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
    * Format: `uuid`.
    */
   readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row.
-   * Format: `uuid`.
-   */
-  readonly created_by: string;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string;
   /**
    * Date the cost or revenue is recognized.
    * Format: `date`.
    */
   readonly date: string;
   readonly account_code: GlAccountCode;
-  readonly cost_center_id: CostCenterCode;
-  readonly urid: UridAtAnyGrain;
+  readonly cost_center_id: CostCenterCode | null;
+  readonly urid: UridAtAnyGrain | null;
   /**
    * Identifier of the vendor organization; null for revenue.
    * Format: `uuid`.
@@ -12292,7 +12981,7 @@ export interface PostingLine {
    * Signed amount; negative for credits. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly amount: number | null;
+  readonly amount_minor: number | null;
   readonly tax_type: TaxType;
   /**
    * ISO 4217 currency code of every money field.
@@ -12305,6 +12994,16 @@ export interface PostingLine {
    */
   readonly external_ref: string | null;
   readonly line_state: SharedState;
+  /**
+   * Identifier of the posting line.
+   * Format: `uuid`.
+   */
+  readonly posting_line_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string | null;
 }
 
 /**
@@ -12317,11 +13016,46 @@ export type CostCenterCode = string;
  */
 export type TaxType = string;
 
-export interface PostingExportAccepted {
+/**
+ * A value from the shared finance and commercial state vocabulary (Bible tab 37): the five core states plus declared domain extensions.
+ */
+export type SharedState = string;
+
+/**
+ * Universal Posting Lines of one period projected to one platform through the canon mapping.
+ */
+export interface PostingExport {
   /**
+   * Accounting platform the rows were projected to.
+   */
+  readonly target: "xero" | "quickbooks" | "netsuite" | "ramp";
+  /**
+   * Identifier of the accounting period exported.
    * Format: `uuid`.
    */
-  readonly export_job_id: string;
+  readonly accounting_period_id: string;
+  /**
+   * Suggested file name.
+   * Length: 1 to 300.
+   */
+  readonly filename: string;
+  /**
+   * Media type.
+   */
+  readonly content_type: "text/csv";
+  /**
+   * Column names after the canon mapping.
+   */
+  readonly header: ReadonlyArray<string>;
+  /**
+   * Posting lines exported.
+   * Range: 0 to unbounded.
+   */
+  readonly row_count: number;
+  /**
+   * RFC 4180 CSV with CRLF line endings: the header, then one row per line.
+   */
+  readonly csv: string;
 }
 
 /**
@@ -12329,7 +13063,7 @@ export interface PostingExportAccepted {
  */
 export interface PostingExportRequest {
   /**
-   * Accounting platform the UPL rows are projected to (Section 3.11).
+   * Accounting platform the rows are projected to.
    */
   readonly target: "xero" | "quickbooks" | "netsuite" | "ramp";
   /**
@@ -12373,55 +13107,39 @@ export interface Invoice {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
    */
   readonly project_id: string;
   /**
-   * Identifier of the counterparty organization.
-   * Format: `uuid`.
+   * Whether the invoice is owed or owing.
    */
-  readonly counterparty_organization_id: string | null;
-  /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id: string | null;
-  /**
-   * Identifier of the purchase order.
-   * Format: `uuid`.
-   */
-  readonly purchase_order_id: string | null;
-  /**
-   * Payable or receivable.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly direction: string;
+  readonly direction: "Payable" | "Receivable";
   /**
    * Invoice number.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly invoice_number: string;
+  readonly invoice_number: string | null;
   /**
    * Issue date.
    * Format: `date`.
    */
-  readonly issued_on: string;
+  readonly issued_on: string | null;
   /**
    * Due date.
    * Format: `date`.
@@ -12431,9 +13149,17 @@ export interface Invoice {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
-  readonly invoice_state: SharedState;
+  readonly currency_code: string;
+  /**
+   * Invoice state.
+   */
+  readonly invoice_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
   readonly total: MoneyTotal;
+  /**
+   * Identifier of the counterparty billed or billing.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string;
 }
 
 /**
@@ -12446,35 +13172,19 @@ export interface InvoiceCreate {
    */
   readonly project_id: string;
   /**
-   * Identifier of the counterparty organization.
-   * Format: `uuid`.
+   * Whether the invoice is owed or owing.
    */
-  readonly counterparty_organization_id?: string | null;
-  /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id?: string | null;
-  /**
-   * Identifier of the purchase order.
-   * Format: `uuid`.
-   */
-  readonly purchase_order_id?: string | null;
-  /**
-   * Payable or receivable.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly direction: string;
+  readonly direction: "Payable" | "Receivable";
   /**
    * Invoice number.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly invoice_number: string;
+  readonly invoice_number?: string | null;
   /**
    * Issue date.
    * Format: `date`.
    */
-  readonly issued_on: string;
+  readonly issued_on?: string | null;
   /**
    * Due date.
    * Format: `date`.
@@ -12484,7 +13194,12 @@ export interface InvoiceCreate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * Identifier of the counterparty billed or billing.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string;
 }
 
 /**
@@ -12497,35 +13212,15 @@ export interface InvoiceUpdate {
    */
   readonly project_id?: string;
   /**
-   * Identifier of the counterparty organization.
-   * Format: `uuid`.
-   */
-  readonly counterparty_organization_id?: string | null;
-  /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id?: string | null;
-  /**
-   * Identifier of the purchase order.
-   * Format: `uuid`.
-   */
-  readonly purchase_order_id?: string | null;
-  /**
-   * Payable or receivable.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly direction?: string;
-  /**
    * Invoice number.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly invoice_number?: string;
+  readonly invoice_number?: string | null;
   /**
    * Issue date.
    * Format: `date`.
    */
-  readonly issued_on?: string;
+  readonly issued_on?: string | null;
   /**
    * Due date.
    * Format: `date`.
@@ -12535,7 +13230,12 @@ export interface InvoiceUpdate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
+  /**
+   * Identifier of the counterparty billed or billing.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id?: string;
 }
 
 /**
@@ -12544,14 +13244,12 @@ export interface InvoiceUpdate {
 export interface InvoiceTransitionRequest {
   /**
    * The state the caller believes the row is in (compare-and-set).
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
    */
-  readonly expected_state: string;
+  readonly expected_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
   /**
    * Target state.
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
    */
-  readonly to_state: string;
+  readonly to_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
   /**
    * Reason, required by some transitions.
    * Length: 1 to unbounded.
@@ -12593,30 +13291,25 @@ export interface InvoiceLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the invoice.
    * Format: `uuid`.
    */
   readonly invoice_id: string;
-  /**
-   * Identifier of the purchase order line.
-   * Format: `uuid`.
-   */
-  readonly po_line_id: string | null;
   /**
    * Line description.
    * Length: 1 to 300.
@@ -12632,10 +13325,21 @@ export interface InvoiceLine {
    */
   readonly unit_price_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Line number within the invoice.
+   * Range: 1 to unbounded.
    */
-  readonly currency: string;
+  readonly line_number: number;
+  /**
+   * Identifier of the budget line.
+   * Format: `uuid`.
+   */
+  readonly budget_line_id: string | null;
+  /**
+   * Identifier of the tax rate.
+   * Format: `uuid`.
+   */
+  readonly tax_rate_id: string | null;
+  readonly urid: UridAtAnyGrain | null;
 }
 
 /**
@@ -12647,11 +13351,6 @@ export interface InvoiceLineCreate {
    * Format: `uuid`.
    */
   readonly invoice_id: string;
-  /**
-   * Identifier of the purchase order line.
-   * Format: `uuid`.
-   */
-  readonly po_line_id?: string | null;
   /**
    * Line description.
    * Length: 1 to 300.
@@ -12667,21 +13366,27 @@ export interface InvoiceLineCreate {
    */
   readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Line number within the invoice.
+   * Range: 1 to unbounded.
    */
-  readonly currency: string;
+  readonly line_number: number;
+  /**
+   * Identifier of the budget line.
+   * Format: `uuid`.
+   */
+  readonly budget_line_id?: string | null;
+  /**
+   * Identifier of the tax rate.
+   * Format: `uuid`.
+   */
+  readonly tax_rate_id?: string | null;
+  readonly urid?: UridAtAnyGrain | null;
 }
 
 /**
  * Fields accepted when updating a InvoiceLine. Omitted fields are unchanged.
  */
 export interface InvoiceLineUpdate {
-  /**
-   * Identifier of the purchase order line.
-   * Format: `uuid`.
-   */
-  readonly po_line_id?: string | null;
   /**
    * Line description.
    * Length: 1 to 300.
@@ -12697,10 +13402,21 @@ export interface InvoiceLineUpdate {
    */
   readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Line number within the invoice.
+   * Range: 1 to unbounded.
    */
-  readonly currency?: string;
+  readonly line_number?: number;
+  /**
+   * Identifier of the budget line.
+   * Format: `uuid`.
+   */
+  readonly budget_line_id?: string | null;
+  /**
+   * Identifier of the tax rate.
+   * Format: `uuid`.
+   */
+  readonly tax_rate_id?: string | null;
+  readonly urid?: UridAtAnyGrain | null;
 }
 
 /**
@@ -12737,20 +13453,20 @@ export interface PaymentApplication {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the invoice.
    * Format: `uuid`.
@@ -12770,12 +13486,17 @@ export interface PaymentApplication {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
   /**
    * Bank or card reference.
    * Length: 1 to 300.
    */
   readonly external_ref: string | null;
+  /**
+   * Identifier of the payment applied.
+   * Format: `uuid`.
+   */
+  readonly payment_id: string;
 }
 
 /**
@@ -12788,25 +13509,15 @@ export interface PaymentApplicationCreate {
    */
   readonly invoice_id: string;
   /**
-   * Payment date.
-   * Format: `date`.
+   * Amount applied. Integer minor units of the document currency.
+   * Format: `int64`. Range: 1 to unbounded.
    */
-  readonly paid_on: string;
+  readonly amount_minor: number;
   /**
-   * Amount applied. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
+   * Identifier of the payment applied.
+   * Format: `uuid`.
    */
-  readonly amount_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
-  /**
-   * Bank or card reference.
-   * Length: 1 to 300.
-   */
-  readonly external_ref?: string | null;
+  readonly payment_id: string;
 }
 
 /**
@@ -12843,45 +13554,50 @@ export interface BillingDraw {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
    */
   readonly project_id: string;
   /**
-   * Draw title.
-   * Length: 1 to 300.
+   * Draw number within the project.
+   * Range: 1 to unbounded.
    */
-  readonly title: string;
+  readonly draw_number: number;
   /**
-   * Draw amount. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly amount_minor: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
-  /**
-   * Due date.
+   * Last day the draw bills for.
    * Format: `date`.
    */
-  readonly due_on: string;
+  readonly period_end: string;
+  /**
+   * Amount requested. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_requested_minor: number | null;
+  /**
+   * ISO 4217 currency code of every money field on the row.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string;
+  /**
+   * Identifier of the receivable invoice of the draw.
+   * Format: `uuid`.
+   */
+  readonly invoice_id: string | null;
 }
 
 /**
@@ -12894,25 +13610,25 @@ export interface BillingDrawCreate {
    */
   readonly project_id: string;
   /**
-   * Draw title.
-   * Length: 1 to 300.
+   * Draw number within the project.
+   * Range: 1 to unbounded.
    */
-  readonly title: string;
+  readonly draw_number: number;
   /**
-   * Draw amount. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly amount_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
-  /**
-   * Due date.
+   * Last day the draw bills for.
    * Format: `date`.
    */
-  readonly due_on: string;
+  readonly period_end: string;
+  /**
+   * Amount requested. Integer minor units of the document currency.
+   * Format: `int64`. Range: 0 to unbounded.
+   */
+  readonly amount_requested_minor: number;
+  /**
+   * ISO 4217 currency code of every money field on the row.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string;
 }
 
 /**
@@ -12920,25 +13636,25 @@ export interface BillingDrawCreate {
  */
 export interface BillingDrawUpdate {
   /**
-   * Draw title.
-   * Length: 1 to 300.
+   * Draw number within the project.
+   * Range: 1 to unbounded.
    */
-  readonly title?: string;
+  readonly draw_number?: number;
   /**
-   * Draw amount. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly amount_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency?: string;
-  /**
-   * Due date.
+   * Last day the draw bills for.
    * Format: `date`.
    */
-  readonly due_on?: string;
+  readonly period_end?: string;
+  /**
+   * Amount requested. Integer minor units of the document currency.
+   * Format: `int64`. Range: 0 to unbounded.
+   */
+  readonly amount_requested_minor?: number;
+  /**
+   * ISO 4217 currency code of every money field on the row.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string;
 }
 
 /**
@@ -12975,53 +13691,56 @@ export interface CostCenter {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  readonly cost_center_id: CostCenterCode;
+  readonly updated_by: string | null;
+  readonly code: CostCenterCode;
   /**
    * Cost center name.
    * Length: 1 to 300.
    */
   readonly name: string;
   /**
-   * Cost center kind. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Cost center kind.
    */
-  readonly kind: string;
+  readonly kind: "Standing" | "Overhead" | "Event";
   /**
    * Identifier of the scope node.
    * Format: `uuid`.
    */
   readonly scope_node_id: string | null;
+  /**
+   * Canon cost center template.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly template_id: string | null;
 }
 
 /**
  * Fields accepted when creating a CostCenter.
  */
 export interface CostCenterCreate {
-  readonly cost_center_id: CostCenterCode;
+  readonly code: CostCenterCode;
   /**
    * Cost center name.
    * Length: 1 to 300.
    */
   readonly name: string;
   /**
-   * Cost center kind. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Cost center kind.
    */
-  readonly kind: string;
+  readonly kind: "Standing" | "Overhead" | "Event";
   /**
    * Identifier of the scope node.
    * Format: `uuid`.
@@ -13033,17 +13752,16 @@ export interface CostCenterCreate {
  * Fields accepted when updating a CostCenter. Omitted fields are unchanged.
  */
 export interface CostCenterUpdate {
-  readonly cost_center_id?: CostCenterCode;
+  readonly code?: CostCenterCode;
   /**
    * Cost center name.
    * Length: 1 to 300.
    */
   readonly name?: string;
   /**
-   * Cost center kind. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Cost center kind.
    */
-  readonly kind?: string;
+  readonly kind?: "Standing" | "Overhead" | "Event";
   /**
    * Identifier of the scope node.
    * Format: `uuid`.
@@ -13085,20 +13803,20 @@ export interface TaxJurisdiction {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   readonly jurisdiction_id: JurisdictionId;
   /**
    * Tax jurisdiction name.
@@ -13165,20 +13883,20 @@ export interface TaxRate {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the tax jurisdiction.
    * Format: `uuid`.
@@ -13198,6 +13916,7 @@ export interface TaxRate {
    * Format: `date`.
    */
   readonly effective_to: string | null;
+  readonly tax_type: TaxType;
 }
 
 /**
@@ -13223,6 +13942,7 @@ export interface TaxRateCreate {
    * Format: `date`.
    */
   readonly effective_to?: string | null;
+  readonly tax_type: TaxType;
 }
 
 /**
@@ -13243,6 +13963,7 @@ export interface TaxRateUpdate {
    * Format: `date`.
    */
   readonly effective_to?: string | null;
+  readonly tax_type?: TaxType;
 }
 
 /**
@@ -13281,7 +14002,7 @@ export interface FxRate {
    * Reference rate date.
    * Format: `date`.
    */
-  readonly rate_date: string;
+  readonly effective_on: string;
   /**
    * Rate source.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -13323,20 +14044,20 @@ export interface PriceBook {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Price book name.
    * Length: 1 to 300.
@@ -13415,20 +14136,20 @@ export interface Rfq {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -13439,13 +14160,20 @@ export interface Rfq {
    * Length: 1 to 300.
    */
   readonly title: string;
-  readonly urid: UridAtAnyGrain;
   /**
-   * Bid deadline; bids unseal after it.
+   * RFQ state.
+   */
+  readonly rfq_state: "Proposed" | "Issued" | "Closed" | "Awarded" | "Canceled";
+  /**
+   * Number from the project's display key sequence.
+   * Range: 1 to unbounded.
+   */
+  readonly rfq_number: number;
+  /**
+   * Deadline for responses; responses unseal when the RFQ closes.
    * Format: `date-time`.
    */
-  readonly deadline_at: string;
-  readonly rfq_state: SharedState;
+  readonly responses_due_at: string | null;
 }
 
 /**
@@ -13462,12 +14190,11 @@ export interface RfqCreate {
    * Length: 1 to 300.
    */
   readonly title: string;
-  readonly urid: UridAtAnyGrain;
   /**
-   * Bid deadline; bids unseal after it.
+   * Deadline for responses; responses unseal when the RFQ closes.
    * Format: `date-time`.
    */
-  readonly deadline_at: string;
+  readonly responses_due_at?: string | null;
 }
 
 /**
@@ -13479,12 +14206,11 @@ export interface RfqUpdate {
    * Length: 1 to 300.
    */
   readonly title?: string;
-  readonly urid?: UridAtAnyGrain;
   /**
-   * Bid deadline; bids unseal after it.
+   * Deadline for responses; responses unseal when the RFQ closes.
    * Format: `date-time`.
    */
-  readonly deadline_at?: string;
+  readonly responses_due_at?: string | null;
 }
 
 /**
@@ -13542,30 +14268,30 @@ export interface RfqInvitation {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the RFQ.
    * Format: `uuid`.
    */
   readonly rfq_id: string;
   /**
-   * Identifier of the invited vendor organization.
+   * Identifier of the invited vendor of the same org.
    * Format: `uuid`.
    */
-  readonly organization_id: string;
+  readonly vendor_id: string;
 }
 
 /**
@@ -13578,10 +14304,10 @@ export interface RfqInvitationCreate {
    */
   readonly rfq_id: string;
   /**
-   * Identifier of the invited vendor organization.
+   * Identifier of the invited vendor of the same org.
    * Format: `uuid`.
    */
-  readonly organization_id: string;
+  readonly vendor_id: string;
 }
 
 /**
@@ -13618,36 +14344,40 @@ export interface RfqResponse {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the RFQ.
    * Format: `uuid`.
    */
   readonly rfq_id: string;
   /**
-   * Identifier of the responding vendor.
-   * Format: `uuid`.
-   */
-  readonly organization_id: string;
-  /**
    * When the response was submitted.
    * Format: `date-time`.
    */
   readonly submitted_at: string | null;
-  readonly total: MoneyTotal;
+  /**
+   * Identifier of the responding vendor; must have been invited.
+   * Format: `uuid`.
+   */
+  readonly vendor_id: string;
+  /**
+   * Last day the quoted prices hold.
+   * Format: `date`.
+   */
+  readonly valid_until: string | null;
 }
 
 /**
@@ -13660,10 +14390,15 @@ export interface RfqResponseCreate {
    */
   readonly rfq_id: string;
   /**
-   * Identifier of the responding vendor.
+   * Identifier of the responding vendor; must have been invited.
    * Format: `uuid`.
    */
-  readonly organization_id: string;
+  readonly vendor_id: string;
+  /**
+   * Last day the quoted prices hold.
+   * Format: `date`.
+   */
+  readonly valid_until?: string | null;
 }
 
 /**
@@ -13700,20 +14435,20 @@ export interface RfqResponseLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the RFQ response.
    * Format: `uuid`.
@@ -13737,7 +14472,12 @@ export interface RfqResponseLine {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * Catalog element quoted.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id: string | null;
 }
 
 /**
@@ -13767,7 +14507,12 @@ export interface RfqResponseLineCreate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * Catalog element quoted.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string | null;
 }
 
 /**
@@ -13792,7 +14537,12 @@ export interface RfqResponseLineUpdate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
+  /**
+   * Catalog element quoted.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string | null;
 }
 
 /**
@@ -13829,20 +14579,20 @@ export interface PurchaseOrder {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -13854,22 +14604,24 @@ export interface PurchaseOrder {
    */
   readonly vendor_id: string;
   /**
-   * PO number issued by `next_sequence`.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Number from the project's display key sequence.
+   * Range: 1 to unbounded.
    */
-  readonly po_number: string;
+  readonly po_number: number;
   /**
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
-  readonly po_state: SharedState;
-  readonly total: MoneyTotal;
+  readonly currency_code: string;
   /**
-   * Date the goods or services are required.
-   * Format: `date`.
+   * Purchase order state.
    */
-  readonly required_on: string | null;
+  readonly po_state: "Proposed" | "Approved" | "Sent" | "Closed" | "Canceled";
+  /**
+   * Identifier of the awarded RFQ response the order comes from.
+   * Format: `uuid`.
+   */
+  readonly rfq_response_id: string | null;
 }
 
 /**
@@ -13890,12 +14642,12 @@ export interface PurchaseOrderCreate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
   /**
-   * Date the goods or services are required.
-   * Format: `date`.
+   * Identifier of the awarded RFQ response the order comes from.
+   * Format: `uuid`.
    */
-  readonly required_on?: string | null;
+  readonly rfq_response_id?: string | null;
 }
 
 /**
@@ -13903,20 +14655,21 @@ export interface PurchaseOrderCreate {
  */
 export interface PurchaseOrderUpdate {
   /**
-   * Identifier of the vendor.
+   * Identifier of the awarded RFQ response the order comes from.
    * Format: `uuid`.
    */
-  readonly vendor_id?: string;
+  readonly rfq_response_id?: string | null;
+}
+
+/**
+ * Request to approve the order.
+ */
+export interface PurchaseOrderApproveRequest {
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Why approve the order.
+   * Length: 1 to 500.
    */
-  readonly currency?: string;
-  /**
-   * Date the goods or services are required.
-   * Format: `date`.
-   */
-  readonly required_on?: string | null;
+  readonly reason: string;
 }
 
 /**
@@ -13974,20 +14727,20 @@ export interface PoLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the purchase order.
    * Format: `uuid`.
@@ -13997,7 +14750,7 @@ export interface PoLine {
    * Identifier of the budget line.
    * Format: `uuid`.
    */
-  readonly budget_line_id: string;
+  readonly budget_line_id: string | null;
   readonly element_id: ItemId;
   /**
    * Line description.
@@ -14008,17 +14761,17 @@ export interface PoLine {
    * Quantity ordered.
    */
   readonly quantity: number;
-  readonly unit: UnitCode;
+  readonly unit_basis: UnitCode | null;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Order of the line within the purchase order.
+   * Range: 1 to unbounded.
    */
-  readonly currency: string;
+  readonly line_number: number;
 }
 
 /**
@@ -14034,7 +14787,7 @@ export interface PoLineCreate {
    * Identifier of the budget line.
    * Format: `uuid`.
    */
-  readonly budget_line_id: string;
+  readonly budget_line_id?: string | null;
   readonly element_id?: ItemId;
   /**
    * Line description.
@@ -14045,17 +14798,17 @@ export interface PoLineCreate {
    * Quantity ordered.
    */
   readonly quantity: number;
-  readonly unit: UnitCode;
+  readonly unit_basis?: UnitCode | null;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Order of the line within the purchase order.
+   * Range: 1 to unbounded.
    */
-  readonly currency: string;
+  readonly line_number?: number;
 }
 
 /**
@@ -14066,7 +14819,7 @@ export interface PoLineUpdate {
    * Identifier of the budget line.
    * Format: `uuid`.
    */
-  readonly budget_line_id?: string;
+  readonly budget_line_id?: string | null;
   readonly element_id?: ItemId;
   /**
    * Line description.
@@ -14077,17 +14830,17 @@ export interface PoLineUpdate {
    * Quantity ordered.
    */
   readonly quantity?: number;
-  readonly unit?: UnitCode;
+  readonly unit_basis?: UnitCode | null;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Order of the line within the purchase order.
+   * Range: 1 to unbounded.
    */
-  readonly currency?: string;
+  readonly line_number?: number;
 }
 
 /**
@@ -14124,20 +14877,20 @@ export interface PoChangeOrder {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the purchase order.
    * Format: `uuid`.
@@ -14152,13 +14905,11 @@ export interface PoChangeOrder {
    * Change amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly amount_minor: number | null;
+  readonly amount_delta_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * PO change order state.
    */
-  readonly currency: string;
-  readonly po_change_state: SharedState;
+  readonly po_change_order_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
 }
 
 /**
@@ -14179,12 +14930,7 @@ export interface PoChangeOrderCreate {
    * Change amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly amount_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
+  readonly amount_delta_minor?: number | null;
 }
 
 /**
@@ -14200,12 +14946,29 @@ export interface PoChangeOrderUpdate {
    * Change amount; null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly amount_minor?: number | null;
+  readonly amount_delta_minor?: number | null;
+}
+
+/**
+ * Request to approve the change.
+ */
+export interface PoChangeOrderApproveRequest {
   /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
+   * Why approve the change.
+   * Length: 1 to 500.
    */
-  readonly currency?: string;
+  readonly reason: string;
+}
+
+/**
+ * Request to reject the change.
+ */
+export interface PoChangeOrderRejectRequest {
+  /**
+   * Why reject the change.
+   * Length: 1 to 500.
+   */
+  readonly reason: string;
 }
 
 /**
@@ -14242,20 +15005,20 @@ export interface GoodsReceipt {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the purchase order.
    * Format: `uuid`.
@@ -14270,12 +15033,12 @@ export interface GoodsReceipt {
    * Identifier of the receiver.
    * Format: `uuid`.
    */
-  readonly received_by: string;
+  readonly received_by: string | null;
   /**
-   * Identifier of the dock slot.
-   * Format: `uuid`.
+   * Condition or exceptions noted.
+   * Length: 1 to 20000.
    */
-  readonly dock_slot_id: string | null;
+  readonly note: string | null;
 }
 
 /**
@@ -14291,17 +15054,12 @@ export interface GoodsReceiptCreate {
    * When the goods arrived.
    * Format: `date-time`.
    */
-  readonly received_at: string;
+  readonly received_at?: string;
   /**
-   * Identifier of the receiver.
-   * Format: `uuid`.
+   * Condition or exceptions noted.
+   * Length: 1 to 20000.
    */
-  readonly received_by: string;
-  /**
-   * Identifier of the dock slot.
-   * Format: `uuid`.
-   */
-  readonly dock_slot_id?: string | null;
+  readonly note?: string | null;
 }
 
 /**
@@ -14338,20 +15096,20 @@ export interface ReceiptLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the goods receipt.
    * Format: `uuid`.
@@ -14422,20 +15180,20 @@ export interface InvoiceMatch {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the invoice.
    * Format: `uuid`.
@@ -14455,7 +15213,26 @@ export interface InvoiceMatch {
    * Whether all three agree.
    */
   readonly matched: boolean;
-  readonly variance: MoneyTotal;
+  /**
+   * Invoice total minus value received at order prices. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly variance_minor: number | null;
+  /**
+   * Why a mismatch was accepted.
+   * Length: 1 to 20000.
+   */
+  readonly resolution_note: string | null;
+  /**
+   * Identifier of the person who accepted the mismatch.
+   * Format: `uuid`.
+   */
+  readonly resolved_by: string | null;
+  /**
+   * When the mismatch was accepted.
+   * Format: `date-time`.
+   */
+  readonly resolved_at: string | null;
 }
 
 /**
@@ -14477,6 +15254,17 @@ export interface InvoiceMatchCreate {
    * Format: `uuid`.
    */
   readonly goods_receipt_id: string;
+}
+
+/**
+ * Request to accept a mismatch.
+ */
+export interface InvoiceMatchResolveRequest {
+  /**
+   * Why the difference is accepted.
+   * Length: 1 to 1000.
+   */
+  readonly resolution_note: string;
 }
 
 /**
@@ -14513,48 +15301,73 @@ export interface CatalogBinding {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Tenant's own item code.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly tenant_item_code: string;
+  readonly updated_by: string | null;
   readonly element_id: ItemId;
   /**
-   * Identifier of the person who confirmed the binding.
-   * Format: `uuid`.
+   * Item ID {URID}-{ORG}-{SEQ}, issued by the database.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly confirmed_by: string;
+  readonly item_id: string;
+  /**
+   * Name the org uses for the item.
+   * Length: 1 to 300.
+   */
+  readonly name: string;
+  /**
+   * Unit the item is bought in.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly unit_basis: string | null;
+  /**
+   * Default unit price. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly default_unit_price_minor: number | null;
+  /**
+   * ISO 4217 currency of the default price.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string | null;
 }
 
 /**
  * Fields accepted when creating a CatalogBinding.
  */
 export interface CatalogBindingCreate {
-  /**
-   * Tenant's own item code.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly tenant_item_code: string;
   readonly element_id: ItemId;
   /**
-   * Identifier of the person who confirmed the binding.
-   * Format: `uuid`.
+   * Name the org uses for the item.
+   * Length: 1 to 300.
    */
-  readonly confirmed_by: string;
+  readonly name: string;
+  /**
+   * Unit the item is bought in.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly unit_basis?: string | null;
+  /**
+   * Default unit price. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly default_unit_price_minor?: number | null;
+  /**
+   * ISO 4217 currency of the default price.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string | null;
 }
 
 /**
@@ -14562,16 +15375,25 @@ export interface CatalogBindingCreate {
  */
 export interface CatalogBindingUpdate {
   /**
-   * Tenant's own item code.
+   * Name the org uses for the item.
+   * Length: 1 to 300.
+   */
+  readonly name?: string;
+  /**
+   * Unit the item is bought in.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly tenant_item_code?: string;
-  readonly element_id?: ItemId;
+  readonly unit_basis?: string | null;
   /**
-   * Identifier of the person who confirmed the binding.
-   * Format: `uuid`.
+   * Default unit price. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
    */
-  readonly confirmed_by?: string;
+  readonly default_unit_price_minor?: number | null;
+  /**
+   * ISO 4217 currency of the default price.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string | null;
 }
 
 /**
@@ -14608,30 +15430,25 @@ export interface VendorProduct {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the vendor.
    * Format: `uuid`.
    */
   readonly vendor_id: string;
-  /**
-   * Product name.
-   * Length: 1 to 300.
-   */
-  readonly name: string;
   readonly element_id: ItemId;
   /**
    * List unit price. Integer minor units of the resource currency; null means unpriced, never zero.
@@ -14642,7 +15459,22 @@ export interface VendorProduct {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string | null;
+  /**
+   * The vendor's product identifier.
+   * Length: 1 to 100.
+   */
+  readonly vendor_sku: string;
+  /**
+   * Identifier of the catalog item the product fulfills.
+   * Format: `uuid`.
+   */
+  readonly catalog_binding_id: string | null;
+  /**
+   * Days from order to delivery.
+   * Range: 0 to unbounded.
+   */
+  readonly lead_time_days: number | null;
 }
 
 /**
@@ -14654,11 +15486,6 @@ export interface VendorProductCreate {
    * Format: `uuid`.
    */
   readonly vendor_id: string;
-  /**
-   * Product name.
-   * Length: 1 to 300.
-   */
-  readonly name: string;
   readonly element_id?: ItemId;
   /**
    * List unit price. Integer minor units of the resource currency; null means unpriced, never zero.
@@ -14669,18 +15496,28 @@ export interface VendorProductCreate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code?: string | null;
+  /**
+   * The vendor's product identifier.
+   * Length: 1 to 100.
+   */
+  readonly vendor_sku: string;
+  /**
+   * Identifier of the catalog item the product fulfills.
+   * Format: `uuid`.
+   */
+  readonly catalog_binding_id?: string | null;
+  /**
+   * Days from order to delivery.
+   * Range: 0 to unbounded.
+   */
+  readonly lead_time_days?: number | null;
 }
 
 /**
  * Fields accepted when updating a VendorProduct. Omitted fields are unchanged.
  */
 export interface VendorProductUpdate {
-  /**
-   * Product name.
-   * Length: 1 to 300.
-   */
-  readonly name?: string;
   readonly element_id?: ItemId;
   /**
    * List unit price. Integer minor units of the resource currency; null means unpriced, never zero.
@@ -14691,7 +15528,22 @@ export interface VendorProductUpdate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string | null;
+  /**
+   * The vendor's product identifier.
+   * Length: 1 to 100.
+   */
+  readonly vendor_sku?: string;
+  /**
+   * Identifier of the catalog item the product fulfills.
+   * Format: `uuid`.
+   */
+  readonly catalog_binding_id?: string | null;
+  /**
+   * Days from order to delivery.
+   * Range: 0 to unbounded.
+   */
+  readonly lead_time_days?: number | null;
 }
 
 /**
@@ -14728,32 +15580,40 @@ export interface Vendor {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
+  readonly counterparty_type: CounterpartyType | null;
   /**
-   * Identifier of the vendor organization.
+   * Vendor state.
+   */
+  readonly vendor_state: "Prospect" | "Onboarded" | "Active" | "Blocked" | "Canceled";
+  /**
+   * Identifier of the counterparty the vendor facet belongs to.
    * Format: `uuid`.
    */
-  readonly organization_id: string;
-  readonly counterparty_type: CounterpartyType;
-  readonly vendor_state: SharedState;
+  readonly counterparty_id: string;
   /**
-   * Internal notes; never visible externally.
-   * Length: 1 to 20000.
+   * Days after invoice the vendor is paid.
+   * Range: 0 to unbounded.
    */
-  readonly internal_notes: string | null;
+  readonly payment_terms_days: number | null;
+  /**
+   * ISO 4217 currency the vendor bills in by default.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly default_currency_code: string | null;
 }
 
 /**
@@ -14766,28 +15626,57 @@ export type CounterpartyType = string;
  */
 export interface VendorCreate {
   /**
-   * Identifier of the vendor organization.
+   * Identifier of the counterparty the vendor facet belongs to.
    * Format: `uuid`.
    */
-  readonly organization_id: string;
-  readonly counterparty_type: CounterpartyType;
+  readonly counterparty_id: string;
   /**
-   * Internal notes; never visible externally.
-   * Length: 1 to 20000.
+   * Days after invoice the vendor is paid.
+   * Range: 0 to unbounded.
    */
-  readonly internal_notes?: string | null;
+  readonly payment_terms_days?: number | null;
+  /**
+   * ISO 4217 currency the vendor bills in by default.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly default_currency_code?: string | null;
 }
 
 /**
  * Fields accepted when updating a Vendor. Omitted fields are unchanged.
  */
 export interface VendorUpdate {
-  readonly counterparty_type?: CounterpartyType;
   /**
-   * Internal notes; never visible externally.
-   * Length: 1 to 20000.
+   * Days after invoice the vendor is paid.
+   * Range: 0 to unbounded.
    */
-  readonly internal_notes?: string | null;
+  readonly payment_terms_days?: number | null;
+  /**
+   * ISO 4217 currency the vendor bills in by default.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly default_currency_code?: string | null;
+}
+
+/**
+ * Request to move a lifecycle to another state.
+ */
+export interface VendorTransitionRequest {
+  /**
+   * The state the caller believes the row is in (compare-and-set).
+   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
+   */
+  readonly expected_state: string;
+  /**
+   * Target state.
+   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
+   */
+  readonly to_state: string;
+  /**
+   * Reason, required by some transitions.
+   * Length: 1 to unbounded.
+   */
+  readonly reason?: string;
 }
 
 /**
@@ -14824,26 +15713,35 @@ export interface VendorClass {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Vendor class name.
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly counterparty_type: CounterpartyType | null;
+  /**
+   * Standard Library vendor class adopted.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly std_vendor_class_id: string | null;
+  /**
+   * What the class covers.
+   * Length: 1 to 20000.
+   */
+  readonly description: string | null;
 }
 
 /**
@@ -14855,7 +15753,16 @@ export interface VendorClassCreate {
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly counterparty_type?: CounterpartyType | null;
+  /**
+   * Standard Library vendor class adopted.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly std_vendor_class_id?: string | null;
+  /**
+   * What the class covers.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string | null;
 }
 
 /**
@@ -14867,7 +15774,16 @@ export interface VendorClassUpdate {
    * Length: 1 to 300.
    */
   readonly name?: string;
-  readonly counterparty_type?: CounterpartyType | null;
+  /**
+   * Standard Library vendor class adopted.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly std_vendor_class_id?: string | null;
+  /**
+   * What the class covers.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string | null;
 }
 
 /**
@@ -14904,20 +15820,20 @@ export interface VendorClassAssignment {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the vendor.
    * Format: `uuid`.
@@ -14980,20 +15896,20 @@ export interface Prequalification {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the vendor.
    * Format: `uuid`.
@@ -15004,7 +15920,25 @@ export interface Prequalification {
    * Format: `date`.
    */
   readonly valid_to: string | null;
-  readonly prequalification_state: SharedState;
+  /**
+   * What the vendor is prequalified for.
+   * Length: 1 to 20000.
+   */
+  readonly scope_note: string;
+  /**
+   * Decision; null while pending.
+   */
+  readonly decision: "Approved" | "Rejected" | null;
+  /**
+   * Identifier of the person who decided.
+   * Format: `uuid`.
+   */
+  readonly decided_by: string | null;
+  /**
+   * When it was decided.
+   * Format: `date-time`.
+   */
+  readonly decided_at: string | null;
 }
 
 /**
@@ -15021,6 +15955,11 @@ export interface PrequalificationCreate {
    * Format: `date`.
    */
   readonly valid_to?: string | null;
+  /**
+   * What the vendor is prequalified for.
+   * Length: 1 to 20000.
+   */
+  readonly scope_note: string;
 }
 
 /**
@@ -15032,27 +15971,26 @@ export interface PrequalificationUpdate {
    * Format: `date`.
    */
   readonly valid_to?: string | null;
+  /**
+   * What the vendor is prequalified for.
+   * Length: 1 to 20000.
+   */
+  readonly scope_note?: string;
 }
 
 /**
- * Request to move a lifecycle to another state.
+ * Request to decide a prequalification.
  */
-export interface PrequalificationTransitionRequest {
+export interface PrequalificationDecideRequest {
   /**
-   * The state the caller believes the row is in (compare-and-set).
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
+   * Decision.
    */
-  readonly expected_state: string;
+  readonly decision: "Approved" | "Rejected";
   /**
-   * Target state.
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
+   * Last day an approval holds.
+   * Format: `date`.
    */
-  readonly to_state: string;
-  /**
-   * Reason, required by some transitions.
-   * Length: 1 to unbounded.
-   */
-  readonly reason?: string;
+  readonly valid_to?: string;
 }
 
 /**
@@ -15089,30 +16027,20 @@ export interface InsuranceCertificate {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the insured organization.
-   * Format: `uuid`.
-   */
-  readonly organization_id: string;
-  /**
-   * Identifier of the certificate document.
-   * Format: `uuid`.
-   */
-  readonly document_id: string;
+  readonly updated_by: string | null;
   /**
    * Coverage type.
    * Length: 1 to 300.
@@ -15122,17 +16050,42 @@ export interface InsuranceCertificate {
    * Each occurrence limit. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly each_occurrence_minor: number | null;
+  readonly coverage_limit_minor: number | null;
   /**
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string | null;
   /**
    * Expiry.
    * Format: `date`.
    */
-  readonly expires_on: string;
+  readonly valid_to: string;
+  /**
+   * Identifier of the insured vendor.
+   * Format: `uuid`.
+   */
+  readonly vendor_id: string;
+  /**
+   * Insurance carrier.
+   * Length: 1 to 300.
+   */
+  readonly insurer: string;
+  /**
+   * Policy number.
+   * Length: 1 to 100.
+   */
+  readonly policy_identifier: string;
+  /**
+   * First day of coverage.
+   * Format: `date`.
+   */
+  readonly valid_from: string;
+  /**
+   * Where the certificate document is stored.
+   * Format: `uri`.
+   */
+  readonly document_uri: string | null;
 }
 
 /**
@@ -15140,16 +16093,6 @@ export interface InsuranceCertificate {
  */
 export interface InsuranceCertificateCreate {
   /**
-   * Identifier of the insured organization.
-   * Format: `uuid`.
-   */
-  readonly organization_id: string;
-  /**
-   * Identifier of the certificate document.
-   * Format: `uuid`.
-   */
-  readonly document_id: string;
-  /**
    * Coverage type.
    * Length: 1 to 300.
    */
@@ -15158,33 +16101,48 @@ export interface InsuranceCertificateCreate {
    * Each occurrence limit. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly each_occurrence_minor?: number | null;
+  readonly coverage_limit_minor?: number | null;
   /**
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code?: string | null;
   /**
    * Expiry.
    * Format: `date`.
    */
-  readonly expires_on: string;
+  readonly valid_to: string;
+  /**
+   * Identifier of the insured vendor.
+   * Format: `uuid`.
+   */
+  readonly vendor_id: string;
+  /**
+   * Insurance carrier.
+   * Length: 1 to 300.
+   */
+  readonly insurer: string;
+  /**
+   * Policy number.
+   * Length: 1 to 100.
+   */
+  readonly policy_identifier: string;
+  /**
+   * First day of coverage.
+   * Format: `date`.
+   */
+  readonly valid_from: string;
+  /**
+   * Where the certificate document is stored.
+   * Format: `uri`.
+   */
+  readonly document_uri?: string | null;
 }
 
 /**
  * Fields accepted when updating a InsuranceCertificate. Omitted fields are unchanged.
  */
 export interface InsuranceCertificateUpdate {
-  /**
-   * Identifier of the insured organization.
-   * Format: `uuid`.
-   */
-  readonly organization_id?: string;
-  /**
-   * Identifier of the certificate document.
-   * Format: `uuid`.
-   */
-  readonly document_id?: string;
   /**
    * Coverage type.
    * Length: 1 to 300.
@@ -15194,17 +16152,42 @@ export interface InsuranceCertificateUpdate {
    * Each occurrence limit. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly each_occurrence_minor?: number | null;
+  readonly coverage_limit_minor?: number | null;
   /**
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string | null;
   /**
    * Expiry.
    * Format: `date`.
    */
-  readonly expires_on?: string;
+  readonly valid_to?: string;
+  /**
+   * Identifier of the insured vendor.
+   * Format: `uuid`.
+   */
+  readonly vendor_id?: string;
+  /**
+   * Insurance carrier.
+   * Length: 1 to 300.
+   */
+  readonly insurer?: string;
+  /**
+   * Policy number.
+   * Length: 1 to 100.
+   */
+  readonly policy_identifier?: string;
+  /**
+   * First day of coverage.
+   * Format: `date`.
+   */
+  readonly valid_from?: string;
+  /**
+   * Where the certificate document is stored.
+   * Format: `uri`.
+   */
+  readonly document_uri?: string | null;
 }
 
 /**
@@ -15241,20 +16224,20 @@ export interface VendorScorecard {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the vendor.
    * Format: `uuid`.
@@ -15266,15 +16249,30 @@ export interface VendorScorecard {
    */
   readonly project_id: string | null;
   /**
-   * Score from 1 to 5.
-   * Range: 1 to unbounded.
-   */
-  readonly score: number;
-  /**
    * Internal notes.
    * Length: 1 to 20000.
    */
-  readonly notes: string | null;
+  readonly note: string | null;
+  /**
+   * Last day of the period scored.
+   * Format: `date`.
+   */
+  readonly period_end: string;
+  /**
+   * Quality, 1 to 5; null when not scored.
+   * Range: 1 to unbounded.
+   */
+  readonly quality_score: number | null;
+  /**
+   * On-time delivery, 1 to 5; null when not scored.
+   * Range: 1 to unbounded.
+   */
+  readonly delivery_score: number | null;
+  /**
+   * Safety, 1 to 5; null when not scored.
+   * Range: 1 to unbounded.
+   */
+  readonly safety_score: number | null;
 }
 
 /**
@@ -15292,15 +16290,30 @@ export interface VendorScorecardCreate {
    */
   readonly project_id?: string | null;
   /**
-   * Score from 1 to 5.
-   * Range: 1 to unbounded.
-   */
-  readonly score: number;
-  /**
    * Internal notes.
    * Length: 1 to 20000.
    */
-  readonly notes?: string | null;
+  readonly note?: string | null;
+  /**
+   * Last day of the period scored.
+   * Format: `date`.
+   */
+  readonly period_end: string;
+  /**
+   * Quality, 1 to 5; null when not scored.
+   * Range: 1 to unbounded.
+   */
+  readonly quality_score?: number | null;
+  /**
+   * On-time delivery, 1 to 5; null when not scored.
+   * Range: 1 to unbounded.
+   */
+  readonly delivery_score?: number | null;
+  /**
+   * Safety, 1 to 5; null when not scored.
+   * Range: 1 to unbounded.
+   */
+  readonly safety_score?: number | null;
 }
 
 /**
@@ -15313,15 +16326,30 @@ export interface VendorScorecardUpdate {
    */
   readonly project_id?: string | null;
   /**
-   * Score from 1 to 5.
-   * Range: 1 to unbounded.
-   */
-  readonly score?: number;
-  /**
    * Internal notes.
    * Length: 1 to 20000.
    */
-  readonly notes?: string | null;
+  readonly note?: string | null;
+  /**
+   * Last day of the period scored.
+   * Format: `date`.
+   */
+  readonly period_end?: string;
+  /**
+   * Quality, 1 to 5; null when not scored.
+   * Range: 1 to unbounded.
+   */
+  readonly quality_score?: number | null;
+  /**
+   * On-time delivery, 1 to 5; null when not scored.
+   * Range: 1 to unbounded.
+   */
+  readonly delivery_score?: number | null;
+  /**
+   * Safety, 1 to 5; null when not scored.
+   * Range: 1 to unbounded.
+   */
+  readonly safety_score?: number | null;
 }
 
 /**
@@ -15358,35 +16386,49 @@ export interface SponsorEntitlement {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Identifier of the sponsor engagement.
-   * Format: `uuid`.
+   * The entitlement.
+   * Length: 1 to 500.
    */
-  readonly engagement_id: string;
-  /**
-   * Entitlement.
-   * Length: 1 to 300.
-   */
-  readonly name: string;
+  readonly description: string;
   /**
    * Committed quantity.
    */
   readonly quantity: number | null;
-  readonly fulfillment_state: SharedState;
+  /**
+   * Identifier of the project the entitlement is delivered on.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the sponsor counterparty.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string;
+  /**
+   * When the entitlement is owed.
+   * Format: `date`.
+   */
+  readonly due_on: string | null;
+  /**
+   * When it was delivered; null while owed.
+   * Format: `date-time`.
+   */
+  readonly fulfilled_at: string | null;
 }
 
 /**
@@ -15394,19 +16436,29 @@ export interface SponsorEntitlement {
  */
 export interface SponsorEntitlementCreate {
   /**
-   * Identifier of the sponsor engagement.
-   * Format: `uuid`.
+   * The entitlement.
+   * Length: 1 to 500.
    */
-  readonly engagement_id: string;
-  /**
-   * Entitlement.
-   * Length: 1 to 300.
-   */
-  readonly name: string;
+  readonly description: string;
   /**
    * Committed quantity.
    */
   readonly quantity?: number | null;
+  /**
+   * Identifier of the project the entitlement is delivered on.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the sponsor counterparty.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string;
+  /**
+   * When the entitlement is owed.
+   * Format: `date`.
+   */
+  readonly due_on?: string | null;
 }
 
 /**
@@ -15414,40 +16466,24 @@ export interface SponsorEntitlementCreate {
  */
 export interface SponsorEntitlementUpdate {
   /**
-   * Identifier of the sponsor engagement.
-   * Format: `uuid`.
+   * The entitlement.
+   * Length: 1 to 500.
    */
-  readonly engagement_id?: string;
-  /**
-   * Entitlement.
-   * Length: 1 to 300.
-   */
-  readonly name?: string;
+  readonly description?: string;
   /**
    * Committed quantity.
    */
   readonly quantity?: number | null;
-}
-
-/**
- * Request to move a lifecycle to another state.
- */
-export interface EntitlementFulfillmentTransitionRequest {
   /**
-   * The state the caller believes the row is in (compare-and-set).
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
+   * Identifier of the sponsor counterparty.
+   * Format: `uuid`.
    */
-  readonly expected_state: string;
+  readonly counterparty_id?: string;
   /**
-   * Target state.
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
+   * When the entitlement is owed.
+   * Format: `date`.
    */
-  readonly to_state: string;
-  /**
-   * Reason, required by some transitions.
-   * Length: 1 to unbounded.
-   */
-  readonly reason?: string;
+  readonly due_on?: string | null;
 }
 
 /**
@@ -15484,26 +16520,25 @@ export interface InspectionTemplate {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Template name.
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly tag_id: TagId;
 }
 
 /**
@@ -15515,7 +16550,6 @@ export interface InspectionTemplateCreate {
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly tag_id?: TagId;
 }
 
 /**
@@ -15527,7 +16561,6 @@ export interface InspectionTemplateUpdate {
    * Length: 1 to 300.
    */
   readonly name?: string;
-  readonly tag_id?: TagId;
 }
 
 /**
@@ -15564,20 +16597,20 @@ export interface InspectionItem {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the inspection template.
    * Format: `uuid`.
@@ -15594,9 +16627,9 @@ export interface InspectionItem {
    */
   readonly prompt: string;
   /**
-   * Whether a photo is required.
+   * Whether a failure of this item stops use.
    */
-  readonly requires_photo: boolean;
+  readonly is_critical: boolean;
 }
 
 /**
@@ -15619,9 +16652,9 @@ export interface InspectionItemCreate {
    */
   readonly prompt: string;
   /**
-   * Whether a photo is required.
+   * Whether a failure of this item stops use.
    */
-  readonly requires_photo: boolean;
+  readonly is_critical?: boolean;
 }
 
 /**
@@ -15639,9 +16672,9 @@ export interface InspectionItemUpdate {
    */
   readonly prompt?: string;
   /**
-   * Whether a photo is required.
+   * Whether a failure of this item stops use.
    */
-  readonly requires_photo?: boolean;
+  readonly is_critical?: boolean;
 }
 
 /**
@@ -15678,20 +16711,20 @@ export interface Inspection {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -15703,20 +16736,10 @@ export interface Inspection {
    */
   readonly inspection_template_id: string;
   /**
-   * Identifier of the zone.
+   * Identifier of the inspector, from the session.
    * Format: `uuid`.
    */
-  readonly zone_id: string | null;
-  /**
-   * Identifier of the inspector.
-   * Format: `uuid`.
-   */
-  readonly inspector_id: string;
-  /**
-   * Inspection state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly inspection_state: string;
+  readonly inspector_person_id: string | null;
   /**
    * Identifier of the person who signed off.
    * Format: `uuid`.
@@ -15727,6 +16750,16 @@ export interface Inspection {
    * Format: `date-time`.
    */
   readonly signed_off_at: string | null;
+  /**
+   * Identifier of the Inspection record of the same project.
+   * Format: `uuid`.
+   */
+  readonly record_id: string | null;
+  /**
+   * When the inspection took place.
+   * Format: `date-time`.
+   */
+  readonly inspected_at: string;
 }
 
 /**
@@ -15744,15 +16777,15 @@ export interface InspectionCreate {
    */
   readonly inspection_template_id: string;
   /**
-   * Identifier of the zone.
+   * Identifier of the Inspection record of the same project.
    * Format: `uuid`.
    */
-  readonly zone_id?: string | null;
+  readonly record_id?: string | null;
   /**
-   * Identifier of the inspector.
-   * Format: `uuid`.
+   * When the inspection took place.
+   * Format: `date-time`.
    */
-  readonly inspector_id: string;
+  readonly inspected_at?: string;
 }
 
 /**
@@ -15760,15 +16793,10 @@ export interface InspectionCreate {
  */
 export interface InspectionUpdate {
   /**
-   * Identifier of the zone.
+   * Identifier of the Inspection record of the same project.
    * Format: `uuid`.
    */
-  readonly zone_id?: string | null;
-  /**
-   * Identifier of the inspector.
-   * Format: `uuid`.
-   */
-  readonly inspector_id?: string;
+  readonly record_id?: string | null;
 }
 
 /**
@@ -15805,20 +16833,20 @@ export interface InspectionResult {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the inspection.
    * Format: `uuid`.
@@ -15830,19 +16858,25 @@ export interface InspectionResult {
    */
   readonly inspection_item_id: string;
   /**
-   * Whether the item passed.
-   */
-  readonly passed: boolean;
-  /**
    * Notes.
    * Length: 1 to 20000.
    */
-  readonly notes: string | null;
+  readonly note: string | null;
   /**
-   * Identifier of the photo.
+   * Row of the canon Inspection Result enumeration, for example ENM-084 (Failed).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly result_enum_id: string;
+  /**
+   * Object name of the finding's photo in the field-media bucket.
+   * Length: 1 to 500.
+   */
+  readonly photo_uri: string | null;
+  /**
+   * Identifier of the project, from the inspection.
    * Format: `uuid`.
    */
-  readonly photo_document_id: string | null;
+  readonly project_id: string;
 }
 
 /**
@@ -15860,19 +16894,20 @@ export interface InspectionResultCreate {
    */
   readonly inspection_item_id: string;
   /**
-   * Whether the item passed.
-   */
-  readonly passed: boolean;
-  /**
    * Notes.
    * Length: 1 to 20000.
    */
-  readonly notes?: string | null;
+  readonly note?: string | null;
   /**
-   * Identifier of the photo.
-   * Format: `uuid`.
+   * Row of the canon Inspection Result enumeration, for example ENM-084 (Failed).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly photo_document_id?: string | null;
+  readonly result_enum_id: string;
+  /**
+   * Object name of the finding's photo in the field-media bucket.
+   * Length: 1 to 500.
+   */
+  readonly photo_uri?: string | null;
 }
 
 /**
@@ -15880,19 +16915,20 @@ export interface InspectionResultCreate {
  */
 export interface InspectionResultUpdate {
   /**
-   * Whether the item passed.
-   */
-  readonly passed?: boolean;
-  /**
    * Notes.
    * Length: 1 to 20000.
    */
-  readonly notes?: string | null;
+  readonly note?: string | null;
   /**
-   * Identifier of the photo.
-   * Format: `uuid`.
+   * Row of the canon Inspection Result enumeration, for example ENM-084 (Failed).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly photo_document_id?: string | null;
+  readonly result_enum_id?: string;
+  /**
+   * Object name of the finding's photo in the field-media bucket.
+   * Length: 1 to 500.
+   */
+  readonly photo_uri?: string | null;
 }
 
 /**
@@ -15929,20 +16965,20 @@ export interface PermitRequirement {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -15965,15 +17001,25 @@ export interface PermitRequirement {
    */
   readonly ahj: string;
   /**
-   * Latest filing date from the lead time.
-   * Format: `date`.
-   */
-  readonly due_on: string | null;
-  /**
    * Permit state. A Title Case value from the lifecycle's database enum.
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
-  readonly permit_state: string;
+  readonly permit_state: string | null;
+  /**
+   * Lead time as canon states it.
+   * Length: 1 to 300.
+   */
+  readonly lead_time: string;
+  /**
+   * What triggers the canon rule: threshold, project, element or condition.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly trigger_type: string;
+  /**
+   * Identifier of the Permit record tracking the requirement.
+   * Format: `uuid`.
+   */
+  readonly record_id: string | null;
 }
 
 export interface PermitEngineRequest {
@@ -16002,6 +17048,14 @@ export interface PermitTransitionRequest {
    * Length: 1 to unbounded.
    */
   readonly reason?: string;
+}
+
+export interface PermitTrackRequest {
+  /**
+   * Record title; defaults to the canon permit text.
+   * Length: 1 to 200.
+   */
+  readonly title?: string;
 }
 
 /**
@@ -16038,35 +17092,25 @@ export interface Incident {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
    */
   readonly project_id: string;
-  /**
-   * Incident number.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly incident_number: string;
-  /**
-   * Severity. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly severity: string;
   /**
    * Short description.
    * Length: 1 to 300.
@@ -16093,15 +17137,38 @@ export interface Incident {
    */
   readonly longitude: number | null;
   /**
-   * Incident state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Severity: a row of the canon Incident Severity enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly incident_state: string;
+  readonly severity_enum_id: string;
   /**
-   * Identifier of the emergency code.
+   * Number from the project's display key sequence.
+   * Range: 1 to unbounded.
+   */
+  readonly incident_number: number;
+  /**
+   * Incident state.
+   */
+  readonly incident_state: "Reported" | "Dispatched" | "Contained" | "Closed";
+  /**
+   * Identifier of the reporter, from the session.
    * Format: `uuid`.
    */
-  readonly emergency_code_id: string | null;
+  readonly reported_by: string | null;
+  /**
+   * Identifier of the person who signed off the closure.
+   * Format: `uuid`.
+   */
+  readonly closed_signed_off_by: string | null;
+  /**
+   * Horizontal accuracy of the location in meters.
+   */
+  readonly accuracy_m: number | null;
+  /**
+   * When the reporter filed it on the device, for a report queued offline.
+   * Format: `date-time`.
+   */
+  readonly device_reported_at: string | null;
 }
 
 /**
@@ -16113,11 +17180,6 @@ export interface IncidentCreate {
    * Format: `uuid`.
    */
   readonly project_id: string;
-  /**
-   * Severity. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly severity: string;
   /**
    * Short description.
    * Length: 1 to 300.
@@ -16144,21 +17206,25 @@ export interface IncidentCreate {
    */
   readonly longitude?: number | null;
   /**
-   * Identifier of the emergency code.
-   * Format: `uuid`.
+   * Severity: a row of the canon Incident Severity enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly emergency_code_id?: string | null;
+  readonly severity_enum_id: string;
+  /**
+   * Horizontal accuracy of the location in meters.
+   */
+  readonly accuracy_m?: number | null;
+  /**
+   * When the reporter filed it on the device, for a report queued offline.
+   * Format: `date-time`.
+   */
+  readonly device_reported_at?: string | null;
 }
 
 /**
  * Fields accepted when updating a Incident. Omitted fields are unchanged.
  */
 export interface IncidentUpdate {
-  /**
-   * Severity. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly severity?: string;
   /**
    * Short description.
    * Length: 1 to 300.
@@ -16185,10 +17251,19 @@ export interface IncidentUpdate {
    */
   readonly longitude?: number | null;
   /**
-   * Identifier of the emergency code.
-   * Format: `uuid`.
+   * Severity: a row of the canon Incident Severity enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly emergency_code_id?: string | null;
+  readonly severity_enum_id?: string;
+  /**
+   * Horizontal accuracy of the location in meters.
+   */
+  readonly accuracy_m?: number | null;
+  /**
+   * When the reporter filed it on the device, for a report queued offline.
+   * Format: `date-time`.
+   */
+  readonly device_reported_at?: string | null;
 }
 
 /**
@@ -16197,19 +17272,28 @@ export interface IncidentUpdate {
 export interface IncidentTransitionRequest {
   /**
    * The state the caller believes the row is in (compare-and-set).
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
    */
-  readonly expected_state: string;
+  readonly expected_state: "Reported" | "Dispatched" | "Contained";
   /**
    * Target state.
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
    */
-  readonly to_state: string;
+  readonly to_state: "Reported" | "Dispatched" | "Contained";
   /**
    * Reason, required by some transitions.
    * Length: 1 to unbounded.
    */
   readonly reason?: string;
+}
+
+/**
+ * Request to close an incident with sign-off.
+ */
+export interface IncidentCloseRequest {
+  /**
+   * Sign-off note.
+   * Length: 1 to 500.
+   */
+  readonly note: string;
 }
 
 /**
@@ -16246,20 +17330,20 @@ export interface IncidentParty {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the incident.
    * Format: `uuid`.
@@ -16271,15 +17355,10 @@ export interface IncidentParty {
    */
   readonly person_id: string | null;
   /**
-   * Involvement. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly involvement: string;
-  /**
-   * Name when the person has no record.
+   * Role in the incident, or a description of an unknown person.
    * Length: 1 to 300.
    */
-  readonly name_if_unknown: string | null;
+  readonly description: string;
 }
 
 /**
@@ -16297,15 +17376,10 @@ export interface IncidentPartyCreate {
    */
   readonly person_id?: string | null;
   /**
-   * Involvement. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly involvement: string;
-  /**
-   * Name when the person has no record.
+   * Role in the incident, or a description of an unknown person.
    * Length: 1 to 300.
    */
-  readonly name_if_unknown?: string | null;
+  readonly description: string;
 }
 
 /**
@@ -16318,15 +17392,10 @@ export interface IncidentPartyUpdate {
    */
   readonly person_id?: string | null;
   /**
-   * Involvement. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly involvement?: string;
-  /**
-   * Name when the person has no record.
+   * Role in the incident, or a description of an unknown person.
    * Length: 1 to 300.
    */
-  readonly name_if_unknown?: string | null;
+  readonly description?: string;
 }
 
 /**
@@ -16363,30 +17432,40 @@ export interface IncidentMedia {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the incident.
    * Format: `uuid`.
    */
   readonly incident_id: string;
   /**
-   * Identifier of the media document.
+   * Where the photo or video is stored.
+   * Length: 1 to 1000.
+   */
+  readonly media_uri: string;
+  /**
+   * When it was captured.
+   * Format: `date-time`.
+   */
+  readonly captured_at: string | null;
+  /**
+   * Identifier of the project of the incident, copied from it.
    * Format: `uuid`.
    */
-  readonly document_id: string;
+  readonly project_id: string;
 }
 
 /**
@@ -16399,10 +17478,15 @@ export interface IncidentMediaCreate {
    */
   readonly incident_id: string;
   /**
-   * Identifier of the media document.
-   * Format: `uuid`.
+   * Where the photo or video is stored.
+   * Length: 1 to 1000.
    */
-  readonly document_id: string;
+  readonly media_uri: string;
+  /**
+   * When it was captured.
+   * Format: `date-time`.
+   */
+  readonly captured_at?: string | null;
 }
 
 /**
@@ -16439,30 +17523,25 @@ export interface DispatchAssignment {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the incident.
    * Format: `uuid`.
    */
   readonly incident_id: string;
-  /**
-   * Identifier of the responder.
-   * Format: `uuid`.
-   */
-  readonly responder_id: string;
   /**
    * When the responder was dispatched.
    * Format: `date-time`.
@@ -16474,10 +17553,10 @@ export interface DispatchAssignment {
    */
   readonly arrived_at: string | null;
   /**
-   * When the responder cleared.
-   * Format: `date-time`.
+   * Identifier of the responder's membership.
+   * Format: `uuid`.
    */
-  readonly cleared_at: string | null;
+  readonly membership_id: string;
 }
 
 /**
@@ -16490,25 +17569,15 @@ export interface DispatchAssignmentCreate {
    */
   readonly incident_id: string;
   /**
-   * Identifier of the responder.
-   * Format: `uuid`.
-   */
-  readonly responder_id: string;
-  /**
-   * When the responder was dispatched.
-   * Format: `date-time`.
-   */
-  readonly dispatched_at: string;
-  /**
    * When the responder arrived.
    * Format: `date-time`.
    */
   readonly arrived_at?: string | null;
   /**
-   * When the responder cleared.
-   * Format: `date-time`.
+   * Identifier of the responder's membership.
+   * Format: `uuid`.
    */
-  readonly cleared_at?: string | null;
+  readonly membership_id: string;
 }
 
 /**
@@ -16516,25 +17585,10 @@ export interface DispatchAssignmentCreate {
  */
 export interface DispatchAssignmentUpdate {
   /**
-   * Identifier of the responder.
-   * Format: `uuid`.
-   */
-  readonly responder_id?: string;
-  /**
-   * When the responder was dispatched.
-   * Format: `date-time`.
-   */
-  readonly dispatched_at?: string;
-  /**
    * When the responder arrived.
    * Format: `date-time`.
    */
   readonly arrived_at?: string | null;
-  /**
-   * When the responder cleared.
-   * Format: `date-time`.
-   */
-  readonly cleared_at?: string | null;
 }
 
 /**
@@ -16571,36 +17625,40 @@ export interface MedicalEncounter {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the incident.
    * Format: `uuid`.
    */
   readonly incident_id: string;
   /**
-   * Identifier of the treating medic.
-   * Format: `uuid`.
+   * Who was treated, without identifying medical detail.
+   * Length: 1 to 300.
    */
-  readonly treated_by: string;
+  readonly patient_description: string;
   /**
-   * Disposition. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Treatment given. Restricted.
+   * Length: 1 to 20000.
    */
-  readonly disposition: string;
-  readonly notes: string | Masked;
+  readonly treatment_notes: string | null;
+  /**
+   * Outcome, such as released or transported.
+   * Length: 1 to 300.
+   */
+  readonly disposition: string | null;
 }
 
 /**
@@ -16613,20 +17671,20 @@ export interface MedicalEncounterCreate {
    */
   readonly incident_id: string;
   /**
-   * Identifier of the treating medic.
-   * Format: `uuid`.
+   * Who was treated, without identifying medical detail.
+   * Length: 1 to 300.
    */
-  readonly treated_by: string;
+  readonly patient_description: string;
   /**
-   * Disposition. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly disposition: string;
-  /**
-   * Clinical notes.
+   * Treatment given. Restricted.
    * Length: 1 to 20000.
    */
-  readonly notes: string;
+  readonly treatment_notes?: string | null;
+  /**
+   * Outcome, such as released or transported.
+   * Length: 1 to 300.
+   */
+  readonly disposition?: string | null;
 }
 
 /**
@@ -16634,20 +17692,20 @@ export interface MedicalEncounterCreate {
  */
 export interface MedicalEncounterUpdate {
   /**
-   * Identifier of the treating medic.
-   * Format: `uuid`.
+   * Who was treated, without identifying medical detail.
+   * Length: 1 to 300.
    */
-  readonly treated_by?: string;
+  readonly patient_description?: string;
   /**
-   * Disposition. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly disposition?: string;
-  /**
-   * Clinical notes.
+   * Treatment given. Restricted.
    * Length: 1 to 20000.
    */
-  readonly notes?: string;
+  readonly treatment_notes?: string | null;
+  /**
+   * Outcome, such as released or transported.
+   * Length: 1 to 300.
+   */
+  readonly disposition?: string | null;
 }
 
 /**
@@ -16684,30 +17742,25 @@ export interface CrisisAlert {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
    */
   readonly project_id: string;
-  /**
-   * Identifier of the emergency code.
-   * Format: `uuid`.
-   */
-  readonly emergency_code_id: string;
   /**
    * Alert message.
    * Length: 1 to 300.
@@ -16722,7 +17775,12 @@ export interface CrisisAlert {
    * When the alert was cleared.
    * Format: `date-time`.
    */
-  readonly cleared_at: string | null;
+  readonly ended_at: string | null;
+  /**
+   * Canon emergency code announced.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly emergency_code: string;
 }
 
 /**
@@ -16735,25 +17793,20 @@ export interface CrisisAlertCreate {
    */
   readonly project_id: string;
   /**
-   * Identifier of the emergency code.
-   * Format: `uuid`.
-   */
-  readonly emergency_code_id: string;
-  /**
    * Alert message.
    * Length: 1 to 300.
    */
   readonly message: string;
   /**
-   * When the alert was issued.
-   * Format: `date-time`.
-   */
-  readonly issued_at: string;
-  /**
    * When the alert was cleared.
    * Format: `date-time`.
    */
-  readonly cleared_at?: string | null;
+  readonly ended_at?: string | null;
+  /**
+   * Canon emergency code announced.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly emergency_code: string;
 }
 
 /**
@@ -16775,92 +17828,30 @@ export interface EmergencyCodePage {
  */
 export interface EmergencyCode {
   /**
-   * Identifier of the emergency code.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-   * Format: `uuid`.
-   */
-  readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row.
-   * Format: `uuid`.
-   */
-  readonly created_by: string;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string;
-  /**
-   * Emergency code.
+   * Code token.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly code: string;
   /**
-   * Code name.
+   * Code word.
    * Length: 1 to 300.
    */
-  readonly name: string;
+  readonly label: string;
   /**
-   * Response procedure.
-   * Length: 1 to 20000.
+   * The emergency the code announces.
+   * Length: 1 to 300.
    */
-  readonly response: string;
-}
-
-/**
- * Fields accepted when creating a EmergencyCode.
- */
-export interface EmergencyCodeCreate {
+  readonly emergency: string;
   /**
-   * Emergency code.
+   * Design token of the swatch.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly code: string;
+  readonly swatch: string;
   /**
-   * Code name.
-   * Length: 1 to 300.
+   * Canon order.
+   * Range: 1 to unbounded.
    */
-  readonly name: string;
-  /**
-   * Response procedure.
-   * Length: 1 to 20000.
-   */
-  readonly response: string;
-}
-
-/**
- * Fields accepted when updating a EmergencyCode. Omitted fields are unchanged.
- */
-export interface EmergencyCodeUpdate {
-  /**
-   * Emergency code.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly code?: string;
-  /**
-   * Code name.
-   * Length: 1 to 300.
-   */
-  readonly name?: string;
-  /**
-   * Response procedure.
-   * Length: 1 to 20000.
-   */
-  readonly response?: string;
+  readonly sort_order: number;
 }
 
 /**
@@ -16897,39 +17888,40 @@ export interface RadioChannel {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Channel number.
    * Range: 1 to unbounded.
    */
-  readonly channel: number;
+  readonly channel_number: number;
   /**
    * Channel name.
    * Length: 1 to 300.
    */
   readonly name: string;
   /**
-   * Frequency in MHz.
-   */
-  readonly frequency_mhz: number | null;
-  /**
    * Identifier of the project.
    * Format: `uuid`.
    */
-  readonly project_id: string | null;
+  readonly project_id: string;
+  /**
+   * Identifier of the zone the channel covers.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string | null;
 }
 
 /**
@@ -16940,21 +17932,22 @@ export interface RadioChannelCreate {
    * Channel number.
    * Range: 1 to unbounded.
    */
-  readonly channel: number;
+  readonly channel_number: number;
   /**
    * Channel name.
    * Length: 1 to 300.
    */
   readonly name: string;
   /**
-   * Frequency in MHz.
-   */
-  readonly frequency_mhz?: number | null;
-  /**
    * Identifier of the project.
    * Format: `uuid`.
    */
-  readonly project_id?: string | null;
+  readonly project_id: string;
+  /**
+   * Identifier of the zone the channel covers.
+   * Format: `uuid`.
+   */
+  readonly zone_id?: string | null;
 }
 
 /**
@@ -16965,21 +17958,17 @@ export interface RadioChannelUpdate {
    * Channel number.
    * Range: 1 to unbounded.
    */
-  readonly channel?: number;
+  readonly channel_number?: number;
   /**
    * Channel name.
    * Length: 1 to 300.
    */
   readonly name?: string;
   /**
-   * Frequency in MHz.
-   */
-  readonly frequency_mhz?: number | null;
-  /**
-   * Identifier of the project.
+   * Identifier of the zone the channel covers.
    * Format: `uuid`.
    */
-  readonly project_id?: string | null;
+  readonly zone_id?: string | null;
 }
 
 /**
@@ -17016,25 +18005,25 @@ export interface Opportunity {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Identifier of the approved requisition.
+   * Identifier of the approved requisition the opportunity is published from; required to publish Contractor, Crew and Staff opportunities and fixed once published.
    * Format: `uuid`.
    */
-  readonly requisition_id: string;
+  readonly requisition_id: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -17052,60 +18041,56 @@ export interface Opportunity {
   readonly title: string;
   readonly role_type: ExternalRoleType;
   readonly role_code: RoleCode | null;
-  readonly urid: UridAtAnyGrain;
+  readonly cat_urid: UridAtAnyGrain;
   /**
    * Description.
    * Length: 1 to 20000.
    */
-  readonly description: string;
+  readonly description: string | null;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
    */
   readonly venue_id: string | null;
-  /**
-   * First call.
-   * Format: `date-time`.
-   */
-  readonly starts_at: string | null;
-  /**
-   * Last wrap.
-   * Format: `date-time`.
-   */
-  readonly ends_at: string | null;
-  /**
-   * Number of positions.
-   * Range: 1 to unbounded.
-   */
-  readonly positions: number;
   readonly rate_type: RateType | null;
+  readonly visibility: OpportunityVisibility;
+  readonly opportunity_state: OpportunityState;
+  readonly jurisdiction_id: JurisdictionId | null;
   /**
-   * Lowest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+   * First day of the work.
+   * Format: `date`.
+   */
+  readonly starts_on: string | null;
+  /**
+   * Last day of the work.
+   * Format: `date`.
+   */
+  readonly ends_on: string | null;
+  /**
+   * Lower end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly rate_min_minor: number | null;
+  readonly pay_min_minor: number | null;
   /**
-   * Highest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Upper end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly rate_max_minor: number | null;
+  readonly pay_max_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the posted pay.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
-  readonly visibility: OpportunityVisibility;
+  readonly currency_code: string | null;
   /**
-   * Application deadline.
+   * Deadline for applications and bids. Bids stay sealed until it passes.
    * Format: `date-time`.
    */
-  readonly application_deadline_at: string | null;
-  readonly opportunity_state: OpportunityState;
+  readonly deadline_at: string | null;
   /**
-   * When it was published.
-   * Format: `date-time`.
+   * Minimum age for the work, 16 or older (Section 14.9).
+   * Range: 16 to unbounded.
    */
-  readonly published_at: string | null;
+  readonly minimum_age: number | null;
 }
 
 /**
@@ -17124,10 +18109,10 @@ export type OpportunityState =
  */
 export interface OpportunityCreate {
   /**
-   * Identifier of the approved requisition.
+   * Identifier of the approved requisition the opportunity is published from; required to publish Contractor, Crew and Staff opportunities and fixed once published.
    * Format: `uuid`.
    */
-  readonly requisition_id: string;
+  readonly requisition_id?: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -17145,54 +18130,55 @@ export interface OpportunityCreate {
   readonly title: string;
   readonly role_type: ExternalRoleType;
   readonly role_code?: RoleCode | null;
-  readonly urid?: UridAtAnyGrain;
+  readonly cat_urid?: UridAtAnyGrain;
   /**
    * Description.
    * Length: 1 to 20000.
    */
-  readonly description: string;
+  readonly description?: string | null;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
    */
   readonly venue_id?: string | null;
-  /**
-   * First call.
-   * Format: `date-time`.
-   */
-  readonly starts_at?: string | null;
-  /**
-   * Last wrap.
-   * Format: `date-time`.
-   */
-  readonly ends_at?: string | null;
-  /**
-   * Number of positions.
-   * Range: 1 to unbounded.
-   */
-  readonly positions: number;
   readonly rate_type?: RateType | null;
+  readonly visibility?: OpportunityVisibility;
+  readonly jurisdiction_id?: JurisdictionId | null;
   /**
-   * Lowest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+   * First day of the work.
+   * Format: `date`.
+   */
+  readonly starts_on?: string | null;
+  /**
+   * Last day of the work.
+   * Format: `date`.
+   */
+  readonly ends_on?: string | null;
+  /**
+   * Lower end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly rate_min_minor?: number | null;
+  readonly pay_min_minor?: number | null;
   /**
-   * Highest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Upper end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly rate_max_minor?: number | null;
+  readonly pay_max_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the posted pay.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
-  readonly visibility: OpportunityVisibility;
+  readonly currency_code?: string | null;
   /**
-   * Application deadline.
+   * Deadline for applications and bids. Bids stay sealed until it passes.
    * Format: `date-time`.
    */
-  readonly application_deadline_at?: string | null;
+  readonly deadline_at?: string | null;
+  /**
+   * Minimum age for the work, 16 or older (Section 14.9).
+   * Range: 16 to unbounded.
+   */
+  readonly minimum_age?: number | null;
 }
 
 /**
@@ -17216,54 +18202,60 @@ export interface OpportunityUpdate {
   readonly title?: string;
   readonly role_type?: ExternalRoleType;
   readonly role_code?: RoleCode | null;
-  readonly urid?: UridAtAnyGrain;
+  readonly cat_urid?: UridAtAnyGrain;
   /**
    * Description.
    * Length: 1 to 20000.
    */
-  readonly description?: string;
+  readonly description?: string | null;
   /**
    * Identifier of the venue.
    * Format: `uuid`.
    */
   readonly venue_id?: string | null;
-  /**
-   * First call.
-   * Format: `date-time`.
-   */
-  readonly starts_at?: string | null;
-  /**
-   * Last wrap.
-   * Format: `date-time`.
-   */
-  readonly ends_at?: string | null;
-  /**
-   * Number of positions.
-   * Range: 1 to unbounded.
-   */
-  readonly positions?: number;
   readonly rate_type?: RateType | null;
-  /**
-   * Lowest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly rate_min_minor?: number | null;
-  /**
-   * Highest posted rate; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly rate_max_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency?: string;
   readonly visibility?: OpportunityVisibility;
   /**
-   * Application deadline.
+   * Identifier of the approved requisition the opportunity is published from; required to publish Contractor, Crew and Staff opportunities and fixed once published.
+   * Format: `uuid`.
+   */
+  readonly requisition_id?: string | null;
+  readonly jurisdiction_id?: JurisdictionId | null;
+  /**
+   * First day of the work.
+   * Format: `date`.
+   */
+  readonly starts_on?: string | null;
+  /**
+   * Last day of the work.
+   * Format: `date`.
+   */
+  readonly ends_on?: string | null;
+  /**
+   * Lower end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly pay_min_minor?: number | null;
+  /**
+   * Upper end of the posted pay range; null when not posted. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly pay_max_minor?: number | null;
+  /**
+   * ISO 4217 currency of the posted pay.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string | null;
+  /**
+   * Deadline for applications and bids. Bids stay sealed until it passes.
    * Format: `date-time`.
    */
-  readonly application_deadline_at?: string | null;
+  readonly deadline_at?: string | null;
+  /**
+   * Minimum age for the work, 16 or older (Section 14.9).
+   * Range: 16 to unbounded.
+   */
+  readonly minimum_age?: number | null;
 }
 
 /**
@@ -17321,36 +18313,40 @@ export interface OpportunityPosition {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the opportunity.
    * Format: `uuid`.
    */
   readonly opportunity_id: string;
   /**
-   * Position title.
+   * Position label, for example Rigger 2.
    * Length: 1 to 300.
    */
-  readonly title: string;
-  readonly role_code: RoleCode | null;
+  readonly label: string;
   /**
-   * Openings.
-   * Range: 1 to unbounded.
+   * Call time.
+   * Format: `date-time`.
    */
-  readonly count: number;
+  readonly call_at: string | null;
+  /**
+   * When the position's work ends.
+   * Format: `date-time`.
+   */
+  readonly ends_at: string | null;
 }
 
 /**
@@ -17363,16 +18359,20 @@ export interface OpportunityPositionCreate {
    */
   readonly opportunity_id: string;
   /**
-   * Position title.
+   * Position label, for example Rigger 2.
    * Length: 1 to 300.
    */
-  readonly title: string;
-  readonly role_code?: RoleCode | null;
+  readonly label: string;
   /**
-   * Openings.
-   * Range: 1 to unbounded.
+   * Call time.
+   * Format: `date-time`.
    */
-  readonly count: number;
+  readonly call_at?: string | null;
+  /**
+   * When the position's work ends.
+   * Format: `date-time`.
+   */
+  readonly ends_at?: string | null;
 }
 
 /**
@@ -17380,16 +18380,20 @@ export interface OpportunityPositionCreate {
  */
 export interface OpportunityPositionUpdate {
   /**
-   * Position title.
+   * Position label, for example Rigger 2.
    * Length: 1 to 300.
    */
-  readonly title?: string;
-  readonly role_code?: RoleCode | null;
+  readonly label?: string;
   /**
-   * Openings.
-   * Range: 1 to unbounded.
+   * Call time.
+   * Format: `date-time`.
    */
-  readonly count?: number;
+  readonly call_at?: string | null;
+  /**
+   * When the position's work ends.
+   * Format: `date-time`.
+   */
+  readonly ends_at?: string | null;
 }
 
 /**
@@ -17426,46 +18430,49 @@ export interface OpportunityRequirement {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the opportunity.
    * Format: `uuid`.
    */
   readonly opportunity_id: string;
-  readonly tag_id: TagId;
   /**
    * Identifier of the certification.
    * Format: `uuid`.
    */
   readonly certification_id: string | null;
   /**
-   * Requirement statement.
-   * Length: 1 to 300.
-   */
-  readonly statement: string;
-  /**
    * Insurance minimum, when the requirement is insurance. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly insurance_minimum_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * Kind of requirement.
+   */
+  readonly requirement_kind: "Certification" | "Insurance" | "Equipment";
+  /**
+   * What is required.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * ISO 4217 currency of the insurance minimum.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string | null;
 }
 
 /**
@@ -17477,54 +18484,60 @@ export interface OpportunityRequirementCreate {
    * Format: `uuid`.
    */
   readonly opportunity_id: string;
-  readonly tag_id?: TagId;
   /**
    * Identifier of the certification.
    * Format: `uuid`.
    */
   readonly certification_id?: string | null;
   /**
-   * Requirement statement.
-   * Length: 1 to 300.
-   */
-  readonly statement: string;
-  /**
    * Insurance minimum, when the requirement is insurance. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly insurance_minimum_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * Kind of requirement.
+   */
+  readonly requirement_kind: "Certification" | "Insurance" | "Equipment";
+  /**
+   * What is required.
+   * Length: 1 to 20000.
+   */
+  readonly description: string;
+  /**
+   * ISO 4217 currency of the insurance minimum.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code?: string | null;
 }
 
 /**
  * Fields accepted when updating a OpportunityRequirement. Omitted fields are unchanged.
  */
 export interface OpportunityRequirementUpdate {
-  readonly tag_id?: TagId;
   /**
    * Identifier of the certification.
    * Format: `uuid`.
    */
   readonly certification_id?: string | null;
   /**
-   * Requirement statement.
-   * Length: 1 to 300.
-   */
-  readonly statement?: string;
-  /**
    * Insurance minimum, when the requirement is insurance. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly insurance_minimum_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * Kind of requirement.
+   */
+  readonly requirement_kind?: "Certification" | "Insurance" | "Equipment";
+  /**
+   * What is required.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string;
+  /**
+   * ISO 4217 currency of the insurance minimum.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string | null;
 }
 
 /**
@@ -17561,20 +18574,20 @@ export interface OpportunityQuestion {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the opportunity.
    * Format: `uuid`.
@@ -17705,60 +18718,65 @@ export interface Application {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the opportunity.
    * Format: `uuid`.
    */
   readonly opportunity_id: string;
   /**
-   * Identifier of the applying person.
-   * Format: `uuid`.
-   */
-  readonly person_id: string | null;
-  /**
-   * Identifier of the applying external account.
-   * Format: `uuid`.
-   */
-  readonly organization_id: string | null;
-  /**
    * Identifier of the consented profile snapshot.
    * Format: `uuid`.
    */
-  readonly profile_share_id: string;
+  readonly profile_share_id: string | null;
   /**
    * Whether the applicant confirmed availability.
    */
   readonly availability_confirmed: boolean;
-  /**
-   * Fee proposed by an artist instead of the posted fee. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly proposed_rate_minor: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
   readonly application_state: ApplicationState;
   /**
-   * When it was submitted.
-   * Format: `date-time`.
+   * Identifier of the applying person.
+   * Format: `uuid`.
    */
-  readonly submitted_at: string;
+  readonly applicant_person_id: string | null;
+  /**
+   * Identifier of the applying external account.
+   * Format: `uuid`.
+   */
+  readonly applicant_organization_id: string | null;
+  /**
+   * Identifier of the person who submitted, set from the session: the applicant, their representative or an account administrator.
+   * Format: `uuid`.
+   */
+  readonly submitted_by: string | null;
+  /**
+   * Note from the applicant.
+   * Length: 1 to 20000.
+   */
+  readonly cover_note: string | null;
+  /**
+   * Fee the applicant proposes instead of the posted one (artists). Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly proposed_fee_minor: number | null;
+  /**
+   * ISO 4217 currency of the proposed fee.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string | null;
 }
 
 /**
@@ -17784,34 +18802,39 @@ export interface ApplicationCreate {
    */
   readonly opportunity_id: string;
   /**
+   * Identifier of the consented profile snapshot.
+   * Format: `uuid`.
+   */
+  readonly profile_share_id?: string | null;
+  /**
+   * Whether the applicant confirmed availability.
+   */
+  readonly availability_confirmed?: boolean;
+  /**
    * Identifier of the applying person.
    * Format: `uuid`.
    */
-  readonly person_id?: string | null;
+  readonly applicant_person_id?: string | null;
   /**
    * Identifier of the applying external account.
    * Format: `uuid`.
    */
-  readonly organization_id?: string | null;
+  readonly applicant_organization_id?: string | null;
   /**
-   * Identifier of the consented profile snapshot.
-   * Format: `uuid`.
+   * Note from the applicant.
+   * Length: 1 to 20000.
    */
-  readonly profile_share_id: string;
+  readonly cover_note?: string | null;
   /**
-   * Whether the applicant confirmed availability.
-   */
-  readonly availability_confirmed: boolean;
-  /**
-   * Fee proposed by an artist instead of the posted fee. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Fee the applicant proposes instead of the posted one (artists). Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly proposed_rate_minor?: number | null;
+  readonly proposed_fee_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the proposed fee.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code?: string | null;
 }
 
 /**
@@ -17883,20 +18906,20 @@ export interface ApplicationAnswer {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the application.
    * Format: `uuid`.
@@ -17969,20 +18992,20 @@ export interface Bid {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the application.
    * Format: `uuid`.
@@ -17994,10 +19017,20 @@ export interface Bid {
    */
   readonly sealed: boolean;
   /**
-   * Bid notes.
-   * Length: 1 to 20000.
+   * ISO 4217 currency of every line.
+   * Pattern: `^[A-Z]{3}$`.
    */
-  readonly notes: string | null;
+  readonly currency_code: string;
+  /**
+   * Last day the bid holds.
+   * Format: `date`.
+   */
+  readonly valid_until: string | null;
+  /**
+   * When the bid was submitted, set by the database.
+   * Format: `date-time`.
+   */
+  readonly submitted_at: string;
 }
 
 /**
@@ -18010,10 +19043,15 @@ export interface BidCreate {
    */
   readonly application_id: string;
   /**
-   * Bid notes.
-   * Length: 1 to 20000.
+   * ISO 4217 currency of every line.
+   * Pattern: `^[A-Z]{3}$`.
    */
-  readonly notes?: string | null;
+  readonly currency_code: string;
+  /**
+   * Last day the bid holds.
+   * Format: `date`.
+   */
+  readonly valid_until?: string | null;
 }
 
 /**
@@ -18021,10 +19059,10 @@ export interface BidCreate {
  */
 export interface BidUpdate {
   /**
-   * Bid notes.
-   * Length: 1 to 20000.
+   * Last day the bid holds.
+   * Format: `date`.
    */
-  readonly notes?: string | null;
+  readonly valid_until?: string | null;
 }
 
 /**
@@ -18061,20 +19099,20 @@ export interface BidLine {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the bid.
    * Format: `uuid`.
@@ -18190,20 +19228,20 @@ export interface AgencySlate {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the agency application.
    * Format: `uuid`.
@@ -18266,20 +19304,20 @@ export interface Shortlist {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the opportunity.
    * Format: `uuid`.
@@ -18363,20 +19401,20 @@ export interface Interview {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the application.
    * Format: `uuid`.
@@ -18388,15 +19426,24 @@ export interface Interview {
    */
   readonly scheduled_at: string;
   /**
-   * Video meeting link.
-   * Format: `uri`.
+   * Interview or Audition.
    */
-  readonly meeting_url: string | null;
+  readonly interview_kind: "Interview" | "Audition";
   /**
-   * Internal notes.
+   * Length in minutes.
+   * Range: 1 to unbounded.
+   */
+  readonly duration_minutes: number;
+  /**
+   * Place or meeting link.
+   * Length: 1 to 2000.
+   */
+  readonly location_text: string | null;
+  /**
+   * Internal note. Never visible externally.
    * Length: 1 to 20000.
    */
-  readonly outcome_notes: string | null;
+  readonly internal_note: string | null;
 }
 
 /**
@@ -18414,15 +19461,24 @@ export interface InterviewCreate {
    */
   readonly scheduled_at: string;
   /**
-   * Video meeting link.
-   * Format: `uri`.
+   * Interview or Audition.
    */
-  readonly meeting_url?: string | null;
+  readonly interview_kind: "Interview" | "Audition";
   /**
-   * Internal notes.
+   * Length in minutes.
+   * Range: 1 to unbounded.
+   */
+  readonly duration_minutes: number;
+  /**
+   * Place or meeting link.
+   * Length: 1 to 2000.
+   */
+  readonly location_text?: string | null;
+  /**
+   * Internal note. Never visible externally.
    * Length: 1 to 20000.
    */
-  readonly outcome_notes?: string | null;
+  readonly internal_note?: string | null;
 }
 
 /**
@@ -18435,15 +19491,24 @@ export interface InterviewUpdate {
    */
   readonly scheduled_at?: string;
   /**
-   * Video meeting link.
-   * Format: `uri`.
+   * Interview or Audition.
    */
-  readonly meeting_url?: string | null;
+  readonly interview_kind?: "Interview" | "Audition";
   /**
-   * Internal notes.
+   * Length in minutes.
+   * Range: 1 to unbounded.
+   */
+  readonly duration_minutes?: number;
+  /**
+   * Place or meeting link.
+   * Length: 1 to 2000.
+   */
+  readonly location_text?: string | null;
+  /**
+   * Internal note. Never visible externally.
    * Length: 1 to 20000.
    */
-  readonly outcome_notes?: string | null;
+  readonly internal_note?: string | null;
 }
 
 /**
@@ -18480,20 +19545,20 @@ export interface Engagement {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the engaged person.
    * Format: `uuid`.
@@ -18615,20 +19680,20 @@ export interface EngagementDocument {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the engagement.
    * Format: `uuid`.
@@ -18638,7 +19703,7 @@ export interface EngagementDocument {
    * Identifier of the document.
    * Format: `uuid`.
    */
-  readonly document_id: string;
+  readonly document_id: string | null;
   /**
    * Document title.
    * Length: 1 to 300.
@@ -18649,6 +19714,26 @@ export interface EngagementDocument {
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
   readonly engagement_document_state: string;
+  /**
+   * Kind of document.
+   */
+  readonly document_kind:
+    | "Offer"
+    | "Agreement"
+    | "Statement of Work"
+    | "Non-Disclosure Agreement"
+    | "Rider"
+    | "Advance Packet"
+    | "Insurance Certificate"
+    | "Lien Waiver"
+    | "Settlement"
+    | "Proof of Performance"
+    | "Content Consent";
+  /**
+   * Last day the document is valid, for documents that expire.
+   * Format: `date`.
+   */
+  readonly expires_on: string | null;
 }
 
 /**
@@ -18664,12 +19749,32 @@ export interface EngagementDocumentCreate {
    * Identifier of the document.
    * Format: `uuid`.
    */
-  readonly document_id: string;
+  readonly document_id?: string | null;
   /**
    * Document title.
    * Length: 1 to 300.
    */
   readonly title: string;
+  /**
+   * Kind of document.
+   */
+  readonly document_kind:
+    | "Offer"
+    | "Agreement"
+    | "Statement of Work"
+    | "Non-Disclosure Agreement"
+    | "Rider"
+    | "Advance Packet"
+    | "Insurance Certificate"
+    | "Lien Waiver"
+    | "Settlement"
+    | "Proof of Performance"
+    | "Content Consent";
+  /**
+   * Last day the document is valid, for documents that expire.
+   * Format: `date`.
+   */
+  readonly expires_on?: string | null;
 }
 
 /**
@@ -18727,110 +19832,149 @@ export interface OnboardingRequirement {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  readonly role_type: ExternalRoleType;
+  readonly updated_by: string | null;
+  readonly role_type: ExternalRoleType | null;
   readonly jurisdiction_id: JurisdictionId;
-  /**
-   * Item type. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly item_type: string;
-  /**
-   * Requirement title.
-   * Length: 1 to 300.
-   */
-  readonly title: string;
-  /**
-   * Whether it blocks Active.
-   */
-  readonly blocking: boolean;
   /**
    * Verification method. A Title Case value from the lifecycle's database enum.
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
   readonly verification_method: string;
   /**
-   * Months until expiry.
-   * Range: 0 to unbounded.
+   * Requirement name, for example Certificate of Insurance.
+   * Length: 1 to 300.
    */
-  readonly validity_months: number | null;
+  readonly name: string;
+  /**
+   * Kind of onboarding item.
+   */
+  readonly item_kind:
+    | "Document Upload"
+    | "Electronic Signature"
+    | "Form"
+    | "Certification"
+    | "Training"
+    | "Acknowledgment"
+    | "Background Check"
+    | "Tax Form"
+    | "Payout Details";
+  /**
+   * True when the engagement cannot become Active until the item passes.
+   */
+  readonly is_blocking: boolean;
+  /**
+   * Days a verification stays valid; null when it does not expire.
+   * Range: 1 to unbounded.
+   */
+  readonly valid_for_days: number | null;
+  /**
+   * Days before expiry the party is reminded.
+   * Range: 1 to unbounded.
+   */
+  readonly remind_days_before: number | null;
 }
 
 /**
  * Fields accepted when creating a OnboardingRequirement.
  */
 export interface OnboardingRequirementCreate {
-  readonly role_type: ExternalRoleType;
+  readonly role_type?: ExternalRoleType | null;
   readonly jurisdiction_id?: JurisdictionId;
-  /**
-   * Item type. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly item_type: string;
-  /**
-   * Requirement title.
-   * Length: 1 to 300.
-   */
-  readonly title: string;
-  /**
-   * Whether it blocks Active.
-   */
-  readonly blocking: boolean;
   /**
    * Verification method. A Title Case value from the lifecycle's database enum.
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
   readonly verification_method: string;
   /**
-   * Months until expiry.
-   * Range: 0 to unbounded.
+   * Requirement name, for example Certificate of Insurance.
+   * Length: 1 to 300.
    */
-  readonly validity_months?: number | null;
+  readonly name: string;
+  /**
+   * Kind of onboarding item.
+   */
+  readonly item_kind:
+    | "Document Upload"
+    | "Electronic Signature"
+    | "Form"
+    | "Certification"
+    | "Training"
+    | "Acknowledgment"
+    | "Background Check"
+    | "Tax Form"
+    | "Payout Details";
+  /**
+   * True when the engagement cannot become Active until the item passes.
+   */
+  readonly is_blocking?: boolean;
+  /**
+   * Days a verification stays valid; null when it does not expire.
+   * Range: 1 to unbounded.
+   */
+  readonly valid_for_days?: number | null;
+  /**
+   * Days before expiry the party is reminded.
+   * Range: 1 to unbounded.
+   */
+  readonly remind_days_before?: number | null;
 }
 
 /**
  * Fields accepted when updating a OnboardingRequirement. Omitted fields are unchanged.
  */
 export interface OnboardingRequirementUpdate {
-  readonly role_type?: ExternalRoleType;
+  readonly role_type?: ExternalRoleType | null;
   readonly jurisdiction_id?: JurisdictionId;
-  /**
-   * Item type. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly item_type?: string;
-  /**
-   * Requirement title.
-   * Length: 1 to 300.
-   */
-  readonly title?: string;
-  /**
-   * Whether it blocks Active.
-   */
-  readonly blocking?: boolean;
   /**
    * Verification method. A Title Case value from the lifecycle's database enum.
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
   readonly verification_method?: string;
   /**
-   * Months until expiry.
-   * Range: 0 to unbounded.
+   * Requirement name, for example Certificate of Insurance.
+   * Length: 1 to 300.
    */
-  readonly validity_months?: number | null;
+  readonly name?: string;
+  /**
+   * Kind of onboarding item.
+   */
+  readonly item_kind?:
+    | "Document Upload"
+    | "Electronic Signature"
+    | "Form"
+    | "Certification"
+    | "Training"
+    | "Acknowledgment"
+    | "Background Check"
+    | "Tax Form"
+    | "Payout Details";
+  /**
+   * True when the engagement cannot become Active until the item passes.
+   */
+  readonly is_blocking?: boolean;
+  /**
+   * Days a verification stays valid; null when it does not expire.
+   * Range: 1 to unbounded.
+   */
+  readonly valid_for_days?: number | null;
+  /**
+   * Days before expiry the party is reminded.
+   * Range: 1 to unbounded.
+   */
+  readonly remind_days_before?: number | null;
 }
 
 /**
@@ -18867,20 +20011,20 @@ export interface OnboardingItem {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the engagement.
    * Format: `uuid`.
@@ -18988,20 +20132,20 @@ export interface OnboardingVerification {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the onboarding item.
    * Format: `uuid`.
@@ -19015,7 +20159,7 @@ export interface OnboardingVerification {
    * Identifier of the verifier.
    * Format: `uuid`.
    */
-  readonly verified_by: string;
+  readonly verified_by: string | null;
   /**
    * When it was verified.
    * Format: `date-time`.
@@ -19082,26 +20226,29 @@ export interface TalentPool {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Pool name.
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly role_type: ExternalRoleType;
+  /**
+   * Talent (people) or Vendor (external accounts).
+   */
+  readonly pool_kind: "Talent" | "Vendor";
 }
 
 /**
@@ -19113,7 +20260,10 @@ export interface TalentPoolCreate {
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly role_type: ExternalRoleType;
+  /**
+   * Talent (people) or Vendor (external accounts).
+   */
+  readonly pool_kind: "Talent" | "Vendor";
 }
 
 /**
@@ -19125,7 +20275,6 @@ export interface TalentPoolUpdate {
    * Length: 1 to 300.
    */
   readonly name?: string;
-  readonly role_type?: ExternalRoleType;
 }
 
 /**
@@ -19162,20 +20311,20 @@ export interface PoolMember {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the pool.
    * Format: `uuid`.
@@ -19314,20 +20463,20 @@ export interface Rating {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the completed engagement.
    * Format: `uuid`.
@@ -19415,20 +20564,20 @@ export interface RatingReply {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the rating.
    * Format: `uuid`.
@@ -19479,12 +20628,12 @@ export interface MarketplaceListing {
    * Identifier of the opportunity.
    * Format: `uuid`.
    */
-  readonly opportunity_id: string;
+  readonly id: string;
   /**
    * Identifier of the posting organization.
    * Format: `uuid`.
    */
-  readonly organization_id: string;
+  readonly org_id: string;
   /**
    * Opportunity title.
    * Length: 1 to 300.
@@ -19496,32 +20645,79 @@ export interface MarketplaceListing {
    * City.
    * Length: 1 to 300.
    */
-  readonly locality: string | null;
-  /**
-   * First call.
-   * Format: `date-time`.
-   */
-  readonly starts_at: string | null;
+  readonly venue_locality: string | null;
   readonly rate_type: RateType | null;
   /**
    * Lowest posted rate. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly rate_min_minor: number | null;
+  readonly pay_min_minor: number | null;
   /**
    * Highest posted rate. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly rate_max_minor: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
+  readonly pay_max_minor: number | null;
   /**
    * Distance from the search location.
    */
   readonly distance_km: number | null;
+  /**
+   * Posting organization name.
+   * Length: 1 to 300.
+   */
+  readonly org_name: string;
+  /**
+   * True when the posting organization is verified.
+   */
+  readonly org_verified: boolean;
+  /**
+   * Description of the work.
+   * Length: 1 to 20000.
+   */
+  readonly description: string | null;
+  readonly cat_urid: UridAtAnyGrain | null;
+  /**
+   * Venue name.
+   * Length: 1 to 300.
+   */
+  readonly venue_name: string | null;
+  readonly jurisdiction_id: JurisdictionId | null;
+  /**
+   * First day of the work.
+   * Format: `date`.
+   */
+  readonly starts_on: string | null;
+  /**
+   * Last day of the work.
+   * Format: `date`.
+   */
+  readonly ends_on: string | null;
+  readonly visibility: OpportunityVisibility;
+  /**
+   * ISO 4217 currency of the posted pay; null when unposted.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string | null;
+  /**
+   * True when no pay is posted: the listing shows Rate on Request.
+   */
+  readonly rate_on_request: boolean;
+  /**
+   * Deadline for applications and bids.
+   * Format: `date-time`.
+   */
+  readonly deadline_at: string | null;
+  /**
+   * Minimum age for the work.
+   * Range: 16 to unbounded.
+   */
+  readonly minimum_age: number | null;
+  readonly opportunity_state: OpportunityState;
+  /**
+   * Number of open positions.
+   * Range: 0 to unbounded.
+   */
+  readonly position_count: number;
 }
 
 /**
@@ -19568,14 +20764,33 @@ export interface SavedSearch {
    */
   readonly name: string;
   /**
-   * Search query in the filter grammar.
-   * Length: 1 to 300.
-   */
-  readonly query: string;
-  /**
    * Whether alerts are sent by email and push.
    */
   readonly alerts_enabled: boolean;
+  readonly role_type: ExternalRoleType | null;
+  readonly role_code: RoleCode | null;
+  readonly cat_urid: UridAtAnyGrain | null;
+  readonly jurisdiction_id: JurisdictionId | null;
+  /**
+   * Earliest start date.
+   * Format: `date`.
+   */
+  readonly starts_after: string | null;
+  /**
+   * Latest end date.
+   * Format: `date`.
+   */
+  readonly ends_before: string | null;
+  /**
+   * Minimum posted pay. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly min_rate_minor: number | null;
+  /**
+   * ISO 4217 currency of the minimum pay.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string | null;
 }
 
 /**
@@ -19593,14 +20808,33 @@ export interface SavedSearchCreate {
    */
   readonly name: string;
   /**
-   * Search query in the filter grammar.
-   * Length: 1 to 300.
-   */
-  readonly query: string;
-  /**
    * Whether alerts are sent by email and push.
    */
-  readonly alerts_enabled: boolean;
+  readonly alerts_enabled?: boolean;
+  readonly role_type?: ExternalRoleType | null;
+  readonly role_code?: RoleCode | null;
+  readonly cat_urid?: UridAtAnyGrain | null;
+  readonly jurisdiction_id?: JurisdictionId | null;
+  /**
+   * Earliest start date.
+   * Format: `date`.
+   */
+  readonly starts_after?: string | null;
+  /**
+   * Latest end date.
+   * Format: `date`.
+   */
+  readonly ends_before?: string | null;
+  /**
+   * Minimum posted pay. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly min_rate_minor?: number | null;
+  /**
+   * ISO 4217 currency of the minimum pay.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string | null;
 }
 
 /**
@@ -19613,14 +20847,33 @@ export interface SavedSearchUpdate {
    */
   readonly name?: string;
   /**
-   * Search query in the filter grammar.
-   * Length: 1 to 300.
-   */
-  readonly query?: string;
-  /**
    * Whether alerts are sent by email and push.
    */
   readonly alerts_enabled?: boolean;
+  readonly role_type?: ExternalRoleType | null;
+  readonly role_code?: RoleCode | null;
+  readonly cat_urid?: UridAtAnyGrain | null;
+  readonly jurisdiction_id?: JurisdictionId | null;
+  /**
+   * Earliest start date.
+   * Format: `date`.
+   */
+  readonly starts_after?: string | null;
+  /**
+   * Latest end date.
+   * Format: `date`.
+   */
+  readonly ends_before?: string | null;
+  /**
+   * Minimum posted pay. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly min_rate_minor?: number | null;
+  /**
+   * ISO 4217 currency of the minimum pay.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string | null;
 }
 
 /**
@@ -19670,7 +20923,12 @@ export interface OpportunityAlert {
    * When the alert was sent.
    * Format: `date-time`.
    */
-  readonly sent_at: string;
+  readonly delivered_at: string | null;
+  /**
+   * When the match was found.
+   * Format: `date-time`.
+   */
+  readonly matched_at: string;
 }
 
 /**
@@ -19707,20 +20965,35 @@ export interface ListingReport {
    */
   readonly updated_at: string;
   /**
-   * URN of the reported listing or profile.
-   * Length: 1 to 300.
+   * Ground for the report.
    */
-  readonly subject_urn: string;
+  readonly reason:
+    | "Illegal Content"
+    | "Discrimination"
+    | "Fraud"
+    | "Misleading Information"
+    | "Missing Pay Range"
+    | "Safety";
   /**
-   * Why it is reported.
+   * Identifier of the reported opportunity.
+   * Format: `uuid`.
+   */
+  readonly opportunity_id: string;
+  /**
+   * Identifier of the person who reported, set from the session.
+   * Format: `uuid`.
+   */
+  readonly reporter_person_id: string;
+  /**
+   * What the reporter saw.
    * Length: 1 to 20000.
    */
-  readonly reason: string;
+  readonly details: string | null;
   /**
-   * Report state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * When the report was made, set by the database.
+   * Format: `date-time`.
    */
-  readonly report_state: string;
+  readonly reported_at: string;
 }
 
 /**
@@ -19728,15 +21001,25 @@ export interface ListingReport {
  */
 export interface ListingReportCreate {
   /**
-   * URN of the reported listing or profile.
-   * Length: 1 to 300.
+   * Ground for the report.
    */
-  readonly subject_urn: string;
+  readonly reason:
+    | "Illegal Content"
+    | "Discrimination"
+    | "Fraud"
+    | "Misleading Information"
+    | "Missing Pay Range"
+    | "Safety";
   /**
-   * Why it is reported.
+   * Identifier of the reported opportunity.
+   * Format: `uuid`.
+   */
+  readonly opportunity_id: string;
+  /**
+   * What the reporter saw.
    * Length: 1 to 20000.
    */
-  readonly reason: string;
+  readonly details?: string | null;
 }
 
 /**
@@ -19776,17 +21059,26 @@ export interface ModerationAction {
    * Identifier of the listing report.
    * Format: `uuid`.
    */
-  readonly listing_report_id: string;
+  readonly listing_report_id: string | null;
   /**
-   * Action taken. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Decision taken.
    */
-  readonly action: string;
+  readonly action: "Removed" | "Restricted" | "Restored" | "No Action";
   /**
    * Statement of reasons.
    * Length: 1 to 20000.
    */
   readonly statement_of_reasons: string;
+  /**
+   * Identifier of the opportunity decided on.
+   * Format: `uuid`.
+   */
+  readonly opportunity_id: string;
+  /**
+   * When the decision was made.
+   * Format: `date-time`.
+   */
+  readonly decided_at: string;
 }
 
 /**
@@ -19797,17 +21089,21 @@ export interface ModerationActionCreate {
    * Identifier of the listing report.
    * Format: `uuid`.
    */
-  readonly listing_report_id: string;
+  readonly listing_report_id?: string | null;
   /**
-   * Action taken. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Decision taken.
    */
-  readonly action: string;
+  readonly action: "Removed" | "Restricted" | "Restored" | "No Action";
   /**
    * Statement of reasons.
    * Length: 1 to 20000.
    */
   readonly statement_of_reasons: string;
+  /**
+   * Identifier of the opportunity decided on.
+   * Format: `uuid`.
+   */
+  readonly opportunity_id: string;
 }
 
 /**
@@ -19849,28 +21145,40 @@ export interface ProfileShare {
    */
   readonly person_id: string | null;
   /**
-   * Identifier of the receiving organization.
+   * Identifier of the external account sharing its company profile; null when a person shares their own.
    * Format: `uuid`.
    */
-  readonly organization_id: string;
+  readonly organization_id: string | null;
   /**
-   * Profile field keys shared with the org.
+   * Each shared field with the value at the time of sharing.
    */
-  readonly shared_fields: ReadonlyArray<string>;
-  /**
-   * Whether live updates flow while the engagement is active.
-   */
-  readonly live_updates: boolean;
+  readonly shared_fields: ReadonlyArray<{
+    /**
+     * Profile field key.
+     * Pattern: `^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$`.
+     */
+    readonly field_key: string;
+    /**
+     * Value shared; null when shared empty.
+     * Length: 1 to 4000.
+     */
+    readonly field_value: string | null;
+  }>;
   /**
    * When the snapshot was taken.
    * Format: `date-time`.
    */
-  readonly snapshot_at: string;
+  readonly shared_at: string;
   /**
    * When consent was revoked.
    * Format: `date-time`.
    */
   readonly revoked_at: string | null;
+  /**
+   * Identifier of the engagement the share serves; live updates flow only while it is open.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
 }
 
 /**
@@ -19878,23 +21186,30 @@ export interface ProfileShare {
  */
 export interface ProfileShareCreate {
   /**
-   * Identifier of the sharing person.
+   * Identifier of the external account sharing its company profile; null when a person shares their own.
    * Format: `uuid`.
    */
-  readonly person_id?: string | null;
+  readonly organization_id?: string | null;
   /**
-   * Identifier of the receiving organization.
+   * Each shared field with the value at the time of sharing.
+   */
+  readonly shared_fields: ReadonlyArray<{
+    /**
+     * Profile field key.
+     * Pattern: `^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$`.
+     */
+    readonly field_key: string;
+    /**
+     * Value shared; null when shared empty.
+     * Length: 1 to 4000.
+     */
+    readonly field_value: string | null;
+  }>;
+  /**
+   * Identifier of the engagement the share serves; live updates flow only while it is open.
    * Format: `uuid`.
    */
-  readonly organization_id: string;
-  /**
-   * Profile field keys shared with the org.
-   */
-  readonly shared_fields: ReadonlyArray<string>;
-  /**
-   * Whether live updates flow while the engagement is active.
-   */
-  readonly live_updates: boolean;
+  readonly engagement_id?: string | null;
 }
 
 /**
@@ -19940,6 +21255,10 @@ export interface AvailabilityCalendar {
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone: string;
+  /**
+   * Who reads the calendar.
+   */
+  readonly visibility: "Private" | "Shared on Application" | "Public";
 }
 
 /**
@@ -19956,6 +21275,10 @@ export interface AvailabilityCalendarCreate {
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone: string;
+  /**
+   * Who reads the calendar.
+   */
+  readonly visibility?: "Private" | "Shared on Application" | "Public";
 }
 
 /**
@@ -19967,6 +21290,10 @@ export interface AvailabilityCalendarUpdate {
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone?: string;
+  /**
+   * Who reads the calendar.
+   */
+  readonly visibility?: "Private" | "Shared on Application" | "Public";
 }
 
 /**
@@ -20018,9 +21345,14 @@ export interface AvailabilityBlock {
    */
   readonly ends_at: string;
   /**
-   * Whether the person is available.
+   * Kind of block.
    */
-  readonly available: boolean;
+  readonly availability_kind: "Available" | "Unavailable" | "Tentative";
+  /**
+   * Private note of the owner.
+   * Length: 1 to 2000.
+   */
+  readonly note: string | null;
 }
 
 /**
@@ -20043,9 +21375,14 @@ export interface AvailabilityBlockCreate {
    */
   readonly ends_at: string;
   /**
-   * Whether the person is available.
+   * Kind of block.
    */
-  readonly available: boolean;
+  readonly availability_kind: "Available" | "Unavailable" | "Tentative";
+  /**
+   * Private note of the owner.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
 }
 
 /**
@@ -20063,9 +21400,14 @@ export interface AvailabilityBlockUpdate {
    */
   readonly ends_at?: string;
   /**
-   * Whether the person is available.
+   * Kind of block.
    */
-  readonly available?: boolean;
+  readonly availability_kind?: "Available" | "Unavailable" | "Tentative";
+  /**
+   * Private note of the owner.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
 }
 
 /**
@@ -20102,20 +21444,20 @@ export interface EngagementThread {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the engagement.
    * Format: `uuid`.
@@ -20189,20 +21531,20 @@ export interface EngagementMessage {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the thread.
    * Format: `uuid`.
@@ -20217,7 +21559,7 @@ export interface EngagementMessage {
    * Identifier of the sender.
    * Format: `uuid`.
    */
-  readonly sent_by: string;
+  readonly author_person_id: string | null;
   /**
    * When it was sent.
    * Format: `date-time`.
@@ -20275,40 +21617,48 @@ export interface TaxForm {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id: string;
-  /**
-   * Form type.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly form_type: string;
-  readonly tax_identifier: string | Masked;
+  readonly updated_by: string | null;
   /**
    * Last four digits of the tax identifier.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly tax_identifier_last4: string;
+  readonly tin_last4: string;
   /**
    * Foreign performer withholding flag.
    */
   readonly foreign_performer_withholding: boolean;
+  /**
+   * Identifier of the payee person, set from the session.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Identifier of the payee external account.
+   * Format: `uuid`.
+   */
+  readonly organization_id: string | null;
+  /**
+   * Tax form.
+   */
+  readonly form_kind: "W-9" | "W-8BEN" | "W-8BEN-E";
+  /**
+   * When the payee signed the form, set by the database.
+   * Format: `date-time`.
+   */
+  readonly signed_at: string;
 }
 
 /**
@@ -20316,24 +21666,23 @@ export interface TaxForm {
  */
 export interface TaxFormCreate {
   /**
-   * Identifier of the engagement.
-   * Format: `uuid`.
-   */
-  readonly engagement_id: string;
-  /**
-   * Form type.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly form_type: string;
-  /**
-   * Tax identifier, write-only after entry.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly tax_identifier: string;
-  /**
    * Foreign performer withholding flag.
    */
-  readonly foreign_performer_withholding: boolean;
+  readonly foreign_performer_withholding?: boolean;
+  /**
+   * Identifier of the payee external account.
+   * Format: `uuid`.
+   */
+  readonly organization_id?: string | null;
+  /**
+   * Tax form.
+   */
+  readonly form_kind: "W-9" | "W-8BEN" | "W-8BEN-E";
+  /**
+   * Tax identifier. Write-only: it is encrypted and never returned.
+   * Length: 4 to 64.
+   */
+  readonly tax_identifier: string;
 }
 
 /**
@@ -20370,20 +21719,20 @@ export interface PayoutAccount {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the payee person.
    * Format: `uuid`.
@@ -20396,19 +21745,18 @@ export interface PayoutAccount {
   readonly organization_id: string | null;
   /**
    * Payment provider.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly provider: string;
+  readonly provider: "Stripe Connect" | "Accounting System";
   /**
    * Provider account reference.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly provider_account_ref: string;
+  readonly provider_account_reference: string;
   /**
    * Last four digits of the account.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly account_last4: string;
+  readonly account_last4: string | null;
 }
 
 /**
@@ -20427,14 +21775,13 @@ export interface PayoutAccountCreate {
   readonly organization_id?: string | null;
   /**
    * Payment provider.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly provider: string;
+  readonly provider: "Stripe Connect" | "Accounting System";
   /**
    * Provider account reference.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly provider_account_ref: string;
+  readonly provider_account_reference: string;
 }
 
 /**
@@ -20471,20 +21818,20 @@ export interface BackgroundCheck {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the engagement.
    * Format: `uuid`.
@@ -20501,15 +21848,14 @@ export interface BackgroundCheck {
    */
   readonly provider_reference: string;
   /**
-   * Provider result. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly provider_result: string | null;
-  /**
    * When the provider completed it.
    * Format: `date-time`.
    */
   readonly completed_at: string | null;
+  /**
+   * Result as the provider reports it.
+   */
+  readonly result: "Pending" | "Clear" | "Consider" | "Suspended" | "Canceled";
 }
 
 /**
@@ -20525,7 +21871,7 @@ export interface BackgroundCheckCreate {
    * Background check provider.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly provider: string;
+  readonly provider?: string;
   /**
    * Provider reference.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -20568,6 +21914,11 @@ export interface CanonDepartment {
    */
   readonly note: string | null;
 }
+
+/**
+ * Department class code from `xpms.dim_department` (Section 3.2).
+ */
+export type DeptCode = string;
 
 /**
  * One page of results with a cursor to the next page.
@@ -20661,12 +22012,7 @@ export interface CanonAct {
    * Range: 1 to unbounded.
    */
   readonly ordinal: number;
-  readonly act: ActCode;
-  /**
-   * Gate range the act groups.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly gates: string;
+  readonly act_code: ActCode;
   /**
    * Definition, in sentence case.
    * Length: 1 to 20000.
@@ -20708,7 +22054,7 @@ export interface CanonPhase {
    * Length: 1 to 200.
    */
   readonly phase: string;
-  readonly act: ActCode;
+  readonly act_code: ActCode;
   /**
    * Definition, in sentence case.
    * Length: 1 to 20000.
@@ -20719,6 +22065,10 @@ export interface CanonPhase {
    * Length: 1 to 20000.
    */
   readonly gate_exit: string;
+  /**
+   * True when 4.0 kept the code but redefined the phase (Advance).
+   */
+  readonly is_redefined: boolean;
 }
 
 /**
@@ -20753,7 +22103,7 @@ export interface CanonGateCriterion {
   /**
    * Whether the criterion blocks the gate.
    */
-  readonly blocking: boolean;
+  readonly is_blocking: boolean;
 }
 
 /**
@@ -20806,7 +22156,22 @@ export interface CanonTeam {
    * Length: 1 to 200.
    */
   readonly team: string;
-  readonly rolls_to_dept_code: DeptCode;
+  readonly dept_code: DeptCode;
+  /**
+   * Workgroup tag.
+   * Length: 1 to 300.
+   */
+  readonly workgroup_tag: string | null;
+  /**
+   * Lead role of the team.
+   * Length: 1 to 300.
+   */
+  readonly lead_role: string | null;
+  /**
+   * What the team is responsible for.
+   * Length: 1 to 4000.
+   */
+  readonly responsibilities: string | null;
 }
 
 /**
@@ -20844,6 +22209,11 @@ export interface CanonTag {
    */
   readonly tag: string;
 }
+
+/**
+ * Sustainability or compliance tag from `xpms.dim_tag`.
+ */
+export type TagId = string;
 
 /**
  * One page of results with a cursor to the next page.
@@ -20945,17 +22315,12 @@ export interface CanonJurisdiction {
    * Unit system.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly unit_system: string;
+  readonly unit_system: string | null;
   /**
    * Default currency of the jurisdiction.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
-  /**
-   * Primary code sets in force.
-   * Length: 1 to 300.
-   */
-  readonly primary_code_sets: string;
+  readonly currency: string | null;
   /**
    * Population status of the jurisdiction's rules.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -20997,15 +22362,7 @@ export interface CanonRegion {
    * Currency of the region.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
-  /**
-   * Ratified cost multiplier; null when unratified.
-   */
-  readonly cost_multiplier: number | null;
-  /**
-   * Whether the region is the basis region.
-   */
-  readonly basis: boolean;
+  readonly currency_code: string;
   /**
    * Note from the Bible.
    * Length: 1 to 20000.
@@ -21035,11 +22392,11 @@ export interface CanonRegionMultiplier {
   /**
    * Cost multiplier.
    */
-  readonly multiplier: number;
+  readonly cost_multiplier: number;
   /**
-   * Whether the multiplier is ratified.
+   * True for the basis region the price bands were sourced in.
    */
-  readonly ratified: boolean;
+  readonly is_basis: boolean;
 }
 
 /**
@@ -21110,7 +22467,7 @@ export interface CanonStalenessPolicy {
    * Detail of the action.
    * Length: 1 to 20000.
    */
-  readonly detail: string;
+  readonly detail: string | null;
 }
 
 /**
@@ -21206,27 +22563,32 @@ export interface CanonMetric {
   /**
    * Metric value.
    */
-  readonly value: number;
+  readonly value_numeric: number | null;
   /**
-   * Qualifier of the value.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Qualifier of the value: the code section or modelling note it follows.
+   * Length: 1 to 1000.
    */
   readonly qualifier: string | null;
   /**
    * Source of the value.
    * Length: 1 to 300.
    */
-  readonly source: string;
+  readonly source: string | null;
   /**
    * Whether the value comes from a code.
    */
-  readonly code_derived: boolean;
+  readonly is_code_derived: boolean;
   readonly jurisdiction_id: JurisdictionId;
   /**
    * Whether the value holds in every jurisdiction.
    */
-  readonly jurisdiction_neutral: boolean;
+  readonly is_jurisdiction_neutral: boolean;
   readonly provenance: Provenance;
+  /**
+   * Value as text, when canon states it in words.
+   * Length: 1 to 300.
+   */
+  readonly value_text: string | null;
 }
 
 /**
@@ -21265,7 +22627,7 @@ export interface CanonIdentifierClass {
   /**
    * Whether it may change.
    */
-  readonly mutable: boolean;
+  readonly is_mutable: boolean;
   /**
    * Rule.
    * Length: 1 to 20000.
@@ -21393,15 +22755,15 @@ export interface CanonFacet {
    * Form of the facet.
    * Length: 1 to 300.
    */
-  readonly form: string;
+  readonly form: string | null;
   /**
    * What the facet rolls up to.
    * Length: 1 to 200.
    */
   readonly rolls_up_to: string | null;
   /**
-   * Version that introduced it.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Version that introduced it, as written in canon.
+   * Length: 1 to 64.
    */
   readonly since: string | null;
   /**
@@ -21439,9 +22801,6 @@ export interface CanonAssertionRank {
    * Length: 1 to 20000.
    */
   readonly meaning: string;
-  readonly economics: AssertionLabel | null;
-  readonly compliance: AssertionLabel | null;
-  readonly capability: AssertionLabel | null;
   /**
    * Note from the Bible.
    * Length: 1 to 20000.
@@ -21507,16 +22866,10 @@ export interface CanonRecordSubtype {
   readonly record_kind: RecordKind;
   readonly record_subtype: RecordSubtype;
   /**
-   * UNSPSC segment.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * UNSPSC segment code and name.
+   * Length: 1 to 200.
    */
   readonly unspsc_segment: string | null;
-  /**
-   * Gate the subtype belongs to.
-   * Range: 1 to unbounded.
-   */
-  readonly gate: number | null;
-  readonly phase_code: PhaseCode | null;
 }
 
 /**
@@ -21571,10 +22924,10 @@ export interface CanonRole {
   readonly role: string;
   readonly dept_code: DeptCode;
   /**
-   * Staffing ratio.
-   * Length: 1 to 300.
+   * Staffing ratio from canon: how many people one role holder covers.
+   * Range: 0 to unbounded.
    */
-  readonly staffing_ratio: string | null;
+  readonly staffing_ratio: number | null;
   /**
    * Basis of the ratio.
    * Length: 1 to 300.
@@ -21715,9 +23068,11 @@ export interface CanonCategoryGlPage {
  */
 export interface CanonCategoryGl {
   readonly cat_urid: Urid;
-  readonly disc_code: DiscCode;
-  readonly dept_code: DeptCode;
-  readonly account_code: GlAccountCode;
+  /**
+   * Default cost center (dimension 1) of the category.
+   * Length: 1 to 300.
+   */
+  readonly default_cost_center: string;
 }
 
 /**
@@ -21740,10 +23095,19 @@ export interface CanonUnitAliasPage {
 export interface CanonUnitAlias {
   /**
    * Alias as written.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Length: 1 to 64.
    */
   readonly alias: string;
-  readonly unit: UnitCode;
+  /**
+   * Unit the alias maps to.
+   * Length: 1 to 64.
+   */
+  readonly unit_code: string;
+  /**
+   * Dimension of the unit, once ratified.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly dimension_code: string | null;
 }
 
 /**
@@ -21764,12 +23128,16 @@ export interface CanonUnitDimensionPage {
  * A controlled unit and the dimension it measures.
  */
 export interface CanonUnitDimension {
-  readonly unit: UnitCode;
   /**
-   * Dimension measured.
+   * Dimension code.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly dimension: string;
+  readonly dimension_code: string;
+  /**
+   * Dimension name.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   */
+  readonly name: string;
 }
 
 /**
@@ -21796,10 +23164,20 @@ export interface CanonUrnNamespace {
    */
   readonly kind: string;
   /**
-   * Table the kind resolves to.
-   * Length: 1 to 300.
+   * xpms table holding the kind.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly resolves_to: string;
+  readonly table_name: string;
+  /**
+   * Natural key column of that table.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly key_column: string;
+  /**
+   * Column holding the display label.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly label_column: string;
 }
 
 /**
@@ -21824,12 +23202,20 @@ export interface CanonLocale {
    * BCP 47 locale tag.
    * Pattern: `^[a-z]{2,3}(-[A-Z]{2})?$`.
    */
-  readonly locale: string;
+  readonly locale_code: string;
   /**
    * Locale name.
    * Length: 1 to 200.
    */
   readonly name: string;
+  /**
+   * True for the source locale, en-US.
+   */
+  readonly is_source: boolean;
+  /**
+   * Release stage.
+   */
+  readonly release_stage: "general" | "beta";
 }
 
 /**
@@ -21867,14 +23253,52 @@ export interface CanonElement {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly kind: string;
-  readonly unit_basis: UnitCode;
-  readonly grain: GrainCode;
+  /**
+   * Unit basis of the element.
+   * Length: 1 to 64.
+   */
+  readonly unit_basis: string;
   readonly xyz: Xyz;
   /**
    * Basis for the XYZ tag.
    * Length: 1 to 300.
    */
   readonly xyz_basis: string;
+  /**
+   * Experience grade of the element: Standard, Base, Elevated or Premium.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   */
+  readonly grade: string;
+  /**
+   * Description, sentence case.
+   * Length: 1 to 4000.
+   */
+  readonly description: string | null;
+  /**
+   * Specification.
+   * Length: 1 to 4000.
+   */
+  readonly specification: string | null;
+  readonly tier_code: TierCode;
+  /**
+   * Lead time in hours.
+   */
+  readonly lead_time_hours: number | null;
+  /**
+   * Crew the element needs.
+   * Length: 1 to 300.
+   */
+  readonly crew: string | null;
+  /**
+   * UNSPSC identifier; recorded, never minted.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly unspsc: string | null;
+  /**
+   * Lifecycle state from the shared vocabulary.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   */
+  readonly lifecycle_state: string;
 }
 
 /**
@@ -21914,34 +23338,36 @@ export interface CanonElementPriceBandPage {
  */
 export interface CanonElementPriceBand {
   readonly element_id: ItemId;
-  readonly grade: Grade;
-  /**
-   * Band unit price. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly unit_price_minor: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
-  /**
-   * Assertion rank of the price.
-   * Range: 0 to unbounded.
-   */
-  readonly assertion_rank: number;
-  readonly effective_confidence: AssertionLabel | null;
   /**
    * First day the band is valid.
    * Format: `date`.
    */
-  readonly valid_from: string;
+  readonly valid_from: string | null;
   /**
    * Last day the band is valid.
    * Format: `date`.
    */
   readonly valid_to: string | null;
-  readonly region_code: RegionCode;
+  /**
+   * Price grade.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly grade_code: string;
+  /**
+   * Amount per unit in the basis region. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor: number | null;
+  /**
+   * ISO 4217 currency of the amount.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string;
+  /**
+   * Economics assertion word; null means canon states none and confidence resolves as no answer.
+   * Length: 1 to 300.
+   */
+  readonly assertion_word: string | null;
 }
 
 /**
@@ -22170,12 +23596,22 @@ export interface StdEmergencyCode {
    * Code name.
    * Length: 1 to 200.
    */
-  readonly name: string;
+  readonly label: string;
   /**
    * Response procedure.
    * Length: 1 to 20000.
    */
-  readonly response: string;
+  readonly emergency: string;
+  /**
+   * Design token of the swatch.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly swatch: string;
+  /**
+   * Order of first appearance in the Playbook.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order: number;
 }
 
 /**
@@ -22552,17 +23988,17 @@ export interface CanonVersion {
    * Canon version.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly version: string;
+  readonly version_code: string;
   /**
    * Canon generation, incremented by every canon data migration.
    * Range: 1 to unbounded.
    */
   readonly generation: number;
   /**
-   * When the generation was imported.
-   * Format: `date-time`.
+   * Generation time stated in the Bible _generated tab: a wall-clock time without a zone.
+   * Length: 1 to 300.
    */
-  readonly imported_at: string;
+  readonly bible_generated_at: string;
 }
 
 /**
@@ -22703,9 +24139,29 @@ export interface PhaseCoverage {
    */
   readonly active_element_count: number;
   /**
-   * Whether the phase carries a declared gap.
+   * Gate ordinal.
+   * Range: 0 to unbounded.
    */
-  readonly declared_gap: boolean;
+  readonly gate: number | null;
+  /**
+   * Phase label.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   */
+  readonly phase: string | null;
+  /**
+   * Elements participating in the phase.
+   * Range: 0 to unbounded.
+   */
+  readonly element_count: number | null;
+  /**
+   * Distinct categories among participating elements.
+   * Range: 0 to unbounded.
+   */
+  readonly category_count: number | null;
+  /**
+   * True when at least one participating element is Active.
+   */
+  readonly has_active_element: boolean | null;
 }
 
 /**
@@ -22727,18 +24183,56 @@ export interface ElementEconomicsPage {
  */
 export interface ElementEconomics {
   readonly element_id: ItemId;
-  readonly grade: Grade;
   /**
-   * Effective unit price. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly unit_price_minor: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the amount; null when unpriced.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
-  readonly effective_confidence: AssertionLabel | null;
+  readonly currency_code: string | null;
+  /**
+   * Confidence at read time from the staleness policy: an assertion label, or NO_ANSWER.
+   * Pattern: `^[A-Z][A-Z_]*$`.
+   */
+  readonly effective_confidence: string | null;
+  /**
+   * Item name.
+   * Length: 1 to 300.
+   */
+  readonly item: string | null;
+  readonly urid: Urid | null;
+  /**
+   * Unit basis of the amount.
+   * Length: 1 to 64.
+   */
+  readonly unit_basis: string | null;
+  /**
+   * Price grade.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly grade_code: string | null;
+  /**
+   * Amount per unit. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor: number | null;
+  /**
+   * Stated economics assertion of the band.
+   * Length: 1 to 300.
+   */
+  readonly assertion_word: string | null;
+  /**
+   * Date the band was sourced.
+   * Format: `date`.
+   */
+  readonly valid_from: string | null;
+  /**
+   * Date the band stops applying.
+   * Format: `date`.
+   */
+  readonly valid_to: string | null;
+  /**
+   * True when the element has no band at this grade.
+   */
+  readonly is_unpriced: boolean | null;
 }
 
 /**
@@ -22759,17 +24253,32 @@ export interface CrosswalkCoveragePage {
  * Crosswalk coverage from GTIN to GPC brick to UNSPSC to URID.
  */
 export interface CrosswalkCoverage {
-  readonly urid: Urid;
+  readonly cat_urid: Urid | null;
   /**
    * Elements under the URID.
    * Range: 0 to unbounded.
    */
   readonly element_count: number;
   /**
+   * Category name.
+   * Length: 1 to 200.
+   */
+  readonly category: string;
+  /**
+   * Elements carrying an UNSPSC identifier.
+   * Range: 0 to unbounded.
+   */
+  readonly unspsc_element_count: number | null;
+  /**
    * Elements with at least one confirmed GTIN.
    * Range: 0 to unbounded.
    */
-  readonly gtin_mapped_count: number;
+  readonly gtin_element_count: number | null;
+  /**
+   * Confirmed GTINs bound to elements of the category.
+   * Range: 0 to unbounded.
+   */
+  readonly gtin_count: number | null;
 }
 
 /**
@@ -22862,27 +24371,7 @@ export interface Person {
    * Legal or full name.
    * Length: 1 to 300.
    */
-  readonly name: string;
-  /**
-   * Preferred name.
-   * Length: 1 to 300.
-   */
-  readonly preferred_name: string | null;
-  /**
-   * Verified primary email.
-   * Format: `email`.
-   */
-  readonly primary_email: string;
-  /**
-   * BCP 47 locale tag.
-   * Pattern: `^[a-z]{2,3}(-[A-Z]{2})?$`.
-   */
-  readonly locale: string;
-  /**
-   * Home time zone.
-   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
-   */
-  readonly time_zone: string;
+  readonly full_name: string | null;
 }
 
 /**
@@ -22893,27 +24382,7 @@ export interface PersonUpdate {
    * Legal or full name.
    * Length: 1 to 300.
    */
-  readonly name?: string;
-  /**
-   * Preferred name.
-   * Length: 1 to 300.
-   */
-  readonly preferred_name?: string | null;
-  /**
-   * Verified primary email.
-   * Format: `email`.
-   */
-  readonly primary_email?: string;
-  /**
-   * BCP 47 locale tag.
-   * Pattern: `^[a-z]{2,3}(-[A-Z]{2})?$`.
-   */
-  readonly locale?: string;
-  /**
-   * Home time zone.
-   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
-   */
-  readonly time_zone?: string;
+  readonly full_name?: string | null;
 }
 
 /**
@@ -22955,11 +24424,6 @@ export interface Organization {
    */
   readonly name: string;
   /**
-   * Legal name.
-   * Length: 1 to 300.
-   */
-  readonly legal_name: string | null;
-  /**
    * URL slug.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
@@ -22970,19 +24434,10 @@ export interface Organization {
    */
   readonly parent_org_id: string | null;
   /**
-   * Whether the organization holds a subscription and uses Atlas.
+   * Legal form from `xpms.organization_type` (decision D17): For-Profit, Nonprofit or Public Agency. It decides which worker classifications engagements may use.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
-  readonly is_tenant: boolean;
-  /**
-   * Base currency.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly base_currency: string;
-  /**
-   * ISO 3166-1 alpha-2 country code.
-   * Pattern: `^[A-Z]{2}$`.
-   */
-  readonly country: string;
+  readonly organization_type: string;
 }
 
 /**
@@ -22995,11 +24450,6 @@ export interface OrganizationUpdate {
    */
   readonly name?: string;
   /**
-   * Legal name.
-   * Length: 1 to 300.
-   */
-  readonly legal_name?: string | null;
-  /**
    * URL slug.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
@@ -23010,15 +24460,10 @@ export interface OrganizationUpdate {
    */
   readonly parent_org_id?: string | null;
   /**
-   * Base currency.
-   * Pattern: `^[A-Z]{3}$`.
+   * Legal form from `xpms.organization_type` (decision D17): For-Profit, Nonprofit or Public Agency. It decides which worker classifications engagements may use.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
-  readonly base_currency?: string;
-  /**
-   * ISO 3166-1 alpha-2 country code.
-   * Pattern: `^[A-Z]{2}$`.
-   */
-  readonly country?: string;
+  readonly organization_type?: string;
 }
 
 /**
@@ -23118,20 +24563,20 @@ export interface Membership {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the member.
    * Format: `uuid`.
@@ -23147,11 +24592,6 @@ export interface Membership {
    * Format: `date-time`.
    */
   readonly valid_to: string | null;
-  /**
-   * Primary persona. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly persona: string | null;
 }
 
 /**
@@ -23168,11 +24608,6 @@ export interface MembershipUpdate {
    * Format: `date-time`.
    */
   readonly valid_to?: string | null;
-  /**
-   * Primary persona. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly persona?: string | null;
 }
 
 /**
@@ -23209,38 +24644,36 @@ export interface MembershipRole {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the membership.
    * Format: `uuid`.
    */
   readonly membership_id: string;
-  readonly role: OrgRole;
   /**
-   * Identifier of the custom role.
+   * Identifier of the held role: a system role or a custom role of the same org.
    * Format: `uuid`.
    */
-  readonly custom_role_id: string | null;
+  readonly role_id: string;
+  /**
+   * Identifier of the person accountable for the grant; null when the platform granted the first Owner of a new org.
+   * Format: `uuid`.
+   */
+  readonly granted_by: string | null;
 }
-
-/**
- * Platform role in band order (Section 8).
- */
-export type OrgRole =
-  "Owner" | "Admin" | "Manager" | "Member" | "Collaborator" | "Field" | "Viewer" | null;
 
 /**
  * Fields accepted when creating a MembershipRole.
@@ -23251,12 +24684,11 @@ export interface MembershipRoleCreate {
    * Format: `uuid`.
    */
   readonly membership_id: string;
-  readonly role?: OrgRole;
   /**
-   * Identifier of the custom role.
+   * Identifier of the held role: a system role or a custom role of the same org.
    * Format: `uuid`.
    */
-  readonly custom_role_id?: string | null;
+  readonly role_id: string;
 }
 
 /**
@@ -23293,40 +24725,45 @@ export interface ProjectAssignment {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
    */
   readonly project_id: string;
   /**
-   * Identifier of the person.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
-  /**
-   * First day on the project.
-   * Format: `date`.
+   * When the assignment starts.
+   * Format: `date-time`.
    */
   readonly valid_from: string;
   /**
-   * Last day on the project.
-   * Format: `date`.
+   * When the assignment ends; null while open.
+   * Format: `date-time`.
    */
   readonly valid_to: string | null;
+  /**
+   * Identifier of the org membership of the person, in the project's org.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Project role.
+   */
+  readonly project_role:
+    "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
 }
 
 /**
@@ -23339,20 +24776,25 @@ export interface ProjectAssignmentCreate {
    */
   readonly project_id: string;
   /**
-   * Identifier of the person.
-   * Format: `uuid`.
+   * When the assignment starts.
+   * Format: `date-time`.
    */
-  readonly person_id: string;
+  readonly valid_from?: string;
   /**
-   * First day on the project.
-   * Format: `date`.
-   */
-  readonly valid_from: string;
-  /**
-   * Last day on the project.
-   * Format: `date`.
+   * When the assignment ends; null while open.
+   * Format: `date-time`.
    */
   readonly valid_to?: string | null;
+  /**
+   * Identifier of the org membership of the person, in the project's org.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Project role.
+   */
+  readonly project_role:
+    "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
 }
 
 /**
@@ -23360,15 +24802,20 @@ export interface ProjectAssignmentCreate {
  */
 export interface ProjectAssignmentUpdate {
   /**
-   * First day on the project.
-   * Format: `date`.
+   * When the assignment starts.
+   * Format: `date-time`.
    */
   readonly valid_from?: string;
   /**
-   * Last day on the project.
-   * Format: `date`.
+   * When the assignment ends; null while open.
+   * Format: `date-time`.
    */
   readonly valid_to?: string | null;
+  /**
+   * Project role.
+   */
+  readonly project_role?:
+    "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
 }
 
 /**
@@ -23405,20 +24852,20 @@ export interface ProjectAssignmentRole {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project assignment.
    * Format: `uuid`.
@@ -23479,11 +24926,6 @@ export interface AccountMembership {
    */
   readonly updated_at: string;
   /**
-   * Identifier of the external account organization.
-   * Format: `uuid`.
-   */
-  readonly organization_id: string;
-  /**
    * Identifier of the member.
    * Format: `uuid`.
    */
@@ -23505,11 +24947,6 @@ export interface AccountMembership {
  */
 export interface AccountMembershipCreate {
   /**
-   * Identifier of the external account organization.
-   * Format: `uuid`.
-   */
-  readonly organization_id: string;
-  /**
    * Identifier of the member.
    * Format: `uuid`.
    */
@@ -23518,7 +24955,7 @@ export interface AccountMembershipCreate {
    * Start of account membership.
    * Format: `date-time`.
    */
-  readonly valid_from: string;
+  readonly valid_from?: string;
   /**
    * End of account membership.
    * Format: `date-time`.
@@ -23580,7 +25017,12 @@ export interface AccountMembershipRole {
    * Format: `uuid`.
    */
   readonly account_membership_id: string;
-  readonly role: AccountRole;
+  readonly account_role: AccountRole;
+  /**
+   * Identifier of the person who granted the role; null for the creator's own Account Owner role.
+   * Format: `uuid`.
+   */
+  readonly granted_by: string | null;
 }
 
 /**
@@ -23597,7 +25039,7 @@ export interface AccountMembershipRoleCreate {
    * Format: `uuid`.
    */
   readonly account_membership_id: string;
-  readonly role: AccountRole;
+  readonly account_role: AccountRole;
 }
 
 /**
@@ -23634,20 +25076,20 @@ export interface OrganizationRelationship {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the related organization.
    * Format: `uuid`.
@@ -23734,12 +25176,7 @@ export interface Representation {
    * Identifier of the representative.
    * Format: `uuid`.
    */
-  readonly representative_person_id: string;
-  /**
-   * Identifier of the agency or management company.
-   * Format: `uuid`.
-   */
-  readonly representative_organization_id: string | null;
+  readonly representative_person_id: string | null;
   /**
    * Identifier of the represented artist.
    * Format: `uuid`.
@@ -23759,6 +25196,11 @@ export interface Representation {
    * Format: `date-time`.
    */
   readonly accepted_at: string | null;
+  /**
+   * When the artist or the account revoked it.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
 }
 
 /**
@@ -23774,12 +25216,7 @@ export interface RepresentationCreate {
    * Identifier of the representative.
    * Format: `uuid`.
    */
-  readonly representative_person_id: string;
-  /**
-   * Identifier of the agency or management company.
-   * Format: `uuid`.
-   */
-  readonly representative_organization_id?: string | null;
+  readonly representative_person_id?: string | null;
   /**
    * Identifier of the represented artist.
    * Format: `uuid`.
@@ -23800,11 +25237,6 @@ export interface RepresentationCreate {
  * Fields accepted when updating a Representation. Omitted fields are unchanged.
  */
 export interface RepresentationUpdate {
-  /**
-   * Identifier of the agency or management company.
-   * Format: `uuid`.
-   */
-  readonly representative_organization_id?: string | null;
   /**
    * Delegated scopes, stored as junction rows.
    */
@@ -23850,20 +25282,20 @@ export interface JoinRequest {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the requesting person.
    * Format: `uuid`.
@@ -23936,21 +25368,21 @@ export interface InvitationLink {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  readonly role: OrgRole;
+  readonly updated_by: string | null;
+  readonly role: OrgRole | null;
   /**
    * When the link expires.
    * Format: `date-time`.
@@ -23967,6 +25399,12 @@ export interface InvitationLink {
    */
   readonly revoked_at: string | null;
 }
+
+/**
+ * Platform role in band order (Section 8).
+ */
+export type OrgRole =
+  "Owner" | "Admin" | "Manager" | "Member" | "Collaborator" | "Field" | "Viewer";
 
 /**
  * Fields accepted when creating a InvitationLink.
@@ -24019,20 +25457,20 @@ export interface Invite {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Invitee email.
    * Format: `email`.
@@ -24063,6 +25501,15 @@ export interface Invite {
    * Format: `date-time`.
    */
   readonly revoked_at: string | null;
+  /**
+   * True for the first Owner invite a partner issues when it creates a client org (Section 4.6.1).
+   */
+  readonly partner_bootstrap: boolean;
+  /**
+   * Identifier of the person who accepted.
+   * Format: `uuid`.
+   */
+  readonly accepted_person_id: string | null;
 }
 
 /**
@@ -24184,35 +25631,48 @@ export interface VerifiedDomain {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Domain.
+   * Lowercase host name, for example gateway.northwindlive.example.
+   * Length: 1 to 253.
+   */
+  readonly hostname: string;
+  /**
+   * What the domain is for.
+   */
+  readonly purpose: "Atlas" | "Gateway" | "Email Sending" | "Verified Domain";
+  /**
+   * DNS verification state; changed only by app.record_domain_verification.
+   */
+  readonly verification_state: "Pending" | "Verified" | "Failed";
+  /**
+   * Value the org publishes in a DNS TXT record to prove control.
    * Length: 1 to 300.
    */
-  readonly domain: string;
+  readonly verification_token: string;
   /**
-   * Whether verified emails join automatically.
-   */
-  readonly auto_join: boolean;
-  readonly default_role: OrgRole;
-  /**
-   * When the domain was verified.
+   * When the verification service last checked DNS.
    * Format: `date-time`.
    */
-  readonly verified_at: string | null;
+  readonly last_checked_at: string | null;
+  /**
+   * Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.
+   * Format: `uuid`.
+   */
+  readonly auto_join_role_id: string | null;
 }
 
 /**
@@ -24220,15 +25680,19 @@ export interface VerifiedDomain {
  */
 export interface VerifiedDomainCreate {
   /**
-   * Domain.
-   * Length: 1 to 300.
+   * Lowercase host name, for example gateway.northwindlive.example.
+   * Length: 1 to 253.
    */
-  readonly domain: string;
+  readonly hostname: string;
   /**
-   * Whether verified emails join automatically.
+   * What the domain is for.
    */
-  readonly auto_join: boolean;
-  readonly default_role: OrgRole;
+  readonly purpose: "Atlas" | "Gateway" | "Email Sending" | "Verified Domain";
+  /**
+   * Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.
+   * Format: `uuid`.
+   */
+  readonly auto_join_role_id?: string | null;
 }
 
 /**
@@ -24236,15 +25700,10 @@ export interface VerifiedDomainCreate {
  */
 export interface VerifiedDomainUpdate {
   /**
-   * Domain.
-   * Length: 1 to 300.
+   * Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.
+   * Format: `uuid`.
    */
-  readonly domain?: string;
-  /**
-   * Whether verified emails join automatically.
-   */
-  readonly auto_join?: boolean;
-  readonly default_role?: OrgRole;
+  readonly auto_join_role_id?: string | null;
 }
 
 /**
@@ -24281,20 +25740,20 @@ export interface OffboardingChecklist {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the ending membership.
    * Format: `uuid`.
@@ -24696,16 +26155,32 @@ export interface ProfileVisibilityRule {
    */
   readonly updated_at: string;
   /**
-   * URN of the profile owner.
-   * Length: 1 to 300.
+   * Identifier of the profile owner.
+   * Format: `uuid`.
    */
-  readonly owner_urn: string;
+  readonly person_id: string;
   /**
-   * Section or field key.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Profile section.
    */
-  readonly target: string;
-  readonly level: ProfileVisibility;
+  readonly section:
+    | "photo"
+    | "pronouns"
+    | "headline"
+    | "bio"
+    | "location"
+    | "skills"
+    | "certifications"
+    | "portfolio"
+    | "rates"
+    | "availability"
+    | "languages"
+    | "references"
+    | "links"
+    | "organizations";
+  /**
+   * Visibility chosen for the section.
+   */
+  readonly visibility: "Private" | "Network" | "Public";
 }
 
 /**
@@ -24713,16 +26188,32 @@ export interface ProfileVisibilityRule {
  */
 export interface ProfileVisibilityRuleCreate {
   /**
-   * URN of the profile owner.
-   * Length: 1 to 300.
+   * Identifier of the profile owner.
+   * Format: `uuid`.
    */
-  readonly owner_urn: string;
+  readonly person_id: string;
   /**
-   * Section or field key.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Profile section.
    */
-  readonly target: string;
-  readonly level: ProfileVisibility;
+  readonly section:
+    | "photo"
+    | "pronouns"
+    | "headline"
+    | "bio"
+    | "location"
+    | "skills"
+    | "certifications"
+    | "portfolio"
+    | "rates"
+    | "availability"
+    | "languages"
+    | "references"
+    | "links"
+    | "organizations";
+  /**
+   * Visibility chosen for the section.
+   */
+  readonly visibility: "Private" | "Network" | "Public";
 }
 
 /**
@@ -24730,16 +26221,9 @@ export interface ProfileVisibilityRuleCreate {
  */
 export interface ProfileVisibilityRuleUpdate {
   /**
-   * URN of the profile owner.
-   * Length: 1 to 300.
+   * Visibility chosen for the section.
    */
-  readonly owner_urn?: string;
-  /**
-   * Section or field key.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly target?: string;
-  readonly level?: ProfileVisibility;
+  readonly visibility?: "Private" | "Network" | "Public";
 }
 
 /**
@@ -24858,25 +26342,34 @@ export interface Verification {
    */
   readonly updated_at: string;
   /**
-   * URN of the verified profile.
-   * Length: 1 to 300.
-   */
-  readonly owner_urn: string;
-  /**
-   * What is verified. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly claim: string;
-  /**
-   * Who verified it.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly verifier: string;
-  /**
    * When it was verified.
    * Format: `date-time`.
    */
   readonly verified_at: string | null;
+  /**
+   * How the organization was verified.
+   */
+  readonly method: "Stripe Identity" | "Business Registry";
+  /**
+   * The provider's verification or registry record reference.
+   * Length: 1 to 300.
+   */
+  readonly provider_reference: string;
+  /**
+   * When the verification lapses; null when it does not.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string | null;
+  /**
+   * When the platform revoked it.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Why it was revoked.
+   * Length: 1 to 20000.
+   */
+  readonly revocation_reason: string | null;
 }
 
 /**
@@ -24884,15 +26377,19 @@ export interface Verification {
  */
 export interface VerificationCreate {
   /**
-   * URN of the verified profile.
+   * How the organization was verified.
+   */
+  readonly method: "Stripe Identity" | "Business Registry";
+  /**
+   * The provider's verification or registry record reference.
    * Length: 1 to 300.
    */
-  readonly owner_urn: string;
+  readonly provider_reference: string;
   /**
-   * What is verified. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * When the verification lapses; null when it does not.
+   * Format: `date-time`.
    */
-  readonly claim: string;
+  readonly expires_at?: string | null;
 }
 
 /**
@@ -24980,40 +26477,29 @@ export interface Subscription {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Plan code from `plans.yaml`.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly plan_code: string;
   /**
-   * Subscription lifecycle state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Subscription status as Stripe reports it; read_only after the grace period.
    */
-  readonly subscription_state: string;
-  /**
-   * End of the current billing period.
-   * Format: `date-time`.
-   */
-  readonly current_period_end: string;
-  /**
-   * Licensed seats.
-   * Range: 1 to unbounded.
-   */
-  readonly seats: number | null;
+  readonly subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
 }
 
 /**
@@ -25025,11 +26511,6 @@ export interface SubscriptionUpdate {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly plan_code?: string;
-  /**
-   * Licensed seats.
-   * Range: 1 to unbounded.
-   */
-  readonly seats?: number | null;
 }
 
 /**
@@ -25054,22 +26535,12 @@ export interface Plan {
    * Plan code.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly plan_code: string;
+  readonly code: string;
   /**
-   * Plan name.
-   * Length: 1 to 300.
+   * Plan order from the free plan upward.
+   * Range: 0 to unbounded.
    */
-  readonly name: string;
-  /**
-   * Monthly price per seat. Integer minor units of the resource currency; null means unpriced, never zero.
-   * Format: `int64`.
-   */
-  readonly monthly_price_minor: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
+  readonly sort_order: number;
 }
 
 /**
@@ -25106,20 +26577,20 @@ export interface Workspace {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Workspace name.
    * Length: 1 to 300.
@@ -25198,30 +26669,30 @@ export interface WorkspaceMember {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the workspace.
    * Format: `uuid`.
    */
   readonly workspace_id: string;
   /**
-   * Identifier of the member.
+   * Identifier of the membership assigned to the workspace, in the same org.
    * Format: `uuid`.
    */
-  readonly person_id: string;
+  readonly membership_id: string;
 }
 
 /**
@@ -25234,10 +26705,10 @@ export interface WorkspaceMemberCreate {
    */
   readonly workspace_id: string;
   /**
-   * Identifier of the member.
+   * Identifier of the membership assigned to the workspace, in the same org.
    * Format: `uuid`.
    */
-  readonly person_id: string;
+  readonly membership_id: string;
 }
 
 /**
@@ -25274,20 +26745,20 @@ export interface Team {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Team name.
    * Length: 1 to 300.
@@ -25351,30 +26822,30 @@ export interface TeamMember {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the team.
    * Format: `uuid`.
    */
   readonly team_id: string;
   /**
-   * Identifier of the member.
+   * Identifier of the member of the team, in the same org.
    * Format: `uuid`.
    */
-  readonly person_id: string;
+  readonly membership_id: string;
 }
 
 /**
@@ -25387,10 +26858,10 @@ export interface TeamMemberCreate {
    */
   readonly team_id: string;
   /**
-   * Identifier of the member.
+   * Identifier of the member of the team, in the same org.
    * Format: `uuid`.
    */
-  readonly person_id: string;
+  readonly membership_id: string;
 }
 
 /**
@@ -25427,40 +26898,83 @@ export interface OrgBranding {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Brand display name.
    * Length: 1 to 300.
    */
-  readonly display_name: string;
+  readonly display_name: string | null;
   /**
-   * Identifier of the logo file.
-   * Format: `uuid`.
+   * Logo for light themes: object path in the org-brand bucket, starting with the org id.
+   * Length: 1 to 1024.
    */
-  readonly logo_document_id: string | null;
+  readonly logo_light_path: string | null;
   /**
-   * Accent color token.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Logo for dark themes: object path in the org-brand bucket.
+   * Length: 1 to 1024.
    */
-  readonly accent_token: string;
+  readonly logo_dark_path: string | null;
   /**
-   * Custom Gateway domain.
+   * Favicon: object path in the org-brand bucket.
+   * Length: 1 to 1024.
+   */
+  readonly favicon_path: string | null;
+  /**
+   * App icon: object path in the org-brand bucket.
+   * Length: 1 to 1024.
+   */
+  readonly app_icon_path: string | null;
+  /**
+   * Accent color as uppercase #RRGGBB, replacing accent-default in every theme; null keeps the platform accent.
+   * Pattern: `^#[0-9A-F]{6}$`.
+   */
+  readonly accent_hex: string | null;
+  /**
+   * Optional neutral tint as uppercase #RRGGBB.
+   * Pattern: `^#[0-9A-F]{6}$`.
+   */
+  readonly neutral_tint_hex: string | null;
+  /**
+   * Font family from the approved list; null keeps the platform font.
    * Length: 1 to 300.
    */
-  readonly gateway_domain: string | null;
+  readonly font_family: string | null;
+  /**
+   * Corner radius scale.
+   */
+  readonly radius_scale: "Compact" | "Default" | "Rounded";
+  /**
+   * Sender name on emails sent for the org.
+   * Length: 1 to 300.
+   */
+  readonly email_sender_name: string | null;
+  /**
+   * Support address shown on branded surfaces.
+   * Format: `email`.
+   */
+  readonly support_email: string | null;
+  /**
+   * Legal entity named on generated documents and emails.
+   * Length: 1 to 300.
+   */
+  readonly legal_entity_name: string | null;
+  /**
+   * True hides Powered by XOS; it takes effect only while the plan includes white label.
+   */
+  readonly suppress_powered_by: boolean;
 }
 
 /**
@@ -25471,22 +26985,65 @@ export interface OrgBrandingCreate {
    * Brand display name.
    * Length: 1 to 300.
    */
-  readonly display_name: string;
+  readonly display_name?: string | null;
   /**
-   * Identifier of the logo file.
-   * Format: `uuid`.
+   * Logo for light themes: object path in the org-brand bucket, starting with the org id.
+   * Length: 1 to 1024.
    */
-  readonly logo_document_id?: string | null;
+  readonly logo_light_path?: string | null;
   /**
-   * Accent color token.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Logo for dark themes: object path in the org-brand bucket.
+   * Length: 1 to 1024.
    */
-  readonly accent_token: string;
+  readonly logo_dark_path?: string | null;
   /**
-   * Custom Gateway domain.
+   * Favicon: object path in the org-brand bucket.
+   * Length: 1 to 1024.
+   */
+  readonly favicon_path?: string | null;
+  /**
+   * App icon: object path in the org-brand bucket.
+   * Length: 1 to 1024.
+   */
+  readonly app_icon_path?: string | null;
+  /**
+   * Accent color as uppercase #RRGGBB, replacing accent-default in every theme; null keeps the platform accent.
+   * Pattern: `^#[0-9A-F]{6}$`.
+   */
+  readonly accent_hex?: string | null;
+  /**
+   * Optional neutral tint as uppercase #RRGGBB.
+   * Pattern: `^#[0-9A-F]{6}$`.
+   */
+  readonly neutral_tint_hex?: string | null;
+  /**
+   * Font family from the approved list; null keeps the platform font.
    * Length: 1 to 300.
    */
-  readonly gateway_domain?: string | null;
+  readonly font_family?: string | null;
+  /**
+   * Corner radius scale.
+   */
+  readonly radius_scale?: "Compact" | "Default" | "Rounded";
+  /**
+   * Sender name on emails sent for the org.
+   * Length: 1 to 300.
+   */
+  readonly email_sender_name?: string | null;
+  /**
+   * Support address shown on branded surfaces.
+   * Format: `email`.
+   */
+  readonly support_email?: string | null;
+  /**
+   * Legal entity named on generated documents and emails.
+   * Length: 1 to 300.
+   */
+  readonly legal_entity_name?: string | null;
+  /**
+   * True hides Powered by XOS; it takes effect only while the plan includes white label.
+   */
+  readonly suppress_powered_by?: boolean;
 }
 
 /**
@@ -25497,22 +27054,65 @@ export interface OrgBrandingUpdate {
    * Brand display name.
    * Length: 1 to 300.
    */
-  readonly display_name?: string;
+  readonly display_name?: string | null;
   /**
-   * Identifier of the logo file.
-   * Format: `uuid`.
+   * Logo for light themes: object path in the org-brand bucket, starting with the org id.
+   * Length: 1 to 1024.
    */
-  readonly logo_document_id?: string | null;
+  readonly logo_light_path?: string | null;
   /**
-   * Accent color token.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Logo for dark themes: object path in the org-brand bucket.
+   * Length: 1 to 1024.
    */
-  readonly accent_token?: string;
+  readonly logo_dark_path?: string | null;
   /**
-   * Custom Gateway domain.
+   * Favicon: object path in the org-brand bucket.
+   * Length: 1 to 1024.
+   */
+  readonly favicon_path?: string | null;
+  /**
+   * App icon: object path in the org-brand bucket.
+   * Length: 1 to 1024.
+   */
+  readonly app_icon_path?: string | null;
+  /**
+   * Accent color as uppercase #RRGGBB, replacing accent-default in every theme; null keeps the platform accent.
+   * Pattern: `^#[0-9A-F]{6}$`.
+   */
+  readonly accent_hex?: string | null;
+  /**
+   * Optional neutral tint as uppercase #RRGGBB.
+   * Pattern: `^#[0-9A-F]{6}$`.
+   */
+  readonly neutral_tint_hex?: string | null;
+  /**
+   * Font family from the approved list; null keeps the platform font.
    * Length: 1 to 300.
    */
-  readonly gateway_domain?: string | null;
+  readonly font_family?: string | null;
+  /**
+   * Corner radius scale.
+   */
+  readonly radius_scale?: "Compact" | "Default" | "Rounded";
+  /**
+   * Sender name on emails sent for the org.
+   * Length: 1 to 300.
+   */
+  readonly email_sender_name?: string | null;
+  /**
+   * Support address shown on branded surfaces.
+   * Format: `email`.
+   */
+  readonly support_email?: string | null;
+  /**
+   * Legal entity named on generated documents and emails.
+   * Length: 1 to 300.
+   */
+  readonly legal_entity_name?: string | null;
+  /**
+   * True hides Powered by XOS; it takes effect only while the plan includes white label.
+   */
+  readonly suppress_powered_by?: boolean;
 }
 
 /**
@@ -25549,20 +27149,20 @@ export interface OrgLegalEntity {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Legal name.
    * Length: 1 to 300.
@@ -25682,20 +27282,20 @@ export interface OrgIpAllowlistEntry {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * CIDR block.
    * Length: 1 to 300.
@@ -25767,38 +27367,47 @@ export interface Role {
    * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
    * Format: `uuid`.
    */
-  readonly org_id: string;
+  readonly org_id: string | null;
   /**
    * When the row was created.
    * Format: `date-time`.
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Role name.
    * Length: 1 to 300.
    */
-  readonly name: string;
-  readonly base_role: OrgRole;
+  readonly name: string | null;
   /**
    * What the role is for.
    * Length: 1 to 20000.
    */
   readonly description: string | null;
+  /**
+   * Role code. System role labels come from the i18n catalogs keyed by it; custom role codes never reuse a system code.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly code: string;
+  /**
+   * Band in Section 8 order, 1 Owner to 7 Viewer. Custom roles take 2 to 7, and a person assigns only roles at or below their own band.
+   * Range: 1 to unbounded.
+   */
+  readonly band: number;
 }
 
 /**
@@ -25809,13 +27418,22 @@ export interface RoleCreate {
    * Role name.
    * Length: 1 to 300.
    */
-  readonly name: string;
-  readonly base_role?: OrgRole;
+  readonly name?: string | null;
   /**
    * What the role is for.
    * Length: 1 to 20000.
    */
   readonly description?: string | null;
+  /**
+   * Role code. System role labels come from the i18n catalogs keyed by it; custom role codes never reuse a system code.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly code: string;
+  /**
+   * Band in Section 8 order, 1 Owner to 7 Viewer. Custom roles take 2 to 7, and a person assigns only roles at or below their own band.
+   * Range: 1 to unbounded.
+   */
+  readonly band: number;
 }
 
 /**
@@ -25826,13 +27444,17 @@ export interface RoleUpdate {
    * Role name.
    * Length: 1 to 300.
    */
-  readonly name?: string;
-  readonly base_role?: OrgRole;
+  readonly name?: string | null;
   /**
    * What the role is for.
    * Length: 1 to 20000.
    */
   readonly description?: string | null;
+  /**
+   * Band in Section 8 order, 1 Owner to 7 Viewer. Custom roles take 2 to 7, and a person assigns only roles at or below their own band.
+   * Range: 1 to unbounded.
+   */
+  readonly band?: number;
 }
 
 /**
@@ -25857,19 +27479,27 @@ export interface Capability {
    * Capability verb.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly capability: string;
+  readonly code: string;
   /**
    * Capability group; OAuth scopes map one to one to groups.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly group: string;
-  readonly classification: Classification;
+  readonly module_code: string;
+  /**
+   * Kind of act the capability authorizes.
+   */
+  readonly capability_class: "read" | "write" | "approve" | "manage" | "export";
+  /**
+   * What the capability allows, for documentation and the roles page.
+   * Length: 1 to 2000.
+   */
+  readonly description: string;
+  /**
+   * Registry order, the default sort.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order: number;
 }
-
-/**
- * Column classification (Section 8.3).
- */
-export type Classification = "Public" | "Internal" | "Confidential" | "Restricted" | null;
 
 /**
  * One page of results with a cursor to the next page.
@@ -25898,27 +27528,27 @@ export interface RoleCapability {
    * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
    * Format: `uuid`.
    */
-  readonly org_id: string;
+  readonly org_id: string | null;
   /**
    * When the row was created.
    * Format: `date-time`.
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the role.
    * Format: `uuid`.
@@ -25928,7 +27558,11 @@ export interface RoleCapability {
    * Capability verb.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly capability: string;
+  readonly capability_code: string;
+  /**
+   * Own rows, assigned scopes or the whole org.
+   */
+  readonly reach: "own" | "assigned" | "organization";
 }
 
 /**
@@ -25944,7 +27578,11 @@ export interface RoleCapabilityCreate {
    * Capability verb.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly capability: string;
+  readonly capability_code: string;
+  /**
+   * Own rows, assigned scopes or the whole org.
+   */
+  readonly reach: "own" | "assigned" | "organization";
 }
 
 /**
@@ -25981,30 +27619,25 @@ export interface UserCapabilityGrant {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the grantee.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
+  readonly updated_by: string | null;
   /**
    * Capability verb.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly capability: string;
+  readonly capability_code: string;
   /**
    * Start of the grant.
    * Format: `date-time`.
@@ -26015,6 +27648,30 @@ export interface UserCapabilityGrant {
    * Format: `date-time`.
    */
   readonly valid_to: string | null;
+  /**
+   * Identifier of the membership that receives the capability.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Kind of scope the grant is limited to; null for an org-wide grant.
+   */
+  readonly scope_kind: "organization" | "workspace" | "team" | "project" | "record" | null;
+  /**
+   * Identifier of the workspace, team, project or record the grant is limited to; null for an org-wide grant.
+   * Format: `uuid`.
+   */
+  readonly scope_id: string | null;
+  /**
+   * Identifier of the person who granted it; never the grantee.
+   * Format: `uuid`.
+   */
+  readonly granted_by: string | null;
+  /**
+   * Why the grant was made.
+   * Length: 1 to 2000.
+   */
+  readonly reason: string;
 }
 
 /**
@@ -26022,25 +27679,39 @@ export interface UserCapabilityGrant {
  */
 export interface UserCapabilityGrantCreate {
   /**
-   * Identifier of the grantee.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
-  /**
    * Capability verb.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly capability: string;
+  readonly capability_code: string;
   /**
    * Start of the grant.
    * Format: `date-time`.
    */
-  readonly valid_from: string;
+  readonly valid_from?: string;
   /**
    * End of the grant.
    * Format: `date-time`.
    */
   readonly valid_to?: string | null;
+  /**
+   * Identifier of the membership that receives the capability.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Kind of scope the grant is limited to; null for an org-wide grant.
+   */
+  readonly scope_kind?: "organization" | "workspace" | "team" | "project" | "record" | null;
+  /**
+   * Identifier of the workspace, team, project or record the grant is limited to; null for an org-wide grant.
+   * Format: `uuid`.
+   */
+  readonly scope_id?: string | null;
+  /**
+   * Why the grant was made.
+   * Length: 1 to 2000.
+   */
+  readonly reason: string;
 }
 
 /**
@@ -26057,6 +27728,20 @@ export interface UserCapabilityGrantUpdate {
    * Format: `date-time`.
    */
   readonly valid_to?: string | null;
+  /**
+   * Kind of scope the grant is limited to; null for an org-wide grant.
+   */
+  readonly scope_kind?: "organization" | "workspace" | "team" | "project" | "record" | null;
+  /**
+   * Identifier of the workspace, team, project or record the grant is limited to; null for an org-wide grant.
+   * Format: `uuid`.
+   */
+  readonly scope_id?: string | null;
+  /**
+   * Why the grant was made.
+   * Length: 1 to 2000.
+   */
+  readonly reason?: string;
 }
 
 /**
@@ -26093,40 +27778,64 @@ export interface RecordGrant {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * URN of the grantee.
-   * Length: 1 to 300.
-   */
-  readonly grantee_urn: string;
-  /**
-   * URN of the record.
-   * Length: 1 to 300.
-   */
-  readonly subject_urn: string;
+  readonly updated_by: string | null;
   /**
    * Capability verb.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly capability: string;
+  readonly capability_code: string;
   /**
    * End of the grant.
    * Format: `date-time`.
    */
   readonly valid_to: string | null;
+  /**
+   * Kind of target.
+   */
+  readonly target_kind: "organization" | "workspace" | "team" | "project" | "record";
+  /**
+   * Identifier of the target row.
+   * Format: `uuid`.
+   */
+  readonly target_id: string;
+  /**
+   * Identifier of the person who receives access; null when an organization does.
+   * Format: `uuid`.
+   */
+  readonly grantee_person_id: string | null;
+  /**
+   * Identifier of the organization whose active members receive access; null when a person does.
+   * Format: `uuid`.
+   */
+  readonly grantee_org_id: string | null;
+  /**
+   * When access starts.
+   * Format: `date-time`.
+   */
+  readonly valid_from: string;
+  /**
+   * Identifier of the person who granted it; never the grantee.
+   * Format: `uuid`.
+   */
+  readonly granted_by: string | null;
+  /**
+   * Why the grant was made, for example the partner agreement clause.
+   * Length: 1 to 2000.
+   */
+  readonly reason: string;
 }
 
 /**
@@ -26134,25 +27843,44 @@ export interface RecordGrant {
  */
 export interface RecordGrantCreate {
   /**
-   * URN of the grantee.
-   * Length: 1 to 300.
-   */
-  readonly grantee_urn: string;
-  /**
-   * URN of the record.
-   * Length: 1 to 300.
-   */
-  readonly subject_urn: string;
-  /**
    * Capability verb.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly capability: string;
+  readonly capability_code: string;
   /**
    * End of the grant.
    * Format: `date-time`.
    */
-  readonly valid_to?: string | null;
+  readonly valid_to: string | null;
+  /**
+   * Kind of target.
+   */
+  readonly target_kind: "organization" | "workspace" | "team" | "project" | "record";
+  /**
+   * Identifier of the target row.
+   * Format: `uuid`.
+   */
+  readonly target_id: string;
+  /**
+   * Identifier of the person who receives access; null when an organization does.
+   * Format: `uuid`.
+   */
+  readonly grantee_person_id?: string | null;
+  /**
+   * Identifier of the organization whose active members receive access; null when a person does.
+   * Format: `uuid`.
+   */
+  readonly grantee_org_id?: string | null;
+  /**
+   * When access starts.
+   * Format: `date-time`.
+   */
+  readonly valid_from?: string;
+  /**
+   * Why the grant was made, for example the partner agreement clause.
+   * Length: 1 to 2000.
+   */
+  readonly reason: string;
 }
 
 /**
@@ -26160,25 +27888,35 @@ export interface RecordGrantCreate {
  */
 export interface RecordGrantUpdate {
   /**
-   * URN of the grantee.
-   * Length: 1 to 300.
-   */
-  readonly grantee_urn?: string;
-  /**
-   * URN of the record.
-   * Length: 1 to 300.
-   */
-  readonly subject_urn?: string;
-  /**
    * Capability verb.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly capability?: string;
+  readonly capability_code?: string;
   /**
    * End of the grant.
    * Format: `date-time`.
    */
   readonly valid_to?: string | null;
+  /**
+   * Identifier of the person who receives access; null when an organization does.
+   * Format: `uuid`.
+   */
+  readonly grantee_person_id?: string | null;
+  /**
+   * Identifier of the organization whose active members receive access; null when a person does.
+   * Format: `uuid`.
+   */
+  readonly grantee_org_id?: string | null;
+  /**
+   * When access starts.
+   * Format: `date-time`.
+   */
+  readonly valid_from?: string;
+  /**
+   * Why the grant was made, for example the partner agreement clause.
+   * Length: 1 to 2000.
+   */
+  readonly reason?: string;
 }
 
 /**
@@ -26215,30 +27953,20 @@ export interface Delegation {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the delegating person.
-   * Format: `uuid`.
-   */
-  readonly from_person_id: string;
-  /**
-   * Identifier of the delegate.
-   * Format: `uuid`.
-   */
-  readonly to_person_id: string;
+  readonly updated_by: string | null;
   /**
    * Start.
    * Format: `date-time`.
@@ -26249,6 +27977,26 @@ export interface Delegation {
    * Format: `date-time`.
    */
   readonly valid_to: string;
+  /**
+   * Identifier of the member who delegates.
+   * Format: `uuid`.
+   */
+  readonly delegator_membership_id: string;
+  /**
+   * Identifier of the member who acts for the delegator; never the delegator.
+   * Format: `uuid`.
+   */
+  readonly delegate_membership_id: string;
+  /**
+   * Delegated capability; null delegates every approve-class capability the delegator holds.
+   * Pattern: `^[a-z][a-z_]*(\.[a-z][a-z_]*)+$`.
+   */
+  readonly capability_code: string | null;
+  /**
+   * Why the delegation exists.
+   * Length: 1 to 2000.
+   */
+  readonly reason: string;
 }
 
 /**
@@ -26256,16 +28004,6 @@ export interface Delegation {
  */
 export interface DelegationCreate {
   /**
-   * Identifier of the delegating person.
-   * Format: `uuid`.
-   */
-  readonly from_person_id: string;
-  /**
-   * Identifier of the delegate.
-   * Format: `uuid`.
-   */
-  readonly to_person_id: string;
-  /**
    * Start.
    * Format: `date-time`.
    */
@@ -26275,22 +28013,32 @@ export interface DelegationCreate {
    * Format: `date-time`.
    */
   readonly valid_to: string;
+  /**
+   * Identifier of the member who delegates.
+   * Format: `uuid`.
+   */
+  readonly delegator_membership_id: string;
+  /**
+   * Identifier of the member who acts for the delegator; never the delegator.
+   * Format: `uuid`.
+   */
+  readonly delegate_membership_id: string;
+  /**
+   * Delegated capability; null delegates every approve-class capability the delegator holds.
+   * Pattern: `^[a-z][a-z_]*(\.[a-z][a-z_]*)+$`.
+   */
+  readonly capability_code?: string | null;
+  /**
+   * Why the delegation exists.
+   * Length: 1 to 2000.
+   */
+  readonly reason: string;
 }
 
 /**
  * Fields accepted when updating a Delegation. Omitted fields are unchanged.
  */
 export interface DelegationUpdate {
-  /**
-   * Identifier of the delegating person.
-   * Format: `uuid`.
-   */
-  readonly from_person_id?: string;
-  /**
-   * Identifier of the delegate.
-   * Format: `uuid`.
-   */
-  readonly to_person_id?: string;
   /**
    * Start.
    * Format: `date-time`.
@@ -26301,6 +28049,16 @@ export interface DelegationUpdate {
    * Format: `date-time`.
    */
   readonly valid_to?: string;
+  /**
+   * Delegated capability; null delegates every approve-class capability the delegator holds.
+   * Pattern: `^[a-z][a-z_]*(\.[a-z][a-z_]*)+$`.
+   */
+  readonly capability_code?: string | null;
+  /**
+   * Why the delegation exists.
+   * Length: 1 to 2000.
+   */
+  readonly reason?: string;
 }
 
 /**
@@ -26337,31 +28095,36 @@ export interface SpendAuthority {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the role.
    * Format: `uuid`.
    */
   readonly role_id: string | null;
   /**
-   * Identifier of the person.
-   * Format: `uuid`.
+   * Document type the limit applies to.
    */
-  readonly person_id: string | null;
-  readonly document_type: SpendDocumentType;
+  readonly document_type:
+    | "Purchase Order"
+    | "Change Order"
+    | "Expense"
+    | "Invoice Approval"
+    | "Contract"
+    | "Payroll Run"
+    | "Requisition";
   /**
    * Single-approver limit in the org currency. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
@@ -26376,14 +28139,33 @@ export interface SpendAuthority {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * Identifier of the membership of the one person the limit applies to; null when it applies to a role.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string | null;
+  /**
+   * GL account the limit is scoped to; null for every account.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly account_code: string | null;
+  /**
+   * Identifier of the cost center the limit is scoped to; null for every cost center.
+   * Format: `uuid`.
+   */
+  readonly cost_center_id: string | null;
+  /**
+   * When the limit starts.
+   * Format: `date-time`.
+   */
+  readonly valid_from: string;
+  /**
+   * When the limit ends; null while open-ended.
+   * Format: `date-time`.
+   */
+  readonly valid_to: string | null;
 }
-
-/**
- * Document type a spend limit applies to.
- */
-export type SpendDocumentType =
-  "Purchase Order" | "Change Order" | "Expense" | "Invoice Approval" | "Contract" | "Payroll Run";
 
 /**
  * Fields accepted when creating a SpendAuthority.
@@ -26395,16 +28177,21 @@ export interface SpendAuthorityCreate {
    */
   readonly role_id?: string | null;
   /**
-   * Identifier of the person.
-   * Format: `uuid`.
+   * Document type the limit applies to.
    */
-  readonly person_id?: string | null;
-  readonly document_type: SpendDocumentType;
+  readonly document_type:
+    | "Purchase Order"
+    | "Change Order"
+    | "Expense"
+    | "Invoice Approval"
+    | "Contract"
+    | "Payroll Run"
+    | "Requisition";
   /**
    * Single-approver limit in the org currency. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly limit_minor?: number | null;
+  readonly limit_minor: number | null;
   /**
    * Amount above which two approvers are required. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
@@ -26414,7 +28201,32 @@ export interface SpendAuthorityCreate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
+  /**
+   * Identifier of the membership of the one person the limit applies to; null when it applies to a role.
+   * Format: `uuid`.
+   */
+  readonly membership_id?: string | null;
+  /**
+   * GL account the limit is scoped to; null for every account.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly account_code?: string | null;
+  /**
+   * Identifier of the cost center the limit is scoped to; null for every cost center.
+   * Format: `uuid`.
+   */
+  readonly cost_center_id?: string | null;
+  /**
+   * When the limit starts.
+   * Format: `date-time`.
+   */
+  readonly valid_from?: string;
+  /**
+   * When the limit ends; null while open-ended.
+   * Format: `date-time`.
+   */
+  readonly valid_to?: string | null;
 }
 
 /**
@@ -26427,11 +28239,16 @@ export interface SpendAuthorityUpdate {
    */
   readonly role_id?: string | null;
   /**
-   * Identifier of the person.
-   * Format: `uuid`.
+   * Document type the limit applies to.
    */
-  readonly person_id?: string | null;
-  readonly document_type?: SpendDocumentType;
+  readonly document_type?:
+    | "Purchase Order"
+    | "Change Order"
+    | "Expense"
+    | "Invoice Approval"
+    | "Contract"
+    | "Payroll Run"
+    | "Requisition";
   /**
    * Single-approver limit in the org currency. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
@@ -26446,7 +28263,32 @@ export interface SpendAuthorityUpdate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
+  /**
+   * Identifier of the membership of the one person the limit applies to; null when it applies to a role.
+   * Format: `uuid`.
+   */
+  readonly membership_id?: string | null;
+  /**
+   * GL account the limit is scoped to; null for every account.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly account_code?: string | null;
+  /**
+   * Identifier of the cost center the limit is scoped to; null for every cost center.
+   * Format: `uuid`.
+   */
+  readonly cost_center_id?: string | null;
+  /**
+   * When the limit starts.
+   * Format: `date-time`.
+   */
+  readonly valid_from?: string;
+  /**
+   * When the limit ends; null while open-ended.
+   * Format: `date-time`.
+   */
+  readonly valid_to?: string | null;
 }
 
 /**
@@ -26468,81 +28310,20 @@ export interface SeparationOfDutiesRulePage {
  */
 export interface SeparationOfDutiesRule {
   /**
-   * Identifier of the separation of duties rule.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-   * Format: `uuid`.
-   */
-  readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row.
-   * Format: `uuid`.
-   */
-  readonly created_by: string;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string;
-  /**
-   * Rule key, named in refusals.
+   * Rule code, the rule a refusal names.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly rule: string;
+  readonly code: string;
   /**
    * What the rule is enforced on.
    * Length: 1 to 300.
    */
   readonly enforced_on: string;
   /**
-   * Whether it is a platform default that cannot be removed.
+   * What the rule forbids.
+   * Length: 1 to 2000.
    */
-  readonly is_default: boolean;
-}
-
-/**
- * Fields accepted when creating a SeparationOfDutiesRule.
- */
-export interface SeparationOfDutiesRuleCreate {
-  /**
-   * Rule key, named in refusals.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly rule: string;
-  /**
-   * What the rule is enforced on.
-   * Length: 1 to 300.
-   */
-  readonly enforced_on: string;
-}
-
-/**
- * Fields accepted when updating a SeparationOfDutiesRule. Omitted fields are unchanged.
- */
-export interface SeparationOfDutiesRuleUpdate {
-  /**
-   * Rule key, named in refusals.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly rule?: string;
-  /**
-   * What the rule is enforced on.
-   * Length: 1 to 300.
-   */
-  readonly enforced_on?: string;
+  readonly description: string;
 }
 
 /**
@@ -26578,8 +28359,13 @@ export interface ColumnClassification {
    * Capability that unmasks it.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly reveal_capability: string | null;
+  readonly read_capability: string | null;
 }
+
+/**
+ * Column classification (Section 8.3).
+ */
+export type Classification = "Public" | "Internal" | "Confidential" | "Restricted";
 
 /**
  * One page of results with a cursor to the next page.
@@ -26615,20 +28401,20 @@ export interface AccessReviewCampaign {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Campaign name.
    * Length: 1 to 300.
@@ -26724,20 +28510,20 @@ export interface AccessReviewItem {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the campaign.
    * Format: `uuid`.
@@ -26800,20 +28586,20 @@ export interface BreakGlassSession {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the Owner.
    * Format: `uuid`.
@@ -26881,20 +28667,20 @@ export interface ProjectShare {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -26978,20 +28764,20 @@ export interface ScimGroupMapping {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identity-provider group name.
    * Length: 1 to 300.
@@ -27085,20 +28871,20 @@ export interface ApiKey {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Key name.
    * Length: 1 to 300.
@@ -27133,31 +28919,11 @@ export interface ApiKey {
    * Format: `date-time`.
    */
   readonly revoked_at: string | null;
-}
-
-/**
- * Fields accepted when creating a ApiKey.
- */
-export interface ApiKeyCreate {
   /**
-   * Key name.
-   * Length: 1 to 300.
-   */
-  readonly name: string;
-  /**
-   * Identifier of the service account.
+   * Identifier of the person who revoked the key.
    * Format: `uuid`.
    */
-  readonly service_account_id?: string | null;
-  /**
-   * Capability groups the key may use.
-   */
-  readonly scopes: ReadonlyArray<string>;
-  /**
-   * Expiry.
-   * Format: `date-time`.
-   */
-  readonly expires_at: string;
+  readonly revoked_by: string | null;
 }
 
 /**
@@ -27202,6 +28968,31 @@ export interface ApiKeySecret {
 }
 
 /**
+ * Fields accepted when creating a ApiKey.
+ */
+export interface ApiKeyCreate {
+  /**
+   * Key name.
+   * Length: 1 to 300.
+   */
+  readonly name: string;
+  /**
+   * Identifier of the service account.
+   * Format: `uuid`.
+   */
+  readonly service_account_id?: string | null;
+  /**
+   * Capability groups the key may use.
+   */
+  readonly scopes: ReadonlyArray<string>;
+  /**
+   * Expiry.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface ServiceAccountPage {
@@ -27235,20 +29026,20 @@ export interface ServiceAccount {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Service account name.
    * Length: 1 to 300.
@@ -27264,6 +29055,21 @@ export interface ServiceAccount {
    * Format: `date-time`.
    */
   readonly expires_at: string | null;
+  /**
+   * Identifier of the sign-in of the service account, which never signs in interactively.
+   * Format: `uuid`.
+   */
+  readonly user_id: string;
+  /**
+   * Identifier of the person row of the service account, the actor in audit columns.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Identifier of the membership that carries the service account's role in the org.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
 }
 
 /**
@@ -27276,15 +29082,15 @@ export interface ServiceAccountCreate {
    */
   readonly name: string;
   /**
-   * Identifier of the owner.
-   * Format: `uuid`.
-   */
-  readonly owner_person_id: string;
-  /**
    * Expiry.
    * Format: `date-time`.
    */
   readonly expires_at?: string | null;
+  /**
+   * Identifier of the role the service account's membership holds.
+   * Format: `uuid`.
+   */
+  readonly role_id: string;
 }
 
 /**
@@ -27342,20 +29148,20 @@ export interface OauthApp {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * App name.
    * Length: 1 to 300.
@@ -27439,20 +29245,20 @@ export interface OauthGrant {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the OAuth app.
    * Format: `uuid`.
@@ -27508,20 +29314,20 @@ export interface Integration {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Provider.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -27602,20 +29408,20 @@ export interface WebhookEndpoint {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * HTTPS endpoint URL.
    * Format: `uri`.
@@ -27626,28 +29432,15 @@ export interface WebhookEndpoint {
    */
   readonly events: ReadonlyArray<string>;
   /**
-   * Whether deliveries are sent.
+   * What the endpoint is for.
+   * Length: 1 to 2000.
    */
-  readonly enabled: boolean;
-}
-
-/**
- * Fields accepted when creating a WebhookEndpoint.
- */
-export interface WebhookEndpointCreate {
+  readonly description: string | null;
   /**
-   * HTTPS endpoint URL.
-   * Format: `uri`.
+   * When the endpoint was turned off; disabled endpoints get no new deliveries.
+   * Format: `date-time`.
    */
-  readonly url: string;
-  /**
-   * Subscribed event names.
-   */
-  readonly events: ReadonlyArray<string>;
-  /**
-   * Whether deliveries are sent.
-   */
-  readonly enabled: boolean;
+  readonly disabled_at: string | null;
 }
 
 /**
@@ -27664,9 +29457,51 @@ export interface WebhookEndpointUpdate {
    */
   readonly events?: ReadonlyArray<string>;
   /**
-   * Whether deliveries are sent.
+   * What the endpoint is for.
+   * Length: 1 to 2000.
    */
-  readonly enabled?: boolean;
+  readonly description?: string | null;
+  /**
+   * When the endpoint was turned off; disabled endpoints get no new deliveries.
+   * Format: `date-time`.
+   */
+  readonly disabled_at?: string | null;
+}
+
+/**
+ * A newly created webhook endpoint and its signing secret, shown once.
+ */
+export interface WebhookEndpointSecret {
+  /**
+   * Identifier of the webhook endpoint.
+   * Format: `uuid`.
+   */
+  readonly webhook_endpoint_id: string;
+  /**
+   * The endpoint's signing secret. Shown once; it is stored in Vault and never read back.
+   * Length: 1 to unbounded.
+   */
+  readonly signing_secret: string;
+}
+
+/**
+ * Fields accepted when creating a WebhookEndpoint.
+ */
+export interface WebhookEndpointCreate {
+  /**
+   * HTTPS endpoint URL.
+   * Format: `uri`.
+   */
+  readonly url: string;
+  /**
+   * Subscribed event names.
+   */
+  readonly events: ReadonlyArray<string>;
+  /**
+   * What the endpoint is for.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
 }
 
 /**
@@ -27703,50 +29538,70 @@ export interface WebhookDelivery {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the endpoint.
    * Format: `uuid`.
    */
   readonly webhook_endpoint_id: string;
   /**
-   * Event name.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly event: string;
-  /**
    * Delivery status. A Title Case value from the lifecycle's database enum.
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
   readonly delivery_status: string;
   /**
-   * Attempt number.
-   * Range: 1 to unbounded.
-   */
-  readonly attempt: number;
-  /**
-   * Endpoint HTTP status.
-   * Range: 0 to unbounded.
-   */
-  readonly response_status: number | null;
-  /**
    * When it was delivered.
    * Format: `date-time`.
    */
   readonly delivered_at: string | null;
+  /**
+   * Identifier of the domain event delivered; every attempt sends the same body built from it.
+   * Format: `uuid`.
+   */
+  readonly domain_event_id: string;
+  /**
+   * Attempts started.
+   * Range: 0 to unbounded.
+   */
+  readonly attempt_count: number;
+  /**
+   * When the dispatcher may try next.
+   * Format: `date-time`.
+   */
+  readonly next_attempt_at: string;
+  /**
+   * When the latest attempt started.
+   * Format: `date-time`.
+   */
+  readonly last_attempt_at: string | null;
+  /**
+   * HTTP status of the latest response; null when no response arrived.
+   * Range: 100 to unbounded.
+   */
+  readonly last_response_status: number | null;
+  /**
+   * Network or HTTP error of the latest failed attempt.
+   * Length: 1 to 2000.
+   */
+  readonly last_error: string | null;
+  /**
+   * Identifier of the person who replayed the event from Atlas.
+   * Format: `uuid`.
+   */
+  readonly replay_requested_by: string | null;
 }
 
 /**
@@ -27771,12 +29626,17 @@ export interface WebhookEventType {
    * Event name `{resource}.{event}`.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly event: string;
+  readonly code: string;
   /**
    * When it fires.
    * Length: 1 to 300.
    */
   readonly description: string;
+  /**
+   * Table whose rows the event describes.
+   * Length: 1 to 300.
+   */
+  readonly subject: string;
 }
 
 /**
@@ -27859,20 +29719,20 @@ export interface SettingValue {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   readonly scope_type: SettingScope;
   /**
    * Identifier of the scope row.
@@ -27955,20 +29815,20 @@ export interface SettingLock {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Setting key.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -28021,49 +29881,68 @@ export interface AuditEvent {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * URN of the actor.
-   * Length: 1 to 300.
-   */
-  readonly actor_urn: string;
+  readonly updated_by: string | null;
   /**
    * Action.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly action: string;
   /**
-   * URN of the subject.
-   * Length: 1 to 300.
-   */
-  readonly subject_urn: string;
-  /**
-   * Capacity the actor acted in.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly capacity: string;
-  /**
-   * When it happened.
-   * Format: `date-time`.
-   */
-  readonly occurred_at: string;
-  /**
    * Redacted audit diff.
    */
   readonly diff: { readonly [key: string]: unknown };
+  /**
+   * Who acted.
+   */
+  readonly actor_kind: "Person" | "Service" | "System";
+  /**
+   * Identifier of the person who acted, when a person acted.
+   * Format: `uuid`.
+   */
+  readonly actor_person_id: string | null;
+  /**
+   * Table of the row acted on.
+   * Length: 1 to 300.
+   */
+  readonly subject_table: string;
+  /**
+   * Identifier of the row acted on.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string | null;
+  /**
+   * Client IP address of the request. Removed at redaction.
+   * Length: 1 to 300.
+   */
+  readonly actor_ip: string | null;
+  /**
+   * Client user agent of the request. Removed at redaction.
+   * Length: 1 to 2000.
+   */
+  readonly user_agent: string | null;
+  /**
+   * API request id, for correlating with logs.
+   * Length: 1 to 300.
+   */
+  readonly request_id: string | null;
+  /**
+   * When personal data in the event was redacted.
+   * Format: `date-time`.
+   */
+  readonly redacted_at: string | null;
 }
 
 /**
@@ -28108,16 +29987,31 @@ export interface ConsentRecord {
    * Consent purpose.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly purpose: string;
+  readonly purpose_code: string;
   /**
-   * Whether consent is granted.
+   * Version of the notice shown when consent was given.
+   * Length: 1 to 300.
    */
-  readonly granted: boolean;
+  readonly notice_version: string;
   /**
-   * When it was recorded.
+   * Where consent was captured.
+   */
+  readonly source: "Web" | "Mobile" | "Email" | "SMS" | "Import" | "Support";
+  /**
+   * When consent was given, set by the database.
    * Format: `date-time`.
    */
-  readonly recorded_at: string;
+  readonly captured_at: string;
+  /**
+   * Client IP address at capture, set by the database.
+   * Length: 1 to 300.
+   */
+  readonly captured_ip: string | null;
+  /**
+   * When the person withdrew consent; null while it stands.
+   * Format: `date-time`.
+   */
+  readonly withdrawn_at: string | null;
 }
 
 /**
@@ -28133,11 +30027,16 @@ export interface ConsentRecordCreate {
    * Consent purpose.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly purpose: string;
+  readonly purpose_code: string;
   /**
-   * Whether consent is granted.
+   * Version of the notice shown when consent was given.
+   * Length: 1 to 300.
    */
-  readonly granted: boolean;
+  readonly notice_version: string;
+  /**
+   * Where consent was captured.
+   */
+  readonly source: "Web" | "Mobile" | "Email" | "SMS" | "Import" | "Support";
 }
 
 /**
@@ -28174,40 +30073,56 @@ export interface DsarRequest {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Identifier of the data subject.
-   * Format: `uuid`.
+   * What the requester exercises.
    */
-  readonly person_id: string;
-  /**
-   * Request type.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly request_type: string;
+  readonly request_type:
+    | "Access"
+    | "Rectification"
+    | "Erasure"
+    | "Restriction"
+    | "Portability"
+    | "Objection"
+    | "Opt Out of Sale";
   /**
    * Request state. A Title Case value from the lifecycle's database enum.
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
   readonly dsar_state: string;
   /**
-   * When it completed.
+   * Identifier of the person the request is about, when they have an account.
+   * Format: `uuid`.
+   */
+  readonly subject_person_id: string | null;
+  /**
+   * Email the requester gave, used to verify identity and to reply.
+   * Format: `email`.
+   */
+  readonly subject_email: string;
+  /**
+   * What the requester asked for, in their words.
+   * Length: 1 to 4000.
+   */
+  readonly details: string | null;
+  /**
+   * When the request was received; the clock starts here.
    * Format: `date-time`.
    */
-  readonly completed_at: string | null;
+  readonly received_at: string;
 }
 
 /**
@@ -28215,15 +30130,31 @@ export interface DsarRequest {
  */
 export interface DsarRequestCreate {
   /**
-   * Identifier of the data subject.
+   * What the requester exercises.
+   */
+  readonly request_type:
+    | "Access"
+    | "Rectification"
+    | "Erasure"
+    | "Restriction"
+    | "Portability"
+    | "Objection"
+    | "Opt Out of Sale";
+  /**
+   * Identifier of the person the request is about, when they have an account.
    * Format: `uuid`.
    */
-  readonly person_id: string;
+  readonly subject_person_id?: string | null;
   /**
-   * Request type.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Email the requester gave, used to verify identity and to reply.
+   * Format: `email`.
    */
-  readonly request_type: string;
+  readonly subject_email: string;
+  /**
+   * What the requester asked for, in their words.
+   * Length: 1 to 4000.
+   */
+  readonly details?: string | null;
 }
 
 /**
@@ -28250,10 +30181,33 @@ export interface RetentionPolicy {
    */
   readonly table_name: string;
   /**
-   * Days kept after soft delete.
-   * Range: 1 to unbounded.
+   * What starts the retention clock.
    */
-  readonly retention_days: number;
+  readonly basis: "Soft Deleted" | "Age" | null;
+  /**
+   * Column that starts the clock.
+   * Length: 1 to 300.
+   */
+  readonly time_column: string | null;
+  /**
+   * How long rows are kept, as an interval.
+   * Length: 1 to 300.
+   */
+  readonly retention: string | null;
+  /**
+   * How expired rows leave.
+   */
+  readonly purge_method: "Delete" | "Drop Partition" | "Account Lifecycle" | null;
+  /**
+   * When personal data in the table is redacted, if ever.
+   * Length: 1 to 300.
+   */
+  readonly redact_personal_data_after: string | null;
+  /**
+   * Why the period was chosen.
+   * Length: 1 to 2000.
+   */
+  readonly rationale: string | null;
 }
 
 /**
@@ -28290,20 +30244,20 @@ export interface OrgExport {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   readonly format: ExportFormat;
   /**
    * Export state. A Title Case value from the lifecycle's database enum.
@@ -28363,20 +30317,20 @@ export interface AiSettings {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Assistant.
    */
@@ -28443,20 +30397,20 @@ export interface ReportDefinition {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Report name.
    * Length: 1 to 300.
@@ -28466,11 +30420,30 @@ export interface ReportDefinition {
    * Source.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly source: string;
+  readonly source_code: string;
   /**
-   * Fields, filters, grouping and chart type.
+   * Chart type.
    */
-  readonly definition: { readonly [key: string]: unknown };
+  readonly chart: "Table" | "Bar" | "Line" | "Area" | "Pie" | "Number";
+  /**
+   * Field the rows are grouped by.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly group_by_field: string | null;
+  /**
+   * Whether everyone who may read the source sees it.
+   */
+  readonly shared: boolean;
+  /**
+   * Identifier of the custom object type, when the source is custom_object.
+   * Format: `uuid`.
+   */
+  readonly custom_object_type_id: string | null;
+  /**
+   * Identifier of the membership that owns the report.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
 }
 
 /**
@@ -28486,11 +30459,25 @@ export interface ReportDefinitionCreate {
    * Source.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly source: string;
+  readonly source_code: string;
   /**
-   * Fields, filters, grouping and chart type.
+   * Chart type.
    */
-  readonly definition: { readonly [key: string]: unknown };
+  readonly chart?: "Table" | "Bar" | "Line" | "Area" | "Pie" | "Number";
+  /**
+   * Field the rows are grouped by.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly group_by_field?: string | null;
+  /**
+   * Whether everyone who may read the source sees it.
+   */
+  readonly shared?: boolean;
+  /**
+   * Identifier of the custom object type, when the source is custom_object.
+   * Format: `uuid`.
+   */
+  readonly custom_object_type_id?: string | null;
 }
 
 /**
@@ -28506,11 +30493,25 @@ export interface ReportDefinitionUpdate {
    * Source.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly source?: string;
+  readonly source_code?: string;
   /**
-   * Fields, filters, grouping and chart type.
+   * Chart type.
    */
-  readonly definition?: { readonly [key: string]: unknown };
+  readonly chart?: "Table" | "Bar" | "Line" | "Area" | "Pie" | "Number";
+  /**
+   * Field the rows are grouped by.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly group_by_field?: string | null;
+  /**
+   * Whether everyone who may read the source sees it.
+   */
+  readonly shared?: boolean;
+  /**
+   * Identifier of the custom object type, when the source is custom_object.
+   * Format: `uuid`.
+   */
+  readonly custom_object_type_id?: string | null;
 }
 
 /**
@@ -28547,41 +30548,60 @@ export interface ReportRun {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the report definition.
    * Format: `uuid`.
    */
   readonly report_definition_id: string;
-  readonly format: ExportFormat;
+  readonly export_format: ExportFormat;
   /**
-   * Run state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Run status.
    */
-  readonly run_state: string;
-  /**
-   * Identifier of the output file.
-   * Format: `uuid`.
-   */
-  readonly document_id: string | null;
+  readonly run_status: "Queued" | "Running" | "Succeeded" | "Failed";
   /**
    * When the run finished.
    * Format: `date-time`.
    */
-  readonly ran_at: string | null;
+  readonly finished_at: string | null;
+  /**
+   * Identifier of the membership the run is for.
+   * Format: `uuid`.
+   */
+  readonly run_for_membership_id: string;
+  /**
+   * When the run started.
+   * Format: `date-time`.
+   */
+  readonly started_at: string | null;
+  /**
+   * Rows in the output.
+   * Range: 0 to unbounded.
+   */
+  readonly row_count: number | null;
+  /**
+   * Unpriced inputs left out of the money totals.
+   * Range: 0 to unbounded.
+   */
+  readonly unpriced_count: number | null;
+  /**
+   * Why the run failed.
+   * Length: 1 to 20000.
+   */
+  readonly last_error: string | null;
 }
 
 /**
@@ -28593,7 +30613,7 @@ export interface ReportRunCreate {
    * Format: `uuid`.
    */
   readonly report_definition_id: string;
-  readonly format: ExportFormat;
+  readonly export_format: ExportFormat;
 }
 
 /**
@@ -28630,20 +30650,20 @@ export interface ReportSchedule {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the report definition.
    * Format: `uuid`.
@@ -28735,20 +30755,20 @@ export interface Dashboard {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Dashboard name.
    * Length: 1 to 300.
@@ -28827,20 +30847,20 @@ export interface DashboardTile {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the dashboard.
    * Format: `uuid`.
@@ -28971,20 +30991,20 @@ export interface CustomObjectType {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Object key used in the route.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -29030,7 +31050,7 @@ export interface CustomObjectTypeCreate {
    * Default view type.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly default_view: string;
+  readonly default_view?: string;
 }
 
 /**
@@ -29088,20 +31108,20 @@ export interface CustomObjectField {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the custom object type.
    * Format: `uuid`.
@@ -29130,6 +31150,11 @@ export interface CustomObjectField {
    * Whether the field gets a partial index.
    */
   readonly filterable: boolean;
+  /**
+   * Position in forms and tables.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order: number;
 }
 
 /**
@@ -29159,11 +31184,16 @@ export interface CustomObjectFieldCreate {
   /**
    * Whether a value is required.
    */
-  readonly required: boolean;
+  readonly required?: boolean;
   /**
    * Whether the field gets a partial index.
    */
-  readonly filterable: boolean;
+  readonly filterable?: boolean;
+  /**
+   * Position in forms and tables.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order: number;
 }
 
 /**
@@ -29188,6 +31218,11 @@ export interface CustomObjectFieldUpdate {
    * Whether the field gets a partial index.
    */
   readonly filterable?: boolean;
+  /**
+   * Position in forms and tables.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order?: number;
 }
 
 /**
@@ -29224,20 +31259,20 @@ export interface CustomObjectRecord {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Record title.
    * Length: 1 to 300.
@@ -29247,6 +31282,11 @@ export interface CustomObjectRecord {
    * Field values keyed by field key. Stored normalized in `custom_object_values`.
    */
   readonly values: { readonly [key: string]: string | number | boolean | null };
+  /**
+   * Identifier of the object type the record is an instance of.
+   * Format: `uuid`.
+   */
+  readonly custom_object_type_id: string;
 }
 
 /**
@@ -29313,30 +31353,55 @@ export interface CustomObjectRelation {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * Identifier of the custom object record.
+   * Identifier of the custom object record the link starts from.
    * Format: `uuid`.
    */
-  readonly custom_object_record_id: string;
+  readonly from_record_id: string;
   /**
-   * URN of the related record.
-   * Length: 1 to 300.
+   * Name of the relation, such as sponsor or venue.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly target_urn: string;
+  readonly relation_key: string;
+  /**
+   * Identifier of the linked custom object record.
+   * Format: `uuid`.
+   */
+  readonly to_custom_record_id: string | null;
+  /**
+   * Identifier of the linked record.
+   * Format: `uuid`.
+   */
+  readonly to_record_id: string | null;
+  /**
+   * Identifier of the linked project.
+   * Format: `uuid`.
+   */
+  readonly to_project_id: string | null;
+  /**
+   * Identifier of the linked counterparty organization.
+   * Format: `uuid`.
+   */
+  readonly to_counterparty_id: string | null;
+  /**
+   * Identifier of the linked person.
+   * Format: `uuid`.
+   */
+  readonly to_person_id: string | null;
 }
 
 /**
@@ -29344,15 +31409,40 @@ export interface CustomObjectRelation {
  */
 export interface CustomObjectRelationCreate {
   /**
-   * Identifier of the custom object record.
+   * Identifier of the custom object record the link starts from.
    * Format: `uuid`.
    */
-  readonly custom_object_record_id: string;
+  readonly from_record_id: string;
   /**
-   * URN of the related record.
-   * Length: 1 to 300.
+   * Name of the relation, such as sponsor or venue.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly target_urn: string;
+  readonly relation_key: string;
+  /**
+   * Identifier of the linked custom object record.
+   * Format: `uuid`.
+   */
+  readonly to_custom_record_id?: string | null;
+  /**
+   * Identifier of the linked record.
+   * Format: `uuid`.
+   */
+  readonly to_record_id?: string | null;
+  /**
+   * Identifier of the linked project.
+   * Format: `uuid`.
+   */
+  readonly to_project_id?: string | null;
+  /**
+   * Identifier of the linked counterparty organization.
+   * Format: `uuid`.
+   */
+  readonly to_counterparty_id?: string | null;
+  /**
+   * Identifier of the linked person.
+   * Format: `uuid`.
+   */
+  readonly to_person_id?: string | null;
 }
 
 /**
@@ -29389,20 +31479,20 @@ export interface CustomFieldDefinition {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Table the field extends.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -29423,6 +31513,19 @@ export interface CustomFieldDefinition {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly data_type: string;
+  /**
+   * True when forms require a value.
+   */
+  readonly required: boolean;
+  /**
+   * True when views filter on the field; it adds a partial index.
+   */
+  readonly filterable: boolean;
+  /**
+   * Position in forms.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order: number;
 }
 
 /**
@@ -29449,6 +31552,19 @@ export interface CustomFieldDefinitionCreate {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly data_type: string;
+  /**
+   * True when forms require a value.
+   */
+  readonly required?: boolean;
+  /**
+   * True when views filter on the field; it adds a partial index.
+   */
+  readonly filterable?: boolean;
+  /**
+   * Position in forms.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order: number;
 }
 
 /**
@@ -29465,6 +31581,19 @@ export interface CustomFieldDefinitionUpdate {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly data_type?: string;
+  /**
+   * True when forms require a value.
+   */
+  readonly required?: boolean;
+  /**
+   * True when views filter on the field; it adds a partial index.
+   */
+  readonly filterable?: boolean;
+  /**
+   * Position in forms.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order?: number;
 }
 
 /**
@@ -29501,34 +31630,72 @@ export interface CustomFieldValue {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the custom field definition.
    * Format: `uuid`.
    */
   readonly custom_field_definition_id: string;
   /**
-   * Identifier of the extended row.
-   * Format: `uuid`.
-   */
-  readonly row_id: string;
-  /**
    * Typed value.
    */
-  readonly value: string | number | boolean | null;
+  readonly value_text: string | number | boolean | null;
+  /**
+   * Identifier of the row of the field's target table the value belongs to.
+   * Format: `uuid`.
+   */
+  readonly target_id: string;
+  /**
+   * Number value.
+   */
+  readonly value_number: number | null;
+  /**
+   * Money value in minor units of value_currency. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly value_money_minor: number | null;
+  /**
+   * ISO 4217 currency of a money value.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly value_currency: string | null;
+  /**
+   * Date value.
+   * Format: `date`.
+   */
+  readonly value_date: string | null;
+  /**
+   * Timestamp value.
+   * Format: `date-time`.
+   */
+  readonly value_timestamp: string | null;
+  /**
+   * Boolean value.
+   */
+  readonly value_boolean: boolean | null;
+  /**
+   * Identifier of the chosen option of the field.
+   * Format: `uuid`.
+   */
+  readonly value_choice_id: string | null;
+  /**
+   * Identifier of the person value.
+   * Format: `uuid`.
+   */
+  readonly value_person_id: string | null;
 }
 
 /**
@@ -29541,14 +31708,52 @@ export interface CustomFieldValueCreate {
    */
   readonly custom_field_definition_id: string;
   /**
-   * Identifier of the extended row.
-   * Format: `uuid`.
-   */
-  readonly row_id: string;
-  /**
    * Typed value.
    */
-  readonly value?: string | number | boolean | null;
+  readonly value_text?: string | number | boolean | null;
+  /**
+   * Identifier of the row of the field's target table the value belongs to.
+   * Format: `uuid`.
+   */
+  readonly target_id: string;
+  /**
+   * Number value.
+   */
+  readonly value_number?: number | null;
+  /**
+   * Money value in minor units of value_currency. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly value_money_minor?: number | null;
+  /**
+   * ISO 4217 currency of a money value.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly value_currency?: string | null;
+  /**
+   * Date value.
+   * Format: `date`.
+   */
+  readonly value_date?: string | null;
+  /**
+   * Timestamp value.
+   * Format: `date-time`.
+   */
+  readonly value_timestamp?: string | null;
+  /**
+   * Boolean value.
+   */
+  readonly value_boolean?: boolean | null;
+  /**
+   * Identifier of the chosen option of the field.
+   * Format: `uuid`.
+   */
+  readonly value_choice_id?: string | null;
+  /**
+   * Identifier of the person value.
+   * Format: `uuid`.
+   */
+  readonly value_person_id?: string | null;
 }
 
 /**
@@ -29558,7 +31763,45 @@ export interface CustomFieldValueUpdate {
   /**
    * Typed value.
    */
-  readonly value?: string | number | boolean | null;
+  readonly value_text?: string | number | boolean | null;
+  /**
+   * Number value.
+   */
+  readonly value_number?: number | null;
+  /**
+   * Money value in minor units of value_currency. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly value_money_minor?: number | null;
+  /**
+   * ISO 4217 currency of a money value.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly value_currency?: string | null;
+  /**
+   * Date value.
+   * Format: `date`.
+   */
+  readonly value_date?: string | null;
+  /**
+   * Timestamp value.
+   * Format: `date-time`.
+   */
+  readonly value_timestamp?: string | null;
+  /**
+   * Boolean value.
+   */
+  readonly value_boolean?: boolean | null;
+  /**
+   * Identifier of the chosen option of the field.
+   * Format: `uuid`.
+   */
+  readonly value_choice_id?: string | null;
+  /**
+   * Identifier of the person value.
+   * Format: `uuid`.
+   */
+  readonly value_person_id?: string | null;
 }
 
 /**
@@ -29595,20 +31838,20 @@ export interface OrgStateLabel {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Record state relabeled. A Title Case value from the lifecycle's database enum.
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
@@ -29682,45 +31925,62 @@ export interface ImportJob {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the uploaded spreadsheet.
-   * Format: `uuid`.
-   */
-  readonly source_document_id: string;
-  /**
-   * Target entity.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly target_table: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the saved mapping profile.
    * Format: `uuid`.
    */
   readonly import_mapping_profile_id: string | null;
   /**
-   * Import job state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Import target the rows are written to.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly import_state: string;
+  readonly target_code: string;
   /**
-   * Identifier of the committed batch.
-   * Format: `uuid`.
+   * Source format.
    */
-  readonly import_batch_id: string | null;
+  readonly source: "CSV" | "XLSX" | "XLS" | "Google Sheets";
+  /**
+   * File name as uploaded.
+   * Length: 1 to 255.
+   */
+  readonly original_filename: string;
+  /**
+   * Object path of the uploaded file in the tenant import bucket.
+   * Length: 1 to 1024.
+   */
+  readonly storage_object_path: string;
+  /**
+   * Wizard progress.
+   */
+  readonly import_status:
+    | "Uploaded"
+    | "Detected"
+    | "Mapped"
+    | "Validated"
+    | "Committing"
+    | "Committed"
+    | "Undone"
+    | "Failed"
+    | "Canceled";
+  /**
+   * When the person confirmed every column mapping; nothing is validated before it.
+   * Format: `date-time`.
+   */
+  readonly mapping_confirmed_at: string | null;
 }
 
 /**
@@ -29728,20 +31988,29 @@ export interface ImportJob {
  */
 export interface ImportJobCreate {
   /**
-   * Identifier of the uploaded spreadsheet.
-   * Format: `uuid`.
-   */
-  readonly source_document_id: string;
-  /**
-   * Target entity.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly target_table: string;
-  /**
    * Identifier of the saved mapping profile.
    * Format: `uuid`.
    */
   readonly import_mapping_profile_id?: string | null;
+  /**
+   * Import target the rows are written to.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly target_code: string;
+  /**
+   * Source format.
+   */
+  readonly source: "CSV" | "XLSX" | "XLS" | "Google Sheets";
+  /**
+   * File name as uploaded.
+   * Length: 1 to 255.
+   */
+  readonly original_filename: string;
+  /**
+   * Object path of the uploaded file in the tenant import bucket.
+   * Length: 1 to 1024.
+   */
+  readonly storage_object_path: string;
 }
 
 /**
@@ -29778,20 +32047,20 @@ export interface ImportBatch {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the import job.
    * Format: `uuid`.
@@ -29801,17 +32070,17 @@ export interface ImportBatch {
    * When the batch was committed.
    * Format: `date-time`.
    */
-  readonly committed_at: string;
+  readonly committed_at: string | null;
   /**
    * When the batch was undone.
    * Format: `date-time`.
    */
   readonly undone_at: string | null;
   /**
-   * Rows written.
-   * Range: 0 to unbounded.
+   * Why the batch was undone.
+   * Length: 1 to 2000.
    */
-  readonly row_count: number;
+  readonly undo_reason: string | null;
 }
 
 /**
@@ -29848,36 +32117,73 @@ export interface ImportRowResult {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the import job.
    * Format: `uuid`.
    */
   readonly import_job_id: string;
-  /**
-   * Source row number.
-   * Range: 1 to unbounded.
-   */
-  readonly source_row: number;
   readonly row_state: ImportRowState;
   /**
    * Why the row is invalid or refused.
    * Length: 1 to 300.
    */
   readonly reason: string | null;
+  /**
+   * Identifier of the batch that wrote the row; set exactly when the row is written.
+   * Format: `uuid`.
+   */
+  readonly import_batch_id: string | null;
+  /**
+   * Source sheet.
+   * Length: 1 to 300.
+   */
+  readonly sheet_name: string;
+  /**
+   * One-based row number in the sheet, as the person sees it.
+   * Range: 1 to unbounded.
+   */
+  readonly row_number: number;
+  /**
+   * Table the row was written to.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly target_table: string | null;
+  /**
+   * Identifier of the row written, created, updated or merged into.
+   * Format: `uuid`.
+   */
+  readonly target_id: string | null;
+  /**
+   * What the write did.
+   */
+  readonly write_action: "Created" | "Updated" | "Merged" | null;
+  /**
+   * The columns an update or merge changed, as they were before the write; undo restores them.
+   */
+  readonly before_image: { readonly [key: string]: unknown } | null;
+  /**
+   * Outcome when the batch was undone.
+   */
+  readonly undo_outcome: "Reverted" | "Kept" | null;
+  /**
+   * Why a row was kept: the later edit or the dependent row.
+   * Length: 1 to 2000.
+   */
+  readonly undo_reason: string | null;
 }
 
 /**
@@ -29919,30 +32225,30 @@ export interface ImportMappingProfile {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Profile name.
    * Length: 1 to 300.
    */
   readonly name: string;
   /**
-   * Target entity.
+   * Import target the profile maps onto.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly target_table: string;
+  readonly target_code: string;
 }
 
 /**
@@ -29955,10 +32261,10 @@ export interface ImportMappingProfileCreate {
    */
   readonly name: string;
   /**
-   * Target entity.
+   * Import target the profile maps onto.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly target_table: string;
+  readonly target_code: string;
 }
 
 /**
@@ -29971,10 +32277,10 @@ export interface ImportMappingProfileUpdate {
    */
   readonly name?: string;
   /**
-   * Target entity.
+   * Import target the profile maps onto.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly target_table?: string;
+  readonly target_code?: string;
 }
 
 /**
@@ -30011,35 +32317,20 @@ export interface MergeReview {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Identifier of the import job.
-   * Format: `uuid`.
-   */
-  readonly import_job_id: string;
-  /**
-   * URN of the incoming row.
-   * Length: 1 to 300.
-   */
-  readonly candidate_urn: string;
-  /**
-   * URN of the existing row.
-   * Length: 1 to 300.
-   */
-  readonly existing_urn: string;
+  readonly updated_by: string | null;
   /**
    * Similarity score, 0.85 or higher.
    */
@@ -30049,6 +32340,31 @@ export interface MergeReview {
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
   readonly decision: string | null;
+  /**
+   * Identifier of the import row that matched.
+   * Format: `uuid`.
+   */
+  readonly import_row_result_id: string;
+  /**
+   * Table of the existing row.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly candidate_table: string;
+  /**
+   * Identifier of the existing row it may duplicate.
+   * Format: `uuid`.
+   */
+  readonly candidate_id: string;
+  /**
+   * Identifier of the person who decided, set from the session.
+   * Format: `uuid`.
+   */
+  readonly decided_by: string | null;
+  /**
+   * When they decided, set by the database.
+   * Format: `date-time`.
+   */
+  readonly decided_at: string | null;
 }
 
 /**
@@ -30096,36 +32412,50 @@ export interface ExportJob {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * What is exported, as a saved view or report URN.
    * Length: 1 to 300.
    */
-  readonly source: string;
-  readonly format: ExportFormat;
+  readonly source_label: string;
+  readonly export_format: ExportFormat;
+  readonly classification: Classification;
   /**
-   * Export state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * True for Confidential and Restricted exports: PDFs and images carry the viewer email and time.
    */
-  readonly export_state: string;
+  readonly watermark: boolean;
   /**
-   * Identifier of the export file.
-   * Format: `uuid`.
+   * Export progress.
    */
-  readonly document_id: string | null;
+  readonly export_status: "Queued" | "Rendering" | "Ready" | "Failed" | "Expired";
+  /**
+   * Object path of the file once ready.
+   * Length: 1 to 1024.
+   */
+  readonly storage_object_path: string | null;
+  /**
+   * Rows exported.
+   * Range: 0 to unbounded.
+   */
+  readonly row_count: number | null;
+  /**
+   * When the download link stops working.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string | null;
 }
 
 /**
@@ -30136,8 +32466,12 @@ export interface ExportJobCreate {
    * What is exported, as a saved view or report URN.
    * Length: 1 to 300.
    */
-  readonly source: string;
-  readonly format: ExportFormat;
+  readonly source_label: string;
+  readonly export_format: ExportFormat;
+  /**
+   * Columns the export contains, as app.table.column.
+   */
+  readonly columns: ReadonlyArray<string>;
 }
 
 /**
@@ -30174,25 +32508,20 @@ export interface SavedView {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
-  /**
-   * Collection key.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly collection: string;
+  readonly updated_by: string | null;
   /**
    * View name.
    * Length: 1 to 300.
@@ -30204,14 +32533,24 @@ export interface SavedView {
    */
   readonly view_type: string;
   /**
-   * Query in the filter grammar.
-   * Length: 1 to 300.
-   */
-  readonly query: string;
-  /**
    * Whether the view is shared with the org.
    */
   readonly shared: boolean;
+  /**
+   * Identifier of the member who owns the view.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Collection the view shows, such as records or objects/sponsors.
+   * Length: 1 to 300.
+   */
+  readonly collection_key: string;
+  /**
+   * Field rows are grouped by, if any.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly group_by_field: string | null;
 }
 
 /**
@@ -30219,11 +32558,6 @@ export interface SavedView {
  */
 export interface SavedViewCreate {
   /**
-   * Collection key.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly collection: string;
-  /**
    * View name.
    * Length: 1 to 300.
    */
@@ -30234,25 +32568,30 @@ export interface SavedViewCreate {
    */
   readonly view_type: string;
   /**
-   * Query in the filter grammar.
-   * Length: 1 to 300.
-   */
-  readonly query: string;
-  /**
    * Whether the view is shared with the org.
    */
-  readonly shared: boolean;
+  readonly shared?: boolean;
+  /**
+   * Identifier of the member who owns the view.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Collection the view shows, such as records or objects/sponsors.
+   * Length: 1 to 300.
+   */
+  readonly collection_key: string;
+  /**
+   * Field rows are grouped by, if any.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly group_by_field?: string | null;
 }
 
 /**
  * Fields accepted when updating a SavedView. Omitted fields are unchanged.
  */
 export interface SavedViewUpdate {
-  /**
-   * Collection key.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly collection?: string;
   /**
    * View name.
    * Length: 1 to 300.
@@ -30264,14 +32603,14 @@ export interface SavedViewUpdate {
    */
   readonly view_type?: string;
   /**
-   * Query in the filter grammar.
-   * Length: 1 to 300.
-   */
-  readonly query?: string;
-  /**
    * Whether the view is shared with the org.
    */
   readonly shared?: boolean;
+  /**
+   * Field rows are grouped by, if any.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly group_by_field?: string | null;
 }
 
 /**
@@ -30308,20 +32647,20 @@ export interface ApprovalPolicy {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Policy name.
    * Length: 1 to 300.
@@ -30329,6 +32668,12 @@ export interface ApprovalPolicy {
   readonly name: string;
   readonly document_type: SpendDocumentType;
 }
+
+/**
+ * Document type a spend limit applies to.
+ */
+export type SpendDocumentType =
+  "Purchase Order" | "Change Order" | "Expense" | "Invoice Approval" | "Contract" | "Payroll Run";
 
 /**
  * Fields accepted when creating a ApprovalPolicy.
@@ -30388,20 +32733,20 @@ export interface ApprovalInstance {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the approval policy.
    * Format: `uuid`.
@@ -30474,20 +32819,20 @@ export interface ApprovalDecision {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the approval instance.
    * Format: `uuid`.
@@ -30568,29 +32913,45 @@ export interface CommentThread {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
-   * URN of the commented record.
+   * Table of the subject, one of app.comment_subjects.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly subject_table: string;
+  /**
+   * Identifier of the row the thread is about.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string;
+  /**
+   * Part of the subject the thread is anchored to; null for the main thread.
    * Length: 1 to 300.
    */
-  readonly subject_urn: string;
+  readonly anchor: string | null;
   /**
-   * Whether the thread is resolved.
+   * When the thread was resolved; null while open.
+   * Format: `date-time`.
    */
-  readonly resolved: boolean;
+  readonly resolved_at: string | null;
+  /**
+   * Identifier of the person who resolved it, set from the session.
+   * Format: `uuid`.
+   */
+  readonly resolved_by: string | null;
 }
 
 /**
@@ -30598,14 +32959,20 @@ export interface CommentThread {
  */
 export interface CommentThreadCreate {
   /**
-   * URN of the commented record.
+   * Table of the subject, one of app.comment_subjects.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly subject_table: string;
+  /**
+   * Identifier of the row the thread is about.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string;
+  /**
+   * Part of the subject the thread is anchored to; null for the main thread.
    * Length: 1 to 300.
    */
-  readonly subject_urn: string;
-  /**
-   * Whether the thread is resolved.
-   */
-  readonly resolved: boolean;
+  readonly anchor?: string | null;
 }
 
 /**
@@ -30613,9 +32980,15 @@ export interface CommentThreadCreate {
  */
 export interface CommentThreadUpdate {
   /**
-   * Whether the thread is resolved.
+   * Part of the subject the thread is anchored to; null for the main thread.
+   * Length: 1 to 300.
    */
-  readonly resolved?: boolean;
+  readonly anchor?: string | null;
+  /**
+   * When the thread was resolved; null while open.
+   * Format: `date-time`.
+   */
+  readonly resolved_at?: string | null;
 }
 
 /**
@@ -30652,34 +33025,44 @@ export interface Comment {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the thread.
    * Format: `uuid`.
    */
   readonly comment_thread_id: string;
   /**
-   * Comment body as a rich text document.
+   * Comment text; mentions are recorded separately.
+   * Length: 1 to 10000.
    */
-  readonly body: { readonly [key: string]: unknown };
+  readonly body: string;
   /**
    * Identifier of the author.
    * Format: `uuid`.
    */
-  readonly author_id: string;
+  readonly author_person_id: string;
+  /**
+   * Where the comment came from.
+   */
+  readonly source: "App" | "Email" | "API";
+  /**
+   * When the text was last edited.
+   * Format: `date-time`.
+   */
+  readonly edited_at: string | null;
 }
 
 /**
@@ -30692,9 +33075,14 @@ export interface CommentCreate {
    */
   readonly comment_thread_id: string;
   /**
-   * Comment body as a rich text document.
+   * Comment text; mentions are recorded separately.
+   * Length: 1 to 10000.
    */
-  readonly body: { readonly [key: string]: unknown };
+  readonly body: string;
+  /**
+   * Where the comment came from.
+   */
+  readonly source?: "App" | "Email" | "API";
 }
 
 /**
@@ -30702,9 +33090,14 @@ export interface CommentCreate {
  */
 export interface CommentUpdate {
   /**
-   * Comment body as a rich text document.
+   * Comment text; mentions are recorded separately.
+   * Length: 1 to 10000.
    */
-  readonly body?: { readonly [key: string]: unknown };
+  readonly body?: string;
+  /**
+   * Where the comment came from.
+   */
+  readonly source?: "App" | "Email" | "API";
 }
 
 /**
@@ -30741,45 +33134,64 @@ export interface Notification {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Notification kind from `notification-kinds.yaml`.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly kind: string;
   /**
-   * URN of the subject.
-   * Length: 1 to 300.
-   */
-  readonly subject_urn: string;
-  /**
-   * Identifier of the recipient.
+   * Identifier of the person the notification is for.
    * Format: `uuid`.
    */
-  readonly created_for: string;
-  /**
-   * Path to open.
-   * Length: 1 to 300.
-   */
-  readonly deep_link: string;
+  readonly recipient_person_id: string;
   /**
    * When it was read.
    * Format: `date-time`.
    */
   readonly read_at: string | null;
+  /**
+   * Identifier of the person whose action caused it, when one did.
+   * Format: `uuid`.
+   */
+  readonly actor_person_id: string | null;
+  /**
+   * Table of the record it is about.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly subject_table: string | null;
+  /**
+   * Identifier of the record it is about.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string | null;
+  /**
+   * Identifier of the project of the record, when it belongs to one.
+   * Format: `uuid`.
+   */
+  readonly project_id: string | null;
+  /**
+   * ICU message arguments for the kind's catalog messages, such as a record title.
+   */
+  readonly message_args: { readonly [key: string]: unknown };
+  /**
+   * When the recipient archived it.
+   * Format: `date-time`.
+   */
+  readonly archived_at: string | null;
 }
 
 /**
@@ -30791,6 +33203,11 @@ export interface NotificationUpdate {
    * Format: `date-time`.
    */
   readonly read_at?: string | null;
+  /**
+   * When the recipient archived it.
+   * Format: `date-time`.
+   */
+  readonly archived_at?: string | null;
 }
 
 export interface MarkAllReadResult {
@@ -30831,19 +33248,23 @@ export interface NotificationPreference {
    */
   readonly updated_at: string;
   /**
-   * Notification kind.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly kind: string;
-  /**
    * Delivery channel.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly channel: string;
+  readonly channel: "In App" | "Email" | "SMS" | "Push";
   /**
    * Whether the channel is on for the kind.
    */
   readonly enabled: boolean;
+  /**
+   * Identifier of the membership whose preference this is; preferences are per org.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Notification category.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly category_code: string;
 }
 
 /**
@@ -30851,19 +33272,23 @@ export interface NotificationPreference {
  */
 export interface NotificationPreferenceCreate {
   /**
-   * Notification kind.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly kind: string;
-  /**
    * Delivery channel.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly channel: string;
+  readonly channel: "In App" | "Email" | "SMS" | "Push";
   /**
    * Whether the channel is on for the kind.
    */
   readonly enabled: boolean;
+  /**
+   * Identifier of the membership whose preference this is; preferences are per org.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Notification category.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly category_code: string;
 }
 
 /**
@@ -30910,20 +33335,20 @@ export interface CalendarFeed {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the project.
    * Format: `uuid`.
@@ -30934,6 +33359,32 @@ export interface CalendarFeed {
    * Format: `date-time`.
    */
   readonly revoked_at: string | null;
+  /**
+   * Identifier of the member who owns the feed; it shows what they may see.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Last time a calendar fetched the feed.
+   * Format: `date-time`.
+   */
+  readonly last_accessed_at: string | null;
+}
+
+/**
+ * A newly created calendar feed and its subscription token, shown once.
+ */
+export interface CalendarFeedToken {
+  /**
+   * Identifier of the calendar feed.
+   * Format: `uuid`.
+   */
+  readonly calendar_feed_id: string;
+  /**
+   * The token of the feed's subscription URL. Shown once; only its hash is stored, and revoking the feed ends it.
+   * Length: 1 to unbounded.
+   */
+  readonly feed_token: string;
 }
 
 /**
@@ -31023,20 +33474,20 @@ export interface Template {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Template name.
    * Length: 1 to 300.
@@ -31105,20 +33556,20 @@ export interface TemplateApplication {
    */
   readonly created_at: string;
   /**
-   * Identifier of the person who created the row.
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
    * Format: `uuid`.
    */
-  readonly created_by: string;
+  readonly created_by: string | null;
   /**
    * When the row was last updated.
    * Format: `date-time`.
    */
   readonly updated_at: string;
   /**
-   * Identifier of the person who last updated the row.
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
    * Format: `uuid`.
    */
-  readonly updated_by: string;
+  readonly updated_by: string | null;
   /**
    * Identifier of the template.
    * Format: `uuid`.
@@ -31140,4 +33591,849 @@ export interface TemplateApplicationCreate {
    * Format: `uuid`.
    */
   readonly template_id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface GuestListEntryPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<GuestListEntry>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A guest on a project's guest list with plus-ones. Requested guests are approved or declined by someone with review authority who did not request them, then checked in at the door.
+ */
+export interface GuestListEntry {
+  /**
+   * Identifier of the guest list entry.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the show or other scope node of the same project.
+   * Format: `uuid`.
+   */
+  readonly scope_node_id: string | null;
+  /**
+   * Identifier of the person whose list the guest is on.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Identifier of the organization whose list the guest is on.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string | null;
+  /**
+   * Identifier of the engagement the guest was requested under in Gateway.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * Name the guest gives at the door.
+   * Length: 1 to 200.
+   */
+  readonly guest_name: string;
+  /**
+   * Additional guests admitted with this guest, 0 to 20.
+   * Range: 0 to unbounded.
+   */
+  readonly plus_ones: number;
+  /**
+   * Notes for the door.
+   * Length: 1 to 500.
+   */
+  readonly note: string | null;
+  /**
+   * Requested, Approved, Declined or Checked In; moved by the decide and check-in actions.
+   */
+  readonly entry_state: "Requested" | "Approved" | "Declined" | "Checked In";
+  /**
+   * When the request was approved or declined. Set by the database.
+   * Format: `date-time`.
+   */
+  readonly decided_at: string | null;
+  /**
+   * Identifier of the person who decided, set by the database.
+   * Format: `uuid`.
+   */
+  readonly decided_by: string | null;
+  /**
+   * When the guest was checked in. Set by the database.
+   * Format: `date-time`.
+   */
+  readonly checked_in_at: string | null;
+  /**
+   * Identifier of the person who checked the guest in, set by the database.
+   * Format: `uuid`.
+   */
+  readonly checked_in_by: string | null;
+}
+
+/**
+ * Fields accepted when creating a GuestListEntry.
+ */
+export interface GuestListEntryCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the show or other scope node of the same project.
+   * Format: `uuid`.
+   */
+  readonly scope_node_id?: string | null;
+  /**
+   * Name the guest gives at the door.
+   * Length: 1 to 200.
+   */
+  readonly guest_name: string;
+  /**
+   * Additional guests admitted with this guest, 0 to 20.
+   * Range: 0 to unbounded.
+   */
+  readonly plus_ones: number;
+  /**
+   * Notes for the door.
+   * Length: 1 to 500.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Fields accepted when updating a GuestListEntry. Omitted fields are unchanged.
+ */
+export interface GuestListEntryUpdate {
+  /**
+   * Identifier of the show or other scope node of the same project.
+   * Format: `uuid`.
+   */
+  readonly scope_node_id?: string | null;
+  /**
+   * Name the guest gives at the door.
+   * Length: 1 to 200.
+   */
+  readonly guest_name?: string;
+  /**
+   * Additional guests admitted with this guest, 0 to 20.
+   * Range: 0 to unbounded.
+   */
+  readonly plus_ones?: number;
+  /**
+   * Notes for the door.
+   * Length: 1 to 500.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Decision on a requested guest.
+ */
+export interface GuestDecisionRequest {
+  /**
+   * Approved or Declined.
+   */
+  readonly outcome: "Approved" | "Declined";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SavedViewSharePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SavedViewShare>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A saved view shared with one team of its org (0641). Only the view's owner shares or unshares it; team members open it and see only the rows their own access allows.
+ */
+export interface SavedViewShare {
+  /**
+   * Identifier of the saved view share.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the saved view.
+   * Format: `uuid`.
+   */
+  readonly saved_view_id: string;
+  /**
+   * Identifier of the team of the same org.
+   * Format: `uuid`.
+   */
+  readonly team_id: string;
+}
+
+/**
+ * Fields accepted when creating a SavedViewShare.
+ */
+export interface SavedViewShareCreate {
+  /**
+   * Identifier of the saved view.
+   * Format: `uuid`.
+   */
+  readonly saved_view_id: string;
+  /**
+   * Identifier of the team of the same org.
+   * Format: `uuid`.
+   */
+  readonly team_id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SavedViewDefaultPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SavedViewDefault>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The saved view the caller opens by default on a page (0641): one per member and collection. Creating one replaces the earlier default of the page (app.set_saved_view_default).
+ */
+export interface SavedViewDefault {
+  /**
+   * Identifier of the saved view default.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the membership of the caller, set by the server.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Collection (page) the default applies to, as saved views name it.
+   * Pattern: `^[a-z][a-z0-9_]*(\/[a-z][a-z0-9_]*)?$`.
+   */
+  readonly collection_key: string;
+  /**
+   * Identifier of the saved view the caller can read, of the same collection.
+   * Format: `uuid`.
+   */
+  readonly saved_view_id: string;
+}
+
+/**
+ * Fields accepted when creating a SavedViewDefault.
+ */
+export interface SavedViewDefaultCreate {
+  /**
+   * Identifier of the saved view the caller can read, of the same collection.
+   * Format: `uuid`.
+   */
+  readonly saved_view_id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface TourProgressPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<TourProgress>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The caller's progress through one guided tour (0642). A tour is offered once (the row exists from then on), can be replayed by moving it to Started at step 0, and is never offered again.
+ */
+export interface TourProgress {
+  /**
+   * Identifier of the tour progress.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the membership of the caller, set by the server.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Tour key from the help content.
+   * Pattern: `^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$`. Length: 0 to 100.
+   */
+  readonly tour_key: string;
+  /**
+   * Offered, Started, Completed or Dismissed.
+   */
+  readonly tour_state: "Offered" | "Started" | "Completed" | "Dismissed";
+  /**
+   * Last step reached, from 0.
+   * Range: 0 to unbounded.
+   */
+  readonly step: number;
+}
+
+/**
+ * Fields accepted when creating a TourProgress.
+ */
+export interface TourProgressCreate {
+  /**
+   * Tour key from the help content.
+   * Pattern: `^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$`. Length: 0 to 100.
+   */
+  readonly tour_key: string;
+  /**
+   * Offered, Started, Completed or Dismissed.
+   */
+  readonly tour_state: "Offered" | "Started" | "Completed" | "Dismissed";
+  /**
+   * Last step reached, from 0.
+   * Range: 0 to unbounded.
+   */
+  readonly step: number;
+}
+
+/**
+ * Fields accepted when updating a TourProgress. Omitted fields are unchanged.
+ */
+export interface TourProgressUpdate {
+  /**
+   * Offered, Started, Completed or Dismissed.
+   */
+  readonly tour_state?: "Offered" | "Started" | "Completed" | "Dismissed";
+  /**
+   * Last step reached, from 0.
+   * Range: 0 to unbounded.
+   */
+  readonly step?: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface TipDismissalPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<TipDismissal>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A contextual tip the caller dismissed (0642). Deleting it shows the tip again; a reset dismissal is never revived.
+ */
+export interface TipDismissal {
+  /**
+   * Identifier of the tip dismissal.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the membership of the caller, set by the server.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Tip key from the help content.
+   * Pattern: `^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$`. Length: 0 to 100.
+   */
+  readonly tip_key: string;
+}
+
+/**
+ * Fields accepted when creating a TipDismissal.
+ */
+export interface TipDismissalCreate {
+  /**
+   * Tip key from the help content.
+   * Pattern: `^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$`. Length: 0 to 100.
+   */
+  readonly tip_key: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SupportTicketPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SupportTicket>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A request for help (0643): to the org's own admins (Organization queue) or, from holders of org.help.write, to the platform team (Platform queue), whose channel and first response deadline follow the plan. Readable by the requester and by those who answer support for the org.
+ */
+export interface SupportTicket {
+  /**
+   * Identifier of the support ticket.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the membership of the requester, set by the server.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Display number, SUP-0001 upward per org.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly ticket_number: string;
+  /**
+   * Organization or Platform.
+   */
+  readonly queue: "Organization" | "Platform";
+  /**
+   * What the request is about.
+   */
+  readonly category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
+  /**
+   * Severity 1 (outage) to Severity 4 (question).
+   */
+  readonly severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
+  /**
+   * One-line summary.
+   * Length: 1 to 200.
+   */
+  readonly subject: string;
+  /**
+   * What happened and what the requester needs.
+   * Length: 1 to 20000.
+   */
+  readonly body: string;
+  /**
+   * Open, Waiting, Resolved or Closed; moved by the transition action.
+   */
+  readonly ticket_state: "Open" | "Waiting" | "Resolved" | "Closed";
+  /**
+   * In App for the Organization queue; by plan for the Platform queue.
+   */
+  readonly channel: "In App" | "Email" | "Chat" | "Priority Queue" | "Dedicated Channel";
+  /**
+   * Platform first response deadline from the plan; null for best effort.
+   * Format: `date-time`.
+   */
+  readonly first_response_due_at: string | null;
+  /**
+   * When a responder first answered.
+   * Format: `date-time`.
+   */
+  readonly first_responded_at: string | null;
+}
+
+/**
+ * A new support request.
+ */
+export interface SupportTicketOpenRequest {
+  /**
+   * Organization or Platform.
+   */
+  readonly queue: "Organization" | "Platform";
+  /**
+   * What the request is about.
+   */
+  readonly category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
+  /**
+   * Severity 1 to 4; Severity 3 when omitted.
+   */
+  readonly severity?: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
+  /**
+   * One-line summary.
+   * Length: 1 to 200.
+   */
+  readonly subject: string;
+  /**
+   * What happened and what the requester needs.
+   * Length: 1 to 20000.
+   */
+  readonly body: string;
+  /**
+   * Diagnostics to attach, with consent.
+   */
+  readonly diagnostics?: {
+    /**
+     * Must be true: diagnostics are stored only with the requester's consent.
+     */
+    readonly consent: true;
+    /**
+     * Page the requester was on.
+     * Length: 0 to 500.
+     */
+    readonly route?: string;
+    /**
+     * App version and build.
+     * Length: 0 to 50.
+     */
+    readonly app_version?: string;
+    /**
+     * Browser or device.
+     * Length: 0 to 300.
+     */
+    readonly device?: string;
+    /**
+     * Recent client errors, newest first.
+     * Length: 0 to 4000.
+     */
+    readonly recent_errors?: string;
+  };
+}
+
+/**
+ * Request to move a lifecycle to another state.
+ */
+export interface SupportTicketTransitionRequest {
+  /**
+   * The state the caller believes the row is in (compare-and-set).
+   */
+  readonly expected_state: "Open" | "Waiting" | "Resolved" | "Closed";
+  /**
+   * Target state.
+   */
+  readonly to_state: "Open" | "Waiting" | "Resolved" | "Closed";
+  /**
+   * Reason, required by some transitions.
+   * Length: 1 to unbounded.
+   */
+  readonly reason?: string;
+}
+
+/**
+ * One message on a support request (0643), oldest first. Append-only; posted with the reply action.
+ */
+export interface SupportTicketMessage {
+  /**
+   * Identifier of the support ticket message.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the support request.
+   * Format: `uuid`.
+   */
+  readonly support_ticket_id: string;
+  /**
+   * Identifier of the member who wrote it; null for the platform team.
+   * Format: `uuid`.
+   */
+  readonly author_membership_id: string | null;
+  /**
+   * Message text.
+   * Length: 1 to 20000.
+   */
+  readonly body: string;
+}
+
+/**
+ * A reply on a support request.
+ */
+export interface SupportTicketReplyRequest {
+  /**
+   * Message text.
+   * Length: 1 to 20000.
+   */
+  readonly body: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SupportTicketMessagePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SupportTicketMessage>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SupportTicketDiagnosticsPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SupportTicketDiagnostics>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Diagnostics the requester chose to attach to a support request (0643), with the moment they consented. Append-only.
+ */
+export interface SupportTicketDiagnostics {
+  /**
+   * Identifier of the support ticket diagnostics.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the support request.
+   * Format: `uuid`.
+   */
+  readonly support_ticket_id: string;
+  /**
+   * When the requester agreed to send the diagnostics.
+   * Format: `date-time`.
+   */
+  readonly consented_at: string;
+  /**
+   * Page the requester was on.
+   * Length: 1 to 500.
+   */
+  readonly route: string | null;
+  /**
+   * App version and build.
+   * Length: 1 to 50.
+   */
+  readonly app_version: string | null;
+  /**
+   * Browser or device and operating system.
+   * Length: 1 to 300.
+   */
+  readonly device: string | null;
+  /**
+   * Recent client errors, newest first.
+   * Length: 1 to 20000.
+   */
+  readonly recent_errors: string | null;
+  /**
+   * Storage path of a screenshot.
+   * Length: 1 to 500.
+   */
+  readonly screenshot_path: string | null;
 }
