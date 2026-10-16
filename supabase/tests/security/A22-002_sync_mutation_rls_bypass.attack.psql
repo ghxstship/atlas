@@ -10,7 +10,13 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir ../0300_domain_world.psql
 
-select plan(6);
+select plan(7);
+
+select is_empty($$
+  select r.rpc from private.sync_rpcs r
+  join pg_proc p on p.proname = split_part(r.rpc, '.', 2) and p.pronamespace = split_part(r.rpc, '.', 1)::regnamespace
+  where not p.prosecdef
+$$, 'A22-002: every RPC a device may replay is SECURITY DEFINER with its own checks');
 
 -- The victim: Northwind Live's project prj_a.
 select pg_temp.as_platform();
