@@ -157,7 +157,9 @@
     "canceled": "Cancelado",
     "startsIn": "Empieza en {time}",
     "timeRange": "{start} a {end}",
-    "noPlace": "Lugar por confirmar"
+    "noPlace": "Lugar por confirmar",
+    "claimOverlap": "Ya tienes un turno que se superpone con este ({time}). Cambia o deja ese turno primero.",
+    "claimQueued": "Turno reclamado. Será tuyo cuando se suba; la regla de la organización decide si alguien llegó antes."
   },
   "scan": {
     "title": "Escanear",

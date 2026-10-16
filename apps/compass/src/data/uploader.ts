@@ -108,11 +108,33 @@ const DEVICE_ONLY = new Set([
   "monotonic_at",
   "local_uri",
   "storage_path",
+  "device_media",
   "boot_id",
 ]);
 
 function serverPayload(payload: Readonly<Record<string, unknown>>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(payload).filter(([k]) => !DEVICE_ONLY.has(k)));
+}
+
+/**
+ * The files a mutation must upload before it runs: one photo (local_uri and storage_path) or a list
+ * (device_media, such as a form's photos and signature).
+ */
+function mediaFiles(
+  payload: Readonly<Record<string, unknown>>,
+): { path: string; localUri: string }[] {
+  const files: { path: string; localUri: string }[] = [];
+  const one = { path: payload["storage_path"], localUri: payload["local_uri"] };
+  if (typeof one.path === "string" && typeof one.localUri === "string")
+    files.push({ path: one.path, localUri: one.localUri });
+  const list = payload["device_media"];
+  if (Array.isArray(list)) {
+    for (const item of list as { storage_path?: unknown; local_uri?: unknown }[]) {
+      if (typeof item.storage_path === "string" && typeof item.local_uri === "string")
+        files.push({ path: item.storage_path, localUri: item.local_uri });
+    }
+  }
+  return files;
 }
 
 function retryAfter(headers: Headers | undefined): number | undefined {
@@ -143,26 +165,28 @@ export class SupabaseUploader implements Uploader {
    * missing object. A retried upload of the same object name is already there (409) and counts as done.
    */
   async #uploadMedia(mutation: Mutation): Promise<UploadOutcome | null> {
-    const localUri = mutation.payload["local_uri"];
-    const path = mutation.payload["storage_path"];
-    if (typeof localUri !== "string" || typeof path !== "string") return null;
+    const files = mediaFiles(mutation.payload);
+    if (files.length === 0) return null;
     if (!this.#options.uploadFile) {
       return {
         kind: "transient",
         error: { code: "media", message: "Media upload is not available yet." },
       };
     }
-    const result = await this.#options.uploadFile(path, localUri);
-    if (
-      !result.error ||
-      result.error.statusCode === "409" ||
-      /exists|duplicate/i.test(result.error.message)
-    )
-      return null;
-    return classifyServerError({
-      status: Number(result.error.statusCode ?? 0),
-      message: result.error.message,
-    });
+    for (const file of files) {
+      const result = await this.#options.uploadFile(file.path, file.localUri);
+      if (
+        !result.error ||
+        result.error.statusCode === "409" ||
+        /exists|duplicate/i.test(result.error.message)
+      )
+        continue;
+      return classifyServerError({
+        status: Number(result.error.statusCode ?? 0),
+        message: result.error.message,
+      });
+    }
+    return null;
   }
 
   async #insert(mutation: Mutation): Promise<UploadOutcome> {

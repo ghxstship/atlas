@@ -157,7 +157,9 @@
     "canceled": "Canceled",
     "startsIn": "Starts in {time}",
     "timeRange": "{start} to {end}",
-    "noPlace": "Venue to be confirmed"
+    "noPlace": "Venue to be confirmed",
+    "claimOverlap": "You already hold a shift that overlaps this one ({time}). Swap or drop that shift first.",
+    "claimQueued": "Shift claimed. It is yours once it uploads; the org's claiming rule decides if someone got there first."
   },
   "scan": {
     "title": "Scan",
