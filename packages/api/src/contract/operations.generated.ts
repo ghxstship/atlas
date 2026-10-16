@@ -376,7 +376,7 @@ export interface Components {
     proposed_fields: Array<Components["AiSuggestionField"]>;
   };
   AiSuggestionApplyRequest: { applied_id: string; reason: string };
-  AiSuggestionConfirmRequest: { reason: string };
+  AiSuggestionConfirmRequest: { reason: string; values?: Record<string, unknown> };
   AiSuggestionField: {
     field_path: string;
     proposed_value?: unknown;
@@ -771,7 +771,7 @@ export interface Components {
   };
   AuroraExtractRequest: {
     kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
-    document_id: string;
+    document_id?: string | null;
     media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
     content_base64: string;
     file_name: string;

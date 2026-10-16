@@ -2,11 +2,13 @@
 // Never edit by hand; on a merge conflict, take either side and rerun the generator.
 import type { SettingsContribution } from "./types";
 import { contributions as from_a19 } from "./a19";
+import { contributions as from_a25 } from "./a25";
 import { contributions as from_a30 } from "./a30";
 import { contributions as from_a31 } from "./a31";
 
 export const CONTRIBUTIONS: readonly SettingsContribution[] = [
   ...from_a19,
+  ...from_a25,
   ...from_a30,
   ...from_a31,
 ];
