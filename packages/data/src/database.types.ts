@@ -48628,6 +48628,17 @@ export type Database = {
           subject_table: string;
         }[];
       };
+      claim_object_scans: {
+        Args: { p_limit?: number; p_worker: string };
+        Returns: {
+          attempts: number;
+          bucket_id: string;
+          content_type: string;
+          object_name: string;
+          object_scan_id: string;
+          size_bytes: number;
+        }[];
+      };
       claim_open_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
       claim_token_submissions: {
         Args: Record<PropertyKey, never>;
@@ -49482,6 +49493,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      record_object_scan: {
+        Args: { p_clean: boolean; p_detail?: string; p_object_scan_id: string };
+        Returns: Database["app"]["Enums"]["scan_status"];
+      };
       record_occupancy_count: {
         Args: { p_counter_id: string; p_delta: number; p_door?: string };
         Returns: number;
@@ -49660,6 +49675,10 @@ export type Database = {
       };
       reject_expense: { Args: { p_expense_id: string; p_reason: string }; Returns: string };
       reject_requisition: { Args: { p_reason: string; p_requisition_id: string }; Returns: string };
+      release_object_scan: {
+        Args: { p_error: string; p_object_scan_id: string };
+        Returns: Database["app"]["Enums"]["scan_status"];
+      };
       release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };

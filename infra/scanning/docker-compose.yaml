@@ -1,0 +1,34 @@
+# Local ClamAV (clamd) for the upload-scan Edge Function in development (A22-011).
+#
+#   CLAMAV_IMAGE=<image pinned in ADR 0001> \
+#     docker compose -f infra/scanning/docker-compose.yaml -p xos4-clamav up -d
+#
+# Then serve the function with CLAMD_HOST=host.docker.internal and CLAMD_PORT=3310 in
+# supabase/functions/.env (see infra/scanning/README.md). The image tag is pinned in ADR 0001 before
+# first use (orchestrator approval); compose refuses to start without it. clamd downloads its
+# signature database on first start, which takes a few minutes; the health check waits for it.
+# Production scanning is an owner decision (infra/runbooks/hosted-security-settings.md).
+
+name: xos4-clamav
+
+services:
+  clamd:
+    image: ${CLAMAV_IMAGE:?set CLAMAV_IMAGE to the tag pinned in ADR 0001}
+    ports:
+      - "127.0.0.1:3310:3310"
+    environment:
+      # Stream size cap: the largest upload bucket accepts 50 MiB.
+      CLAMD_CONF_StreamMaxLength: "60M"
+      CLAMD_CONF_MaxScanSize: "150M"
+      CLAMD_CONF_MaxFileSize: "60M"
+    volumes:
+      - signatures:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 300s
+
+volumes:
+  signatures:

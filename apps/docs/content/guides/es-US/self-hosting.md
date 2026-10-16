@@ -70,8 +70,9 @@ pnpm --filter @xos/atlas start
 | `XOS_APP_URL` y `XOS_POSTAL_ADDRESS`          | `notification-dispatch`, para los enlaces y la dirección postal de los correos                               |
 | `XOS_INBOUND_SECRET` y `XOS_INBOUND_DOMAIN`   | `inbound-email`                                                                                              |
 | `STRIPE_SECRET_KEY` y `STRIPE_WEBHOOK_SECRET` | `stripe-webhook`, solo si cobras con Stripe                                                                  |
+| `CLAMD_HOST` y `CLAMD_PORT`                   | `upload-scan`, el servicio de ClamAV que analiza los archivos subidos (`infra/scanning`)                     |
 
-`webhook-dispatch` y `notification-dispatch` se ejecutan de forma programada con la clave de rol de servicio; prográmalas con el cron de tu plataforma.
+`webhook-dispatch`, `notification-dispatch` y `upload-scan` se ejecutan de forma programada con la clave de rol de servicio; prográmalas con el cron de tu plataforma. Mientras `upload-scan` no se ejecute, los adjuntos no se pueden descargar y los archivos de campo y de incorporación solo los ve quien los subió.
 
 ## Verifica la instalación
 
