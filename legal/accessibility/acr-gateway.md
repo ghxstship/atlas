@@ -220,10 +220,10 @@ The WCAG tables also report Section 508 Chapter 5 (501.1) and Chapter 6 (602.3),
 | 503.4.1 Caption Controls                                                            | Not Applicable     | Gateway has no synchronized media player of its own.                                                                                                       |
 | 503.4.2 Audio Description Controls                                                  | Not Applicable     | Gateway has no synchronized media player of its own.                                                                                                       |
 | 504.2 Content Creation or Editing                                                   | Partially Supports | Rich text editing exposes headings, lists and links; the editor itself carries the WCAG gaps listed in the tables.                                         |
-| 504.2.1 Preservation of Information Provided for Accessibility in Format Conversion | Supports           | Exports keep headings, table headers and alternative text where the source has them.                                                                       |
+| 504.2.1 Preservation of Information Provided for Accessibility in Format Conversion | Partially Supports | Exports were not audited in this pass; reported conservatively until the veraPDF and export review (see 504.2.2).                                          |
 | 504.2.2 PDF Export                                                                  | Partially Supports | Generated documents are designed as tagged PDF (Section 11.9). veraPDF validation is gate 19, owned by A24; A23 did not audit generated PDFs in this pass. |
-| 504.3 Prompts                                                                       | Supports           | Image upload fields prompt for a description where one is required.                                                                                        |
-| 504.4 Templates                                                                     | Supports           | Document templates (Section 11.9) are built with headings and table headers.                                                                               |
+| 504.3 Prompts                                                                       | Partially Supports | Image uploads (logos, attachments) do not prompt for a text description.                                                                                   |
+| 504.4 Templates                                                                     | Partially Supports | Document templates (Section 11.9) were not audited in this pass; see 504.2.2.                                                                              |
 
 ### Chapter 6: Support Documentation and Services
 
@@ -256,19 +256,19 @@ The WCAG tables also report Section 508 Chapter 5 (501.1) and Chapter 6 (602.3),
 
 ### Chapter 5: Generic Requirements
 
-| Criteria                                                        | Conformance Level | Remarks and Explanations                                                                                 |
-| --------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------- |
-| 5.1 Closed functionality (all clauses)                          | Not Applicable    | Gateway is not closed functionality; it runs in a standard browser with the user's assistive technology. |
-| 5.2 Activation of accessibility features                        | Supports          | Accessibility settings sit in personal preferences and need no assistance to reach.                      |
-| 5.3 Biometrics                                                  | Supports          | Biometric sign in (passkeys) is optional; password, magic link and OAuth remain available.               |
-| 5.4 Preservation of accessibility information during conversion | Supports          | See 504.2.1.                                                                                             |
-| 5.5.1 Means of operation                                        | Supports          | No operation needs grasping, pinching or twisting.                                                       |
-| 5.5.2 Operable parts discernibility                             | Not Applicable    | Applies to hardware operable parts.                                                                      |
-| 5.6.1 Tactile or auditory status                                | Not Applicable    | Applies to hardware locking or toggle controls.                                                          |
-| 5.6.2 Visual status                                             | Not Applicable    | Applies to hardware locking or toggle controls.                                                          |
-| 5.7 Key repeat                                                  | Not Applicable    | Key repeat is a platform keyboard setting.                                                               |
-| 5.8 Double-strike key acceptance                                | Not Applicable    | Double-strike acceptance is a platform keyboard setting.                                                 |
-| 5.9 Simultaneous user actions                                   | Supports          | No action needs simultaneous input.                                                                      |
+| Criteria                                                        | Conformance Level  | Remarks and Explanations                                                                                 |
+| --------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------- |
+| 5.1 Closed functionality (all clauses)                          | Not Applicable     | Gateway is not closed functionality; it runs in a standard browser with the user's assistive technology. |
+| 5.2 Activation of accessibility features                        | Supports           | Accessibility settings sit in personal preferences and need no assistance to reach.                      |
+| 5.3 Biometrics                                                  | Supports           | Biometric sign in (passkeys) is optional; password, magic link and OAuth remain available.               |
+| 5.4 Preservation of accessibility information during conversion | Partially Supports | See 504.2.1.                                                                                             |
+| 5.5.1 Means of operation                                        | Supports           | No operation needs grasping, pinching or twisting.                                                       |
+| 5.5.2 Operable parts discernibility                             | Not Applicable     | Applies to hardware operable parts.                                                                      |
+| 5.6.1 Tactile or auditory status                                | Not Applicable     | Applies to hardware locking or toggle controls.                                                          |
+| 5.6.2 Visual status                                             | Not Applicable     | Applies to hardware locking or toggle controls.                                                          |
+| 5.7 Key repeat                                                  | Not Applicable     | Key repeat is a platform keyboard setting.                                                               |
+| 5.8 Double-strike key acceptance                                | Not Applicable     | Double-strike acceptance is a platform keyboard setting.                                                 |
+| 5.9 Simultaneous user actions                                   | Supports           | No action needs simultaneous input.                                                                      |
 
 ### Chapters 6 to 8: Two-Way Voice, Video and Hardware
 
