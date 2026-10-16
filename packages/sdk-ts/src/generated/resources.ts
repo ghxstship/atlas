@@ -381,6 +381,10 @@ import type {
   InsuranceCertificateUpdate,
   Integration,
   IntegrationCreate,
+  IntegrationCredential,
+  IntegrationSyncQueued,
+  IntegrationSyncRequest,
+  IntegrationTransition,
   IntegrationUpdate,
   Interview,
   InterviewCreate,
@@ -28811,7 +28815,7 @@ export class IntegrationsResource extends $Resource {
   /**
    * List integration rows
    *
-   * An integration connection. Credentials are Vault references and never returned. Returns a cursor page of integration rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Returns a cursor page of integration rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /integrations` (operation `integrations.list`).
    * Requires the capability `org.settings.read`.
@@ -28827,7 +28831,7 @@ export class IntegrationsResource extends $Resource {
   /**
    * List integration rows
    *
-   * An integration connection. Credentials are Vault references and never returned. Returns a cursor page of integration rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Returns a cursor page of integration rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -28848,7 +28852,7 @@ export class IntegrationsResource extends $Resource {
   /**
    * Create an integration
    *
-   * An integration connection. Credentials are Vault references and never returned. Creates an integration. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   * An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Creates an integration. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
    *
    * `POST /integrations` (operation `integrations.create`).
    * Requires the capability `org.integrations.manage`.
@@ -28860,7 +28864,7 @@ export class IntegrationsResource extends $Resource {
   /**
    * Get an integration
    *
-   * An integration connection. Credentials are Vault references and never returned. Returns one integration with its `ETag`. A integration the caller may not see returns 404.
+   * An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Returns one integration with its `ETag`. A integration the caller may not see returns 404.
    *
    * `GET /integrations/{id}` (operation `integrations.get`).
    * Requires the capability `org.settings.read`.
@@ -28880,7 +28884,7 @@ export class IntegrationsResource extends $Resource {
   /**
    * Update an integration
    *
-   * An integration connection. Credentials are Vault references and never returned. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   * An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
    *
    * `PATCH /integrations/{id}` (operation `integrations.update`).
    * Requires the capability `org.integrations.manage`.
@@ -28900,7 +28904,7 @@ export class IntegrationsResource extends $Resource {
   /**
    * Delete an integration
    *
-   * An integration connection. Credentials are Vault references and never returned. Soft-deletes the integration: it moves to Trash and can be restored for its table's retention period.
+   * An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Soft-deletes the integration: it moves to Trash and can be restored for its table's retention period.
    *
    * `DELETE /integrations/{id}` (operation `integrations.delete`).
    * Requires the capability `org.integrations.manage`.
@@ -28909,6 +28913,66 @@ export class IntegrationsResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["integrations.delete"],
       { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Change an integration's state
+   *
+   * Moves a connection with compare-and-set: connect (needs a stored, unexpired credential unless the provider needs none), pause, resume or disconnect (destroys the Vault secret and cancels queued runs). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /integrations/{id}/transitions` (operation `integrations.transition`).
+   * Requires the capability `org.integrations.manage`.
+   */
+  transition(
+    id: string,
+    body: IntegrationTransition,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Integration>> {
+    return this.client.request<Integration>(
+      $OPERATIONS["integrations.transition"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Store an integration credential
+   *
+   * Stores or rotates the connection's secret in Supabase Vault. The secret is never returned. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /integrations/{id}/credential` (operation `integrations.storeCredential`).
+   * Requires the capability `org.integrations.manage`.
+   */
+  storeCredential(
+    id: string,
+    body: IntegrationCredential,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Integration>> {
+    return this.client.request<Integration>(
+      $OPERATIONS["integrations.storeCredential"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Queue an integration sync
+   *
+   * Queues a sync run on a Connected connection; the run is attempted by the platform job queue with retries. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /integrations/{id}/syncs` (operation `integrations.sync`).
+   * Requires the capability `org.integrations.manage`.
+   */
+  sync(
+    id: string,
+    body: IntegrationSyncRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<IntegrationSyncQueued>> {
+    return this.client.request<IntegrationSyncQueued>(
+      $OPERATIONS["integrations.sync"],
+      { path: { id }, body },
       options,
     );
   }

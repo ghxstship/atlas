@@ -28793,6 +28793,11 @@ export interface ScimGroupMapping {
    * Format: `uuid`.
    */
   readonly team_id: string | null;
+  /**
+   * Identifier of the identity provider.
+   * Format: `uuid`.
+   */
+  readonly identity_provider_id: string;
 }
 
 /**
@@ -28814,6 +28819,11 @@ export interface ScimGroupMappingCreate {
    * Format: `uuid`.
    */
   readonly team_id?: string | null;
+  /**
+   * Identifier of the identity provider.
+   * Format: `uuid`.
+   */
+  readonly identity_provider_id: string;
 }
 
 /**
@@ -29295,7 +29305,7 @@ export interface IntegrationPage {
 }
 
 /**
- * An integration connection. Credentials are Vault references and never returned.
+ * An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned.
  */
 export interface Integration {
   /**
@@ -29332,21 +29342,45 @@ export interface Integration {
    * Provider.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly provider: string;
-  /**
-   * Whether the integration is on.
-   */
-  readonly enabled: boolean;
-  /**
-   * Integration sync status. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly sync_status: string;
+  readonly provider_code: string;
   /**
    * Last successful sync.
    * Format: `date-time`.
    */
   readonly last_synced_at: string | null;
+  /**
+   * Name the org gives the connection.
+   * Length: 1 to 120.
+   */
+  readonly display_name: string;
+  /**
+   * Provider tenant, company or workspace id.
+   * Length: 1 to 255.
+   */
+  readonly external_account_id: string | null;
+  /**
+   * Connection state; changes through the transitions action.
+   */
+  readonly connection_state: "Pending" | "Connected" | "Error" | "Paused" | "Disconnected";
+  /**
+   * Kind of the stored Vault credential.
+   */
+  readonly credential_kind: "OAuth Token" | "API Key" | "Service Account" | null;
+  /**
+   * When the stored credential expires.
+   * Format: `date-time`.
+   */
+  readonly credential_expires_at: string | null;
+  /**
+   * Rule code of the last connection error.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly last_error_code: string | null;
+  /**
+   * Provider message of the last connection error.
+   * Length: 1 to 1000.
+   */
+  readonly last_error_message: string | null;
 }
 
 /**
@@ -29357,11 +29391,17 @@ export interface IntegrationCreate {
    * Provider.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly provider: string;
+  readonly provider_code: string;
   /**
-   * Whether the integration is on.
+   * Name the org gives the connection.
+   * Length: 1 to 120.
    */
-  readonly enabled: boolean;
+  readonly display_name: string;
+  /**
+   * Provider tenant, company or workspace id.
+   * Length: 1 to 255.
+   */
+  readonly external_account_id?: string | null;
 }
 
 /**
@@ -29369,9 +29409,92 @@ export interface IntegrationCreate {
  */
 export interface IntegrationUpdate {
   /**
-   * Whether the integration is on.
+   * Name the org gives the connection.
+   * Length: 1 to 120.
    */
-  readonly enabled?: boolean;
+  readonly display_name?: string;
+  /**
+   * Provider tenant, company or workspace id.
+   * Length: 1 to 255.
+   */
+  readonly external_account_id?: string | null;
+}
+
+/**
+ * A connection state change with compare-and-set.
+ */
+export interface IntegrationTransition {
+  /**
+   * State the connection is in now (compare-and-set).
+   */
+  readonly expected_state: "Pending" | "Connected" | "Error" | "Paused" | "Disconnected";
+  /**
+   * State to move to.
+   */
+  readonly next_state: "Pending" | "Connected" | "Error" | "Paused" | "Disconnected";
+  /**
+   * Why the connection changes state.
+   * Length: 1 to 500.
+   */
+  readonly reason: string;
+}
+
+/**
+ * A credential to store in Vault for a connection.
+ */
+export interface IntegrationCredential {
+  /**
+   * The provider secret or OAuth token set. Write-only: stored in Vault, never returned.
+   * Length: 1 to 16384.
+   */
+  readonly secret: string;
+  /**
+   * Kind of secret.
+   */
+  readonly kind: "OAuth Token" | "API Key" | "Service Account";
+  /**
+   * When the secret expires, when the provider says.
+   * Format: `date-time`.
+   */
+  readonly expires_at?: string | null;
+}
+
+/**
+ * The queued sync run.
+ */
+export interface IntegrationSyncQueued {
+  /**
+   * Identifier of the sync run.
+   * Format: `uuid`.
+   */
+  readonly sync_run_id: string;
+}
+
+/**
+ * A sync run to queue. The Idempotency-Key makes queueing safe to repeat.
+ */
+export interface IntegrationSyncRequest {
+  /**
+   * What to sync; must belong to the connection's category.
+   */
+  readonly scope:
+    | "Ledger Export"
+    | "Payment Sync"
+    | "Calendar Sync"
+    | "File Import"
+    | "Notification Delivery"
+    | "Payroll Export"
+    | "Tracking Refresh"
+    | "Attendance Import";
+  /**
+   * Direction of the sync.
+   */
+  readonly direction: "Inbound" | "Outbound" | "Two Way";
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id?: string | null;
 }
 
 /**

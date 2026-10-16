@@ -538,7 +538,11 @@ if TYPE_CHECKING:
         InsuranceCertificateUpdate,
         Integration,
         IntegrationCreate,
+        IntegrationCredential,
         IntegrationPage,
+        IntegrationSyncQueued,
+        IntegrationSyncRequest,
+        IntegrationTransition,
         IntegrationUpdate,
         Interview,
         InterviewCreate,
@@ -27072,7 +27076,7 @@ class IntegrationsResource(Resource):
     ) -> Page[Integration]:
         """List integration rows
 
-        An integration connection. Credentials are Vault references and never returned. Returns a cursor page of integration rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Returns a cursor page of integration rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /integrations`` (operation ``integrations.list``).
         Requires the capability ``org.settings.read``.
@@ -27090,7 +27094,7 @@ class IntegrationsResource(Resource):
     ) -> Iterator[Integration]:
         """List integration rows
 
-        An integration connection. Credentials are Vault references and never returned. Returns a cursor page of integration rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Returns a cursor page of integration rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -27108,7 +27112,7 @@ class IntegrationsResource(Resource):
     ) -> ApiResponse[Integration]:
         """Create an integration
 
-        An integration connection. Credentials are Vault references and never returned. Creates an integration. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+        An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Creates an integration. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
 
         ``POST /integrations`` (operation ``integrations.create``).
         Requires the capability ``org.integrations.manage``.
@@ -27124,7 +27128,7 @@ class IntegrationsResource(Resource):
     ) -> ApiResponse[Integration]:
         """Get an integration
 
-        An integration connection. Credentials are Vault references and never returned. Returns one integration with its `ETag`. A integration the caller may not see returns 404.
+        An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Returns one integration with its `ETag`. A integration the caller may not see returns 404.
 
         ``GET /integrations/{id}`` (operation ``integrations.get``).
         Requires the capability ``org.settings.read``.
@@ -27141,7 +27145,7 @@ class IntegrationsResource(Resource):
     ) -> ApiResponse[Integration]:
         """Update an integration
 
-        An integration connection. Credentials are Vault references and never returned. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+        An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
 
         ``PATCH /integrations/{id}`` (operation ``integrations.update``).
         Requires the capability ``org.integrations.manage``.
@@ -27156,12 +27160,63 @@ class IntegrationsResource(Resource):
     ) -> ApiResponse[None]:
         """Delete an integration
 
-        An integration connection. Credentials are Vault references and never returned. Soft-deletes the integration: it moves to Trash and can be restored for its table's retention period.
+        An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned. Soft-deletes the integration: it moves to Trash and can be restored for its table's retention period.
 
         ``DELETE /integrations/{id}`` (operation ``integrations.delete``).
         Requires the capability ``org.integrations.manage``.
         """
         return self._client.request(OPERATIONS["integrations.delete"], path={"id": id}, options=options)
+
+    def transition(
+        self,
+        id: str,
+        body: IntegrationTransition,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Integration]:
+        """Change an integration's state
+
+        Moves a connection with compare-and-set: connect (needs a stored, unexpired credential unless the provider needs none), pause, resume or disconnect (destroys the Vault secret and cancels queued runs). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /integrations/{id}/transitions`` (operation ``integrations.transition``).
+        Requires the capability ``org.integrations.manage``.
+        """
+        return self._client.request(OPERATIONS["integrations.transition"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def store_credential(
+        self,
+        id: str,
+        body: IntegrationCredential,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Integration]:
+        """Store an integration credential
+
+        Stores or rotates the connection's secret in Supabase Vault. The secret is never returned. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /integrations/{id}/credential`` (operation ``integrations.storeCredential``).
+        Requires the capability ``org.integrations.manage``.
+        """
+        return self._client.request(OPERATIONS["integrations.storeCredential"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def sync(
+        self,
+        id: str,
+        body: IntegrationSyncRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[IntegrationSyncQueued]:
+        """Queue an integration sync
+
+        Queues a sync run on a Connected connection; the run is attempted by the platform job queue with retries. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /integrations/{id}/syncs`` (operation ``integrations.sync``).
+        Requires the capability ``org.integrations.manage``.
+        """
+        return self._client.request(OPERATIONS["integrations.sync"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class WebhookEndpointsResource(Resource):

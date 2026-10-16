@@ -1044,6 +1044,10 @@ __all__ = [
     "Integration",
     "IntegrationCreate",
     "IntegrationUpdate",
+    "IntegrationTransition",
+    "IntegrationCredential",
+    "IntegrationSyncQueued",
+    "IntegrationSyncRequest",
     "WebhookEndpointPage",
     "WebhookEndpoint",
     "WebhookEndpointUpdate",
@@ -16085,11 +16089,15 @@ class ScimGroupMapping(TypedDict):
     role_id: Optional[str]
     #: Identifier of the team.
     team_id: Optional[str]
+    #: Identifier of the identity provider.
+    identity_provider_id: str
 
 
 class _ScimGroupMappingCreateRequired(TypedDict):
     #: Identity-provider group name.
     idp_group: str
+    #: Identifier of the identity provider.
+    identity_provider_id: str
 
 
 class ScimGroupMappingCreate(_ScimGroupMappingCreateRequired, total=False):
@@ -16349,7 +16357,7 @@ class IntegrationPage(TypedDict):
 
 
 class Integration(TypedDict):
-    """An integration connection. Credentials are Vault references and never returned."""
+    """An integration connection (Section 17). Credentials are stored in Supabase Vault through the credential action and never returned."""
 
     #: Identifier of the integration.
     id: str
@@ -16364,29 +16372,92 @@ class Integration(TypedDict):
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
     #: Provider.
-    provider: str
-    #: Whether the integration is on.
-    enabled: bool
-    #: Integration sync status. A Title Case value from the lifecycle's database enum.
-    sync_status: str
+    provider_code: str
     #: Last successful sync.
     last_synced_at: Optional[str]
+    #: Name the org gives the connection.
+    display_name: str
+    #: Provider tenant, company or workspace id.
+    external_account_id: Optional[str]
+    #: Connection state; changes through the transitions action.
+    connection_state: Literal["Pending", "Connected", "Error", "Paused", "Disconnected"]
+    #: Kind of the stored Vault credential.
+    credential_kind: Optional[Literal["OAuth Token", "API Key", "Service Account"]]
+    #: When the stored credential expires.
+    credential_expires_at: Optional[str]
+    #: Rule code of the last connection error.
+    last_error_code: Optional[str]
+    #: Provider message of the last connection error.
+    last_error_message: Optional[str]
 
 
-class IntegrationCreate(TypedDict):
+class _IntegrationCreateRequired(TypedDict):
+    #: Provider.
+    provider_code: str
+    #: Name the org gives the connection.
+    display_name: str
+
+
+class IntegrationCreate(_IntegrationCreateRequired, total=False):
     """Fields accepted when creating a Integration."""
 
-    #: Provider.
-    provider: str
-    #: Whether the integration is on.
-    enabled: bool
+    #: Provider tenant, company or workspace id.
+    external_account_id: Optional[str]
 
 
 class IntegrationUpdate(TypedDict, total=False):
     """Fields accepted when updating a Integration. Omitted fields are unchanged."""
 
-    #: Whether the integration is on.
-    enabled: bool
+    #: Name the org gives the connection.
+    display_name: str
+    #: Provider tenant, company or workspace id.
+    external_account_id: Optional[str]
+
+
+class IntegrationTransition(TypedDict):
+    """A connection state change with compare-and-set."""
+
+    #: State the connection is in now (compare-and-set).
+    expected_state: Literal["Pending", "Connected", "Error", "Paused", "Disconnected"]
+    #: State to move to.
+    next_state: Literal["Pending", "Connected", "Error", "Paused", "Disconnected"]
+    #: Why the connection changes state.
+    reason: str
+
+
+class _IntegrationCredentialRequired(TypedDict):
+    #: The provider secret or OAuth token set. Write-only: stored in Vault, never returned.
+    secret: str
+    #: Kind of secret.
+    kind: Literal["OAuth Token", "API Key", "Service Account"]
+
+
+class IntegrationCredential(_IntegrationCredentialRequired, total=False):
+    """A credential to store in Vault for a connection."""
+
+    #: When the secret expires, when the provider says.
+    expires_at: Optional[str]
+
+
+class IntegrationSyncQueued(TypedDict):
+    """The queued sync run."""
+
+    #: Identifier of the sync run.
+    sync_run_id: str
+
+
+class _IntegrationSyncRequestRequired(TypedDict):
+    #: What to sync; must belong to the connection's category.
+    scope: Literal["Ledger Export", "Payment Sync", "Calendar Sync", "File Import", "Notification Delivery", "Payroll Export", "Tracking Refresh", "Attendance Import"]
+    #: Direction of the sync.
+    direction: Literal["Inbound", "Outbound", "Two Way"]
+
+
+class IntegrationSyncRequest(_IntegrationSyncRequestRequired, total=False):
+    """A sync run to queue. The Idempotency-Key makes queueing safe to repeat."""
+
+    #: Identifier of the project.
+    project_id: Optional[str]
 
 
 class WebhookEndpointPage(TypedDict):
