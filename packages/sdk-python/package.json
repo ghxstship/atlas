@@ -1,0 +1,15 @@
+{
+  "name": "@xos/sdk-python",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Python SDK for the XOS public API (PyPI: xos-sdk), generated from the OpenAPI v1 document. Workspace wrapper for generation and tests.",
+  "license": "MIT",
+  "scripts": {
+    "generate": "node --experimental-strip-types --no-warnings ../sdk-ts/scripts/generate.ts --target python",
+    "lint": "python3 -m compileall -q src tests",
+    "test": "node --experimental-strip-types --no-warnings ../sdk-ts/scripts/generate.ts --target python --check && PYTHONPATH=src python3 -m unittest discover -s tests -t ."
+  },
+  "devDependencies": {
+    "@xos/sdk": "workspace:*"
+  }
+}

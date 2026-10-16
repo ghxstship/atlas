@@ -1,0 +1,45 @@
+{
+  "name": "@xos/sdk",
+  "version": "0.0.0",
+  "private": true,
+  "description": "TypeScript SDK for the XOS public API, generated from the OpenAPI v1 document.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./webhooks": {
+      "types": "./dist/runtime/webhooks.d.ts",
+      "default": "./dist/runtime/webhooks.js"
+    },
+    "./codegen": "./codegen/index.ts",
+    "./test-server": "./test/contract/server.ts"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "generate": "node --experimental-strip-types --no-warnings scripts/generate.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --no-warnings scripts/generate.ts --target ts --check && vitest run --coverage"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.0.3",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "prettier": "3.9.9",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
