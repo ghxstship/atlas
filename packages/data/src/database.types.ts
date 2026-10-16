@@ -48177,6 +48177,14 @@ export type Database = {
         };
         Returns: string;
       };
+      carrier_connections: {
+        Args: { p_org_id: string };
+        Returns: {
+          display_name: string;
+          id: string;
+          provider_code: string;
+        }[];
+      };
       carry_certification_to_profile: {
         Args: { p_certification_holder_id: string };
         Returns: string;

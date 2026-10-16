@@ -32,6 +32,7 @@ import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
+import enUS_shipmentTracking from "../messages/en-US/shipmentTracking.json" with { type: "json" };
 import enUS_show from "../messages/en-US/show.json" with { type: "json" };
 import enUS_support from "../messages/en-US/support.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
@@ -69,6 +70,7 @@ import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
+import esUS_shipmentTracking from "../messages/es-US/shipmentTracking.json" with { type: "json" };
 import esUS_show from "../messages/es-US/show.json" with { type: "json" };
 import esUS_support from "../messages/es-US/support.json" with { type: "json" };
 import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
@@ -108,6 +110,7 @@ export const enUS = {
   schedule: enUS_schedule,
   settings: enUS_settings,
   shell: enUS_shell,
+  shipmentTracking: enUS_shipmentTracking,
   show: enUS_show,
   support: enUS_support,
   ui: enUS_ui,
@@ -148,6 +151,7 @@ export const esUS = {
   schedule: esUS_schedule,
   settings: esUS_settings,
   shell: esUS_shell,
+  shipmentTracking: esUS_shipmentTracking,
   show: esUS_show,
   support: esUS_support,
   ui: esUS_ui,
