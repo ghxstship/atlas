@@ -58,7 +58,7 @@
     "multiline": "Check this value and save again.",
     "contrast": "This accent fails WCAG 2.2 AA contrast. Choose a darker or more saturated color.",
     "fileMissing": "Choose a file to upload.",
-    "fileType": "Upload a PNG, SVG, WebP or ICO file.",
+    "fileType": "Upload a PNG, WebP or ICO file.",
     "fileSize": "Upload a file of 2 MB or less.",
     "uploadFailed": "The upload did not finish. Try again in a moment.",
     "hostname": "Enter a host name like gateway.example.com, without https://."
@@ -372,7 +372,7 @@
     "appIcon": "App icon",
     "assetCurrent": "Current file: {name}",
     "assetNone": "No file yet. The platform mark is used.",
-    "assetHelp": "SVG, PNG, WebP or ICO, up to 2 MB. Logos at least 256 pixels wide.",
+    "assetHelp": "PNG, WebP or ICO, up to 2 MB. Logos at least 256 pixels wide.",
     "upload": "Upload"
   },
   "domains": {
