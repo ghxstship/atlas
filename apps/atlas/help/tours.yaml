@@ -1,0 +1,31 @@
+# Guided tours (Section 11.16): offered once on the pages they name, replayable from Help, never forced.
+# Copy lives in the help catalog namespace under help.tours.<key>: title, summary and one title and body
+# per step (steps.<n>). A step's target is a CSS selector it points at when present on the page.
+tours:
+  - key: atlas.getting-started
+    nodes: [home, home.today]
+    steps:
+      - target: null
+      - target: "nav[aria-label]"
+      - target: "button[data-help-trigger]"
+      - target: null
+  - key: module.collections
+    nodes:
+      [
+        projects.all,
+        work.all-records,
+        logistics.shipments,
+        assets.units,
+        people.directory,
+        places.venues,
+      ]
+    steps:
+      - target: null
+      - target: "[role=group][aria-label]"
+      - target: null
+  - key: module.crew
+    nodes: ["crew.*", project.crew]
+    steps:
+      - target: null
+      - target: null
+      - target: null

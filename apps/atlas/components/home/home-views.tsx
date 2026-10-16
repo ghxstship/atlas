@@ -9,7 +9,6 @@ import {
   EmptyState,
   RecordList,
   RecordRow,
-  SegmentedControl,
   Tag,
   type RecordKind,
   type RecordState,
@@ -19,6 +18,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Alert } from "@/lib/home/data";
 import { enumKey, phaseCode } from "@/lib/projects/format";
+import { CollectionViews } from "@/components/views/collection-views";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -49,7 +49,7 @@ function ViewSwitch({ views, view }: { views: readonly string[]; view: string })
   const setView = useViewSwitch();
   if (views.length < 2) return null;
   return (
-    <SegmentedControl
+    <CollectionViews
       label={t("label")}
       value={view}
       options={views.map((v) => ({ value: v, label: t(v) }))}

@@ -1,0 +1,22 @@
+{
+  "chat": {
+    "event": {
+      "withProject": "{event} in {project}.",
+      "withoutProject": "{event}.",
+      "recordCreated": "New {kind} in {project}: {title}",
+      "recordStateChanged": "A record in {project} moved from {from} to {to}.",
+      "projectCreated": "New project: {name}",
+      "invoiceIssued": "An invoice was issued in {project}.",
+      "incidentReported": "An incident was reported in {project}. Open Atlas for details.",
+      "integrationFailed": "A sync of {connection} failed: {error}"
+    },
+    "slash": {
+      "help": "Commands: /xos record KEY shows a record, for example /xos record NWL-12. /xos help shows this list.",
+      "unknown": "That command is not one XOS knows. Type /xos help for the list.",
+      "unlinked": "Your chat account is not linked to XOS yet. Ask an Admin to link it in Atlas Settings, Integrations.",
+      "notFound": "No record {key} exists, or you cannot see it. Check the key and try again.",
+      "keyMissing": "Add a record key, for example /xos record NWL-12.",
+      "record": "{key} {title}: {kind}, {state}."
+    }
+  }
+}

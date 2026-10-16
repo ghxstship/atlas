@@ -315,34 +315,23 @@ export async function recordRfqResponse(
   },
 ): Promise<Result<{ id: string }>> {
   if (input.lines.length === 0) return fail({ kind: "invalid", message: "lines" });
-  const response = await insertedId(
-    db
-      .from("rfq_responses")
-      .insert({
-        rfq_id: input.rfqId,
-        vendor_id: input.vendorId,
-        valid_until: blankToNull(input.validUntil),
-      } as Tables["rfq_responses"]["Insert"])
-      .select("id")
-      .single(),
-  );
-  if (!response.ok) return response;
-  const lines = input.lines.map(
-    (l) =>
-      ({
-        rfq_response_id: response.data.id,
+  // Responses are sealed until the RFQ closes, so the recorder cannot read the rows back: one RPC
+  // (0493) records the response and its lines together.
+  const id = await rpcValue(
+    db.rpc("record_rfq_response", {
+      p_rfq_id: input.rfqId,
+      p_vendor_id: input.vendorId,
+      p_valid_until: blankToNull(input.validUntil) as string,
+      p_currency_code: input.currencyCode,
+      p_lines: input.lines.map((l) => ({
         description: l.description.trim(),
         element_id: blankToNull(l.elementId),
         quantity: l.quantity,
         unit_price_minor: l.unitPriceMinor,
-        currency_code: input.currencyCode,
-      }) as Tables["rfq_response_lines"]["Insert"],
+      })),
+    }),
   );
-  const inserted = await readRows(
-    db.from("rfq_response_lines").insert(lines).select("id"),
-    (r) => r,
-  );
-  return inserted.ok ? response : inserted;
+  return id.ok ? ok({ id: id.data }) : id;
 }
 
 // Purchase orders --------------------------------------------------------------------------------------

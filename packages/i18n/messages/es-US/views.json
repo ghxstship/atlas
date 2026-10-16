@@ -1,0 +1,77 @@
+{
+  "types": {
+    "list": "Lista",
+    "table": "Tabla",
+    "spreadsheet": "Hoja de cálculo",
+    "gallery": "Galería",
+    "board": "Tablero",
+    "calendar": "Calendario",
+    "resource-schedule": "Programa de recursos",
+    "timeline": "Cronograma",
+    "map": "Mapa",
+    "site-plan": "Plano del sitio",
+    "tree": "Árbol",
+    "matrix": "Matriz",
+    "org-chart": "Organigrama",
+    "chart": "Gráfico",
+    "feed": "Actividad",
+    "inbox": "Bandeja de entrada",
+    "split": "Vista dividida"
+  },
+  "menu": {
+    "label": "Vistas guardadas",
+    "heading": "Vistas guardadas",
+    "loading": "Cargando vistas guardadas",
+    "empty": "Todavía no hay vistas guardadas",
+    "default": "{name} (predeterminada)",
+    "save": "Guardar la vista actual",
+    "update": "Actualizar {name} para que coincida",
+    "setDefault": "Abrir {name} de forma predeterminada",
+    "clearDefault": "Dejar de abrir {name} de forma predeterminada",
+    "share": "Compartir {name}",
+    "delete": "Eliminar {name}",
+    "pageDefault": "Vista predeterminada de la página"
+  },
+  "save": {
+    "title": "Guardar la vista actual",
+    "description": "Guarda el tipo de vista, los filtros, el orden, la agrupación y la búsqueda en pantalla. Cada persona que abre una vista compartida ve solo lo que su propio acceso permite.",
+    "name": "Nombre",
+    "nameHint": "Entradas de esta semana",
+    "nameHelp": "Hasta 100 caracteres.",
+    "nameRequired": "Ponga un nombre a la vista para guardarla.",
+    "submit": "Guardar vista",
+    "cancel": "Cancelar"
+  },
+  "share": {
+    "title": "Compartir {name}",
+    "description": "Las personas con quienes la comparte pueden abrir la vista, nunca editarla, y ven solo los registros que su propio acceso permite.",
+    "everyone": "Todos en la organización",
+    "teams": "Equipos",
+    "noTeams": "Esta organización todavía no tiene equipos. Cree equipos en Configuración para compartir con ellos.",
+    "submit": "Guardar uso compartido",
+    "cancel": "Cancelar"
+  },
+  "delete": {
+    "title": "¿Eliminar {name}?",
+    "description": "La vista se elimina para usted y para todas las personas con quienes se comparte. Los registros que mostraba no cambian.",
+    "submit": "Eliminar vista",
+    "cancel": "Conservar vista"
+  },
+  "status": {
+    "saved": "Se guardó {name}.",
+    "updated": "Se actualizó {name}.",
+    "deleted": "Se eliminó {name}.",
+    "shared": "Se guardó el uso compartido de {name}.",
+    "defaultSet": "{name} ahora se abre de forma predeterminada.",
+    "defaultCleared": "Esta página ahora se abre en su propia vista predeterminada.",
+    "applied": "Mostrando {name}."
+  },
+  "errors": {
+    "denied": "No puede cambiar esta vista. Solo su propietario la edita, la comparte o la elimina.",
+    "invalid": "Esta vista no se puede guardar así. Revise el nombre e inténtelo de nuevo.",
+    "conflict": "Ya existe una vista con esta configuración. Elija otro nombre.",
+    "notFound": "La vista ya no existe o ya no se comparte con usted. Vuelva a cargar para ver las vistas actuales.",
+    "unexpected": "No se pudo acceder a las vistas guardadas. Inténtelo de nuevo en un momento.",
+    "loadFailed": "No se pudieron cargar las vistas guardadas. La página sigue funcionando; vuelva a abrir el menú en breve."
+  }
+}

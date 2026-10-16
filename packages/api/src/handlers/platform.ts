@@ -20,6 +20,7 @@ import type { HandlerSet } from "../runtime/handler.ts";
 import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import type { ListQuery } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
+import { viewsHelpSupportHandlers } from "./parts/views-help-support.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap } from "./support/table.ts";
 import type { Row } from "./support/table.ts";
 
@@ -250,6 +251,7 @@ export const handlers = defineHandlers("Platform", {
   },
 
   ...handlersFor("Platform", tableResource("savedViews")),
+  ...(viewsHelpSupportHandlers as unknown as HandlerSet<"Platform">),
 
   ...handlersFor("Platform", commentThreads),
   "commentThreads.update": async ({ params, body, ifMatch }, context) => {

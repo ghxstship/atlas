@@ -508,7 +508,6 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "org.scheduling.write": "Scheduling rules are setting values.",
   "org.notifications.write": "Org notification defaults are setting values.",
   "org.localization.write": "Localization defaults are setting values.",
-  "org.usage.read": "Usage reads arrive with A18 billing in Wave 2.",
   "org.legal.read": "Legal acceptance records arrive with A21.",
   "org.legal.accept": "Legal acceptance records arrive with A21.",
   "org.support_session.grant":
@@ -524,6 +523,5 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "data.export.restricted": "Classification-aware export checks run inside export jobs.",
   "data.legal_hold.manage": "Legal holds arrive with A21.",
   "data.restricted.read.government_id": "No government identifier column is exposed yet.",
-  "me.preferences.write": "Preferences are personal setting values.",
   "me.api_tokens.write": "Personal API tokens arrive with A30.",
 };

@@ -1,0 +1,46 @@
+{
+  "name": "@xos/integrations",
+  "version": "0.0.0",
+  "private": true,
+  "description": "XOS integrations (Section 17): the connector framework over Vault credentials, external identifier maps and sync runs, the Section 17 connectors with every provider client injected, and the connector settings components.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./settings": "./src/settings/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@xos/data": "workspace:*",
+    "@xos/i18n": "workspace:*",
+    "@xos/platform": "workspace:*",
+    "@xos/ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitest/coverage-v8": "5.0.3",
+    "@xos/config": "workspace:*",
+    "axe-core": "4.14.0",
+    "eslint": "10.12.0",
+    "jsdom": "29.1.1",
+    "prettier": "3.9.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

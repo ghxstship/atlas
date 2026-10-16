@@ -15,7 +15,6 @@ import {
   Input,
   InlineAlert,
   PhaseChip,
-  SegmentedControl,
   Select,
   Tag,
   Textarea,
@@ -32,6 +31,8 @@ import {
 } from "@/lib/projects/actions";
 import { phaseCode } from "@/lib/projects/format";
 import { ActionError, echoed, fieldError, useClosingAction } from "./action-error";
+import { CollectionViews } from "@/components/views/collection-views";
+import { CanonTerm } from "@/components/help/canon-term";
 
 type GateView = "list" | "board";
 
@@ -99,7 +100,7 @@ export function GatesView({
   return (
     <div className="flex flex-col gap-16">
       {views.length > 1 ? (
-        <SegmentedControl
+        <CollectionViews
           label={t("views.label")}
           value={view}
           options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}
@@ -155,11 +156,17 @@ export function GatesView({
                       id={`gate-${ph.gate}`}
                       className="m-0 flex items-center gap-8 text-heading-16 font-semibold"
                     >
-                      <PhaseChip
-                        gate={ph.gate}
-                        code={phaseCode(ph.code)}
-                        name={phaseName(ph.code)}
-                      />
+                      <CanonTerm
+                        term={phaseName(ph.code)}
+                        definition={ph.definition}
+                        detail={ph.gateExit}
+                      >
+                        <PhaseChip
+                          gate={ph.gate}
+                          code={phaseCode(ph.code)}
+                          name={phaseName(ph.code)}
+                        />
+                      </CanonTerm>
                       <Tag
                         tone={s === "passed" ? "success" : s === "current" ? "accent" : "neutral"}
                       >

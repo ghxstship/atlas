@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { createApiApp } from "../src/app.ts";
 import {
+  apiKeyTokenScopes,
   createSupabaseAuthenticator,
   jwtClaims,
   negotiateLocale,
@@ -263,5 +264,22 @@ describe("helpers", () => {
     expect(negotiateLocale("fr", supported)).toBe("en-US");
     expect(negotiateLocale("*", supported)).toBe("en-US");
     expect(negotiateLocale("es-us", supported)).toBe("es-US");
+  });
+});
+
+describe("API key tokens presented as bearer JWTs", () => {
+  it("keeps the key's scope limit on a minted token", () => {
+    expect(
+      apiKeyTokenScopes({ amr: [{ method: "xos_api_key", timestamp: 1 }], scopes: ["canon"] }),
+    ).toEqual(["canon"]);
+  });
+
+  it("gives a minted token without a scopes claim no scopes", () => {
+    expect(apiKeyTokenScopes({ amr: [{ method: "xos_api_key", timestamp: 1 }] })).toEqual([]);
+  });
+
+  it("leaves an ordinary session unscoped", () => {
+    expect(apiKeyTokenScopes({ amr: [{ method: "password", timestamp: 1 }] })).toBeNull();
+    expect(apiKeyTokenScopes({})).toBeNull();
   });
 });

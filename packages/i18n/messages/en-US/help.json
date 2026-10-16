@@ -1,0 +1,180 @@
+{
+  "button": "Help",
+  "title": "Help",
+  "search": "Search help",
+  "searchHint": "Search articles",
+  "searchEmpty": "No articles match {query}. Try another word, or contact support below.",
+  "searchResults": "Articles matching {query}",
+  "forThisPage": "For this page",
+  "noArticles": "This page has no article of its own yet. The general articles below still apply.",
+  "general": "Everywhere in Atlas",
+  "back": "Back to help",
+  "related": "Related",
+  "loadFailed": "Your tours and tips could not be loaded. Help articles still work; reopen Help to try again.",
+  "kinds": {
+    "guide": "Guide",
+    "page": "Page",
+    "workflow": "Workflow",
+    "glossary": "Glossary"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "command": "Open the command menu",
+    "help": "Open help for this page",
+    "focus": "Turn focus mode on or off",
+    "close": "Close a menu, dialog or peek",
+    "move": "Move between rows",
+    "open": "Open the focused record",
+    "select": "Select the focused row",
+    "all": "All shortcuts"
+  },
+  "whatsNew": {
+    "title": "What's new",
+    "saved-views": {
+      "title": "Saved views on every collection",
+      "body": "Save the view, filters and sort you use, share them with your team, and open them by default."
+    },
+    "contextual-help": {
+      "title": "Help for every page",
+      "body": "Press ? on any page for its articles, shortcuts and tours."
+    },
+    "support-requests": {
+      "title": "Support requests with diagnostics",
+      "body": "Contact your admins from Help and follow the answer in Me, Account."
+    }
+  },
+  "tours": {
+    "title": "Guided tours",
+    "none": "No tour covers this page. Tours for other pages are offered when you open them.",
+    "replay": "Replay {title}",
+    "start": "Start {title}",
+    "offerTitle": "Take a quick tour?",
+    "offerBody": "{title}: {summary}",
+    "offerStart": "Start tour",
+    "offerLater": "Not now",
+    "step": "Step {current} of {total}",
+    "next": "Next",
+    "previous": "Back",
+    "finish": "Finish",
+    "skip": "End tour",
+    "label": "Guided tour",
+    "atlas_getting-started": {
+      "title": "Getting started",
+      "summary": "Four steps through navigation, help and the command menu.",
+      "steps": {
+        "1": {
+          "title": "Welcome to Atlas",
+          "body": "This tour shows where things are. You can end it at any time and replay it from Help."
+        },
+        "2": {
+          "title": "Navigation",
+          "body": "Everything you can open is in the sidebar. Groups that match your role start expanded."
+        },
+        "3": {
+          "title": "Help on every page",
+          "body": "Press ? or choose Help for the articles, shortcuts and support for the page you are on."
+        },
+        "4": {
+          "title": "The command menu",
+          "body": "Press Mod+K or / and type the name of any page to go there."
+        }
+      }
+    },
+    "module_collections": {
+      "title": "Working with collections",
+      "summary": "Views, filters and saved views in three steps.",
+      "steps": {
+        "1": {
+          "title": "One collection, many views",
+          "body": "Each collection offers only the views that fit its data: list, table, board, calendar or map."
+        },
+        "2": {
+          "title": "Switch views",
+          "body": "Use the view switcher. Your filters, sort and search stay as they are."
+        },
+        "3": {
+          "title": "Save a view",
+          "body": "Open Saved views to save what you see, share it with a team, or open it by default."
+        }
+      }
+    },
+    "module_crew": {
+      "title": "Crew and time",
+      "summary": "Shifts, timesheets and payroll in three steps.",
+      "steps": {
+        "1": {
+          "title": "The resource schedule",
+          "body": "Shifts show people down the side and time across. Publish shifts so crew can accept them in Compass."
+        },
+        "2": {
+          "title": "Time from Compass",
+          "body": "Crew clock in inside the venue geofence. Supervisors approve timesheets; later changes void the approval."
+        },
+        "3": {
+          "title": "Payroll",
+          "body": "Export payroll for a pay period and post it. A posted period stays closed."
+        }
+      }
+    }
+  },
+  "tips": {
+    "label": "Tip",
+    "learnMore": "Learn more",
+    "dismiss": "Dismiss tip",
+    "gates": {
+      "title": "Gates guard each phase",
+      "body": "A gate passes only when its blocking criteria are met. Hover over a gate chip for its definition."
+    },
+    "access-grid": {
+      "title": "Change access cell by cell",
+      "body": "Move with the arrow keys and press Space to allow or deny a category in a zone."
+    },
+    "resource-schedule": {
+      "title": "Read the resource schedule",
+      "body": "People run down the side and time runs across. Switch to the table view for the same shifts as rows."
+    },
+    "saved-views": {
+      "title": "Save the view you need",
+      "body": "Set your filters, then open Saved views to keep them, share them or open them by default."
+    },
+    "reconciliation": {
+      "title": "Gaps feed the next gate",
+      "body": "A rider requirement the venue cannot meet, or one marked UNKNOWN on a critical item, shows as a gate gap."
+    }
+  },
+  "contact": {
+    "title": "Contact support",
+    "description": "Your request goes to your organization's admins, who answer in the request.",
+    "open": "Contact support",
+    "queue": "Send to",
+    "queues": {
+      "Organization": "My organization's admins",
+      "Platform": "The platform support team"
+    },
+    "platformTerms": "Platform support for your plan: {terms}",
+    "category": "Category",
+    "severity": "Severity",
+    "subject": "Subject",
+    "subjectHint": "Scanner shows an unknown zone",
+    "body": "What happened, and what do you need?",
+    "bodyHint": "Steps you took, what you expected and what you saw",
+    "diagnostics": "Attach diagnostics",
+    "diagnosticsHelp": "Only the details listed below are sent, and only if you tick the box.",
+    "diagnosticsRoute": "Page",
+    "diagnosticsVersion": "App version",
+    "diagnosticsDevice": "Browser and device",
+    "diagnosticsErrors": "Recent errors",
+    "diagnosticsNoErrors": "No errors recorded on this visit",
+    "send": "Send request",
+    "cancel": "Cancel",
+    "sent": "Request {number} sent. Follow it in Me, Account.",
+    "followUp": "Open my requests",
+    "required": "Fill in the subject and the description to send the request.",
+    "errors": {
+      "denied": "You cannot send this request. Only org admins contact platform support; send it to your admins instead.",
+      "noChannel": "Your plan includes the help center and community forum. Upgrade to contact platform support.",
+      "invalid": "The request is missing something. Check the subject and description.",
+      "unexpected": "The request could not be sent. Try again in a moment."
+    }
+  }
+}

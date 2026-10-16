@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { ActionState } from "@/lib/collection-kit/forms";
 import { ActionFeedback } from "@/components/collection-kit/kit";
+import { keepInputOnSubmit, useResetOnSuccess } from "@/components/collection-kit/keep-input";
 import { useCopy } from "@/components/collection-kit/use-copy";
 
 /**
@@ -49,12 +50,19 @@ export function ResponseForm({
   const t = useCopy("procurement");
   const k = useCopy("procurement.kit");
   const [state, formAction, pending] = useActionState(action, INITIAL);
+  const formRef = useResetOnSuccess(state);
   const [count, setCount] = useState(2);
   useDone(state);
   const err = (name: string) =>
     state.fieldErrors?.[name] ? k(`validation.${state.fieldErrors[name]}`) : "";
   return (
-    <form action={formAction} className="flex flex-col gap-12" noValidate>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={keepInputOnSubmit(formAction)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="rfqId" value={rfqId} />
       <ActionFeedback state={state} refusals="procurement.refusals" />
@@ -154,9 +162,16 @@ export function ReceiptForm({
   const t = useCopy("procurement");
   const k = useCopy("procurement.kit");
   const [state, formAction, pending] = useActionState(action, INITIAL);
+  const formRef = useResetOnSuccess(state);
   useDone(state, successHref);
   return (
-    <form action={formAction} className="flex flex-col gap-12" noValidate>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={keepInputOnSubmit(formAction)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="purchaseOrderId" value={purchaseOrderId} />
       <ActionFeedback state={state} refusals="procurement.refusals" />

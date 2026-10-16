@@ -14,7 +14,6 @@ import {
   PropertyList,
   RecordList,
   RecordRow,
-  SegmentedControl,
   Select,
   StateChip,
   Tag,
@@ -37,6 +36,7 @@ import {
   updateWorkOrderAction,
   withdrawBidAction,
 } from "./work-order-actions";
+import { CollectionViews } from "@/components/views/collection-views";
 
 export interface BidderOption {
   readonly organizationId: string;
@@ -107,7 +107,7 @@ export function WorkOrderCollection({
       count={orders.length}
       views={
         views.length > 1 ? (
-          <SegmentedControl
+          <CollectionViews
             label={t("collection.views")}
             value={view}
             options={views.map((v) => ({ value: v, label: t(`views.${v}`) }))}

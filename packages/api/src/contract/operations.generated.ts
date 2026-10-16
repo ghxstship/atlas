@@ -307,6 +307,27 @@ export interface Components {
     person_id?: string | null;
     counterparty_id?: string | null;
   };
+  AiFeature: "assistant" | "plain_language" | "extraction" | "drafting" | "summaries" | "mapping";
+  AiRequest: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    person_id: string;
+    feature: Components["AiFeature"];
+    model: string;
+    subject_table: string | null;
+    subject_id: string | null;
+    outcome: Components["AiRequestOutcome"];
+    prompt_redacted: string | null;
+    output_redacted: string | null;
+    failure_code: string | null;
+    completed_at: string | null;
+  };
+  AiRequestOutcome: "Pending" | "Answered" | "No Answer" | "Failed";
+  AiRequestPage: { data: Array<Components["AiRequest"]>; next_cursor: string | null };
   AiSettings: {
     id: string;
     org_id: string;
@@ -317,13 +338,71 @@ export interface Components {
     assistant_enabled: boolean;
     extraction_enabled: boolean;
     drafting_enabled: boolean;
+    plain_language_enabled: boolean;
+    summaries_enabled: boolean;
+    mapping_enabled: boolean;
   };
   AiSettingsPage: { data: Array<Components["AiSettings"]>; next_cursor: string | null };
+  AiSettingsSaveRequest: {
+    assistant_enabled: boolean;
+    plain_language_enabled: boolean;
+    extraction_enabled: boolean;
+    drafting_enabled: boolean;
+    summaries_enabled: boolean;
+    mapping_enabled: boolean;
+  };
   AiSettingsUpdate: {
     assistant_enabled?: boolean;
     extraction_enabled?: boolean;
     drafting_enabled?: boolean;
+    plain_language_enabled?: boolean;
+    summaries_enabled?: boolean;
+    mapping_enabled?: boolean;
   };
+  AiSuggestion: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    request_id: string;
+    operation_id: string;
+    target_id: string | null;
+    summary: string;
+    suggestion_state: Components["AiSuggestionState"];
+    expires_at: string;
+    applied_id: string | null;
+    proposed_fields: Array<Components["AiSuggestionField"]>;
+  };
+  AiSuggestionApplyRequest: { applied_id: string; reason: string };
+  AiSuggestionConfirmRequest: { reason: string; values?: Record<string, unknown> };
+  AiSuggestionField: {
+    field_path: string;
+    proposed_value?: unknown;
+    confidence: number | null;
+    refusal: "NO_ANSWER" | null;
+    missing: string | null;
+    source_excerpt: string | null;
+    provenance: "agent";
+  };
+  AiSuggestionPage: { data: Array<Components["AiSuggestion"]>; next_cursor: string | null };
+  AiSuggestionRejectRequest: { reason: string };
+  AiSuggestionReopenRequest: { reason: string };
+  AiSuggestionState: "Proposed" | "Confirmed" | "Applied" | "Rejected" | "Expired";
+  AiUsage: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    request_id: string;
+    metered_at: string;
+    input_tokens: number | null;
+    output_tokens: number | null;
+  };
+  AiUsagePage: { data: Array<Components["AiUsage"]>; next_cursor: string | null };
   AnswerHelpDeskRequest: { body: string };
   ApiKey: {
     id: string;
@@ -682,6 +761,54 @@ export interface Components {
     redacted_at: string | null;
   };
   AuditEventPage: { data: Array<Components["AuditEvent"]>; next_cursor: string | null };
+  AuroraAskRequest: { question: string; history?: Array<{ question: string; answer: string }> };
+  AuroraBindCodeRequest: {
+    code: string;
+    description: string | null;
+    candidates: Array<{ element_id: string; name: string; urid: string }>;
+  };
+  AuroraDraftRequest: {
+    kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
+    instructions: string;
+    context?: Array<{ collection: string; id: string }>;
+    verbiage?: Array<{ term: string; preferred: string }>;
+  };
+  AuroraExtractRequest: {
+    kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+    document_id?: string | null;
+    media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+    content_base64: string;
+    file_name: string;
+  };
+  AuroraFilterRequest: { sentence: string; collections: Array<string>; time_zone: string };
+  AuroraMapColumnsRequest: {
+    collection: string;
+    columns: Array<{ header: string; samples: Array<string> }>;
+    fields: Array<{ name: string; description: string }>;
+  };
+  AuroraProposal: { suggestion_id: string; operation_id: string; summary: string };
+  AuroraResult: {
+    outcome: "answer" | "no_answer" | "failed";
+    ai_generated: true;
+    request_id: string | null;
+    model: string | null;
+    missing: string | null;
+    failure_code: string | null;
+    answer?: unknown;
+    suggestions: Array<Components["AuroraProposal"]>;
+  };
+  AuroraStatus: {
+    enabled_features: Array<Components["AiFeature"]>;
+    used: number;
+    allowance: number | null;
+    plan_includes_aurora: boolean;
+  };
+  AuroraSummarizeRequest: {
+    kind: "record_activity" | "project_week" | "gate_readiness";
+    subject_collection: string;
+    subject_id: string;
+    items: Array<{ collection: string; id: string }>;
+  };
   AvailabilityBlock: {
     id: string;
     created_at: string;
@@ -1412,20 +1539,26 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    tenant_item_code: string;
     element_id: Components["ItemId"];
-    confirmed_by: string;
+    item_id: string;
+    name: string;
+    unit_basis: string | null;
+    default_unit_price_minor: number | null;
+    currency_code: string | null;
   };
   CatalogBindingCreate: {
-    tenant_item_code: string;
     element_id: Components["ItemId"];
-    confirmed_by: string;
+    name: string;
+    unit_basis?: string | null;
+    default_unit_price_minor?: number | null;
+    currency_code?: string | null;
   };
   CatalogBindingPage: { data: Array<Components["CatalogBinding"]>; next_cursor: string | null };
   CatalogBindingUpdate: {
-    tenant_item_code?: string;
-    element_id?: Components["ItemId"];
-    confirmed_by?: string;
+    name?: string;
+    unit_basis?: string | null;
+    default_unit_price_minor?: number | null;
+    currency_code?: string | null;
   };
   Certification: {
     id: string;
@@ -2152,23 +2285,10 @@ export interface Components {
     updated_by: string | null;
     title: string;
     project_id: string | null;
-    record_id: string | null;
-    classification: string;
-    current_version_id: string | null;
   };
-  DocumentCreate: {
-    title: string;
-    project_id?: string | null;
-    record_id?: string | null;
-    classification: string;
-  };
+  DocumentCreate: { title: string; project_id?: string | null };
   DocumentPage: { data: Array<Components["Document"]>; next_cursor: string | null };
-  DocumentUpdate: {
-    title?: string;
-    project_id?: string | null;
-    record_id?: string | null;
-    classification?: string;
-  };
+  DocumentUpdate: { title?: string; project_id?: string | null };
   DocumentVersion: {
     id: string;
     org_id: string;
@@ -2178,12 +2298,10 @@ export interface Components {
     updated_by: string | null;
     document_id: string;
     version_number: number;
-    file_name: string;
-    mime_type: string;
-    byte_size: number;
-    sha256: string;
+    storage_uri: string;
+    checksum_sha256: string;
   };
-  DocumentVersionCreate: { document_id: string; file_name: string; mime_type: string };
+  DocumentVersionCreate: { document_id: string; storage_uri: string; checksum_sha256: string };
   DocumentVersionPage: { data: Array<Components["DocumentVersion"]>; next_cursor: string | null };
   DoorGuest: {
     guest_list_entry_id: string;
@@ -2384,11 +2502,6 @@ export interface Components {
   EngagementTransitionRequest: {
     expected_state: "Onboarding" | "Blocked" | "Active" | "Closing" | "Complete" | "Canceled";
     to_state: "Onboarding" | "Blocked" | "Active" | "Closing" | "Complete" | "Canceled";
-    reason?: string;
-  };
-  EntitlementFulfillmentTransitionRequest: {
-    expected_state: string;
-    to_state: string;
     reason?: string;
   };
   EventCheckIn: {
@@ -2808,15 +2921,10 @@ export interface Components {
     updated_by: string | null;
     purchase_order_id: string;
     received_at: string;
-    received_by: string;
-    dock_slot_id: string | null;
+    received_by: string | null;
+    note: string | null;
   };
-  GoodsReceiptCreate: {
-    purchase_order_id: string;
-    received_at: string;
-    received_by: string;
-    dock_slot_id?: string | null;
-  };
+  GoodsReceiptCreate: { purchase_order_id: string; received_at?: string; note?: string | null };
   GoodsReceiptPage: { data: Array<Components["GoodsReceipt"]>; next_cursor: string | null };
   GrainCode: string;
   GuestCheckIn: {
@@ -3251,32 +3359,41 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    organization_id: string;
-    document_id: string;
     coverage_type: string;
-    each_occurrence_minor: number | null;
-    currency: string;
-    expires_on: string;
+    coverage_limit_minor: number | null;
+    currency_code: string | null;
+    valid_to: string;
+    vendor_id: string;
+    insurer: string;
+    policy_identifier: string;
+    valid_from: string;
+    document_uri: string | null;
   };
   InsuranceCertificateCreate: {
-    organization_id: string;
-    document_id: string;
     coverage_type: string;
-    each_occurrence_minor?: number | null;
-    currency: string;
-    expires_on: string;
+    coverage_limit_minor?: number | null;
+    currency_code?: string | null;
+    valid_to: string;
+    vendor_id: string;
+    insurer: string;
+    policy_identifier: string;
+    valid_from: string;
+    document_uri?: string | null;
   };
   InsuranceCertificatePage: {
     data: Array<Components["InsuranceCertificate"]>;
     next_cursor: string | null;
   };
   InsuranceCertificateUpdate: {
-    organization_id?: string;
-    document_id?: string;
     coverage_type?: string;
-    each_occurrence_minor?: number | null;
-    currency?: string;
-    expires_on?: string;
+    coverage_limit_minor?: number | null;
+    currency_code?: string | null;
+    valid_to?: string;
+    vendor_id?: string;
+    insurer?: string;
+    policy_identifier?: string;
+    valid_from?: string;
+    document_uri?: string | null;
   };
   Integration: {
     id: string;
@@ -3435,10 +3552,14 @@ export interface Components {
     purchase_order_id: string;
     goods_receipt_id: string;
     matched: boolean;
-    variance: Components["MoneyTotal"];
+    variance_minor: number | null;
+    resolution_note: string | null;
+    resolved_by: string | null;
+    resolved_at: string | null;
   };
   InvoiceMatchCreate: { invoice_id: string; purchase_order_id: string; goods_receipt_id: string };
   InvoiceMatchPage: { data: Array<Components["InvoiceMatch"]>; next_cursor: string | null };
+  InvoiceMatchResolveRequest: { resolution_note: string };
   InvoicePage: { data: Array<Components["Invoice"]>; next_cursor: string | null };
   InvoiceTransitionRequest: {
     expected_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
@@ -4694,18 +4815,18 @@ export interface Components {
     updated_by: string | null;
     purchase_order_id: string;
     description: string;
-    amount_minor: number | null;
-    currency: string;
-    po_change_state: Components["SharedState"];
+    amount_delta_minor: number | null;
+    po_change_order_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
   };
+  PoChangeOrderApproveRequest: { reason: string };
   PoChangeOrderCreate: {
     purchase_order_id: string;
     description: string;
-    amount_minor?: number | null;
-    currency: string;
+    amount_delta_minor?: number | null;
   };
   PoChangeOrderPage: { data: Array<Components["PoChangeOrder"]>; next_cursor: string | null };
-  PoChangeOrderUpdate: { description?: string; amount_minor?: number | null; currency?: string };
+  PoChangeOrderRejectRequest: { reason: string };
+  PoChangeOrderUpdate: { description?: string; amount_delta_minor?: number | null };
   PoLine: {
     id: string;
     org_id: string;
@@ -4714,33 +4835,33 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     purchase_order_id: string;
-    budget_line_id: string;
+    budget_line_id: string | null;
     element_id: Components["ItemId"];
     description: string;
     quantity: number;
-    unit: Components["UnitCode"];
+    unit_basis: Components["UnitCode"] | null;
     unit_price_minor: number | null;
-    currency: string;
+    line_number: number;
   };
   PoLineCreate: {
     purchase_order_id: string;
-    budget_line_id: string;
+    budget_line_id?: string | null;
     element_id?: Components["ItemId"];
     description: string;
     quantity: number;
-    unit: Components["UnitCode"];
+    unit_basis?: Components["UnitCode"] | null;
     unit_price_minor?: number | null;
-    currency: string;
+    line_number?: number;
   };
   PoLinePage: { data: Array<Components["PoLine"]>; next_cursor: string | null };
   PoLineUpdate: {
-    budget_line_id?: string;
+    budget_line_id?: string | null;
     element_id?: Components["ItemId"];
     description?: string;
     quantity?: number;
-    unit?: Components["UnitCode"];
+    unit_basis?: Components["UnitCode"] | null;
     unit_price_minor?: number | null;
-    currency?: string;
+    line_number?: number;
   };
   Poll: {
     id: string;
@@ -4853,12 +4974,15 @@ export interface Components {
     updated_by: string | null;
     vendor_id: string;
     valid_to: string | null;
-    prequalification_state: Components["SharedState"];
+    scope_note: string;
+    decision: "Approved" | "Rejected" | null;
+    decided_by: string | null;
+    decided_at: string | null;
   };
-  PrequalificationCreate: { vendor_id: string; valid_to?: string | null };
+  PrequalificationCreate: { vendor_id: string; valid_to?: string | null; scope_note: string };
+  PrequalificationDecideRequest: { decision: "Approved" | "Rejected"; valid_to?: string };
   PrequalificationPage: { data: Array<Components["Prequalification"]>; next_cursor: string | null };
-  PrequalificationTransitionRequest: { expected_state: string; to_state: string; reason?: string };
-  PrequalificationUpdate: { valid_to?: string | null };
+  PrequalificationUpdate: { valid_to?: string | null; scope_note?: string };
   PriceBook: {
     id: string;
     org_id: string;
@@ -5117,21 +5241,21 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     vendor_id: string;
-    po_number: string;
-    currency: string;
-    po_state: Components["SharedState"];
-    total: Components["MoneyTotal"];
-    required_on: string | null;
+    po_number: number;
+    currency_code: string;
+    po_state: "Proposed" | "Approved" | "Sent" | "Closed" | "Canceled";
+    rfq_response_id: string | null;
   };
+  PurchaseOrderApproveRequest: { reason: string };
   PurchaseOrderCreate: {
     project_id: string;
     vendor_id: string;
-    currency: string;
-    required_on?: string | null;
+    currency_code: string;
+    rfq_response_id?: string | null;
   };
   PurchaseOrderPage: { data: Array<Components["PurchaseOrder"]>; next_cursor: string | null };
   PurchaseOrderTransitionRequest: { expected_state: string; to_state: string; reason?: string };
-  PurchaseOrderUpdate: { vendor_id?: string; currency?: string; required_on?: string | null };
+  PurchaseOrderUpdate: { rfq_response_id?: string | null };
   RFQTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   RadioChannel: {
     id: string;
@@ -5817,16 +5941,11 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     title: string;
-    urid: Components["UridAtAnyGrain"];
-    deadline_at: string;
-    rfq_state: Components["SharedState"];
+    rfq_state: "Proposed" | "Issued" | "Closed" | "Awarded" | "Canceled";
+    rfq_number: number;
+    responses_due_at: string | null;
   };
-  RfqCreate: {
-    project_id: string;
-    title: string;
-    urid: Components["UridAtAnyGrain"];
-    deadline_at: string;
-  };
+  RfqCreate: { project_id: string; title: string; responses_due_at?: string | null };
   RfqInvitation: {
     id: string;
     org_id: string;
@@ -5835,9 +5954,9 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     rfq_id: string;
-    organization_id: string;
+    vendor_id: string;
   };
-  RfqInvitationCreate: { rfq_id: string; organization_id: string };
+  RfqInvitationCreate: { rfq_id: string; vendor_id: string };
   RfqInvitationPage: { data: Array<Components["RfqInvitation"]>; next_cursor: string | null };
   RfqPage: { data: Array<Components["Rfq"]>; next_cursor: string | null };
   RfqResponse: {
@@ -5848,11 +5967,11 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     rfq_id: string;
-    organization_id: string;
     submitted_at: string | null;
-    total: Components["MoneyTotal"];
+    vendor_id: string;
+    valid_until: string | null;
   };
-  RfqResponseCreate: { rfq_id: string; organization_id: string };
+  RfqResponseCreate: { rfq_id: string; vendor_id: string; valid_until?: string | null };
   RfqResponseLine: {
     id: string;
     org_id: string;
@@ -5864,24 +5983,27 @@ export interface Components {
     description: string;
     quantity: number | null;
     unit_price_minor: number | null;
-    currency: string;
+    currency_code: string;
+    element_id: string | null;
   };
   RfqResponseLineCreate: {
     rfq_response_id: string;
     description: string;
     quantity?: number | null;
     unit_price_minor?: number | null;
-    currency: string;
+    currency_code: string;
+    element_id?: string | null;
   };
   RfqResponseLinePage: { data: Array<Components["RfqResponseLine"]>; next_cursor: string | null };
   RfqResponseLineUpdate: {
     description?: string;
     quantity?: number | null;
     unit_price_minor?: number | null;
-    currency?: string;
+    currency_code?: string;
+    element_id?: string | null;
   };
   RfqResponsePage: { data: Array<Components["RfqResponse"]>; next_cursor: string | null };
-  RfqUpdate: { title?: string; urid?: Components["UridAtAnyGrain"]; deadline_at?: string };
+  RfqUpdate: { title?: string; responses_due_at?: string | null };
   Rider: {
     id: string;
     org_id: string;
@@ -6078,7 +6200,32 @@ export interface Components {
     collection_key: string;
     group_by_field?: string | null;
   };
+  SavedViewDefault: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    membership_id: string;
+    collection_key: string;
+    saved_view_id: string;
+  };
+  SavedViewDefaultCreate: { saved_view_id: string };
+  SavedViewDefaultPage: { data: Array<Components["SavedViewDefault"]>; next_cursor: string | null };
   SavedViewPage: { data: Array<Components["SavedView"]>; next_cursor: string | null };
+  SavedViewShare: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    saved_view_id: string;
+    team_id: string;
+  };
+  SavedViewShareCreate: { saved_view_id: string; team_id: string };
+  SavedViewSharePage: { data: Array<Components["SavedViewShare"]>; next_cursor: string | null };
   SavedViewUpdate: {
     name?: string;
     view_type?: string;
@@ -6405,10 +6552,10 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     title: string;
-    body: Record<string, unknown>;
-    urid: Components["UridAtAnyGrain"];
-    sop_state: string;
-    requires_acknowledgment: boolean;
+    body: string;
+    code: string;
+    version: number;
+    published_at: string | null;
   };
   SopAcknowledgment: {
     id: string;
@@ -6420,25 +6567,16 @@ export interface Components {
     sop_id: string;
     person_id: string;
     acknowledged_at: string;
+    sop_version: number;
   };
-  SopAcknowledgmentCreate: { sop_id: string; person_id: string };
+  SopAcknowledgmentCreate: { sop_id: string };
   SopAcknowledgmentPage: {
     data: Array<Components["SopAcknowledgment"]>;
     next_cursor: string | null;
   };
-  SopCreate: {
-    title: string;
-    body: Record<string, unknown>;
-    urid?: Components["UridAtAnyGrain"];
-    requires_acknowledgment: boolean;
-  };
+  SopCreate: { title: string; body: string; code: string };
   SopPage: { data: Array<Components["Sop"]>; next_cursor: string | null };
-  SopUpdate: {
-    title?: string;
-    body?: Record<string, unknown>;
-    urid?: Components["UridAtAnyGrain"];
-    requires_acknowledgment?: boolean;
-  };
+  SopUpdate: { title?: string; body?: string };
   Sort: string;
   Space: {
     id: string;
@@ -6540,17 +6678,30 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    engagement_id: string;
-    name: string;
+    description: string;
     quantity: number | null;
-    fulfillment_state: Components["SharedState"];
+    project_id: string;
+    counterparty_id: string;
+    due_on: string | null;
+    fulfilled_at: string | null;
   };
-  SponsorEntitlementCreate: { engagement_id: string; name: string; quantity?: number | null };
+  SponsorEntitlementCreate: {
+    description: string;
+    quantity?: number | null;
+    project_id: string;
+    counterparty_id: string;
+    due_on?: string | null;
+  };
   SponsorEntitlementPage: {
     data: Array<Components["SponsorEntitlement"]>;
     next_cursor: string | null;
   };
-  SponsorEntitlementUpdate: { engagement_id?: string; name?: string; quantity?: number | null };
+  SponsorEntitlementUpdate: {
+    description?: string;
+    quantity?: number | null;
+    counterparty_id?: string;
+    due_on?: string | null;
+  };
   StdCode: string;
   StdDocument: { code: Components["StdCode"]; title: string; urid: Components["UridAtAnyGrain"] };
   StdDocumentPage: { data: Array<Components["StdDocument"]>; next_cursor: string | null };
@@ -6603,6 +6754,80 @@ export interface Components {
   };
   SubscriptionPage: { data: Array<Components["Subscription"]>; next_cursor: string | null };
   SubscriptionUpdate: { plan_code?: string };
+  SupportTicket: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    membership_id: string;
+    ticket_number: string;
+    queue: "Organization" | "Platform";
+    category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
+    severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
+    subject: string;
+    body: string;
+    ticket_state: "Open" | "Waiting" | "Resolved" | "Closed";
+    channel: "In App" | "Email" | "Chat" | "Priority Queue" | "Dedicated Channel";
+    first_response_due_at: string | null;
+    first_responded_at: string | null;
+  };
+  SupportTicketDiagnostics: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    support_ticket_id: string;
+    consented_at: string;
+    route: string | null;
+    app_version: string | null;
+    device: string | null;
+    recent_errors: string | null;
+    screenshot_path: string | null;
+  };
+  SupportTicketDiagnosticsPage: {
+    data: Array<Components["SupportTicketDiagnostics"]>;
+    next_cursor: string | null;
+  };
+  SupportTicketMessage: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    support_ticket_id: string;
+    author_membership_id: string | null;
+    body: string;
+  };
+  SupportTicketMessagePage: {
+    data: Array<Components["SupportTicketMessage"]>;
+    next_cursor: string | null;
+  };
+  SupportTicketOpenRequest: {
+    queue: "Organization" | "Platform";
+    category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
+    severity?: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
+    subject: string;
+    body: string;
+    diagnostics?: {
+      consent: true;
+      route?: string;
+      app_version?: string;
+      device?: string;
+      recent_errors?: string;
+    };
+  };
+  SupportTicketPage: { data: Array<Components["SupportTicket"]>; next_cursor: string | null };
+  SupportTicketReplyRequest: { body: string };
+  SupportTicketTransitionRequest: {
+    expected_state: "Open" | "Waiting" | "Resolved" | "Closed";
+    to_state: "Open" | "Waiting" | "Resolved" | "Closed";
+    reason?: string;
+  };
   Survey: {
     id: string;
     org_id: string;
@@ -6956,7 +7181,41 @@ export interface Components {
     period_end: string;
   };
   TimesheetPage: { data: Array<Components["Timesheet"]>; next_cursor: string | null };
+  TipDismissal: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    membership_id: string;
+    tip_key: string;
+  };
+  TipDismissalCreate: { tip_key: string };
+  TipDismissalPage: { data: Array<Components["TipDismissal"]>; next_cursor: string | null };
   TouchpointId: string;
+  TourProgress: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    membership_id: string;
+    tour_key: string;
+    tour_state: "Offered" | "Started" | "Completed" | "Dismissed";
+    step: number;
+  };
+  TourProgressCreate: {
+    tour_key: string;
+    tour_state: "Offered" | "Started" | "Completed" | "Dismissed";
+    step: number;
+  };
+  TourProgressPage: { data: Array<Components["TourProgress"]>; next_cursor: string | null };
+  TourProgressUpdate: {
+    tour_state?: "Offered" | "Started" | "Completed" | "Dismissed";
+    step?: number;
+  };
   TrainingAssignment: {
     id: string;
     org_id: string;
@@ -7189,10 +7448,11 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    organization_id: string;
-    counterparty_type: Components["CounterpartyType"];
-    vendor_state: Components["SharedState"];
-    internal_notes: string | null;
+    counterparty_type: Components["CounterpartyType"] | null;
+    vendor_state: "Prospect" | "Onboarded" | "Active" | "Blocked" | "Canceled";
+    counterparty_id: string;
+    payment_terms_days: number | null;
+    default_currency_code: string | null;
   };
   VendorClass: {
     id: string;
@@ -7202,7 +7462,8 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    counterparty_type: Components["CounterpartyType"] & (string | null);
+    std_vendor_class_id: string | null;
+    description: string | null;
   };
   VendorClassAssignment: {
     id: string;
@@ -7221,17 +7482,19 @@ export interface Components {
   };
   VendorClassCreate: {
     name: string;
-    counterparty_type?: Components["CounterpartyType"] & (string | null);
+    std_vendor_class_id?: string | null;
+    description?: string | null;
   };
   VendorClassPage: { data: Array<Components["VendorClass"]>; next_cursor: string | null };
   VendorClassUpdate: {
     name?: string;
-    counterparty_type?: Components["CounterpartyType"] & (string | null);
+    std_vendor_class_id?: string | null;
+    description?: string | null;
   };
   VendorCreate: {
-    organization_id: string;
-    counterparty_type: Components["CounterpartyType"];
-    internal_notes?: string | null;
+    counterparty_id: string;
+    payment_terms_days?: number | null;
+    default_currency_code?: string | null;
   };
   VendorPage: { data: Array<Components["Vendor"]>; next_cursor: string | null };
   VendorProduct: {
@@ -7242,24 +7505,30 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     vendor_id: string;
-    name: string;
     element_id: Components["ItemId"];
     unit_price_minor: number | null;
-    currency: string;
+    currency_code: string | null;
+    vendor_sku: string;
+    catalog_binding_id: string | null;
+    lead_time_days: number | null;
   };
   VendorProductCreate: {
     vendor_id: string;
-    name: string;
     element_id?: Components["ItemId"];
     unit_price_minor?: number | null;
-    currency: string;
+    currency_code?: string | null;
+    vendor_sku: string;
+    catalog_binding_id?: string | null;
+    lead_time_days?: number | null;
   };
   VendorProductPage: { data: Array<Components["VendorProduct"]>; next_cursor: string | null };
   VendorProductUpdate: {
-    name?: string;
     element_id?: Components["ItemId"];
     unit_price_minor?: number | null;
-    currency?: string;
+    currency_code?: string | null;
+    vendor_sku?: string;
+    catalog_binding_id?: string | null;
+    lead_time_days?: number | null;
   };
   VendorScorecard: {
     id: string;
@@ -7270,21 +7539,32 @@ export interface Components {
     updated_by: string | null;
     vendor_id: string;
     project_id: string | null;
-    score: number;
-    notes: string | null;
+    note: string | null;
+    period_end: string;
+    quality_score: number | null;
+    delivery_score: number | null;
+    safety_score: number | null;
   };
   VendorScorecardCreate: {
     vendor_id: string;
     project_id?: string | null;
-    score: number;
-    notes?: string | null;
+    note?: string | null;
+    period_end: string;
+    quality_score?: number | null;
+    delivery_score?: number | null;
+    safety_score?: number | null;
   };
   VendorScorecardPage: { data: Array<Components["VendorScorecard"]>; next_cursor: string | null };
-  VendorScorecardUpdate: { project_id?: string | null; score?: number; notes?: string | null };
-  VendorUpdate: {
-    counterparty_type?: Components["CounterpartyType"];
-    internal_notes?: string | null;
+  VendorScorecardUpdate: {
+    project_id?: string | null;
+    note?: string | null;
+    period_end?: string;
+    quality_score?: number | null;
+    delivery_score?: number | null;
+    safety_score?: number | null;
   };
+  VendorTransitionRequest: { expected_state: string; to_state: string; reason?: string };
+  VendorUpdate: { payment_terms_days?: number | null; default_currency_code?: string | null };
   Venue: {
     id: string;
     org_id: string;
@@ -7331,11 +7611,11 @@ export interface Components {
     updated_by: string | null;
     term: string;
     casing_rule: string;
-    usage: string;
+    definition: string;
   };
-  VerbiageTermCreate: { term: string; casing_rule: string; usage: string };
+  VerbiageTermCreate: { term: string; casing_rule: string; definition: string };
   VerbiageTermPage: { data: Array<Components["VerbiageTerm"]>; next_cursor: string | null };
-  VerbiageTermUpdate: { term?: string; casing_rule?: string; usage?: string };
+  VerbiageTermUpdate: { term?: string; casing_rule?: string; definition?: string };
   Verification: {
     id: string;
     created_at: string;
@@ -8788,6 +9068,15 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "sops.publish": {
+    module: "Knowledge";
+    method: "post";
+    path: "/sops/{id}/publish";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["Sop"] };
   };
   "sopAcknowledgments.list": {
     module: "Knowledge";
@@ -13169,15 +13458,6 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["RfqResponse"] };
   };
-  "rfqResponses.submit": {
-    module: "Procurement";
-    method: "post";
-    path: "/rfq-responses/{id}/submit";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["RfqResponse"] };
-  };
   "rfqResponseLines.list": {
     module: "Procurement";
     method: "get";
@@ -13277,7 +13557,7 @@ export interface Operations {
     path: "/purchase-orders/{id}/approve";
     params: { id: string };
     query: Record<string, never>;
-    body: undefined;
+    body: Components["PurchaseOrderApproveRequest"];
     responses: { 200: Components["PurchaseOrder"] };
   };
   "purchaseOrders.transition": {
@@ -13397,7 +13677,16 @@ export interface Operations {
     path: "/po-change-orders/{id}/approve";
     params: { id: string };
     query: Record<string, never>;
-    body: undefined;
+    body: Components["PoChangeOrderApproveRequest"];
+    responses: { 200: Components["PoChangeOrder"] };
+  };
+  "poChangeOrders.reject": {
+    module: "Procurement";
+    method: "post";
+    path: "/po-change-orders/{id}/reject";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PoChangeOrderRejectRequest"];
     responses: { 200: Components["PoChangeOrder"] };
   };
   "goodsReceipts.list": {
@@ -13497,6 +13786,15 @@ export interface Operations {
     params: { id: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
+    responses: { 200: Components["InvoiceMatch"] };
+  };
+  "invoiceMatches.resolve": {
+    module: "Procurement";
+    method: "post";
+    path: "/invoice-matches/{id}/resolve";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InvoiceMatchResolveRequest"];
     responses: { 200: Components["InvoiceMatch"] };
   };
   "catalogBindings.list": {
@@ -13652,6 +13950,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "vendors.transition": {
+    module: "Vendors";
+    method: "post";
+    path: "/vendors/{id}/transitions";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["VendorTransitionRequest"];
+    responses: { 200: Components["Vendor"] };
+  };
   "vendorClasses.list": {
     module: "Vendors";
     method: "get";
@@ -13796,13 +14103,13 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
-  "prequalifications.transition": {
+  "prequalifications.decide": {
     module: "Vendors";
     method: "post";
-    path: "/prequalifications/{id}/transitions";
+    path: "/prequalifications/{id}/decide";
     params: { id: string };
     query: Record<string, never>;
-    body: Components["PrequalificationTransitionRequest"];
+    body: Components["PrequalificationDecideRequest"];
     responses: { 200: Components["Prequalification"] };
   };
   "insuranceCertificates.list": {
@@ -13958,13 +14265,22 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
-  "sponsorEntitlements.transition": {
+  "sponsorEntitlements.fulfill": {
     module: "Vendors";
     method: "post";
-    path: "/sponsor-entitlements/{id}/transitions";
+    path: "/sponsor-entitlements/{id}/fulfill";
     params: { id: string };
     query: Record<string, never>;
-    body: Components["EntitlementFulfillmentTransitionRequest"];
+    body: undefined;
+    responses: { 200: Components["SponsorEntitlement"] };
+  };
+  "sponsorEntitlements.reopen": {
+    module: "Vendors";
+    method: "post";
+    path: "/sponsor-entitlements/{id}/reopen";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
     responses: { 200: Components["SponsorEntitlement"] };
   };
   "inspectionTemplates.list": {
@@ -20009,6 +20325,15 @@ export interface Operations {
     body: Components["AiSettingsUpdate"];
     responses: { 200: Components["AiSettings"] };
   };
+  "aiSettings.save": {
+    module: "Settings";
+    method: "post";
+    path: "/ai-settings/save";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AiSettingsSaveRequest"];
+    responses: { 200: Components["AiSettings"] };
+  };
   "reportDefinitions.list": {
     module: "Reports";
     method: "get";
@@ -21439,6 +21764,444 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
+  };
+  "aurora.status": {
+    module: "Settings";
+    method: "get";
+    path: "/aurora/status";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["AuroraStatus"] };
+  };
+  "aurora.ask": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/ask";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraAskRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.filter": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/filter";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraFilterRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.extract": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/extract";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraExtractRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.draft": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/draft";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraDraftRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.summarize": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/summarize";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraSummarizeRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.mapColumns": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/map-columns";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraMapColumnsRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.bindCode": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/bind-code";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraBindCodeRequest"];
+    responses: { 200: Components["AuroraResult"] };
+  };
+  "aiSuggestions.list": {
+    module: "Settings";
+    method: "get";
+    path: "/ai-suggestions";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AiSuggestionPage"] };
+  };
+  "aiSuggestions.get": {
+    module: "Settings";
+    method: "get";
+    path: "/ai-suggestions/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AiSuggestion"] };
+  };
+  "aiSuggestions.confirm": {
+    module: "Settings";
+    method: "post";
+    path: "/ai-suggestions/{id}/confirm";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AiSuggestionConfirmRequest"];
+    responses: { 200: Components["AiSuggestion"] };
+  };
+  "aiSuggestions.reject": {
+    module: "Settings";
+    method: "post";
+    path: "/ai-suggestions/{id}/reject";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AiSuggestionRejectRequest"];
+    responses: { 200: Components["AiSuggestion"] };
+  };
+  "aiSuggestions.apply": {
+    module: "Settings";
+    method: "post";
+    path: "/ai-suggestions/{id}/apply";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AiSuggestionApplyRequest"];
+    responses: { 200: Components["AiSuggestion"] };
+  };
+  "aiSuggestions.reopen": {
+    module: "Settings";
+    method: "post";
+    path: "/ai-suggestions/{id}/reopen";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AiSuggestionReopenRequest"];
+    responses: { 200: Components["AiSuggestion"] };
+  };
+  "aiRequests.list": {
+    module: "Settings";
+    method: "get";
+    path: "/ai-requests";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AiRequestPage"] };
+  };
+  "aiRequests.get": {
+    module: "Settings";
+    method: "get";
+    path: "/ai-requests/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AiRequest"] };
+  };
+  "aiUsage.list": {
+    module: "Settings";
+    method: "get";
+    path: "/ai-usage";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AiUsagePage"] };
+  };
+  "savedViewShares.list": {
+    module: "Platform";
+    method: "get";
+    path: "/saved-view-shares";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SavedViewSharePage"] };
+  };
+  "savedViewShares.create": {
+    module: "Platform";
+    method: "post";
+    path: "/saved-view-shares";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SavedViewShareCreate"];
+    responses: { 201: Components["SavedViewShare"] };
+  };
+  "savedViewShares.get": {
+    module: "Platform";
+    method: "get";
+    path: "/saved-view-shares/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SavedViewShare"] };
+  };
+  "savedViewShares.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/saved-view-shares/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "savedViewDefaults.list": {
+    module: "Platform";
+    method: "get";
+    path: "/saved-view-defaults";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SavedViewDefaultPage"] };
+  };
+  "savedViewDefaults.create": {
+    module: "Platform";
+    method: "post";
+    path: "/saved-view-defaults";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SavedViewDefaultCreate"];
+    responses: { 201: Components["SavedViewDefault"] };
+  };
+  "savedViewDefaults.get": {
+    module: "Platform";
+    method: "get";
+    path: "/saved-view-defaults/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SavedViewDefault"] };
+  };
+  "savedViewDefaults.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/saved-view-defaults/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "tourProgress.list": {
+    module: "Platform";
+    method: "get";
+    path: "/tour-progress";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TourProgressPage"] };
+  };
+  "tourProgress.create": {
+    module: "Platform";
+    method: "post";
+    path: "/tour-progress";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TourProgressCreate"];
+    responses: { 201: Components["TourProgress"] };
+  };
+  "tourProgress.get": {
+    module: "Platform";
+    method: "get";
+    path: "/tour-progress/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TourProgress"] };
+  };
+  "tourProgress.update": {
+    module: "Platform";
+    method: "patch";
+    path: "/tour-progress/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["TourProgressUpdate"];
+    responses: { 200: Components["TourProgress"] };
+  };
+  "tipDismissals.list": {
+    module: "Platform";
+    method: "get";
+    path: "/tip-dismissals";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["TipDismissalPage"] };
+  };
+  "tipDismissals.create": {
+    module: "Platform";
+    method: "post";
+    path: "/tip-dismissals";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["TipDismissalCreate"];
+    responses: { 201: Components["TipDismissal"] };
+  };
+  "tipDismissals.get": {
+    module: "Platform";
+    method: "get";
+    path: "/tip-dismissals/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["TipDismissal"] };
+  };
+  "tipDismissals.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/tip-dismissals/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "supportTickets.list": {
+    module: "Platform";
+    method: "get";
+    path: "/support-tickets";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SupportTicketPage"] };
+  };
+  "supportTickets.open": {
+    module: "Platform";
+    method: "post";
+    path: "/support-tickets";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SupportTicketOpenRequest"];
+    responses: { 201: Components["SupportTicket"] };
+  };
+  "supportTickets.get": {
+    module: "Platform";
+    method: "get";
+    path: "/support-tickets/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SupportTicket"] };
+  };
+  "supportTickets.transition": {
+    module: "Platform";
+    method: "post";
+    path: "/support-tickets/{id}/transition";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SupportTicketTransitionRequest"];
+    responses: { 200: Components["SupportTicket"] };
+  };
+  "supportTickets.reply": {
+    module: "Platform";
+    method: "post";
+    path: "/support-tickets/{id}/reply";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["SupportTicketReplyRequest"];
+    responses: { 201: Components["SupportTicketMessage"] };
+  };
+  "supportTicketMessages.list": {
+    module: "Platform";
+    method: "get";
+    path: "/support-ticket-messages";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SupportTicketMessagePage"] };
+  };
+  "supportTicketMessages.get": {
+    module: "Platform";
+    method: "get";
+    path: "/support-ticket-messages/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SupportTicketMessage"] };
+  };
+  "supportTicketDiagnostics.list": {
+    module: "Platform";
+    method: "get";
+    path: "/support-ticket-diagnostics";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SupportTicketDiagnosticsPage"] };
+  };
+  "supportTicketDiagnostics.get": {
+    module: "Platform";
+    method: "get";
+    path: "/support-ticket-diagnostics/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SupportTicketDiagnostics"] };
   };
   "workforceGroups.list": {
     module: "Workforce";
@@ -23117,6 +23880,7 @@ export interface ModuleOperations {
     | "sops.get"
     | "sops.update"
     | "sops.delete"
+    | "sops.publish"
     | "sopAcknowledgments.list"
     | "sopAcknowledgments.create"
     | "sopAcknowledgments.get"
@@ -23649,7 +24413,6 @@ export interface ModuleOperations {
     | "rfqResponses.list"
     | "rfqResponses.create"
     | "rfqResponses.get"
-    | "rfqResponses.submit"
     | "rfqResponseLines.list"
     | "rfqResponseLines.create"
     | "rfqResponseLines.get"
@@ -23672,6 +24435,7 @@ export interface ModuleOperations {
     | "poChangeOrders.get"
     | "poChangeOrders.update"
     | "poChangeOrders.approve"
+    | "poChangeOrders.reject"
     | "goodsReceipts.list"
     | "goodsReceipts.create"
     | "goodsReceipts.get"
@@ -23681,6 +24445,7 @@ export interface ModuleOperations {
     | "invoiceMatches.list"
     | "invoiceMatches.create"
     | "invoiceMatches.get"
+    | "invoiceMatches.resolve"
     | "catalogBindings.list"
     | "catalogBindings.create"
     | "catalogBindings.get"
@@ -23697,6 +24462,7 @@ export interface ModuleOperations {
     | "vendors.get"
     | "vendors.update"
     | "vendors.delete"
+    | "vendors.transition"
     | "vendorClasses.list"
     | "vendorClasses.create"
     | "vendorClasses.get"
@@ -23711,7 +24477,7 @@ export interface ModuleOperations {
     | "prequalifications.get"
     | "prequalifications.update"
     | "prequalifications.delete"
-    | "prequalifications.transition"
+    | "prequalifications.decide"
     | "insuranceCertificates.list"
     | "insuranceCertificates.create"
     | "insuranceCertificates.get"
@@ -23727,7 +24493,8 @@ export interface ModuleOperations {
     | "sponsorEntitlements.get"
     | "sponsorEntitlements.update"
     | "sponsorEntitlements.delete"
-    | "sponsorEntitlements.transition";
+    | "sponsorEntitlements.fulfill"
+    | "sponsorEntitlements.reopen";
   Safety:
     | "inspectionTemplates.list"
     | "inspectionTemplates.create"
@@ -24084,7 +24851,25 @@ export interface ModuleOperations {
     | "orgExports.get"
     | "aiSettings.list"
     | "aiSettings.get"
-    | "aiSettings.update";
+    | "aiSettings.update"
+    | "aiSettings.save"
+    | "aurora.status"
+    | "aurora.ask"
+    | "aurora.filter"
+    | "aurora.extract"
+    | "aurora.draft"
+    | "aurora.summarize"
+    | "aurora.mapColumns"
+    | "aurora.bindCode"
+    | "aiSuggestions.list"
+    | "aiSuggestions.get"
+    | "aiSuggestions.confirm"
+    | "aiSuggestions.reject"
+    | "aiSuggestions.apply"
+    | "aiSuggestions.reopen"
+    | "aiRequests.list"
+    | "aiRequests.get"
+    | "aiUsage.list";
   Gateway:
     | "marketplace.search"
     | "savedSearches.list"
@@ -24335,7 +25120,32 @@ export interface ModuleOperations {
     | "templates.delete"
     | "templateApplications.list"
     | "templateApplications.create"
-    | "templateApplications.get";
+    | "templateApplications.get"
+    | "savedViewShares.list"
+    | "savedViewShares.create"
+    | "savedViewShares.get"
+    | "savedViewShares.delete"
+    | "savedViewDefaults.list"
+    | "savedViewDefaults.create"
+    | "savedViewDefaults.get"
+    | "savedViewDefaults.delete"
+    | "tourProgress.list"
+    | "tourProgress.create"
+    | "tourProgress.get"
+    | "tourProgress.update"
+    | "tipDismissals.list"
+    | "tipDismissals.create"
+    | "tipDismissals.get"
+    | "tipDismissals.delete"
+    | "supportTickets.list"
+    | "supportTickets.open"
+    | "supportTickets.get"
+    | "supportTickets.transition"
+    | "supportTickets.reply"
+    | "supportTicketMessages.list"
+    | "supportTicketMessages.get"
+    | "supportTicketDiagnostics.list"
+    | "supportTicketDiagnostics.get";
   Workforce:
     | "workforceGroups.list"
     | "workforceGroups.create"
