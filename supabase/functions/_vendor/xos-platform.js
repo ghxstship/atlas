@@ -2331,6 +2331,7 @@ var compass_default$1 = {
     },
     dispatchReason: "Dispatched from Compass.",
     containReason: "Marked contained from Compass.",
+    typeGroup: "Incident type",
   },
   inspections: {
     title: "Inspections",
@@ -2370,6 +2371,10 @@ var compass_default$1 = {
     progress: "{called} of {total} cues called",
     readOnly: "You can follow the running order; cues are called by the stage manager.",
     mySet: "Your set",
+    countdownLabel: "{minutes} min {seconds} s to {cue}",
+    countdownLate: "{minutes} min {seconds} s late for {cue}",
+    countdownSoon: "{cue} in {seconds} seconds",
+    countdownGo: "{cue}: go",
   },
   kiosk: {
     title: "Kiosk",
@@ -2400,6 +2405,8 @@ var compass_default$1 = {
     exit: "Exit Kiosk",
     digit: "Digit {digit}",
     backspace: "Delete digit",
+    pinProgressOne: "{count} digit entered",
+    pinProgressOther: "{count} digits entered",
   },
   inbox: {
     title: "Inbox",
@@ -5576,6 +5583,12 @@ var gateway_default$1 = {
       action: "Reload",
     },
     loading: "Loading",
+    pageError: {
+      title: "This page did not load",
+      body: "Gateway could not read what this page shows. Try again, or go to Home and open the page from the menu.",
+      retry: "Try again",
+      home: "Go to Home",
+    },
   },
   auth: {
     fields: {
@@ -9228,6 +9241,18 @@ var procurement_default$1 = {
       gallery: "Gallery",
       calendar: "Calendar",
       chart: "Chart",
+      spreadsheet: "Spreadsheet",
+      "resource-schedule": "Resource Schedule",
+      timeline: "Timeline",
+      map: "Map",
+      "site-plan": "Site Plan",
+      tree: "Tree",
+      matrix: "Matrix",
+      "org-chart": "Org Chart",
+      feed: "Feed",
+      inbox: "Inbox",
+      split: "Split",
+      document: "Document",
     },
     search: "Search",
     searchHint: "Filter by name, key or any column",
@@ -10682,6 +10707,12 @@ var shell_default$1 = {
       body: "Something went wrong before the page could load. Reload to try again.",
       action: "Reload",
     },
+    pageError: {
+      title: "This page did not load",
+      body: "Atlas could not read what this page shows. Try again, or go to Home and open the page from the sidebar.",
+      retry: "Try again",
+      home: "Go to Home",
+    },
   },
   page: {
     sections: "Pages in {section}",
@@ -11825,6 +11856,7 @@ var ui_default$1 = {
     key: "Key",
     milestone: "milestone",
     record: "Record",
+    scroll: "{label}, days",
     start: "Start",
     state: "State",
   },
@@ -11861,6 +11893,17 @@ var ui_default$1 = {
   widget: {
     label: "Home screen widget",
     nextShift: "Next shift",
+  },
+  recordList: {
+    columns: {
+      state: "State",
+      key: "Key",
+      title: "Record",
+      labels: "Labels",
+      next: "Next date",
+      owner: "Owner",
+      action: "Action",
+    },
   },
 };
 var vendors_default$1 = {
@@ -12212,6 +12255,11 @@ var views_default$1 = {
     unexpected: "Saved views could not be reached. Try again in a moment.",
     loadFailed:
       "Saved views could not be loaded. The page still works; try the menu again shortly.",
+  },
+  open: {
+    projectSentence:
+      "This view opens inside a project. Open the project, then choose the view from its view menu.",
+    projectAction: "Open Projects",
   },
 };
 var work_default$1 = {
@@ -16309,6 +16357,7 @@ var compass_default = {
     },
     dispatchReason: "Despachado desde Compass.",
     containReason: "Marcado como contenido desde Compass.",
+    typeGroup: "Tipo de incidente",
   },
   inspections: {
     title: "Inspecciones",
@@ -16348,6 +16397,10 @@ var compass_default = {
     progress: "{called} de {total} cues llamados",
     readOnly: "Puedes seguir el orden del show; los cues los llama el jefe de escena.",
     mySet: "Tu set",
+    countdownLabel: "{minutes} min {seconds} s para {cue}",
+    countdownLate: "{minutes} min {seconds} s de retraso en {cue}",
+    countdownSoon: "{cue} en {seconds} segundos",
+    countdownGo: "{cue}: ya",
   },
   kiosk: {
     title: "Quiosco",
@@ -16380,6 +16433,8 @@ var compass_default = {
     exit: "Salir del quiosco",
     digit: "Dígito {digit}",
     backspace: "Borrar dígito",
+    pinProgressOne: "{count} dígito ingresado",
+    pinProgressOther: "{count} dígitos ingresados",
   },
   inbox: {
     title: "Bandeja",
@@ -19654,6 +19709,12 @@ var gateway_default = {
       action: "Recargar",
     },
     loading: "Cargando",
+    pageError: {
+      title: "Esta página no se cargó",
+      body: "Gateway no pudo leer lo que muestra esta página. Inténtalo de nuevo, o ve a Inicio y abre la página desde el menú.",
+      retry: "Intentar de nuevo",
+      home: "Ir a Inicio",
+    },
   },
   auth: {
     fields: {
@@ -23405,6 +23466,18 @@ var procurement_default = {
       gallery: "Galería",
       calendar: "Calendario",
       chart: "Gráfico",
+      spreadsheet: "Hoja de cálculo",
+      "resource-schedule": "Agenda de recursos",
+      timeline: "Cronograma",
+      map: "Mapa",
+      "site-plan": "Plano del sitio",
+      tree: "Árbol",
+      matrix: "Matriz",
+      "org-chart": "Organigrama",
+      feed: "Actividad",
+      inbox: "Bandeja",
+      split: "Dividida",
+      document: "Documento",
     },
     search: "Buscar",
     searchHint: "Filtre por nombre, clave o cualquier columna",
@@ -24903,6 +24976,12 @@ var shell_default = {
       body: "Algo salió mal antes de que la página se cargara. Recarga para intentarlo de nuevo.",
       action: "Recargar",
     },
+    pageError: {
+      title: "Esta página no se cargó",
+      body: "Atlas no pudo leer lo que muestra esta página. Inténtalo de nuevo, o ve a Inicio y abre la página desde la barra lateral.",
+      retry: "Intentar de nuevo",
+      home: "Ir a Inicio",
+    },
   },
   page: {
     sections: "Páginas en {section}",
@@ -26060,6 +26139,7 @@ var ui_default = {
     key: "Clave",
     milestone: "hito",
     record: "Registro",
+    scroll: "{label}, días",
     start: "Inicio",
     state: "Estado",
   },
@@ -26096,6 +26176,17 @@ var ui_default = {
   widget: {
     label: "Widget de pantalla de inicio",
     nextShift: "Próximo turno",
+  },
+  recordList: {
+    columns: {
+      state: "Estado",
+      key: "Clave",
+      title: "Registro",
+      labels: "Etiquetas",
+      next: "Próxima fecha",
+      owner: "Responsable",
+      action: "Acción",
+    },
   },
 };
 var vendors_default = {
@@ -26466,6 +26557,11 @@ var views_default = {
     unexpected: "No se pudo acceder a las vistas guardadas. Inténtelo de nuevo en un momento.",
     loadFailed:
       "No se pudieron cargar las vistas guardadas. La página sigue funcionando; vuelva a abrir el menú en breve.",
+  },
+  open: {
+    projectSentence:
+      "Esta vista se abre dentro de un proyecto. Abre el proyecto y elige la vista en su menú de vistas.",
+    projectAction: "Abrir proyectos",
   },
 };
 var work_default = {
@@ -29090,6 +29186,7 @@ var esUS = {
 //#endregion
 //#region ../i18n/src/index.ts
 var locales = ["en-US", "es-US"];
+var defaultLocale = "en-US";
 var catalogs = {
   "en-US": enUS,
   "es-US": esUS,
@@ -29102,7 +29199,7 @@ function getMessages(locale) {
 }
 //#endregion
 //#region ../email/src/messages.ts
-function lookup(tree, path) {
+function lookup$1(tree, path) {
   let node = tree;
   for (const segment of path) {
     if (typeof node !== "object") return void 0;
@@ -29121,7 +29218,7 @@ function emailCatalog(locale) {
  * the recipient's time zone. A missing key or argument throws: an email never ships a raw key.
  */
 function formatMessage(locale, key, args = {}, timeZone = "UTC") {
-  const message = lookup(emailCatalog(locale), key.split("."));
+  const message = lookup$1(emailCatalog(locale), key.split("."));
   if (message === void 0) throw new Error(`Missing email message ${key} in ${locale}`);
   const result = new IntlMessageFormat(message, locale, void 0, {
     formatters: {
@@ -29862,7 +29959,7 @@ function layout(name) {
   return named(layoutTokens, name, "layout");
 }
 /** A type style such as text-14, as inline style properties. */
-function text$2(name) {
+function text$3(name) {
   const style = typeStyles.find((s) => s.name === name);
   if (style === void 0) throw new Error(`Unknown type style ${name}`);
   return {
@@ -29891,12 +29988,12 @@ var styles = {
     padding: space("space-32"),
   },
   heading: {
-    ...text$2("heading-20"),
+    ...text$3("heading-20"),
     color: color("text-primary"),
     margin: `0 0 ${space("space-16")}`,
   },
   button: {
-    ...text$2("label-13"),
+    ...text$3("label-13"),
     backgroundColor: color("accent-default"),
     borderRadius: radius("radius-control"),
     color: color("accent-text-on"),
@@ -29908,7 +30005,7 @@ var styles = {
     margin: `${space("space-24")} 0`,
   },
   footer: {
-    ...text$2("text-12"),
+    ...text$3("text-12"),
     color: color("text-secondary"),
     margin: `0 0 ${space("space-8")}`,
   },
@@ -29918,7 +30015,7 @@ var styles = {
 function Paragraph({ children }) {
   return /* @__PURE__ */ jsx(Text, {
     style: {
-      ...text$2("text-14"),
+      ...text$3("text-14"),
       color: color("text-primary"),
       margin: `0 0 ${space("space-16")}`,
     },
@@ -30084,7 +30181,7 @@ var templates = {
                     {
                       children: /* @__PURE__ */ jsx(Text, {
                         style: {
-                          ...text$2("text-14"),
+                          ...text$3("text-14"),
                           color: color("text-primary"),
                           margin: `0 0 ${space("space-8")}`,
                         },
@@ -30519,10 +30616,10 @@ function supabaseDb(client) {
     },
   };
 }
-function rows$1(data) {
+function rows$2(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$1(row, key) {
+function text$2(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -30536,7 +30633,7 @@ function optionalText$1(row, key) {
 function billingStore(db) {
   return {
     async recordStripeEvent(event) {
-      const row = rows$1(
+      const row = rows$2(
         await db.rpc("record_stripe_event", {
           p_stripe_event_id: event.id,
           p_event_type: event.type,
@@ -30546,7 +30643,7 @@ function billingStore(db) {
           p_org_id: event.orgId,
         }),
       )[0];
-      const rowId = text$1(row, "stripe_event_row_id");
+      const rowId = text$2(row, "stripe_event_row_id");
       const stored = await db.selectOne("stripe_events", "processed_at", { id: rowId });
       return {
         rowId,
@@ -30587,12 +30684,12 @@ function billingStore(db) {
 function webhookStore(db) {
   return {
     async claim(limit) {
-      return rows$1(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
-        deliveryId: text$1(row, "delivery_id"),
-        url: text$1(row, "url"),
-        eventType: text$1(row, "event_type"),
-        body: text$1(row, "body"),
-        signature: text$1(row, "signature"),
+      return rows$2(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
+        deliveryId: text$2(row, "delivery_id"),
+        url: text$2(row, "url"),
+        eventType: text$2(row, "event_type"),
+        body: text$2(row, "body"),
+        signature: text$2(row, "signature"),
       }));
     },
     async record(deliveryId, responseStatus, error) {
@@ -30609,21 +30706,21 @@ function webhookStore(db) {
 /** NotificationStore over the 0520 RPCs and identity reads. */
 function notificationStore(db, options) {
   const orgSlug = async (orgId) =>
-    text$1((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
+    text$2((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
   return {
     async claimEmail(limit) {
-      return rows$1(
+      return rows$2(
         await db.rpc("claim_notification_deliveries", {
           p_channel: "Email",
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$1(row, "delivery_id"),
-        orgId: text$1(row, "org_id"),
-        recipientPersonId: text$1(row, "recipient_person_id"),
-        address: text$1(row, "address"),
-        kind: text$1(row, "kind"),
-        emailTemplateCode: text$1(row, "email_template_code"),
+        deliveryId: text$2(row, "delivery_id"),
+        orgId: text$2(row, "org_id"),
+        recipientPersonId: text$2(row, "recipient_person_id"),
+        address: text$2(row, "address"),
+        kind: text$2(row, "kind"),
+        emailTemplateCode: text$2(row, "email_template_code"),
         messageArgs: row["message_args"] ?? {},
         subjectTable: optionalText$1(row, "subject_table"),
         subjectId: optionalText$1(row, "subject_id"),
@@ -30631,8 +30728,8 @@ function notificationStore(db, options) {
     },
     async senderFor(orgId, personId) {
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
-      const slug = text$1(org, "slug");
-      const name = text$1(org, "name");
+      const slug = text$2(org, "slug");
+      const name = text$2(org, "name");
       return {
         orgName: name,
         postalAddress: options.postalAddress,
@@ -30697,7 +30794,7 @@ function isPunchKind(value) {
 }
 /** The kiosk PIN service for A17 Compass: one punch through app.kiosk_punch, which calls app.record_punch. */
 async function kioskPunch(db, input) {
-  const row = rows$1(
+  const row = rows$2(
     await db.rpc("kiosk_punch", {
       p_device_key: input.deviceKey,
       p_membership_id: input.membershipId,
@@ -31319,10 +31416,10 @@ async function runUploadScans(options) {
 }
 //#endregion
 //#region src/scanning/stores.ts
-function rows(data) {
+function rows$1(data) {
   return Array.isArray(data) ? data : [];
 }
-function text(row, key) {
+function text$1(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -31340,15 +31437,15 @@ function count(row, key) {
 function scanStore(db) {
   return {
     async claimAttachmentScans(worker, limit) {
-      return rows(
+      return rows$1(
         await db.rpc("claim_jobs", {
           p_worker: worker,
           p_job_kind: ATTACHMENT_SCAN_JOB,
           p_limit: limit,
         }),
       ).map((row) => ({
-        jobId: text(row, "id"),
-        attachmentVersionId: text(row, "subject_id"),
+        jobId: text$1(row, "id"),
+        attachmentVersionId: text$1(row, "subject_id"),
         attempts: count(row, "attempts"),
       }));
     },
@@ -31360,11 +31457,11 @@ function scanStore(db) {
       );
       if (row === null) return null;
       return {
-        objectName: text(row, "object_name"),
-        filename: text(row, "filename"),
-        contentType: text(row, "content_type"),
+        objectName: text$1(row, "object_name"),
+        filename: text$1(row, "filename"),
+        contentType: text$1(row, "content_type"),
         checksumSha256: optionalText(row, "checksum_sha256"),
-        scanStatus: text(row, "scan_status"),
+        scanStatus: text$1(row, "scan_status"),
       };
     },
     async recordAttachmentScan(attachmentVersionId, clean, detail) {
@@ -31386,15 +31483,15 @@ function scanStore(db) {
       );
     },
     async claimObjectScans(worker, limit) {
-      return rows(
+      return rows$1(
         await db.rpc("claim_object_scans", {
           p_worker: worker,
           p_limit: limit,
         }),
       ).map((row) => ({
-        objectScanId: text(row, "object_scan_id"),
-        bucketId: text(row, "bucket_id"),
-        objectName: text(row, "object_name"),
+        objectScanId: text$1(row, "object_scan_id"),
+        bucketId: text$1(row, "bucket_id"),
+        objectName: text$1(row, "object_name"),
         contentType: optionalText(row, "content_type"),
         attempts: count(row, "attempts"),
       }));
@@ -31803,6 +31900,735 @@ function identityFromEnv(service, env) {
   };
 }
 //#endregion
+//#region ../data/src/result.ts
+function ok(data) {
+  return {
+    ok: true,
+    data,
+  };
+}
+function fail(error) {
+  return {
+    ok: false,
+    error,
+  };
+}
+/** `<rule_code>: <sentence>` (ADR 0008, item 3) split into its parts. */
+function splitRefusal(message, hint) {
+  const separator = message.indexOf(": ");
+  const prefix = separator > 0 ? message.slice(0, separator) : "";
+  const rule = hint && hint.length > 0 ? hint : prefix || "refused";
+  return {
+    rule,
+    message: separator > 0 && prefix === rule ? message.slice(separator + 2) : message,
+  };
+}
+/** Maps a database error to a typed repository error. */
+function toDataError(error) {
+  switch (error.code) {
+    case "XR001":
+      return {
+        kind: "refusal",
+        ...splitRefusal(error.message, error.hint),
+      };
+    case "42501":
+    case "PGRST116":
+      return { kind: "not-found" };
+    case "23505":
+      return {
+        kind: "conflict",
+        message: error.message,
+      };
+    case "23514":
+    case "22023":
+    case "22P02":
+      return {
+        kind: "invalid",
+        message: error.message,
+      };
+    default:
+      return error.code
+        ? {
+            kind: "unexpected",
+            message: error.message,
+            code: error.code,
+          }
+        : {
+            kind: "unexpected",
+            message: error.message,
+          };
+  }
+}
+//#endregion
+//#region ../data/src/finance.ts
+/** Sum of amounts where any blank makes the total blank (Section 3.7), with the blank count. */
+function nullAwareSum(amounts) {
+  let priced = 0;
+  let pricedCount = 0;
+  let unpricedCount = 0;
+  for (const a of amounts)
+    if (a === null) unpricedCount += 1;
+    else {
+      priced += a;
+      pricedCount += 1;
+    }
+  return {
+    total: unpricedCount > 0 || amounts.length === 0 ? null : priced,
+    priced: pricedCount === 0 ? null : priced,
+    unpricedCount,
+  };
+}
+//#endregion
+//#region ../data/src/untyped.ts
+/**
+ * The client without generated row types, for two cases only: the record kind extension tables,
+ * whose name is computed from the kind (record_build for Build), and tables and RPCs added in
+ * migrations newer than the generated database types. Callers map every row into a declared
+ * interface at the boundary, so nothing untyped leaves the repository.
+ */
+function untyped(db) {
+  return db;
+}
+//#endregion
+//#region ../data/src/report-builder.ts
+/** What each A18 report source reads and which of its columns a report may use. */
+var REPORT_SOURCES = [
+  {
+    code: "records",
+    relation: "records",
+    orgColumn: "org_id",
+    fields: [
+      {
+        key: "record_kind",
+        type: "text",
+      },
+      {
+        key: "record_state",
+        type: "text",
+      },
+      {
+        key: "phase_code",
+        type: "text",
+      },
+      {
+        key: "title",
+        type: "text",
+      },
+      {
+        key: "record_number",
+        type: "number",
+      },
+      {
+        key: "due_at",
+        type: "date",
+      },
+      {
+        key: "created_at",
+        type: "date",
+      },
+    ],
+  },
+  {
+    code: "finance",
+    relation: "budget_line_facts",
+    orgColumn: "project_id",
+    currencyColumn: "currency_code",
+    fields: [
+      {
+        key: "account_code",
+        type: "text",
+      },
+      {
+        key: "dept_code",
+        type: "text",
+      },
+      {
+        key: "cost_center_code",
+        type: "text",
+      },
+      {
+        key: "line_type",
+        type: "text",
+      },
+      {
+        key: "description",
+        type: "text",
+      },
+      {
+        key: "extended_minor",
+        type: "money",
+      },
+      {
+        key: "actual_minor",
+        type: "money",
+      },
+    ],
+  },
+  {
+    code: "crew",
+    relation: "shifts",
+    orgColumn: "org_id",
+    fields: [
+      {
+        key: "role_code",
+        type: "text",
+      },
+      {
+        key: "shift_state",
+        type: "text",
+      },
+      {
+        key: "starts_at",
+        type: "date",
+      },
+      {
+        key: "ends_at",
+        type: "date",
+      },
+    ],
+  },
+  {
+    code: "procurement",
+    relation: "purchase_order_totals",
+    orgColumn: "project_id",
+    currencyColumn: "currency_code",
+    fields: [
+      {
+        key: "lines_total_minor",
+        type: "money",
+      },
+      {
+        key: "approved_changes_minor",
+        type: "money",
+      },
+      {
+        key: "unpriced_count",
+        type: "number",
+      },
+    ],
+  },
+  {
+    code: "assets",
+    relation: "asset_units",
+    orgColumn: "org_id",
+    fields: [
+      {
+        key: "asset_tag",
+        type: "text",
+      },
+      {
+        key: "asset_state",
+        type: "text",
+      },
+      {
+        key: "condition_enum_id",
+        type: "text",
+      },
+      {
+        key: "created_at",
+        type: "date",
+      },
+    ],
+  },
+  {
+    code: "incidents",
+    relation: "incidents",
+    orgColumn: "org_id",
+    fields: [
+      {
+        key: "title",
+        type: "text",
+      },
+      {
+        key: "incident_state",
+        type: "text",
+      },
+      {
+        key: "severity_enum_id",
+        type: "text",
+      },
+      {
+        key: "incident_number",
+        type: "number",
+      },
+      {
+        key: "occurred_at",
+        type: "date",
+      },
+    ],
+  },
+  {
+    code: "custom_object",
+    relation: "custom_object_records",
+    orgColumn: "org_id",
+    fields: [
+      {
+        key: "title",
+        type: "text",
+      },
+      {
+        key: "created_at",
+        type: "date",
+      },
+    ],
+  },
+];
+function sourceOf(code) {
+  return REPORT_SOURCES.find((s) => s.code === code);
+}
+async function rows(query) {
+  const { data, error } = await query;
+  if (error) return fail(toDataError(error));
+  return ok(data ?? []);
+}
+var str = (v) => (typeof v === "string" ? v : String(v ?? ""));
+var strOrNull = (v) => (typeof v === "string" ? v : null);
+/** A saved definition with its fields and filters, or not-found when the viewer cannot read it. */
+async function getReportDefinition(db, input) {
+  const [defs, fields, filters] = await Promise.all([
+    rows(
+      untyped(db)
+        .from("report_definitions")
+        .select(
+          "id, name, source_code, custom_object_type_id, chart, group_by_field, shared, membership_id",
+        )
+        .eq("id", input.id)
+        .is("deleted_at", null),
+    ),
+    rows(
+      untyped(db)
+        .from("report_fields")
+        .select("field, aggregate, position")
+        .eq("report_definition_id", input.id)
+        .is("deleted_at", null)
+        .order("position"),
+    ),
+    rows(
+      untyped(db)
+        .from("report_filters")
+        .select("field, operator, value_text")
+        .eq("report_definition_id", input.id)
+        .is("deleted_at", null)
+        .order("created_at"),
+    ),
+  ]);
+  if (!defs.ok) return defs;
+  if (!fields.ok) return fields;
+  if (!filters.ok) return filters;
+  const d = defs.data[0];
+  if (!d) return fail({ kind: "not-found" });
+  return ok({
+    id: str(d["id"]),
+    name: str(d["name"]),
+    sourceCode: str(d["source_code"]),
+    customObjectTypeId: strOrNull(d["custom_object_type_id"]),
+    chart: str(d["chart"]),
+    groupBy: strOrNull(d["group_by_field"]),
+    shared: d["shared"] === true,
+    mine: str(d["membership_id"]) === input.membershipId,
+    fields: fields.data.map((f) => ({
+      field: str(f["field"]),
+      aggregate: str(f["aggregate"]),
+    })),
+    filters: filters.data.map((f) => ({
+      field: str(f["field"]),
+      operator: str(f["operator"]),
+      value: strOrNull(f["value_text"]),
+    })),
+  });
+}
+var numeric = (v) =>
+  v === null || v === void 0 || v === "" ? null : typeof v === "number" ? v : Number(v);
+function aggregateValue(values, aggregate, type) {
+  if (aggregate === "Count") return values.filter((v) => v !== null && v !== void 0).length;
+  if (aggregate === "None") return values[0] ?? null;
+  if (type === "date") {
+    const dates = values.filter((v) => typeof v === "string").sort();
+    return aggregate === "Minimum" ? (dates[0] ?? null) : (dates[dates.length - 1] ?? null);
+  }
+  const nums = values.map(numeric);
+  if (nums.some((n) => n === null)) return null;
+  const known = nums;
+  if (known.length === 0) return null;
+  switch (aggregate) {
+    case "Sum":
+      return known.reduce((s, n) => s + n, 0);
+    case "Average":
+      return Math.round((known.reduce((s, n) => s + n, 0) / known.length) * 100) / 100;
+    case "Minimum":
+      return Math.min(...known);
+    case "Maximum":
+      return Math.max(...known);
+  }
+}
+/** The plan of a definition, or null when its source is unknown. Unknown fields are left out. */
+function planReport(d) {
+  const source = sourceOf(d.sourceCode);
+  if (!source) return null;
+  const known = new Map(source.fields.map((f) => [f.key, f]));
+  const fields = d.fields.filter((f) => known.has(f.field));
+  const columns = fields.map((f) => ({
+    field: f.field,
+    aggregate: f.aggregate,
+    type: known.get(f.field).type,
+  }));
+  const hasMoney = columns.some((c) => c.type === "money");
+  const group = d.groupBy !== null && known.has(d.groupBy) ? d.groupBy : null;
+  return {
+    source,
+    columns,
+    select: [
+      .../* @__PURE__ */ new Set([
+        ...fields.map((f) => f.field),
+        ...(group ? [group] : []),
+        ...(hasMoney && source.currencyColumn ? [source.currencyColumn] : []),
+      ]),
+    ],
+    group,
+  };
+}
+/**
+ * Aggregates source rows in memory as the preview shows them: grouped by the plan's grouping (and by
+ * currency when a money field is shown, so currencies never mix), money summed NULL-aware.
+ */
+function summarizeReport(plan, data, truncated) {
+  const { source, columns, group } = plan;
+  const hasMoney = columns.some((c) => c.type === "money");
+  const aggregating = group !== null || columns.some((c) => c.aggregate !== "None");
+  const currencyOf = (r) => (source.currencyColumn ? str(r[source.currencyColumn]).trim() : "");
+  const cellsFor = (members) =>
+    columns.map((c) => {
+      const values = members.map((m) => m[c.field] ?? null);
+      if (c.type === "money") {
+        const currency = members[0] ? currencyOf(members[0]) : "";
+        if (c.aggregate === "Sum" || (c.aggregate === "None" && !aggregating)) {
+          const sum = nullAwareSum(values.map(numeric));
+          return {
+            kind: "money",
+            totalMinor: sum.total,
+            currency,
+            unpricedCount: sum.unpricedCount,
+          };
+        }
+        const value = aggregateValue(values, c.aggregate, c.type);
+        if (c.aggregate === "Count")
+          return {
+            kind: "value",
+            value,
+          };
+        return {
+          kind: "money",
+          totalMinor: typeof value === "number" ? Math.round(value) : null,
+          currency,
+          unpricedCount: values.filter((v) => numeric(v) === null).length,
+        };
+      }
+      return {
+        kind: "value",
+        value: aggregateValue(values, c.aggregate, c.type),
+      };
+    });
+  if (!aggregating)
+    return {
+      columns,
+      rows: data.map((r) => ({
+        group: null,
+        cells: cellsFor([r]),
+      })),
+      sourceRows: data.length,
+      truncated,
+    };
+  const groups = /* @__PURE__ */ new Map();
+  for (const r of data) {
+    const label = group ? (r[group] === null || r[group] === void 0 ? null : str(r[group])) : null;
+    const key = `${label ?? ""}|${hasMoney ? currencyOf(r) : ""}`;
+    const g = groups.get(key) ?? {
+      label,
+      members: [],
+    };
+    g.members.push(r);
+    groups.set(key, g);
+  }
+  return {
+    columns,
+    rows: [...groups.values()]
+      .sort((a, b) => (a.label ?? "").localeCompare(b.label ?? "", "en", { numeric: true }))
+      .map((g) => ({
+        group: g.label,
+        cells: cellsFor(g.members),
+      })),
+    sourceRows: data.length,
+    truncated,
+  };
+}
+/** Rows whose money is unpriced (NULL) in any money column of a summary, for a run's count. */
+function unpricedRows(preview) {
+  return preview.rows.reduce(
+    (n, r) => n + Math.max(0, ...r.cells.map((c) => (c.kind === "money" ? c.unpricedCount : 0))),
+    0,
+  );
+}
+/** The preview as CSV, money in major units of its currency (its own decimals), blanks left blank. */
+function previewCsv(preview, headers, groupHeader) {
+  const escape = (v) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  const cell = (c) => {
+    if (c.kind === "value") return c.value === null ? "" : String(c.value);
+    if (c.totalMinor === null) return "";
+    const digits = c.currency
+      ? (new Intl.NumberFormat("en", {
+          style: "currency",
+          currency: c.currency,
+        }).resolvedOptions().maximumFractionDigits ?? 2)
+      : 2;
+    return `${(c.totalMinor / 10 ** digits).toFixed(digits)} ${c.currency}`.trim();
+  };
+  const lines = [[...(groupHeader ? [groupHeader] : []), ...headers].map(escape).join(",")];
+  for (const r of preview.rows)
+    lines.push(
+      [...(groupHeader ? [r.group ?? ""] : []), ...r.cells.map(cell)].map(escape).join(","),
+    );
+  return `${lines.join("\n")}\n`;
+}
+//#endregion
+//#region ../data/src/report-runs.ts
+/**
+ * The report.run worker (A35, RRR-79; migration 1050). A18 queues a report.run job for every run
+ * (app.run_report); this worker claims them from the 0510 job queue and, for each, reads the source
+ * rows as the person the run is for (app.report_run_rows switches to their identity, so their row
+ * level security applies), aggregates them exactly as the builder preview does, stores the CSV in the
+ * private report-results bucket and records the outcome. A failed attempt goes back to Queued while
+ * the job has attempts left, then the run is marked Failed with its error.
+ */
+var REPORT_RUN_JOB = "report.run";
+var REPORT_RESULTS_BUCKET = "report-results";
+/** Source rows a run reads at most; the run file says so when it is cut. */
+var RUN_ROW_LIMIT = 5e4;
+/** The object name of a run's CSV, the same as private.report_result_path. */
+function resultPath(orgId, runId) {
+  return `${orgId}/${runId}.csv`;
+}
+/** Builds the CSV of one running run, as its person; throws an Error whose message is for the person. */
+async function renderRun(store, labels, runId, run) {
+  if (run.exportFormat !== "CSV")
+    throw new Error(
+      `${run.exportFormat} report files are not available yet. Run the report as CSV.`,
+    );
+  const definition = await store.definition(run.reportDefinitionId, run.membershipId);
+  if (!definition) throw new Error("The report no longer exists.");
+  const plan = planReport(definition);
+  if (!plan) throw new Error(`The report's source ${definition.sourceCode} cannot be read.`);
+  if (plan.columns.length === 0)
+    throw new Error("The report has no columns. Add a field and run it again.");
+  const rows = await store.rows(runId, plan.select, 50001);
+  const truncated = rows.length > RUN_ROW_LIMIT;
+  const summary = summarizeReport(plan, truncated ? rows.slice(0, RUN_ROW_LIMIT) : rows, truncated);
+  const code = definition.sourceCode;
+  return {
+    csv: previewCsv(
+      summary,
+      summary.columns.map((c) =>
+        c.aggregate === "None"
+          ? labels.field(code, c.field)
+          : labels.column(code, c.field, c.aggregate),
+      ),
+      plan.group ? labels.field(code, plan.group) : null,
+    ),
+    rowCount: summary.rows.length,
+    unpricedCount: unpricedRows(summary),
+  };
+}
+/** One pass of the worker: claims ready report.run jobs and runs one attempt of each. */
+async function runReportJobs(options) {
+  const { store, storage, labels, worker } = options;
+  const claimed = await store.claim(worker, options.limit ?? 5);
+  const results = [];
+  for (const job of claimed) {
+    const run = await store.run(job.runId);
+    if (!run || run.runStatus !== "Queued") {
+      await store.finishJob(job.jobId, true, null);
+      results.push({
+        jobId: job.jobId,
+        runId: job.runId,
+        status: "Skipped",
+      });
+      continue;
+    }
+    await store.start(job.runId);
+    try {
+      const out = await renderRun(store, labels, job.runId, run);
+      const path = resultPath(run.orgId, job.runId);
+      await storage.upload(REPORT_RESULTS_BUCKET, path, out.csv, "text/csv");
+      await store.finish(job.runId, {
+        status: "Succeeded",
+        path,
+        rowCount: out.rowCount,
+        unpricedCount: out.unpricedCount,
+      });
+      await store.finishJob(job.jobId, true, null);
+      results.push({
+        jobId: job.jobId,
+        runId: job.runId,
+        status: "Succeeded",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const status =
+        (await store.finishJob(job.jobId, false, message)) === "Queued" ? "Queued" : "Failed";
+      await store.finish(job.runId, {
+        status,
+        error: message,
+      });
+      results.push({
+        jobId: job.jobId,
+        runId: job.runId,
+        status,
+        error: message,
+      });
+    }
+  }
+  return results;
+}
+function text(row, key) {
+  const value = row[key];
+  if (typeof value !== "string")
+    throw new Error(`Expected text in ${key} of the database response.`);
+  return value;
+}
+/** ReportRunStore over the service-role client: the 0510 queue RPCs and the 1050 run RPCs. */
+function supabaseReportRunStore(client) {
+  const app = client.schema("app");
+  const call = async (fn, args) => {
+    const { data, error } = await app.rpc(fn, args);
+    if (error) throw new Error(`${fn}: ${error.message}`);
+    return data;
+  };
+  return {
+    async claim(worker, limit) {
+      return (
+        (await call("claim_jobs", {
+          p_worker: worker,
+          p_job_kind: "report.run",
+          p_limit: limit,
+        })) ?? []
+      ).map((r) => ({
+        jobId: text(r, "id"),
+        runId: text(r, "subject_id"),
+      }));
+    },
+    async run(runId) {
+      const { data, error } = await app
+        .from("report_runs")
+        .select("org_id, report_definition_id, run_for_membership_id, export_format, run_status")
+        .eq("id", runId)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (error) throw new Error(`report_runs: ${error.message}`);
+      if (!data) return null;
+      const row = data;
+      return {
+        orgId: text(row, "org_id"),
+        reportDefinitionId: text(row, "report_definition_id"),
+        membershipId: text(row, "run_for_membership_id"),
+        exportFormat: text(row, "export_format"),
+        runStatus: text(row, "run_status"),
+      };
+    },
+    async definition(id, membershipId) {
+      const result = await getReportDefinition(app, {
+        id,
+        membershipId,
+      });
+      if (result.ok) return result.data;
+      if (result.error.kind === "not-found") return null;
+      throw new Error(`report definition: ${JSON.stringify(result.error)}`);
+    },
+    async start(runId) {
+      await call("start_report_run", { p_run_id: runId });
+    },
+    async rows(runId, columns, limit) {
+      return (
+        (await call("report_run_rows", {
+          p_run_id: runId,
+          p_columns: columns,
+          p_limit: limit,
+        })) ?? []
+      );
+    },
+    async finish(runId, outcome) {
+      await call(
+        "finish_report_run",
+        outcome.status === "Succeeded"
+          ? {
+              p_run_id: runId,
+              p_outcome: "Succeeded",
+              p_storage_object_path: outcome.path,
+              p_row_count: outcome.rowCount,
+              p_unpriced_count: outcome.unpricedCount,
+            }
+          : {
+              p_run_id: runId,
+              p_outcome: outcome.status,
+              p_error: outcome.error,
+            },
+      );
+    },
+    async finishJob(jobId, succeeded, error) {
+      return String(
+        await call("finish_job", {
+          p_job_id: jobId,
+          p_succeeded: succeeded,
+          p_error: error,
+        }),
+      );
+    },
+  };
+}
+/** ResultStorage over Supabase Storage of the service-role client; an existing file is replaced. */
+function supabaseResultStorage(client) {
+  return {
+    async upload(bucket, name, body, contentType) {
+      const { error } = await client.storage
+        .from(bucket)
+        .upload(name, new Blob([body], { type: contentType }), {
+          contentType,
+          upsert: true,
+        });
+      if (error) throw new Error(`storage ${bucket}: ${error.message}`);
+    },
+  };
+}
+//#endregion
+//#region edge/reports.ts
+/**
+ * The report.run worker for the Edge bundle (A35, RRR-79). The worker itself lives with the report
+ * builder in @xos/data (report-runs.ts), so a run aggregates exactly as the preview does; this file
+ * re-exports it and adds the CSV headers from the report builder copy in @xos/i18n.
+ */
+function lookup(tree, path) {
+  let node = tree;
+  for (const part of path) {
+    if (typeof node !== "object" || node === null) return null;
+    node = node[part];
+  }
+  return typeof node === "string" ? node : null;
+}
+/** Column headers of a run file in a locale (en-US when unknown), from the builder's field labels. */
+function reportRunLabels(locale) {
+  const messages = getMessages(isLocale(locale) ? locale : defaultLocale);
+  const field = (source, key) =>
+    lookup(messages, ["workflow", "builder", "fields", source, key]) ?? key;
+  return {
+    field,
+    column(source, key, aggregate) {
+      const template = lookup(messages, ["workflow", "builder", "columnAggregate"]);
+      const name = lookup(messages, ["workflow", "builder", "aggregates", aggregate]) ?? aggregate;
+      return template === null
+        ? `${name} ${field(source, key)}`
+        : template.replace("{aggregate}", name).replace("{field}", field(source, key));
+    },
+  };
+}
+//#endregion
 //#region edge/entry.ts
 /**
  * Entry of the Edge Function bundle (supabase/functions/_vendor/xos-platform.js). The Supabase Edge
@@ -31822,6 +32648,8 @@ export {
   PUNCH_KINDS,
   PlatformDbError,
   PriceNotFoundError,
+  REPORT_RESULTS_BUCKET,
+  REPORT_RUN_JOB,
   ScannerUnavailableError,
   StorageUnavailableError,
   StripeSignatureError,
@@ -31856,14 +32684,18 @@ export {
   readEmailEnv,
   readZipDirectory,
   receiveInbound,
+  reportRunLabels,
   requestIdFor,
   resolvePriceId,
+  runReportJobs,
   runUploadScans,
   scanStore,
   signWebhook,
   sniffFamilies,
   stripQuotedText,
   supabaseDb,
+  supabaseReportRunStore,
+  supabaseResultStorage,
   supabaseStorage,
   verifyWebhook,
   webhookStore,

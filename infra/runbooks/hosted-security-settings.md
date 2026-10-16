@@ -47,3 +47,10 @@ Choose one:
    (DPA, `legal/OWNER_INPUTS.md` Part C) before it is used. No account has been opened.
 
 Then schedule `upload-scan` every minute with the service key, as for `webhook-dispatch`.
+
+## Report runs (A35)
+
+Schedule the `report-run` Edge Function every minute with the service key, as for
+`webhook-dispatch`. It processes `report.run` jobs (migration 1050): until it is scheduled, report runs
+stay Queued. Result files go to the private `report-results` bucket, readable only by the person each
+run is for.
