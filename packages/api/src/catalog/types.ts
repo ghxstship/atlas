@@ -6,7 +6,7 @@ import type { z } from "@hono/zod-openapi";
 import type { ResourceDefinition } from "@xos/schemas";
 import type { CapabilityRule } from "./capabilities.ts";
 
-/** Tags: the Atlas modules of Section 4.2, plus Gateway (4.4), Identity (4.8) and Platform (4.6, 4.10). */
+/** Tags: the Atlas modules of Section 4.2, plus Gateway (4.4), Identity (4.8), Platform (4.6, 4.10) and Workforce (4.9). */
 export const MODULES = [
   "Home",
   "Projects",
@@ -34,6 +34,7 @@ export const MODULES = [
   "Gateway",
   "Identity",
   "Platform",
+  "Workforce",
 ] as const;
 
 export type Module = (typeof MODULES)[number];

@@ -475,10 +475,6 @@ export function canonRule(op: string): CapabilityRule | undefined {
  * fails when a capability is neither used nor listed here.
  */
 export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
-  "safety.emergency_code.write":
-    "Emergency codes are one global canon list (decision D15, xpms.emergency_code); no operation writes them (ADR 0023).",
-  "people.certification.verify":
-    "The person who records a certification holder is its verifier (private.guard_certification_holder, 0352); recording needs people.certification.verify through row level security, and there is no later verify step (ADR 0023).",
   "org.separation_of_duties.write":
     "The separation of duties rules are the platform's, read through the view app.separation_of_duties_rules (0320); no operation writes them (ADR 0023).",
   "procurement.bid.unseal":
@@ -504,16 +500,13 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "finance.payment.approve": "Payment runs arrive with the payment module in Wave 3.",
   "vendors.bank_details.write":
     "Bank details are payout accounts held by the payment provider; edited through Gateway.",
-  "knowledge.sop.publish": "SOP publishing is part of the SOP lifecycle in Wave 3.",
   "audit.log.export": "Audit exports run through export jobs with step-up authentication.",
   "org.view_as_role.use": "A UI preview mode with no API operation (Section 8.4).",
   "org.modules.write": "Module switches are setting values.",
   "org.numbering.write": "Numbering formats are setting values.",
   "org.automations.write": "Automations arrive with A18 in Wave 2.",
   "org.scheduling.write": "Scheduling rules are setting values.",
-  "org.communication.write": "Communication rules are setting values (workforce suite, A29).",
   "org.notifications.write": "Org notification defaults are setting values.",
-  "org.help.write": "Help settings are setting values (A31).",
   "org.localization.write": "Localization defaults are setting values.",
   "org.usage.read": "Usage reads arrive with A18 billing in Wave 2.",
   "org.legal.read": "Legal acceptance records arrive with A21.",

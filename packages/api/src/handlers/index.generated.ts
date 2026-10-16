@@ -27,6 +27,7 @@ import { handlers as settings } from "./settings.ts";
 import { handlers as gateway } from "./gateway.ts";
 import { handlers as identity } from "./identity.ts";
 import { handlers as platform } from "./platform.ts";
+import { handlers as workforce } from "./workforce.ts";
 
 export const MODULE_HANDLERS: readonly AnyModuleHandlers[] = [
   home,
@@ -55,4 +56,5 @@ export const MODULE_HANDLERS: readonly AnyModuleHandlers[] = [
   gateway,
   identity,
   platform,
+  workforce,
 ];
