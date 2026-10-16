@@ -474,7 +474,9 @@ __all__ = [
     "RfqInvitationCreate",
     "RfqResponsePage",
     "RfqResponse",
+    "RfqResponseReceipt",
     "RfqResponseCreate",
+    "RfqResponseQuotedLine",
     "RfqResponseLinePage",
     "RfqResponseLine",
     "RfqResponseLineCreate",
@@ -1106,6 +1108,8 @@ __all__ = [
     "DashboardTileUpdate",
     "ReportRowPage",
     "ReportRow",
+    "ReportMetricRowPage",
+    "ReportMetricRow",
     "CustomObjectTypePage",
     "CustomObjectType",
     "CustomObjectTypeCreate",
@@ -1157,12 +1161,13 @@ __all__ = [
     "SavedViewUpdate",
     "ApprovalPolicyPage",
     "ApprovalPolicy",
-    "SpendDocumentType",
     "ApprovalPolicyCreate",
     "ApprovalPolicyUpdate",
+    "ApprovalPolicyTransitionRequest",
     "ApprovalInstancePage",
     "ApprovalInstance",
     "ApprovalInstanceCreate",
+    "ApprovalCancelRequest",
     "ApprovalDecisionPage",
     "ApprovalDecision",
     "ApprovalDecisionCreate",
@@ -1188,11 +1193,13 @@ __all__ = [
     "CalendarFeedCreate",
     "TrashItemPage",
     "TrashItem",
+    "TrashRestoreResult",
     "RestoreRequest",
     "TemplatePage",
     "Template",
     "TemplateCreate",
     "TemplateUpdate",
+    "TemplateFromProjectRequest",
     "TemplateApplicationPage",
     "TemplateApplication",
     "TemplateApplicationCreate",
@@ -1247,6 +1254,18 @@ __all__ = [
     "SupportTicketMessagePage",
     "SupportTicketDiagnosticsPage",
     "SupportTicketDiagnostics",
+    "ApprovalStepPage",
+    "ApprovalStep",
+    "ApprovalStepCreate",
+    "ApprovalStepUpdate",
+    "TemplateVersionPage",
+    "TemplateVersion",
+    "TemplateVersionCreate",
+    "TemplateVersionUpdate",
+    "TemplateItemPage",
+    "TemplateItem",
+    "TemplateItemCreate",
+    "TemplateItemUpdate",
     "WorkforceGroupPage",
     "WorkforceGroup",
     "WorkforceGroupCreate",
@@ -8699,11 +8718,30 @@ class RfqResponse(TypedDict):
     valid_until: Optional[str]
 
 
+class RfqResponseReceipt(TypedDict):
+    """A recorded RFQ response. The response itself stays sealed until the RFQ closes."""
+
+    #: Identifier of the recorded response.
+    rfq_response_id: str
+    #: Identifier of the RFQ.
+    rfq_id: str
+    #: Identifier of the responding vendor.
+    vendor_id: str
+    #: Lines recorded.
+    line_count: int
+    #: True while the RFQ is not Closed: the response stays unreadable until it closes.
+    sealed: bool
+
+
 class _RfqResponseCreateRequired(TypedDict):
     #: Identifier of the RFQ.
     rfq_id: str
     #: Identifier of the responding vendor; must have been invited.
     vendor_id: str
+    #: ISO 4217 currency of every quoted line.
+    currency_code: str
+    #: Lines quoted, at least one.
+    lines: List[RfqResponseQuotedLine]
 
 
 class RfqResponseCreate(_RfqResponseCreateRequired, total=False):
@@ -8711,6 +8749,22 @@ class RfqResponseCreate(_RfqResponseCreateRequired, total=False):
 
     #: Last day the quoted prices hold.
     valid_until: Optional[str]
+
+
+class _RfqResponseQuotedLineRequired(TypedDict):
+    #: Line description.
+    description: str
+    #: Unit price quoted. Integer minor units of the resource currency; null means unpriced, never zero.
+    unit_price_minor: Optional[int]
+
+
+class RfqResponseQuotedLine(_RfqResponseQuotedLineRequired, total=False):
+    """A line quoted in an RFQ response."""
+
+    #: Catalog element quoted.
+    element_id: str
+    #: Quantity; 1 when omitted.
+    quantity: float
 
 
 class RfqResponseLinePage(TypedDict):
@@ -17450,6 +17504,30 @@ class ReportRow(TypedDict):
     actual: MoneyTotal
 
 
+class ReportMetricRowPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ReportMetricRow]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ReportMetricRow(TypedDict):
+    """One measure of a built-in report row, in hours or a count. Reports that total money answer ReportRow instead."""
+
+    #: Grouping value: a project key, a project key and gate, or a severity.
+    dimension: str
+    #: Identifier of the project the row is about, when it is about one.
+    project_id: Optional[str]
+    #: What is measured: worked_hours, timesheets and open_entries (labor), incidents and open_incidents (incident rates), blocking_met, blocking_total, other_met, other_total and ready (gate readiness).
+    measure: str
+    #: Unit of the value.
+    unit: Literal["Hours", "Count"]
+    #: The measure: hours to two decimals, or a whole count (ready is 1 or 0).
+    value: float
+
+
 class CustomObjectTypePage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -18307,15 +18385,34 @@ class ApprovalPolicy(TypedDict):
     updated_by: Optional[str]
     #: Policy name.
     name: str
-    document_type: SpendDocumentType
+    #: Spend document type the policy gates.
+    document_type: Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Payroll Run", "Requisition"]
+    #: What the policy is for.
+    description: Optional[str]
+    #: ISO 4217 currency of applies_above_minor; null for every amount.
+    currency_code: Optional[str]
+    #: The policy applies above this amount in currency_code, and to every amount in another currency; null for every document of the type. Integer minor units of the resource currency; null means unpriced, never zero.
+    applies_above_minor: Optional[int]
+    #: Policy state.
+    policy_state: Literal["Draft", "Active", "Retired"]
 
 
-class ApprovalPolicyCreate(TypedDict):
-    """Fields accepted when creating a ApprovalPolicy."""
-
+class _ApprovalPolicyCreateRequired(TypedDict):
     #: Policy name.
     name: str
-    document_type: SpendDocumentType
+    #: Spend document type the policy gates.
+    document_type: Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Payroll Run", "Requisition"]
+
+
+class ApprovalPolicyCreate(_ApprovalPolicyCreateRequired, total=False):
+    """Fields accepted when creating a ApprovalPolicy."""
+
+    #: What the policy is for.
+    description: Optional[str]
+    #: ISO 4217 currency of applies_above_minor; null for every amount.
+    currency_code: Optional[str]
+    #: The policy applies above this amount in currency_code, and to every amount in another currency; null for every document of the type. Integer minor units of the resource currency; null means unpriced, never zero.
+    applies_above_minor: Optional[int]
 
 
 class ApprovalPolicyUpdate(TypedDict, total=False):
@@ -18323,7 +18420,26 @@ class ApprovalPolicyUpdate(TypedDict, total=False):
 
     #: Policy name.
     name: str
-    document_type: SpendDocumentType
+    #: What the policy is for.
+    description: Optional[str]
+    #: ISO 4217 currency of applies_above_minor; null for every amount.
+    currency_code: Optional[str]
+    #: The policy applies above this amount in currency_code, and to every amount in another currency; null for every document of the type. Integer minor units of the resource currency; null means unpriced, never zero.
+    applies_above_minor: Optional[int]
+
+
+class _ApprovalPolicyTransitionRequestRequired(TypedDict):
+    #: The state the caller believes the row is in (compare-and-set).
+    expected_state: Literal["Draft", "Active", "Retired"]
+    #: Target state.
+    to_state: Literal["Draft", "Active", "Retired"]
+
+
+class ApprovalPolicyTransitionRequest(_ApprovalPolicyTransitionRequestRequired, total=False):
+    """Request to move a lifecycle to another state."""
+
+    #: Reason, required by some transitions.
+    reason: str
 
 
 class ApprovalInstancePage(TypedDict):
@@ -18352,21 +18468,44 @@ class ApprovalInstance(TypedDict):
     updated_by: Optional[str]
     #: Identifier of the approval policy.
     approval_policy_id: str
-    #: URN of the subject.
-    subject_urn: str
     #: Identifier of the requester.
     requested_by: str
-    #: Approval state. A Title Case value from the lifecycle's database enum.
-    approval_state: str
+    #: Approval state.
+    approval_state: Literal["In Review", "Approved", "Rejected", "Canceled"]
+    #: Spend document type.
+    document_type: Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Payroll Run", "Requisition"]
+    #: Identifier of the spend document submitted for approval.
+    document_id: str
+    #: Table of the document.
+    subject_table: str
+    #: The document's own number or name.
+    subject_reference: Optional[str]
+    #: Identifier of the project of the document.
+    project_id: Optional[str]
+    #: Amount submitted; the approval covers the document while its amount stays at or below it. Never null: an unpriced document is not submitted. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_minor: Optional[int]
+    #: ISO 4217 currency of the amount.
+    currency_code: str
+    #: Step the approval waits on; the last step once decided.
+    current_step: int
+    #: When it was approved, rejected or canceled.
+    decided_at: Optional[str]
 
 
 class ApprovalInstanceCreate(TypedDict):
     """Fields accepted when creating a ApprovalInstance."""
 
-    #: Identifier of the approval policy.
-    approval_policy_id: str
-    #: URN of the subject.
-    subject_urn: str
+    #: Spend document type.
+    document_type: Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Payroll Run", "Requisition"]
+    #: Identifier of the spend document submitted for approval.
+    document_id: str
+
+
+class ApprovalCancelRequest(TypedDict):
+    """Request to the approval is withdrawn."""
+
+    #: Why the approval is withdrawn.
+    reason: str
 
 
 class ApprovalDecisionPage(TypedDict):
@@ -18403,6 +18542,8 @@ class ApprovalDecision(TypedDict):
     approver_id: str
     #: When it was decided.
     decided_at: str
+    #: Step decided.
+    step_order: int
 
 
 class _ApprovalDecisionCreateRequired(TypedDict):
@@ -18712,6 +18853,31 @@ class TrashItem(TypedDict):
     deleted_at: str
     #: When it will be purged.
     purge_after: str
+    #: Table of the deleted row.
+    subject_table: str
+    #: Identifier of the deleted row.
+    subject_id: str
+    #: Identifier of the org of the deleted row.
+    org_id: str
+    #: Identifier of the project of the deleted row.
+    project_id: Optional[str]
+    #: What the row is called.
+    title: Optional[str]
+    #: Identifier of the person who deleted it.
+    deleted_by: Optional[str]
+
+
+class TrashRestoreResult(TypedDict):
+    """What a restore from Trash brought back."""
+
+    #: URN of the restored row.
+    subject_urn: str
+    #: Table of the restored row.
+    subject_table: str
+    #: Identifier of the restored row.
+    subject_id: str
+    #: Rows restored: the row and the rows that reference it and were deleted with it.
+    rows_restored: int
 
 
 class RestoreRequest(TypedDict):
@@ -18748,13 +18914,24 @@ class Template(TypedDict):
     name: str
     #: Identifier of the current version.
     current_version_id: Optional[str]
+    #: When to use the template.
+    description: Optional[str]
+    #: What the template creates.
+    template_kind: Literal["Project"]
 
 
-class TemplateCreate(TypedDict):
-    """Fields accepted when creating a Template."""
-
+class _TemplateCreateRequired(TypedDict):
     #: Template name.
     name: str
+
+
+class TemplateCreate(_TemplateCreateRequired, total=False):
+    """Fields accepted when creating a Template."""
+
+    #: When to use the template.
+    description: Optional[str]
+    #: What the template creates.
+    template_kind: Literal["Project"]
 
 
 class TemplateUpdate(TypedDict, total=False):
@@ -18762,6 +18939,24 @@ class TemplateUpdate(TypedDict, total=False):
 
     #: Template name.
     name: str
+    #: When to use the template.
+    description: Optional[str]
+    #: What the template creates.
+    template_kind: Literal["Project"]
+
+
+class _TemplateFromProjectRequestRequired(TypedDict):
+    #: Identifier of the project saved as a template.
+    project_id: str
+    #: Template name.
+    name: str
+
+
+class TemplateFromProjectRequest(_TemplateFromProjectRequestRequired, total=False):
+    """A project to save as a template."""
+
+    #: When to use the template.
+    description: str
 
 
 class TemplateApplicationPage(TypedDict):
@@ -18792,13 +18987,32 @@ class TemplateApplication(TypedDict):
     template_id: str
     #: Identifier of the created project.
     project_id: str
+    #: Identifier of the published version applied.
+    template_version_id: str
+    #: Scope nodes created.
+    scope_nodes_created: int
+    #: Records created.
+    records_created: int
 
 
-class TemplateApplicationCreate(TypedDict):
-    """Fields accepted when creating a TemplateApplication."""
-
+class _TemplateApplicationCreateRequired(TypedDict):
     #: Identifier of the template.
     template_id: str
+    #: Key of the project to create.
+    project_key: str
+    #: Name of the project to create.
+    name: str
+
+
+class TemplateApplicationCreate(_TemplateApplicationCreateRequired, total=False):
+    """Fields accepted when creating a TemplateApplication."""
+
+    #: IANA time zone; defaults to the version's.
+    time_zone: str
+    #: Start date; records are due relative to it.
+    starts_on: str
+    #: Identifier of the venue of the project and its shows.
+    venue_id: str
 
 
 class GuestListEntryPage(TypedDict):
@@ -19535,6 +19749,257 @@ class SupportTicketDiagnostics(TypedDict):
     recent_errors: Optional[str]
     #: Storage path of a screenshot.
     screenshot_path: Optional[str]
+
+
+class ApprovalStepPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ApprovalStep]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ApprovalStep(TypedDict):
+    """An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422)."""
+
+    #: Identifier of the approval step.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the approval policy.
+    approval_policy_id: str
+    #: Position of the step, 1 first; steps are decided in order.
+    step_order: int
+    #: Step name.
+    name: str
+    #: Identifier of the role whose holders decide the step.
+    approver_role_id: Optional[str]
+    #: Identifier of the the one member who decides the step.
+    approver_membership_id: Optional[str]
+
+
+class _ApprovalStepCreateRequired(TypedDict):
+    #: Identifier of the approval policy.
+    approval_policy_id: str
+    #: Position of the step, 1 first; steps are decided in order.
+    step_order: int
+    #: Step name.
+    name: str
+
+
+class ApprovalStepCreate(_ApprovalStepCreateRequired, total=False):
+    """Fields accepted when creating a ApprovalStep."""
+
+    #: Identifier of the role whose holders decide the step.
+    approver_role_id: Optional[str]
+    #: Identifier of the the one member who decides the step.
+    approver_membership_id: Optional[str]
+
+
+class ApprovalStepUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ApprovalStep. Omitted fields are unchanged."""
+
+    #: Position of the step, 1 first; steps are decided in order.
+    step_order: int
+    #: Step name.
+    name: str
+    #: Identifier of the role whose holders decide the step.
+    approver_role_id: Optional[str]
+    #: Identifier of the the one member who decides the step.
+    approver_membership_id: Optional[str]
+
+
+class TemplateVersionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TemplateVersion]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TemplateVersion(TypedDict):
+    """A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version."""
+
+    #: Identifier of the template version.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the template.
+    template_id: str
+    #: Version number, issued in order, 1 first.
+    version_number: int
+    #: What changed in this version.
+    notes: Optional[str]
+    #: IANA time zone a new project starts with.
+    default_time_zone: Optional[str]
+    #: Canon tier a new project starts with.
+    default_tier_code: Optional[str]
+    #: Canon region a new project starts with.
+    default_region_code: Optional[str]
+    #: Canon jurisdiction a new project starts with.
+    default_jurisdiction_id: Optional[str]
+    #: ISO 4217 currency a new project starts with.
+    default_currency_code: Optional[str]
+    #: Length of the project in days.
+    duration_days: Optional[int]
+    #: When the version was published; null while a draft.
+    published_at: Optional[str]
+
+
+class _TemplateVersionCreateRequired(TypedDict):
+    #: Identifier of the template.
+    template_id: str
+
+
+class TemplateVersionCreate(_TemplateVersionCreateRequired, total=False):
+    """Fields accepted when creating a TemplateVersion."""
+
+    #: What changed in this version.
+    notes: Optional[str]
+    #: IANA time zone a new project starts with.
+    default_time_zone: Optional[str]
+    #: Canon tier a new project starts with.
+    default_tier_code: Optional[str]
+    #: Canon region a new project starts with.
+    default_region_code: Optional[str]
+    #: Canon jurisdiction a new project starts with.
+    default_jurisdiction_id: Optional[str]
+    #: ISO 4217 currency a new project starts with.
+    default_currency_code: Optional[str]
+    #: Length of the project in days.
+    duration_days: Optional[int]
+
+
+class TemplateVersionUpdate(TypedDict, total=False):
+    """Fields accepted when updating a TemplateVersion. Omitted fields are unchanged."""
+
+    #: What changed in this version.
+    notes: Optional[str]
+    #: IANA time zone a new project starts with.
+    default_time_zone: Optional[str]
+    #: Canon tier a new project starts with.
+    default_tier_code: Optional[str]
+    #: Canon region a new project starts with.
+    default_region_code: Optional[str]
+    #: Canon jurisdiction a new project starts with.
+    default_jurisdiction_id: Optional[str]
+    #: ISO 4217 currency a new project starts with.
+    default_currency_code: Optional[str]
+    #: Length of the project in days.
+    duration_days: Optional[int]
+
+
+class TemplateItemPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TemplateItem]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TemplateItem(TypedDict):
+    """An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422)."""
+
+    #: Identifier of the template item.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the template version.
+    template_version_id: str
+    #: What the item creates.
+    item_kind: Literal["Scope Node", "Record"]
+    #: Position in the version, 1 first.
+    sort_order: int
+    #: Scope node name, or record title.
+    name: str
+    #: For a scope node: Show or Standing Venue.
+    scope_kind: Optional[Literal["Standing Venue", "Show"]]
+    #: For a scope node: code after the project key.
+    scope_code_suffix: Optional[str]
+    #: For a record: canon record kind.
+    record_kind: Optional[str]
+    #: For a record: declared schema family tag.
+    xyz: Optional[Literal["X", "Y", "Z"]]
+    #: For a record: canon phase.
+    phase_code: Optional[str]
+    #: For a record: due this many days after the project start; null for none.
+    due_offset_days: Optional[int]
+
+
+class _TemplateItemCreateRequired(TypedDict):
+    #: Identifier of the template version.
+    template_version_id: str
+    #: What the item creates.
+    item_kind: Literal["Scope Node", "Record"]
+    #: Position in the version, 1 first.
+    sort_order: int
+    #: Scope node name, or record title.
+    name: str
+
+
+class TemplateItemCreate(_TemplateItemCreateRequired, total=False):
+    """Fields accepted when creating a TemplateItem."""
+
+    #: For a scope node: Show or Standing Venue.
+    scope_kind: Optional[Literal["Standing Venue", "Show"]]
+    #: For a scope node: code after the project key.
+    scope_code_suffix: Optional[str]
+    #: For a record: canon record kind.
+    record_kind: Optional[str]
+    #: For a record: declared schema family tag.
+    xyz: Optional[Literal["X", "Y", "Z"]]
+    #: For a record: canon phase.
+    phase_code: Optional[str]
+    #: For a record: due this many days after the project start; null for none.
+    due_offset_days: Optional[int]
+
+
+class TemplateItemUpdate(TypedDict, total=False):
+    """Fields accepted when updating a TemplateItem. Omitted fields are unchanged."""
+
+    #: Position in the version, 1 first.
+    sort_order: int
+    #: Scope node name, or record title.
+    name: str
+    #: For a scope node: Show or Standing Venue.
+    scope_kind: Optional[Literal["Standing Venue", "Show"]]
+    #: For a scope node: code after the project key.
+    scope_code_suffix: Optional[str]
+    #: For a record: canon record kind.
+    record_kind: Optional[str]
+    #: For a record: declared schema family tag.
+    xyz: Optional[Literal["X", "Y", "Z"]]
+    #: For a record: canon phase.
+    phase_code: Optional[str]
+    #: For a record: due this many days after the project start; null for none.
+    due_offset_days: Optional[int]
 
 
 class WorkforceGroupPage(TypedDict):
@@ -22127,9 +22592,6 @@ ExportFormat = Literal["CSV", "XLSX", "PDF"]
 
 #: Import row result state.
 ImportRowState = Literal["Valid", "Invalid", "Written", "Refused", "Skipped"]
-
-#: Document type a spend limit applies to.
-SpendDocumentType = Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Contract", "Payroll Run"]
 
 #: An Aurora AI feature (Section 4.7).
 AiFeature = Literal["assistant", "plain_language", "extraction", "drafting", "summaries", "mapping"]

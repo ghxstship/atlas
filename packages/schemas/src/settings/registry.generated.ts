@@ -1046,4 +1046,23 @@ export const SETTINGS: readonly SettingDefinition[] = [
       personal: "me.keyboard-shortcuts",
     },
   },
+  {
+    key: "approvals.requester_may_cancel",
+    contributor: "a33",
+    type: "boolean",
+    scopes: ["organization"],
+    capability: "org.approval_policies.write",
+    lockable: false,
+    default: true,
+    choices: [],
+    min: null,
+    max: null,
+    maxLength: null,
+    input: "text",
+    label: "workflow.settings.requesterMayCancel.label",
+    help: "workflow.settings.requesterMayCancel.help",
+    pages: {
+      org: "settings.approval-policies",
+    },
+  },
 ];

@@ -1,0 +1,5 @@
+# Hand-written Atlas pages owned by A33 (platform workflow). One sitemap node id per line.
+approvals
+trash
+projects.templates
+reports.builder

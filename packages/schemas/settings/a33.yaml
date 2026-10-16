@@ -1,0 +1,13 @@
+# Settings registry: A33 (platform workflow: approvals, trash, templates, org state labels).
+# Section 4.5.6, ADR 0021 item 7. Field reference: see a30.yaml. Labels live in the workflow
+# message namespace.
+contributor: a33
+settings:
+  - key: approvals.requester_may_cancel
+    type: boolean
+    default: true
+    scopes: [organization]
+    capability: org.approval_policies.write
+    label: workflow.settings.requesterMayCancel.label
+    help: workflow.settings.requesterMayCancel.help
+    pages: { org: settings.approval-policies }

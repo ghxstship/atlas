@@ -11,6 +11,7 @@ import {
   type SupportChannel,
 } from "@xos/data/support";
 import { myMembershipId } from "@xos/data/views";
+import { uploadSupportScreenshot } from "@xos/data/workflow";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
@@ -141,10 +142,33 @@ const supportShape = z.object({
       appVersion: z.string().max(50).nullable(),
       device: z.string().max(300).nullable(),
       recentErrors: z.string().max(4000).nullable(),
+      screenshotPath: z
+        .string()
+        .regex(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(png|jpg|webp)$/)
+        .nullable()
+        .default(null),
     })
     .nullable(),
 });
 export type SupportRequestInput = z.input<typeof supportShape>;
+
+/**
+ * Uploads a screenshot for a support request (A33, bucket support-screenshots): private to the
+ * uploader and the platform's support staff. Returns the path to send with the diagnostics.
+ */
+export async function uploadSupportScreenshotAction(
+  orgSlug: string,
+  form: FormData,
+): Promise<HelpResult<{ readonly path: string }>> {
+  const file = form.get("screenshot");
+  if (!(file instanceof Blob) || file.size === 0) return { ok: false, error: "invalid" };
+  const c = await context(orgSlug);
+  if (!c?.ctx.viewer.person) return { ok: false, error: "denied" };
+  const result = await uploadSupportScreenshot(c.db, { personId: c.ctx.viewer.person.id, file });
+  return result.ok
+    ? { ok: true, data: { path: result.data } }
+    : { ok: false, error: errorOf(result.error) };
+}
 
 /** Opens a support request; diagnostics are sent only when the person ticked the consent box. */
 export async function openSupportRequestAction(

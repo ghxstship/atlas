@@ -72,13 +72,18 @@ import type {
   ApplicationAnswerCreate,
   ApplicationCreate,
   ApplicationTransitionRequest,
+  ApprovalCancelRequest,
   ApprovalDecision,
   ApprovalDecisionCreate,
   ApprovalInstance,
   ApprovalInstanceCreate,
   ApprovalPolicy,
   ApprovalPolicyCreate,
+  ApprovalPolicyTransitionRequest,
   ApprovalPolicyUpdate,
+  ApprovalStep,
+  ApprovalStepCreate,
+  ApprovalStepUpdate,
   AssetClass,
   AssetClassCreate,
   AssetClassUpdate,
@@ -693,6 +698,7 @@ import type {
   ReportDefinition,
   ReportDefinitionCreate,
   ReportDefinitionUpdate,
+  ReportMetricRowPage,
   ReportRowPage,
   ReportRun,
   ReportRunCreate,
@@ -722,6 +728,7 @@ import type {
   RfqResponseLine,
   RfqResponseLineCreate,
   RfqResponseLineUpdate,
+  RfqResponseReceipt,
   RfqUpdate,
   Rider,
   RiderCreate,
@@ -859,7 +866,14 @@ import type {
   TemplateApplication,
   TemplateApplicationCreate,
   TemplateCreate,
+  TemplateFromProjectRequest,
+  TemplateItem,
+  TemplateItemCreate,
+  TemplateItemUpdate,
   TemplateUpdate,
+  TemplateVersion,
+  TemplateVersionCreate,
+  TemplateVersionUpdate,
   TierCode,
   TimeEntry,
   TimeEntryAudit,
@@ -895,6 +909,7 @@ import type {
   TrainingQuizQuestionCreate,
   TrainingQuizQuestionUpdate,
   TrashItem,
+  TrashRestoreResult,
   UnionLocalRate,
   UnionLocalRateCreate,
   UnionLocalRateUpdate,
@@ -13149,15 +13164,22 @@ export class RfqResponsesResource extends $Resource {
   }
 
   /**
-   * Create a RFQ response
+   * Record an RFQ response
    *
-   * A sealed RFQ response. A bidder sees only their own response. Creates a RFQ response. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   * Records a sealed response and its quoted lines in one call (app.record_rfq_response) for a holder of procurement.rfq.write on the project. Only an invited vendor responds while the RFQ is Issued (rfq_not_invited, 422) and a response quotes at least one line (rfq_response_lines_required, 422). Answers 201 with a receipt: the response stays unreadable until the RFQ closes. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /rfq-responses` (operation `rfqResponses.create`).
    * Requires the capability `procurement.rfq.read`.
    */
-  create(body: RfqResponseCreate, options?: $MutationOptions): Promise<$ApiResponse<RfqResponse>> {
-    return this.client.request<RfqResponse>($OPERATIONS["rfqResponses.create"], { body }, options);
+  create(
+    body: RfqResponseCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<RfqResponseReceipt>> {
+    return this.client.request<RfqResponseReceipt>(
+      $OPERATIONS["rfqResponses.create"],
+      { body },
+      options,
+    );
   }
 
   /**
@@ -30632,15 +30654,27 @@ export class ReportsResource extends $Resource {
   }
 
   /**
-   * Labor cost
+   * Labor
    *
-   * Labor cost by role and department from approved timesheets. Restricted pay columns are masked without the capability. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Worked hours, timesheets and timesheets with an open entry, per readable project, from submitted time (app.timesheet_hours). Pay is Restricted and never reported here. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /reports/labor-cost` (operation `reports.laborCost`).
    * Requires the capability `data.restricted.read.payroll`.
    */
-  laborCost(options?: $RequestOptions): Promise<$ApiResponse<ReportRowPage>> {
-    return this.client.request<ReportRowPage>($OPERATIONS["reports.laborCost"], {}, options);
+  laborCost(
+    params?: {
+      /**
+       * Only this project; every visible project when omitted.
+       */
+      readonly project_id?: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ReportMetricRowPage>> {
+    return this.client.request<ReportMetricRowPage>(
+      $OPERATIONS["reports.laborCost"],
+      { query: params },
+      options,
+    );
   }
 
   /**
@@ -30670,13 +30704,33 @@ export class ReportsResource extends $Resource {
   /**
    * Incident rates
    *
-   * Incident counts and rates by severity and project. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Incidents and open incidents per canon severity, optionally for one project and a window of occurrence. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /reports/incident-rates` (operation `reports.incidentRates`).
    * Requires the capability `safety.incident.read`.
    */
-  incidentRates(options?: $RequestOptions): Promise<$ApiResponse<ReportRowPage>> {
-    return this.client.request<ReportRowPage>($OPERATIONS["reports.incidentRates"], {}, options);
+  incidentRates(
+    params?: {
+      /**
+       * Only this project; every visible project when omitted.
+       */
+      readonly project_id?: string;
+      /**
+       * Occurred on or after this day.
+       */
+      readonly from?: string;
+      /**
+       * Occurred on or before this day.
+       */
+      readonly to?: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ReportMetricRowPage>> {
+    return this.client.request<ReportMetricRowPage>(
+      $OPERATIONS["reports.incidentRates"],
+      { query: params },
+      options,
+    );
   }
 
   /**
@@ -30706,13 +30760,25 @@ export class ReportsResource extends $Resource {
   /**
    * Gate readiness
    *
-   * Gate readiness across projects, one row per project and gate. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Criteria with evidence against the next gate of each readable project: blocking and other criteria met and in total, and whether the gate is ready. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /reports/gate-readiness` (operation `reports.gateReadiness`).
    * Requires the capability `projects.gate.read`.
    */
-  gateReadiness(options?: $RequestOptions): Promise<$ApiResponse<ReportRowPage>> {
-    return this.client.request<ReportRowPage>($OPERATIONS["reports.gateReadiness"], {}, options);
+  gateReadiness(
+    params?: {
+      /**
+       * Only this project; every visible project when omitted.
+       */
+      readonly project_id?: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ReportMetricRowPage>> {
+    return this.client.request<ReportMetricRowPage>(
+      $OPERATIONS["reports.gateReadiness"],
+      { query: params },
+      options,
+    );
   }
 }
 
@@ -32328,6 +32394,26 @@ export class ApprovalPoliciesResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Activate or retire an approval policy
+   *
+   * Moves a policy Draft to Active, Draft to Retired or Active to Retired with compare-and-set (app.transition_approval_policy). Activation needs a step (approval_policy_no_steps) and no other Active policy of the document type (approval_policy_active_exists). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /approval-policies/{id}/transitions` (operation `approvalPolicies.transition`).
+   * Requires the capability `org.approval_policies.write`.
+   */
+  transition(
+    id: string,
+    body: ApprovalPolicyTransitionRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ApprovalPolicy>> {
+    return this.client.request<ApprovalPolicy>(
+      $OPERATIONS["approvalPolicies.transition"],
+      { path: { id }, body },
+      options,
+    );
+  }
 }
 
 /**
@@ -32411,6 +32497,26 @@ export class ApprovalInstancesResource extends $Resource {
     return this.client.request<ApprovalInstance>(
       $OPERATIONS["approvalInstances.get"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Withdraw an approval
+   *
+   * Withdraws an approval in review, or an Approved one the document has not used (app.cancel_approval): the requester, when approvals.requester_may_cancel allows it (approval_requester_cancel_off: 422), or a holder of org.approval_policies.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /approval-instances/{id}/cancel` (operation `approvalInstances.cancel`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  cancel(
+    id: string,
+    body: ApprovalCancelRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ApprovalInstance>> {
+    return this.client.request<ApprovalInstance>(
+      $OPERATIONS["approvalInstances.cancel"],
+      { path: { id }, body },
       options,
     );
   }
@@ -33069,13 +33175,20 @@ export class TrashItemsResource extends $Resource {
   /**
    * Restore a deleted item
    *
-   * Restores a soft-deleted row within its retention period. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Restores a soft-deleted row within its retention period, as the caller (app.restore_trash_item): the table's own update rules decide. Rows that reference it and were deleted with it come back too. A row past retention answers 422 (trash_restore_expired), a live row 422 (trash_not_deleted). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /trash/restore` (operation `trashItems.restore`).
    * Requires the capability `work.record.write`.
    */
-  restore(body: RestoreRequest, options?: $MutationOptions): Promise<$ApiResponse<TrashItem>> {
-    return this.client.request<TrashItem>($OPERATIONS["trashItems.restore"], { body }, options);
+  restore(
+    body: RestoreRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TrashRestoreResult>> {
+    return this.client.request<TrashRestoreResult>(
+      $OPERATIONS["trashItems.restore"],
+      { body },
+      options,
+    );
   }
 }
 
@@ -33186,6 +33299,25 @@ export class TemplatesResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["templates.delete"],
       { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Save a project as a template
+   *
+   * Creates a template from a project as the caller (app.create_template_from_project): its defaults, show and standing venue scope nodes and open records become a published first version. Needs projects.template.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /templates/from-project` (operation `templates.createFromProject`).
+   * Requires the capability `projects.template.write`.
+   */
+  createFromProject(
+    body: TemplateFromProjectRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Template>> {
+    return this.client.request<Template>(
+      $OPERATIONS["templates.createFromProject"],
+      { body },
       options,
     );
   }
@@ -34467,6 +34599,388 @@ export class SupportTicketDiagnosticsResource extends $Resource {
     return this.client.request<SupportTicketDiagnostics>(
       $OPERATIONS["supportTicketDiagnostics.get"],
       { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `approvalSteps`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class ApprovalStepsResource extends $Resource {
+  /**
+   * List approval step rows
+   *
+   * An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Returns a cursor page of approval step rows the caller may see. The default order is `approval_policy_id`, then `step_order` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /approval-steps` (operation `approvalSteps.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  list(
+    params?: $ListParams<ApprovalStep>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ApprovalStep>> {
+    return this.client.requestPage<ApprovalStep>(
+      $OPERATIONS["approvalSteps.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List approval step rows
+   *
+   * An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Returns a cursor page of approval step rows the caller may see. The default order is `approval_policy_id`, then `step_order` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /approval-steps` (operation `approvalSteps.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ApprovalStep>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ApprovalStep, void, undefined> {
+    return this.client.paginate<ApprovalStep>(
+      $OPERATIONS["approvalSteps.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create an approval step
+   *
+   * An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Creates an approval step. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /approval-steps` (operation `approvalSteps.create`).
+   * Requires the capability `org.approval_policies.write`.
+   */
+  create(
+    body: ApprovalStepCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ApprovalStep>> {
+    return this.client.request<ApprovalStep>(
+      $OPERATIONS["approvalSteps.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get an approval step
+   *
+   * An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Returns one approval step with its `ETag`. A approval step the caller may not see returns 404.
+   *
+   * `GET /approval-steps/{id}` (operation `approvalSteps.get`).
+   * Requires the capability `org.settings.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ApprovalStep>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ApprovalStep>> {
+    return this.client.request<ApprovalStep>(
+      $OPERATIONS["approvalSteps.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update an approval step
+   *
+   * An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /approval-steps/{id}` (operation `approvalSteps.update`).
+   * Requires the capability `org.approval_policies.write`.
+   */
+  update(
+    id: string,
+    body: ApprovalStepUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<ApprovalStep>> {
+    return this.client.request<ApprovalStep>(
+      $OPERATIONS["approvalSteps.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete an approval step
+   *
+   * An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422). Soft-deletes the approval step: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /approval-steps/{id}` (operation `approvalSteps.delete`).
+   * Requires the capability `org.approval_policies.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["approvalSteps.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `templateVersions`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class TemplateVersionsResource extends $Resource {
+  /**
+   * List template version rows
+   *
+   * A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Returns a cursor page of template version rows the caller may see. The default order is `template_id`, then `version_number` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /template-versions` (operation `templateVersions.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<TemplateVersion>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TemplateVersion>> {
+    return this.client.requestPage<TemplateVersion>(
+      $OPERATIONS["templateVersions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List template version rows
+   *
+   * A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Returns a cursor page of template version rows the caller may see. The default order is `template_id`, then `version_number` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /template-versions` (operation `templateVersions.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<TemplateVersion>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TemplateVersion, void, undefined> {
+    return this.client.paginate<TemplateVersion>(
+      $OPERATIONS["templateVersions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a template version
+   *
+   * A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Creates a template version. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /template-versions` (operation `templateVersions.create`).
+   * Requires the capability `projects.template.write`.
+   */
+  create(
+    body: TemplateVersionCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TemplateVersion>> {
+    return this.client.request<TemplateVersion>(
+      $OPERATIONS["templateVersions.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a template version
+   *
+   * A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Returns one template version with its `ETag`. A template version the caller may not see returns 404.
+   *
+   * `GET /template-versions/{id}` (operation `templateVersions.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TemplateVersion>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TemplateVersion>> {
+    return this.client.request<TemplateVersion>(
+      $OPERATIONS["templateVersions.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a template version
+   *
+   * A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /template-versions/{id}` (operation `templateVersions.update`).
+   * Requires the capability `projects.template.write`.
+   */
+  update(
+    id: string,
+    body: TemplateVersionUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<TemplateVersion>> {
+    return this.client.request<TemplateVersion>(
+      $OPERATIONS["templateVersions.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a template version
+   *
+   * A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version. Soft-deletes the template version: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /template-versions/{id}` (operation `templateVersions.delete`).
+   * Requires the capability `projects.template.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["templateVersions.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Publish a template version
+   *
+   * Publishes a draft version (app.publish_template_version, projects.template.write): freezes it and makes it the template's current version. A published version answers 422 (template_version_published). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /template-versions/{id}/publish` (operation `templateVersions.publish`).
+   * Requires the capability `projects.template.write`.
+   */
+  publish(id: string, options?: $MutationOptions): Promise<$ApiResponse<TemplateVersion>> {
+    return this.client.request<TemplateVersion>(
+      $OPERATIONS["templateVersions.publish"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `templateItems`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class TemplateItemsResource extends $Resource {
+  /**
+   * List template item rows
+   *
+   * An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Returns a cursor page of template item rows the caller may see. The default order is `template_version_id`, then `sort_order` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /template-items` (operation `templateItems.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<TemplateItem>,
+    options?: $RequestOptions,
+  ): Promise<$Page<TemplateItem>> {
+    return this.client.requestPage<TemplateItem>(
+      $OPERATIONS["templateItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List template item rows
+   *
+   * An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Returns a cursor page of template item rows the caller may see. The default order is `template_version_id`, then `sort_order` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /template-items` (operation `templateItems.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<TemplateItem>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<TemplateItem, void, undefined> {
+    return this.client.paginate<TemplateItem>(
+      $OPERATIONS["templateItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a template item
+   *
+   * An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Creates a template item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /template-items` (operation `templateItems.create`).
+   * Requires the capability `projects.template.write`.
+   */
+  create(
+    body: TemplateItemCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TemplateItem>> {
+    return this.client.request<TemplateItem>(
+      $OPERATIONS["templateItems.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a template item
+   *
+   * An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Returns one template item with its `ETag`. A template item the caller may not see returns 404.
+   *
+   * `GET /template-items/{id}` (operation `templateItems.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<TemplateItem>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TemplateItem>> {
+    return this.client.request<TemplateItem>(
+      $OPERATIONS["templateItems.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a template item
+   *
+   * An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /template-items/{id}` (operation `templateItems.update`).
+   * Requires the capability `projects.template.write`.
+   */
+  update(
+    id: string,
+    body: TemplateItemUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<TemplateItem>> {
+    return this.client.request<TemplateItem>(
+      $OPERATIONS["templateItems.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a template item
+   *
+   * An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422). Soft-deletes the template item: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /template-items/{id}` (operation `templateItems.delete`).
+   * Requires the capability `projects.template.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["templateItems.delete"],
+      { path: { id } },
       options,
     );
   }

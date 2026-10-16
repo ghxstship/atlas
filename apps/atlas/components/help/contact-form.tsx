@@ -11,7 +11,11 @@ import type { Route } from "next";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
-import { openSupportRequestAction, type HelpActionError } from "@/lib/help/actions";
+import {
+  openSupportRequestAction,
+  uploadSupportScreenshotAction,
+  type HelpActionError,
+} from "@/lib/help/actions";
 import type { CollectedDiagnostics } from "./diagnostics";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -49,6 +53,8 @@ export function ContactForm({
   const [missing, setMissing] = useState(false);
   const [error, setError] = useState<HelpActionError | null>(null);
   const [sent, setSent] = useState<string | null>(null);
+  const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [shotError, setShotError] = useState(false);
   const platform = canContactPlatform && platformChannel !== null;
 
   if (sent !== null) {
@@ -77,6 +83,19 @@ export function ContactForm({
         }
         setBusy(true);
         setError(null);
+        // The screenshot goes up first, to the person's own folder (A33), and only with consent.
+        let screenshotPath: string | null = null;
+        if (consent && screenshot) {
+          const form = new FormData();
+          form.set("screenshot", screenshot);
+          const uploaded = await uploadSupportScreenshotAction(org, form);
+          if (!uploaded.ok) {
+            setBusy(false);
+            setError(uploaded.error);
+            return;
+          }
+          screenshotPath = uploaded.data.path;
+        }
         const result = await openSupportRequestAction(org, {
           queue,
           category,
@@ -89,6 +108,7 @@ export function ContactForm({
                 appVersion: diagnostics.appVersion,
                 device: diagnostics.device,
                 recentErrors: diagnostics.recentErrors,
+                screenshotPath,
               }
             : null,
         });
@@ -178,6 +198,33 @@ export function ContactForm({
             {diagnostics.recentErrors ?? t("diagnosticsNoErrors")}
           </dd>
         </dl>
+      </div>
+      <div className="flex flex-col gap-4">
+        <label htmlFor={`${id}-screenshot`} className="text-text-13 font-medium">
+          {t("screenshot")}
+        </label>
+        <input
+          id={`${id}-screenshot`}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          disabled={!consent}
+          aria-describedby={`${id}-screenshot-help`}
+          className="text-text-13"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+            const tooBig = file !== null && file.size > 5 * 1024 * 1024;
+            setShotError(tooBig);
+            setScreenshot(tooBig ? null : file);
+          }}
+        />
+        <p id={`${id}-screenshot-help`} className="m-0 text-text-12 text-text-secondary">
+          {consent ? t("screenshotHelp") : t("screenshotNeedsConsent")}
+        </p>
+        {shotError ? (
+          <p role="alert" className="m-0 text-text-12 text-danger-text">
+            {t("screenshotTooBig")}
+          </p>
+        ) : null}
       </div>
       {error ? (
         <p role="alert" className="m-0 text-text-12 text-danger-text">

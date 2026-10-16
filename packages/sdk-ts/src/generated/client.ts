@@ -348,6 +348,9 @@ import {
   SupportTicketsResource,
   SupportTicketMessagesResource,
   SupportTicketDiagnosticsResource,
+  ApprovalStepsResource,
+  TemplateVersionsResource,
+  TemplateItemsResource,
   WorkforceGroupsResource,
   WorkforceGroupMembersResource,
   ConversationsResource,
@@ -1175,6 +1178,12 @@ export class XosClient extends XosClientCore {
   /** Platform: operations on `supportTicketDiagnostics`. */
   readonly supportTicketDiagnostics: SupportTicketDiagnosticsResource =
     new SupportTicketDiagnosticsResource(this);
+  /** Platform: operations on `approvalSteps`. */
+  readonly approvalSteps: ApprovalStepsResource = new ApprovalStepsResource(this);
+  /** Platform: operations on `templateVersions`. */
+  readonly templateVersions: TemplateVersionsResource = new TemplateVersionsResource(this);
+  /** Platform: operations on `templateItems`. */
+  readonly templateItems: TemplateItemsResource = new TemplateItemsResource(this);
   /** Workforce: operations on `workforceGroups`. */
   readonly workforceGroups: WorkforceGroupsResource = new WorkforceGroupsResource(this);
   /** Workforce: operations on `workforceGroupMembers`. */

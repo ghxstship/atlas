@@ -354,6 +354,9 @@ from .resources import (
     SupportTicketsResource,
     SupportTicketMessagesResource,
     SupportTicketDiagnosticsResource,
+    ApprovalStepsResource,
+    TemplateVersionsResource,
+    TemplateItemsResource,
     WorkforceGroupsResource,
     WorkforceGroupMembersResource,
     ConversationsResource,
@@ -751,6 +754,9 @@ class XosClient(XosClientCore):
     support_tickets: SupportTicketsResource
     support_ticket_messages: SupportTicketMessagesResource
     support_ticket_diagnostics: SupportTicketDiagnosticsResource
+    approval_steps: ApprovalStepsResource
+    template_versions: TemplateVersionsResource
+    template_items: TemplateItemsResource
     workforce_groups: WorkforceGroupsResource
     workforce_group_members: WorkforceGroupMembersResource
     conversations: ConversationsResource
@@ -1136,6 +1142,9 @@ class XosClient(XosClientCore):
         self.support_tickets = SupportTicketsResource(self)
         self.support_ticket_messages = SupportTicketMessagesResource(self)
         self.support_ticket_diagnostics = SupportTicketDiagnosticsResource(self)
+        self.approval_steps = ApprovalStepsResource(self)
+        self.template_versions = TemplateVersionsResource(self)
+        self.template_items = TemplateItemsResource(self)
         self.workforce_groups = WorkforceGroupsResource(self)
         self.workforce_group_members = WorkforceGroupMembersResource(self)
         self.conversations = ConversationsResource(self)

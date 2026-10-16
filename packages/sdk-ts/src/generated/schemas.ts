@@ -14381,6 +14381,36 @@ export interface RfqResponse {
 }
 
 /**
+ * A recorded RFQ response. The response itself stays sealed until the RFQ closes.
+ */
+export interface RfqResponseReceipt {
+  /**
+   * Identifier of the recorded response.
+   * Format: `uuid`.
+   */
+  readonly rfq_response_id: string;
+  /**
+   * Identifier of the RFQ.
+   * Format: `uuid`.
+   */
+  readonly rfq_id: string;
+  /**
+   * Identifier of the responding vendor.
+   * Format: `uuid`.
+   */
+  readonly vendor_id: string;
+  /**
+   * Lines recorded.
+   * Range: 1 to unbounded.
+   */
+  readonly line_count: number;
+  /**
+   * True while the RFQ is not Closed: the response stays unreadable until it closes.
+   */
+  readonly sealed: boolean;
+}
+
+/**
  * Fields accepted when creating a RfqResponse.
  */
 export interface RfqResponseCreate {
@@ -14399,6 +14429,40 @@ export interface RfqResponseCreate {
    * Format: `date`.
    */
   readonly valid_until?: string | null;
+  /**
+   * ISO 4217 currency of every quoted line.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string;
+  /**
+   * Lines quoted, at least one.
+   */
+  readonly lines: ReadonlyArray<RfqResponseQuotedLine>;
+}
+
+/**
+ * A line quoted in an RFQ response.
+ */
+export interface RfqResponseQuotedLine {
+  /**
+   * Line description.
+   * Length: 1 to 300.
+   */
+  readonly description: string;
+  /**
+   * Catalog element quoted.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly element_id?: string;
+  /**
+   * Quantity; 1 when omitted.
+   */
+  readonly quantity?: number;
+  /**
+   * Unit price quoted. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly unit_price_minor: number | null;
 }
 
 /**
@@ -31137,6 +31201,48 @@ export interface ReportRow {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface ReportMetricRowPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ReportMetricRow>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One measure of a built-in report row, in hours or a count. Reports that total money answer ReportRow instead.
+ */
+export interface ReportMetricRow {
+  /**
+   * Grouping value: a project key, a project key and gate, or a severity.
+   */
+  readonly dimension: string;
+  /**
+   * Identifier of the project the row is about, when it is about one.
+   * Format: `uuid`.
+   */
+  readonly project_id: string | null;
+  /**
+   * What is measured: worked_hours, timesheets and open_entries (labor), incidents and open_incidents (incident rates), blocking_met, blocking_total, other_met, other_total and ready (gate readiness).
+   * Pattern: `^[a-z][a-z_]*$`.
+   */
+  readonly measure: string;
+  /**
+   * Unit of the value.
+   */
+  readonly unit: "Hours" | "Count";
+  /**
+   * The measure: hours to two decimals, or a whole count (ready is 1 or 0).
+   */
+  readonly value: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface CustomObjectTypePage {
   /**
    * Items on this page, in the documented default order.
@@ -32843,14 +32949,36 @@ export interface ApprovalPolicy {
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly document_type: SpendDocumentType;
+  /**
+   * Spend document type the policy gates.
+   */
+  readonly document_type:
+    | "Purchase Order"
+    | "Change Order"
+    | "Expense"
+    | "Invoice Approval"
+    | "Payroll Run"
+    | "Requisition";
+  /**
+   * What the policy is for.
+   * Length: 1 to 20000.
+   */
+  readonly description: string | null;
+  /**
+   * ISO 4217 currency of applies_above_minor; null for every amount.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string | null;
+  /**
+   * The policy applies above this amount in currency_code, and to every amount in another currency; null for every document of the type. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly applies_above_minor: number | null;
+  /**
+   * Policy state.
+   */
+  readonly policy_state: "Draft" | "Active" | "Retired";
 }
-
-/**
- * Document type a spend limit applies to.
- */
-export type SpendDocumentType =
-  "Purchase Order" | "Change Order" | "Expense" | "Invoice Approval" | "Contract" | "Payroll Run";
 
 /**
  * Fields accepted when creating a ApprovalPolicy.
@@ -32861,7 +32989,31 @@ export interface ApprovalPolicyCreate {
    * Length: 1 to 300.
    */
   readonly name: string;
-  readonly document_type: SpendDocumentType;
+  /**
+   * Spend document type the policy gates.
+   */
+  readonly document_type:
+    | "Purchase Order"
+    | "Change Order"
+    | "Expense"
+    | "Invoice Approval"
+    | "Payroll Run"
+    | "Requisition";
+  /**
+   * What the policy is for.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string | null;
+  /**
+   * ISO 4217 currency of applies_above_minor; null for every amount.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string | null;
+  /**
+   * The policy applies above this amount in currency_code, and to every amount in another currency; null for every document of the type. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly applies_above_minor?: number | null;
 }
 
 /**
@@ -32873,7 +33025,40 @@ export interface ApprovalPolicyUpdate {
    * Length: 1 to 300.
    */
   readonly name?: string;
-  readonly document_type?: SpendDocumentType;
+  /**
+   * What the policy is for.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string | null;
+  /**
+   * ISO 4217 currency of applies_above_minor; null for every amount.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code?: string | null;
+  /**
+   * The policy applies above this amount in currency_code, and to every amount in another currency; null for every document of the type. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly applies_above_minor?: number | null;
+}
+
+/**
+ * Request to move a lifecycle to another state.
+ */
+export interface ApprovalPolicyTransitionRequest {
+  /**
+   * The state the caller believes the row is in (compare-and-set).
+   */
+  readonly expected_state: "Draft" | "Active" | "Retired";
+  /**
+   * Target state.
+   */
+  readonly to_state: "Draft" | "Active" | "Retired";
+  /**
+   * Reason, required by some transitions.
+   * Length: 1 to unbounded.
+   */
+  readonly reason?: string;
 }
 
 /**
@@ -32930,20 +33115,64 @@ export interface ApprovalInstance {
    */
   readonly approval_policy_id: string;
   /**
-   * URN of the subject.
-   * Length: 1 to 300.
-   */
-  readonly subject_urn: string;
-  /**
    * Identifier of the requester.
    * Format: `uuid`.
    */
   readonly requested_by: string;
   /**
-   * Approval state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Approval state.
    */
-  readonly approval_state: string;
+  readonly approval_state: "In Review" | "Approved" | "Rejected" | "Canceled";
+  /**
+   * Spend document type.
+   */
+  readonly document_type:
+    | "Purchase Order"
+    | "Change Order"
+    | "Expense"
+    | "Invoice Approval"
+    | "Payroll Run"
+    | "Requisition";
+  /**
+   * Identifier of the spend document submitted for approval.
+   * Format: `uuid`.
+   */
+  readonly document_id: string;
+  /**
+   * Table of the document.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly subject_table: string;
+  /**
+   * The document's own number or name.
+   * Length: 1 to 300.
+   */
+  readonly subject_reference: string | null;
+  /**
+   * Identifier of the project of the document.
+   * Format: `uuid`.
+   */
+  readonly project_id: string | null;
+  /**
+   * Amount submitted; the approval covers the document while its amount stays at or below it. Never null: an unpriced document is not submitted. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor: number | null;
+  /**
+   * ISO 4217 currency of the amount.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string;
+  /**
+   * Step the approval waits on; the last step once decided.
+   * Range: 1 to unbounded.
+   */
+  readonly current_step: number;
+  /**
+   * When it was approved, rejected or canceled.
+   * Format: `date-time`.
+   */
+  readonly decided_at: string | null;
 }
 
 /**
@@ -32951,15 +33180,31 @@ export interface ApprovalInstance {
  */
 export interface ApprovalInstanceCreate {
   /**
-   * Identifier of the approval policy.
+   * Spend document type.
+   */
+  readonly document_type:
+    | "Purchase Order"
+    | "Change Order"
+    | "Expense"
+    | "Invoice Approval"
+    | "Payroll Run"
+    | "Requisition";
+  /**
+   * Identifier of the spend document submitted for approval.
    * Format: `uuid`.
    */
-  readonly approval_policy_id: string;
+  readonly document_id: string;
+}
+
+/**
+ * Request to the approval is withdrawn.
+ */
+export interface ApprovalCancelRequest {
   /**
-   * URN of the subject.
-   * Length: 1 to 300.
+   * Why the approval is withdrawn.
+   * Length: 1 to 500.
    */
-  readonly subject_urn: string;
+  readonly reason: string;
 }
 
 /**
@@ -33034,6 +33279,11 @@ export interface ApprovalDecision {
    * Format: `date-time`.
    */
   readonly decided_at: string;
+  /**
+   * Step decided.
+   * Range: 1 to unbounded.
+   */
+  readonly step_order: number;
 }
 
 /**
@@ -33608,6 +33858,60 @@ export interface TrashItem {
    * Format: `date-time`.
    */
   readonly purge_after: string;
+  /**
+   * Table of the deleted row.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly subject_table: string;
+  /**
+   * Identifier of the deleted row.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string;
+  /**
+   * Identifier of the org of the deleted row.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project of the deleted row.
+   * Format: `uuid`.
+   */
+  readonly project_id: string | null;
+  /**
+   * What the row is called.
+   * Length: 1 to 300.
+   */
+  readonly title: string | null;
+  /**
+   * Identifier of the person who deleted it.
+   * Format: `uuid`.
+   */
+  readonly deleted_by: string | null;
+}
+
+/**
+ * What a restore from Trash brought back.
+ */
+export interface TrashRestoreResult {
+  /**
+   * URN of the restored row.
+   */
+  readonly subject_urn: string;
+  /**
+   * Table of the restored row.
+   */
+  readonly subject_table: string;
+  /**
+   * Identifier of the restored row.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string;
+  /**
+   * Rows restored: the row and the rows that reference it and were deleted with it.
+   * Range: 1 to unbounded.
+   */
+  readonly rows_restored: number;
 }
 
 export interface RestoreRequest {
@@ -33675,6 +33979,15 @@ export interface Template {
    * Format: `uuid`.
    */
   readonly current_version_id: string | null;
+  /**
+   * When to use the template.
+   * Length: 1 to 20000.
+   */
+  readonly description: string | null;
+  /**
+   * What the template creates.
+   */
+  readonly template_kind: "Project";
 }
 
 /**
@@ -33686,6 +33999,15 @@ export interface TemplateCreate {
    * Length: 1 to 300.
    */
   readonly name: string;
+  /**
+   * When to use the template.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string | null;
+  /**
+   * What the template creates.
+   */
+  readonly template_kind?: "Project";
 }
 
 /**
@@ -33697,6 +34019,36 @@ export interface TemplateUpdate {
    * Length: 1 to 300.
    */
   readonly name?: string;
+  /**
+   * When to use the template.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string | null;
+  /**
+   * What the template creates.
+   */
+  readonly template_kind?: "Project";
+}
+
+/**
+ * A project to save as a template.
+ */
+export interface TemplateFromProjectRequest {
+  /**
+   * Identifier of the project saved as a template.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Template name.
+   * Length: 1 to 200.
+   */
+  readonly name: string;
+  /**
+   * When to use the template.
+   * Length: 1 to 20000.
+   */
+  readonly description?: string;
 }
 
 /**
@@ -33757,6 +34109,21 @@ export interface TemplateApplication {
    * Format: `uuid`.
    */
   readonly project_id: string;
+  /**
+   * Identifier of the published version applied.
+   * Format: `uuid`.
+   */
+  readonly template_version_id: string;
+  /**
+   * Scope nodes created.
+   * Range: 0 to unbounded.
+   */
+  readonly scope_nodes_created: number;
+  /**
+   * Records created.
+   * Range: 0 to unbounded.
+   */
+  readonly records_created: number;
 }
 
 /**
@@ -33768,6 +34135,31 @@ export interface TemplateApplicationCreate {
    * Format: `uuid`.
    */
   readonly template_id: string;
+  /**
+   * Key of the project to create.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly project_key: string;
+  /**
+   * Name of the project to create.
+   * Length: 1 to 200.
+   */
+  readonly name: string;
+  /**
+   * IANA time zone; defaults to the version's.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone?: string;
+  /**
+   * Start date; records are due relative to it.
+   * Format: `date`.
+   */
+  readonly starts_on?: string;
+  /**
+   * Identifier of the venue of the project and its shows.
+   * Format: `uuid`.
+   */
+  readonly venue_id?: string;
 }
 
 /**
@@ -35265,6 +35657,519 @@ export interface SupportTicketDiagnostics {
    * Length: 1 to 500.
    */
   readonly screenshot_path: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ApprovalStepPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ApprovalStep>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An ordered step of an approval policy (1030). It names its approvers: everyone holding a role, or one member. Steps change only while the policy is a Draft (approval_step_policy_not_draft: 422).
+ */
+export interface ApprovalStep {
+  /**
+   * Identifier of the approval step.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the approval policy.
+   * Format: `uuid`.
+   */
+  readonly approval_policy_id: string;
+  /**
+   * Position of the step, 1 first; steps are decided in order.
+   * Range: 1 to unbounded.
+   */
+  readonly step_order: number;
+  /**
+   * Step name.
+   * Length: 1 to 200.
+   */
+  readonly name: string;
+  /**
+   * Identifier of the role whose holders decide the step.
+   * Format: `uuid`.
+   */
+  readonly approver_role_id: string | null;
+  /**
+   * Identifier of the the one member who decides the step.
+   * Format: `uuid`.
+   */
+  readonly approver_membership_id: string | null;
+}
+
+/**
+ * Fields accepted when creating a ApprovalStep.
+ */
+export interface ApprovalStepCreate {
+  /**
+   * Identifier of the approval policy.
+   * Format: `uuid`.
+   */
+  readonly approval_policy_id: string;
+  /**
+   * Position of the step, 1 first; steps are decided in order.
+   * Range: 1 to unbounded.
+   */
+  readonly step_order: number;
+  /**
+   * Step name.
+   * Length: 1 to 200.
+   */
+  readonly name: string;
+  /**
+   * Identifier of the role whose holders decide the step.
+   * Format: `uuid`.
+   */
+  readonly approver_role_id?: string | null;
+  /**
+   * Identifier of the the one member who decides the step.
+   * Format: `uuid`.
+   */
+  readonly approver_membership_id?: string | null;
+}
+
+/**
+ * Fields accepted when updating a ApprovalStep. Omitted fields are unchanged.
+ */
+export interface ApprovalStepUpdate {
+  /**
+   * Position of the step, 1 first; steps are decided in order.
+   * Range: 1 to unbounded.
+   */
+  readonly step_order?: number;
+  /**
+   * Step name.
+   * Length: 1 to 200.
+   */
+  readonly name?: string;
+  /**
+   * Identifier of the role whose holders decide the step.
+   * Format: `uuid`.
+   */
+  readonly approver_role_id?: string | null;
+  /**
+   * Identifier of the the one member who decides the step.
+   * Format: `uuid`.
+   */
+  readonly approver_membership_id?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface TemplateVersionPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<TemplateVersion>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A version of a template (1032): the project defaults and ordered items. Edited while a draft; publishing (templateVersions.publish) freezes it and makes it the template's current version.
+ */
+export interface TemplateVersion {
+  /**
+   * Identifier of the template version.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the template.
+   * Format: `uuid`.
+   */
+  readonly template_id: string;
+  /**
+   * Version number, issued in order, 1 first.
+   * Range: 1 to unbounded.
+   */
+  readonly version_number: number;
+  /**
+   * What changed in this version.
+   * Length: 1 to 20000.
+   */
+  readonly notes: string | null;
+  /**
+   * IANA time zone a new project starts with.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly default_time_zone: string | null;
+  /**
+   * Canon tier a new project starts with.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_tier_code: string | null;
+  /**
+   * Canon region a new project starts with.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_region_code: string | null;
+  /**
+   * Canon jurisdiction a new project starts with.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_jurisdiction_id: string | null;
+  /**
+   * ISO 4217 currency a new project starts with.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly default_currency_code: string | null;
+  /**
+   * Length of the project in days.
+   * Range: 1 to unbounded.
+   */
+  readonly duration_days: number | null;
+  /**
+   * When the version was published; null while a draft.
+   * Format: `date-time`.
+   */
+  readonly published_at: string | null;
+}
+
+/**
+ * Fields accepted when creating a TemplateVersion.
+ */
+export interface TemplateVersionCreate {
+  /**
+   * Identifier of the template.
+   * Format: `uuid`.
+   */
+  readonly template_id: string;
+  /**
+   * What changed in this version.
+   * Length: 1 to 20000.
+   */
+  readonly notes?: string | null;
+  /**
+   * IANA time zone a new project starts with.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly default_time_zone?: string | null;
+  /**
+   * Canon tier a new project starts with.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_tier_code?: string | null;
+  /**
+   * Canon region a new project starts with.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_region_code?: string | null;
+  /**
+   * Canon jurisdiction a new project starts with.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_jurisdiction_id?: string | null;
+  /**
+   * ISO 4217 currency a new project starts with.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly default_currency_code?: string | null;
+  /**
+   * Length of the project in days.
+   * Range: 1 to unbounded.
+   */
+  readonly duration_days?: number | null;
+}
+
+/**
+ * Fields accepted when updating a TemplateVersion. Omitted fields are unchanged.
+ */
+export interface TemplateVersionUpdate {
+  /**
+   * What changed in this version.
+   * Length: 1 to 20000.
+   */
+  readonly notes?: string | null;
+  /**
+   * IANA time zone a new project starts with.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly default_time_zone?: string | null;
+  /**
+   * Canon tier a new project starts with.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_tier_code?: string | null;
+  /**
+   * Canon region a new project starts with.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_region_code?: string | null;
+  /**
+   * Canon jurisdiction a new project starts with.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_jurisdiction_id?: string | null;
+  /**
+   * ISO 4217 currency a new project starts with.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly default_currency_code?: string | null;
+  /**
+   * Length of the project in days.
+   * Range: 1 to unbounded.
+   */
+  readonly duration_days?: number | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface TemplateItemPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<TemplateItem>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An item of a template version (1032): a scope node created under the new project's engagement root ({KEY}-{suffix}), or a record due a number of days after the project start. Items of a published version are frozen (template_version_published: 422).
+ */
+export interface TemplateItem {
+  /**
+   * Identifier of the template item.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the template version.
+   * Format: `uuid`.
+   */
+  readonly template_version_id: string;
+  /**
+   * What the item creates.
+   */
+  readonly item_kind: "Scope Node" | "Record";
+  /**
+   * Position in the version, 1 first.
+   * Range: 1 to unbounded.
+   */
+  readonly sort_order: number;
+  /**
+   * Scope node name, or record title.
+   * Length: 1 to 200.
+   */
+  readonly name: string;
+  /**
+   * For a scope node: Show or Standing Venue.
+   */
+  readonly scope_kind: "Standing Venue" | "Show" | null;
+  /**
+   * For a scope node: code after the project key.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly scope_code_suffix: string | null;
+  /**
+   * For a record: canon record kind.
+   * Length: 1 to 50.
+   */
+  readonly record_kind: string | null;
+  /**
+   * For a record: declared schema family tag.
+   */
+  readonly xyz: "X" | "Y" | "Z" | null;
+  /**
+   * For a record: canon phase.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly phase_code: string | null;
+  /**
+   * For a record: due this many days after the project start; null for none.
+   * Range: -3660 to 3660.
+   */
+  readonly due_offset_days: number | null;
+}
+
+/**
+ * Fields accepted when creating a TemplateItem.
+ */
+export interface TemplateItemCreate {
+  /**
+   * Identifier of the template version.
+   * Format: `uuid`.
+   */
+  readonly template_version_id: string;
+  /**
+   * What the item creates.
+   */
+  readonly item_kind: "Scope Node" | "Record";
+  /**
+   * Position in the version, 1 first.
+   * Range: 1 to unbounded.
+   */
+  readonly sort_order: number;
+  /**
+   * Scope node name, or record title.
+   * Length: 1 to 200.
+   */
+  readonly name: string;
+  /**
+   * For a scope node: Show or Standing Venue.
+   */
+  readonly scope_kind?: "Standing Venue" | "Show" | null;
+  /**
+   * For a scope node: code after the project key.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly scope_code_suffix?: string | null;
+  /**
+   * For a record: canon record kind.
+   * Length: 1 to 50.
+   */
+  readonly record_kind?: string | null;
+  /**
+   * For a record: declared schema family tag.
+   */
+  readonly xyz?: "X" | "Y" | "Z" | null;
+  /**
+   * For a record: canon phase.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly phase_code?: string | null;
+  /**
+   * For a record: due this many days after the project start; null for none.
+   * Range: -3660 to 3660.
+   */
+  readonly due_offset_days?: number | null;
+}
+
+/**
+ * Fields accepted when updating a TemplateItem. Omitted fields are unchanged.
+ */
+export interface TemplateItemUpdate {
+  /**
+   * Position in the version, 1 first.
+   * Range: 1 to unbounded.
+   */
+  readonly sort_order?: number;
+  /**
+   * Scope node name, or record title.
+   * Length: 1 to 200.
+   */
+  readonly name?: string;
+  /**
+   * For a scope node: Show or Standing Venue.
+   */
+  readonly scope_kind?: "Standing Venue" | "Show" | null;
+  /**
+   * For a scope node: code after the project key.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly scope_code_suffix?: string | null;
+  /**
+   * For a record: canon record kind.
+   * Length: 1 to 50.
+   */
+  readonly record_kind?: string | null;
+  /**
+   * For a record: declared schema family tag.
+   */
+  readonly xyz?: "X" | "Y" | "Z" | null;
+  /**
+   * For a record: canon phase.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly phase_code?: string | null;
+  /**
+   * For a record: due this many days after the project start; null for none.
+   * Range: -3660 to 3660.
+   */
+  readonly due_offset_days?: number | null;
 }
 
 /**

@@ -406,8 +406,7 @@ describe("Procurement contract: table operations", () => {
     const res11 = await success(http.get(`/rfq-responses/${RESPONSE}`));
     await expectContract(res11, "rfqResponses.get");
     expect((await http.get(`/rfq-responses/${MISSING}`)).status).toBe(404);
-    const res12 = await success(http.post("/rfq-responses", { rfq_id: RFQ, vendor_id: VENDOR }));
-    await expectContract(res12, "rfqResponses.create");
+    // rfqResponses.create records a sealed response through app.record_rfq_response (A33's test).
   });
 
   it("serves rfqResponseLines", async () => {

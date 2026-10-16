@@ -8,6 +8,7 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeActions } from "../correct.ts";
 import { itemAction, transition } from "../define.ts";
+import { rfqSealedResponseCorrections } from "./parts/rfq-sealed-responses.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -352,5 +353,6 @@ export const additions = defineAdditions("Procurement", {
         },
       }),
     },
+    ...rfqSealedResponseCorrections,
   ],
 });
