@@ -3327,6 +3327,114 @@ var crew_default$1 = {
     retry: "Try again",
   },
 };
+var docs_default$1 = {
+  name: "XOS Developers",
+  tagline:
+    "Build on the XOS public API: guides, the API reference, SDKs, the CLI, the MCP server and self-hosting.",
+  skip: "Skip to content",
+  nav: {
+    label: "Documentation",
+    home: "Home",
+    guides: "Guides",
+    reference: "API reference",
+    help: "Help center",
+  },
+  language: {
+    label: "Language",
+    "en-US": "English",
+    "es-US": "Español",
+  },
+  theme: {
+    label: "Theme",
+    system: "System",
+    light: "Light",
+    dark: "Dark",
+  },
+  home: {
+    title: "Build on XOS",
+    sentence:
+      "One API serves Atlas, Gateway, Compass and your integrations. Start with a guide, look up an operation, or find help for the apps.",
+    guidesTitle: "Guides",
+    guidesBody:
+      "Authenticate, page and filter, write safely, handle refusals, receive webhooks and self-host.",
+    referenceTitle: "API reference",
+    referenceBody:
+      "Every operation in the OpenAPI document, with parameters, schemas and code samples.",
+    helpTitle: "Help center",
+    helpBody: "How Atlas works, page by page, in the same articles the in-app help panel shows.",
+    openapi: "Download the OpenAPI document",
+    start: "Start with the quickstart",
+  },
+  guides: {
+    title: "Guides",
+    sentence:
+      "Everything you need to build on the public API, from the first request to running your own deployment.",
+    outline: "On this page",
+    sections: {
+      start: "Get started",
+      api: "Using the API",
+      tools: "SDKs and tools",
+      operate: "Operate",
+    },
+  },
+  reference: {
+    title: "API reference",
+    sentence:
+      "{count} operations across {resources} resources, generated from the OpenAPI document version {version}.",
+    operations: "{count} operations",
+    outline: "Operations",
+    parameters: "Path and query parameters",
+    requestBody: "Request body: {name}",
+    response: "Response {status}: {name}",
+    responsePage: "Response {status}: a page of {name}",
+    noResponseBody: "Response {status}: no body.",
+    field: "Field",
+    type: "Type",
+    required: "Required",
+    yes: "Yes",
+    no: "No",
+    description: "Description",
+    constraints: "Constraints",
+    requestExample: "Example request body",
+    responseExample: "Example response",
+    samples: "Code samples",
+    capability: "Requires the capability {capability}.",
+    scopes: "OAuth scopes: {scopes}.",
+    idempotent:
+      "Send an Idempotency-Key header. A replay with the same key returns the original response.",
+    ifMatch:
+      "Send If-Match with the ETag you read. A stale tag returns 412; a missing tag returns 428.",
+    paged: "Cursor-paginated: limit, cursor, fields, sort and filter apply.",
+    errors: "Error statuses: {statuses}. Errors are RFC 9457 problem details.",
+    back: "All resources",
+    module: "{module} module",
+    openapi: "OpenAPI document",
+  },
+  help: {
+    title: "Help center",
+    sentence:
+      "How Atlas works, page by page. These are the articles the help panel shows inside the app.",
+    searchLabel: "Search help",
+    searchButton: "Search",
+    results: "{count} articles match {query}.",
+    noResults: "No articles match {query}. Try a shorter word, or browse the topics below.",
+    whatsNew: "What's new",
+    related: "Open the related article",
+    back: "All help articles",
+  },
+  notFound: {
+    title: "This page does not exist",
+    sentence:
+      "The address may be mistyped, or the page moved. Go back to the documentation home to find it.",
+    action: "Go to the documentation home",
+  },
+  error: {
+    title: "This page could not load",
+    sentence:
+      "Something failed while the page was rendering. Try again; if it keeps failing, report it from the help center.",
+    action: "Try again",
+  },
+};
 var email_default$1 = {
   common: {
     preview: "{orgName} on XOS",
@@ -15352,6 +15460,116 @@ var crew_default = {
     retry: "Intentar de nuevo",
   },
 };
+var docs_default = {
+  name: "XOS para desarrolladores",
+  tagline:
+    "Desarrolla sobre la API pública de XOS: guías, la referencia de la API, los SDK, la CLI, el servidor MCP y el autoalojamiento.",
+  skip: "Saltar al contenido",
+  nav: {
+    label: "Documentación",
+    home: "Inicio",
+    guides: "Guías",
+    reference: "Referencia de la API",
+    help: "Centro de ayuda",
+  },
+  language: {
+    label: "Idioma",
+    "en-US": "English",
+    "es-US": "Español",
+  },
+  theme: {
+    label: "Tema",
+    system: "Sistema",
+    light: "Claro",
+    dark: "Oscuro",
+  },
+  home: {
+    title: "Desarrolla sobre XOS",
+    sentence:
+      "Una sola API sirve a Atlas, Gateway, Compass y tus integraciones. Empieza con una guía, consulta una operación o busca ayuda sobre las aplicaciones.",
+    guidesTitle: "Guías",
+    guidesBody:
+      "Autentícate, pagina y filtra, escribe con seguridad, maneja los rechazos, recibe webhooks y autoaloja.",
+    referenceTitle: "Referencia de la API",
+    referenceBody:
+      "Cada operación del documento OpenAPI, con parámetros, esquemas y ejemplos de código.",
+    helpTitle: "Centro de ayuda",
+    helpBody:
+      "Cómo funciona Atlas, página por página, con los mismos artículos que muestra el panel de ayuda de la aplicación.",
+    openapi: "Descargar el documento OpenAPI",
+    start: "Empezar con la guía rápida",
+  },
+  guides: {
+    title: "Guías",
+    sentence:
+      "Todo lo que necesitas para desarrollar sobre la API pública, desde la primera solicitud hasta operar tu propia instalación.",
+    outline: "En esta página",
+    sections: {
+      start: "Primeros pasos",
+      api: "Uso de la API",
+      tools: "SDK y herramientas",
+      operate: "Operación",
+    },
+  },
+  reference: {
+    title: "Referencia de la API",
+    sentence:
+      "{count} operaciones en {resources} recursos, generadas a partir del documento OpenAPI versión {version}.",
+    operations: "{count} operaciones",
+    outline: "Operaciones",
+    parameters: "Parámetros de ruta y de consulta",
+    requestBody: "Cuerpo de la solicitud: {name}",
+    response: "Respuesta {status}: {name}",
+    responsePage: "Respuesta {status}: una página de {name}",
+    noResponseBody: "Respuesta {status}: sin cuerpo.",
+    field: "Campo",
+    type: "Tipo",
+    required: "Obligatorio",
+    yes: "Sí",
+    no: "No",
+    description: "Descripción",
+    constraints: "Restricciones",
+    requestExample: "Ejemplo de cuerpo de solicitud",
+    responseExample: "Ejemplo de respuesta",
+    samples: "Ejemplos de código",
+    capability: "Requiere la capacidad {capability}.",
+    scopes: "Alcances de OAuth: {scopes}.",
+    idempotent:
+      "Envía el encabezado Idempotency-Key. Una repetición con la misma clave devuelve la respuesta original.",
+    ifMatch:
+      "Envía If-Match con el ETag que leíste. Una etiqueta desactualizada devuelve 412; si falta, devuelve 428.",
+    paged: "Paginación por cursor: se aplican limit, cursor, fields, sort y filter.",
+    errors: "Estados de error: {statuses}. Los errores son detalles de problema RFC 9457.",
+    back: "Todos los recursos",
+    module: "Módulo {module}",
+    openapi: "Documento OpenAPI",
+  },
+  help: {
+    title: "Centro de ayuda",
+    sentence:
+      "Cómo funciona Atlas, página por página. Son los artículos que muestra el panel de ayuda dentro de la aplicación.",
+    searchLabel: "Buscar en la ayuda",
+    searchButton: "Buscar",
+    results: "{count} artículos coinciden con {query}.",
+    noResults:
+      "Ningún artículo coincide con {query}. Prueba una palabra más corta o explora los temas de abajo.",
+    whatsNew: "Novedades",
+    related: "Abrir el artículo relacionado",
+    back: "Todos los artículos de ayuda",
+  },
+  notFound: {
+    title: "Esta página no existe",
+    sentence:
+      "Es posible que la dirección tenga un error o que la página se haya movido. Vuelve al inicio de la documentación para encontrarla.",
+    action: "Ir al inicio de la documentación",
+  },
+  error: {
+    title: "No se pudo cargar esta página",
+    sentence:
+      "Algo falló al mostrar la página. Inténtalo de nuevo; si sigue fallando, infórmalo desde el centro de ayuda.",
+    action: "Intentar de nuevo",
+  },
+};
 var email_default = {
   common: {
     preview: "{orgName} en XOS",
@@ -24704,6 +24922,7 @@ var enUS = {
   compass: compass_default$1,
   credentials: credentials_default$1,
   crew: crew_default$1,
+  docs: docs_default$1,
   email: email_default$1,
   finance: finance_default$1,
   gateway: gateway_default$1,
@@ -24742,6 +24961,7 @@ var esUS = {
   compass: compass_default,
   credentials: credentials_default,
   crew: crew_default,
+  docs: docs_default,
   email: email_default,
   finance: finance_default,
   gateway: gateway_default,
