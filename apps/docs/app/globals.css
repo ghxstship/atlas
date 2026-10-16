@@ -1,0 +1,38 @@
+/* Docs styles: the @xos/ui entry (Tailwind 4 with the token preset, the token variables for every
+   theme and the component styles), then the site's base rules. */
+@import "@xos/ui/styles.css";
+@source "../";
+
+@layer base {
+  html {
+    background-color: var(--color-bg-canvas);
+    color: var(--color-text-primary);
+    font: var(--typography-text-13);
+    color-scheme: dark;
+  }
+
+  html[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    block-size: 100dvh;
+    background-color: var(--color-bg-canvas);
+  }
+
+  :focus-visible {
+    outline: var(--stroke-width-focus) solid var(--color-focus-ring);
+    outline-offset: var(--stroke-width-focus);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0s !important;
+      transition-duration: 0s !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

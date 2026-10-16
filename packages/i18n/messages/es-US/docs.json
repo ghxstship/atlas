@@ -1,0 +1,97 @@
+{
+  "name": "XOS para desarrolladores",
+  "tagline": "Desarrolla sobre la API pública de XOS: guías, la referencia de la API, los SDK, la CLI, el servidor MCP y el autoalojamiento.",
+  "skip": "Saltar al contenido",
+  "nav": {
+    "label": "Documentación",
+    "home": "Inicio",
+    "guides": "Guías",
+    "reference": "Referencia de la API",
+    "help": "Centro de ayuda"
+  },
+  "language": {
+    "label": "Idioma",
+    "en-US": "English",
+    "es-US": "Español"
+  },
+  "theme": {
+    "label": "Tema",
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro"
+  },
+  "home": {
+    "title": "Desarrolla sobre XOS",
+    "sentence": "Una sola API sirve a Atlas, Gateway, Compass y tus integraciones. Empieza con una guía, consulta una operación o busca ayuda sobre las aplicaciones.",
+    "guidesTitle": "Guías",
+    "guidesBody": "Autentícate, pagina y filtra, escribe con seguridad, maneja los rechazos, recibe webhooks y autoaloja.",
+    "referenceTitle": "Referencia de la API",
+    "referenceBody": "Cada operación del documento OpenAPI, con parámetros, esquemas y ejemplos de código.",
+    "helpTitle": "Centro de ayuda",
+    "helpBody": "Cómo funciona Atlas, página por página, con los mismos artículos que muestra el panel de ayuda de la aplicación.",
+    "openapi": "Descargar el documento OpenAPI",
+    "start": "Empezar con la guía rápida"
+  },
+  "guides": {
+    "title": "Guías",
+    "sentence": "Todo lo que necesitas para desarrollar sobre la API pública, desde la primera solicitud hasta operar tu propia instalación.",
+    "outline": "En esta página",
+    "sections": {
+      "start": "Primeros pasos",
+      "api": "Uso de la API",
+      "tools": "SDK y herramientas",
+      "operate": "Operación"
+    }
+  },
+  "reference": {
+    "title": "Referencia de la API",
+    "sentence": "{count} operaciones en {resources} recursos, generadas a partir del documento OpenAPI versión {version}.",
+    "operations": "{count} operaciones",
+    "outline": "Operaciones",
+    "parameters": "Parámetros de ruta y de consulta",
+    "requestBody": "Cuerpo de la solicitud: {name}",
+    "response": "Respuesta {status}: {name}",
+    "responsePage": "Respuesta {status}: una página de {name}",
+    "noResponseBody": "Respuesta {status}: sin cuerpo.",
+    "field": "Campo",
+    "type": "Tipo",
+    "required": "Obligatorio",
+    "yes": "Sí",
+    "no": "No",
+    "description": "Descripción",
+    "constraints": "Restricciones",
+    "requestExample": "Ejemplo de cuerpo de solicitud",
+    "responseExample": "Ejemplo de respuesta",
+    "samples": "Ejemplos de código",
+    "capability": "Requiere la capacidad {capability}.",
+    "scopes": "Alcances de OAuth: {scopes}.",
+    "idempotent": "Envía el encabezado Idempotency-Key. Una repetición con la misma clave devuelve la respuesta original.",
+    "ifMatch": "Envía If-Match con el ETag que leíste. Una etiqueta desactualizada devuelve 412; si falta, devuelve 428.",
+    "paged": "Paginación por cursor: se aplican limit, cursor, fields, sort y filter.",
+    "errors": "Estados de error: {statuses}. Los errores son detalles de problema RFC 9457.",
+    "back": "Todos los recursos",
+    "module": "Módulo {module}",
+    "openapi": "Documento OpenAPI"
+  },
+  "help": {
+    "title": "Centro de ayuda",
+    "sentence": "Cómo funciona Atlas, página por página. Son los artículos que muestra el panel de ayuda dentro de la aplicación.",
+    "searchLabel": "Buscar en la ayuda",
+    "searchButton": "Buscar",
+    "results": "{count} artículos coinciden con {query}.",
+    "noResults": "Ningún artículo coincide con {query}. Prueba una palabra más corta o explora los temas de abajo.",
+    "whatsNew": "Novedades",
+    "related": "Abrir el artículo relacionado",
+    "back": "Todos los artículos de ayuda"
+  },
+  "notFound": {
+    "title": "Esta página no existe",
+    "sentence": "Es posible que la dirección tenga un error o que la página se haya movido. Vuelve al inicio de la documentación para encontrarla.",
+    "action": "Ir al inicio de la documentación"
+  },
+  "error": {
+    "title": "No se pudo cargar esta página",
+    "sentence": "Algo falló al mostrar la página. Inténtalo de nuevo; si sigue fallando, infórmalo desde el centro de ayuda.",
+    "action": "Intentar de nuevo"
+  }
+}
