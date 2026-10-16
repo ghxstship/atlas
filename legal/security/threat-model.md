@@ -23,17 +23,23 @@ than the database allows.
 
 ## Findings referenced
 
-| Id      | Severity | Boundary                 | State |
-| ------- | -------- | ------------------------ | ----- |
-| A22-001 | High     | API key to api-token JWT | Fixed |
-| A22-002 | High     | Compass offline sync     | Fixed |
-| A22-003 | Medium   | Tenant member to app     | Fixed |
-| A22-004 | Medium   | Storage buckets          | Fixed |
-| A22-005 | Low      | Subprocessors (legal)    | Open  |
-| A22-006 | Low      | Subprocessors (legal)    | Open  |
-| A22-007 | Low      | Normalization (gate 29)  | Open  |
-| A22-008 | Low      | Normalization (gate 29)  | Open  |
-| A22-009 | Low      | Normalization (gate 29)  | Open  |
+| Id      | Severity | Boundary                        | State |
+| ------- | -------- | ------------------------------- | ----- |
+| A22-001 | High     | API key to api-token JWT        | Fixed |
+| A22-002 | High     | Compass offline sync            | Fixed |
+| A22-003 | Medium   | Tenant member to app            | Fixed |
+| A22-004 | Medium   | Storage buckets                 | Fixed |
+| A22-005 | Low      | Subprocessors (legal)           | Open  |
+| A22-006 | Low      | Subprocessors (legal)           | Open  |
+| A22-007 | Low      | Normalization (gate 29)         | Open  |
+| A22-008 | Low      | Normalization (gate 29)         | Open  |
+| A22-009 | Low      | Normalization (gate 29)         | Open  |
+| A22-010 | Medium   | Tenant member to app            | Open  |
+| A22-011 | Medium   | Storage buckets                 | Open  |
+| A22-012 | Low      | API key to api-token JWT        | Open  |
+| A22-013 | Low      | Service role and Edge Functions | Open  |
+| A22-014 | Low      | Tenant member to app            | Open  |
+| A22-015 | Low      | Integrations (OAuth)            | Open  |
 
 ## Trust boundaries
 
@@ -223,7 +229,7 @@ tools appear only for resources or modules named with `--write`, and delete also
 | I      | Active content served inline from a public bucket | Public buckets refuse SVG, HTML, XML and script (A22-004, fixed in 0938) | `9908` (A22-004); 0938 suite |
 | D      | Oversized uploads                                 | Per-bucket size caps (2 MB to 50 MB) and type allowlists                 | `9908` control assertion     |
 
-Residual risk: virus scanning of uploads (Section 9) is not implemented; this is recorded as a gap
+Residual risk: virus scanning of uploads (Section 9) is not wired (A22-011); this is recorded as a gap
 in the ASVS matrix (V5.4.3).
 
 ## Review method
