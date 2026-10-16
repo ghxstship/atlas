@@ -66,6 +66,10 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.64.0-noble
       options: --ipc=host
+    # GitHub mounts its own HOME into job containers, owned by another user; Firefox refuses to start
+    # unless HOME belongs to the running user.
+    env:
+      HOME: /root
     timeout-minutes: 45
     # Every story in four modes across three engines is several thousand tests; one runner cannot
     # finish them in time, so Playwright shards them.
