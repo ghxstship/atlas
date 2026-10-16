@@ -112,7 +112,13 @@ export function RefreshControl(props: AnyProps) {
 }
 
 export function Modal(props: AnyProps) {
-  return props.visible ? createElement("div", semantic(props), props.children) : null;
+  return props.visible
+    ? createElement(
+        "div",
+        { ...semantic(props), "data-animation": props["animationType"] },
+        props.children,
+      )
+    : null;
 }
 
 class AnimatedValue {
@@ -177,4 +183,20 @@ export const Platform = {
 
 export const Vibration = { vibrate: () => undefined };
 
-export const AccessibilityInfo = { announceForAccessibility: () => undefined };
+const reduceMotionListeners = new Set<(on: boolean) => void>();
+let reduceMotionSetting = false;
+
+export const AccessibilityInfo = {
+  announceForAccessibility: () => undefined,
+  isReduceMotionEnabled: () => Promise.resolve(reduceMotionSetting),
+  addEventListener: (event: string, handler: (on: boolean) => void) => {
+    if (event === "reduceMotionChanged") reduceMotionListeners.add(handler);
+    return { remove: () => reduceMotionListeners.delete(handler) };
+  },
+};
+
+/** Test control: flips the system Reduce Motion setting and fires its change event. */
+export function setReduceMotionForTest(on: boolean): void {
+  reduceMotionSetting = on;
+  for (const listener of reduceMotionListeners) listener(on);
+}

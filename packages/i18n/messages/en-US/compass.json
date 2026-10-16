@@ -237,7 +237,8 @@
       "Closed": "Closed"
     },
     "dispatchReason": "Dispatched from Compass.",
-    "containReason": "Marked contained from Compass."
+    "containReason": "Marked contained from Compass.",
+    "typeGroup": "Incident type"
   },
   "inspections": {
     "title": "Inspections",
@@ -276,7 +277,11 @@
     "exitShowMode": "Exit Show Mode",
     "progress": "{called} of {total} cues called",
     "readOnly": "You can follow the running order; cues are called by the stage manager.",
-    "mySet": "Your set"
+    "mySet": "Your set",
+    "countdownLabel": "{minutes} min {seconds} s to {cue}",
+    "countdownLate": "{minutes} min {seconds} s late for {cue}",
+    "countdownSoon": "{cue} in {seconds} seconds",
+    "countdownGo": "{cue}: go"
   },
   "kiosk": {
     "title": "Kiosk",
@@ -305,7 +310,9 @@
     },
     "exit": "Exit Kiosk",
     "digit": "Digit {digit}",
-    "backspace": "Delete digit"
+    "backspace": "Delete digit",
+    "pinProgressOne": "{count} digit entered",
+    "pinProgressOther": "{count} digits entered"
   },
   "inbox": {
     "title": "Inbox",

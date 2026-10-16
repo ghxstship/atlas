@@ -7,10 +7,19 @@ import type { Row } from "@xos/sync";
 import * as Haptics from "expo-haptics";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { useEffect, useRef, useState, type ReactElement } from "react";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
-import { buildCallCue, preCueHapticDue, showState, type Cue } from "../domain/show";
+import {
+  buildCallCue,
+  countdownAnnouncement,
+  countdownParts,
+  preCueHapticDue,
+  showState,
+  type Cue,
+} from "../domain/show";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import {
+  announce,
   Button,
   EmptyState,
   InlineAlert,
@@ -44,8 +53,17 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
     if (settings.haptics && preCueHapticDue(previous.current, state.msToNext)) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     }
+    // The countdown is spoken at set points, never on every tick (A23-009).
+    const at = countdownAnnouncement(previous.current, state.msToNext);
+    if (at !== null && state.next) {
+      announce(
+        at === 0
+          ? t("compass.show.countdownGo", { cue: state.next.label })
+          : t("compass.show.countdownSoon", { cue: state.next.label, seconds: at }),
+      );
+    }
     previous.current = state.msToNext;
-  }, [state.msToNext, settings.haptics]);
+  }, [state.msToNext, state.next, settings.haptics, t]);
   useEffect(() => {
     if (!showMode) return undefined;
     void activateKeepAwakeAsync(KEEP_AWAKE_TAG);
@@ -108,6 +126,9 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
         nextInSeconds={state.msToNext === null ? 0 : Math.round(state.msToNext / 1000)}
         showMode={showMode}
         nextLabel={t("compass.show.nextCue")}
+        {...(state.next && state.msToNext !== null
+          ? { countdownLabel: spokenCountdown(t, state.next.label, state.msToNext) }
+          : {})}
       />
       {readOnly ? <InlineAlert message={t("compass.show.readOnly")} /> : null}
       <Button
@@ -119,4 +140,14 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
     </Screen>
   );
   return showMode ? <ThemeProvider preference="dark">{body}</ThemeProvider> : body;
+}
+
+/** The countdown as a screen reader says it: "2 min 10 s to Doors", or late for a missed cue. */
+function spokenCountdown(t: TFunction, cue: string, ms: number): string {
+  const { late, minutes, seconds } = countdownParts(ms);
+  return t(late ? "compass.show.countdownLate" : "compass.show.countdownLabel", {
+    cue,
+    minutes,
+    seconds,
+  });
 }

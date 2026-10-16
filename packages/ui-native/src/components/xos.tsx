@@ -197,6 +197,7 @@ export function RunOfShowLive({
   nextInSeconds,
   showMode = false,
   nextLabel,
+  countdownLabel,
   testID,
 }: RunOfShowLiveProps): ReactElement {
   const theme = useTheme();
@@ -224,19 +225,24 @@ export function RunOfShowLive({
       ) : null}
       {next ? (
         <View
-          aria-live="polite"
           style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}
         >
-          <Text
-            variant={showMode ? "heading20" : "text16"}
-            tone="secondary"
-          >{`${nextLabel}: ${next.title}`}</Text>
-          <Ink
-            variant={showMode ? "heading32" : "heading24"}
-            color={nextInSeconds <= 10 ? theme.color.warningText : theme.color.textPrimary}
-          >
-            {clock(nextInSeconds)}
-          </Ink>
+          {/* Only the next cue is live: the countdown changes every tick and would flood the
+              screen reader, so it carries a spoken label instead (A23-009). */}
+          <View aria-live="polite" style={{ flexShrink: 1 }}>
+            <Text
+              variant={showMode ? "heading20" : "text16"}
+              tone="secondary"
+            >{`${nextLabel}: ${next.title}`}</Text>
+          </View>
+          <View accessible aria-label={countdownLabel ?? clock(nextInSeconds)}>
+            <Ink
+              variant={showMode ? "heading32" : "heading24"}
+              color={nextInSeconds <= 10 ? theme.color.warningText : theme.color.textPrimary}
+            >
+              {clock(nextInSeconds)}
+            </Ink>
+          </View>
         </View>
       ) : null}
       <View role="list">

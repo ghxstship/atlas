@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import { Modal, Pressable, ScrollView, View } from "react-native";
+import { useReducedMotion } from "../a11y.ts";
 import { useHaptic, useTheme } from "../theme/index.ts";
 import type { SheetProps, TabBarProps } from "../types.ts";
 import { Badge } from "./data.tsx";
@@ -22,8 +23,14 @@ export function Sheet({
 }: SheetProps): ReactElement {
   const theme = useTheme();
   const height = `${Math.round((snapPoints[0] ?? 0.5) * 100)}%` as const;
+  const still = useReducedMotion();
   return (
-    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal
+      visible={open}
+      transparent
+      animationType={still ? "fade" : "slide"}
+      onRequestClose={onClose}
+    >
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
         <Pressable
           aria-label={closeLabel}
