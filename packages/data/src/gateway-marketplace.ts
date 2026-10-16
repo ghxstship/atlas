@@ -38,6 +38,10 @@ export interface Opportunity {
   readonly venueName: string | null;
   /** The venue's city or locality, the place shown when there is no venue name. */
   readonly venueLocality: string | null;
+  /** Venue latitude in WGS 84 degrees; NULL when the venue is not located (A32 migration 1020). */
+  readonly venueLatitude: number | null;
+  /** Venue longitude in WGS 84 degrees; NULL when the venue is not located. */
+  readonly venueLongitude: number | null;
   readonly jurisdictionId: string | null;
   readonly startsOn: string | null;
   readonly endsOn: string | null;
@@ -55,7 +59,7 @@ export interface Opportunity {
 }
 
 const OPPORTUNITY_COLUMNS =
-  "id, org_id, org_name, title, description, role_type, role_code, cat_urid, venue_name, jurisdiction_id, starts_on, ends_on, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, rate_on_request, deadline_at, minimum_age, opportunity_state, position_count, org_verified, venue_locality";
+  "id, org_id, org_name, title, description, role_type, role_code, cat_urid, venue_name, jurisdiction_id, starts_on, ends_on, visibility, rate_type, pay_min_minor, pay_max_minor, currency_code, rate_on_request, deadline_at, minimum_age, opportunity_state, position_count, org_verified, venue_locality, venue_latitude, venue_longitude";
 
 function toOpportunity(row: ExternalRow<"opportunities">): Opportunity {
   const id = req(row.id, "opportunities.id");
@@ -72,6 +76,8 @@ function toOpportunity(row: ExternalRow<"opportunities">): Opportunity {
     catUrid: row.cat_urid,
     venueName: row.venue_name,
     venueLocality: row.venue_locality,
+    venueLatitude: row.venue_latitude,
+    venueLongitude: row.venue_longitude,
     jurisdictionId: row.jurisdiction_id,
     startsOn: row.starts_on,
     endsOn: row.ends_on,
