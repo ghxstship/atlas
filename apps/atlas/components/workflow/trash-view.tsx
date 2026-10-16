@@ -41,9 +41,12 @@ export async function TrashView({
     );
   }
   const locale = await getLocale();
-  const day = (iso: string) => new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(iso));
+  const day = (iso: string) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(iso));
   const when = (iso: string) =>
-    new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+    new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(
+      new Date(iso),
+    );
   const projectKey = new Map(projects.data.map((p) => [p.id, p.key]));
   const tables = [...new Set(all.data.map((i) => i.table))].sort();
   const filtered = table !== null || (q ?? "") !== "";
@@ -54,7 +57,9 @@ export async function TrashView({
       filters={<TrashFilters tables={tables} table={table} q={q} />}
     >
       <div className="flex flex-col gap-12">
-        <p className="m-0 max-w-layout-reading text-text-13 text-text-secondary">{t("trash.sentence")}</p>
+        <p className="m-0 max-w-layout-reading text-text-13 text-text-secondary">
+          {t("trash.sentence")}
+        </p>
         {items.data.length === 0 ? (
           <EmptyPanel
             icon="Trash2"
@@ -64,16 +69,28 @@ export async function TrashView({
           />
         ) : (
           <div className="overflow-x-auto rounded-card border border-border-subtle">
-            <table className="w-full min-w-[640px] border-collapse text-text-13">
+            <table className="w-full border-collapse text-text-13">
               <caption className="sr-only">{t("trash.caption")}</caption>
               <thead>
                 <tr className="border-b border-border-subtle text-left text-text-12 text-text-secondary">
-                  <th scope="col" className="px-12 py-8 font-medium">{t("trash.columns.title")}</th>
-                  <th scope="col" className="px-12 py-8 font-medium">{t("trash.columns.kind")}</th>
-                  <th scope="col" className="px-12 py-8 font-medium">{t("trash.columns.project")}</th>
-                  <th scope="col" className="px-12 py-8 font-medium">{t("trash.columns.deleted")}</th>
-                  <th scope="col" className="px-12 py-8 font-medium">{t("trash.columns.purge")}</th>
-                  <th scope="col" className="px-12 py-8 text-right font-medium">{t("trash.columns.actions")}</th>
+                  <th scope="col" className="px-12 py-8 font-medium">
+                    {t("trash.columns.title")}
+                  </th>
+                  <th scope="col" className="px-12 py-8 font-medium">
+                    {t("trash.columns.kind")}
+                  </th>
+                  <th scope="col" className="px-12 py-8 font-medium">
+                    {t("trash.columns.project")}
+                  </th>
+                  <th scope="col" className="px-12 py-8 font-medium">
+                    {t("trash.columns.deleted")}
+                  </th>
+                  <th scope="col" className="px-12 py-8 font-medium">
+                    {t("trash.columns.purge")}
+                  </th>
+                  <th scope="col" className="px-12 py-8 text-right font-medium">
+                    {t("trash.columns.actions")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -84,12 +101,19 @@ export async function TrashView({
                     </th>
                     <td className="px-12 py-8 font-mono text-text-12">{i.table}</td>
                     <td className="px-12 py-8">
-                      {i.projectId ? (projectKey.get(i.projectId) ?? t("common.otherProject")) : t("common.orgWide")}
+                      {i.projectId
+                        ? (projectKey.get(i.projectId) ?? t("common.otherProject"))
+                        : t("common.orgWide")}
                     </td>
                     <td className="px-12 py-8">{when(i.deletedAt)}</td>
                     <td className="px-12 py-8">{day(i.purgeAfter)}</td>
                     <td className="px-12 py-8 text-right">
-                      <RestoreButton org={org} table={i.table} id={i.id} title={i.title ?? i.table} />
+                      <RestoreButton
+                        org={org}
+                        table={i.table}
+                        id={i.id}
+                        title={i.title ?? i.table}
+                      />
                     </td>
                   </tr>
                 ))}

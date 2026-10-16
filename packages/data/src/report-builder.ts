@@ -15,11 +15,29 @@ type Raw = Record<string, unknown>;
 
 export type FieldType = "text" | "number" | "money" | "date";
 export type Aggregate = "None" | "Count" | "Sum" | "Average" | "Minimum" | "Maximum";
-export type FilterOperator = "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
+export type FilterOperator =
+  "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
 export type ChartType = "Table" | "Bar" | "Line" | "Area" | "Pie" | "Number";
 
-export const AGGREGATES: readonly Aggregate[] = ["None", "Count", "Sum", "Average", "Minimum", "Maximum"];
-export const FILTER_OPERATORS: readonly FilterOperator[] = ["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"];
+export const AGGREGATES: readonly Aggregate[] = [
+  "None",
+  "Count",
+  "Sum",
+  "Average",
+  "Minimum",
+  "Maximum",
+];
+export const FILTER_OPERATORS: readonly FilterOperator[] = [
+  "eq",
+  "ne",
+  "lt",
+  "lte",
+  "gt",
+  "gte",
+  "in",
+  "is_null",
+  "contains",
+];
 export const CHART_TYPES: readonly ChartType[] = ["Table", "Bar", "Line", "Area", "Pie", "Number"];
 
 export interface SourceField {
@@ -181,7 +199,9 @@ export async function getReportDefinition(
     rows(
       untyped(db)
         .from("report_definitions")
-        .select("id, name, source_code, custom_object_type_id, chart, group_by_field, shared, membership_id")
+        .select(
+          "id, name, source_code, custom_object_type_id, chart, group_by_field, shared, membership_id",
+        )
         .eq("id", input.id)
         .is("deleted_at", null),
     ),
@@ -216,7 +236,10 @@ export async function getReportDefinition(
     groupBy: strOrNull(d["group_by_field"]),
     shared: d["shared"] === true,
     mine: str(d["membership_id"]) === input.membershipId,
-    fields: fields.data.map((f) => ({ field: str(f["field"]), aggregate: str(f["aggregate"]) as Aggregate })),
+    fields: fields.data.map((f) => ({
+      field: str(f["field"]),
+      aggregate: str(f["aggregate"]) as Aggregate,
+    })),
     filters: filters.data.map((f) => ({
       field: str(f["field"]),
       operator: str(f["operator"]) as FilterOperator,
@@ -260,7 +283,11 @@ export async function saveReportDefinition(
     if (error) return fail(toDataError(error));
     id = str((data as Raw)["id"]);
   } else {
-    const { data, error } = await untyped(db).from("report_definitions").update(values).eq("id", id).select("id");
+    const { data, error } = await untyped(db)
+      .from("report_definitions")
+      .update(values)
+      .eq("id", id)
+      .select("id");
     if (error) return fail(toDataError(error));
     if (((data as Raw[] | null) ?? []).length === 0) return fail({ kind: "not-found" });
     const stamp = new Date().toISOString();
@@ -276,13 +303,27 @@ export async function saveReportDefinition(
   if (d.fields.length > 0) {
     const { error } = await untyped(db)
       .from("report_fields")
-      .insert(d.fields.map((f, i) => ({ report_definition_id: id, field: f.field, aggregate: f.aggregate, position: i + 1 })));
+      .insert(
+        d.fields.map((f, i) => ({
+          report_definition_id: id,
+          field: f.field,
+          aggregate: f.aggregate,
+          position: i + 1,
+        })),
+      );
     if (error) return fail(toDataError(error));
   }
   if (d.filters.length > 0) {
     const { error } = await untyped(db)
       .from("report_filters")
-      .insert(d.filters.map((f) => ({ report_definition_id: id, field: f.field, operator: f.operator, value_text: f.value })));
+      .insert(
+        d.filters.map((f) => ({
+          report_definition_id: id,
+          field: f.field,
+          operator: f.operator,
+          value_text: f.value,
+        })),
+      );
     if (error) return fail(toDataError(error));
   }
   return ok(id);
@@ -319,7 +360,10 @@ export interface PreviewColumn {
 export interface ReportPreview {
   readonly columns: readonly PreviewColumn[];
   /** One row per group (or per source row when nothing aggregates), keyed like `columns`. */
-  readonly rows: readonly { readonly group: string | null; readonly cells: readonly PreviewCell[] }[];
+  readonly rows: readonly {
+    readonly group: string | null;
+    readonly cells: readonly PreviewCell[];
+  }[];
   /** Source rows read, at most PREVIEW_LIMIT. */
   readonly sourceRows: number;
   readonly truncated: boolean;
@@ -358,7 +402,10 @@ function applyFilter(query: Builder, filter: ReportFilterSpec): Builder {
     case "in":
       return query.in(
         filter.field,
-        v.split(",").map((s) => s.trim()).filter((s) => s !== ""),
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s !== ""),
       );
     case "is_null":
       return query.is(filter.field, null);
@@ -370,7 +417,11 @@ function applyFilter(query: Builder, filter: ReportFilterSpec): Builder {
 const numeric = (v: unknown): number | null =>
   v === null || v === undefined || v === "" ? null : typeof v === "number" ? v : Number(v);
 
-function aggregateValue(values: readonly unknown[], aggregate: Aggregate, type: FieldType): string | number | null {
+function aggregateValue(
+  values: readonly unknown[],
+  aggregate: Aggregate,
+  type: FieldType,
+): string | number | null {
   if (aggregate === "Count") return values.filter((v) => v !== null && v !== undefined).length;
   if (aggregate === "None") return (values[0] as string | number | null | undefined) ?? null;
   if (type === "date") {
@@ -400,7 +451,11 @@ function aggregateValue(values: readonly unknown[], aggregate: Aggregate, type: 
  */
 export async function previewReport(
   db: XosClient,
-  input: { readonly orgId: string; readonly projectIds: readonly string[]; readonly definition: ReportDefinition },
+  input: {
+    readonly orgId: string;
+    readonly projectIds: readonly string[];
+    readonly definition: ReportDefinition;
+  },
 ): Promise<Result<ReportPreview>> {
   const d = input.definition;
   const source = sourceOf(d.sourceCode);
@@ -422,13 +477,14 @@ export async function previewReport(
       ...(hasMoney && source.currencyColumn ? [source.currencyColumn] : []),
     ]),
   ];
-  let query = untyped(db).from(source.relation).select(select.join(", ")) as unknown as Builder;
-  if (source.orgColumn === "project_id") {
-    if (input.projectIds.length === 0) return ok({ columns, rows: [], sourceRows: 0, truncated: false });
-    query = query.in("project_id", input.projectIds);
-  } else {
-    query = query.eq(source.orgColumn, input.orgId);
+  if (source.orgColumn === "project_id" && input.projectIds.length === 0) {
+    return ok({ columns, rows: [], sourceRows: 0, truncated: false });
   }
+  let query = untyped(db).from(source.relation).select(select.join(", ")) as unknown as Builder;
+  query =
+    source.orgColumn === "project_id"
+      ? query.in("project_id", input.projectIds)
+      : query.eq(source.orgColumn, input.orgId);
   if (source.relation !== "budget_line_facts" && source.relation !== "purchase_order_totals") {
     query = query.is("deleted_at", null);
   }
@@ -443,7 +499,8 @@ export async function previewReport(
   const truncated = read.data.length > PREVIEW_LIMIT;
   const data = truncated ? read.data.slice(0, PREVIEW_LIMIT) : read.data;
   const aggregating = group !== null || columns.some((c) => c.aggregate !== "None");
-  const currencyOf = (r: Raw) => (source.currencyColumn ? str(r[source.currencyColumn]).trim() : "");
+  const currencyOf = (r: Raw) =>
+    source.currencyColumn ? str(r[source.currencyColumn]).trim() : "";
   const cellsFor = (members: readonly Raw[]): PreviewCell[] =>
     columns.map((c) => {
       const values = members.map((m) => m[c.field] ?? null);
@@ -451,7 +508,12 @@ export async function previewReport(
         const currency = members[0] ? currencyOf(members[0]) : "";
         if (c.aggregate === "Sum" || (c.aggregate === "None" && !aggregating)) {
           const sum = nullAwareSum(values.map(numeric));
-          return { kind: "money", totalMinor: sum.total, currency, unpricedCount: sum.unpricedCount };
+          return {
+            kind: "money",
+            totalMinor: sum.total,
+            currency,
+            unpricedCount: sum.unpricedCount,
+          };
         }
         const value = aggregateValue(values, c.aggregate, c.type);
         if (c.aggregate === "Count") return { kind: "value", value };
@@ -474,7 +536,11 @@ export async function previewReport(
   }
   const groups = new Map<string, { label: string | null; members: Raw[] }>();
   for (const r of data) {
-    const label = group ? (r[group] === null || r[group] === undefined ? null : str(r[group])) : null;
+    const label = group
+      ? r[group] === null || r[group] === undefined
+        ? null
+        : str(r[group])
+      : null;
     const key = `${label ?? ""}|${hasMoney ? currencyOf(r) : ""}`;
     const g = groups.get(key) ?? { label, members: [] };
     g.members.push(r);
@@ -491,20 +557,26 @@ export async function previewReport(
 }
 
 /** The preview as CSV, money in major units of its currency (its own decimals), blanks left blank. */
-export function previewCsv(preview: ReportPreview, headers: readonly string[], groupHeader: string | null): string {
+export function previewCsv(
+  preview: ReportPreview,
+  headers: readonly string[],
+  groupHeader: string | null,
+): string {
   const escape = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
   const cell = (c: PreviewCell): string => {
     if (c.kind === "value") return c.value === null ? "" : String(c.value);
     if (c.totalMinor === null) return "";
     const digits = c.currency
-      ? new Intl.NumberFormat("en", { style: "currency", currency: c.currency }).resolvedOptions()
-          .maximumFractionDigits ?? 2
+      ? (new Intl.NumberFormat("en", { style: "currency", currency: c.currency }).resolvedOptions()
+          .maximumFractionDigits ?? 2)
       : 2;
     return `${(c.totalMinor / 10 ** digits).toFixed(digits)} ${c.currency}`.trim();
   };
   const lines = [[...(groupHeader ? [groupHeader] : []), ...headers].map(escape).join(",")];
   for (const r of preview.rows) {
-    lines.push([...(groupHeader ? [r.group ?? ""] : []), ...r.cells.map(cell)].map(escape).join(","));
+    lines.push(
+      [...(groupHeader ? [r.group ?? ""] : []), ...r.cells.map(cell)].map(escape).join(","),
+    );
   }
   return `${lines.join("\n")}\n`;
 }

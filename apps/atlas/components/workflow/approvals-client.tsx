@@ -19,7 +19,9 @@ export function DecisionForm({ org, id }: { org: string; id: string }) {
       action={decideApprovalAction}
       hidden={{ org, id, decision }}
       label={t("approvals.decide.label")}
-      submitLabel={decision === "approve" ? t("approvals.decide.approve") : t("approvals.decide.reject")}
+      submitLabel={
+        decision === "approve" ? t("approvals.decide.approve") : t("approvals.decide.reject")
+      }
       submitVariant={decision === "approve" ? "primary" : "danger"}
       success={t("approvals.decide.done")}
     >
@@ -41,8 +43,16 @@ export function DecisionForm({ org, id }: { org: string; id: string }) {
       <Textarea
         id={`${fieldId}-comment`}
         name="comment"
-        label={decision === "reject" ? t("approvals.decide.reasonRequired") : t("approvals.decide.comment")}
-        help={decision === "reject" ? t("approvals.decide.reasonHelp") : t("approvals.decide.commentHelp")}
+        label={
+          decision === "reject"
+            ? t("approvals.decide.reasonRequired")
+            : t("approvals.decide.comment")
+        }
+        help={
+          decision === "reject"
+            ? t("approvals.decide.reasonHelp")
+            : t("approvals.decide.commentHelp")
+        }
         maxLength={2000}
         rows={3}
         width="100%"
@@ -92,7 +102,13 @@ export interface DocumentOption {
 }
 
 /** Submit a spend document an Active policy gates. */
-export function SubmitForm({ org, documents }: { org: string; documents: readonly DocumentOption[] }) {
+export function SubmitForm({
+  org,
+  documents,
+}: {
+  org: string;
+  documents: readonly DocumentOption[];
+}) {
   const t = useWorkflowT();
   const [value, setValue] = useState(documents[0]?.value ?? "");
   return (

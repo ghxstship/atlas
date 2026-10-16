@@ -8,7 +8,10 @@ import { getOrgContext } from "@/lib/shell/context";
 import { fromDataError, type WorkflowActionState } from "@/lib/workflow/state";
 
 /** Restores a row from Trash as the viewer (app.restore_trash_item): the table's own rules decide. */
-export async function restoreAction(_: WorkflowActionState, form: FormData): Promise<WorkflowActionState> {
+export async function restoreAction(
+  _: WorkflowActionState,
+  form: FormData,
+): Promise<WorkflowActionState> {
   const slug = form.get("org");
   const ctx = typeof slug === "string" ? await getOrgContext(slug) : null;
   if (!ctx) notFound();

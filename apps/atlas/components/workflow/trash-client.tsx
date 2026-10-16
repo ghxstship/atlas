@@ -9,7 +9,17 @@ import { INITIAL_STATE } from "@/lib/workflow/state";
 import { Feedback, useWorkflowT } from "./kit";
 
 /** Restore one row; the outcome (rows restored, or why not) shows beside the button. */
-export function RestoreButton({ org, table, id, title }: { org: string; table: string; id: string; title: string }) {
+export function RestoreButton({
+  org,
+  table,
+  id,
+  title,
+}: {
+  org: string;
+  table: string;
+  id: string;
+  title: string;
+}) {
   const t = useWorkflowT();
   const [state, action, pending] = useActionState(restoreAction, INITIAL_STATE);
   return (
@@ -17,7 +27,12 @@ export function RestoreButton({ org, table, id, title }: { org: string; table: s
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="table" value={table} />
       <input type="hidden" name="id" value={id} />
-      <Button type="submit" size="sm" loading={pending} aria-label={t("trash.restoreNamed", { title })}>
+      <Button
+        type="submit"
+        size="sm"
+        loading={pending}
+        aria-label={t("trash.restoreNamed", { title })}
+      >
         {t("trash.restore")}
       </Button>
       <div aria-live="polite">
@@ -28,7 +43,15 @@ export function RestoreButton({ org, table, id, title }: { org: string; table: s
 }
 
 /** Filter by kind of row and title; both live in the query string. */
-export function TrashFilters({ tables, table, q }: { tables: readonly string[]; table: string | null; q: string | null }) {
+export function TrashFilters({
+  tables,
+  table,
+  q,
+}: {
+  tables: readonly string[];
+  table: string | null;
+  q: string | null;
+}) {
   const t = useWorkflowT();
   const router = useRouter();
   const pathname = usePathname();

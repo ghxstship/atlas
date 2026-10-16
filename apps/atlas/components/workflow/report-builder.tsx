@@ -114,13 +114,22 @@ export function ReportBuilder({
   const cellText = (c: PreviewCell) => {
     if (c.kind === "value") {
       if (c.value === null) return t("builder.preview.blank");
-      return typeof c.value === "number" ? new Intl.NumberFormat(locale).format(c.value) : String(c.value);
+      return typeof c.value === "number"
+        ? new Intl.NumberFormat(locale).format(c.value)
+        : String(c.value);
     }
     const total = money(c.totalMinor, c.currency);
-    return c.unpricedCount > 0 ? t("builder.preview.unpriced", { total, count: c.unpricedCount }) : total;
+    return c.unpricedCount > 0
+      ? t("builder.preview.unpriced", { total, count: c.unpricedCount })
+      : total;
   };
   const columnLabel = (field: string, aggregate: Aggregate) =>
-    aggregate === "None" ? fieldLabel(field) : t("builder.columnAggregate", { aggregate: t(`builder.aggregates.${aggregate}`), field: fieldLabel(field) });
+    aggregate === "None"
+      ? fieldLabel(field)
+      : t("builder.columnAggregate", {
+          aggregate: t(`builder.aggregates.${aggregate}`),
+          field: fieldLabel(field),
+        });
 
   const runPreview = () =>
     start(async () => {
@@ -164,12 +173,26 @@ export function ReportBuilder({
     URL.revokeObjectURL(url);
   };
 
-  const firstNumeric = preview?.columns.findIndex((c) => c.aggregate !== "None" || c.type === "number" || c.type === "money") ?? -1;
+  const firstNumeric =
+    preview?.columns.findIndex(
+      (c) => c.aggregate !== "None" || c.type === "number" || c.type === "money",
+    ) ?? -1;
   const chartType = draft.chart === "Line" || draft.chart === "Area" ? "line" : "bar";
   const numericOf = (c: PreviewCell | undefined): number | null =>
-    c === undefined ? null : c.kind === "money" ? (c.totalMinor === null ? null : c.totalMinor / 10 ** (exponents[c.currency] ?? 2)) : typeof c.value === "number" ? c.value : null;
-  const moneyColumn = preview && firstNumeric >= 0 ? preview.columns[firstNumeric]?.type === "money" : false;
-  const firstCurrency = preview?.rows.find((r) => r.cells[firstNumeric]?.kind === "money")?.cells[firstNumeric];
+    c === undefined
+      ? null
+      : c.kind === "money"
+        ? c.totalMinor === null
+          ? null
+          : c.totalMinor / 10 ** (exponents[c.currency] ?? 2)
+        : typeof c.value === "number"
+          ? c.value
+          : null;
+  const moneyColumn =
+    preview && firstNumeric >= 0 ? preview.columns[firstNumeric]?.type === "money" : false;
+  const firstCurrency = preview?.rows.find((r) => r.cells[firstNumeric]?.kind === "money")?.cells[
+    firstNumeric
+  ];
 
   return (
     <div className="grid grid-cols-[minmax(0,22rem)_minmax(0,1fr)] gap-24 max-lg:grid-cols-1">
@@ -194,7 +217,10 @@ export function ReportBuilder({
           help={t("builder.sourceHelp")}
           value={draft.sourceCode}
           disabled={!editable || draft.id !== null}
-          options={REPORT_SOURCES.map((s) => ({ value: s.code, label: t(`builder.sources.${s.code}`) }))}
+          options={REPORT_SOURCES.map((s) => ({
+            value: s.code,
+            label: t(`builder.sources.${s.code}`),
+          }))}
           onChange={(e) => {
             const next = REPORT_SOURCES.find((s) => s.code === e.target.value);
             update({
@@ -217,7 +243,14 @@ export function ReportBuilder({
                 onChange={(e) =>
                   update({
                     fields: draft.fields.map((x, j) =>
-                      j === i ? { field: e.target.value, aggregate: aggregatesFor(typeOf(e.target.value)).includes(x.aggregate) ? x.aggregate : "None" } : x,
+                      j === i
+                        ? {
+                            field: e.target.value,
+                            aggregate: aggregatesFor(typeOf(e.target.value)).includes(x.aggregate)
+                              ? x.aggregate
+                              : "None",
+                          }
+                        : x,
                     ),
                   })
                 }
@@ -226,9 +259,16 @@ export function ReportBuilder({
                 label={t("builder.aggregate")}
                 value={f.aggregate}
                 disabled={!editable}
-                options={aggregatesFor(typeOf(f.field)).map((a) => ({ value: a, label: t(`builder.aggregates.${a}`) }))}
+                options={aggregatesFor(typeOf(f.field)).map((a) => ({
+                  value: a,
+                  label: t(`builder.aggregates.${a}`),
+                }))}
                 onChange={(e) =>
-                  update({ fields: draft.fields.map((x, j) => (j === i ? { ...x, aggregate: e.target.value as Aggregate } : x)) })
+                  update({
+                    fields: draft.fields.map((x, j) =>
+                      j === i ? { ...x, aggregate: e.target.value as Aggregate } : x,
+                    ),
+                  })
                 }
               />
               {editable ? (
@@ -243,7 +283,14 @@ export function ReportBuilder({
           {editable && draft.fields.length < 20 && sourceFields[0] ? (
             <Button
               size="sm"
-              onClick={() => update({ fields: [...draft.fields, { field: sourceFields[0]?.key ?? "", aggregate: "None" }] })}
+              onClick={() =>
+                update({
+                  fields: [
+                    ...draft.fields,
+                    { field: sourceFields[0]?.key ?? "", aggregate: "None" },
+                  ],
+                })
+              }
             >
               {t("builder.addField")}
             </Button>
@@ -254,12 +301,19 @@ export function ReportBuilder({
           help={t("builder.groupByHelp")}
           value={draft.groupBy ?? ""}
           disabled={!editable}
-          options={[{ value: "", label: t("builder.noGrouping") }, ...sourceFields.filter((s) => s.type === "text" || s.type === "date").map((s) => ({ value: s.key, label: fieldLabel(s.key) }))]}
+          options={[
+            { value: "", label: t("builder.noGrouping") },
+            ...sourceFields
+              .filter((s) => s.type === "text" || s.type === "date")
+              .map((s) => ({ value: s.key, label: fieldLabel(s.key) })),
+          ]}
           onChange={(e) => update({ groupBy: e.target.value === "" ? null : e.target.value })}
         />
         <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
           <legend className="mb-4 text-text-13 font-semibold">{t("builder.filtersTitle")}</legend>
-          {draft.filters.length === 0 ? <p className="m-0 text-text-12 text-text-secondary">{t("builder.noFilters")}</p> : null}
+          {draft.filters.length === 0 ? (
+            <p className="m-0 text-text-12 text-text-secondary">{t("builder.noFilters")}</p>
+          ) : null}
           {draft.filters.map((f, i) => (
             <div key={`${f.field}-${i}`} className="flex flex-wrap items-end gap-6">
               <Select
@@ -267,17 +321,32 @@ export function ReportBuilder({
                 value={f.field}
                 disabled={!editable}
                 options={sourceFields.map((s) => ({ value: s.key, label: fieldLabel(s.key) }))}
-                onChange={(e) => update({ filters: draft.filters.map((x, j) => (j === i ? { ...x, field: e.target.value } : x)) })}
+                onChange={(e) =>
+                  update({
+                    filters: draft.filters.map((x, j) =>
+                      j === i ? { ...x, field: e.target.value } : x,
+                    ),
+                  })
+                }
               />
               <Select
                 label={t("builder.operator")}
                 value={f.operator}
                 disabled={!editable}
-                options={FILTER_OPERATORS.map((o) => ({ value: o, label: t(`builder.operators.${o}`) }))}
+                options={FILTER_OPERATORS.map((o) => ({
+                  value: o,
+                  label: t(`builder.operators.${o}`),
+                }))}
                 onChange={(e) =>
                   update({
                     filters: draft.filters.map((x, j) =>
-                      j === i ? { ...x, operator: e.target.value as FilterOperator, value: e.target.value === "is_null" ? null : (x.value ?? "") } : x,
+                      j === i
+                        ? {
+                            ...x,
+                            operator: e.target.value as FilterOperator,
+                            value: e.target.value === "is_null" ? null : (x.value ?? ""),
+                          }
+                        : x,
                     ),
                   })
                 }
@@ -285,11 +354,17 @@ export function ReportBuilder({
               {f.operator !== "is_null" ? (
                 <Input
                   label={t("builder.value")}
-                  help={f.operator === "in" ? t("builder.valueListHelp") : undefined}
+                  {...(f.operator === "in" ? { help: t("builder.valueListHelp") } : {})}
                   value={f.value ?? ""}
                   maxLength={1000}
                   disabled={!editable}
-                  onChange={(e) => update({ filters: draft.filters.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)) })}
+                  onChange={(e) =>
+                    update({
+                      filters: draft.filters.map((x, j) =>
+                        j === i ? { ...x, value: e.target.value } : x,
+                      ),
+                    })
+                  }
                 />
               ) : null}
               {editable ? (
@@ -304,7 +379,14 @@ export function ReportBuilder({
           {editable && draft.filters.length < 20 && sourceFields[0] ? (
             <Button
               size="sm"
-              onClick={() => update({ filters: [...draft.filters, { field: sourceFields[0]?.key ?? "", operator: "eq", value: "" }] })}
+              onClick={() =>
+                update({
+                  filters: [
+                    ...draft.filters,
+                    { field: sourceFields[0]?.key ?? "", operator: "eq", value: "" },
+                  ],
+                })
+              }
             >
               {t("builder.addFilter")}
             </Button>
@@ -328,7 +410,11 @@ export function ReportBuilder({
             {t("builder.preview.run")}
           </Button>
           {editable ? (
-            <Button onClick={save} loading={pending} disabled={draft.name.trim() === "" || draft.fields.length === 0}>
+            <Button
+              onClick={save}
+              loading={pending}
+              disabled={draft.name.trim() === "" || draft.fields.length === 0}
+            >
               {draft.id ? t("builder.saveChanges") : t("builder.save")}
             </Button>
           ) : null}
@@ -352,7 +438,7 @@ export function ReportBuilder({
           </div>
         ) : null}
         <div aria-live="polite">
-          <Feedback state={state} success={state.ok ? t("builder.saved") : undefined} />
+          <Feedback state={state} success={t("builder.saved")} />
         </div>
       </form>
 
@@ -380,13 +466,19 @@ export function ReportBuilder({
             </p>
             {draft.chart === "Number" && firstNumeric >= 0 ? (
               <StatTile
-                label={columnLabel(preview.columns[firstNumeric]?.field ?? "", preview.columns[firstNumeric]?.aggregate ?? "None")}
+                label={columnLabel(
+                  preview.columns[firstNumeric]?.field ?? "",
+                  preview.columns[firstNumeric]?.aggregate ?? "None",
+                )}
                 value={numericOf(preview.rows[0]?.cells[firstNumeric])}
                 format={moneyColumn ? "money" : "number"}
                 {...(preview.rows.length > 1 ? { caption: t("builder.preview.firstGroup") } : {})}
               />
             ) : null}
-            {draft.chart !== "Table" && draft.chart !== "Number" && firstNumeric >= 0 && draft.groupBy ? (
+            {draft.chart !== "Table" &&
+            draft.chart !== "Number" &&
+            firstNumeric >= 0 &&
+            draft.groupBy ? (
               <>
                 <Chart
                   type={chartType}
@@ -395,27 +487,40 @@ export function ReportBuilder({
                   categories={preview.rows.map((r) => r.group ?? t("builder.preview.blank"))}
                   series={[
                     {
-                      name: columnLabel(preview.columns[firstNumeric]?.field ?? "", preview.columns[firstNumeric]?.aggregate ?? "None"),
+                      name: columnLabel(
+                        preview.columns[firstNumeric]?.field ?? "",
+                        preview.columns[firstNumeric]?.aggregate ?? "None",
+                      ),
                       values: preview.rows.map((r) => numericOf(r.cells[firstNumeric])),
                     },
                   ]}
                   format={moneyColumn ? "money" : "number"}
-                  {...(firstCurrency?.kind === "money" && firstCurrency.currency ? { currency: firstCurrency.currency } : {})}
+                  {...(firstCurrency?.kind === "money" && firstCurrency.currency
+                    ? { currency: firstCurrency.currency }
+                    : {})}
                 />
                 {draft.chart === "Pie" || draft.chart === "Area" ? (
-                  <p className="m-0 text-text-12 text-text-secondary">{t(`builder.preview.chartNote.${draft.chart}`)}</p>
+                  <p className="m-0 text-text-12 text-text-secondary">
+                    {t(`builder.preview.chartNote.${draft.chart}`)}
+                  </p>
                 ) : null}
               </>
             ) : null}
             {draft.chart !== "Table" && draft.chart !== "Number" && !draft.groupBy ? (
-              <p className="m-0 text-text-12 text-text-secondary">{t("builder.preview.chartNeedsGroup")}</p>
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t("builder.preview.chartNeedsGroup")}
+              </p>
             ) : null}
             <div className="overflow-x-auto rounded-card border border-border-subtle">
               <table className="w-full border-collapse text-text-13">
                 <caption className="sr-only">{t("builder.preview.caption")}</caption>
                 <thead>
                   <tr className="border-b border-border-subtle text-left text-text-12 text-text-secondary">
-                    {draft.groupBy ? <th scope="col" className="px-12 py-8 font-medium">{fieldLabel(draft.groupBy)}</th> : null}
+                    {draft.groupBy ? (
+                      <th scope="col" className="px-12 py-8 font-medium">
+                        {fieldLabel(draft.groupBy)}
+                      </th>
+                    ) : null}
                     {preview.columns.map((c, i) => (
                       <th key={`${c.field}-${i}`} scope="col" className="px-12 py-8 font-medium">
                         {columnLabel(c.field, c.aggregate)}
@@ -426,9 +531,16 @@ export function ReportBuilder({
                 <tbody>
                   {preview.rows.slice(0, 500).map((r, i) => (
                     <tr key={i} className="border-b border-border-subtle last:border-b-0">
-                      {draft.groupBy ? <th scope="row" className="px-12 py-8 text-left font-medium">{r.group ?? t("builder.preview.blank")}</th> : null}
+                      {draft.groupBy ? (
+                        <th scope="row" className="px-12 py-8 text-left font-medium">
+                          {r.group ?? t("builder.preview.blank")}
+                        </th>
+                      ) : null}
                       {r.cells.map((c, j) => (
-                        <td key={j} className={`px-12 py-8 ${c.kind === "money" ? "text-right tabular-nums" : ""}`}>
+                        <td
+                          key={j}
+                          className={`px-12 py-8 ${c.kind === "money" ? "text-right tabular-nums" : ""}`}
+                        >
                           {cellText(c)}
                         </td>
                       ))}
@@ -438,7 +550,9 @@ export function ReportBuilder({
               </table>
             </div>
             {preview.rows.length > 500 ? (
-              <p className="m-0 text-text-12 text-text-secondary">{t("builder.preview.moreRows", { rows: preview.rows.length })}</p>
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t("builder.preview.moreRows", { rows: preview.rows.length })}
+              </p>
             ) : null}
           </>
         )}

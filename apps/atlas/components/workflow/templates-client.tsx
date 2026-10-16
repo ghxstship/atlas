@@ -44,13 +44,19 @@ function Defaults({
         label={t("templates.fields.timeZone")}
         help={t("templates.fields.timeZoneHelp")}
         value={zone}
-        options={[{ value: "", label: t("templates.fields.notSet") }, ...zones.map((z) => ({ value: z, label: z }))]}
+        options={[
+          { value: "", label: t("templates.fields.notSet") },
+          ...zones.map((z) => ({ value: z, label: z })),
+        ]}
         onChange={(e) => setZone(e.target.value)}
       />
       <Select
         label={t("templates.fields.currency")}
         value={currency}
-        options={[{ value: "", label: t("templates.fields.notSet") }, ...currencies.map((c) => ({ value: c, label: c }))]}
+        options={[
+          { value: "", label: t("templates.fields.notSet") },
+          ...currencies.map((c) => ({ value: c, label: c })),
+        ]}
         onChange={(e) => setCurrency(e.target.value)}
       />
       <Input
@@ -154,14 +160,35 @@ export function ApplyTemplateForm({
             required
             width="100%"
           />
-          <Input name="name" label={t("templates.apply.name")} maxLength={200} required width="100%" />
-          <Input name="startsOn" type="date" label={t("templates.apply.startsOn")} help={t("templates.apply.startsOnHelp")} width="100%" />
+          <Input
+            name="name"
+            label={t("templates.apply.name")}
+            maxLength={200}
+            required
+            width="100%"
+          />
+          <Input
+            name="startsOn"
+            type="date"
+            label={t("templates.apply.startsOn")}
+            help={t("templates.apply.startsOnHelp")}
+            width="100%"
+          />
           <Select
             label={t("templates.apply.timeZone")}
-            help={needsZone ? t("templates.apply.timeZoneRequired") : t("templates.apply.timeZoneDefault")}
+            help={
+              needsZone
+                ? t("templates.apply.timeZoneRequired")
+                : t("templates.apply.timeZoneDefault")
+            }
             value={zone}
             options={[
-              { value: "", label: needsZone ? t("templates.apply.chooseZone") : t("templates.apply.useDefault") },
+              {
+                value: "",
+                label: needsZone
+                  ? t("templates.apply.chooseZone")
+                  : t("templates.apply.useDefault"),
+              },
               ...zones.map((z) => ({ value: z, label: z })),
             ]}
             onChange={(e) => setZone(e.target.value)}
@@ -171,7 +198,10 @@ export function ApplyTemplateForm({
       {created ? (
         <p role="status" className="m-0 text-text-13">
           {t("templates.apply.done", { key: created })}{" "}
-          <Link href={`/${org}/p/${created}` as Route} className="font-medium text-accent-text underline">
+          <Link
+            href={`/${org}/p/${created}` as Route}
+            className="font-medium text-accent-text underline"
+          >
             {t("templates.apply.open")}
           </Link>
         </p>
@@ -187,7 +217,13 @@ export function VersionDefaultsForm({
   currencies,
 }: {
   org: string;
-  version: { id: string; notes: string | null; timeZone: string | null; currency: string | null; durationDays: number | null };
+  version: {
+    id: string;
+    notes: string | null;
+    timeZone: string | null;
+    currency: string | null;
+    durationDays: number | null;
+  };
   zones: readonly string[];
   currencies: readonly string[];
 }) {
@@ -289,13 +325,19 @@ export function AddItemForm({
             label={t("templates.items.xyz")}
             help={t("templates.items.xyzHelp")}
             value={xyz}
-            options={(["X", "Y", "Z"] as const).map((v) => ({ value: v, label: t(`templates.items.families.${v}`) }))}
+            options={(["X", "Y", "Z"] as const).map((v) => ({
+              value: v,
+              label: t(`templates.items.families.${v}`),
+            }))}
             onChange={(e) => setXyz(e.target.value)}
           />
           <Select
             label={t("templates.items.phase")}
             value={phase}
-            options={[{ value: "", label: t("templates.items.noPhase") }, ...phases.map((p) => ({ value: p.value, label: p.label }))]}
+            options={[
+              { value: "", label: t("templates.items.noPhase") },
+              ...phases.map((p) => ({ value: p.value, label: p.label })),
+            ]}
             onChange={(e) => setPhase(e.target.value)}
           />
           <Input

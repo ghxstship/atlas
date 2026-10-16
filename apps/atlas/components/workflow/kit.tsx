@@ -23,13 +23,19 @@ export function useWorkflowT(): Translate {
   return useMemo(() => {
     const call = t as unknown as (k: string, v?: Record<string, string | number>) => string;
     const has = (t as unknown as { has: (k: string) => boolean }).has;
-    return Object.assign((key: string, values?: Record<string, string | number>) => call(key, values), {
-      has: (key: string) => has(key),
-    });
+    return Object.assign(
+      (key: string, values?: Record<string, string | number>) => call(key, values),
+      {
+        has: (key: string) => has(key),
+      },
+    );
   }, [t]);
 }
 
-export type ServerAction = (state: WorkflowActionState, form: FormData) => Promise<WorkflowActionState>;
+export type ServerAction = (
+  state: WorkflowActionState,
+  form: FormData,
+) => Promise<WorkflowActionState>;
 
 /** What an action came to: a named refusal, a missing row, a conflict, bad input or a failure. */
 export function Feedback({ state, success }: { state: WorkflowActionState; success?: string }) {
@@ -119,7 +125,12 @@ export function EmptyPanel({
 }) {
   const router = useRouter();
   return (
-    <EmptyState icon={icon} sentence={sentence} actionLabel={actionLabel} onAction={() => router.push(href as Route)} />
+    <EmptyState
+      icon={icon}
+      sentence={sentence}
+      actionLabel={actionLabel}
+      onAction={() => router.push(href as Route)}
+    />
   );
 }
 

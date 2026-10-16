@@ -83,10 +83,15 @@ export async function previewAction(org: string, input: DefinitionInput): Promis
     projectIds: projects.data.map((p) => p.id),
     definition,
   });
-  return result.ok ? { ok: true, preview: result.data } : { ok: false, state: fromDataError(result.error) };
+  return result.ok
+    ? { ok: true, preview: result.data }
+    : { ok: false, state: fromDataError(result.error) };
 }
 
-export async function saveDefinitionAction(org: string, input: DefinitionInput): Promise<WorkflowActionState> {
+export async function saveDefinitionAction(
+  org: string,
+  input: DefinitionInput,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(org);
   const definition = parse(input);
   if (!definition) return { error: "input", at: Date.now() };
@@ -100,7 +105,10 @@ export async function saveDefinitionAction(org: string, input: DefinitionInput):
   return { ok: true, id: result.data, at: Date.now() };
 }
 
-export async function deleteDefinitionAction(org: string, id: string): Promise<WorkflowActionState> {
+export async function deleteDefinitionAction(
+  org: string,
+  id: string,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(org);
   if (!z.uuid().safeParse(id).success) return { error: "input", at: Date.now() };
   const result = await deleteReportDefinition(ctx.viewer.db, id);
@@ -109,13 +117,20 @@ export async function deleteDefinitionAction(org: string, id: string): Promise<W
   return { ok: true, at: Date.now() };
 }
 
-export async function queueRunAction(org: string, id: string, format: string): Promise<WorkflowActionState> {
+export async function queueRunAction(
+  org: string,
+  id: string,
+  format: string,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(org);
   const parsed = z
     .object({ id: z.uuid(), format: z.enum(["CSV", "XLSX", "PDF"]) })
     .safeParse({ id, format });
   if (!parsed.success) return { error: "input", at: Date.now() };
-  const result = await runReport(ctx.viewer.db, { reportDefinitionId: parsed.data.id, format: parsed.data.format });
+  const result = await runReport(ctx.viewer.db, {
+    reportDefinitionId: parsed.data.id,
+    format: parsed.data.format,
+  });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}/reports`, "layout");
   return { ok: true, id: result.data.id, at: Date.now() };

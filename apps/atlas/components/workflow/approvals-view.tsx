@@ -36,7 +36,13 @@ const CHIP: Record<Approval["state"], "in-review" | "complete" | "canceled" | "b
   Canceled: "canceled",
 };
 
-export async function ApprovalsView({ ctx, tab: requested }: { ctx: OrgContext; tab: string | null }) {
+export async function ApprovalsView({
+  ctx,
+  tab: requested,
+}: {
+  ctx: OrgContext;
+  tab: string | null;
+}) {
   const t = (await getTranslations("workflow")) as unknown as (
     key: string,
     values?: Record<string, string | number>,
@@ -66,7 +72,9 @@ export async function ApprovalsView({ ctx, tab: requested }: { ctx: OrgContext; 
   const [locale, exponents] = await Promise.all([getLocale(), getExponents(ctx)]);
   const money = moneyFormatter(locale, exponents, t("common.unpriced"));
   const when = (iso: string) =>
-    new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+    new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(
+      new Date(iso),
+    );
   const projectKey = new Map(projects.data.map((p) => [p.id, p.key]));
   const policyOf = new Map<string, ApprovalPolicy>(policies.data.map((p) => [p.id, p]));
   const personId = ctx.viewer.person?.id ?? "";
@@ -79,15 +87,22 @@ export async function ApprovalsView({ ctx, tab: requested }: { ctx: OrgContext; 
   const mine = approvals.data.filter((a) => a.requestedBy === personId);
   const shown = tab === "waiting" ? waiting : tab === "mine" ? mine : approvals.data;
   const open = new Set(
-    approvals.data.filter((a) => a.state === "In Review" || a.state === "Approved").map((a) => a.documentId),
+    approvals.data
+      .filter((a) => a.state === "In Review" || a.state === "Approved")
+      .map((a) => a.documentId),
   );
   const submittable = documents.ok ? documents.data.filter((d) => !open.has(d.id)) : [];
   const tabs: { value: Tab; label: string; count: number }[] = [
     { value: "waiting", label: t("approvals.tabs.waiting"), count: waiting.length },
     { value: "mine", label: t("approvals.tabs.mine"), count: mine.length },
-    ...(admin ? [{ value: "all" as const, label: t("approvals.tabs.all"), count: approvals.data.length }] : []),
+    ...(admin
+      ? [{ value: "all" as const, label: t("approvals.tabs.all"), count: approvals.data.length }]
+      : []),
   ];
-  const settingsRoute = (getNode(sitemap, "settings.approval-policies").node.route ?? "").replace("{org}", org);
+  const settingsRoute = (getNode(sitemap, "settings.approval-policies").node.route ?? "").replace(
+    "{org}",
+    org,
+  );
 
   return (
     <TemplateCollection
@@ -100,7 +115,9 @@ export async function ApprovalsView({ ctx, tab: requested }: { ctx: OrgContext; 
               href={`/${org}/approvals?tab=${x.value}` as Route}
               aria-current={x.value === tab ? "page" : undefined}
               className={`inline-flex h-control-md items-center gap-6 rounded-control px-12 text-text-13 font-medium ${
-                x.value === tab ? "bg-bg-selected text-text-primary" : "text-text-secondary hover:bg-bg-hover"
+                x.value === tab
+                  ? "bg-bg-selected text-text-primary"
+                  : "text-text-secondary hover:bg-bg-hover"
               }`}
             >
               {x.label}
@@ -116,7 +133,10 @@ export async function ApprovalsView({ ctx, tab: requested }: { ctx: OrgContext; 
             {admin ? (
               <>
                 {t("approvals.noPolicy.admin")}{" "}
-                <Link href={settingsRoute as Route} className="font-medium text-accent-text underline">
+                <Link
+                  href={settingsRoute as Route}
+                  className="font-medium text-accent-text underline"
+                >
                   {t("approvals.noPolicy.link")}
                 </Link>
               </>
@@ -130,20 +150,31 @@ export async function ApprovalsView({ ctx, tab: requested }: { ctx: OrgContext; 
           <EmptyPanel
             icon="CheckCircle2"
             sentence={t(`approvals.empty.${tab}`)}
-            actionLabel={t(tab === "waiting" ? "approvals.empty.waitingAction" : "approvals.empty.otherAction")}
-            href={tab === "waiting" ? `/${org}/approvals?tab=mine` : `/${org}/approvals?tab=waiting`}
+            actionLabel={t(
+              tab === "waiting" ? "approvals.empty.waitingAction" : "approvals.empty.otherAction",
+            )}
+            href={
+              tab === "waiting" ? `/${org}/approvals?tab=mine` : `/${org}/approvals?tab=waiting`
+            }
           />
         ) : (
-          <ul className="m-0 flex list-none flex-col gap-12 p-0" aria-label={t("approvals.listLabel")}>
+          <ul
+            className="m-0 flex list-none flex-col gap-12 p-0"
+            aria-label={t("approvals.listLabel")}
+          >
             {shown.map((a) => {
               const policy = policyOf.get(a.policyId);
               const steps = policy?.steps ?? [];
               const step = steps.find((s) => s.order === a.currentStep);
               const decidable = canDecide(a, policy, viewer);
               const withdrawable =
-                (a.state === "In Review" || a.state === "Approved") && (a.requestedBy === personId || admin);
+                (a.state === "In Review" || a.state === "Approved") &&
+                (a.requestedBy === personId || admin);
               return (
-                <li key={a.id} className="flex flex-col gap-12 rounded-card border border-border-subtle p-16">
+                <li
+                  key={a.id}
+                  className="flex flex-col gap-12 rounded-card border border-border-subtle p-16"
+                >
                   <div className="flex flex-wrap items-start justify-between gap-8">
                     <div className="flex min-w-0 flex-col gap-4">
                       <h2 className="m-0 text-text-15 font-semibold">
@@ -153,7 +184,9 @@ export async function ApprovalsView({ ctx, tab: requested }: { ctx: OrgContext; 
                       <p className="m-0 text-text-13 text-text-secondary">
                         {t("approvals.meta", {
                           amount: money(a.amountMinor, a.currency),
-                          project: a.projectId ? (projectKey.get(a.projectId) ?? t("common.otherProject")) : t("common.orgWide"),
+                          project: a.projectId
+                            ? (projectKey.get(a.projectId) ?? t("common.otherProject"))
+                            : t("common.orgWide"),
                           requester: a.requesterName ?? t("common.someone"),
                           when: when(a.createdAt),
                         })}
@@ -164,7 +197,10 @@ export async function ApprovalsView({ ctx, tab: requested }: { ctx: OrgContext; 
                     </div>
                     <StateChip state={CHIP[a.state]} label={t(`approvalStates.${a.state}`)} />
                   </div>
-                  <ol className="m-0 flex list-none flex-col gap-6 p-0" aria-label={t("approvals.stepsLabel")}>
+                  <ol
+                    className="m-0 flex list-none flex-col gap-6 p-0"
+                    aria-label={t("approvals.stepsLabel")}
+                  >
                     {steps.map((s) => {
                       const decision = a.decisions.find((d) => d.step === s.order);
                       const status = decision
@@ -189,14 +225,19 @@ export async function ApprovalsView({ ctx, tab: requested }: { ctx: OrgContext; 
                             <span className="text-text-secondary">{status}</span>
                           </span>
                           {decision?.comment ? (
-                            <span className="text-text-12 text-text-secondary">{decision.comment}</span>
+                            <span className="text-text-12 text-text-secondary">
+                              {decision.comment}
+                            </span>
                           ) : null}
                         </li>
                       );
                     })}
                   </ol>
                   {decidable ? (
-                    <section aria-label={t("approvals.decide.label")} className="flex flex-col gap-8">
+                    <section
+                      aria-label={t("approvals.decide.label")}
+                      className="flex flex-col gap-8"
+                    >
                       <p className="m-0 text-text-12 text-text-secondary">
                         {t("approvals.decide.youDecide", { step: step?.name ?? "" })}
                       </p>
@@ -230,7 +271,9 @@ export async function ApprovalsView({ ctx, tab: requested }: { ctx: OrgContext; 
                 documents={submittable.map((d) => ({
                   value: `${d.documentType}|${d.id}`,
                   label: `${t(`documentTypes.${d.documentType}`)}: ${d.reference}${
-                    d.projectId && projectKey.get(d.projectId) ? ` (${projectKey.get(d.projectId)})` : ""
+                    d.projectId && projectKey.get(d.projectId)
+                      ? ` (${projectKey.get(d.projectId)})`
+                      : ""
                   }`,
                 }))}
               />

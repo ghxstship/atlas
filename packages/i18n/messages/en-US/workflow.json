@@ -4,5 +4,531 @@
       "label": "Requesters may withdraw their approvals",
       "help": "When off, only people who edit approval policies can withdraw an approval in review."
     }
+  },
+  "common": {
+    "errorTitle": "Something went wrong",
+    "retry": "Try again",
+    "refusedTitle": "You can't open this",
+    "missingCapability": "Your role doesn't include {capability}. Ask an Owner or Admin for access.",
+    "backHome": "Go to Home",
+    "unpriced": "Unpriced",
+    "someone": "Someone",
+    "orgWide": "Whole organization",
+    "otherProject": "A project you can't open"
+  },
+  "errors": {
+    "input": "Check the highlighted values and try again.",
+    "notFound": "That item no longer exists or you can't see it. Refresh the page.",
+    "conflict": "That value is already in use. Choose another.",
+    "invalid": "A value isn't accepted. Check it and try again.",
+    "unexpected": "That didn't go through. Try again; if it keeps failing, contact support."
+  },
+  "refusals": {
+    "title": "Not allowed",
+    "other": "The database refused this change. The rule it named is shown below.",
+    "approval_policy_pending": "This document needs an approved approval under its policy first. Submit it on the Approvals page.",
+    "approval_policy_none": "No Active approval policy covers this document, so approve it directly.",
+    "approval_policy_no_steps": "Add at least one step before activating the policy.",
+    "approval_policy_active_exists": "Another policy for this document type is Active. Retire it first.",
+    "approval_policy_not_draft": "Only a Draft policy changes its document type or threshold. Create a new policy instead.",
+    "approval_policy_active_delete": "Retire an Active policy before deleting it.",
+    "approval_step_policy_not_draft": "Steps change only while the policy is a Draft.",
+    "approval_unpriced": "Price every line of the document before submitting it.",
+    "approval_in_review": "This document is already in review.",
+    "approval_already_approved": "This document is already approved for its current amount.",
+    "approval_not_in_review": "This approval is no longer in review.",
+    "approval_not_step_approver": "You aren't an approver of the step this approval is waiting on.",
+    "approval_one_step_per_approver": "You already decided a step of this approval. The next step needs someone else.",
+    "approval_rejection_reason": "Say why when you reject.",
+    "approval_approver_capability": "Your role can't approve this kind of document, so you can't decide its step.",
+    "approval_requester_cancel_off": "Your organization lets only policy administrators withdraw approvals.",
+    "approval_transition_not_allowed": "That change of state isn't allowed.",
+    "approval_policy_transition_not_allowed": "That change of state isn't allowed for a policy.",
+    "approval_state_conflict": "Someone changed this approval first. Refresh the page.",
+    "approval_policy_state_conflict": "Someone changed this policy first. Refresh the page.",
+    "sod_approval_requester": "You requested this approval, so someone else decides it.",
+    "trash_not_restorable": "Rows of this kind aren't restored from Trash.",
+    "trash_not_deleted": "This item is no longer in Trash.",
+    "trash_restore_expired": "Its retention period has ended; it's about to be purged and can't come back.",
+    "template_unpublished": "Publish a version of the template before creating projects from it.",
+    "template_time_zone_required": "Choose the project's time zone; this template doesn't set one.",
+    "template_version_published": "A published version can't change. Start a new draft instead.",
+    "template_version_publish_rpc": "Publish a version with its Publish button.",
+    "template_deleted": "Restore the template from Trash before publishing.",
+    "state_label_collides": "That's the name of another record state. Choose a label no state has.",
+    "state_label_state_immutable": "Clear this label and label the other state instead.",
+    "projects_key_format": "Use 2 to 5 letters for the project key.",
+    "scope_node_code_format": "Use capital letters, digits and hyphens for the code suffix."
+  },
+  "documentTypes": {
+    "Purchase Order": "Purchase order",
+    "Change Order": "Change order",
+    "Expense": "Expense",
+    "Invoice Approval": "Payable invoice",
+    "Payroll Run": "Payroll run",
+    "Requisition": "Requisition",
+    "Contract": "Settlement round"
+  },
+  "approvalStates": {
+    "In Review": "In review",
+    "Approved": "Approved",
+    "Rejected": "Rejected",
+    "Canceled": "Withdrawn"
+  },
+  "policyStates": {
+    "Draft": "Draft",
+    "Active": "Active",
+    "Retired": "Retired"
+  },
+  "approvals": {
+    "title": "Approvals",
+    "loadError": "Approvals couldn't load. Try again.",
+    "listLabel": "Approvals",
+    "tabs": {
+      "label": "Which approvals",
+      "waiting": "Waiting on me",
+      "mine": "My requests",
+      "all": "All"
+    },
+    "empty": {
+      "waiting": "Nothing waits on you. Approvals appear here when a step you decide is reached.",
+      "mine": "You haven't submitted anything for approval. Submit a document below.",
+      "all": "No approvals yet. They appear here once someone submits a document.",
+      "waitingAction": "See my requests",
+      "otherAction": "See what waits on me"
+    },
+    "noPolicy": {
+      "title": "No Active approval policy",
+      "admin": "Documents are approved directly until a policy is Active.",
+      "link": "Set up approval policies",
+      "member": "Documents are approved directly. An Owner or Admin can add approval policies in Settings."
+    },
+    "meta": "{amount} · {project} · requested by {requester} on {when}",
+    "policy": "Policy: {policy}",
+    "stepsLabel": "Steps",
+    "stepName": "Step {order}: {name}",
+    "stepApproved": "approved by {name} on {when}",
+    "stepRejected": "rejected by {name} on {when}",
+    "stepWaiting": "waiting for a decision",
+    "stepPending": "not reached",
+    "decide": {
+      "label": "Decide this step",
+      "youDecide": "You decide the step {step}.",
+      "legend": "Your decision",
+      "approveOption": "Approve",
+      "rejectOption": "Reject",
+      "approve": "Approve step",
+      "reject": "Reject",
+      "comment": "Comment (optional)",
+      "commentHelp": "The requester sees it with your decision.",
+      "reasonRequired": "Why are you rejecting?",
+      "reasonHelp": "Required. The requester sees it.",
+      "done": "Decision recorded."
+    },
+    "cancel": {
+      "open": "Withdraw",
+      "label": "Withdraw this approval",
+      "reason": "Why withdraw it?",
+      "reasonHelp": "Kept in the approval's history.",
+      "submit": "Withdraw approval",
+      "done": "Approval withdrawn."
+    },
+    "submit": {
+      "title": "Submit a document for approval",
+      "sentence": "Active policies cover: {types}. The amount and currency come from the document itself.",
+      "label": "Submit a document for approval",
+      "document": "Document",
+      "documentHelp": "Documents waiting for approval that you can see.",
+      "submit": "Submit for approval",
+      "done": "Submitted. The first step's approvers have been notified.",
+      "none": "No document waits for approval right now.",
+      "loadError": "Documents waiting for approval couldn't load. Try again."
+    }
+  },
+  "trash": {
+    "title": "Trash",
+    "sentence": "Deleted items stay here until their retention period ends, when they're purged for good. Restore one to bring it back, with anything deleted together with it.",
+    "loadError": "Trash couldn't load. Try again.",
+    "filters": "Filter Trash",
+    "kind": "Kind",
+    "allKinds": "Every kind",
+    "search": "Title",
+    "searchHint": "Search titles",
+    "apply": "Apply",
+    "caption": "Deleted items, newest first",
+    "columns": {
+      "title": "Title",
+      "kind": "Kind",
+      "project": "Project",
+      "deleted": "Deleted",
+      "purge": "Purged after",
+      "actions": "Actions"
+    },
+    "untitled": "Untitled",
+    "restore": "Restore",
+    "restoreNamed": "Restore {title}",
+    "restored": "Restored {count, plural, one {# item} other {# items}}.",
+    "empty": "Trash is empty. Deleted items appear here for their retention period.",
+    "emptyAction": "Go to Home",
+    "emptyFiltered": "Nothing in Trash matches these filters.",
+    "clearFilters": "Clear filters"
+  },
+  "templates": {
+    "title": "Templates",
+    "sentence": "Templates start projects with the scope nodes, records and defaults your team reuses. Publish a version to use it; projects keep what they were created with.",
+    "loadError": "Templates couldn't load. Try again.",
+    "listLabel": "Templates",
+    "summary": "Version {version} · {items, plural, one {# item} other {# items}} · {projects, plural, one {# project} other {# projects}}",
+    "summaryDraft": "No published version yet",
+    "empty": {
+      "editor": "No templates yet. Create one below, or save a project as a template.",
+      "editorAction": "Create a template",
+      "reader": "No templates yet. Projects are created from scratch until someone adds one.",
+      "readerAction": "See all projects"
+    },
+    "fields": {
+      "name": "Template name",
+      "description": "Description",
+      "descriptionHelp": "When to use this template.",
+      "notes": "What changed in this version",
+      "timeZone": "Default time zone",
+      "timeZoneHelp": "New projects start in this zone unless one is chosen.",
+      "currency": "Default currency",
+      "durationDays": "Length in days",
+      "durationDaysHelp": "Sets the end date from the start date.",
+      "notSet": "Not set"
+    },
+    "create": {
+      "title": "Create a template",
+      "label": "Create a template",
+      "submit": "Create template",
+      "done": "Template created with an empty draft. Pick it in the list to add items."
+    },
+    "fromProject": {
+      "title": "Save a project as a template",
+      "sentence": "Its show and venue scope nodes and open records become a published first version.",
+      "label": "Save a project as a template",
+      "project": "Project",
+      "submit": "Save as template",
+      "done": "Template saved from the project."
+    },
+    "detail": {
+      "none": "Create a template to see it here.",
+      "pick": "Pick a template to see its versions and create projects from it.",
+      "applications": "{count, plural, =0 {No projects created from it yet} one {# project created from it} other {# projects created from it}}",
+      "current": "Current version {version}, published {date}",
+      "noCurrent": "No published version yet",
+      "defaults": "Time zone {zone} · currency {currency} · length {days} days"
+    },
+    "items": {
+      "label": "Items",
+      "none": "No items yet.",
+      "nodeLine": "{kind} scope node, code suffix {suffix}",
+      "recordLine": "{kind} record · phase {phase} · {due}",
+      "noPhase": "No phase",
+      "noDue": "no due date",
+      "dueIn": "due {days, plural, =0 {on the start date} one {# day after the start} other {# days after the start}}",
+      "addLabel": "Add an item to the draft",
+      "add": "Add item",
+      "added": "Item added.",
+      "kind": "Item",
+      "kinds": {
+        "Record": "Record",
+        "Scope Node": "Scope node"
+      },
+      "recordTitle": "Record title",
+      "nodeName": "Scope node name",
+      "scopeKind": "Scope kind",
+      "scopeKinds": {
+        "Show": "Show",
+        "Standing Venue": "Standing venue"
+      },
+      "suffix": "Code suffix",
+      "suffixHelp": "Added after the project key, such as E02 for NWT-E02.",
+      "recordKind": "Record kind",
+      "xyz": "Schema family",
+      "xyzHelp": "X resource, Y process or Z timeline.",
+      "families": {
+        "X": "X: resource",
+        "Y": "Y: process",
+        "Z": "Z: timeline"
+      },
+      "phase": "Phase",
+      "dueOffset": "Due, days after the start",
+      "dueOffsetHelp": "Leave blank for no due date; use a negative number for before the start.",
+      "remove": "Remove",
+      "removeNamed": "Remove {name}"
+    },
+    "draft": {
+      "title": "Draft version {version}",
+      "noneTitle": "No draft",
+      "sentence": "Change the draft, then publish it. Publishing makes it the current version and freezes it.",
+      "none": "Start a draft to change the template. It begins as a copy of the latest version.",
+      "defaultsLabel": "Draft defaults",
+      "saveDefaults": "Save defaults",
+      "saved": "Draft saved.",
+      "publishLabel": "Publish the draft",
+      "publish": "Publish version",
+      "published": "Version published. New projects use it.",
+      "newLabel": "Start a new draft",
+      "new": "Start a draft",
+      "created": "Draft started from the latest version."
+    },
+    "apply": {
+      "title": "Create a project from this template",
+      "label": "Create a project from this template",
+      "key": "Project key",
+      "keyHelp": "2 to 5 letters, such as NWT.",
+      "name": "Project name",
+      "startsOn": "Start date",
+      "startsOnHelp": "Records are due relative to it.",
+      "timeZone": "Time zone",
+      "timeZoneRequired": "Required: this template sets no time zone.",
+      "timeZoneDefault": "Leave as is to use the template's zone.",
+      "chooseZone": "Choose a time zone",
+      "useDefault": "Template's time zone",
+      "submit": "Create project",
+      "done": "Project {key} created.",
+      "open": "Open the project",
+      "needsCapability": "Creating projects needs projects.project.create. Ask an Owner or Admin."
+    },
+    "delete": {
+      "label": "Delete this template",
+      "submit": "Delete template",
+      "done": "Template moved to Trash."
+    },
+    "history": {
+      "title": "Versions",
+      "published": "Version {version}, published {date}, {items, plural, one {# item} other {# items}}.",
+      "draft": "Version {version}, draft, {items, plural, one {# item} other {# items}}."
+    }
+  },
+  "builder": {
+    "title": "Report builder",
+    "loadError": "The report builder couldn't load. Try again.",
+    "missing": "That report no longer exists or you can't open it. You're starting a new one.",
+    "readOnly": "You can preview reports. Saving needs reports.report.write.",
+    "sharedReadOnly": "Someone shared this report with you. Preview it here; only its owner changes it.",
+    "new": "New report",
+    "untitled": "Untitled report",
+    "formLabel": "Report definition",
+    "name": "Report name",
+    "source": "Source",
+    "sourceHelp": "Rows are read with your own access, so you see only what you may.",
+    "sources": {
+      "records": "Records",
+      "finance": "Budget lines",
+      "crew": "Shifts",
+      "procurement": "Purchase orders",
+      "assets": "Assets",
+      "incidents": "Incidents",
+      "custom_object": "Custom objects"
+    },
+    "fields": {
+      "records": {
+        "record_kind": "Kind",
+        "record_state": "State",
+        "phase_code": "Phase",
+        "title": "Title",
+        "record_number": "Number",
+        "due_at": "Due",
+        "created_at": "Created"
+      },
+      "finance": {
+        "account_code": "GL account",
+        "dept_code": "Department",
+        "cost_center_code": "Cost center",
+        "line_type": "Line type",
+        "description": "Description",
+        "extended_minor": "Budgeted",
+        "actual_minor": "Actual"
+      },
+      "crew": {
+        "role_code": "Role",
+        "shift_state": "State",
+        "starts_at": "Starts",
+        "ends_at": "Ends"
+      },
+      "procurement": {
+        "lines_total_minor": "Lines total",
+        "approved_changes_minor": "Approved changes",
+        "unpriced_count": "Unpriced lines"
+      },
+      "assets": {
+        "asset_tag": "Asset tag",
+        "asset_state": "State",
+        "condition_enum_id": "Condition",
+        "created_at": "Added"
+      },
+      "incidents": {
+        "title": "Title",
+        "incident_state": "State",
+        "severity_enum_id": "Severity",
+        "incident_number": "Number",
+        "occurred_at": "Occurred"
+      },
+      "custom_object": {
+        "title": "Title",
+        "created_at": "Created"
+      }
+    },
+    "fieldsTitle": "Columns",
+    "field": "Column {n}",
+    "aggregate": "Summary",
+    "aggregates": {
+      "None": "Value",
+      "Count": "Count",
+      "Sum": "Sum",
+      "Average": "Average",
+      "Minimum": "Minimum",
+      "Maximum": "Maximum"
+    },
+    "columnAggregate": "{aggregate} of {field}",
+    "addField": "Add column",
+    "removeField": "Remove column {field}",
+    "groupBy": "Group by",
+    "groupByHelp": "One row per value; money also splits by currency.",
+    "noGrouping": "No grouping",
+    "filtersTitle": "Filters",
+    "noFilters": "No filters: every row you may read.",
+    "filterField": "Filter {n}",
+    "operator": "Condition",
+    "operators": {
+      "eq": "is",
+      "ne": "is not",
+      "lt": "is less than",
+      "lte": "is at most",
+      "gt": "is more than",
+      "gte": "is at least",
+      "in": "is one of",
+      "is_null": "is blank",
+      "contains": "contains"
+    },
+    "value": "Value",
+    "valueListHelp": "Separate values with commas.",
+    "addFilter": "Add filter",
+    "removeFilter": "Remove filter {n}",
+    "chart": "Chart",
+    "charts": {
+      "Table": "Table",
+      "Bar": "Bar",
+      "Line": "Line",
+      "Area": "Area",
+      "Pie": "Pie",
+      "Number": "Number"
+    },
+    "shared": "Share with everyone who may read the source",
+    "save": "Save report",
+    "saveChanges": "Save changes",
+    "saved": "Done.",
+    "delete": "Delete report",
+    "runFormat": "Run as",
+    "queueRun": "Queue a run",
+    "preview": {
+      "title": "Preview",
+      "run": "Preview",
+      "prompt": "Choose columns and select Preview to see the report with your access.",
+      "empty": "No rows match. Loosen a filter or pick another source.",
+      "rows": "{rows, plural, one {# row read} other {# rows read}}.",
+      "truncated": "Showing the first {rows} rows read; narrow it with a filter for the full answer.",
+      "blank": "Blank",
+      "unpriced": "{total} ({count, plural, one {# unpriced input left out} other {# unpriced inputs left out}})",
+      "caption": "Report preview",
+      "download": "Download CSV",
+      "firstGroup": "First group shown",
+      "chartNeedsGroup": "Charts need a grouping. Choose Group by to draw one.",
+      "chartNote": {
+        "Pie": "Shown as bars in the preview.",
+        "Area": "Shown as a line in the preview."
+      },
+      "moreRows": "Showing 500 of {rows} rows. Download the CSV for all of them."
+    },
+    "runs": {
+      "title": "Recent runs",
+      "none": "No runs yet. Queue one above.",
+      "line": "{when} · {format} · {status}",
+      "status": {
+        "Queued": "Queued",
+        "Running": "Running",
+        "Succeeded": "Ready",
+        "Failed": "Failed"
+      }
+    },
+    "savedTitle": "Reports you can open",
+    "savedNone": "No saved reports yet. Save one above.",
+    "sharedLabel": "Shared",
+    "privateLabel": "Private"
+  },
+  "policies": {
+    "title": "Approval policies",
+    "description": "Each policy sends one kind of spend document through ordered approval steps before the document's own approval. One policy per document type is Active at a time.",
+    "loadError": "Approval policies couldn't load. Try again.",
+    "readOnly": "Editing approval policies needs org.approval_policies.write.",
+    "empty": "No approval policies yet.",
+    "emptyEditor": "No approval policies yet. Create one below, add its steps, then activate it.",
+    "listLabel": "Approval policies",
+    "summary": "{type} · {state} · {scope}",
+    "everyAmount": "every amount",
+    "above": "above {amount}",
+    "fields": {
+      "name": "Policy name",
+      "documentType": "Document type",
+      "description": "What it's for",
+      "currency": "Threshold currency",
+      "currencyHelp": "Leave as every amount to cover every document of the type.",
+      "everyAmount": "Every amount",
+      "threshold": "Applies above, in {currency}",
+      "thresholdHelp": "Documents in another currency always go through the policy."
+    },
+    "create": {
+      "title": "Create a policy",
+      "label": "Create an approval policy",
+      "submit": "Create policy",
+      "done": "Policy created as a Draft. Add its steps, then activate it."
+    },
+    "steps": {
+      "label": "Steps of {name}",
+      "none": "No steps yet. A policy needs at least one before it's activated.",
+      "line": "Step {order}: {name}, decided by {approver}",
+      "addLabel": "Add a step",
+      "add": "Add step",
+      "added": "Step added.",
+      "name": "Step name",
+      "approver": "Decided by",
+      "approverHelp": "Everyone holding a role, or one member.",
+      "roleOption": "Role: {role}",
+      "memberOption": "Member: {name}",
+      "unknownApprover": "A role or member no longer in the organization",
+      "remove": "Remove",
+      "removeNamed": "Remove step {name}"
+    },
+    "transition": {
+      "Active": "Activate",
+      "Retired": "Retire",
+      "ActiveNamed": "Activate {name}",
+      "RetiredNamed": "Retire {name}",
+      "ActiveDone": "Policy is Active. Documents of its type now go through it.",
+      "RetiredDone": "Policy retired."
+    },
+    "reasons": {
+      "Active": "Activated in Settings.",
+      "Retired": "Retired in Settings."
+    },
+    "delete": {
+      "label": "Delete {name}",
+      "submit": "Delete"
+    }
+  },
+  "labels": {
+    "title": "Record state labels",
+    "description": "Rename the nine record states for your organization. Only the label changes; the states and their rules stay the same.",
+    "loadError": "State labels couldn't load. Try again.",
+    "readOnly": "Editing labels needs org.views.write.",
+    "listLabel": "Record states",
+    "rowLabel": "Label for {state}",
+    "labelFor": "{state}",
+    "help": "Leave blank to show the standard name.",
+    "save": "Save",
+    "saved": "Saved."
   }
 }

@@ -92,7 +92,9 @@ export async function listApprovalPolicies(
     rows(
       untyped(db)
         .from("approval_policies")
-        .select("id, name, description, document_type, currency_code, applies_above_minor, policy_state, updated_at")
+        .select(
+          "id, name, description, document_type, currency_code, applies_above_minor, policy_state, updated_at",
+        )
         .eq("org_id", orgId)
         .is("deleted_at", null)
         .order("name"),
@@ -100,7 +102,9 @@ export async function listApprovalPolicies(
     rows(
       untyped(db)
         .from("approval_steps")
-        .select("id, approval_policy_id, step_order, name, approver_role_id, approver_membership_id")
+        .select(
+          "id, approval_policy_id, step_order, name, approver_role_id, approver_membership_id",
+        )
         .eq("org_id", orgId)
         .is("deleted_at", null)
         .order("step_order"),
@@ -143,7 +147,10 @@ export interface PolicyInput {
   readonly appliesAboveMinor: number | null;
 }
 
-export async function createApprovalPolicy(db: XosClient, input: PolicyInput): Promise<Result<string>> {
+export async function createApprovalPolicy(
+  db: XosClient,
+  input: PolicyInput,
+): Promise<Result<string>> {
   return write(
     untyped(db)
       .from("approval_policies")
@@ -208,12 +215,22 @@ export async function removeApprovalStep(db: XosClient, id: string): Promise<Res
 
 export async function transitionApprovalPolicy(
   db: XosClient,
-  input: { readonly id: string; readonly from: PolicyState; readonly to: PolicyState; readonly reason: string },
+  input: {
+    readonly id: string;
+    readonly from: PolicyState;
+    readonly to: PolicyState;
+    readonly reason: string;
+  },
 ): Promise<Result<string>> {
   return call(
     db,
     "transition_approval_policy",
-    { p_approval_policy_id: input.id, p_expected: input.from, p_next: input.to, p_reason: input.reason },
+    {
+      p_approval_policy_id: input.id,
+      p_expected: input.from,
+      p_next: input.to,
+      p_reason: input.reason,
+    },
     str,
   );
 }
@@ -251,10 +268,7 @@ export interface Approval {
 }
 
 /** Approvals the viewer may read (requester, approvers and policy administrators), newest first. */
-export async function listApprovals(
-  db: XosClient,
-  orgId: string,
-): Promise<Result<Approval[]>> {
+export async function listApprovals(db: XosClient, orgId: string): Promise<Result<Approval[]>> {
   const instances = await rows(
     untyped(db)
       .from("approval_instances")
@@ -322,13 +336,20 @@ export async function listApprovals(
 export function canDecide(
   approval: Approval,
   policy: ApprovalPolicy | undefined,
-  viewer: { readonly personId: string; readonly membershipId: string; readonly roleIds: readonly string[] },
+  viewer: {
+    readonly personId: string;
+    readonly membershipId: string;
+    readonly roleIds: readonly string[];
+  },
 ): boolean {
   if (approval.state !== "In Review" || approval.requestedBy === viewer.personId) return false;
   if (approval.decisions.some((d) => d.approverId === viewer.personId)) return false;
   const step = policy?.steps.find((s) => s.order === approval.currentStep);
   if (!step) return false;
-  return step.membershipId === viewer.membershipId || (step.roleId !== null && viewer.roleIds.includes(step.roleId));
+  return (
+    step.membershipId === viewer.membershipId ||
+    (step.roleId !== null && viewer.roleIds.includes(step.roleId))
+  );
 }
 
 export async function requestApproval(
@@ -359,7 +380,12 @@ export async function cancelApproval(
   db: XosClient,
   input: { readonly id: string; readonly reason: string },
 ): Promise<Result<string>> {
-  return call(db, "cancel_approval", { p_approval_instance_id: input.id, p_reason: input.reason }, str);
+  return call(
+    db,
+    "cancel_approval",
+    { p_approval_instance_id: input.id, p_reason: input.reason },
+    str,
+  );
 }
 
 export interface SpendDocument {
@@ -395,7 +421,14 @@ export async function listDocumentsAwaitingApproval(
   const steps = await Promise.all([
     add(
       "Purchase Order",
-      u.from("purchase_orders").select("id, po_number, project_id, project:projects(project_key)").eq("org_id", input.orgId).eq("po_state", "Proposed").is("deleted_at", null).order("po_number").limit(100),
+      u
+        .from("purchase_orders")
+        .select("id, po_number, project_id, project:projects(project_key)")
+        .eq("org_id", input.orgId)
+        .eq("po_state", "Proposed")
+        .is("deleted_at", null)
+        .order("po_number")
+        .limit(100),
       (r) => ({
         id: str(r["id"]),
         reference: `${str(obj(r["project"])?.["project_key"])} PO ${str(r["po_number"])}`,
@@ -404,7 +437,13 @@ export async function listDocumentsAwaitingApproval(
     ),
     add(
       "Purchase Order",
-      u.from("po_change_orders").select("id, description, purchase_order:purchase_orders(po_number, project_id)").eq("org_id", input.orgId).eq("po_change_order_state", "Proposed").is("deleted_at", null).limit(100),
+      u
+        .from("po_change_orders")
+        .select("id, description, purchase_order:purchase_orders(po_number, project_id)")
+        .eq("org_id", input.orgId)
+        .eq("po_change_order_state", "Proposed")
+        .is("deleted_at", null)
+        .limit(100),
       (r) => ({
         id: str(r["id"]),
         reference: `PO ${str(obj(r["purchase_order"])?.["po_number"])}: ${str(r["description"])}`,
@@ -413,7 +452,13 @@ export async function listDocumentsAwaitingApproval(
     ),
     add(
       "Change Order",
-      u.from("change_orders").select("id, change_order_number, title, project_id").eq("org_id", input.orgId).eq("change_order_state", "Priced").is("deleted_at", null).limit(100),
+      u
+        .from("change_orders")
+        .select("id, change_order_number, title, project_id")
+        .eq("org_id", input.orgId)
+        .eq("change_order_state", "Priced")
+        .is("deleted_at", null)
+        .limit(100),
       (r) => ({
         id: str(r["id"]),
         reference: `${str(r["change_order_number"])}: ${str(r["title"])}`,
@@ -422,12 +467,29 @@ export async function listDocumentsAwaitingApproval(
     ),
     add(
       "Invoice Approval",
-      u.from("invoices").select("id, invoice_number, project_id").eq("org_id", input.orgId).eq("direction", "Payable").in("invoice_state", ["Proposed", "Disputed"]).is("deleted_at", null).limit(100),
-      (r) => ({ id: str(r["id"]), reference: str(r["invoice_number"]), projectId: strOrNull(r["project_id"]) }),
+      u
+        .from("invoices")
+        .select("id, invoice_number, project_id")
+        .eq("org_id", input.orgId)
+        .eq("direction", "Payable")
+        .in("invoice_state", ["Proposed", "Disputed"])
+        .is("deleted_at", null)
+        .limit(100),
+      (r) => ({
+        id: str(r["id"]),
+        reference: str(r["invoice_number"]),
+        projectId: strOrNull(r["project_id"]),
+      }),
     ),
     add(
       "Requisition",
-      u.from("requisitions").select("id, role_code, headcount, project_id").eq("org_id", input.orgId).eq("requisition_state", "Proposed").is("deleted_at", null).limit(100),
+      u
+        .from("requisitions")
+        .select("id, role_code, headcount, project_id")
+        .eq("org_id", input.orgId)
+        .eq("requisition_state", "Proposed")
+        .is("deleted_at", null)
+        .limit(100),
       (r) => ({
         id: str(r["id"]),
         reference: `${str(r["role_code"])} × ${str(r["headcount"])}`,
@@ -436,12 +498,24 @@ export async function listDocumentsAwaitingApproval(
     ),
     add(
       "Expense",
-      u.from("expenses").select("id, description").eq("org_id", input.orgId).eq("expense_state", "Proposed").is("deleted_at", null).limit(100),
+      u
+        .from("expenses")
+        .select("id, description")
+        .eq("org_id", input.orgId)
+        .eq("expense_state", "Proposed")
+        .is("deleted_at", null)
+        .limit(100),
       (r) => ({ id: str(r["id"]), reference: str(r["description"]), projectId: null }),
     ),
     add(
       "Payroll Run",
-      u.from("payroll_runs").select("id, created_at").eq("org_id", input.orgId).eq("payroll_run_state", "Calculated").is("deleted_at", null).limit(100),
+      u
+        .from("payroll_runs")
+        .select("id, created_at")
+        .eq("org_id", input.orgId)
+        .eq("payroll_run_state", "Calculated")
+        .is("deleted_at", null)
+        .limit(100),
       (r) => ({ id: str(r["id"]), reference: str(r["created_at"]).slice(0, 10), projectId: null }),
     ),
   ]);
@@ -470,7 +544,9 @@ export async function listTrash(
 ): Promise<Result<TrashItem[]>> {
   let query = untyped(db)
     .from("trash_items")
-    .select("subject_urn, subject_table, subject_id, project_id, title, deleted_at, deleted_by, purge_after")
+    .select(
+      "subject_urn, subject_table, subject_id, project_id, title, deleted_at, deleted_by, purge_after",
+    )
     .eq("org_id", input.orgId)
     .order("deleted_at", { ascending: false })
     .limit(200);
@@ -497,7 +573,12 @@ export async function restoreTrashItem(
   db: XosClient,
   input: { readonly table: string; readonly id: string },
 ): Promise<Result<number>> {
-  return call(db, "restore_trash_item", { p_subject_table: input.table, p_subject_id: input.id }, num);
+  return call(
+    db,
+    "restore_trash_item",
+    { p_subject_table: input.table, p_subject_id: input.id },
+    num,
+  );
 }
 
 // Templates ----------------------------------------------------------------------------------------------
@@ -542,17 +623,30 @@ export interface Template {
 export async function listTemplates(db: XosClient, orgId: string): Promise<Result<Template[]>> {
   const u = untyped(db);
   const [templates, versions, items, applications] = await Promise.all([
-    rows(u.from("templates").select("id, name, description, current_version_id, updated_at").eq("org_id", orgId).is("deleted_at", null).order("name")),
     rows(
-      u.from("template_versions")
-        .select("id, template_id, version_number, notes, default_time_zone, default_currency_code, duration_days, published_at")
+      u
+        .from("templates")
+        .select("id, name, description, current_version_id, updated_at")
+        .eq("org_id", orgId)
+        .is("deleted_at", null)
+        .order("name"),
+    ),
+    rows(
+      u
+        .from("template_versions")
+        .select(
+          "id, template_id, version_number, notes, default_time_zone, default_currency_code, duration_days, published_at",
+        )
         .eq("org_id", orgId)
         .is("deleted_at", null)
         .order("version_number", { ascending: false }),
     ),
     rows(
-      u.from("template_items")
-        .select("id, template_version_id, item_kind, sort_order, name, scope_kind, scope_code_suffix, record_kind, xyz, phase_code, due_offset_days")
+      u
+        .from("template_items")
+        .select(
+          "id, template_version_id, item_kind, sort_order, name, scope_kind, scope_code_suffix, record_kind, xyz, phase_code, due_offset_days",
+        )
         .eq("org_id", orgId)
         .is("deleted_at", null)
         .order("sort_order"),
@@ -636,7 +730,9 @@ export async function createTemplate(
 }
 
 export async function deleteTemplate(db: XosClient, id: string): Promise<Result<string>> {
-  return write(untyped(db).from("templates").update({ deleted_at: now() }).eq("id", id).select("id"));
+  return write(
+    untyped(db).from("templates").update({ deleted_at: now() }).eq("id", id).select("id"),
+  );
 }
 
 /** A new draft version that starts as a copy of the latest version's defaults and items. */
@@ -713,7 +809,10 @@ export interface TemplateItemInput {
   readonly dueOffsetDays: number | null;
 }
 
-export async function addTemplateItem(db: XosClient, input: TemplateItemInput): Promise<Result<string>> {
+export async function addTemplateItem(
+  db: XosClient,
+  input: TemplateItemInput,
+): Promise<Result<string>> {
   const last = await rows(
     untyped(db)
       .from("template_items")
@@ -746,7 +845,9 @@ export async function addTemplateItem(db: XosClient, input: TemplateItemInput): 
 }
 
 export async function removeTemplateItem(db: XosClient, id: string): Promise<Result<string>> {
-  return write(untyped(db).from("template_items").update({ deleted_at: now() }).eq("id", id).select("id"));
+  return write(
+    untyped(db).from("template_items").update({ deleted_at: now() }).eq("id", id).select("id"),
+  );
 }
 
 export async function publishTemplateVersion(db: XosClient, id: string): Promise<Result<string>> {
@@ -811,8 +912,20 @@ export interface StateLabel {
 /** The nine record states with the org's display label of each. */
 export async function listStateLabels(db: XosClient, orgId: string): Promise<Result<StateLabel[]>> {
   const [display, labels] = await Promise.all([
-    rows(untyped(db).from("record_state_display").select("record_state, ordinal, label, relabeled").eq("org_id", orgId).order("ordinal")),
-    rows(untyped(db).from("org_state_labels").select("id, record_state").eq("org_id", orgId).is("deleted_at", null)),
+    rows(
+      untyped(db)
+        .from("record_state_display")
+        .select("record_state, ordinal, label, relabeled")
+        .eq("org_id", orgId)
+        .order("ordinal"),
+    ),
+    rows(
+      untyped(db)
+        .from("org_state_labels")
+        .select("id, record_state")
+        .eq("org_id", orgId)
+        .is("deleted_at", null),
+    ),
   ]);
   if (!display.ok) return display;
   if (!labels.ok) return labels;
@@ -822,7 +935,9 @@ export async function listStateLabels(db: XosClient, orgId: string): Promise<Res
       ordinal: num(d["ordinal"]),
       label: str(d["label"]),
       relabeled: d["relabeled"] === true,
-      labelId: strOrNull(labels.data.find((l) => str(l["record_state"]) === str(d["record_state"]))?.["id"]),
+      labelId: strOrNull(
+        labels.data.find((l) => str(l["record_state"]) === str(d["record_state"]))?.["id"],
+      ),
     })),
   );
 }
@@ -830,16 +945,27 @@ export async function listStateLabels(db: XosClient, orgId: string): Promise<Res
 /** Sets an org's label for a record state, or clears it back to the canon name when label is null. */
 export async function setStateLabel(
   db: XosClient,
-  input: { readonly orgId: string; readonly state: string; readonly label: string | null; readonly labelId: string | null },
+  input: {
+    readonly orgId: string;
+    readonly state: string;
+    readonly label: string | null;
+    readonly labelId: string | null;
+  },
 ): Promise<Result<string | null>> {
   const label = input.label?.trim() ?? "";
   if (input.labelId) {
     if (label === "") {
       return write(
-        untyped(db).from("org_state_labels").update({ deleted_at: now() }).eq("id", input.labelId).select("id"),
+        untyped(db)
+          .from("org_state_labels")
+          .update({ deleted_at: now() })
+          .eq("id", input.labelId)
+          .select("id"),
       );
     }
-    return write(untyped(db).from("org_state_labels").update({ label }).eq("id", input.labelId).select("id"));
+    return write(
+      untyped(db).from("org_state_labels").update({ label }).eq("id", input.labelId).select("id"),
+    );
   }
   if (label === "") return ok(null);
   return write(
@@ -849,4 +975,37 @@ export async function setStateLabel(
       .select("id")
       .single(),
   );
+}
+
+// Support screenshots (1034) -------------------------------------------------------------------------------
+
+export const SCREENSHOT_TYPES = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+} as const;
+export const SCREENSHOT_MAX_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Uploads a screenshot for a support request to the private support-screenshots bucket, under the
+ * uploader's own folder (<person_id>/<random name>), so only they and the platform's support staff
+ * read it. Returns the object path to send with the request's diagnostics.
+ */
+export async function uploadSupportScreenshot(
+  db: XosClient,
+  input: { readonly personId: string; readonly file: Blob },
+): Promise<Result<string>> {
+  const type = input.file.type as keyof typeof SCREENSHOT_TYPES;
+  const extension = SCREENSHOT_TYPES[type];
+  if (!extension)
+    return fail({ kind: "invalid", message: "A screenshot is a PNG, JPEG or WebP image." });
+  if (input.file.size > SCREENSHOT_MAX_BYTES) {
+    return fail({ kind: "invalid", message: "A screenshot is at most 5 MB." });
+  }
+  const path = `${input.personId}/${crypto.randomUUID()}.${extension}`;
+  const { error } = await untyped(db)
+    .storage.from("support-screenshots")
+    .upload(path, input.file, { contentType: type, upsert: false });
+  if (error) return fail({ kind: "unexpected", message: error.message });
+  return ok(path);
 }

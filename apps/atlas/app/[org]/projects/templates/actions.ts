@@ -31,13 +31,17 @@ async function contextFor(form: FormData) {
   return ctx;
 }
 
-const blank = (v: FormDataEntryValue | null) => (typeof v === "string" && v.trim() !== "" ? v.trim() : null);
+const blank = (v: FormDataEntryValue | null) =>
+  typeof v === "string" && v.trim() !== "" ? v.trim() : null;
 const optionalText = (max: number) => z.string().max(max).nullable();
 const zone = z
   .string()
   .nullable()
   .refine((v) => v === null || Intl.supportedValuesOf("timeZone").includes(v));
-const currency = z.string().regex(/^[A-Z]{3}$/).nullable();
+const currency = z
+  .string()
+  .regex(/^[A-Z]{3}$/)
+  .nullable();
 const days = z.coerce.number().int().min(1).max(3660).nullable();
 
 function done(slug: string, id?: string): WorkflowActionState {
@@ -47,7 +51,10 @@ function done(slug: string, id?: string): WorkflowActionState {
 
 const input = { error: "input" as const };
 
-export async function createTemplateAction(_: WorkflowActionState, form: FormData): Promise<WorkflowActionState> {
+export async function createTemplateAction(
+  _: WorkflowActionState,
+  form: FormData,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
   const parsed = z
     .object({
@@ -69,7 +76,10 @@ export async function createTemplateAction(_: WorkflowActionState, form: FormDat
   return result.ok ? done(ctx.org.slug, result.data) : fromDataError(result.error);
 }
 
-export async function deleteTemplateAction(_: WorkflowActionState, form: FormData): Promise<WorkflowActionState> {
+export async function deleteTemplateAction(
+  _: WorkflowActionState,
+  form: FormData,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
   const id = z.uuid().safeParse(form.get("id"));
   if (!id.success) return { ...input, at: Date.now() };
@@ -77,7 +87,10 @@ export async function deleteTemplateAction(_: WorkflowActionState, form: FormDat
   return result.ok ? done(ctx.org.slug) : fromDataError(result.error);
 }
 
-export async function newDraftAction(_: WorkflowActionState, form: FormData): Promise<WorkflowActionState> {
+export async function newDraftAction(
+  _: WorkflowActionState,
+  form: FormData,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
   const id = z.uuid().safeParse(form.get("templateId"));
   if (!id.success) return { ...input, at: Date.now() };
@@ -89,10 +102,19 @@ export async function newDraftAction(_: WorkflowActionState, form: FormData): Pr
   return result.ok ? done(ctx.org.slug, result.data) : fromDataError(result.error);
 }
 
-export async function updateVersionAction(_: WorkflowActionState, form: FormData): Promise<WorkflowActionState> {
+export async function updateVersionAction(
+  _: WorkflowActionState,
+  form: FormData,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
   const parsed = z
-    .object({ id: z.uuid(), notes: optionalText(2000), timeZone: zone, currency, durationDays: days })
+    .object({
+      id: z.uuid(),
+      notes: optionalText(2000),
+      timeZone: zone,
+      currency,
+      durationDays: days,
+    })
     .safeParse({
       id: form.get("id"),
       notes: blank(form.get("notes")),
@@ -105,7 +127,10 @@ export async function updateVersionAction(_: WorkflowActionState, form: FormData
   return result.ok ? done(ctx.org.slug) : fromDataError(result.error);
 }
 
-export async function addItemAction(_: WorkflowActionState, form: FormData): Promise<WorkflowActionState> {
+export async function addItemAction(
+  _: WorkflowActionState,
+  form: FormData,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
   const parsed = z
     .discriminatedUnion("kind", [
@@ -168,7 +193,10 @@ export async function addItemAction(_: WorkflowActionState, form: FormData): Pro
   return result.ok ? done(ctx.org.slug, result.data) : fromDataError(result.error);
 }
 
-export async function removeItemAction(_: WorkflowActionState, form: FormData): Promise<WorkflowActionState> {
+export async function removeItemAction(
+  _: WorkflowActionState,
+  form: FormData,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
   const id = z.uuid().safeParse(form.get("id"));
   if (!id.success) return { ...input, at: Date.now() };
@@ -176,7 +204,10 @@ export async function removeItemAction(_: WorkflowActionState, form: FormData): 
   return result.ok ? done(ctx.org.slug) : fromDataError(result.error);
 }
 
-export async function publishAction(_: WorkflowActionState, form: FormData): Promise<WorkflowActionState> {
+export async function publishAction(
+  _: WorkflowActionState,
+  form: FormData,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
   const id = z.uuid().safeParse(form.get("versionId"));
   if (!id.success) return { ...input, at: Date.now() };
@@ -184,7 +215,10 @@ export async function publishAction(_: WorkflowActionState, form: FormData): Pro
   return result.ok ? done(ctx.org.slug) : fromDataError(result.error);
 }
 
-export async function applyTemplateAction(_: WorkflowActionState, form: FormData): Promise<WorkflowActionState> {
+export async function applyTemplateAction(
+  _: WorkflowActionState,
+  form: FormData,
+): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
   const parsed = z
     .object({
@@ -218,7 +252,11 @@ export async function saveProjectAsTemplateAction(
 ): Promise<WorkflowActionState> {
   const ctx = await contextFor(form);
   const parsed = z
-    .object({ projectId: z.uuid(), name: z.string().min(1).max(200), description: optionalText(2000) })
+    .object({
+      projectId: z.uuid(),
+      name: z.string().min(1).max(200),
+      description: optionalText(2000),
+    })
     .safeParse({
       projectId: form.get("projectId"),
       name: blank(form.get("name")),

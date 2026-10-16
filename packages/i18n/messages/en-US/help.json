@@ -175,6 +175,10 @@
       "noChannel": "Your plan includes the help center and community forum. Upgrade to contact platform support.",
       "invalid": "The request is missing something. Check the subject and description.",
       "unexpected": "The request could not be sent. Try again in a moment."
-    }
+    },
+    "screenshot": "Screenshot (optional)",
+    "screenshotHelp": "A PNG, JPEG or WebP image up to 5 MB. Only you and the platform support team can open it.",
+    "screenshotNeedsConsent": "Tick the diagnostics box above to attach a screenshot.",
+    "screenshotTooBig": "That image is larger than 5 MB. Choose a smaller one."
   }
 }

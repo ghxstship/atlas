@@ -175,6 +175,10 @@
       "noChannel": "Su plan incluye el centro de ayuda y el foro de la comunidad. Cambie de plan para contactar al soporte de la plataforma.",
       "invalid": "Falta información en la solicitud. Revise el asunto y la descripción.",
       "unexpected": "No se pudo enviar la solicitud. Inténtelo de nuevo en un momento."
-    }
+    },
+    "screenshot": "Captura de pantalla (opcional)",
+    "screenshotHelp": "Una imagen PNG, JPEG o WebP de hasta 5 MB. Solo usted y el equipo de soporte de la plataforma pueden abrirla.",
+    "screenshotNeedsConsent": "Marque la casilla de diagnóstico de arriba para adjuntar una captura de pantalla.",
+    "screenshotTooBig": "Esa imagen supera los 5 MB. Elija una más pequeña."
   }
 }

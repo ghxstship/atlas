@@ -27,7 +27,13 @@ import {
  * current version. A project can also be saved as a new template. projects.template.write edits;
  * projects.project.create creates projects. Row level security decides what appears.
  */
-export async function TemplatesView({ ctx, selected }: { ctx: OrgContext; selected: string | null }) {
+export async function TemplatesView({
+  ctx,
+  selected,
+}: {
+  ctx: OrgContext;
+  selected: string | null;
+}) {
   const t = (await getTranslations("workflow")) as unknown as (
     key: string,
     values?: Record<string, string | number>,
@@ -52,7 +58,8 @@ export async function TemplatesView({ ctx, selected }: { ctx: OrgContext; select
     );
   }
   const locale = await getLocale();
-  const day = (iso: string) => new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(iso));
+  const day = (iso: string) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(iso));
   const zones = Intl.supportedValuesOf("timeZone");
   const currencyCodes = currencies.data.map((c) => c.code);
   const current = templates.data.find((x) => x.id === selected) ?? null;
@@ -63,16 +70,23 @@ export async function TemplatesView({ ctx, selected }: { ctx: OrgContext; select
     <TemplateCollection header={<PageHeader title={title} count={templates.data.length} />}>
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-24 max-lg:grid-cols-1">
         <div className="flex min-w-0 flex-col gap-24">
-          <p className="m-0 max-w-layout-reading text-text-13 text-text-secondary">{t("templates.sentence")}</p>
+          <p className="m-0 max-w-layout-reading text-text-13 text-text-secondary">
+            {t("templates.sentence")}
+          </p>
           {templates.data.length === 0 ? (
             <EmptyPanel
               icon="LayoutTemplate"
               sentence={canEdit ? t("templates.empty.editor") : t("templates.empty.reader")}
-              actionLabel={canEdit ? t("templates.empty.editorAction") : t("templates.empty.readerAction")}
+              actionLabel={
+                canEdit ? t("templates.empty.editorAction") : t("templates.empty.readerAction")
+              }
               href={canEdit ? `/${org}/projects/templates#create-template` : `/${org}/projects/all`}
             />
           ) : (
-            <ul className="m-0 flex list-none flex-col gap-8 p-0" aria-label={t("templates.listLabel")}>
+            <ul
+              className="m-0 flex list-none flex-col gap-8 p-0"
+              aria-label={t("templates.listLabel")}
+            >
               {templates.data.map((tpl) => {
                 const published = tpl.versions.find((v) => v.id === tpl.currentVersionId);
                 return (
@@ -81,10 +95,14 @@ export async function TemplatesView({ ctx, selected }: { ctx: OrgContext; select
                       href={`/${org}/projects/templates?template=${tpl.id}` as Route}
                       aria-current={tpl.id === current?.id ? "true" : undefined}
                       className={`flex flex-col gap-2 rounded-card border p-12 ${
-                        tpl.id === current?.id ? "border-accent bg-bg-selected" : "border-border-subtle hover:bg-bg-hover"
+                        tpl.id === current?.id
+                          ? "border-accent bg-bg-selected"
+                          : "border-border-subtle hover:bg-bg-hover"
                       }`}
                     >
-                      <span className="text-text-14 font-semibold text-text-primary">{tpl.name}</span>
+                      <span className="text-text-14 font-semibold text-text-primary">
+                        {tpl.name}
+                      </span>
                       <span className="text-text-12 text-text-secondary">
                         {published
                           ? t("templates.summary", {
@@ -101,7 +119,11 @@ export async function TemplatesView({ ctx, selected }: { ctx: OrgContext; select
             </ul>
           )}
           {canEdit ? (
-            <section id="create-template" aria-labelledby="create-template-title" className="flex flex-col gap-8">
+            <section
+              id="create-template"
+              aria-labelledby="create-template-title"
+              className="flex flex-col gap-8"
+            >
               <h2 id="create-template-title" className="m-0 text-heading-16 font-semibold">
                 {t("templates.create.title")}
               </h2>
@@ -113,7 +135,9 @@ export async function TemplatesView({ ctx, selected }: { ctx: OrgContext; select
               <h2 id="save-project-title" className="m-0 text-heading-16 font-semibold">
                 {t("templates.fromProject.title")}
               </h2>
-              <p className="m-0 text-text-13 text-text-secondary">{t("templates.fromProject.sentence")}</p>
+              <p className="m-0 text-text-13 text-text-secondary">
+                {t("templates.fromProject.sentence")}
+              </p>
               <SaveProjectForm
                 org={org}
                 projects={projects.data.map((p) => ({ value: p.id, label: `${p.key} ${p.name}` }))}
@@ -125,7 +149,9 @@ export async function TemplatesView({ ctx, selected }: { ctx: OrgContext; select
         <div className="min-w-0">
           {current === null ? (
             <InlineAlert tone="info">
-              {templates.data.length === 0 ? t("templates.detail.none") : t("templates.detail.pick")}
+              {templates.data.length === 0
+                ? t("templates.detail.none")
+                : t("templates.detail.pick")}
             </InlineAlert>
           ) : (
             <TemplateDetail
@@ -164,7 +190,10 @@ function ItemList({
   return (
     <ol className="m-0 flex list-none flex-col gap-6 p-0" aria-label={t("templates.items.label")}>
       {version.items.map((i) => (
-        <li key={i.id} className="flex flex-wrap items-center justify-between gap-8 rounded-control border border-border-subtle px-12 py-6">
+        <li
+          key={i.id}
+          className="flex flex-wrap items-center justify-between gap-8 rounded-control border border-border-subtle px-12 py-6"
+        >
           <span className="flex min-w-0 flex-col">
             <span className="text-text-13 font-medium">{i.name}</span>
             <span className="text-text-12 text-text-secondary">
@@ -216,13 +245,18 @@ function TemplateDetail({
   const published = template.versions.find((v) => v.id === template.currentVersionId) ?? null;
   const draft = template.versions.find((v) => v.publishedAt === null) ?? null;
   return (
-    <article aria-labelledby="template-title" className="flex flex-col gap-24 rounded-card border border-border-subtle p-16">
+    <article
+      aria-labelledby="template-title"
+      className="flex flex-col gap-24 rounded-card border border-border-subtle p-16"
+    >
       <header className="flex flex-wrap items-start justify-between gap-8">
         <div className="flex flex-col gap-4">
           <h2 id="template-title" className="m-0 text-heading-20 font-semibold">
             {template.name}
           </h2>
-          {template.description ? <p className="m-0 text-text-13 text-text-secondary">{template.description}</p> : null}
+          {template.description ? (
+            <p className="m-0 text-text-13 text-text-secondary">{template.description}</p>
+          ) : null}
           <p className="m-0 text-text-12 text-text-tertiary">
             {t("templates.detail.applications", { count: template.applications })}
           </p>
@@ -233,7 +267,10 @@ function TemplateDetail({
       <section aria-labelledby="template-current" className="flex flex-col gap-8">
         <h3 id="template-current" className="m-0 text-text-15 font-semibold">
           {published
-            ? t("templates.detail.current", { version: published.number, date: day(published.publishedAt ?? "") })
+            ? t("templates.detail.current", {
+                version: published.number,
+                date: day(published.publishedAt ?? ""),
+              })
             : t("templates.detail.noCurrent")}
         </h3>
         {published ? (
@@ -242,7 +279,10 @@ function TemplateDetail({
               {t("templates.detail.defaults", {
                 zone: published.timeZone ?? t("templates.fields.notSet"),
                 currency: published.currency ?? t("templates.fields.notSet"),
-                days: published.durationDays === null ? t("templates.fields.notSet") : String(published.durationDays),
+                days:
+                  published.durationDays === null
+                    ? t("templates.fields.notSet")
+                    : String(published.durationDays),
               })}
             </p>
             <ItemList t={t} org={org} version={published} removable={false} />
@@ -251,26 +291,50 @@ function TemplateDetail({
                 <h4 id="template-apply" className="m-0 text-text-14 font-semibold">
                   {t("templates.apply.title")}
                 </h4>
-                <ApplyTemplateForm org={org} templateId={template.id} zones={zones} needsZone={published.timeZone === null} />
+                <ApplyTemplateForm
+                  org={org}
+                  templateId={template.id}
+                  zones={zones}
+                  needsZone={published.timeZone === null}
+                />
               </section>
             ) : (
-              <p className="m-0 text-text-12 text-text-secondary">{t("templates.apply.needsCapability")}</p>
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t("templates.apply.needsCapability")}
+              </p>
             )}
           </>
         ) : null}
       </section>
 
       {canEdit ? (
-        <section aria-labelledby="template-draft" className="flex flex-col gap-12 border-t border-border-subtle pt-16">
+        <section
+          aria-labelledby="template-draft"
+          className="flex flex-col gap-12 border-t border-border-subtle pt-16"
+        >
           <h3 id="template-draft" className="m-0 text-text-15 font-semibold">
-            {draft ? t("templates.draft.title", { version: draft.number }) : t("templates.draft.noneTitle")}
+            {draft
+              ? t("templates.draft.title", { version: draft.number })
+              : t("templates.draft.noneTitle")}
           </h3>
           {draft ? (
             <>
-              <p className="m-0 text-text-12 text-text-secondary">{t("templates.draft.sentence")}</p>
-              <VersionDefaultsForm org={org} version={draft} zones={zones} currencies={currencies} />
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t("templates.draft.sentence")}
+              </p>
+              <VersionDefaultsForm
+                org={org}
+                version={draft}
+                zones={zones}
+                currencies={currencies}
+              />
               <ItemList t={t} org={org} version={draft} removable />
-              <AddItemForm org={org} versionId={draft.id} recordKinds={recordKinds} phases={phases} />
+              <AddItemForm
+                org={org}
+                versionId={draft.id}
+                recordKinds={recordKinds}
+                phases={phases}
+              />
               <PublishButton org={org} versionId={draft.id} />
             </>
           ) : (
@@ -291,7 +355,11 @@ function TemplateDetail({
             {template.versions.map((v) => (
               <li key={v.id}>
                 {v.publishedAt
-                  ? t("templates.history.published", { version: v.number, date: day(v.publishedAt), items: v.items.length })
+                  ? t("templates.history.published", {
+                      version: v.number,
+                      date: day(v.publishedAt),
+                      items: v.items.length,
+                    })
                   : t("templates.history.draft", { version: v.number, items: v.items.length })}
                 {v.notes ? ` ${v.notes}` : ""}
               </li>
