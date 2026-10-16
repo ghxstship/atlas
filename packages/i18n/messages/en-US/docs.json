@@ -1,0 +1,97 @@
+{
+  "name": "XOS Developers",
+  "tagline": "Build on the XOS public API: guides, the API reference, SDKs, the CLI, the MCP server and self-hosting.",
+  "skip": "Skip to content",
+  "nav": {
+    "label": "Documentation",
+    "home": "Home",
+    "guides": "Guides",
+    "reference": "API reference",
+    "help": "Help center"
+  },
+  "language": {
+    "label": "Language",
+    "en-US": "English",
+    "es-US": "Español"
+  },
+  "theme": {
+    "label": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "home": {
+    "title": "Build on XOS",
+    "sentence": "One API serves Atlas, Gateway, Compass and your integrations. Start with a guide, look up an operation, or find help for the apps.",
+    "guidesTitle": "Guides",
+    "guidesBody": "Authenticate, page and filter, write safely, handle refusals, receive webhooks and self-host.",
+    "referenceTitle": "API reference",
+    "referenceBody": "Every operation in the OpenAPI document, with parameters, schemas and code samples.",
+    "helpTitle": "Help center",
+    "helpBody": "How Atlas works, page by page, in the same articles the in-app help panel shows.",
+    "openapi": "Download the OpenAPI document",
+    "start": "Start with the quickstart"
+  },
+  "guides": {
+    "title": "Guides",
+    "sentence": "Everything you need to build on the public API, from the first request to running your own deployment.",
+    "outline": "On this page",
+    "sections": {
+      "start": "Get started",
+      "api": "Using the API",
+      "tools": "SDKs and tools",
+      "operate": "Operate"
+    }
+  },
+  "reference": {
+    "title": "API reference",
+    "sentence": "{count} operations across {resources} resources, generated from the OpenAPI document version {version}.",
+    "operations": "{count} operations",
+    "outline": "Operations",
+    "parameters": "Path and query parameters",
+    "requestBody": "Request body: {name}",
+    "response": "Response {status}: {name}",
+    "responsePage": "Response {status}: a page of {name}",
+    "noResponseBody": "Response {status}: no body.",
+    "field": "Field",
+    "type": "Type",
+    "required": "Required",
+    "yes": "Yes",
+    "no": "No",
+    "description": "Description",
+    "constraints": "Constraints",
+    "requestExample": "Example request body",
+    "responseExample": "Example response",
+    "samples": "Code samples",
+    "capability": "Requires the capability {capability}.",
+    "scopes": "OAuth scopes: {scopes}.",
+    "idempotent": "Send an Idempotency-Key header. A replay with the same key returns the original response.",
+    "ifMatch": "Send If-Match with the ETag you read. A stale tag returns 412; a missing tag returns 428.",
+    "paged": "Cursor-paginated: limit, cursor, fields, sort and filter apply.",
+    "errors": "Error statuses: {statuses}. Errors are RFC 9457 problem details.",
+    "back": "All resources",
+    "module": "{module} module",
+    "openapi": "OpenAPI document"
+  },
+  "help": {
+    "title": "Help center",
+    "sentence": "How Atlas works, page by page. These are the articles the help panel shows inside the app.",
+    "searchLabel": "Search help",
+    "searchButton": "Search",
+    "results": "{count} articles match {query}.",
+    "noResults": "No articles match {query}. Try a shorter word, or browse the topics below.",
+    "whatsNew": "What's new",
+    "related": "Open the related article",
+    "back": "All help articles"
+  },
+  "notFound": {
+    "title": "This page does not exist",
+    "sentence": "The address may be mistyped, or the page moved. Go back to the documentation home to find it.",
+    "action": "Go to the documentation home"
+  },
+  "error": {
+    "title": "This page could not load",
+    "sentence": "Something failed while the page was rendering. Try again; if it keeps failing, report it from the help center.",
+    "action": "Try again"
+  }
+}
