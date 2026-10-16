@@ -10,6 +10,13 @@ test("MapView draws on raster tiles", async ({ page }) => {
     if (r.url().includes("tile.png") && r.ok()) tiles.push(r.url());
   });
   await page.goto("/iframe.html?id=browser-checks-engines--map-view-tiles&viewMode=story");
+  /* MapLibre needs WebGL. Headless Firefox on CI runners has none, so the engine pass skips there
+     instead of reporting a missing canvas; Chromium and WebKit still draw the tiles. */
+  const webgl = await page.evaluate(() => {
+    const c = document.createElement("canvas");
+    return c.getContext("webgl2") !== null || c.getContext("webgl") !== null;
+  });
+  test.skip(!webgl, "This browser build has no WebGL, which MapLibre requires.");
   const canvas = page.locator(".maplibregl-canvas");
   await expect(canvas).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole("img", { name: "Bayfront Park site map" })).toHaveClass(/opacity-0/);
