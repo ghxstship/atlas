@@ -24575,6 +24575,72 @@ export type Database = {
           },
         ];
       };
+      org_state_labels: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          label: string;
+          org_id: string;
+          record_state: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          label: string;
+          org_id: string;
+          record_state: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          label?: string;
+          org_id?: string;
+          record_state?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "org_state_labels_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_state_labels_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_state_labels_record_state_fkey";
+            columns: ["record_state"];
+            isOneToOne: false;
+            referencedRelation: "record_state_display";
+            referencedColumns: ["record_state"];
+          },
+          {
+            foreignKeyName: "org_state_labels_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       organization_case_studies: {
         Row: {
           client_consented_at: string | null;
@@ -31981,6 +32047,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "record_replans_from_state_fkey";
+            columns: ["from_state"];
+            isOneToOne: false;
+            referencedRelation: "record_state_display";
+            referencedColumns: ["record_state"];
+          },
+          {
             foreignKeyName: "record_replans_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
@@ -32000,6 +32073,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "records";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_replans_to_state_fkey";
+            columns: ["to_state"];
+            isOneToOne: false;
+            referencedRelation: "record_state_display";
+            referencedColumns: ["record_state"];
           },
           {
             foreignKeyName: "record_replans_updated_by_fkey";
@@ -32297,6 +32377,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "record_state_transitions_from_state_fkey";
+            columns: ["from_state"];
+            isOneToOne: false;
+            referencedRelation: "record_state_display";
+            referencedColumns: ["record_state"];
+          },
+          {
             foreignKeyName: "record_state_transitions_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
@@ -32316,6 +32403,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "records";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_state_transitions_to_state_fkey";
+            columns: ["to_state"];
+            isOneToOne: false;
+            referencedRelation: "record_state_display";
+            referencedColumns: ["record_state"];
           },
           {
             foreignKeyName: "record_state_transitions_updated_by_fkey";
@@ -32950,6 +33044,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_record_state_fkey";
+            columns: ["record_state"];
+            isOneToOne: false;
+            referencedRelation: "record_state_display";
+            referencedColumns: ["record_state"];
           },
           {
             foreignKeyName: "records_scope_node_id_fkey";
@@ -40737,6 +40838,375 @@ export type Database = {
           },
         ];
       };
+      template_applications: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          records_created: number;
+          scope_nodes_created: number;
+          template_id: string;
+          template_version_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          records_created?: number;
+          scope_nodes_created?: number;
+          template_id: string;
+          template_version_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          records_created?: number;
+          scope_nodes_created?: number;
+          template_id?: string;
+          template_version_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "template_applications_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_applications_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_applications_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "template_applications_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "template_applications_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "template_applications_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_applications_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "templates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_applications_template_version_id_fkey";
+            columns: ["template_version_id"];
+            isOneToOne: false;
+            referencedRelation: "template_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_applications_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      template_items: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          due_offset_days: number | null;
+          id: string;
+          item_kind: Database["app"]["Enums"]["template_item_kind"];
+          name: string;
+          org_id: string;
+          phase_code: string | null;
+          record_kind: string | null;
+          scope_code_suffix: string | null;
+          scope_kind: Database["app"]["Enums"]["scope_kind"] | null;
+          sort_order: number;
+          template_version_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          xyz: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_offset_days?: number | null;
+          id?: string;
+          item_kind: Database["app"]["Enums"]["template_item_kind"];
+          name: string;
+          org_id: string;
+          phase_code?: string | null;
+          record_kind?: string | null;
+          scope_code_suffix?: string | null;
+          scope_kind?: Database["app"]["Enums"]["scope_kind"] | null;
+          sort_order: number;
+          template_version_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          xyz?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_offset_days?: number | null;
+          id?: string;
+          item_kind?: Database["app"]["Enums"]["template_item_kind"];
+          name?: string;
+          org_id?: string;
+          phase_code?: string | null;
+          record_kind?: string | null;
+          scope_code_suffix?: string | null;
+          scope_kind?: Database["app"]["Enums"]["scope_kind"] | null;
+          sort_order?: number;
+          template_version_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          xyz?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "template_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_items_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_items_template_version_id_fkey";
+            columns: ["template_version_id"];
+            isOneToOne: false;
+            referencedRelation: "template_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_items_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      template_versions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          default_currency_code: string | null;
+          default_jurisdiction_id: string | null;
+          default_region_code: string | null;
+          default_tier_code: string | null;
+          default_time_zone: string | null;
+          deleted_at: string | null;
+          duration_days: number | null;
+          id: string;
+          notes: string | null;
+          org_id: string;
+          published_at: string | null;
+          template_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          version_number: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          default_currency_code?: string | null;
+          default_jurisdiction_id?: string | null;
+          default_region_code?: string | null;
+          default_tier_code?: string | null;
+          default_time_zone?: string | null;
+          deleted_at?: string | null;
+          duration_days?: number | null;
+          id?: string;
+          notes?: string | null;
+          org_id: string;
+          published_at?: string | null;
+          template_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_number?: number;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          default_currency_code?: string | null;
+          default_jurisdiction_id?: string | null;
+          default_region_code?: string | null;
+          default_tier_code?: string | null;
+          default_time_zone?: string | null;
+          deleted_at?: string | null;
+          duration_days?: number | null;
+          id?: string;
+          notes?: string | null;
+          org_id?: string;
+          published_at?: string | null;
+          template_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "template_versions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_versions_default_currency_code_fkey";
+            columns: ["default_currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "template_versions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_versions_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "templates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "template_versions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      templates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          current_version_id: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          template_kind: Database["app"]["Enums"]["template_kind"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          current_version_id?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          template_kind?: Database["app"]["Enums"]["template_kind"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          current_version_id?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          template_kind?: Database["app"]["Enums"]["template_kind"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "templates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "templates_current_version_fkey";
+            columns: ["current_version_id"];
+            isOneToOne: false;
+            referencedRelation: "template_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "templates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "templates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       thread_reads: {
         Row: {
           created_at: string;
@@ -46880,6 +47350,13 @@ export type Database = {
             referencedRelation: "projects";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "records_record_state_fkey";
+            columns: ["record_state"];
+            isOneToOne: false;
+            referencedRelation: "record_state_display";
+            referencedColumns: ["record_state"];
+          },
         ];
       };
       onboarding_item_status: {
@@ -47703,6 +48180,25 @@ export type Database = {
           },
         ];
       };
+      record_state_display: {
+        Row: {
+          label: string | null;
+          ordinal: number | null;
+          org_id: string | null;
+          record_state: string | null;
+          relabeled: boolean | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "memberships_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       report_sources: {
         Row: {
           code: string | null;
@@ -48214,6 +48710,21 @@ export type Database = {
           },
         ];
       };
+      trash_items: {
+        Row: {
+          deleted_at: string | null;
+          deleted_by: string | null;
+          org_id: string | null;
+          project_id: string | null;
+          purge_after: string | null;
+          subject_id: string | null;
+          subject_table: string | null;
+          subject_urn: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       vendor_bank_accounts_masked: {
         Row: {
           account_holder: string | null;
@@ -48435,6 +48946,17 @@ export type Database = {
           p_rpc: string;
         };
         Returns: Json;
+      };
+      apply_template: {
+        Args: {
+          p_name: string;
+          p_project_key: string;
+          p_starts_on?: string;
+          p_template_id: string;
+          p_time_zone?: string;
+          p_venue_id?: string;
+        };
+        Returns: string;
       };
       approve_change_order: {
         Args: { p_change_order_id: string; p_reason: string };
@@ -48946,6 +49468,10 @@ export type Database = {
         };
         Returns: string;
       };
+      create_template_from_project: {
+        Args: { p_description?: string; p_name: string; p_project_id: string };
+        Returns: string;
+      };
       create_webhook_endpoint: {
         Args: { p_description?: string; p_event_types: string[]; p_org_id: string; p_url: string };
         Returns: {
@@ -49413,6 +49939,7 @@ export type Database = {
         Returns: number;
       };
       publish_shifts: { Args: { p_reason?: string; p_shift_ids: string[] }; Returns: number };
+      publish_template_version: { Args: { p_template_version_id: string }; Returns: string };
       publish_training_course: {
         Args: { p_course_id: string; p_reason?: string };
         Returns: string;
@@ -49689,6 +50216,10 @@ export type Database = {
         };
         Returns: number;
       };
+      record_trash_restore: {
+        Args: { p_restored: number; p_subject_id: string; p_subject_table: string };
+        Returns: undefined;
+      };
       record_weather_reading: {
         Args: {
           p_hazard: Database["app"]["Enums"]["weather_hazard"];
@@ -49850,6 +50381,10 @@ export type Database = {
         Returns: string;
       };
       respond_to_survey: { Args: { p_answers: Json; p_survey_id: string }; Returns: string };
+      restore_trash_item: {
+        Args: { p_subject_id: string; p_subject_table: string };
+        Returns: number;
+      };
       retire_form_template: { Args: { p_reason: string; p_template_id: string }; Returns: string };
       retire_service_account: { Args: { p_service_account_id: string }; Returns: undefined };
       retire_training_course: { Args: { p_course_id: string; p_reason: string }; Returns: string };
@@ -50437,6 +50972,14 @@ export type Database = {
         };
         Returns: string;
       };
+      trash_restore_terms: {
+        Args: { p_subject_table: string };
+        Returns: {
+          has_project: boolean;
+          retention: string;
+          table_name: string;
+        }[];
+      };
       undo_import_batch: {
         Args: { p_import_batch_id: string; p_reason: string };
         Returns: {
@@ -50912,6 +51455,8 @@ export type Database = {
       survey_state: "Draft" | "Open" | "Closed";
       swap_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
       tax_form_kind: "W-9" | "W-8BEN" | "W-8BEN-E";
+      template_item_kind: "Scope Node" | "Record";
+      template_kind: "Project";
       threshold_comparison: "At or Above" | "At or Below";
       time_entry_source: "Web" | "Mobile" | "Kiosk";
       time_off_state: "Proposed" | "Approved" | "Rejected" | "Canceled";
@@ -57239,6 +57784,8 @@ export const Constants = {
       survey_state: ["Draft", "Open", "Closed"],
       swap_state: ["Proposed", "Approved", "Rejected", "Canceled"],
       tax_form_kind: ["W-9", "W-8BEN", "W-8BEN-E"],
+      template_item_kind: ["Scope Node", "Record"],
+      template_kind: ["Project"],
       threshold_comparison: ["At or Above", "At or Below"],
       time_entry_source: ["Web", "Mobile", "Kiosk"],
       time_off_state: ["Proposed", "Approved", "Rejected", "Canceled"],
