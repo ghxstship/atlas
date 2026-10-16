@@ -116,7 +116,9 @@ export async function addCrewOnboardingUpload(): Promise<{ name: string }> {
 
 /**
  * A vendor engagement for the demo vendor contact, walked to Complete, with the org's rating of the
- * vendor; the rating releases once the vendor rates back (Section 4.4.3).
+ * vendor; the rating releases once the vendor rates back (Section 4.4.3). The counterparty comes
+ * from the seeded vendor engagement, because an earlier seed may already hold the vendor's
+ * counterparty under another id.
  */
 export async function completeVendorEngagement(): Promise<{
   id: string;
@@ -127,8 +129,9 @@ export async function completeVendorEngagement(): Promise<{
   const [row] = await sql<{ id: string }>(
     `insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification, pay_basis,
        arrangement, start_date, end_date)
-     values ($1, $2, '01920000-0000-7000-8000-000000228801', 'Vendor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate',
-       'Per Engagement', '2027-02-10', '2027-02-12')
+     select $1, $2, e.counterparty_id, 'Vendor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate',
+       'Per Engagement', '2027-02-10', '2027-02-12'
+     from app.engagements e where e.id = '01920000-0000-7000-8000-000000228402'
      returning id`,
     [DEMO.project, DEMO.vendorContact],
     DEMO.owner,
