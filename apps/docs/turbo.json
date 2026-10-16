@@ -1,0 +1,24 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/api/openapi/v1.json",
+        "$TURBO_ROOT$/apps/atlas/help/articles/**",
+        "$TURBO_ROOT$/apps/atlas/help/whats-new.yaml"
+      ]
+    },
+    "test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/api/openapi/v1.json",
+        "$TURBO_ROOT$/apps/atlas/help/articles/**",
+        "$TURBO_ROOT$/apps/atlas/help/whats-new.yaml",
+        "!e2e/**",
+        "!test-results/**"
+      ]
+    }
+  }
+}

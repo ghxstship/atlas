@@ -3018,14 +3018,47 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    provider: string;
-    enabled: boolean;
-    sync_status: string;
+    provider_code: string;
     last_synced_at: string | null;
+    display_name: string;
+    external_account_id: string | null;
+    connection_state: "Pending" | "Connected" | "Error" | "Paused" | "Disconnected";
+    credential_kind: "OAuth Token" | "API Key" | "Service Account" | null;
+    credential_expires_at: string | null;
+    last_error_code: string | null;
+    last_error_message: string | null;
   };
-  IntegrationCreate: { provider: string; enabled: boolean };
+  IntegrationCreate: {
+    provider_code: string;
+    display_name: string;
+    external_account_id?: string | null;
+  };
+  IntegrationCredential: {
+    secret: string;
+    kind: "OAuth Token" | "API Key" | "Service Account";
+    expires_at?: string | null;
+  };
   IntegrationPage: { data: Array<Components["Integration"]>; next_cursor: string | null };
-  IntegrationUpdate: { enabled?: boolean };
+  IntegrationSyncQueued: { sync_run_id: string };
+  IntegrationSyncRequest: {
+    scope:
+      | "Ledger Export"
+      | "Payment Sync"
+      | "Calendar Sync"
+      | "File Import"
+      | "Notification Delivery"
+      | "Payroll Export"
+      | "Tracking Refresh"
+      | "Attendance Import";
+    direction: "Inbound" | "Outbound" | "Two Way";
+    project_id?: string | null;
+  };
+  IntegrationTransition: {
+    expected_state: "Pending" | "Connected" | "Error" | "Paused" | "Disconnected";
+    next_state: "Pending" | "Connected" | "Error" | "Paused" | "Disconnected";
+    reason: string;
+  };
+  IntegrationUpdate: { display_name?: string; external_account_id?: string | null };
   Interview: {
     id: string;
     org_id: string;
@@ -5734,8 +5767,14 @@ export interface Components {
     idp_group: string;
     role_id: string | null;
     team_id: string | null;
+    identity_provider_id: string;
   };
-  ScimGroupMappingCreate: { idp_group: string; role_id?: string | null; team_id?: string | null };
+  ScimGroupMappingCreate: {
+    idp_group: string;
+    role_id?: string | null;
+    team_id?: string | null;
+    identity_provider_id: string;
+  };
   ScimGroupMappingPage: { data: Array<Components["ScimGroupMapping"]>; next_cursor: string | null };
   ScimGroupMappingUpdate: { idp_group?: string; role_id?: string | null; team_id?: string | null };
   ScopeNode: {
@@ -19011,6 +19050,33 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "integrations.transition": {
+    module: "Settings";
+    method: "post";
+    path: "/integrations/{id}/transitions";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["IntegrationTransition"];
+    responses: { 200: Components["Integration"] };
+  };
+  "integrations.storeCredential": {
+    module: "Settings";
+    method: "post";
+    path: "/integrations/{id}/credential";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["IntegrationCredential"];
+    responses: { 200: Components["Integration"] };
+  };
+  "integrations.sync": {
+    module: "Settings";
+    method: "post";
+    path: "/integrations/{id}/syncs";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["IntegrationSyncRequest"];
+    responses: { 202: Components["IntegrationSyncQueued"] };
+  };
   "webhookEndpoints.list": {
     module: "Settings";
     method: "get";
@@ -22316,6 +22382,9 @@ export interface ModuleOperations {
     | "integrations.get"
     | "integrations.update"
     | "integrations.delete"
+    | "integrations.transition"
+    | "integrations.storeCredential"
+    | "integrations.sync"
     | "webhookEndpoints.list"
     | "webhookEndpoints.create"
     | "webhookEndpoints.get"

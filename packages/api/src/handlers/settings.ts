@@ -14,6 +14,7 @@ import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import { decodeCursor, pageSize, toPage } from "../runtime/pagination.ts";
 import type { HandlerSet } from "../runtime/handler.ts";
 import { auroraHandlers } from "./parts/aurora.ts";
+import { integrationHandlers } from "./parts/settings-integrations.ts";
 import { settingsParity } from "./settings/parity.ts";
 
 type SettingValue = Components["SettingValue"];
@@ -90,6 +91,8 @@ export const handlers = defineHandlers("Settings", {
   ...(auroraHandlers() as unknown as HandlerSet<"Settings">),
   // API parity (A04P): see ./settings/parity.ts.
   ...settingsParity,
+  // Integrations, OAuth apps and grants, and SCIM group mappings (A19): see ./parts/settings-integrations.ts.
+  ...integrationHandlers,
   "settingDefinitions.list": async ({ query }, { db }) => {
     const size = pageSize(query.limit);
     let request = db
