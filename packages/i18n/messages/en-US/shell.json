@@ -1097,7 +1097,7 @@
       "logos": "Logos",
       "logoLight": "Logo for light backgrounds",
       "logoDark": "Logo for dark backgrounds",
-      "logoHelp": "SVG or PNG, at least 256 pixels wide.",
+      "logoHelp": "PNG or WebP, at least 256 pixels wide.",
       "notStored": "Brand settings are checked here but cannot be saved yet: the brand settings store is not available. Your accent is not kept."
     },
     "modules": {

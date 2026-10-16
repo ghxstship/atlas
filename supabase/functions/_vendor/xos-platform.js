@@ -10433,7 +10433,7 @@ var settings_default$1 = {
     multiline: "Check this value and save again.",
     contrast: "This accent fails WCAG 2.2 AA contrast. Choose a darker or more saturated color.",
     fileMissing: "Choose a file to upload.",
-    fileType: "Upload a PNG, SVG, WebP or ICO file.",
+    fileType: "Upload a PNG, WebP or ICO file.",
     fileSize: "Upload a file of 2 MB or less.",
     uploadFailed: "The upload did not finish. Try again in a moment.",
     hostname: "Enter a host name like gateway.example.com, without https://.",
@@ -10739,7 +10739,7 @@ var settings_default$1 = {
     appIcon: "App icon",
     assetCurrent: "Current file: {name}",
     assetNone: "No file yet. The platform mark is used.",
-    assetHelp: "SVG, PNG, WebP or ICO, up to 2 MB. Logos at least 256 pixels wide.",
+    assetHelp: "PNG, WebP or ICO, up to 2 MB. Logos at least 256 pixels wide.",
     upload: "Upload",
   },
   domains: {
@@ -11137,7 +11137,7 @@ var shell_default$1 = {
       logos: "Logos",
       logoLight: "Logo for light backgrounds",
       logoDark: "Logo for dark backgrounds",
-      logoHelp: "SVG or PNG, at least 256 pixels wide.",
+      logoHelp: "PNG or WebP, at least 256 pixels wide.",
       notStored:
         "Brand settings are checked here but cannot be saved yet: the brand settings store is not available. Your accent is not kept.",
     },
@@ -23603,7 +23603,7 @@ var settings_default = {
     contrast:
       "Este color de acento no cumple el contraste WCAG 2.2 AA. Elige un color más oscuro o saturado.",
     fileMissing: "Elige un archivo para subir.",
-    fileType: "Sube un archivo PNG, SVG, WebP o ICO.",
+    fileType: "Sube un archivo PNG, WebP o ICO.",
     fileSize: "Sube un archivo de 2 MB o menos.",
     uploadFailed: "La subida no terminó. Inténtalo de nuevo en un momento.",
     hostname: "Escribe un nombre de host como gateway.example.com, sin https://.",
@@ -23911,7 +23911,7 @@ var settings_default = {
     appIcon: "Icono de la aplicación",
     assetCurrent: "Archivo actual: {name}",
     assetNone: "Aún no hay archivo. Se usa la marca de la plataforma.",
-    assetHelp: "SVG, PNG, WebP o ICO, hasta 2 MB. Logotipos de al menos 256 píxeles de ancho.",
+    assetHelp: "PNG, WebP o ICO, hasta 2 MB. Logotipos de al menos 256 píxeles de ancho.",
     upload: "Subir",
   },
   domains: {
@@ -24316,7 +24316,7 @@ var shell_default = {
       logos: "Logotipos",
       logoLight: "Logotipo para fondos claros",
       logoDark: "Logotipo para fondos oscuros",
-      logoHelp: "SVG o PNG, de al menos 256 píxeles de ancho.",
+      logoHelp: "PNG o WebP, de al menos 256 píxeles de ancho.",
       notStored:
         "Los ajustes de marca se verifican aquí pero aún no se pueden guardar: el almacén de ajustes de marca no está disponible. Tu acento no se conserva.",
     },
