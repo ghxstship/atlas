@@ -73,5 +73,9 @@
     "notFound": "The view no longer exists or is no longer shared with you. Reload to see current views.",
     "unexpected": "Saved views could not be reached. Try again in a moment.",
     "loadFailed": "Saved views could not be loaded. The page still works; try the menu again shortly."
+  },
+  "open": {
+    "projectSentence": "This view opens inside a project. Open the project, then choose the view from its view menu.",
+    "projectAction": "Open Projects"
   }
 }

@@ -162,6 +162,23 @@ export async function listSavedViews(
   return ok([...list.filter((v) => v.mine), ...list.filter((v) => !v.mine)]);
 }
 
+/** One saved view the signed-in person can open, by id; not-found when it is missing or not theirs. */
+export async function getSavedView(
+  db: XosClient,
+  input: { readonly orgId: string; readonly membershipId: string; readonly viewId: string },
+): Promise<Result<SavedView>> {
+  const { data, error } = await db
+    .from("saved_views")
+    .select(VIEW_COLUMNS)
+    .eq("org_id", input.orgId)
+    .eq("id", input.viewId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data) return fail({ kind: "not-found" });
+  return ok(toView(data as unknown as ViewRow, input.membershipId, null));
+}
+
 async function writeQuery(
   db: XosClient,
   orgId: string,

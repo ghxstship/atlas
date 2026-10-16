@@ -212,7 +212,7 @@ export function ReadinessView({
           ]}
         />
       ) : view === "matrix" ? (
-        <div className="overflow-x-auto">
+        <div role="region" aria-label={t("matrixCaption")} tabIndex={0} className="overflow-x-auto">
           <table className="w-full border-collapse text-text-13">
             <caption className="mb-8 text-start text-label-13 font-semibold">
               {t("matrixCaption")}

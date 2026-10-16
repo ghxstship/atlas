@@ -128,6 +128,7 @@ function Report(): ReactElement {
           step: t("compass.incidents.step", { step }),
           location: t("compass.incidents.location"),
           change: t("compass.incidents.change"),
+          typeGroup: t("compass.incidents.typeGroup"),
         }}
       />
       {step === 2 ? (

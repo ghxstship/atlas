@@ -445,24 +445,21 @@ function aggregateValue(
   }
 }
 
-/**
- * Runs a definition as the viewer and aggregates in memory: up to PREVIEW_LIMIT source rows, grouped
- * by `groupBy` (and by currency when a money field is shown, so currencies never mix).
- */
-export async function previewReport(
-  db: XosClient,
-  input: {
-    readonly orgId: string;
-    readonly projectIds: readonly string[];
-    readonly definition: ReportDefinition;
-  },
-): Promise<Result<ReportPreview>> {
-  const d = input.definition;
+/** What a definition reads from its source: the columns, the grouping and the money currency. */
+export interface ReportPlan {
+  readonly source: ReportSource;
+  readonly columns: readonly PreviewColumn[];
+  /** Source columns to read: every shown field, the grouping and the currency of money fields. */
+  readonly select: readonly string[];
+  readonly group: string | null;
+}
+
+/** The plan of a definition, or null when its source is unknown. Unknown fields are left out. */
+export function planReport(d: ReportDefinition): ReportPlan | null {
   const source = sourceOf(d.sourceCode);
-  if (!source) return fail({ kind: "invalid", message: `Unknown report source ${d.sourceCode}.` });
+  if (!source) return null;
   const known = new Map(source.fields.map((f) => [f.key, f]));
   const fields = d.fields.filter((f) => known.has(f.field));
-  if (fields.length === 0) return ok({ columns: [], rows: [], sourceRows: 0, truncated: false });
   const columns: PreviewColumn[] = fields.map((f) => ({
     field: f.field,
     aggregate: f.aggregate,
@@ -477,27 +474,20 @@ export async function previewReport(
       ...(hasMoney && source.currencyColumn ? [source.currencyColumn] : []),
     ]),
   ];
-  if (source.orgColumn === "project_id" && input.projectIds.length === 0) {
-    return ok({ columns, rows: [], sourceRows: 0, truncated: false });
-  }
-  let query = untyped(db).from(source.relation).select(select.join(", ")) as unknown as Builder;
-  query =
-    source.orgColumn === "project_id"
-      ? query.in("project_id", input.projectIds)
-      : query.eq(source.orgColumn, input.orgId);
-  if (source.relation !== "budget_line_facts" && source.relation !== "purchase_order_totals") {
-    query = query.is("deleted_at", null);
-  }
-  if (d.sourceCode === "custom_object" && d.customObjectTypeId) {
-    query = query.eq("custom_object_type_id", d.customObjectTypeId);
-  }
-  for (const filter of d.filters) {
-    if (known.has(filter.field)) query = applyFilter(query, filter);
-  }
-  const read = await rows(query.limit(PREVIEW_LIMIT + 1));
-  if (!read.ok) return read;
-  const truncated = read.data.length > PREVIEW_LIMIT;
-  const data = truncated ? read.data.slice(0, PREVIEW_LIMIT) : read.data;
+  return { source, columns, select, group };
+}
+
+/**
+ * Aggregates source rows in memory as the preview shows them: grouped by the plan's grouping (and by
+ * currency when a money field is shown, so currencies never mix), money summed NULL-aware.
+ */
+export function summarizeReport(
+  plan: ReportPlan,
+  data: readonly Raw[],
+  truncated: boolean,
+): ReportPreview {
+  const { source, columns, group } = plan;
+  const hasMoney = columns.some((c) => c.type === "money");
   const aggregating = group !== null || columns.some((c) => c.aggregate !== "None");
   const currencyOf = (r: Raw) =>
     source.currencyColumn ? str(r[source.currencyColumn]).trim() : "";
@@ -527,12 +517,12 @@ export async function previewReport(
       return { kind: "value", value: aggregateValue(values, c.aggregate, c.type) };
     });
   if (!aggregating) {
-    return ok({
+    return {
       columns,
       rows: data.map((r) => ({ group: null, cells: cellsFor([r]) })),
       sourceRows: data.length,
       truncated,
-    });
+    };
   }
   const groups = new Map<string, { label: string | null; members: Raw[] }>();
   for (const r of data) {
@@ -546,14 +536,67 @@ export async function previewReport(
     g.members.push(r);
     groups.set(key, g);
   }
-  return ok({
+  return {
     columns,
     rows: [...groups.values()]
       .sort((a, b) => (a.label ?? "").localeCompare(b.label ?? "", "en", { numeric: true }))
       .map((g) => ({ group: g.label, cells: cellsFor(g.members) })),
     sourceRows: data.length,
     truncated,
-  });
+  };
+}
+
+/** Rows whose money is unpriced (NULL) in any money column of a summary, for a run's count. */
+export function unpricedRows(preview: ReportPreview): number {
+  return preview.rows.reduce(
+    (n, r) => n + Math.max(0, ...r.cells.map((c) => (c.kind === "money" ? c.unpricedCount : 0))),
+    0,
+  );
+}
+
+/**
+ * Runs a definition as the viewer and aggregates in memory: up to PREVIEW_LIMIT source rows, grouped
+ * by `groupBy` (and by currency when a money field is shown, so currencies never mix).
+ */
+export async function previewReport(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly projectIds: readonly string[];
+    readonly definition: ReportDefinition;
+  },
+): Promise<Result<ReportPreview>> {
+  const d = input.definition;
+  const plan = planReport(d);
+  if (!plan) return fail({ kind: "invalid", message: `Unknown report source ${d.sourceCode}.` });
+  const { source, columns } = plan;
+  if (columns.length === 0) return ok({ columns: [], rows: [], sourceRows: 0, truncated: false });
+  if (source.orgColumn === "project_id" && input.projectIds.length === 0) {
+    return ok({ columns, rows: [], sourceRows: 0, truncated: false });
+  }
+  const known = new Set(source.fields.map((f) => f.key));
+  let query = untyped(db)
+    .from(source.relation)
+    .select(plan.select.join(", ")) as unknown as Builder;
+  query =
+    source.orgColumn === "project_id"
+      ? query.in("project_id", input.projectIds)
+      : query.eq(source.orgColumn, input.orgId);
+  if (source.relation !== "budget_line_facts" && source.relation !== "purchase_order_totals") {
+    query = query.is("deleted_at", null);
+  }
+  if (d.sourceCode === "custom_object" && d.customObjectTypeId) {
+    query = query.eq("custom_object_type_id", d.customObjectTypeId);
+  }
+  for (const filter of d.filters) {
+    if (known.has(filter.field)) query = applyFilter(query, filter);
+  }
+  const read = await rows(query.limit(PREVIEW_LIMIT + 1));
+  if (!read.ok) return read;
+  const truncated = read.data.length > PREVIEW_LIMIT;
+  return ok(
+    summarizeReport(plan, truncated ? read.data.slice(0, PREVIEW_LIMIT) : read.data, truncated),
+  );
 }
 
 /** The preview as CSV, money in major units of its currency (its own decimals), blanks left blank. */

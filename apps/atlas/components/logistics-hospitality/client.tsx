@@ -315,21 +315,24 @@ export function UndoNotice({
   onUndo,
 }: {
   region: string;
-  message: string;
+  /** Null while there is nothing to undo; the live region stays mounted either way (A23-014). */
+  message: string | null;
   onUndo: () => void;
 }) {
-  const [visible, setVisible] = useState(true);
-  if (!visible) return null;
+  const [closed, setClosed] = useState<string | null>(null);
+  const show = message !== null && message !== closed;
   return (
     <ToastRegion label={region}>
-      <UndoToast
-        message={message}
-        onUndo={() => {
-          setVisible(false);
-          onUndo();
-        }}
-        onExpire={() => setVisible(false)}
-      />
+      {show ? (
+        <UndoToast
+          message={message}
+          onUndo={() => {
+            setClosed(message);
+            onUndo();
+          }}
+          onExpire={() => setClosed(message)}
+        />
+      ) : null}
     </ToastRegion>
   );
 }

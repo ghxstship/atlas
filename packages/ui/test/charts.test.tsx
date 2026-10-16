@@ -109,6 +109,25 @@ describe("Timeline", () => {
     expect(container.querySelectorAll("svg path[marker-end]")).toHaveLength(2);
     await expectAccessible(container);
   });
+
+  it("lets the keyboard reach a day grid wider than the screen (A23-015)", async () => {
+    const width = vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(900);
+    const client = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(300);
+    const days = Array.from({ length: 30 }, (_, i) => ({ dow: "Mo", date: i + 1 }));
+    const { container } = render(
+      <Timeline
+        label="Load-in"
+        days={days}
+        rows={[{ key: "L-1", title: "Truss", state: "active", start: 0, end: 29 }]}
+      />,
+    );
+    const region = screen.getByRole("region", { name: "Load-in, days" });
+    expect(region.getAttribute("tabindex")).toBe("0");
+    expect(region.firstElementChild?.getAttribute("aria-hidden")).toBe("true");
+    await expectAccessible(container);
+    width.mockRestore();
+    client.mockRestore();
+  });
 });
 
 describe("ResourceSchedule and OrgChart", () => {

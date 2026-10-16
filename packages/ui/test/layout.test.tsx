@@ -57,6 +57,8 @@ describe("AppShell", () => {
     expect(screen.getByRole("main")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Projects" })).toBeTruthy();
     const menu = screen.getByRole("button", { name: "Open navigation" });
+    // Gate 31: the icon-only menu button shows its label as a tooltip (A23-016).
+    expect(menu.getAttribute("title")).toBe("Open navigation");
     expect(menu.getAttribute("aria-expanded")).toBe("false");
     await userEvent.click(menu);
     expect(menu.getAttribute("aria-expanded")).toBe("true");

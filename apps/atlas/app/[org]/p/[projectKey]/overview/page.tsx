@@ -12,7 +12,13 @@ import { PageHeader, PropertyList, StateChip, TemplateRecord } from "@/component
 import { requireNode } from "@/components/shell/sitemap-page";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { phaseCode, stateIcon } from "@/lib/projects/format";
-import { loadCollaboration, loadGates, loadTransitions, must } from "@/lib/projects/loaders";
+import {
+  loadCollaboration,
+  loadGates,
+  loadTransitions,
+  must,
+  optional,
+} from "@/lib/projects/loaders";
 import { nodeHref } from "@/lib/shell/sitemap";
 
 /**
@@ -54,7 +60,9 @@ export default async function OverviewPage({
       : format.dateTime(new Date(`${iso}T00:00:00`), { dateStyle: "medium" });
   const history = must(stateHistory, "project state history");
   const productionLog = must(productionHistory, "production state history");
-  const feed = must(activity, "project activity");
+  // Field has no activity feed (Section 4.5.9), and the feed answers not-found: leave it out.
+  const feed = optional(activity, "project activity");
+  const activityHref = nodeHref("project.activity", routeParams);
 
   return (
     <>
@@ -201,32 +209,36 @@ export default async function OverviewPage({
             </Link>
           </p>
         </section>
-        <section aria-labelledby="recent-activity" className="flex flex-col gap-8">
-          <h2 id="recent-activity" className="m-0 text-heading-16 font-semibold">
-            {t("overview.recent")}
-          </h2>
-          <ActivityFeed
-            label={a("projectLabel", { key: project.key })}
-            entries={feed.entries}
-            views={["feed"]}
-            view="feed"
-            next={null}
-            paged={false}
-            empty={{
-              sentence: a("projectEmpty"),
-              action: t("overview.openGates"),
-              href: gatesHref,
-            }}
-          />
-          <p className="m-0">
-            <Link
-              href={(nodeHref("project.activity", routeParams) ?? "") as Route}
-              className="text-text-13 text-accent-text underline"
-            >
-              {t("overview.allActivity")}
-            </Link>
-          </p>
-        </section>
+        {feed ? (
+          <section aria-labelledby="recent-activity" className="flex flex-col gap-8">
+            <h2 id="recent-activity" className="m-0 text-heading-16 font-semibold">
+              {t("overview.recent")}
+            </h2>
+            <ActivityFeed
+              label={a("projectLabel", { key: project.key })}
+              entries={feed.entries}
+              views={["feed"]}
+              view="feed"
+              next={null}
+              paged={false}
+              empty={{
+                sentence: a("projectEmpty"),
+                action: t("overview.openGates"),
+                href: gatesHref,
+              }}
+            />
+            {activityHref ? (
+              <p className="m-0">
+                <Link
+                  href={activityHref as Route}
+                  className="text-text-13 text-accent-text underline"
+                >
+                  {t("overview.allActivity")}
+                </Link>
+              </p>
+            ) : null}
+          </section>
+        ) : null}
         <CommentsPanel
           org={ctx.org.org.slug}
           projectKey={project.key}

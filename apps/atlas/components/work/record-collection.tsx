@@ -378,7 +378,7 @@ export function RecordCollection({
   } else if (view === "timeline") {
     body =
       timeline && timeline.bars.length > 0 ? (
-        <div className="overflow-x-auto">
+        <div className="min-w-0">
           <Timeline
             label={label}
             days={timeline.days.map((d) => ({

@@ -482,6 +482,7 @@
     "key": "Clave",
     "milestone": "hito",
     "record": "Registro",
+    "scroll": "{label}, días",
     "start": "Inicio",
     "state": "Estado"
   },
@@ -520,5 +521,16 @@
   "widget": {
     "label": "Widget de pantalla de inicio",
     "nextShift": "Próximo turno"
+  },
+  "recordList": {
+    "columns": {
+      "state": "Estado",
+      "key": "Clave",
+      "title": "Registro",
+      "labels": "Etiquetas",
+      "next": "Próxima fecha",
+      "owner": "Responsable",
+      "action": "Acción"
+    }
   }
 }

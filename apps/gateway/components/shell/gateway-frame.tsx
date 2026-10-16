@@ -189,7 +189,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
   );
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col max-md:h-dvh">
       <a
         href="#content"
         className="sr-only focus:not-sr-only focus:fixed focus:start-8 focus:top-8 focus:z-50 focus:rounded-control focus:bg-bg-raised focus:px-12 focus:py-8"

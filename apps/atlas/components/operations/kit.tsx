@@ -118,7 +118,12 @@ export function OpsTable<Row>({
   selected?: string | undefined;
 }) {
   return (
-    <div className="overflow-x-auto rounded-card border border-border-subtle">
+    <div
+      role="region"
+      aria-label={caption}
+      tabIndex={0}
+      className="overflow-x-auto rounded-card border border-border-subtle"
+    >
       <table className="w-full border-collapse text-text-13">
         <caption className="sr-only">{caption}</caption>
         <thead>

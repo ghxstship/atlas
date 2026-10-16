@@ -12,9 +12,10 @@ import type {
   TextFieldProps,
   TextProps,
 } from "@xos/ui-native";
+import { useReducedMotion } from "@xos/ui-native";
 import { useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
 import * as Haptics from "expo-haptics";
-import { useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -131,6 +132,16 @@ export function Button({
   const theme = useTheme();
   const progress = useRef(new Animated.Value(0)).current;
   const [holding, setHolding] = useState(false);
+  // Reduce Motion (A23-008): the hold counts down whole seconds instead of animating a fill.
+  const still = useReducedMotion();
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const tick = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stopTick = () => {
+    if (tick.current !== null) clearInterval(tick.current);
+    tick.current = null;
+    setRemaining(null);
+  };
+  useEffect(() => stopTick, []);
   const background = {
     primary: theme.color.accentDefault,
     secondary: theme.color.bgRaised,
@@ -151,6 +162,22 @@ export function Button({
   const startHold = () => {
     if (!holdToConfirm) return;
     setHolding(true);
+    if (still) {
+      let left = Math.max(1, Math.ceil(holdToConfirm.seconds));
+      setRemaining(left);
+      tick.current = setInterval(() => {
+        left -= 1;
+        if (left > 0) {
+          setRemaining(left);
+          return;
+        }
+        stopTick();
+        setHolding(false);
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        onPress?.();
+      }, 1000);
+      return;
+    }
     Animated.timing(progress, {
       toValue: 1,
       duration: holdToConfirm.seconds * 1000,
@@ -166,6 +193,7 @@ export function Button({
   };
   const endHold = () => {
     if (!holdToConfirm) return;
+    stopTick();
     progress.stopAnimation();
     progress.setValue(0);
     setHolding(false);
@@ -200,7 +228,7 @@ export function Button({
         overflow: "hidden",
       })}
     >
-      {holdToConfirm ? (
+      {holdToConfirm && !still ? (
         <Animated.View
           pointerEvents="none"
           style={{
@@ -225,7 +253,11 @@ export function Button({
           { color: foreground },
         ]}
       >
-        {holding && holdToConfirm ? holdToConfirm.hint : label}
+        {holding && holdToConfirm
+          ? remaining !== null
+            ? `${holdToConfirm.hint} · ${remaining}`
+            : holdToConfirm.hint
+          : label}
       </NativeText>
     </Pressable>
   );
@@ -389,7 +421,7 @@ export function SegmentedControl({
             key={option.value}
             testID={testID ? `${testID}-${option.value}` : undefined}
             accessibilityRole="radio"
-            accessibilityState={{ selected }}
+            accessibilityState={{ checked: selected }}
             accessibilityLabel={option.label}
             onPress={() => onChange(option.value)}
             hitSlop={gloveSlop(theme)}

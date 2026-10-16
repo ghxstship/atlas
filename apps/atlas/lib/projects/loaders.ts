@@ -23,6 +23,18 @@ export function must<T>(result: Result<T>, what: string): T {
   return result.data;
 }
 
+/**
+ * Unwraps a result for a part of a page the person may not be allowed to see, such as the activity
+ * feed, which Section 4.5.9 hides from Field: not-found and refusal give null, so the page leaves
+ * that part out instead of failing. Any other failure still surfaces in the error boundary.
+ */
+export function optional<T>(result: Result<T>, what: string): T | null {
+  if (!result.ok && (result.error.kind === "not-found" || result.error.kind === "refusal")) {
+    return null;
+  }
+  return must(result, what);
+}
+
 export interface GateData {
   readonly phases: Phase[];
   readonly criteria: GateCriterion[];

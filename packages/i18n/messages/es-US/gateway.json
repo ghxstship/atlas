@@ -1345,7 +1345,13 @@
       "body": "Algo salió mal antes de que la página se cargara. Recarga para intentarlo de nuevo.",
       "action": "Recargar"
     },
-    "loading": "Cargando"
+    "loading": "Cargando",
+    "pageError": {
+      "title": "Esta página no se cargó",
+      "body": "Gateway no pudo leer lo que muestra esta página. Inténtalo de nuevo, o ve a Inicio y abre la página desde el menú.",
+      "retry": "Intentar de nuevo",
+      "home": "Ir a Inicio"
+    }
   },
   "auth": {
     "fields": {

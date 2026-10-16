@@ -173,7 +173,7 @@ export function DeliverableForm(props: {
         <select
           name="documentId"
           required
-          className="min-h-touch-min rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
+          className="min-h-touch-min min-w-0 max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
         >
           {props.documents.map((d) => (
             <option key={d.id} value={d.id}>
@@ -360,7 +360,7 @@ export function TaxFormForm(props: {
         <select
           name="formKind"
           required
-          className="min-h-touch-min rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
+          className="min-h-touch-min min-w-0 max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
         >
           {props.kinds.map((k) => (
             <option key={k.value} value={k.value}>

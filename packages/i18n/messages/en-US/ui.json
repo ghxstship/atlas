@@ -482,6 +482,7 @@
     "key": "Key",
     "milestone": "milestone",
     "record": "Record",
+    "scroll": "{label}, days",
     "start": "Start",
     "state": "State"
   },
@@ -520,5 +521,16 @@
   "widget": {
     "label": "Home screen widget",
     "nextShift": "Next shift"
+  },
+  "recordList": {
+    "columns": {
+      "state": "State",
+      "key": "Key",
+      "title": "Record",
+      "labels": "Labels",
+      "next": "Next date",
+      "owner": "Owner",
+      "action": "Action"
+    }
   }
 }

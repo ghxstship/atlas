@@ -295,20 +295,19 @@ export function ActionButton({
         {label}
       </Button>
       <ActionAlert state={state} />
-      {undo && undoable ? (
-        <UndoNotice
-          region={tc("undoRegion")}
-          message={undo.message}
-          onUndo={() =>
-            startTransition(async () => {
-              const restored = await undo.restore();
-              setState(restored);
-              setUndoable(false);
-              router.refresh();
-            })
-          }
-        />
-      ) : null}
+      <UndoNotice
+        region={tc("undoRegion")}
+        message={undo && undoable ? undo.message : null}
+        onUndo={() =>
+          startTransition(async () => {
+            if (!undo) return;
+            const restored = await undo.restore();
+            setState(restored);
+            setUndoable(false);
+            router.refresh();
+          })
+        }
+      />
     </span>
   );
 }

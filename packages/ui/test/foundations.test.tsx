@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -435,6 +435,26 @@ describe("surfaces and states", () => {
     expect((screen.getByRole("button", { name: /Undo/ }) as HTMLButtonElement).disabled).toBe(true);
     await expectAccessible(container);
     unmount();
+  });
+
+  it("is the live region before a toast arrives, so the toast is announced (A23-014)", () => {
+    const { rerender } = render(<ToastRegion label="Notifications">{null}</ToastRegion>);
+    const region = screen.getByRole("region", { name: "Notifications" });
+    expect(region.getAttribute("aria-live")).toBe("polite");
+    rerender(
+      <ToastRegion label="Notifications">
+        <UndoToast message="NWS-1 moved to Trash." />
+      </ToastRegion>,
+    );
+    expect(screen.getByRole("region", { name: "Notifications" })).toBe(region);
+    // One live region: the toast inside it carries no second status role.
+    expect(within(region).queryByRole("status")).toBeNull();
+    expect(region.textContent).toContain("NWS-1 moved to Trash.");
+  });
+
+  it("keeps a status role on a toast outside a region", () => {
+    render(<Toast message="Saved." />);
+    expect(screen.getByRole("status").textContent).toContain("Saved.");
   });
 
   it("expires the undo toast after its seconds", () => {
