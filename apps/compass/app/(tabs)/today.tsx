@@ -13,10 +13,12 @@ import {
   type PunchRefusal,
 } from "../../src/domain/clock";
 import { formatCountdown, showState, type Cue } from "../../src/domain/show";
+import { punchAnnouncementKey } from "../../src/domain/announce";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { formatDay, formatTime, ProjectPicker, SyncBanner } from "../../src/screens/common";
 import { useClock } from "../../src/screens/useClock";
 import {
+  announce,
   Button,
   Card,
   ClockButton,
@@ -77,6 +79,7 @@ function ClockCard(): ReactElement {
     await clock.punch(kind);
     setPunching(false);
     setNotice(status?.online ? null : t("compass.clock.queued"));
+    announce(t(punchAnnouncementKey(kind, status?.online ?? false)));
   };
   const label =
     clock.snapshot.state === "out"

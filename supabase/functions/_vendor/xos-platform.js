@@ -2560,6 +2560,12 @@ var compass_default$1 = {
     confirmReason: "Confirmed in Compass.",
     rejectReason: "Rejected in Compass.",
   },
+  announce: {
+    clockedIn: "Clocked in.",
+    breakStarted: "Break started.",
+    breakEnded: "Break ended. You're on shift.",
+    clockedOut: "Clocked out.",
+  },
 };
 var credentials_default$1 = {
   categories: {
@@ -15967,6 +15973,12 @@ var compass_default = {
       "Los registros que puedes ver no responden esto. Pregunta por un turno, un SOP o el manual.",
     confirmReason: "Confirmado en Compass.",
     rejectReason: "Rechazado en Compass.",
+  },
+  announce: {
+    clockedIn: "Entrada registrada.",
+    breakStarted: "Pausa iniciada.",
+    breakEnded: "Pausa terminada. Estás en turno.",
+    clockedOut: "Salida registrada.",
   },
 };
 var credentials_default = {

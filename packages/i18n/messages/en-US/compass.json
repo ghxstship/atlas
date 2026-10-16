@@ -464,5 +464,11 @@
     "noAnswer": "The records you can see do not answer this. Ask about a shift, an SOP or the handbook.",
     "confirmReason": "Confirmed in Compass.",
     "rejectReason": "Rejected in Compass."
+  },
+  "announce": {
+    "clockedIn": "Clocked in.",
+    "breakStarted": "Break started.",
+    "breakEnded": "Break ended. You're on shift.",
+    "clockedOut": "Clocked out."
   }
 }

@@ -464,5 +464,11 @@
     "noAnswer": "Los registros que puedes ver no responden esto. Pregunta por un turno, un SOP o el manual.",
     "confirmReason": "Confirmado en Compass.",
     "rejectReason": "Rechazado en Compass."
+  },
+  "announce": {
+    "clockedIn": "Entrada registrada.",
+    "breakStarted": "Pausa iniciada.",
+    "breakEnded": "Pausa terminada. Estás en turno.",
+    "clockedOut": "Salida registrada."
   }
 }
