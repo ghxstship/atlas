@@ -28936,12 +28936,436 @@ async function kioskPunch(db, input) {
   };
 }
 //#endregion
+//#region src/http/failure.ts
+var REQUEST_ID = /^[A-Za-z0-9._:-]{8,128}$/;
+/** The caller's X-Request-Id when it is well formed, otherwise a new UUID. */
+function requestIdFor(request, generate = () => crypto.randomUUID()) {
+  const given = request.headers.get("X-Request-Id");
+  return given !== null && REQUEST_ID.test(given) ? given : generate();
+}
+/** The function name from an Edge Function URL (`/functions/v1/<name>/...` or `/<name>/...`). */
+function edgeFunctionName(url) {
+  const segments = new URL(url).pathname.split("/").filter((segment) => segment.length > 0);
+  const name = segments[0] === "functions" && segments[1] === "v1" ? segments[2] : segments[0];
+  return name !== void 0 && /^[a-z0-9-]{1,64}$/.test(name) ? name : "unknown";
+}
+/**
+ * Logs the error with the request id and returns a 500 problem that carries only the request id.
+ * Never throws: logging failures cannot turn into a second unhandled error.
+ */
+function internalErrorResponse(error, options) {
+  try {
+    options.logger.error("edge function failed", {
+      request_id: options.requestId,
+      function: options.fn ?? "unknown",
+      error,
+    });
+  } catch (logError) {
+    console.error(
+      JSON.stringify({
+        level: "error",
+        message: "edge function failure could not be logged",
+        request_id: options.requestId,
+        reason: logError instanceof Error ? logError.name : typeof logError,
+      }),
+    );
+  }
+  return new Response(
+    JSON.stringify({
+      type: "/problems/internal",
+      title: "Internal error",
+      status: 500,
+      detail: `The request could not be completed. Quote request id ${options.requestId} to support.`,
+      request_id: options.requestId,
+    }),
+    {
+      status: 500,
+      headers: {
+        "Content-Type": "application/problem+json",
+        "X-Request-Id": options.requestId,
+      },
+    },
+  );
+}
+//#endregion
+//#region ../../infra/observability/src/redact.ts
+/**
+ * Personal data redaction for logs, span attributes and error reports (Section 9, Section 14.3).
+ *
+ * Every value that leaves a process for a telemetry backend passes through `redact`. Two layers apply:
+ *   1. Keys. A field whose name says it holds a credential or personal data is replaced whole,
+ *      whatever its value looks like (`email`, `phone`, `authorization`, `tax_id`, `latitude`).
+ *   2. Values. Strings are scanned for shapes that are personal data or credentials wherever they
+ *      appear (an email inside an error message, a bearer token inside a URL).
+ *
+ * Pseudonymous identifiers (UUIDs for orgs, people, requests) are kept: incident response needs
+ * them, and they reveal nothing without database access (proposed ADR, see infra/README.md).
+ *
+ * The module has no runtime dependencies and no Node built-ins, so Atlas, Gateway (Node and Edge
+ * runtimes) and Supabase Edge Functions (Deno) import the same file.
+ */
+var REDACTED = "[redacted]";
+/** Normalized key names (lowercase letters and digits only) that are always replaced. */
+var EXACT_KEYS = /* @__PURE__ */ new Set([
+  "ip",
+  "pin",
+  "dob",
+  "ssn",
+  "sin",
+  "tin",
+  "ein",
+  "lat",
+  "lng",
+  "lon",
+  "zip",
+  "otp",
+  "cvc",
+  "cvv",
+  "pan",
+  "iban",
+  "cookie",
+  "cookies",
+  "session",
+  "notes",
+  "street",
+  "address",
+  "latitude",
+  "longitude",
+  "geolocation",
+  "location",
+  "birthdate",
+  "dateofbirth",
+  "postalcode",
+  "postcode",
+  "zipcode",
+  "passport",
+  "diagnosis",
+  "medical",
+  "signature",
+  "xforwardedfor",
+  "xrealip",
+  "forwarded",
+  "remoteaddr",
+  "useragent",
+]);
+/** Normalized key suffixes that are always replaced (`contact_email`, `x-api-key`, `refreshToken`). */
+var KEY_SUFFIXES = [
+  "password",
+  "passwd",
+  "passphrase",
+  "secret",
+  "token",
+  "apikey",
+  "authorization",
+  "credential",
+  "credentials",
+  "privatekey",
+  "setcookie",
+  "sessionid",
+  "recoverycode",
+  "totp",
+  "email",
+  "emailaddress",
+  "phone",
+  "phonenumber",
+  "mobile",
+  "firstname",
+  "lastname",
+  "fullname",
+  "givenname",
+  "familyname",
+  "displayname",
+  "legalname",
+  "personname",
+  "middlename",
+  "streetaddress",
+  "addressline1",
+  "addressline2",
+  "taxid",
+  "taxidentifier",
+  "nationalid",
+  "governmentid",
+  "driverslicense",
+  "bankaccount",
+  "accountnumber",
+  "routingnumber",
+  "cardnumber",
+  "ipaddress",
+  "clientip",
+  "remoteip",
+  "freetext",
+];
+function normalizeKey(key) {
+  return key.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+function isSensitiveKey(key) {
+  const k = normalizeKey(key);
+  if (k.length === 0) return false;
+  if (EXACT_KEYS.has(k)) return true;
+  return KEY_SUFFIXES.some((suffix) => k.endsWith(suffix));
+}
+function luhnValid(digits) {
+  let sum = 0;
+  let double = false;
+  for (let i = digits.length - 1; i >= 0; i -= 1) {
+    let d = digits.charCodeAt(i) - 48;
+    if (double) {
+      d *= 2;
+      if (d > 9) d -= 9;
+    }
+    sum += d;
+    double = !double;
+  }
+  return sum % 10 === 0;
+}
+/** Ordered: credentials first, so a token that contains an email-like run is replaced whole. */
+var VALUE_PATTERNS = [
+  {
+    pattern: /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+/g,
+    replace: "[jwt]",
+  },
+  {
+    pattern: /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/-]+=*/gi,
+    replace: (_m, scheme) => `${scheme} ${REDACTED}`,
+  },
+  {
+    pattern: /\bxos_(?:live|test)_[A-Za-z0-9_]+/g,
+    replace: "[api-key]",
+  },
+  {
+    pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g,
+    replace: "[api-key]",
+  },
+  {
+    pattern:
+      /([?&;](?:token|access_token|refresh_token|id_token|code|key|apikey|api_key|signature|sig|password|email|phone|token_hash)=)[^&#\s"']+/gi,
+    replace: (_m, prefix) => `${prefix}${REDACTED}`,
+  },
+  {
+    pattern: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
+    replace: "[email]",
+  },
+  {
+    pattern: /\b\d{3}-\d{2}-\d{4}\b/g,
+    replace: "[ssn]",
+  },
+  {
+    pattern: /(?<![\w-])\d{4}(?:[ -]?\d{4}){2,3}(?:[ -]?\d{1,3})?(?![\w-])/g,
+    replace: (match) => {
+      const digits = match.replace(/[ -]/g, "");
+      return digits.length >= 13 && digits.length <= 19 && luhnValid(digits) ? "[card]" : match;
+    },
+  },
+  {
+    pattern: /(?<![\w+])\+\d{8,15}\b/g,
+    replace: "[phone]",
+  },
+  {
+    pattern: /(?<![\w-])\(?\d{3}\)?[-. ]\d{3}[-. ]\d{4}(?![\w-])/g,
+    replace: "[phone]",
+  },
+  {
+    pattern: /\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b/g,
+    replace: "[ip]",
+  },
+  {
+    pattern: /\b(?:[0-9a-f]{1,4}:){3,7}[0-9a-f]{1,4}\b/gi,
+    replace: "[ip]",
+  },
+];
+var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var DEFAULT_MAX_DEPTH = 8;
+var DEFAULT_MAX_STRING = 4096;
+function redactString(input, maxLength = DEFAULT_MAX_STRING) {
+  if (UUID.test(input)) return input;
+  let out = input;
+  for (const { pattern, replace } of VALUE_PATTERNS) {
+    pattern.lastIndex = 0;
+    out =
+      typeof replace === "string" ? out.replace(pattern, replace) : out.replace(pattern, replace);
+  }
+  if (out.length > maxLength)
+    out = `${out.slice(0, maxLength)}[truncated ${out.length - maxLength}]`;
+  return out;
+}
+/** Removes the query string and fragment from a URL or path, keeping only the path. */
+function redactUrl(input) {
+  const cut = input.search(/[?#]/);
+  return redactString(cut === -1 ? input : input.slice(0, cut));
+}
+/**
+ * Returns a deep copy of `value` with personal data and credentials replaced. Never throws and
+ * never mutates its input. Cycles become `[circular]`.
+ */
+function redact(value, options = {}) {
+  const allow = new Set((options.allowKeys ?? []).map(normalizeKey));
+  const maxDepth = options.maxDepth ?? DEFAULT_MAX_DEPTH;
+  const maxString = options.maxStringLength ?? DEFAULT_MAX_STRING;
+  const seen = /* @__PURE__ */ new WeakSet();
+  const walk = (v, depth) => {
+    if (v === null || v === void 0) return v;
+    switch (typeof v) {
+      case "string":
+        return redactString(v, maxString);
+      case "number":
+      case "boolean":
+        return v;
+      case "bigint":
+        return v.toString();
+      case "symbol":
+        return v.toString();
+      case "function":
+        return;
+    }
+    const obj = v;
+    if (depth >= maxDepth) return "[depth]";
+    if (seen.has(obj)) return "[circular]";
+    seen.add(obj);
+    try {
+      if (obj instanceof Date) return Number.isNaN(obj.getTime()) ? null : obj.toISOString();
+      if (obj instanceof Error) return redactError(obj, walk, depth);
+      if (obj instanceof URL) return redactUrl(obj.toString());
+      if (ArrayBuffer.isView(obj) || obj instanceof ArrayBuffer)
+        return `[binary ${obj.byteLength} bytes]`;
+      if (obj instanceof Map) return walk(Object.fromEntries(obj), depth);
+      if (obj instanceof Set) return walk([...obj], depth);
+      if (Array.isArray(obj)) return obj.map((item) => walk(item, depth + 1));
+      const out = {};
+      for (const [key, child] of Object.entries(obj)) {
+        if (!allow.has(normalizeKey(key)) && isSensitiveKey(key)) {
+          out[key] = child === null || child === void 0 ? child : REDACTED;
+          continue;
+        }
+        const copied = walk(child, depth + 1);
+        if (copied !== void 0) out[key] = copied;
+      }
+      return out;
+    } finally {
+      seen.delete(obj);
+    }
+  };
+  return walk(value, 0);
+}
+function redactError(error, walk, depth) {
+  const out = {
+    name: error.name,
+    message: redactString(error.message),
+  };
+  if (error.stack) out["stack"] = redactString(error.stack, 8192);
+  const code = error.code;
+  if (typeof code === "string" || typeof code === "number") out["code"] = code;
+  if (error.cause !== void 0) out["cause"] = walk(error.cause, depth + 1);
+  return out;
+}
+//#endregion
+//#region ../../infra/observability/src/logger.ts
+/**
+ * Structured JSON logging (Section 5: structured JSON logs). One line per event on stdout, which
+ * Vercel and Supabase collect and forward through their log drains. Every field passes through
+ * `redact` before it is serialized, so personal data never reaches a log store.
+ */
+var LEVEL_RANK = {
+  debug: 10,
+  info: 20,
+  warn: 30,
+  error: 40,
+};
+/** Keys the logger owns; caller fields with these names are nested under `fields` instead. */
+var RESERVED = /* @__PURE__ */ new Set([
+  "timestamp",
+  "level",
+  "message",
+  "service",
+  "environment",
+  "release",
+  "region",
+]);
+function defaultSink(line, level) {
+  if (level === "error" || level === "warn") console.error(line);
+  else console.log(line);
+}
+function createLogger(options) {
+  const threshold = LEVEL_RANK[options.level ?? "info"];
+  const sink = options.sink ?? defaultSink;
+  const now = options.now ?? (() => /* @__PURE__ */ new Date());
+  const identity = {
+    service: options.service,
+    environment: options.environment,
+    ...(options.release ? { release: options.release } : {}),
+    ...(options.region ? { region: options.region } : {}),
+  };
+  const build = (bound) => {
+    const write = (level, message, fields) => {
+      if (LEVEL_RANK[level] < threshold) return;
+      const merged = redact(
+        {
+          ...bound,
+          ...fields,
+        },
+        options.redaction,
+      );
+      const record = {
+        timestamp: now().toISOString(),
+        level,
+        message: redactString(message, 1024),
+        ...identity,
+      };
+      const nested = {};
+      for (const [key, value] of Object.entries(merged))
+        if (RESERVED.has(key)) nested[key] = value;
+        else record[key] = value;
+      if (Object.keys(nested).length > 0) record["fields"] = nested;
+      sink(safeStringify(record), level);
+    };
+    return {
+      identity,
+      debug: (m, f) => write("debug", m, f),
+      info: (m, f) => write("info", m, f),
+      warn: (m, f) => write("warn", m, f),
+      error: (m, f) => write("error", m, f),
+      child: (fields) =>
+        build({
+          ...bound,
+          ...fields,
+        }),
+    };
+  };
+  return build({});
+}
+/** JSON.stringify that never throws: values it cannot encode are described instead. */
+function safeStringify(value) {
+  try {
+    return JSON.stringify(value);
+  } catch (error) {
+    return JSON.stringify({
+      level: "error",
+      message: "log record could not be serialized",
+      reason: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+/** Reads the service identity from the environment variables Vercel and Supabase set. */
+function identityFromEnv(service, env) {
+  const environment =
+    env["XOS_ENVIRONMENT"] ?? env["VERCEL_ENV"] ?? env["NODE_ENV"] ?? "development";
+  const release = env["XOS_RELEASE"] ?? env["VERCEL_GIT_COMMIT_SHA"];
+  const region = env["VERCEL_REGION"] ?? env["SB_REGION"];
+  return {
+    service,
+    environment,
+    ...(release ? { release } : {}),
+    ...(region ? { region } : {}),
+  };
+}
+//#endregion
 //#region edge/entry.ts
 /**
  * Entry of the Edge Function bundle (supabase/functions/_vendor/xos-platform.js). The Supabase Edge
  * runtime can only load files inside supabase/functions, so the workspace code the functions use is
  * bundled here, with every npm package left external and mapped to an npm: specifier in deno.json.
- * The plan registry is embedded from packages/schemas/plans.yaml, its single source.
+ * The plan registry is embedded from packages/schemas/plans.yaml, its single source. The structured
+ * logger with personal data redaction comes from infra/observability, so every function logs through
+ * the same redactor as Atlas and the API (A22-013).
  */
 /** The plan registry the bundle was built from. */
 var planRegistry = parsePlanRegistry(plans_default);
@@ -28955,13 +29379,17 @@ export {
   billingEnvSchema,
   billingStore,
   createCheckoutSession,
+  createLogger,
   createPortalSession,
   createStripeClient,
   createTransport,
   dispatchEmail,
   dispatchWebhooks,
+  edgeFunctionName,
   handleStripeWebhook,
+  identityFromEnv,
   inboundStore,
+  internalErrorResponse,
   isPublicAddress,
   isTestKey,
   kioskPunch,
@@ -28973,6 +29401,7 @@ export {
   readBillingEnv,
   readEmailEnv,
   receiveInbound,
+  requestIdFor,
   resolvePriceId,
   signWebhook,
   stripQuotedText,

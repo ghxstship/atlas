@@ -68,3 +68,9 @@ export {
   type NotificationStoreOptions,
   type PlatformDb,
 } from "./stores.ts";
+export {
+  edgeFunctionName,
+  internalErrorResponse,
+  requestIdFor,
+  type FailureLogger,
+} from "./http/failure.ts";
