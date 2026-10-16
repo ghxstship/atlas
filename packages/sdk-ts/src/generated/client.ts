@@ -337,6 +337,10 @@ import {
   TemplatesResource,
   TemplateApplicationsResource,
   GuestListEntriesResource,
+  AuroraResource,
+  AiSuggestionsResource,
+  AiRequestsResource,
+  AiUsageResource,
   SavedViewSharesResource,
   SavedViewDefaultsResource,
   TourProgressResource,
@@ -1111,6 +1115,14 @@ export class XosClient extends XosClientCore {
   );
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
+  /** Settings: operations on `aurora`. */
+  readonly aurora: AuroraResource = new AuroraResource(this);
+  /** Settings: operations on `aiSuggestions`. */
+  readonly aiSuggestions: AiSuggestionsResource = new AiSuggestionsResource(this);
+  /** Settings: operations on `aiRequests`. */
+  readonly aiRequests: AiRequestsResource = new AiRequestsResource(this);
+  /** Settings: operations on `aiUsage`. */
+  readonly aiUsage: AiUsageResource = new AiUsageResource(this);
   /** Platform: operations on `savedViewShares`. */
   readonly savedViewShares: SavedViewSharesResource = new SavedViewSharesResource(this);
   /** Platform: operations on `savedViewDefaults`. */

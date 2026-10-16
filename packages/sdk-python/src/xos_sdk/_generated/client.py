@@ -343,6 +343,10 @@ from .resources import (
     TemplatesResource,
     TemplateApplicationsResource,
     GuestListEntriesResource,
+    AuroraResource,
+    AiSuggestionsResource,
+    AiRequestsResource,
+    AiUsageResource,
     SavedViewSharesResource,
     SavedViewDefaultsResource,
     TourProgressResource,
@@ -701,6 +705,10 @@ class XosClient(XosClientCore):
     templates: TemplatesResource
     template_applications: TemplateApplicationsResource
     guest_list_entries: GuestListEntriesResource
+    aurora: AuroraResource
+    ai_suggestions: AiSuggestionsResource
+    ai_requests: AiRequestsResource
+    ai_usage: AiUsageResource
     saved_view_shares: SavedViewSharesResource
     saved_view_defaults: SavedViewDefaultsResource
     tour_progress: TourProgressResource
@@ -1047,6 +1055,10 @@ class XosClient(XosClientCore):
         self.templates = TemplatesResource(self)
         self.template_applications = TemplateApplicationsResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
+        self.aurora = AuroraResource(self)
+        self.ai_suggestions = AiSuggestionsResource(self)
+        self.ai_requests = AiRequestsResource(self)
+        self.ai_usage = AiUsageResource(self)
         self.saved_view_shares = SavedViewSharesResource(self)
         self.saved_view_defaults = SavedViewDefaultsResource(self)
         self.tour_progress = TourProgressResource(self)

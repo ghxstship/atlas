@@ -30343,6 +30343,18 @@ export interface AiSettings {
    * Drafting.
    */
   readonly drafting_enabled: boolean;
+  /**
+   * Ask in plain language.
+   */
+  readonly plain_language_enabled: boolean;
+  /**
+   * Summaries.
+   */
+  readonly summaries_enabled: boolean;
+  /**
+   * Mapping help.
+   */
+  readonly mapping_enabled: boolean;
 }
 
 /**
@@ -30361,6 +30373,48 @@ export interface AiSettingsUpdate {
    * Drafting.
    */
   readonly drafting_enabled?: boolean;
+  /**
+   * Ask in plain language.
+   */
+  readonly plain_language_enabled?: boolean;
+  /**
+   * Summaries.
+   */
+  readonly summaries_enabled?: boolean;
+  /**
+   * Mapping help.
+   */
+  readonly mapping_enabled?: boolean;
+}
+
+/**
+ * Every AI feature switch.
+ */
+export interface AiSettingsSaveRequest {
+  /**
+   * assistant switch.
+   */
+  readonly assistant_enabled: boolean;
+  /**
+   * plain_language switch.
+   */
+  readonly plain_language_enabled: boolean;
+  /**
+   * extraction switch.
+   */
+  readonly extraction_enabled: boolean;
+  /**
+   * drafting switch.
+   */
+  readonly drafting_enabled: boolean;
+  /**
+   * summaries switch.
+   */
+  readonly summaries_enabled: boolean;
+  /**
+   * mapping switch.
+   */
+  readonly mapping_enabled: boolean;
 }
 
 /**
@@ -33772,6 +33826,658 @@ export interface GuestDecisionRequest {
    * Approved or Declined.
    */
   readonly outcome: "Approved" | "Declined";
+}
+
+/**
+ * What Aurora can do for the caller now: the features an Admin turned on that the plan includes, and this month's use of the allowance.
+ */
+export interface AuroraStatus {
+  /**
+   * Features the caller may use now.
+   */
+  readonly enabled_features: ReadonlyArray<AiFeature>;
+  /**
+   * Requests the org made this UTC month.
+   * Range: 0 to unbounded.
+   */
+  readonly used: number;
+  /**
+   * Monthly allowance; null when the plan sets no limit.
+   * Range: 0 to unbounded.
+   */
+  readonly allowance: number | null;
+  /**
+   * Whether the plan includes Aurora AI.
+   */
+  readonly plan_includes_aurora: boolean;
+}
+
+/**
+ * An Aurora AI feature (Section 4.7).
+ */
+export type AiFeature =
+  "assistant" | "plain_language" | "extraction" | "drafting" | "summaries" | "mapping";
+
+/**
+ * The result of one Aurora request.
+ */
+export interface AuroraResult {
+  /**
+   * answer, no_answer (the data does not support an answer; `missing` says why) or failed (the model call failed and was logged).
+   */
+  readonly outcome: "answer" | "no_answer" | "failed";
+  /**
+   * Always true: the content is AI-generated and is labeled so (EU AI Act Article 50).
+   */
+  readonly ai_generated: true;
+  /**
+   * Identifier of the logged AI request; null when no model was called.
+   * Format: `uuid`.
+   */
+  readonly request_id: string | null;
+  /**
+   * Model that answered.
+   * Length: 1 to 100.
+   */
+  readonly model: string | null;
+  /**
+   * What the data lacks, for no_answer.
+   * Length: 1 to 500.
+   */
+  readonly missing: string | null;
+  /**
+   * Why the request failed.
+   * Length: 1 to 64.
+   */
+  readonly failure_code: string | null;
+  /**
+   * The feature's answer for outcome answer, shaped per operation; null otherwise.
+   */
+  readonly answer?: unknown;
+  /**
+   * Changes stored for confirmation.
+   */
+  readonly suggestions: ReadonlyArray<AuroraProposal>;
+}
+
+/**
+ * A change waiting for confirmation.
+ */
+export interface AuroraProposal {
+  /**
+   * Identifier of the stored suggestion.
+   * Format: `uuid`.
+   */
+  readonly suggestion_id: string;
+  /**
+   * Public API operation the change would call.
+   * Length: 1 to 100.
+   */
+  readonly operation_id: string;
+  /**
+   * What will change.
+   * Length: 1 to 1000.
+   */
+  readonly summary: string;
+}
+
+/**
+ * A question for the assistant.
+ */
+export interface AuroraAskRequest {
+  /**
+   * The question.
+   * Length: 1 to 4000.
+   */
+  readonly question: string;
+  /**
+   * Earlier turns of this conversation, oldest first.
+   */
+  readonly history?: ReadonlyArray<{
+    /**
+     * Length: 0 to 4000.
+     */
+    readonly question: string;
+    /**
+     * Length: 0 to 8000.
+     */
+    readonly answer: string;
+  }>;
+}
+
+/**
+ * A sentence to turn into a saved view.
+ */
+export interface AuroraFilterRequest {
+  /**
+   * The sentence to turn into a filter.
+   * Length: 1 to 500.
+   */
+  readonly sentence: string;
+  /**
+   * Collections the filter may target.
+   */
+  readonly collections: ReadonlyArray<string>;
+  /**
+   * IANA time zone the local time was entered in.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+}
+
+/**
+ * A document to extract into proposed fields.
+ */
+export interface AuroraExtractRequest {
+  /**
+   * What the document is.
+   */
+  readonly kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
+  /**
+   * Identifier of the stored document read, when the file is one.
+   * Format: `uuid`.
+   */
+  readonly document_id?: string | null;
+  /**
+   * Media type of the content.
+   */
+  readonly media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
+  /**
+   * The document content in base64, read by the caller from storage.
+   * Length: 1 to 14000000.
+   */
+  readonly content_base64: string;
+  /**
+   * File name shown in the log.
+   * Length: 1 to 300.
+   */
+  readonly file_name: string;
+}
+
+/**
+ * Instructions for a draft.
+ */
+export interface AuroraDraftRequest {
+  /**
+   * What to draft.
+   */
+  readonly kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
+  /**
+   * What the draft should say.
+   * Length: 1 to 4000.
+   */
+  readonly instructions: string;
+  /**
+   * Records to draft from, read with the caller's permissions.
+   */
+  readonly context?: ReadonlyArray<{
+    /**
+     * Pattern: `^[a-z][a-z0-9-]*$`.
+     */
+    readonly collection: string;
+    /**
+     * Format: `uuid`.
+     */
+    readonly id: string;
+  }>;
+  /**
+   * The org's verbiage library entries to apply.
+   */
+  readonly verbiage?: ReadonlyArray<{
+    /**
+     * Length: 1 to 100.
+     */
+    readonly term: string;
+    /**
+     * Length: 1 to 200.
+     */
+    readonly preferred: string;
+  }>;
+}
+
+/**
+ * What to summarize.
+ */
+export interface AuroraSummarizeRequest {
+  /**
+   * What to summarize.
+   */
+  readonly kind: "record_activity" | "project_week" | "gate_readiness";
+  /**
+   * Collection of the record or project summarized.
+   * Pattern: `^[a-z][a-z0-9-]*$`.
+   */
+  readonly subject_collection: string;
+  /**
+   * Identifier of the record or project summarized.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string;
+  /**
+   * Activity and records to summarize, read with the caller's permissions.
+   */
+  readonly items: ReadonlyArray<{
+    /**
+     * Pattern: `^[a-z][a-z0-9-]*$`.
+     */
+    readonly collection: string;
+    /**
+     * Format: `uuid`.
+     */
+    readonly id: string;
+  }>;
+}
+
+/**
+ * Import columns to map onto fields.
+ */
+export interface AuroraMapColumnsRequest {
+  /**
+   * Import target.
+   * Pattern: `^[a-z][a-z0-9-]*$`.
+   */
+  readonly collection: string;
+  /**
+   * Import columns with sample values.
+   */
+  readonly columns: ReadonlyArray<{
+    /**
+     * Length: 0 to 200.
+     */
+    readonly header: string;
+    readonly samples: ReadonlyArray<string>;
+  }>;
+  /**
+   * Target fields of the collection.
+   */
+  readonly fields: ReadonlyArray<{
+    /**
+     * Length: 0 to 100.
+     */
+    readonly name: string;
+    /**
+     * Length: 0 to 300.
+     */
+    readonly description: string;
+  }>;
+}
+
+/**
+ * An unknown scanned code to bind.
+ */
+export interface AuroraBindCodeRequest {
+  /**
+   * The scanned code.
+   * Length: 1 to 100.
+   */
+  readonly code: string;
+  /**
+   * What the label said.
+   * Length: 1 to 300.
+   */
+  readonly description: string | null;
+  /**
+   * Catalog elements found for the code.
+   */
+  readonly candidates: ReadonlyArray<{
+    /**
+     * Length: 0 to 100.
+     */
+    readonly element_id: string;
+    /**
+     * Length: 0 to 300.
+     */
+    readonly name: string;
+    /**
+     * Length: 0 to 20.
+     */
+    readonly urid: string;
+  }>;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AiSuggestionPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AiSuggestion>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A change an Aurora feature proposes, waiting for the confirmation of the person who asked. The summary says exactly what will change; nothing is written until they confirm.
+ */
+export interface AiSuggestion {
+  /**
+   * Identifier of the ai suggestion.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the AI request that proposed the change.
+   * Format: `uuid`.
+   */
+  readonly request_id: string;
+  /**
+   * Public API operation that performs the change.
+   * Length: 1 to 100.
+   */
+  readonly operation_id: string;
+  /**
+   * Identifier of the record the change updates; null when it creates one.
+   * Format: `uuid`.
+   */
+  readonly target_id: string | null;
+  /**
+   * What will change, shown on the confirmation step.
+   * Length: 1 to 1000.
+   */
+  readonly summary: string;
+  readonly suggestion_state: AiSuggestionState;
+  /**
+   * After this time the suggestion can no longer be confirmed.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * Identifier of the record the public API wrote, once Applied.
+   * Format: `uuid`.
+   */
+  readonly applied_id: string | null;
+  /**
+   * Proposed fields in confirmation order.
+   */
+  readonly proposed_fields: ReadonlyArray<AiSuggestionField>;
+}
+
+/**
+ * Proposed and waiting for the person who asked, Confirmed by them, Applied once the public API accepted the write, Rejected, or Expired unanswered.
+ */
+export type AiSuggestionState = "Proposed" | "Confirmed" | "Applied" | "Rejected" | "Expired";
+
+/**
+ * One proposed field of an AI suggestion.
+ */
+export interface AiSuggestionField {
+  /**
+   * API field the value is for.
+   */
+  readonly field_path: string;
+  /**
+   * Proposed value as JSON; null when the field is NO_ANSWER.
+   */
+  readonly proposed_value?: unknown;
+  /**
+   * Confidence from 0 to 1; null when the field is NO_ANSWER.
+   * Range: 0 to 1.
+   */
+  readonly confidence: number | null;
+  /**
+   * NO_ANSWER when the source does not support a value.
+   */
+  readonly refusal: "NO_ANSWER" | null;
+  /**
+   * What the source lacks, when the field is NO_ANSWER.
+   */
+  readonly missing: string | null;
+  /**
+   * The passage the value was read from, redacted.
+   */
+  readonly source_excerpt: string | null;
+  /**
+   * Every AI-proposed value carries provenance agent (rank 40, Section 3.8).
+   */
+  readonly provenance: "agent";
+}
+
+/**
+ * Confirmation of an AI suggestion.
+ */
+export interface AiSuggestionConfirmRequest {
+  /**
+   * Why, recorded in the suggestion ledger.
+   * Length: 1 to 500.
+   */
+  readonly reason: string;
+  /**
+   * Field values to send instead of, or in addition to, the proposed ones: corrections the person made and context ids such as `document_id`.
+   */
+  readonly values?: { readonly [key: string]: unknown };
+}
+
+/**
+ * Rejection of an AI suggestion.
+ */
+export interface AiSuggestionRejectRequest {
+  /**
+   * Why, recorded in the suggestion ledger.
+   * Length: 1 to 500.
+   */
+  readonly reason: string;
+}
+
+/**
+ * The record a confirmed suggestion wrote.
+ */
+export interface AiSuggestionApplyRequest {
+  /**
+   * Identifier of the record the public API wrote or updated.
+   * Format: `uuid`.
+   */
+  readonly applied_id: string;
+  /**
+   * What was written.
+   * Length: 1 to 500.
+   */
+  readonly reason: string;
+}
+
+/**
+ * Why the write was refused.
+ */
+export interface AiSuggestionReopenRequest {
+  /**
+   * Why, recorded in the suggestion ledger.
+   * Length: 1 to 500.
+   */
+  readonly reason: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AiRequestPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AiRequest>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One Aurora model call: who asked, for which feature, with which configured model, and the prompt and output with personal data redacted. Restricted fields and medical records are never in it.
+ */
+export interface AiRequest {
+  /**
+   * Identifier of the ai request.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the person who asked.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  readonly feature: AiFeature;
+  /**
+   * Model identifier from configuration.
+   * Length: 1 to 100.
+   */
+  readonly model: string;
+  /**
+   * Table of the record the request was about.
+   * Length: 1 to 100.
+   */
+  readonly subject_table: string | null;
+  /**
+   * Identifier of the record the request was about.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string | null;
+  readonly outcome: AiRequestOutcome;
+  /**
+   * Prompt as sent, redacted.
+   * Length: 1 to 20000.
+   */
+  readonly prompt_redacted: string | null;
+  /**
+   * Model output, redacted.
+   * Length: 1 to 20000.
+   */
+  readonly output_redacted: string | null;
+  /**
+   * Why a Failed request failed.
+   * Length: 1 to 64.
+   */
+  readonly failure_code: string | null;
+  /**
+   * When the request finished.
+   * Format: `date-time`.
+   */
+  readonly completed_at: string | null;
+}
+
+/**
+ * How a model call ended. No Answer is the silence rule (Section 3.7).
+ */
+export type AiRequestOutcome = "Pending" | "Answered" | "No Answer" | "Failed";
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AiUsagePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AiUsage>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Aurora metering (ADR 0020): one row per authorized request. The monthly allowance aurora_requests_per_month counts these rows by UTC month.
+ */
+export interface AiUsage {
+  /**
+   * Identifier of the ai usage.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the AI request metered.
+   * Format: `uuid`.
+   */
+  readonly request_id: string;
+  /**
+   * When the request was authorized and counted.
+   * Format: `date-time`.
+   */
+  readonly metered_at: string;
+  /**
+   * Input tokens the model reported.
+   * Range: 0 to unbounded.
+   */
+  readonly input_tokens: number | null;
+  /**
+   * Output tokens the model reported.
+   * Range: 0 to unbounded.
+   */
+  readonly output_tokens: number | null;
 }
 
 /**

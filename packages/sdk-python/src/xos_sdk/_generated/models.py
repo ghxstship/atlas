@@ -1080,6 +1080,7 @@ __all__ = [
     "AiSettingsPage",
     "AiSettings",
     "AiSettingsUpdate",
+    "AiSettingsSaveRequest",
     "ReportDefinitionPage",
     "ReportDefinition",
     "ReportDefinitionCreate",
@@ -1196,6 +1197,30 @@ __all__ = [
     "GuestListEntryCreate",
     "GuestListEntryUpdate",
     "GuestDecisionRequest",
+    "AuroraStatus",
+    "AiFeature",
+    "AuroraResult",
+    "AuroraProposal",
+    "AuroraAskRequest",
+    "AuroraFilterRequest",
+    "AuroraExtractRequest",
+    "AuroraDraftRequest",
+    "AuroraSummarizeRequest",
+    "AuroraMapColumnsRequest",
+    "AuroraBindCodeRequest",
+    "AiSuggestionPage",
+    "AiSuggestion",
+    "AiSuggestionState",
+    "AiSuggestionField",
+    "AiSuggestionConfirmRequest",
+    "AiSuggestionRejectRequest",
+    "AiSuggestionApplyRequest",
+    "AiSuggestionReopenRequest",
+    "AiRequestPage",
+    "AiRequest",
+    "AiRequestOutcome",
+    "AiUsagePage",
+    "AiUsage",
     "SavedViewSharePage",
     "SavedViewShare",
     "SavedViewShareCreate",
@@ -16855,6 +16880,12 @@ class AiSettings(TypedDict):
     extraction_enabled: bool
     #: Drafting.
     drafting_enabled: bool
+    #: Ask in plain language.
+    plain_language_enabled: bool
+    #: Summaries.
+    summaries_enabled: bool
+    #: Mapping help.
+    mapping_enabled: bool
 
 
 class AiSettingsUpdate(TypedDict, total=False):
@@ -16866,6 +16897,29 @@ class AiSettingsUpdate(TypedDict, total=False):
     extraction_enabled: bool
     #: Drafting.
     drafting_enabled: bool
+    #: Ask in plain language.
+    plain_language_enabled: bool
+    #: Summaries.
+    summaries_enabled: bool
+    #: Mapping help.
+    mapping_enabled: bool
+
+
+class AiSettingsSaveRequest(TypedDict):
+    """Every AI feature switch."""
+
+    #: assistant switch.
+    assistant_enabled: bool
+    #: plain_language switch.
+    plain_language_enabled: bool
+    #: extraction switch.
+    extraction_enabled: bool
+    #: drafting switch.
+    drafting_enabled: bool
+    #: summaries switch.
+    summaries_enabled: bool
+    #: mapping switch.
+    mapping_enabled: bool
 
 
 class ReportDefinitionPage(TypedDict):
@@ -18619,6 +18673,322 @@ class GuestDecisionRequest(TypedDict):
     outcome: Literal["Approved", "Declined"]
 
 
+class AuroraStatus(TypedDict):
+    """What Aurora can do for the caller now: the features an Admin turned on that the plan includes, and this month's use of the allowance."""
+
+    #: Features the caller may use now.
+    enabled_features: List[AiFeature]
+    #: Requests the org made this UTC month.
+    used: int
+    #: Monthly allowance; null when the plan sets no limit.
+    allowance: Optional[int]
+    #: Whether the plan includes Aurora AI.
+    plan_includes_aurora: bool
+
+
+class _AuroraResultRequired(TypedDict):
+    #: answer, no_answer (the data does not support an answer; `missing` says why) or failed (the model call failed and was logged).
+    outcome: Literal["answer", "no_answer", "failed"]
+    #: Always true: the content is AI-generated and is labeled so (EU AI Act Article 50).
+    ai_generated: Literal[True]
+    #: Identifier of the logged AI request; null when no model was called.
+    request_id: Optional[str]
+    #: Model that answered.
+    model: Optional[str]
+    #: What the data lacks, for no_answer.
+    missing: Optional[str]
+    #: Why the request failed.
+    failure_code: Optional[str]
+    #: Changes stored for confirmation.
+    suggestions: List[AuroraProposal]
+
+
+class AuroraResult(_AuroraResultRequired, total=False):
+    """The result of one Aurora request."""
+
+    #: The feature's answer for outcome answer, shaped per operation; null otherwise.
+    answer: Any
+
+
+class AuroraProposal(TypedDict):
+    """A change waiting for confirmation."""
+
+    #: Identifier of the stored suggestion.
+    suggestion_id: str
+    #: Public API operation the change would call.
+    operation_id: str
+    #: What will change.
+    summary: str
+
+
+class _AuroraAskRequestRequired(TypedDict):
+    #: The question.
+    question: str
+
+
+class AuroraAskRequest(_AuroraAskRequestRequired, total=False):
+    """A question for the assistant."""
+
+    #: Earlier turns of this conversation, oldest first.
+    history: List[Dict[str, Any]]
+
+
+class AuroraFilterRequest(TypedDict):
+    """A sentence to turn into a saved view."""
+
+    #: The sentence to turn into a filter.
+    sentence: str
+    #: Collections the filter may target.
+    collections: List[str]
+    #: IANA time zone the local time was entered in.
+    time_zone: str
+
+
+class _AuroraExtractRequestRequired(TypedDict):
+    #: What the document is.
+    kind: Literal["rider", "insurance_certificate", "invoice", "receipt", "quote"]
+    #: Media type of the content.
+    media_type: Literal["application/pdf", "text/plain", "image/png", "image/jpeg", "image/webp"]
+    #: The document content in base64, read by the caller from storage.
+    content_base64: str
+    #: File name shown in the log.
+    file_name: str
+
+
+class AuroraExtractRequest(_AuroraExtractRequestRequired, total=False):
+    """A document to extract into proposed fields."""
+
+    #: Identifier of the stored document read, when the file is one.
+    document_id: Optional[str]
+
+
+class _AuroraDraftRequestRequired(TypedDict):
+    #: What to draft.
+    kind: Literal["sop", "advance_packet", "email", "day_sheet", "change_order_description"]
+    #: What the draft should say.
+    instructions: str
+
+
+class AuroraDraftRequest(_AuroraDraftRequestRequired, total=False):
+    """Instructions for a draft."""
+
+    #: Records to draft from, read with the caller's permissions.
+    context: List[Dict[str, Any]]
+    #: The org's verbiage library entries to apply.
+    verbiage: List[Dict[str, Any]]
+
+
+class AuroraSummarizeRequest(TypedDict):
+    """What to summarize."""
+
+    #: What to summarize.
+    kind: Literal["record_activity", "project_week", "gate_readiness"]
+    #: Collection of the record or project summarized.
+    subject_collection: str
+    #: Identifier of the record or project summarized.
+    subject_id: str
+    #: Activity and records to summarize, read with the caller's permissions.
+    items: List[Dict[str, Any]]
+
+
+class AuroraMapColumnsRequest(TypedDict):
+    """Import columns to map onto fields."""
+
+    #: Import target.
+    collection: str
+    #: Import columns with sample values.
+    columns: List[Dict[str, Any]]
+    #: Target fields of the collection.
+    fields: List[Dict[str, Any]]
+
+
+class AuroraBindCodeRequest(TypedDict):
+    """An unknown scanned code to bind."""
+
+    #: The scanned code.
+    code: str
+    #: What the label said.
+    description: Optional[str]
+    #: Catalog elements found for the code.
+    candidates: List[Dict[str, Any]]
+
+
+class AiSuggestionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AiSuggestion]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AiSuggestion(TypedDict):
+    """A change an Aurora feature proposes, waiting for the confirmation of the person who asked. The summary says exactly what will change; nothing is written until they confirm."""
+
+    #: Identifier of the ai suggestion.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the AI request that proposed the change.
+    request_id: str
+    #: Public API operation that performs the change.
+    operation_id: str
+    #: Identifier of the record the change updates; null when it creates one.
+    target_id: Optional[str]
+    #: What will change, shown on the confirmation step.
+    summary: str
+    suggestion_state: AiSuggestionState
+    #: After this time the suggestion can no longer be confirmed.
+    expires_at: str
+    #: Identifier of the record the public API wrote, once Applied.
+    applied_id: Optional[str]
+    #: Proposed fields in confirmation order.
+    proposed_fields: List[AiSuggestionField]
+
+
+class _AiSuggestionFieldRequired(TypedDict):
+    #: API field the value is for.
+    field_path: str
+    #: Confidence from 0 to 1; null when the field is NO_ANSWER.
+    confidence: Optional[float]
+    #: NO_ANSWER when the source does not support a value.
+    refusal: Optional[Literal["NO_ANSWER"]]
+    #: What the source lacks, when the field is NO_ANSWER.
+    missing: Optional[str]
+    #: The passage the value was read from, redacted.
+    source_excerpt: Optional[str]
+    #: Every AI-proposed value carries provenance agent (rank 40, Section 3.8).
+    provenance: Literal["agent"]
+
+
+class AiSuggestionField(_AiSuggestionFieldRequired, total=False):
+    """One proposed field of an AI suggestion."""
+
+    #: Proposed value as JSON; null when the field is NO_ANSWER.
+    proposed_value: Any
+
+
+class _AiSuggestionConfirmRequestRequired(TypedDict):
+    #: Why, recorded in the suggestion ledger.
+    reason: str
+
+
+class AiSuggestionConfirmRequest(_AiSuggestionConfirmRequestRequired, total=False):
+    """Confirmation of an AI suggestion."""
+
+    #: Field values to send instead of, or in addition to, the proposed ones: corrections the person made and context ids such as `document_id`.
+    values: Dict[str, Any]
+
+
+class AiSuggestionRejectRequest(TypedDict):
+    """Rejection of an AI suggestion."""
+
+    #: Why, recorded in the suggestion ledger.
+    reason: str
+
+
+class AiSuggestionApplyRequest(TypedDict):
+    """The record a confirmed suggestion wrote."""
+
+    #: Identifier of the record the public API wrote or updated.
+    applied_id: str
+    #: What was written.
+    reason: str
+
+
+class AiSuggestionReopenRequest(TypedDict):
+    """Why the write was refused."""
+
+    #: Why, recorded in the suggestion ledger.
+    reason: str
+
+
+class AiRequestPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AiRequest]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AiRequest(TypedDict):
+    """One Aurora model call: who asked, for which feature, with which configured model, and the prompt and output with personal data redacted. Restricted fields and medical records are never in it."""
+
+    #: Identifier of the ai request.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the person who asked.
+    person_id: str
+    feature: AiFeature
+    #: Model identifier from configuration.
+    model: str
+    #: Table of the record the request was about.
+    subject_table: Optional[str]
+    #: Identifier of the record the request was about.
+    subject_id: Optional[str]
+    outcome: AiRequestOutcome
+    #: Prompt as sent, redacted.
+    prompt_redacted: Optional[str]
+    #: Model output, redacted.
+    output_redacted: Optional[str]
+    #: Why a Failed request failed.
+    failure_code: Optional[str]
+    #: When the request finished.
+    completed_at: Optional[str]
+
+
+class AiUsagePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AiUsage]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AiUsage(TypedDict):
+    """Aurora metering (ADR 0020): one row per authorized request. The monthly allowance aurora_requests_per_month counts these rows by UTC month."""
+
+    #: Identifier of the ai usage.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the AI request metered.
+    request_id: str
+    #: When the request was authorized and counted.
+    metered_at: str
+    #: Input tokens the model reported.
+    input_tokens: Optional[int]
+    #: Output tokens the model reported.
+    output_tokens: Optional[int]
+
+
 class SavedViewSharePage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -19124,3 +19494,12 @@ ImportRowState = Literal["Valid", "Invalid", "Written", "Refused", "Skipped"]
 
 #: Document type a spend limit applies to.
 SpendDocumentType = Literal["Purchase Order", "Change Order", "Expense", "Invoice Approval", "Contract", "Payroll Run"]
+
+#: An Aurora AI feature (Section 4.7).
+AiFeature = Literal["assistant", "plain_language", "extraction", "drafting", "summaries", "mapping"]
+
+#: Proposed and waiting for the person who asked, Confirmed by them, Applied once the public API accepted the write, Rejected, or Expired unanswered.
+AiSuggestionState = Literal["Proposed", "Confirmed", "Applied", "Rejected", "Expired"]
+
+#: How a model call ended. No Answer is the silence rule (Section 3.7).
+AiRequestOutcome = Literal["Pending", "Answered", "No Answer", "Failed"]

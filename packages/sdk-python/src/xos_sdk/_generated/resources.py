@@ -65,9 +65,20 @@ if TYPE_CHECKING:
         AgreementCreate,
         AgreementPage,
         AgreementUpdate,
+        AiRequest,
+        AiRequestPage,
         AiSettings,
         AiSettingsPage,
+        AiSettingsSaveRequest,
         AiSettingsUpdate,
+        AiSuggestion,
+        AiSuggestionApplyRequest,
+        AiSuggestionConfirmRequest,
+        AiSuggestionPage,
+        AiSuggestionRejectRequest,
+        AiSuggestionReopenRequest,
+        AiUsage,
+        AiUsagePage,
         ApiKey,
         ApiKeyCreate,
         ApiKeyPage,
@@ -121,6 +132,15 @@ if TYPE_CHECKING:
         AssetUnitUpdate,
         AuditEvent,
         AuditEventPage,
+        AuroraAskRequest,
+        AuroraBindCodeRequest,
+        AuroraDraftRequest,
+        AuroraExtractRequest,
+        AuroraFilterRequest,
+        AuroraMapColumnsRequest,
+        AuroraResult,
+        AuroraStatus,
+        AuroraSummarizeRequest,
         AvailabilityBlock,
         AvailabilityBlockCreate,
         AvailabilityBlockPage,
@@ -28011,6 +28031,22 @@ class AiSettingsResource(Resource):
         """
         return self._client.request(OPERATIONS["aiSettings.update"], path={"id": id}, body=body, if_match=if_match, options=options)
 
+    def save(
+        self,
+        body: AiSettingsSaveRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AiSettings]:
+        """Save the AI feature switches
+
+        Creates or updates the caller's org switches in one call (org.ai.write). Turning a feature on while the plan lacks aurora_ai is a 422 refusal, aurora_not_in_plan. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /ai-settings/save`` (operation ``aiSettings.save``).
+        Requires the capability ``org.ai.write``.
+        """
+        return self._client.request(OPERATIONS["aiSettings.save"], body=body, idempotency_key=idempotency_key, options=options)
+
 
 class ReportDefinitionsResource(Resource):
     """Operations on ``reportDefinitions``, in the Reports module."""
@@ -31059,6 +31095,365 @@ class GuestListEntriesResource(Resource):
         Requires the capability ``advancing.rider.write``.
         """
         return self._client.request(OPERATIONS["guestListEntries.checkIn"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class AuroraResource(Resource):
+    """Operations on ``aurora``, in the Settings module."""
+
+    def status(
+        self,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraStatus]:
+        """Read what Aurora can do now
+
+        Features the caller may use (turned on by an Admin and included in the plan) and this month's use of the org's allowance. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /aurora/status`` (operation ``aurora.status``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.status"], options=options)
+
+    def ask(
+        self,
+        body: AuroraAskRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraResult]:
+        """Ask the assistant
+
+        Answers a question from records the caller can read through this API, citing them. Returns no_answer with what is missing when the records do not support an answer. Changes it proposes are stored as suggestions for confirmation; nothing is written. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/ask`` (operation ``aurora.ask``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.ask"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def filter(
+        self,
+        body: AuroraFilterRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraResult]:
+        """Turn a sentence into a filter
+
+        Builds a filter on one collection from a sentence, shows it as an ADR 0003 query string and proposes a saved view (`savedViews.create`) for confirmation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/filter`` (operation ``aurora.filter``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.filter"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def extract(
+        self,
+        body: AuroraExtractRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraResult]:
+        """Extract a document
+
+        Reads a rider, insurance certificate, invoice, receipt or quote into proposed fields with a confidence each and provenance agent. A price, date or quantity the document does not show is NO_ANSWER. Nothing is written until the caller confirms. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/extract`` (operation ``aurora.extract``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.extract"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def draft(
+        self,
+        body: AuroraDraftRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraResult]:
+        """Draft text
+
+        Drafts an SOP, advance packet, email, day sheet or change order description in the org's verbiage library. Facts the context lacks are marked as gaps, never invented. The draft is returned, not saved or sent. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/draft`` (operation ``aurora.draft``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.draft"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def summarize(
+        self,
+        body: AuroraSummarizeRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraResult]:
+        """Summarize activity
+
+        Summarizes a record's activity, a project's week or gate readiness, citing the items each point comes from. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/summarize`` (operation ``aurora.summarize``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.summarize"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def map_columns(
+        self,
+        body: AuroraMapColumnsRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraResult]:
+        """Suggest import column mappings
+
+        Suggests a target field for each import column. The import wizard shows the suggestions for the caller to accept or change. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/map-columns`` (operation ``aurora.mapColumns``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.mapColumns"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def bind_code(
+        self,
+        body: AuroraBindCodeRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraResult]:
+        """Suggest a catalog binding
+
+        Suggests the catalog element an unknown scanned code identifies, only from the candidates given, and proposes `catalogBindings.create` for confirmation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/bind-code`` (operation ``aurora.bindCode``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.bindCode"], body=body, idempotency_key=idempotency_key, options=options)
+
+
+class AiSuggestionsResource(Resource):
+    """Operations on ``aiSuggestions``, in the Settings module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AiSuggestion]:
+        """List AI suggestion rows
+
+        A change an Aurora feature proposes, waiting for the confirmation of the person who asked. The summary says exactly what will change; nothing is written until they confirm. Returns a cursor page of AI suggestion rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /ai-suggestions`` (operation ``aiSuggestions.list``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request_page(OPERATIONS["aiSuggestions.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AiSuggestion]:
+        """List AI suggestion rows
+
+        A change an Aurora feature proposes, waiting for the confirmation of the person who asked. The summary says exactly what will change; nothing is written until they confirm. Returns a cursor page of AI suggestion rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /ai-suggestions`` (operation ``aiSuggestions.list``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.paginate(OPERATIONS["aiSuggestions.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AiSuggestion]:
+        """Get an AI suggestion
+
+        A change an Aurora feature proposes, waiting for the confirmation of the person who asked. The summary says exactly what will change; nothing is written until they confirm. Returns one AI suggestion with its `ETag`. A AI suggestion the caller may not see returns 404.
+
+        ``GET /ai-suggestions/{id}`` (operation ``aiSuggestions.get``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aiSuggestions.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def confirm(
+        self,
+        id: str,
+        body: AiSuggestionConfirmRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AiSuggestion]:
+        """Confirm an AI suggestion
+
+        Records the confirmation of the person who asked, then performs the named public operation as the caller with the proposed values and any `values` the caller changed or added. On success the suggestion is Applied with the record written. When the operation refuses, the suggestion returns to Proposed and the answer is that 422 refusal. Refused after expiry. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /ai-suggestions/{id}/confirm`` (operation ``aiSuggestions.confirm``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aiSuggestions.confirm"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def reject(
+        self,
+        id: str,
+        body: AiSuggestionRejectRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AiSuggestion]:
+        """Reject an AI suggestion
+
+        Rejects a Proposed suggestion; nothing is written. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /ai-suggestions/{id}/reject`` (operation ``aiSuggestions.reject``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aiSuggestions.reject"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def apply(
+        self,
+        id: str,
+        body: AiSuggestionApplyRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AiSuggestion]:
+        """Record the write of a confirmed suggestion
+
+        Marks a Confirmed suggestion Applied with the record the public API wrote. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /ai-suggestions/{id}/apply`` (operation ``aiSuggestions.apply``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aiSuggestions.apply"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def reopen(
+        self,
+        id: str,
+        body: AiSuggestionReopenRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AiSuggestion]:
+        """Return a confirmed suggestion to Proposed
+
+        Returns a Confirmed suggestion to Proposed when the public API refused the write, naming the refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /ai-suggestions/{id}/reopen`` (operation ``aiSuggestions.reopen``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aiSuggestions.reopen"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class AiRequestsResource(Resource):
+    """Operations on ``aiRequests``, in the Settings module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AiRequest]:
+        """List AI request rows
+
+        One Aurora model call: who asked, for which feature, with which configured model, and the prompt and output with personal data redacted. Restricted fields and medical records are never in it. Returns a cursor page of AI request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /ai-requests`` (operation ``aiRequests.list``).
+        Requires the capability ``audit.log.read``.
+        """
+        return self._client.request_page(OPERATIONS["aiRequests.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AiRequest]:
+        """List AI request rows
+
+        One Aurora model call: who asked, for which feature, with which configured model, and the prompt and output with personal data redacted. Restricted fields and medical records are never in it. Returns a cursor page of AI request rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /ai-requests`` (operation ``aiRequests.list``).
+        Requires the capability ``audit.log.read``.
+        """
+        return self._client.paginate(OPERATIONS["aiRequests.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AiRequest]:
+        """Get an AI request
+
+        One Aurora model call: who asked, for which feature, with which configured model, and the prompt and output with personal data redacted. Restricted fields and medical records are never in it. Returns one AI request with its `ETag`. A AI request the caller may not see returns 404.
+
+        ``GET /ai-requests/{id}`` (operation ``aiRequests.get``).
+        Requires the capability ``audit.log.read``.
+        """
+        return self._client.request(OPERATIONS["aiRequests.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class AiUsageResource(Resource):
+    """Operations on ``aiUsage``, in the Settings module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AiUsage]:
+        """List AI usage rows
+
+        Aurora metering (ADR 0020): one row per authorized request. The monthly allowance aurora_requests_per_month counts these rows by UTC month. Returns a cursor page of AI usage rows the caller may see. The default order is `metered_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /ai-usage`` (operation ``aiUsage.list``).
+        Requires the capability ``org.usage.read``.
+        """
+        return self._client.request_page(OPERATIONS["aiUsage.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AiUsage]:
+        """List AI usage rows
+
+        Aurora metering (ADR 0020): one row per authorized request. The monthly allowance aurora_requests_per_month counts these rows by UTC month. Returns a cursor page of AI usage rows the caller may see. The default order is `metered_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /ai-usage`` (operation ``aiUsage.list``).
+        Requires the capability ``org.usage.read``.
+        """
+        return self._client.paginate(OPERATIONS["aiUsage.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
 
 class SavedViewSharesResource(Resource):
