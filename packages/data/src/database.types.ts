@@ -50146,6 +50146,17 @@ export type Database = {
         Args: { p_error?: string; p_job_id: string; p_succeeded: boolean };
         Returns: Database["app"]["Enums"]["job_status"];
       };
+      finish_report_run: {
+        Args: {
+          p_error?: string;
+          p_outcome: Database["app"]["Enums"]["run_status"];
+          p_row_count?: number;
+          p_run_id: string;
+          p_storage_object_path?: string;
+          p_unpriced_count?: number;
+        };
+        Returns: undefined;
+      };
       finish_stripe_event: {
         Args: { p_error?: string; p_stripe_event_row_id: string };
         Returns: undefined;
@@ -50779,6 +50790,10 @@ export type Database = {
           replayed: boolean;
         }[];
       };
+      report_run_rows: {
+        Args: { p_columns: string[]; p_limit: number; p_run_id: string };
+        Returns: Json[];
+      };
       request_approval: {
         Args: {
           p_document_id: string;
@@ -51077,6 +51092,7 @@ export type Database = {
         };
         Returns: string;
       };
+      start_report_run: { Args: { p_run_id: string }; Returns: undefined };
       store_integration_credential: {
         Args: {
           p_connection_id: string;
