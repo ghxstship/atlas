@@ -10,7 +10,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Main runs finish so the slow visual job can report; branch runs are superseded by newer pushes.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   checks:
@@ -58,9 +59,15 @@ jobs:
         run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --redact --exit-code 1
 
   visual:
-    name: Storybook axe and visual baselines
+    name: Storybook axe and visual baselines (${{ matrix.shard }}/8)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
+    # Every story in four modes across three engines is several thousand tests; one runner cannot
+    # finish them in time, so Playwright shards them.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -72,13 +79,13 @@ jobs:
       - run: pnpm --filter @xos/ui exec playwright install --with-deps chromium firefox webkit
       # Axe (gate 8) blocks from the first run. Until the Linux baselines are committed, missing
       # screenshots are written and uploaded instead of compared (gate 9); remove the env then.
-      - run: pnpm turbo run test:visual --filter=@xos/ui
+      - run: pnpm turbo run test:visual --filter=@xos/ui -- --shard=${{ matrix.shard }}/8
         env:
           VISUAL_UPDATE_SNAPSHOTS: missing
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: visual-baselines
+          name: visual-baselines-${{ matrix.shard }}
           path: packages/ui/test/visual/__screenshots__
           if-no-files-found: ignore
 
