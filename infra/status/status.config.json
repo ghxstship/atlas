@@ -1,0 +1,7 @@
+{
+  "regions": ["us-east"],
+  "components": ["atlas", "gateway", "api", "realtime", "sync", "notifications"],
+  "staleAfterMinutes": 20,
+  "historyDays": 30,
+  "incidentWindowDays": 14
+}

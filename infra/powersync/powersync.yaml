@@ -1,0 +1,33 @@
+# PowerSync service configuration for Compass sync (Section 5: PowerSync open edition, self-hostable;
+# Section 13). One file serves local, staging and production; every secret and address comes from the
+# environment through !env, so nothing secret is ever committed. Runbook: infra/powersync/README.md.
+
+replication:
+  connections:
+    - type: postgresql
+      # Direct (not pooled) connection as powersync_role; logical replication cannot run through
+      # Supavisor. Local: host.docker.internal:56022. Hosted: the project's direct connection string.
+      uri: !env PS_DATA_SOURCE_URI
+      # verify-full for hosted projects; disable only for the local stack.
+      sslmode: !env PS_DATA_SOURCE_SSLMODE
+
+# Bucket storage: a separate Postgres database the service owns (never the XOS database).
+storage:
+  type: postgresql
+  uri: !env PS_STORAGE_URI
+  sslmode: !env PS_STORAGE_SSLMODE
+
+port: 8080
+
+sync_rules:
+  # Mounted read-only from packages/sync/sync-rules.yaml, A17's single source for the rules.
+  path: /config/sync-rules.yaml
+
+client_auth:
+  # Compass sends the person's Supabase session JWT. Keys come from the project's JWKS endpoint.
+  jwks_uri: !env PS_JWKS_URI
+  audience: ["authenticated"]
+
+telemetry:
+  # No usage telemetry leaves the service (Section 14.3 data minimization).
+  disable_telemetry_sharing: true
