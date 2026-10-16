@@ -50050,6 +50050,14 @@ export type Database = {
         };
         Returns: Database["app"]["Enums"]["subscription_state"];
       };
+      take_api_rate_limit: {
+        Args: { p_limit: number; p_window_seconds: number };
+        Returns: {
+          allowed: boolean;
+          remaining: number;
+          reset_seconds: number;
+        }[];
+      };
       track_permit_requirement: {
         Args: { p_requirement_id: string; p_title?: string };
         Returns: string;

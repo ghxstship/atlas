@@ -34,7 +34,7 @@ import type { Authenticate, RequestContext } from "./context.ts";
 import { etagOf } from "./etag.ts";
 import { databaseIdempotencyStore, inProgress, keyReused, requestHash } from "./idempotency.ts";
 import type { IdempotencyStore } from "./idempotency.ts";
-import { createWindowRateLimiter, enforce, rateLimitHeaders } from "./rate-limit.ts";
+import { createSharedRateLimiter, enforce, rateLimitHeaders } from "./rate-limit.ts";
 import type { RateLimiter } from "./rate-limit.ts";
 import type { AnyModuleHandlers, ErasedHandler, ErasedRequest, ErasedResult } from "./handler.ts";
 import { parseQuery } from "./query.ts";
@@ -51,7 +51,7 @@ export interface MountOptions {
   readonly requestId?: () => string;
   /** Idempotency-Key ledger; defaults to A18's `app.idempotency_keys`. `false` turns storage off. */
   readonly idempotency?: IdempotencyStore | false;
-  /** Rate limiter; defaults to 600 requests a minute per caller in this process. */
+  /** Rate limiter; defaults to 600 requests a minute per caller, shared in Postgres (A22-012). */
   readonly rateLimiter?: RateLimiter | false;
 }
 
@@ -321,7 +321,7 @@ function serve(
       if (context === null) throw unauthorized("Send a valid bearer token or session cookie.");
       assertScope(op, context);
       if (limiter !== undefined) {
-        const decision = await limiter.take(`${context.credential}:${context.user.id}`);
+        const decision = await limiter.take(`${context.credential}:${context.user.id}`, context);
         base = { ...base, ...rateLimitHeaders(decision) };
         enforce(decision);
       }
@@ -391,7 +391,7 @@ export function mountHandlers(
   }
   selected.sort(([a], [b]) => compareRoutes(a, b));
   const limiter =
-    options.rateLimiter === false ? undefined : (options.rateLimiter ?? createWindowRateLimiter());
+    options.rateLimiter === false ? undefined : (options.rateLimiter ?? createSharedRateLimiter());
   for (const [op, handler] of selected) {
     app.on(op.method.toUpperCase(), honoPath(op.path), serve(op, handler, options, limiter));
   }
