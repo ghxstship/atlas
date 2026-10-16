@@ -13,7 +13,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "generate:sitemap": "XOS_WRITE_GENERATED=1 vitest run test/routes.test.ts",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "test:a11y": "playwright test -c e2e/a11y/playwright.a11y.config.ts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

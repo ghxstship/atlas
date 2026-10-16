@@ -180,6 +180,14 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
     acceptanceBy: [],
   },
   {
+    slug: "acr-gateway",
+    title: "Accessibility Conformance Report: Gateway",
+    version: "1.0.0-draft",
+    publish: "public",
+    requiresAcceptanceAtSignup: false,
+    acceptanceBy: [],
+  },
+  {
     slug: "information-security-policy",
     title: "Information Security Policy",
     version: "1.0.0-draft",

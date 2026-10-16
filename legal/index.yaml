@@ -235,6 +235,16 @@ documents:
     acceptance_by: []
     material_change: false
     owner_inputs: [6]
+  - slug: acr-gateway
+    title: "Accessibility Conformance Report: Gateway"
+    version: 1.0.0-draft
+    file: legal/accessibility/acr-gateway.md
+    audience: Customers and procurement reviewers
+    publish: public
+    requires_acceptance_at_signup: false
+    acceptance_by: []
+    material_change: false
+    owner_inputs: [6]
   - slug: information-security-policy
     title: Information Security Policy
     version: 1.0.0-draft
