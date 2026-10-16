@@ -7938,6 +7938,18 @@ var opportunities_default$1 = {
     safety: "Safety",
   },
 };
+var peek_default$1 = {
+  loading: "Opening {key}.",
+  missing:
+    "{key} is not a record you can open here. Check the key, or open the record from its project.",
+  unexpected: "{key} could not open. Try again in a moment.",
+  close: "Close",
+  project: "Project",
+  owner: "Owner",
+  unassigned: "Unassigned",
+  due: "Due",
+  openFullHint: "Open the full page for the record's content, comments and activity.",
+};
 var people_default$1 = {
   kinds: {
     person: "Person",
@@ -20208,6 +20220,19 @@ var opportunities_default = {
     safety: "Seguridad",
   },
 };
+var peek_default = {
+  loading: "Abriendo {key}.",
+  missing:
+    "{key} no es un registro que puedas abrir aquí. Revisa la clave o abre el registro desde su proyecto.",
+  unexpected: "No se pudo abrir {key}. Inténtalo de nuevo en un momento.",
+  close: "Cerrar",
+  project: "Proyecto",
+  owner: "Responsable",
+  unassigned: "Sin asignar",
+  due: "Vence",
+  openFullHint:
+    "Abre la página completa para ver el contenido, los comentarios y la actividad del registro.",
+};
 var people_default = {
   kinds: {
     person: "Persona",
@@ -25266,6 +25291,7 @@ var enUS = {
   logistics: logistics_default$1,
   nav: nav_default$1,
   opportunities: opportunities_default$1,
+  peek: peek_default$1,
   people: people_default$1,
   permits: permits_default$1,
   places: places_default$1,
@@ -25307,6 +25333,7 @@ var esUS = {
   logistics: logistics_default,
   nav: nav_default,
   opportunities: opportunities_default,
+  peek: peek_default,
   people: people_default,
   permits: permits_default,
   places: places_default,

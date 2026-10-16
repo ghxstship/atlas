@@ -22,6 +22,7 @@ import enUS_knowledge from "../messages/en-US/knowledge.json" with { type: "json
 import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
+import enUS_peek from "../messages/en-US/peek.json" with { type: "json" };
 import enUS_people from "../messages/en-US/people.json" with { type: "json" };
 import enUS_permits from "../messages/en-US/permits.json" with { type: "json" };
 import enUS_places from "../messages/en-US/places.json" with { type: "json" };
@@ -61,6 +62,7 @@ import esUS_knowledge from "../messages/es-US/knowledge.json" with { type: "json
 import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
+import esUS_peek from "../messages/es-US/peek.json" with { type: "json" };
 import esUS_people from "../messages/es-US/people.json" with { type: "json" };
 import esUS_permits from "../messages/es-US/permits.json" with { type: "json" };
 import esUS_places from "../messages/es-US/places.json" with { type: "json" };
@@ -102,6 +104,7 @@ export const enUS = {
   logistics: enUS_logistics,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
+  peek: enUS_peek,
   people: enUS_people,
   permits: enUS_permits,
   places: enUS_places,
@@ -144,6 +147,7 @@ export const esUS = {
   logistics: esUS_logistics,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
+  peek: esUS_peek,
   people: esUS_people,
   permits: esUS_permits,
   places: esUS_places,
