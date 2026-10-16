@@ -7,10 +7,12 @@ import {
 import { RegionError, Section } from "@/components/page/page";
 import { Tag } from "@/components/ui";
 import { hasArea, tabHref } from "@/lib/engagement";
-import { formatDate, formatDateRange, formatDateTime, todayIso } from "@/lib/format";
+import { formatDate, formatDateRange, formatDateTime, formatMoney, todayIso } from "@/lib/format";
+import { listEngagedGuests, type GuestEntryState } from "@/lib/party";
 import { enumLabelKey } from "@/lib/shell/translate";
-import { toneFor } from "@/lib/states";
+import { toneFor, type Tone } from "@/lib/states";
 import { RowList, TabEmpty } from "./rows";
+import { GuestRequestForm, SettlementResponseForm } from "./party-forms";
 import { DocumentsTab } from "./tabs-common";
 import type { TabProps } from "./tab-context";
 
@@ -187,23 +189,151 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
 }
 
 /**
- * Guest list. No guest-list table exists yet (A10 builds it in 0430 to 0439), so the tab says who
- * to ask and where guests are requested today: the advance packet.
+ * Guest list (A10 0965): the engagement's guests with plus-ones and their state, and the request
+ * form while the operational area is open. The production approves or declines in Atlas.
  */
-export function GuestListTab({ t, engagementKey }: TabProps) {
+export async function GuestListTab({ view, t, locale, engagementKey }: TabProps) {
+  if (!hasArea(view, "operational")) {
+    return (
+      <TabEmpty
+        icon="Lock"
+        sentence={t("gateway.engagement.operationalClosed")}
+        actionLabel={t("gateway.engagement.onboardingAction")}
+        href={tabHref(engagementKey, "engagement.overview")}
+      />
+    );
+  }
+  const guests = await listEngagedGuests(view.ctx.db, view.engagement.id);
+  if (!guests.ok) return <RegionError />;
+  const form = <GuestRequestForm engagementId={view.engagement.id} />;
+  if (guests.data.length === 0) {
+    return (
+      <div className="flex flex-col gap-16">
+        <p className="m-0 text-text-14 text-text-secondary">
+          {t("gateway.engagement.guestList.empty")}
+        </p>
+        <Section title={t("gateway.engagement.guestList.request")}>{form}</Section>
+      </div>
+    );
+  }
+  const total = guests.data.reduce((n, g) => n + 1 + g.plusOnes, 0);
   return (
-    <TabEmpty
-      icon="Ticket"
-      sentence={t("gateway.engagement.guestList.unavailable")}
-      actionLabel={t("gateway.engagement.advanceAction")}
-      href={tabHref(engagementKey, "engagement.advance")}
-    />
+    <div className="flex flex-col gap-16">
+      <RowList
+        label={t("gateway.engagement.guestList.listLabel", { n: total })}
+        items={guests.data.map((g) => ({
+          id: g.id,
+          title: g.guestName,
+          meta: [
+            g.plusOnes > 0 ? t("gateway.engagement.guestList.plusOnes", { n: g.plusOnes }) : null,
+            g.checkedInAt
+              ? t("gateway.engagement.guestList.checkedIn", {
+                  time: formatDateTime(locale, g.checkedInAt),
+                })
+              : null,
+            g.note,
+          ],
+          tag: {
+            label: t(enumLabelKey("guestEntryState", g.state)),
+            tone: guestTone(g.state),
+          },
+        }))}
+      />
+      <Section title={t("gateway.engagement.guestList.request")}>{form}</Section>
+    </div>
   );
 }
 
-/** Settlement: the settlement documents of the engagement (A15 owns the settlement table). */
-export function SettlementTab(props: TabProps) {
-  return <DocumentsTab {...props} kinds={["Settlement"]} />;
+function guestTone(state: GuestEntryState): Tone {
+  if (state === "Declined") return "danger";
+  if (state === "Requested") return "warning";
+  return "success";
+}
+
+/**
+ * Settlement (A15 0991): each settlement once submitted, its lines and the NULL-aware net, with the
+ * accept or dispute form while it waits on the party; then the engagement's settlement documents.
+ */
+export async function SettlementTab(props: TabProps) {
+  const { view, t, locale } = props;
+  const settlements = await readView(view.ctx.db, "settlements", {
+    eq: { engagement_id: view.engagement.id },
+    order: ["submitted_at", "desc"],
+  });
+  if (!settlements.ok) return <RegionError />;
+  const ids = settlements.data.flatMap((s) => (s.id ? [s.id] : []));
+  const lines = await readView(view.ctx.db, "settlement_lines", {
+    in: ["settlement_id", ids],
+    order: ["line_number", "asc"],
+  });
+  if (!lines.ok) return <RegionError />;
+  return (
+    <div className="flex flex-col gap-16">
+      {settlements.data.map((s) => {
+        const currency = s.currency_code ?? "";
+        const net = formatMoney(locale, s.net_minor, currency);
+        return (
+          <Section key={s.id ?? ""} id={`settlement-${s.id}`} title={s.title ?? ""}>
+            <div className="flex flex-wrap items-center gap-8">
+              {s.settlement_state ? (
+                <Tag tone={toneFor(s.settlement_state)}>
+                  {t(enumLabelKey("settlementState", s.settlement_state))}
+                </Tag>
+              ) : null}
+              <span className="text-text-13 text-text-secondary">
+                {[
+                  s.project_name,
+                  s.settled_on ? formatDate(locale, s.settled_on) : null,
+                  s.submitted_at
+                    ? t("gateway.engagement.settlement.submitted", {
+                        date: formatDate(locale, s.submitted_at),
+                      })
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            </div>
+            <RowList
+              label={t("gateway.engagement.settlement.lines", { title: s.title ?? "" })}
+              items={lines.data
+                .filter((l) => l.settlement_id === s.id)
+                .map((l) => {
+                  const amount = formatMoney(locale, l.amount_minor, currency);
+                  const subtracts = l.line_kind === "Deduction" || l.line_kind === "Withholding";
+                  return {
+                    id: l.id ?? "",
+                    title: l.description ?? "",
+                    meta: [
+                      l.line_kind ? t(enumLabelKey("settlementLineKind", l.line_kind)) : null,
+                      amount === null
+                        ? t("gateway.engagement.settlement.unpriced")
+                        : subtracts
+                          ? t("gateway.engagement.settlement.less", { amount })
+                          : amount,
+                    ],
+                  };
+                })}
+            />
+            <p className="m-0 text-text-14 font-medium">
+              {net === null
+                ? t("gateway.engagement.settlement.netUnpriced")
+                : t("gateway.engagement.settlement.net", { amount: net })}
+            </p>
+            {s.settlement_state === "Submitted" && s.id ? (
+              <SettlementResponseForm settlementId={s.id} title={s.title ?? ""} />
+            ) : null}
+          </Section>
+        );
+      })}
+      {settlements.data.length === 0 ? (
+        <p className="m-0 text-text-14 text-text-secondary">
+          {t("gateway.engagement.settlement.none")}
+        </p>
+      ) : null}
+      <DocumentsTab {...props} kinds={["Settlement"]} />
+    </div>
+  );
 }
 
 /** The representative's roster (Section 4.4.2): represented artists and their engagements. */

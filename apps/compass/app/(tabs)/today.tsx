@@ -22,6 +22,7 @@ import {
   ClockButton,
   EmptyState,
   InlineAlert,
+  LiveActivity,
   Screen,
   ShiftCard,
   Text,
@@ -83,6 +84,41 @@ function ClockCard(): ReactElement {
       : clock.snapshot.state === "break"
         ? t("compass.clock.onBreak")
         : t("compass.clock.onShift");
+  if (clock.snapshot.state !== "out") {
+    // On shift: the Live Activity summary with its break toggle and clock out (Section 11.13 Clock).
+    return (
+      <View style={{ gap: theme.space["12"] }}>
+        <LiveActivity
+          testID="clock-live"
+          label={label}
+          elapsed={formatElapsed(workedMs(clock.snapshot, clock.now))}
+          place={geofenceText}
+          nextShift={clock.shift?.job_title ?? t("compass.clock.live.shift")}
+          nextTime={
+            clock.shift
+              ? t("compass.clock.live.ends", {
+                  time: formatTime(clock.shift.ends_at, clock.shift.time_zone),
+                })
+              : ""
+          }
+          onBreak={clock.snapshot.state === "break"}
+          labels={{
+            break: t("compass.clock.startBreak"),
+            endBreak: t("compass.clock.endBreak"),
+            clockOut: t("compass.clock.out"),
+          }}
+          onToggleBreak={() =>
+            void run(clock.snapshot.state === "break" ? "Break End" : "Break Start")
+          }
+          onClockOut={() => void run("Out")}
+        />
+        {clock.forgotten ? (
+          <InlineAlert tone="warning" message={t("compass.clock.forgotten")} />
+        ) : null}
+        {notice ? <InlineAlert testID="clock-notice" tone="info" message={notice} /> : null}
+      </View>
+    );
+  }
   return (
     <View style={{ gap: theme.space["12"] }}>
       <ClockButton

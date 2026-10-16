@@ -51,6 +51,7 @@ import {
   type SearchParams,
 } from "./kit";
 import { RecordView } from "./record";
+import { TrackingSection } from "./tracking";
 import { PageHeader, RefusalNotice, TemplateCollection } from "./ui";
 
 /**
@@ -541,6 +542,16 @@ async function ShipmentRecord({
           />
         ) : null}
       </Section>
+
+      <TrackingSection
+        db={scope.ctx.viewer.db}
+        org={org}
+        orgId={scope.ctx.org.id}
+        shipmentId={s.id}
+        trackingNumber={s.trackingIdentifier}
+        timeZone={s.timeZone}
+        canWrite={canWrite}
+      />
 
       <Section
         id={`dock-${s.id}`}

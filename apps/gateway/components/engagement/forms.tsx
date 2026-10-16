@@ -25,12 +25,12 @@ import {
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-function useCopy(): Translate {
+export function useCopy(): Translate {
   return useTranslations("gateway.engagement.forms") as unknown as Translate;
 }
 
 /** Shared form chrome: field and outcome errors, a success line, refresh on success. */
-function FormShell({
+export function FormShell({
   state,
   pending,
   submitLabel,

@@ -20,7 +20,7 @@ import { useMemo, type ReactElement } from "react";
 import { Pressable, Text as NativeText, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 import { Card, ProgressBar, Tag } from "./layout";
-import { Button, Icon, Text, tid, typography } from "./primitives";
+import { Button, Icon, SegmentedControl, Text, tid, typography } from "./primitives";
 
 /**
  * The Today screen's one button (Section 11.13 Clock): Clock In, On Shift with a timer, Break, Clock Out.
@@ -155,6 +155,9 @@ export function ShiftCard({
 }
 
 export function ScanSheet({
+  mode,
+  modes,
+  onModeChange,
   hint,
   count,
   countLabel,
@@ -176,6 +179,15 @@ export function ScanSheet({
           backgroundColor: theme.color.bgSurface,
         }}
       >
+        {modes && onModeChange && modes.length > 1 ? (
+          <SegmentedControl
+            {...tid(testID, "mode")}
+            label={hint}
+            value={mode}
+            options={modes.map((m) => ({ value: m.value, label: m.label }))}
+            onChange={(v) => onModeChange(v as ScanSheetProps["mode"])}
+          />
+        ) : null}
         <Text tone="secondary">{hint}</Text>
         {last ? (
           <View

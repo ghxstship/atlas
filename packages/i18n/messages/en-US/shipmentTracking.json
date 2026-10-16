@@ -1,0 +1,39 @@
+{
+  "title": "Carrier tracking",
+  "notTracked": "Not tracked yet. Choose the carrier to follow this shipment's scans and delivery here.",
+  "notTrackedReadOnly": "Not tracked. Someone who manages this project's shipments can start tracking.",
+  "noCarriers": "No carrier is connected. Connect UPS, FedEx or DHL in Settings, Integrations, then start tracking here.",
+  "carrier": "Carrier",
+  "number": "Tracking number",
+  "numberValue": "Tracking number {number}",
+  "numberFromShipment": "Leave blank to use the shipment's number, {number}.",
+  "numberHint": "Add the carrier's tracking number, 6 to 40 letters and digits.",
+  "start": "Start tracking",
+  "stop": "Stop tracking",
+  "estimated": "Expected {time}",
+  "delivered": "Delivered {time}",
+  "checked": "Last checked {time}",
+  "notCheckedYet": "The carrier has not been asked yet; scans appear after the next check.",
+  "noScans": "No scans from the carrier yet.",
+  "scans": "Carrier scans, newest first",
+  "status": {
+    "labelCreated": "Label created",
+    "inTransit": "In transit",
+    "outForDelivery": "Out for delivery",
+    "delivered": "Delivered",
+    "exception": "Exception",
+    "returned": "Returned",
+    "unknown": "Not yet known"
+  },
+  "errors": {
+    "carrierRequired": "Choose the carrier that carries this shipment.",
+    "numberFormat": "Tracking numbers are 6 to 40 letters and digits. Check the number and try again.",
+    "tracking_number_required": "Add the carrier tracking number to the shipment, or type it here, before tracking it.",
+    "integration_not_connected": "That carrier connection is not connected. Reconnect it in Settings, Integrations, then try again.",
+    "integration_category_mismatch": "Choose a carrier connection: UPS, FedEx or DHL.",
+    "alreadyTracked": "This shipment is already tracked. Reload the page to see it.",
+    "notFound": "That tracker is no longer open to you. Reload the page to see what is current.",
+    "refused": "The organization's rules did not allow that. Check with whoever manages this project's shipments.",
+    "unexpected": "Something went wrong on our side. Try again in a moment."
+  }
+}

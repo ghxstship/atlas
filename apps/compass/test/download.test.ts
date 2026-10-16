@@ -58,15 +58,24 @@ describe("sources", () => {
   });
 
   it("maps view rows to local rows and drops rows without an id", () => {
-    const projects = sourcesFor("crew").find((s) => s.table === "projects");
-    if (!projects) throw new Error("projects source missing");
-    expect(
-      toLocalRows(projects, [
-        { project_id: "p1", project_name: "Fest", org_id: "o1" },
-        { project_id: "p1", project_name: "Fest", org_id: "o1" },
-        { project_name: "x" },
-      ]),
-    ).toEqual([{ id: "p1", name: "Fest", org_id: "o1" }]);
+    const custody = sourcesFor("crew").find((s) => s.table === "asset_custody");
+    if (!custody) throw new Error("asset custody source missing");
+    const row = {
+      id: "k1",
+      asset_unit_id: "u1",
+      engagement_id: "eng-1",
+      project_id: "p1",
+      held_since: "2027-06-01T12:00:00Z",
+    };
+    expect(toLocalRows(custody, [row, row, { asset_unit_id: "u2" }])).toEqual([
+      {
+        id: "k1",
+        asset_unit_id: "u1",
+        custodian_engagement_id: "eng-1",
+        project_id: "p1",
+        created_at: "2027-06-01T12:00:00Z",
+      },
+    ]);
   });
 });
 
@@ -75,7 +84,7 @@ describe("REST download", () => {
     const store = new MemoryStore();
     const session = new SyncSession(store, crewScope);
     const { client: api, filters } = client({
-      "api_external.engagements": [{ project_id: "proj-1", project_name: "Fest", org_id: "o1" }],
+      "api_external.projects": [{ id: "proj-1", name: "Fest", org_id: "o1" }],
       "api_external.shifts": [
         { id: "s1", engagement_id: "eng-1", project_id: "proj-1" },
         { id: "s-other", engagement_id: "eng-9", project_id: "proj-1" },
@@ -106,9 +115,12 @@ describe("REST download", () => {
     expect(report.failed).toEqual([
       { table: "dock_slots", message: "permission denied for view dock_slots" },
     ]);
-    expect(report.refused).toBe(1);
+    // Another party's shift is refused, and so are the running order and its cue: crew never read them
+    // (api_external.cues serves Clients and artists' own set times).
+    expect(report.refused).toBe(3);
     expect((await store.list("shifts")).map((r) => r.id)).toEqual(["s1"]);
-    expect(await store.get("cues", "c1")).toMatchObject({ project_id: "proj-1" });
+    expect(await store.get("projects", "proj-1")).toMatchObject({ name: "Fest" });
+    expect(await store.get("cues", "c1")).toBeFalsy();
     expect(await store.list("incident_severities")).toEqual([
       {
         id: "ENM-097",

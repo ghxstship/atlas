@@ -138,6 +138,10 @@
       "outsideGeofence": "Clock in at the venue. Move inside the site boundary, then try again.",
       "locationUnknown": "Compass needs your location to clock in on site. Turn on location, then try again.",
       "notRostered": "You have no accepted shift on this project today. Accept a shift in Schedule first."
+    },
+    "live": {
+      "shift": "Current shift",
+      "ends": "Ends {time}"
     }
   },
   "schedule": {
@@ -388,5 +392,75 @@
     "prompt": "Unlock Compass",
     "unlock": "Unlock",
     "failed": "That did not unlock Compass. Try again."
+  },
+  "logistics": {
+    "title": "Logistics",
+    "dock": {
+      "title": "Dock Slots",
+      "empty": "No dock slots on this project today. Slots booked in Atlas appear here.",
+      "zoneUnknown": "Dock",
+      "window": "{start} to {end}",
+      "checkIn": "Check In",
+      "checkedIn": "In at {time}",
+      "queued": "Check-in saved. It sends now, or when you're back online."
+    },
+    "gate": {
+      "title": "Gate Queue",
+      "empty": "No vehicles waiting at the gate.",
+      "waiting": "Waiting since {time}",
+      "release": "Release",
+      "released": "Release saved. It sends now, or when you're back online.",
+      "arrive": "Record Arrival",
+      "recorded": "Arrival saved. It sends now, or when you're back online."
+    },
+    "vehicle": {
+      "label": "Vehicle or trailer",
+      "help": "Plate or trailer number, such as TX 4KL-221.",
+      "required": "Enter the plate or trailer number.",
+      "format": "Use letters, digits, spaces and dashes, up to 40 characters."
+    },
+    "yard": {
+      "title": "Yard Log",
+      "empty": "Nothing logged in the yard yet.",
+      "add": "Add Entry",
+      "entry": "What happened",
+      "required": "Write what happened before adding it.",
+      "added": "Entry saved. It sends now, or when you're back online."
+    },
+    "fulfillments": {
+      "title": "Fulfillments",
+      "empty": "No fulfillments to move on this project.",
+      "reason": "Moved from Compass.",
+      "queued": "Change saved. It sends now, or when you're back online.",
+      "states": {
+        "Proposed": "Proposed",
+        "Active": "Active",
+        "Blocked": "Blocked",
+        "Complete": "Complete",
+        "Canceled": "Canceled"
+      },
+      "moves": {
+        "Proposed": "Back to Proposed",
+        "Active": "Mark Active",
+        "Blocked": "Mark Blocked",
+        "Complete": "Mark Complete",
+        "Canceled": "Cancel"
+      },
+      "kinds": {
+        "Lodging": "Lodging",
+        "Catering": "Catering",
+        "Travel": "Travel",
+        "Amenity": "Amenity"
+      }
+    }
+  },
+  "aurora": {
+    "inputHelp": "Ask in a sentence, such as When is my call time tomorrow?",
+    "notInPlan": "Aurora AI comes with the Core, Pro, Team and Enterprise plans. Ask an Owner to change the plan in Atlas, Settings, Billing and Plan.",
+    "offTitle": "Aurora is off for this org",
+    "limit": "Your org has used all {allowance} requests this month. The allowance resets on the first of next month.",
+    "noAnswer": "The records you can see do not answer this. Ask about a shift, an SOP or the handbook.",
+    "confirmReason": "Confirmed in Compass.",
+    "rejectReason": "Rejected in Compass."
   }
 }

@@ -11,6 +11,7 @@ export {
   type ThemePreference,
   type XosNativeTheme,
 } from "@xos/ui-native/theme";
+export { LiveActivity } from "@xos/ui-native";
 export { Button, Icon, IconButton, SegmentedControl, Switch, Text, TextField } from "./primitives";
 export {
   Badge,

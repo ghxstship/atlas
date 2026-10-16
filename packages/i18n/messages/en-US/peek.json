@@ -1,0 +1,11 @@
+{
+  "loading": "Opening {key}.",
+  "missing": "{key} is not a record you can open here. Check the key, or open the record from its project.",
+  "unexpected": "{key} could not open. Try again in a moment.",
+  "close": "Close",
+  "project": "Project",
+  "owner": "Owner",
+  "unassigned": "Unassigned",
+  "due": "Due",
+  "openFullHint": "Open the full page for the record's content, comments and activity."
+}

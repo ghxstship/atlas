@@ -3,7 +3,13 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "env": ["SUPABASE_URL", "SUPABASE_ANON_KEY", "ATLAS_SITE_URL", "SUPABASE_INBUCKET_URL"]
+      "env": [
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY",
+        "ATLAS_SITE_URL",
+        "GATEWAY_SITE_URL",
+        "SUPABASE_INBUCKET_URL"
+      ]
     },
     "test": {
       "inputs": [

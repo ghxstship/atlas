@@ -15,6 +15,8 @@ const EnvSchema = z.object({
   SUPABASE_ANON_KEY: z.string().min(20),
   /** Public origin of Atlas, used for auth redirect links and the CSRF origin check. */
   ATLAS_SITE_URL: z.url({ protocol: /^https?$/ }),
+  /** Public origin of Gateway, for the advance and signing links Atlas issues (Section 4.4.6). */
+  GATEWAY_SITE_URL: z.url({ protocol: /^https?$/ }).optional(),
   /** Supabase Auth email testing inbox (Inbucket or Mailpit), development and e2e only. */
   SUPABASE_INBUCKET_URL: z.url().optional(),
 });

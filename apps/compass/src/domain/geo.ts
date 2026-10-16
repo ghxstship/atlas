@@ -18,6 +18,27 @@ export interface Geofence {
   readonly boundary: GeoShape;
 }
 
+/**
+ * A stored geofence boundary as a shape. The REST downloader stores GeoJSON objects; PowerSync stores the
+ * text of ST_AsGeoJSON (packages/sync/sync-rules.yaml). Anything that is not a Polygon or MultiPolygon is
+ * null, so a damaged shape is skipped instead of breaking the clock.
+ */
+export function parseGeoShape(value: unknown): GeoShape | null {
+  let shape: unknown = value;
+  if (typeof value === "string") {
+    try {
+      shape = JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof shape !== "object" || shape === null) return null;
+  const { type, coordinates } = shape as { type?: unknown; coordinates?: unknown };
+  return (type === "Polygon" || type === "MultiPolygon") && Array.isArray(coordinates)
+    ? (shape as GeoShape)
+    : null;
+}
+
 export interface LocationFix {
   readonly longitude: number;
   readonly latitude: number;

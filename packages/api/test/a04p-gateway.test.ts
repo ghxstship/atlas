@@ -28,10 +28,26 @@ function world(context = {}) {
   const db = memoryDb(
     {
       "api_external.opportunities": [
-        { ...sample("MarketplaceListing", { id: id(8001), title: "Load-In Stagehands" }) },
+        {
+          ...sample("MarketplaceListing", { id: id(8001), title: "Load-In Stagehands" }),
+          venue_latitude: 25.7617,
+          venue_longitude: -80.1918,
+        },
         {
           ...sample("MarketplaceListing", { id: id(8002), title: "Spotlight Operator" }),
           opportunity_state: "Draft",
+          venue_latitude: 25.7617,
+          venue_longitude: -80.1918,
+        },
+        {
+          ...sample("MarketplaceListing", { id: id(8003), title: "Orlando Riggers" }),
+          venue_latitude: 28.5384,
+          venue_longitude: -81.3789,
+        },
+        {
+          ...sample("MarketplaceListing", { id: id(8004), title: "Unlocated Ushers" }),
+          venue_latitude: null,
+          venue_longitude: null,
         },
       ],
       saved_searches: [seed("SavedSearch", id(8101), { person_id: ME })],
@@ -134,21 +150,57 @@ function world(context = {}) {
 }
 
 describe("marketplace search", () => {
-  it("finds published listings by keyword and refuses distance search", async () => {
+  it("finds published listings by keyword", async () => {
     const { http } = world();
     const all = await http.get("/marketplace/opportunities");
     const page = (await expectContract(await success(all), "marketplace.search")) as {
       data: Row[];
     };
-    expect(page.data.map((r) => r["id"])).toEqual([id(8001)]);
-    expect(page.data[0]?.["distance_km"]).toBeNull();
+    expect(page.data.map((r) => r["id"]).sort()).toEqual([id(8001), id(8003), id(8004)]);
+    expect(page.data.every((r) => r["distance_km"] === null)).toBe(true);
+    expect(page.data.some((r) => "venue_latitude" in r)).toBe(false);
     const found = await http.get("/marketplace/opportunities?q=stage");
     const hits = (await expectContract(await success(found), "marketplace.search")) as {
       data: Row[];
     };
     expect(hits.data).toHaveLength(1);
+  });
+
+  it("measures distance from near and keeps listings without a located venue unmeasured", async () => {
+    const { http } = world();
+    const res = await http.get("/marketplace/opportunities?near=25.77,-80.19");
+    const page = (await expectContract(await success(res), "marketplace.search")) as {
+      data: Row[];
+    };
+    const byId = new Map(page.data.map((r) => [r["id"], r["distance_km"]]));
+    expect(byId.get(id(8001))).toBeLessThan(2);
+    expect(byId.get(id(8003))).toBeGreaterThan(300);
+    expect(byId.get(id(8003))).toBeLessThan(340);
+    expect(byId.get(id(8004))).toBeNull();
+  });
+
+  it("filters by radius and leaves out venues that are not located", async () => {
+    const { http } = world();
     const near = await http.get("/marketplace/opportunities?near=25.77,-80.19&radius_km=10");
-    expect(near.status).toBe(422);
+    const close = (await expectContract(await success(near), "marketplace.search")) as {
+      data: Row[];
+    };
+    expect(close.data.map((r) => r["id"])).toEqual([id(8001)]);
+    const wide = await http.get("/marketplace/opportunities?near=25.77,-80.19&radius_km=400");
+    const both = (await expectContract(await success(wide), "marketplace.search")) as {
+      data: Row[];
+    };
+    expect(both.data.map((r) => r["id"]).sort()).toEqual([id(8001), id(8003)]);
+  });
+
+  it("refuses a radius without a location and a location out of range", async () => {
+    const { http } = world();
+    const radiusOnly = await http.get("/marketplace/opportunities?radius_km=10");
+    expect(radiusOnly.status).toBe(422);
+    expect(await radiusOnly.json()).toMatchObject({ rule: "marketplace.radius_needs_near" });
+    const outOfRange = await http.get("/marketplace/opportunities?near=95,-80.19&radius_km=10");
+    expect(outOfRange.status).toBe(422);
+    expect(await outOfRange.json()).toMatchObject({ rule: "marketplace.near_out_of_range" });
   });
 });
 

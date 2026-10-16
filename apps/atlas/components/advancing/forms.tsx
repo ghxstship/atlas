@@ -689,7 +689,7 @@ export function IssueLinkForm({
   const [state, action, pending] = useActionState(issueLinkAction, INITIAL);
   const [copied, setCopied] = useState(false);
   const id = useId();
-  const path = state.issued ? `/advance/${state.issued.token}` : null;
+  const path = state.issued ? state.issued.url : null;
   return (
     <form onSubmit={submitWith(action)} className="flex flex-col gap-8" noValidate>
       <input type="hidden" name="org" value={org} />

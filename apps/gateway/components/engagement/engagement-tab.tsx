@@ -39,6 +39,7 @@ import {
   TrainingTab,
   TravelTab,
 } from "./tabs-crew";
+import { ReportsTab } from "./tabs-reports";
 import {
   AdvanceTab,
   BidTab,
@@ -52,14 +53,6 @@ type Tab = ComponentType<TabProps>;
 
 const ScheduleTab: Tab = (p) => (
   <RecordsTab {...p} emptyKey="gateway.engagement.schedule.empty" icon="CalendarDays" calendar />
-);
-const ReportsTab: Tab = (p) => (
-  <RecordsTab
-    {...p}
-    kinds={["Report"]}
-    emptyKey="gateway.engagement.reports.empty"
-    icon="FileBarChart"
-  />
 );
 const ActivationScheduleTab: Tab = (p) => (
   <RecordsTab

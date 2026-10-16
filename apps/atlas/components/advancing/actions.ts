@@ -28,6 +28,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { gatewayUrl } from "@/lib/gateway-url";
 import { getOrgContext } from "@/lib/shell/context";
 import { KNOWN_ERRORS } from "./errors";
 
@@ -48,6 +49,8 @@ export interface AdvancingState {
     readonly token: string;
     readonly accessCode: string;
     readonly expiresAt: string;
+    /** The full Gateway URL of the advance link (GATEWAY_SITE_URL), or its path without one. */
+    readonly url: string;
   };
 }
 
@@ -272,7 +275,12 @@ export async function issueLinkAction(_: AdvancingState, form: FormData): Promis
     return { fieldErrors: Object.fromEntries([...fields].map((f) => [f, f])) };
   }
   return done(ctx.org.slug, await issueAdvanceLink(ctx.viewer.db, parsed.data), (link) => ({
-    issued: { token: link.token, accessCode: link.accessCode, expiresAt: link.expiresAt },
+    issued: {
+      token: link.token,
+      accessCode: link.accessCode,
+      expiresAt: link.expiresAt,
+      url: gatewayUrl(`/advance/${link.token}`),
+    },
   }));
 }
 

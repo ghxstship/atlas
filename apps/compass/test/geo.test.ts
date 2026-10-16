@@ -4,6 +4,7 @@ import {
   evaluateGeofence,
   fixQuality,
   haversineM,
+  parseGeoShape,
   samplingPlan,
   shapeContains,
   type Geofence,
@@ -195,5 +196,30 @@ describe("battery budget", () => {
         batterySaver: false,
       }).accuracy,
     ).toBe("balanced");
+  });
+});
+
+describe("stored boundaries", () => {
+  const square = {
+    type: "Polygon",
+    coordinates: [
+      [
+        [-97.74, 30.26],
+        [-97.73, 30.26],
+        [-97.73, 30.27],
+        [-97.74, 30.26],
+      ],
+    ],
+  };
+
+  it("reads GeoJSON objects from REST and GeoJSON text from PowerSync", () => {
+    expect(parseGeoShape(square)).toEqual(square);
+    expect(parseGeoShape(JSON.stringify(square))).toEqual(square);
+  });
+
+  it("skips damaged or non-polygon shapes instead of breaking the clock", () => {
+    expect(parseGeoShape("{not json")).toBeNull();
+    expect(parseGeoShape({ type: "Point", coordinates: [-97.74, 30.26] })).toBeNull();
+    expect(parseGeoShape(null)).toBeNull();
   });
 });
