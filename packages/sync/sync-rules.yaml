@@ -1,101 +1,109 @@
 # PowerSync sync rules for Compass (Section 13, Section 8.7).
 #
-# Every bucket is parameterized by app.sync_scope_grants, a server-maintained table with one row per
+# Every bucket is parameterized by private.sync_scope_grants, a server-maintained table with one row per
 # (person, scope key, scope value). The server computes it from the same helpers RLS uses (memberships,
 # project_ids_with, my_engagement_ids('operational') and the engagement time box), so the device receives
 # exactly what RLS would let the person read, and an external device never holds another party's rows.
 # The device re-checks every row against packages/sync/src/scope.ts before storing it; test/sync-rules.test.ts
 # keeps the two in step.
 #
+# Every name is schema-qualified: PowerSync resolves an unqualified name in public, where none of these live.
+# PowerSync replicates base tables only (never views), so:
+#   * external buckets and the person bucket list their columns, and each list equals the columns of the
+#     api_external projection named beside it in supabase/tests/1022_external_compass_sync_views.test.sql,
+#     which checks every source is a table and every column exists in the table and in that projection;
+#   * geofence shapes come from app.geofences with the boundary as GeoJSON;
+#   * canon lists come from xpms.emergency_code and xpms.std_enumeration by domain.
+# The kiosk roster joins memberships to people, which a sync rule cannot express; it stays on the REST
+# downloader until a replicable source exists.
+#
 # Scope keys: membershipIds, readableProjectIds and orgIds (internal audiences), engagementIds and
 # engagedProjectIds (external audiences, operational area open), personIds (everyone).
 bucket_definitions:
   own_person:
     parameters: >-
-      SELECT scope_value AS person_id FROM sync_scope_grants
+      SELECT scope_value AS person_id FROM private.sync_scope_grants
       WHERE person_user_id = request.user_id() AND scope_key = 'personIds'
     data:
-      - SELECT * FROM credentials WHERE holder_person_id = bucket.person_id
-      - SELECT * FROM incidents WHERE reported_by = bucket.person_id
-      - SELECT * FROM incident_media WHERE created_by = bucket.person_id
+      - SELECT id, project_id, holder_person_id, credential_number, valid_from, valid_to, revoked_at, engagement_id FROM app.credentials WHERE holder_person_id = bucket.person_id
+      - SELECT id, org_id, project_id, incident_number, title, severity_enum_id, zone_id, occurred_at, reported_by, incident_state FROM app.incidents WHERE reported_by = bucket.person_id
+      - SELECT id, org_id, project_id, incident_id, media_uri, captured_at, created_by FROM app.incident_media WHERE created_by = bucket.person_id
 
   internal_membership:
     parameters: >-
-      SELECT scope_value AS membership_id FROM sync_scope_grants
+      SELECT scope_value AS membership_id FROM private.sync_scope_grants
       WHERE person_user_id = request.user_id() AND scope_key = 'membershipIds'
     data:
-      - SELECT * FROM shifts WHERE membership_id = bucket.membership_id
-      - SELECT * FROM shift_swaps WHERE requested_by_membership_id = bucket.membership_id
-      - SELECT * FROM shift_swaps WHERE proposed_membership_id = bucket.membership_id
-      - SELECT * FROM time_entries WHERE membership_id = bucket.membership_id
-      - SELECT * FROM clock_punches WHERE membership_id = bucket.membership_id
-      - SELECT * FROM asset_custody WHERE custodian_membership_id = bucket.membership_id
+      - SELECT * FROM app.shifts WHERE membership_id = bucket.membership_id
+      - SELECT * FROM app.shift_swaps WHERE requested_by_membership_id = bucket.membership_id
+      - SELECT * FROM app.shift_swaps WHERE proposed_membership_id = bucket.membership_id
+      - SELECT * FROM app.time_entries WHERE membership_id = bucket.membership_id
+      - SELECT * FROM app.clock_punches WHERE membership_id = bucket.membership_id
+      - SELECT * FROM app.asset_custody WHERE custodian_membership_id = bucket.membership_id
 
   internal_project:
     parameters: >-
-      SELECT scope_value AS project_id FROM sync_scope_grants
+      SELECT scope_value AS project_id FROM private.sync_scope_grants
       WHERE person_user_id = request.user_id() AND scope_key = 'readableProjectIds'
     data:
-      - SELECT * FROM projects WHERE id = bucket.project_id
-      - SELECT * FROM shifts WHERE project_id = bucket.project_id
-      - SELECT * FROM shift_swaps WHERE project_id = bucket.project_id
-      - SELECT * FROM time_entries WHERE project_id = bucket.project_id
-      - SELECT * FROM clock_punches WHERE project_id = bucket.project_id
-      - SELECT * FROM geofence_shapes WHERE project_id = bucket.project_id
-      - SELECT * FROM day_sheets WHERE project_id = bucket.project_id
-      - SELECT * FROM run_of_show WHERE project_id = bucket.project_id
-      - SELECT * FROM cues WHERE project_id = bucket.project_id
-      - SELECT * FROM incidents WHERE project_id = bucket.project_id
-      - SELECT * FROM incident_media WHERE project_id = bucket.project_id
-      - SELECT * FROM inspections WHERE project_id = bucket.project_id
-      - SELECT * FROM inspection_results WHERE project_id = bucket.project_id
-      - SELECT * FROM credentials WHERE project_id = bucket.project_id
-      - SELECT * FROM access_grid WHERE project_id = bucket.project_id
-      - SELECT * FROM access_scans WHERE project_id = bucket.project_id
-      - SELECT * FROM scan_intake WHERE project_id = bucket.project_id
-      - SELECT * FROM dock_slots WHERE project_id = bucket.project_id
-      - SELECT * FROM radio_channels WHERE project_id = bucket.project_id
+      - SELECT * FROM app.projects WHERE id = bucket.project_id
+      - SELECT * FROM app.shifts WHERE project_id = bucket.project_id
+      - SELECT * FROM app.shift_swaps WHERE project_id = bucket.project_id
+      - SELECT * FROM app.time_entries WHERE project_id = bucket.project_id
+      - SELECT * FROM app.clock_punches WHERE project_id = bucket.project_id
+      - SELECT * FROM app.day_sheets WHERE project_id = bucket.project_id
+      - SELECT * FROM app.run_of_show WHERE project_id = bucket.project_id
+      - SELECT * FROM app.cues WHERE project_id = bucket.project_id
+      - SELECT * FROM app.incidents WHERE project_id = bucket.project_id
+      - SELECT * FROM app.incident_media WHERE project_id = bucket.project_id
+      - SELECT * FROM app.inspections WHERE project_id = bucket.project_id
+      - SELECT * FROM app.inspection_results WHERE project_id = bucket.project_id
+      - SELECT * FROM app.credentials WHERE project_id = bucket.project_id
+      - SELECT * FROM app.access_grid WHERE project_id = bucket.project_id
+      - SELECT * FROM app.access_scans WHERE project_id = bucket.project_id
+      - SELECT * FROM app.scan_intake WHERE project_id = bucket.project_id
+      - SELECT * FROM app.dock_slots WHERE project_id = bucket.project_id
+      - SELECT * FROM app.radio_channels WHERE project_id = bucket.project_id
 
   internal_org:
     parameters: >-
-      SELECT scope_value AS org_id FROM sync_scope_grants
+      SELECT scope_value AS org_id FROM private.sync_scope_grants
       WHERE person_user_id = request.user_id() AND scope_key = 'orgIds'
     data:
-      - SELECT * FROM inspection_templates WHERE org_id = bucket.org_id
-      - SELECT * FROM inspection_items WHERE org_id = bucket.org_id
-      - SELECT * FROM asset_units WHERE org_id = bucket.org_id
-      - SELECT * FROM asset_identifiers WHERE org_id = bucket.org_id
-      - SELECT * FROM asset_custody WHERE org_id = bucket.org_id
-      - SELECT * FROM sops WHERE org_id = bucket.org_id
-      - SELECT * FROM zones WHERE org_id = bucket.org_id
-      - SELECT * FROM kiosk_roster WHERE org_id = bucket.org_id
+      - SELECT * FROM app.inspection_templates WHERE org_id = bucket.org_id
+      - SELECT * FROM app.inspection_items WHERE org_id = bucket.org_id
+      - SELECT * FROM app.asset_units WHERE org_id = bucket.org_id
+      - SELECT * FROM app.asset_identifiers WHERE org_id = bucket.org_id
+      - SELECT * FROM app.asset_custody WHERE org_id = bucket.org_id
+      - SELECT * FROM app.sops WHERE org_id = bucket.org_id
+      - SELECT * FROM app.zones WHERE org_id = bucket.org_id
+      - SELECT id, org_id, venue_id, zone_id, name, ST_AsGeoJSON(boundary) AS boundary_geojson FROM app.geofences AS geofence_shapes WHERE org_id = bucket.org_id AND deleted_at IS NULL
 
   external_engagement:
     parameters: >-
-      SELECT scope_value AS engagement_id, audience FROM sync_scope_grants
+      SELECT scope_value AS engagement_id, audience FROM private.sync_scope_grants
       WHERE person_user_id = request.user_id() AND scope_key = 'engagementIds'
     data:
-      - SELECT * FROM shifts WHERE engagement_id = bucket.engagement_id
-      - SELECT * FROM time_entries WHERE engagement_id = bucket.engagement_id
-      - SELECT * FROM clock_punches WHERE engagement_id = bucket.engagement_id
-      - SELECT * FROM asset_custody WHERE custodian_engagement_id = bucket.engagement_id AND bucket.audience IN ('crew', 'staff')
-      - SELECT * FROM credentials WHERE engagement_id = bucket.engagement_id AND bucket.audience IN ('artist', 'artist-representative')
-      - SELECT * FROM dock_slots WHERE engagement_id = bucket.engagement_id AND bucket.audience = 'vendor'
+      - SELECT id, engagement_id, project_id, scope_node_id, role_code, starts_at, ends_at, time_zone, shift_state FROM app.shifts WHERE engagement_id = bucket.engagement_id AND shift_state != 'Draft'
+      - SELECT id, engagement_id, project_id, shift_id, clock_in, clock_out, break_minutes, source FROM app.time_entries WHERE engagement_id = bucket.engagement_id
+      - SELECT id, engagement_id, project_id, shift_id, time_entry_id, punch_kind, device_time, effective_at, geofence_verified, skew_flagged, source FROM app.clock_punches WHERE engagement_id = bucket.engagement_id
+      - SELECT id, asset_unit_id, custodian_engagement_id, project_id, created_at FROM app.asset_custody WHERE custodian_engagement_id = bucket.engagement_id AND bucket.audience IN ('crew', 'staff')
+      - SELECT id, project_id, holder_person_id, credential_number, valid_from, valid_to, revoked_at, engagement_id FROM app.credentials WHERE engagement_id = bucket.engagement_id AND bucket.audience IN ('artist', 'artist-representative')
+      - SELECT id, project_id, zone_id, shipment_id, starts_at, ends_at, engagement_id FROM app.dock_slots WHERE engagement_id = bucket.engagement_id AND bucket.audience = 'vendor'
 
   external_project:
     parameters: >-
-      SELECT scope_value AS project_id, audience FROM sync_scope_grants
+      SELECT scope_value AS project_id, audience FROM private.sync_scope_grants
       WHERE person_user_id = request.user_id() AND scope_key = 'engagedProjectIds'
     data:
-      - SELECT * FROM projects WHERE id = bucket.project_id
-      - SELECT * FROM geofence_shapes WHERE project_id = bucket.project_id
-      - SELECT * FROM radio_channels WHERE project_id = bucket.project_id
-      - SELECT * FROM day_sheets WHERE project_id = bucket.project_id AND bucket.audience IN ('crew', 'staff', 'artist', 'artist-representative', 'client')
-      - SELECT * FROM run_of_show WHERE project_id = bucket.project_id AND bucket.audience IN ('crew', 'staff', 'artist', 'artist-representative', 'client')
-      - SELECT * FROM cues WHERE project_id = bucket.project_id AND bucket.audience IN ('crew', 'staff', 'artist', 'artist-representative', 'client')
+      - SELECT id, org_id, name, time_zone, venue_id FROM app.projects WHERE id = bucket.project_id
+      - SELECT id, project_id, channel_number, name, zone_id FROM app.radio_channels WHERE project_id = bucket.project_id
+      - SELECT id, project_id, day, body FROM app.day_sheets WHERE project_id = bucket.project_id AND bucket.audience IN ('crew', 'staff', 'artist', 'artist-representative', 'client')
+      - SELECT id, project_id, name, show_date FROM app.run_of_show WHERE project_id = bucket.project_id AND bucket.audience = 'client'
+      - SELECT id, run_of_show_id, position, label, planned_at, duration, called_at, project_id FROM app.cues WHERE project_id = bucket.project_id AND bucket.audience = 'client'
 
   canon_reference:
     data:
-      - SELECT * FROM emergency_codes
-      - SELECT * FROM incident_severities
-      - SELECT * FROM inspection_result_values
+      - SELECT code AS id, label, emergency, swatch, sort_order FROM xpms.emergency_code AS emergency_codes
+      - SELECT record_id AS id, enum_code AS code, enum_label AS label, sort_order, color_code FROM xpms.std_enumeration AS incident_severities WHERE enum_domain = 'Incident Severity'
+      - SELECT record_id AS id, enum_code AS code, enum_label AS label, sort_order FROM xpms.std_enumeration AS inspection_result_values WHERE enum_domain = 'Inspection Result'
