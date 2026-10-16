@@ -15,7 +15,21 @@ export interface KnownProblem {
   readonly roles?: readonly string[];
 }
 
-export const KNOWN_PROBLEMS: readonly KnownProblem[] = [];
+export const KNOWN_PROBLEMS: readonly KnownProblem[] = [
+  { finding: "A23-011", pattern: /^focus: first stop is .*, not a skip link$/ },
+  {
+    finding: "A23-015",
+    pattern: /axe scrollable-region-focusable/,
+    routes: ["schedule.timeline", "project.schedule", "projects.portfolio-timeline"],
+    viewports: ["phone-375"],
+    roles: ["owner", "manager", "field"],
+  },
+  {
+    finding: "A23-016",
+    pattern: /^icon control: "Open navigation" has no tooltip$/,
+    viewports: ["phone-375"],
+  },
+];
 
 export interface Triage {
   readonly open: string[];

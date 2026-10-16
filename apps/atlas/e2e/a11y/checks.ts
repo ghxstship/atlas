@@ -50,8 +50,14 @@ export async function focusProblems(
   { skipLink = true, stops = 6 }: { skipLink?: boolean; stops?: number } = {},
 ): Promise<string[]> {
   const problems: string[] = [];
+  // Start sequential navigation at the top: blur alone keeps the old starting point, so a page that
+  // focused a control further down would make the first Tab look like it focuses nothing.
   await page.evaluate(() => {
-    (document.activeElement as HTMLElement | null)?.blur();
+    const start = document.createElement("span");
+    start.tabIndex = -1;
+    start.dataset["a11yStart"] = "true";
+    document.body.prepend(start);
+    start.focus();
     window.scrollTo(0, 0);
   });
   for (let i = 0; i < stops; i += 1) {
@@ -82,6 +88,7 @@ export async function focusProblems(
     }
     if (!stop.visible) problems.push(`focus: no visible indicator on ${stop.tag} "${stop.name}"`);
   }
+  await page.evaluate(() => document.querySelector("[data-a11y-start]")?.remove());
   return problems;
 }
 
