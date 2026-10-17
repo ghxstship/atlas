@@ -32,6 +32,7 @@ const DYNAMIC = [
   "incident-type-",
   "shift-",
   "batch-",
+  "incident-voice-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

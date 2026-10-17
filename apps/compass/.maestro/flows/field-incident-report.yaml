@@ -1,5 +1,5 @@
 appId: pro.ghxstship.compass
-name: Journeys 16 and 54, report an incident in three steps with photos, filed once
+name: Journeys 16 and 54, report an incident in three steps with photos and a voice note, filed once
 ---
 # Offline: run with the device offline up to "incident-filed" (on an Android emulator setAirplaneMode;
 # on an iOS simulator cut the server instead, for example by stopping the local stack's API gateway),
@@ -39,6 +39,26 @@ name: Journeys 16 and 54, report an incident in three steps with photos, filed o
 - tapOn:
     id: "photo-take"
 - assertVisible: "2 attached"
+# A voice note: hold to record, play it back; a second one is recorded and deleted (SIM-003). Grant the
+# microphone first; the simulator records from the Mac's input.
+- longPressOn:
+    id: "incident-voice-record"
+- extendedWaitUntil:
+    visible:
+      id: "incident-voice-note-0"
+    timeout: 5000
+- tapOn:
+    id: "incident-voice-play-0"
+- longPressOn:
+    id: "incident-voice-record"
+- extendedWaitUntil:
+    visible:
+      id: "incident-voice-note-1"
+    timeout: 5000
+- tapOn:
+    id: "incident-voice-delete-1"
+- assertNotVisible:
+    id: "incident-voice-note-1"
 - tapOn:
     id: "incident-submit"
 - extendedWaitUntil:
@@ -55,4 +75,4 @@ name: Journeys 16 and 54, report an incident in three steps with photos, filed o
     env:
       EMAIL: tech@example.com
       TITLE: "Guest slipped near Gate A"
-- assertTrue: ${output.filed.status == 200 && output.filed.incidents == 1 && output.filed.photos == 2}
+- assertTrue: ${output.filed.status == 200 && output.filed.incidents == 1 && output.filed.photos == 2 && output.filed.voiceNotes == 1}

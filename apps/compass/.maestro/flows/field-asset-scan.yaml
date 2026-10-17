@@ -1,0 +1,20 @@
+appId: pro.ghxstship.compass
+name: SIM-006, a Field member's asset scan resolves the gear in their custody
+---
+# AUD-0042 (GTIN 09501101530003, seed 0217) is in the Demo Field Lead's custody, so the Field Lead reads the
+# unit (migration 1111) and the scan resolves instead of reading "Unknown code". Runs before
+# desk-asset-custody, which moves the unit through the gear desk.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- tapOn:
+    id: "tab-scan"
+- tapOn:
+    id: "scan-mode-asset"
+- tapOn:
+    id: "scan-manual"
+- inputText: "09501101530003"
+- tapOn:
+    id: "scan-manual-submit"
+- assertVisible: "AUD-0042 found"

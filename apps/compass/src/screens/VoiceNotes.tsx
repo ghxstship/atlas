@@ -13,7 +13,7 @@ import {
   useAudioRecorder,
   useAudioRecorderState,
 } from "expo-audio";
-import { useState, type ReactElement } from "react";
+import { useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import { formatNoteLength, keepVoiceNote, type VoiceNote } from "../domain/incidents";
@@ -21,6 +21,26 @@ import { Icon, IconButton, InlineAlert, Text, useTheme } from "../ui";
 
 function message(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+/** How long a stop may take before the recording counts as failed (an audio input that never started). */
+const STOP_TIMEOUT_MS = 3_000;
+
+/** Resolves true when the promise settles in time, false when the time runs out first. */
+function within(promise: Promise<unknown>, ms: number): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => resolve(false), ms);
+    promise.then(
+      () => {
+        clearTimeout(timer);
+        resolve(true);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      },
+    );
+  });
 }
 
 export function VoiceNotes({
@@ -40,34 +60,51 @@ export function VoiceNotes({
   const [problem, setProblem] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
-  const start = async () => {
-    if (recording.isRecording || starting) return;
+  // The start in flight, so a release that comes before the microphone is ready waits for it instead of
+  // leaving a recording running.
+  const starting$ = useRef<Promise<boolean> | null>(null);
+
+  const begin = async (): Promise<boolean> => {
+    const permission = await requestRecordingPermissionsAsync();
+    if (!permission.granted) {
+      setProblem(t("compass.incidents.voice.permissionDenied"));
+      return false;
+    }
+    player.pause();
+    setPlayingId(null);
+    await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+    await recorder.prepareToRecordAsync();
+    recorder.record();
+    return true;
+  };
+
+  const start = () => {
+    if (recorder.isRecording || starting$.current) return;
     setProblem(null);
     setStarting(true);
-    try {
-      const permission = await requestRecordingPermissionsAsync();
-      if (!permission.granted) {
-        setProblem(t("compass.incidents.voice.permissionDenied"));
-        return;
-      }
-      player.pause();
-      setPlayingId(null);
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-      await recorder.prepareToRecordAsync();
-      recorder.record();
-    } catch (error: unknown) {
+    starting$.current = begin().catch((error: unknown) => {
       setProblem(t("compass.incidents.voice.failed", { reason: message(error) }));
-    } finally {
-      setStarting(false);
-    }
+      return false;
+    });
+    void starting$.current.finally(() => setStarting(false));
   };
 
   const stop = async () => {
-    if (!recorder.isRecording) return;
+    const pending = starting$.current;
+    if (!pending) return;
+    const started = await pending;
+    starting$.current = null;
+    if (!started) return;
     try {
       const durationMs = recorder.currentTime * 1000;
-      await recorder.stop();
+      const wasRecording = recorder.isRecording;
+      const stopped = await within(recorder.stop(), STOP_TIMEOUT_MS);
       await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
+      if (!wasRecording || !stopped) {
+        // The audio session refused to start (another app holds the input, or none is available).
+        setProblem(t("compass.incidents.voice.micDidNotStart"));
+        return;
+      }
       const note = keepVoiceNote(recorder.uri, durationMs, new Date().toISOString());
       if (note) onChange([...notes, note]);
       else setProblem(t("compass.incidents.voice.tooShort"));
@@ -112,8 +149,8 @@ export function VoiceNotes({
         accessibilityHint={t("compass.incidents.voice.hint")}
         accessibilityState={{ busy: starting }}
         accessibilityActions={[{ name: "activate" }]}
-        onAccessibilityAction={() => void (live ? stop() : start())}
-        onPressIn={() => void start()}
+        onAccessibilityAction={() => (starting$.current ? void stop() : start())}
+        onPressIn={start}
         onPressOut={() => void stop()}
         style={{
           minHeight: theme.density.touchMin + 8,
