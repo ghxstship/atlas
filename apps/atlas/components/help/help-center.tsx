@@ -1,7 +1,7 @@
 "use client";
 
 import { findRoute } from "@xos/ia";
-import { Button, Drawer, IconButton, Input, Keys } from "@xos/ui";
+import { Button, Drawer, IconButton, InlineAlert, Input, Keys, Skeleton } from "@xos/ui";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -12,7 +12,8 @@ import {
   forNode,
   HELP_LOCALES,
   searchArticles,
-  type Article,
+  type ArticleSummary,
+  type HelpBodies,
   type HelpLocale,
   type Tip,
   type Tour,
@@ -88,6 +89,26 @@ export function HelpCenter({ org }: { org: string }) {
   const [running, setRunning] = useState<{ tour: Tour; step: number } | null>(null);
   const [closedOffers, setClosedOffers] = useState<readonly string[]>([]);
   const [hiddenTips, setHiddenTips] = useState<readonly string[]>([]);
+  const [bodies, setBodies] = useState<HelpBodies | null>(null);
+  const [bodiesFailed, setBodiesFailed] = useState(false);
+
+  // Article bodies load when the panel first opens, not with the page (A24-009).
+  useEffect(() => {
+    if (!open || bodies) return;
+    let live = true;
+    import("@/help/bodies.generated").then(
+      (m) => {
+        if (live) setBodies(m.HELP_BODIES);
+      },
+      (error: unknown) => {
+        console.error(error);
+        if (live) setBodiesFailed(true);
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [open, bodies]);
 
   useEffect(() => installErrorCapture(window), []);
 
@@ -193,10 +214,10 @@ export function HelpCenter({ org }: { org: string }) {
   const specific = pageArticles.filter(
     (a) => nodeId !== null && a.nodes.some((p) => p !== "*" && coversNode(p, nodeId)),
   );
-  const results = searchArticles(articles, query);
+  const results = searchArticles(articles, query, (a) => bodies?.[lang][a.slug]);
   const article = view.kind === "article" ? articles.find((a) => a.slug === view.slug) : undefined;
 
-  const articleList = (list: readonly Article[]) => (
+  const articleList = (list: readonly ArticleSummary[]) => (
     <ul className="m-0 flex list-none flex-col gap-8 p-0">
       {list.map((a) => (
         <li key={a.slug}>
@@ -242,7 +263,13 @@ export function HelpCenter({ org }: { org: string }) {
               <>
                 <h3 className="m-0 text-heading-20 font-semibold">{article.title}</h3>
                 <p className="m-0 text-text-secondary">{article.summary}</p>
-                <ArticleBody blocks={article.body} onArticle={openArticle} />
+                {bodies ? (
+                  <ArticleBody blocks={bodies[lang][article.slug] ?? []} onArticle={openArticle} />
+                ) : bodiesFailed ? (
+                  <InlineAlert tone="danger">{t("bodyFailed")}</InlineAlert>
+                ) : (
+                  <Skeleton />
+                )}
               </>
             ) : (
               <p className="m-0">{t("noArticles")}</p>

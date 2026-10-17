@@ -14,8 +14,9 @@
  *
  * Articles are written in a small Markdown subset (## and ### headings, paragraphs, - and 1. lists,
  * **bold**, `code` and [links](href), where `help:<slug>` links to another article). The generator
- * test (test/help.test.ts, XOS_WRITE_GENERATED=1) parses everything into content.generated.ts, which
- * the help panel renders without HTML strings. Every article exists in every locale. A20's apps/docs
+ * test (test/help.test.ts, XOS_WRITE_GENERATED=1) parses everything into content.generated.ts (the
+ * index: articles without bodies, tours, tips and What's New) and bodies.generated.ts (article
+ * bodies), which the help panel loads only when it opens (A24-009) and renders without HTML strings. Every article exists in every locale. A20's apps/docs
  * help center reads the same files.
  */
 
@@ -65,6 +66,20 @@ export interface WhatsNewEntry {
   readonly date: string;
   readonly article: string | null;
 }
+
+/** An article without its body, as the help index carries it. */
+export type ArticleSummary = Omit<Article, "body">;
+
+/** What the shell loads with every page: everything but the article bodies. */
+export interface HelpIndex {
+  readonly articles: Readonly<Record<HelpLocale, readonly ArticleSummary[]>>;
+  readonly tours: readonly Tour[];
+  readonly tips: readonly Tip[];
+  readonly whatsNew: readonly WhatsNewEntry[];
+}
+
+/** Article bodies by locale and slug, loaded when the help panel opens. */
+export type HelpBodies = Readonly<Record<HelpLocale, Readonly<Record<string, readonly Block[]>>>>;
 
 export interface HelpContent {
   readonly articles: Readonly<Record<HelpLocale, readonly Article[]>>;
@@ -135,24 +150,34 @@ export function coversNode(pattern: string, nodeId: string): boolean {
  * The articles for a page: those naming the node (or a prefix of it) first, in their order, then the
  * general articles ("*"). An unknown page gets the general articles only.
  */
-export function articlesForNode(articles: readonly Article[], nodeId: string | null): Article[] {
+export function articlesForNode<A extends ArticleSummary>(
+  articles: readonly A[],
+  nodeId: string | null,
+): A[] {
   const specific = articles.filter(
     (a) => nodeId !== null && a.nodes.some((p) => p !== "*" && coversNode(p, nodeId)),
   );
   const general = articles.filter((a) => a.nodes.includes("*") && !specific.includes(a));
-  const byOrder = (x: Article, y: Article) => x.order - y.order;
+  const byOrder = (x: A, y: A) => x.order - y.order;
   return [...specific.sort(byOrder), ...general.sort(byOrder)];
 }
 
-/** Case-insensitive search over titles, summaries and body text. */
-export function searchArticles(articles: readonly Article[], query: string): Article[] {
+/**
+ * Case-insensitive search over titles, summaries and, once the bodies are loaded, body text.
+ * `bodyOf` returns an article's body, or nothing while the bodies are still loading.
+ */
+export function searchArticles<A extends ArticleSummary>(
+  articles: readonly A[],
+  query: string,
+  bodyOf: (a: A) => readonly Block[] | undefined = (a) => (a as Partial<Article>).body,
+): A[] {
   const needle = query.trim().toLowerCase();
   if (needle === "") return [];
-  const text = (a: Article) =>
+  const text = (a: A) =>
     [
       a.title,
       a.summary,
-      ...a.body.flatMap((b) =>
+      ...(bodyOf(a) ?? []).flatMap((b) =>
         "v" in b ? [b.v] : "c" in b ? b.c.map((i) => i.v) : b.items.flat().map((i) => i.v),
       ),
     ]

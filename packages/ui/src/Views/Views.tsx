@@ -29,7 +29,7 @@ import { RecordKindGlyph } from "../Glyphs/Glyphs.tsx";
 import { PropertyChip, RecordKindChip, chipClass } from "../Chips/Chips.tsx";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
 import { Money } from "../Forms/Forms.tsx";
-import { Sparkline } from "../Charts/Charts.tsx";
+import { Sparkline } from "../Charts/Sparkline.tsx";
 
 export type RecordRowProps = ReferenceRecordRowProps & {
   /** X toggles selection of the focused row. */

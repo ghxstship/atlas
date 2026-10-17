@@ -40,6 +40,23 @@ export function translator(locale: Locale, namespace: "docs" | "help" = "docs"):
   return (key, vars) => format(lookup(tree, key), vars);
 }
 
+/**
+ * Flat `ui` messages for @xos/ui, which ships only en-US (A24-009); other locales pass theirs
+ * through XOSProvider.
+ */
+export function uiMessages(locale: Locale): Record<string, string> | undefined {
+  if (locale === DEFAULT_LOCALE) return undefined;
+  const out: Record<string, string> = {};
+  const walk = (value: unknown, prefix: string) => {
+    if (typeof value === "string") out[prefix] = value;
+    else if (typeof value === "object" && value !== null) {
+      for (const [k, v] of Object.entries(value)) walk(v, prefix ? `${prefix}.${k}` : k);
+    }
+  };
+  walk(getMessages(locale).ui, "");
+  return out;
+}
+
 /** Picks the best supported locale from an Accept-Language header. */
 export function negotiate(header: string | null): Locale {
   const wanted = (header ?? "")

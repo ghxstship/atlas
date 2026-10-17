@@ -15,7 +15,8 @@
     "test": "vitest run --coverage",
     "design:audit": "node --experimental-strip-types --no-warnings src/design-audit-cli.ts",
     "lighthouse": "lhci autorun --config=lighthouse/lighthouserc.cjs",
-    "load:smoke": "sh load/run.sh smoke"
+    "load:smoke": "sh load/run.sh smoke",
+    "budget:js": "node --experimental-strip-types --no-warnings src/bundle-budget-cli.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

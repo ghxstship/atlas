@@ -1,4 +1,4 @@
-import { defaultLocale, isLocale, locales, type Locale } from "@xos/i18n";
+import { defaultLocale, isLocale, locales, type Locale } from "@xos/i18n/locales";
 import { isPseudoLocale, type PseudoLocale } from "./pseudo";
 
 /**

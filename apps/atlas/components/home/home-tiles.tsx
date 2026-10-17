@@ -5,8 +5,8 @@ import type { Route } from "next";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import type { HomeTilesData } from "@/lib/home/data";
-import { useDescribe } from "@/components/activity/activity-feed";
-import { useAlertText } from "./home-views";
+import { useDescribe } from "@/components/activity/describe";
+import { useAlertText } from "./alert-text";
 
 function Tile({
   id,

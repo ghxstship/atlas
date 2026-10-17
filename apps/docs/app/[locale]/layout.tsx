@@ -6,7 +6,7 @@ import { DocsSidebar, type NavGroup } from "@/components/nav.tsx";
 import { AppShell, ThemeSwitch, XOSProvider } from "@/components/ui.tsx";
 import { GUIDE_SECTIONS, guides } from "@/lib/content.ts";
 import type { Locale } from "@/lib/i18n.ts";
-import { LOCALES, isLocale, translator } from "@/lib/i18n.ts";
+import { LOCALES, isLocale, translator, uiMessages } from "@/lib/i18n.ts";
 import { THEME_SCRIPT } from "@/lib/theme.ts";
 import "../globals.css";
 
@@ -62,6 +62,7 @@ export default async function LocaleLayout({
   if (!isLocale(locale)) notFound();
   const t = translator(locale);
   const other = LOCALES.filter((l) => l !== locale);
+  const ui = uiMessages(locale);
   return (
     <html lang={locale} dir="ltr" data-theme="dark" suppressHydrationWarning>
       <head>
@@ -74,7 +75,7 @@ export default async function LocaleLayout({
         >
           {t("skip")}
         </a>
-        <XOSProvider locale={locale}>
+        <XOSProvider locale={locale} {...(ui ? { messages: ui } : {})}>
           <AppShell
             brand={
               <a

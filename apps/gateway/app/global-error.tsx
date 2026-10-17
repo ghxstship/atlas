@@ -1,15 +1,16 @@
 "use client";
 
-import { defaultLocale, getMessages } from "@xos/i18n";
+import { gatewayFatal } from "@xos/i18n/extracts";
+import { defaultLocale } from "@xos/i18n/locales";
 import { useEffect } from "react";
 import "./globals.css";
 
 /**
  * Last-resort boundary when the root layout itself fails. The locale provider is gone with it, so
- * the copy comes straight from the source catalog.
+ * the copy comes from a generated extract of the source catalog (only these strings, A24-009).
  */
 export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
-  const copy = getMessages(defaultLocale).gateway.system.fatal;
+  const copy = gatewayFatal[defaultLocale];
   useEffect(() => {
     console.error(error);
   }, [error]);
