@@ -21,6 +21,7 @@ import {
   type PeopleFormState,
 } from "@/app/[org]/settings/people-actions";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** Catalog lookups with keys built at run time (refusal rules, sections); next-intl types only literals. */
@@ -76,7 +77,12 @@ export function ProfileForm(props: ProfileFormProps) {
   const [state, action, pending] = useActionState(saveProfileAction, INITIAL);
   const p = props.profile;
   return (
-    <form action={action} className="flex max-w-layout-form flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex max-w-layout-form flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={props.org} />
       <Status state={state} />
       <Input
@@ -195,7 +201,11 @@ export function PrivacyForm(props: PrivacyFormProps) {
   const [visibility, setVisibility] = useState(props.visibility);
   const levels = ["Private", "Network", "Public"] as const;
   return (
-    <form action={action} className="flex max-w-layout-form flex-col gap-16">
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex max-w-layout-form flex-col gap-16"
+    >
       <input type="hidden" name="org" value={props.org} />
       <Status state={state} />
       <Select
@@ -268,7 +278,12 @@ export function AddItemForm({
   const t = useCopy("profiles");
   const errors = Object.values(state.fieldErrors ?? {});
   return (
-    <form action={action} className="flex flex-col gap-8" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="kind" value={kind} />
       <div className="flex flex-wrap items-end gap-12">{children}</div>
@@ -297,7 +312,7 @@ export function RemoveItemButton({
   const t = useCopy("profiles");
   const [state, action, pending] = useActionState(removeProfileItemAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-4">
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="id" value={id} />
@@ -327,7 +342,7 @@ export function CarryCertificationButton({
   const t = useCopy("profiles");
   const [state, action, pending] = useActionState(carryCertificationAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-4">
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="holderId" value={holderId} />
       <Button
@@ -355,7 +370,7 @@ export function AutoJoinButton({
   const t = useCopy("profiles");
   const [state, action, pending] = useActionState(autoJoinAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-4">
       <input type="hidden" name="orgId" value={orgId} />
       <input type="hidden" name="slug" value={slug} />
       <Button type="submit" size="sm" variant="primary" loading={pending}>
@@ -388,7 +403,12 @@ export function OrgProfileForm(props: OrgProfileFormProps) {
   const [visibility, setVisibility] = useState(props.profile.visibility);
   const disabled = !props.canEdit;
   return (
-    <form action={action} className="flex max-w-layout-form flex-col gap-16" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex max-w-layout-form flex-col gap-16"
+      noValidate
+    >
       <input type="hidden" name="org" value={props.org} />
       <Status state={state} />
       <Input
@@ -472,7 +492,12 @@ export function InviteLinkForm({ org, roles }: { org: string; roles: readonly Op
   const [state, action, pending] = useActionState(createInviteLinkAction, INITIAL);
   const [copied, setCopied] = useState(false);
   return (
-    <form action={action} className="flex flex-col gap-12" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <div className="flex flex-wrap items-end gap-12">
         <Select
@@ -545,7 +570,7 @@ export function RevokeLinkButton({ org, linkId }: { org: string; linkId: string 
   const t = useCopy("profiles");
   const [state, action, pending] = useActionState(revokeInviteLinkAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-4">
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="linkId" value={linkId} />
       <Button type="submit" size="sm" variant="ghost" loading={pending}>
@@ -570,7 +595,7 @@ export function JoinRequestForm({
   const t = useCopy("profiles");
   const [state, action, pending] = useActionState(decideJoinRequestAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-8">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-8">
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="requestId" value={requestId} />
       <div className="flex flex-wrap items-end gap-8">
@@ -616,7 +641,7 @@ export function OffboardingForm({
   const t = useCopy("profiles");
   const [state, action, pending] = useActionState(offboardingAction, INITIAL);
   return (
-    <form action={action} className="flex flex-col gap-8">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-8">
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="offboardingId" value={offboardingId} />
       <p className="m-0 text-text-13">{t("offboarding.summary", { name, count: openRecords })}</p>

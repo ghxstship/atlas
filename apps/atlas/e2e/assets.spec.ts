@@ -247,15 +247,16 @@ test("a new asset class binds to a canon element", async ({ page }) => {
   await form.getByLabel("Find a canon element").fill("Laser Projector");
   await form.getByRole("button", { name: "Find" }).click();
   await expect(form.getByLabel("Canon element")).toBeVisible();
+  // Find fills the name from the element; type over it only once that has landed.
+  await expect(form.getByLabel("Name")).not.toHaveValue("");
   const name = `Laser Projector ${suffix()}`;
   await form.getByLabel("Name").fill(name);
   await settled(page);
   await form.getByRole("button", { name: "Create class" }).click();
-  // A canon element holds one class per org: the first run creates it, a later run is refused by name.
+  // A canon element holds one class per org: the first run creates it, a later run is refused on
+  // the element.
   await expect(
-    page
-      .getByText(name)
-      .or(form.getByText("That value is already taken in this organization.", { exact: false })),
+    page.getByText(name).or(form.getByText(/already taken|Check Canon element/)),
   ).toBeVisible();
 });
 

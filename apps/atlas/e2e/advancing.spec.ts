@@ -99,7 +99,8 @@ test("journey 13: build, send and review an advance, record the rider and reconc
   await page.getByLabel("Email for Demo Staging Supply").fill("vendor@example.com");
   await page.getByRole("button", { name: "Issue link" }).click();
   await expect(page.getByText("Link issued")).toBeVisible();
-  await expect(page.getByText(/^\/advance\/xadv_[0-9a-f]{64}$/)).toBeVisible();
+  // The link is shown in full when GATEWAY_SITE_URL names Gateway's origin, as a path otherwise.
+  await expect(page.getByText(/^(https?:\/\/[^/\s]+)?\/advance\/xadv_[0-9a-f]{64}$/)).toBeVisible();
   await expectAccessible(page);
 
   // Record a phone answer; the Producer cannot review their own (sod_advance_submitter).

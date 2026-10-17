@@ -14,6 +14,7 @@ import {
   type SimpleState,
 } from "@/lib/actions/marketplace";
 
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** Saves the current Explore filters as a search with alerts (Section 4.4.3, Discovery). */
@@ -41,7 +42,12 @@ export function SaveSearchForm({
     );
   }
   return (
-    <form action={action} className="flex flex-wrap items-end gap-8" aria-label={t("title")}>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-wrap items-end gap-8"
+      aria-label={t("title")}
+    >
       <OutcomeAlert outcome={state.outcome} />
       <input type="hidden" name="roleType" value={roleType} />
       <input type="hidden" name="startsAfter" value={startsAfter} />
@@ -103,6 +109,7 @@ export function ApplyForm(props: ApplyFormProps) {
   return (
     <form
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       className="flex flex-col gap-16"
       noValidate
       aria-label={t("title", { role: props.role })}
@@ -298,7 +305,12 @@ export function ReportListing({
           </>
         }
       >
-        <form id="report-listing" action={action} className="flex flex-col gap-12">
+        <form
+          id="report-listing"
+          action={action}
+          onSubmit={keepInputOnSubmit(action)}
+          className="flex flex-col gap-12"
+        >
           <OutcomeAlert outcome={state.outcome} />
           <input type="hidden" name="opportunityId" value={opportunityId} />
           <label className="flex flex-col gap-4 text-text-13">

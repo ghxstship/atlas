@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useId } from "react";
 import type { OpportunityActionState } from "@/lib/opportunities/action-state";
 
+import { useKeepInput } from "@/components/collection-kit/keep-input";
 /**
  * One declarative form for every Opportunities write (Section 11.10 rule 11: errors say how to fix). Server pages
  * describe the fields; the server action validates, calls the repository and answers with a catalog key. The form keeps
@@ -55,11 +56,13 @@ export function ActionForm({
 }) {
   const t = useTranslations("opportunities") as unknown as Translate;
   const [state, formAction, pending] = useActionState(action, INITIAL);
+  const keep = useKeepInput(state, formAction, (done) => Boolean(done.ok));
   const id = useId();
   const values = state.values ?? {};
   return (
     <form
       action={formAction}
+      {...keep}
       noValidate
       aria-labelledby={title ? `${id}-title` : undefined}
       className={inline ? "flex flex-wrap items-end gap-8" : "flex flex-col gap-12"}

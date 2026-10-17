@@ -6,6 +6,7 @@ import { useActionState, useEffect, useId, useState, useTransition } from "react
 import { useCopy } from "@/components/collection-kit/use-copy";
 import { startTrackingAction, stopTrackingAction, type TrackingState } from "./tracking-actions";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /** Starts carrier tracking on a shipment through one of the org's Connected carriers. */
 export function StartTrackingForm({
   org,
@@ -27,7 +28,12 @@ export function StartTrackingForm({
     if (state.ok) router.refresh();
   }, [state.ok, router]);
   return (
-    <form action={action} aria-label={t("start")} className="flex flex-col gap-8">
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      aria-label={t("start")}
+      className="flex flex-col gap-8"
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="shipmentId" value={shipmentId} />
       <input type="hidden" name="connectionId" value={carrier} />

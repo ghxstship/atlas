@@ -29,7 +29,7 @@ test("the shell navigates from the sitemap: sidebar, command menu, breadcrumbs, 
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(new RegExp(`/${slug}/procurement/purchase-orders$`));
   await expect(page.getByText("No purchase orders yet.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "New PO" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "New purchase order" })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Procurement");
   await expectAccessible(page);
 

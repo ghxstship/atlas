@@ -68,10 +68,11 @@ test("journey 20: log a shipment, check it in at a dock, log it in the yard and 
   await expect(peek.getByText("1 Lighting Console")).toBeVisible();
   await settled(page);
 
-  // Book a dock slot for it; a second booking of the same window is refused.
+  // Book a dock slot for it; a second booking of the same window is refused. The dock picker lists
+  // the zones of the project's venue (NWS is at the venue whose dock is DOCK-1).
   await peek.getByRole("link", { name: "Book dock slot" }).click();
   const book = page.getByRole("dialog", { name: "Book dock slot" });
-  await book.getByLabel("Dock").selectOption({ label: "DOCK-B Loading Dock B" });
+  await book.getByLabel("Dock").selectOption({ label: "DOCK-1 Loading Dock" });
   await book.getByLabel("Starts").fill(`${day}T09:00`);
   await book.getByLabel("Ends").fill(`${day}T10:00`);
   await expectAccessible(page);
@@ -79,7 +80,7 @@ test("journey 20: log a shipment, check it in at a dock, log it in the yard and 
   await expect(book).toBeHidden();
   await page.goto(`/${ORG}/logistics/dock-schedule?create=1&week=2027-03-08`);
   const again = page.getByRole("dialog", { name: "Book dock slot" });
-  await again.getByLabel("Dock").selectOption({ label: "DOCK-B Loading Dock B" });
+  await again.getByLabel("Dock").selectOption({ label: "DOCK-1 Loading Dock" });
   await again.getByLabel("Starts").fill(`${day}T09:30`);
   await again.getByLabel("Ends").fill(`${day}T10:30`);
   await again.getByRole("button", { name: "Book dock slot" }).click();

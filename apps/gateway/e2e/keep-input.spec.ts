@@ -1,0 +1,23 @@
+import { expect, test } from "@playwright/test";
+import { expectAccessible } from "./support";
+
+/**
+ * Input kept after refusal on Gateway. React 19 resets a form after its action finishes; every
+ * Gateway form submits through keepInputOnSubmit (packages/testing form audit), so a refused save
+ * leaves what the person typed in place.
+ */
+test.use({ reducedMotion: "reduce" });
+
+test("input kept after refusal: sign in with a wrong password keeps the email", async ({
+  page,
+}) => {
+  await page.goto("/auth/sign-in?next=%2Fhome");
+  const email = page.locator("#signin-email");
+  await email.fill("crew@example.com");
+  await page.locator("#signin-password").fill("not-the-password");
+  await page.getByRole("button", { name: "Sign in with password" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: /\S/ }).first()).toBeVisible();
+  await expect(email).toHaveValue("crew@example.com");
+  await expect(page).toHaveURL(/\/auth\/sign-in/);
+  await expectAccessible(page);
+});

@@ -24,7 +24,14 @@ test("approvals: the Owner decides the step a purchase order waits on", async ({
   await expectAccessibleInBothThemes(page);
   await settled(page);
   await item.getByRole("button", { name: "Approve step" }).click();
-  await expect(page.getByText("Decision recorded.")).toBeVisible();
+  // The decided approval leaves the waiting list (and its confirmation with it, finding A24-001).
+  await expect(page.getByRole("link", { name: /^Waiting on me 0$/ })).toBeVisible();
+  await expect(
+    page
+      .getByRole("listitem")
+      .filter({ hasText: "Owner sign-off" })
+      .getByText("waiting for a decision"),
+  ).toHaveCount(0);
 });
 
 test("trash: a deleted template comes back", async ({ page }) => {
@@ -34,7 +41,8 @@ test("trash: a deleted template comes back", async ({ page }) => {
   await expectAccessibleInBothThemes(page);
   await settled(page);
   await page.getByRole("button", { name: "Restore Winter Gala Format" }).click();
-  await expect(page.getByText(/Restored 1 item/)).toBeVisible();
+  // The restored row leaves Trash (and its confirmation with it, finding A24-001).
+  await expect(page.getByRole("button", { name: "Restore Winter Gala Format" })).toHaveCount(0);
 });
 
 test("templates: a project is created from the published template", async ({ page }) => {
@@ -57,14 +65,17 @@ test("report builder: build, preview and save a report", async ({ page }) => {
   await signIn(page, "producer@example.com");
   await page.goto(`/${ORG}/reports/builder`);
   await expect(page.getByRole("heading", { name: "Report builder", level: 1 })).toBeVisible();
+  // The name field is controlled; typing before hydration would be discarded.
+  await page.waitForLoadState("networkidle");
   await page.getByLabel("Report name").fill(`Records by state ${Date.now().toString(36)}`);
   await page.getByLabel("Group by").selectOption("record_state");
   await page.getByLabel("Summary").first().selectOption("Count");
   await page.getByRole("button", { name: "Preview" }).click();
   await expect(page.getByRole("table", { name: "Report preview" })).toBeVisible();
-  await expectAccessibleInBothThemes(page);
+  // Save before the theme checks: they reload the page, which drops an unsaved draft.
   await page.getByRole("button", { name: "Save report" }).click();
   await page.waitForURL(/report=/);
+  await expectAccessibleInBothThemes(page);
 });
 
 test("settings: approval policies and state labels", async ({ page }) => {

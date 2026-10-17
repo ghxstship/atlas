@@ -22,6 +22,7 @@ import {
   type Option,
 } from "@/components/finance/kit";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**
  * Client parts of the Reports pages (A15): CSV export of what a report shows (Section 4.6.4: every
  * report exports), the coordinate matrix with drill-through, and the saved report run and share forms.
@@ -99,7 +100,12 @@ export function RunReportForm({
   const t = useNamespaceT("reports");
   const [state, action, pending] = useActionState(runReportAction, {});
   return (
-    <form action={action} className="flex flex-wrap items-end gap-8" aria-label={t("run")}>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-wrap items-end gap-8"
+      aria-label={t("run")}
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="reportDefinitionId" value={reportDefinitionId} />
       <Select
@@ -132,7 +138,12 @@ export function ShareReportForm({
   const f = useFinanceT();
   const [state, action, pending] = useActionState(shareReportAction, {});
   return (
-    <form action={action} className="flex flex-col gap-8" aria-label={t("share")}>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-8"
+      aria-label={t("share")}
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="reportRunId" value={reportRunId} />
       <div className="flex flex-wrap items-end gap-8">

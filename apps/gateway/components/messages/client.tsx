@@ -12,6 +12,7 @@ import {
   type StartThreadState,
 } from "@/lib/actions/messages";
 
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** Marks the open thread read once it renders (read receipts, Section 11.12 Communicate). */
@@ -36,7 +37,12 @@ export function StartConversationForm({ orgs }: { orgs: readonly { id: string; n
   if (orgs.length === 0)
     return <p className="m-0 text-text-13 text-text-secondary">{t("noOrgs")}</p>;
   return (
-    <form action={action} className="flex flex-col gap-12" aria-label={t("title")}>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-12"
+      aria-label={t("title")}
+    >
       {state.fieldError ? <InlineAlert tone="danger">{t("error")}</InlineAlert> : null}
       <OutcomeAlert outcome={state.outcome} />
       <label className="flex flex-col gap-4 text-text-13">

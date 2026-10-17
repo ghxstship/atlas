@@ -14,6 +14,7 @@ import {
 } from "@/lib/collection-kit/collab-actions";
 import { KitSection } from "./kit";
 
+import { keepInputOnSubmit } from "./keep-input";
 /**
  * The comment thread and attachments of one A16 row (A18's unified services). Comments post with
  * Enter-free forms so screen reader users keep control; attachments upload, download through a
@@ -77,7 +78,11 @@ function SmallAction({
     }
   }, [state, onLink]);
   return (
-    <form action={formAction} className="inline-flex flex-col gap-4">
+    <form
+      action={formAction}
+      onSubmit={keepInputOnSubmit(formAction)}
+      className="inline-flex flex-col gap-4"
+    >
       {fields}
       <Button type="submit" size="sm" variant="ghost" loading={pending}>
         {label}
@@ -160,7 +165,13 @@ export function CollabClient({
             ))}
           </ol>
         )}
-        <form ref={commentForm} action={post} className="flex flex-col gap-8" noValidate>
+        <form
+          ref={commentForm}
+          action={post}
+          onSubmit={keepInputOnSubmit(post)}
+          className="flex flex-col gap-8"
+          noValidate
+        >
           <Hidden org={org} table={table} id={id} />
           <Textarea
             id={`${prefix}-body`}
@@ -224,7 +235,13 @@ export function CollabClient({
             ))}
           </ul>
         )}
-        <form ref={uploadForm} action={upload} className="flex flex-col gap-8" noValidate>
+        <form
+          ref={uploadForm}
+          action={upload}
+          onSubmit={keepInputOnSubmit(upload)}
+          className="flex flex-col gap-8"
+          noValidate
+        >
           <Hidden org={org} table={table} id={id} />
           <label htmlFor={`${prefix}-file`} className="text-label-13 font-medium">
             {t("file")}

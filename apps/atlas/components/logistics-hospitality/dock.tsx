@@ -474,7 +474,7 @@ export async function DockSection({
           tabIndex={0}
           className="overflow-x-auto rounded-card border border-border-subtle"
         >
-          <table className="w-full min-w-[56rem] border-collapse text-text-13">
+          <table className="w-full min-w-(--layout-reading) border-collapse text-text-13">
             <caption className="sr-only">
               {t("dock.weekOf", { date: format.date(days[0] ?? "") ?? "" })}
             </caption>

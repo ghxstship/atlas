@@ -6,6 +6,7 @@ import { useState } from "react";
 import { transitionAction } from "@/lib/projects/actions";
 import { ActionError, echoed, fieldError, useClosingAction } from "./action-error";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**
  * Moves a project or its production to another state through the lifecycle RPC (Section 3.12).
  * Only the moves the database's rule table allows from the current state are offered, and every
@@ -58,7 +59,13 @@ export function TransitionDialog({
         </>
       }
     >
-      <form id={id} action={action} className="flex flex-col gap-12" noValidate>
+      <form
+        id={id}
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         <input type="hidden" name="projectKey" value={projectKey} />
         <input type="hidden" name="lifecycle" value={lifecycle} />

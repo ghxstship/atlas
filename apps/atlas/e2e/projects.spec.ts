@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
 
 /**
- * A07 journeys (Section 20.2): 1 (create a project with its jurisdiction), 2 (a gate refused with
+ * A07 journeys (Section 20.2): 1 (create a project with its jurisdiction, then generate its permit
+ * requirements with lead times), 2 (a gate refused with
  * the named criterion, then passed on evidence), 22 (gate 8 blocked by uncleared rights) and 23
  * (closing the project at gate 9), plus the Projects, Home and Activity pages in both themes.
  * Each run signs up a new owner in a new org on the local stack, so runs never collide.
@@ -212,14 +213,27 @@ test("Projects, Home and Activity pages pass axe in the light theme", async ({ p
   }
 });
 
-test.skip("journey 1: generate permit requirements and see lead times", () => {
-  // Blocked on A09: the permit engine's project Safety tab (app.generate_permit_requirements).
+test("journey 1: generate permit requirements from the permit engine and see lead times", async ({
+  page,
+}) => {
+  const slug = await newOwnerOrg(page);
+  await createProject(page, slug, "PRM", "Permit Engine Series");
+  // A09's Safety tab runs the canon permit engine for the project's jurisdiction.
+  await page.goto(`/${slug}/p/PRM/safety`);
+  await expect(page.getByRole("heading", { name: "Permit engine for PRM" })).toBeVisible();
+  await page.getByRole("button", { name: "Generate permit requirements" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: /Added \d+ requirements\./ }),
+  ).toBeVisible();
+  await expect(page.getByText("Special Events Permit")).toBeVisible();
+  await expect(page.getByText(/Lead time \d+-\d+ wks/).first()).toBeVisible();
+  await expectAccessible(page);
+  await page.goto(`/${slug}/p/PRM/safety?view=table`);
+  await expect(page.getByRole("gridcell", { name: /wks$/ }).first()).toBeVisible();
+  await expectAccessible(page);
 });
 
-test.skip("journey 14: schedule records with dependencies, baseline, slip and see the replan", () => {
-  // Blocked on A08: the Schedule pages that create, baseline and slip records. The replan event
-  // (record.replanned) already reaches the Activity feed this file covers.
-});
+// Journey 14 (dependencies, baseline, slip and the logged replan) runs in schedule-work.spec.ts.
 
 test("a project the viewer cannot read answers 404", async ({ page }) => {
   const slug = await newOwnerOrg(page);

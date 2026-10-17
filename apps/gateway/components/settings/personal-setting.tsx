@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect } from "react";
 import { savePersonalSettingAction, type SettingState } from "@/lib/actions/settings";
 
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 export interface PersonalSettingProps {
@@ -33,7 +34,12 @@ export function PersonalSetting(props: PersonalSettingProps) {
   }, [state.saved, router]);
   const id = `setting-${props.settingKey.replaceAll(".", "-")}`;
   return (
-    <form action={action} className="flex flex-col gap-8 py-12" aria-label={props.label}>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-8 py-12"
+      aria-label={props.label}
+    >
       <input type="hidden" name="key" value={props.settingKey} />
       {props.type === "boolean" ? (
         <label

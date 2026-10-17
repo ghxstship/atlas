@@ -28,6 +28,7 @@ import { enumKey, phaseCode } from "@/lib/projects/format";
 import { ActionError, echoed, fieldError, useClosingAction } from "./action-error";
 import { CollectionViews } from "@/components/views/collection-views";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 type ScopeViewType = "tree" | "list" | "matrix";
 
 interface Base {
@@ -248,7 +249,13 @@ function AddNodeDialog({
         </>
       }
     >
-      <form id="add-scope-node" action={action} className="flex flex-col gap-12" noValidate>
+      <form
+        id="add-scope-node"
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <Hidden org={org} projectKey={projectKey} />
         <input type="hidden" name="parentId" value={parent.id} />
         <ActionError state={state} />
@@ -346,7 +353,13 @@ function RenameNodeDialog({
         </>
       }
     >
-      <form id="rename-scope-node" action={action} className="flex flex-col gap-12" noValidate>
+      <form
+        id="rename-scope-node"
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <Hidden org={org} projectKey={projectKey} />
         <input type="hidden" name="nodeId" value={node.id} />
         <ActionError state={state} />
@@ -396,7 +409,7 @@ function RemoveNodeDialog({ org, projectKey, node }: Base & { node: ScopeNode })
         </>
       }
     >
-      <form id="remove-scope-node" action={action}>
+      <form id="remove-scope-node" action={action} onSubmit={keepInputOnSubmit(action)}>
         <Hidden org={org} projectKey={projectKey} />
         <input type="hidden" name="nodeId" value={node.id} />
         <ActionError state={state} />

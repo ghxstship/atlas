@@ -14,6 +14,7 @@ import {
 } from "@/lib/projects/collab-actions";
 import { ActionError, echoed, fieldError } from "./action-error";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /** Comments on a project (Section 19.6): the main thread, newest last, with a composer. */
 export function CommentsPanel({
   org,
@@ -69,7 +70,7 @@ export function CommentsPanel({
                 <p className="m-0 whitespace-pre-wrap text-text-14 text-text-primary">{c.body}</p>
               )}
               {c.authorPersonId === me && !c.deletedAt ? (
-                <form action={remove}>
+                <form action={remove} onSubmit={keepInputOnSubmit(remove)}>
                   <input type="hidden" name="org" value={org} />
                   <input type="hidden" name="projectKey" value={projectKey} />
                   <input type="hidden" name="commentId" value={c.id} />
@@ -83,7 +84,13 @@ export function CommentsPanel({
         </ol>
       )}
       {canPost ? (
-        <form ref={formRef} action={action} className="flex flex-col gap-8" noValidate>
+        <form
+          ref={formRef}
+          action={action}
+          onSubmit={keepInputOnSubmit(action)}
+          className="flex flex-col gap-8"
+          noValidate
+        >
           <input type="hidden" name="org" value={org} />
           <input type="hidden" name="projectKey" value={projectKey} />
           <ActionError state={state} />
@@ -172,7 +179,7 @@ export function AttachmentsPanel({
                     </Button>
                   ) : null}
                   {canUpload ? (
-                    <form action={remove}>
+                    <form action={remove} onSubmit={keepInputOnSubmit(remove)}>
                       <input type="hidden" name="org" value={org} />
                       <input type="hidden" name="projectKey" value={projectKey} />
                       <input type="hidden" name="attachmentId" value={a.id} />
@@ -188,7 +195,13 @@ export function AttachmentsPanel({
         </ul>
       )}
       {canUpload ? (
-        <form ref={formRef} action={action} className="flex flex-wrap items-end gap-8" noValidate>
+        <form
+          ref={formRef}
+          action={action}
+          onSubmit={keepInputOnSubmit(action)}
+          className="flex flex-wrap items-end gap-8"
+          noValidate
+        >
           <input type="hidden" name="org" value={org} />
           <input type="hidden" name="projectKey" value={projectKey} />
           <ActionError state={state} />

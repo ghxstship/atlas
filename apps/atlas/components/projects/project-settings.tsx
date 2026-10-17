@@ -17,6 +17,7 @@ import { ActionError, echoed, useClosingAction } from "./action-error";
 import { ProjectFields, type ProjectFormOptions } from "./create-project";
 import { TransitionDialog } from "./transition-dialog";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 interface Base {
   readonly org: string;
   readonly projectKey: string;
@@ -103,7 +104,12 @@ export function ProjectSettings({
       ) : null}
 
       <Section id="settings-general" title={t("settings.general")} lead={t("settings.generalLead")}>
-        <form action={action} className="flex flex-col gap-12" noValidate>
+        <form
+          action={action}
+          onSubmit={keepInputOnSubmit(action)}
+          className="flex flex-col gap-12"
+          noValidate
+        >
           <Hidden {...base} />
           <ActionError state={state} />
           <ProjectFields
@@ -275,7 +281,13 @@ function AddMemberDialog({
           </>
         }
       >
-        <form id="add-member" action={action} className="flex flex-col gap-12" noValidate>
+        <form
+          id="add-member"
+          action={action}
+          onSubmit={keepInputOnSubmit(action)}
+          className="flex flex-col gap-12"
+          noValidate
+        >
           <Hidden org={org} projectKey={projectKey} />
           <ActionError state={state} />
           <Select
@@ -328,7 +340,7 @@ function EndMemberDialog({ org, projectKey, member }: Base & { member: ProjectMe
         </>
       }
     >
-      <form id={`end-${member.id}`} action={action}>
+      <form id={`end-${member.id}`} action={action} onSubmit={keepInputOnSubmit(action)}>
         <Hidden org={org} projectKey={projectKey} />
         <input type="hidden" name="projectMemberId" value={member.id} />
         <ActionError state={state} />
@@ -343,7 +355,7 @@ function ArchiveDialog({ org, projectKey, archived }: Base & { archived: boolean
   const [state, action, pending] = useClosingAction(archiveProjectAction, () => setOpen(false));
   if (archived) {
     return (
-      <form action={action}>
+      <form action={action} onSubmit={keepInputOnSubmit(action)}>
         <Hidden org={org} projectKey={projectKey} />
         <input type="hidden" name="archived" value="false" />
         <ActionError state={state} />
@@ -372,7 +384,7 @@ function ArchiveDialog({ org, projectKey, archived }: Base & { archived: boolean
           </>
         }
       >
-        <form id="archive-project" action={action}>
+        <form id="archive-project" action={action} onSubmit={keepInputOnSubmit(action)}>
           <Hidden org={org} projectKey={projectKey} />
           <input type="hidden" name="archived" value="true" />
           <ActionError state={state} />

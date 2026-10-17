@@ -52,8 +52,12 @@ async function expectAccessibleInBothThemes(page: Page) {
   await page.reload();
 }
 
+/** A status message, or a toast in the page's Notifications live region (no status role there). */
 const status = (page: Page, text: string | RegExp) =>
-  page.getByRole("status").filter({ hasText: text });
+  page
+    .getByRole("status")
+    .or(page.getByRole("region", { name: "Notifications", exact: true }))
+    .filter({ hasText: text });
 
 /** Creates a working budget on NWS through the UI and opens it; returns its id. */
 async function newBudget(page: Page, name: string): Promise<string> {
@@ -65,11 +69,15 @@ async function newBudget(page: Page, name: string): Promise<string> {
   const id = new URL(page.url()).searchParams.get("peek") ?? "";
   await page.goto(`/${ORG}/finance/budgets?project=${PROJECT}&budget=${id}`);
   await expect(page.getByRole("heading", { name, exact: false }).first()).toBeVisible();
+  // The grid and its sheets are client components; typing before hydration is lost.
+  await page.waitForLoadState("networkidle");
   return id;
 }
 
 /** Adds a line through the Add line sheet; a blank price stays Unpriced. */
 async function addLine(page: Page, description: string, price?: string) {
+  // A refresh still landing from the previous change would re-render the sheet mid-typing.
+  await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Add line" }).click();
   const add = page.getByRole("dialog", { name: "Add line" });
   await add.getByLabel("Description").fill(description);

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { reauthenticate, type FormState } from "@/app/auth/actions";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**
  * Session continuity (Section 11.7). Tokens refresh silently through the proxy; when the session is
  * gone (`/auth/session` answers 401), a sign-in dialog opens over the page, so nothing typed on the
@@ -69,7 +70,13 @@ export function SessionWatcher({ email }: { email: string | null }) {
         </Button>
       }
     >
-      <form id="session-reauth" action={action} className="flex flex-col gap-12" noValidate>
+      <form
+        id="session-reauth"
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         {state.error ? (
           <InlineAlert tone="danger">
             {t(`errors.${state.error}` as "errors.unexpected")}

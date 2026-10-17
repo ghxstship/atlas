@@ -13,6 +13,7 @@ import {
 import type { AssetActionState } from "@/app/[org]/assets/actions";
 import { useAssetsCopy } from "./copy";
 
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 type Action = (state: AssetActionState, form: FormData) => Promise<AssetActionState>;
 
 /** Open state of a collection's create dialog, shared by its header button and empty state. */
@@ -102,7 +103,13 @@ export function ActionDialog({
         </>
       }
     >
-      <form id={formId} action={formAction} className="flex flex-col gap-12" noValidate>
+      <form
+        id={formId}
+        action={formAction}
+        onSubmit={keepInputOnSubmit(formAction)}
+        className="flex flex-col gap-12"
+        noValidate
+      >
         <input type="hidden" name="org" value={org} />
         {Object.entries(hidden ?? {}).map(([name, value]) => (
           <input key={name} type="hidden" name={name} value={value} />
