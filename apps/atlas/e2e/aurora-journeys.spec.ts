@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect as baseExpect, test } from "@playwright/test";
 import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations-support";
 import { expectAccessible } from "./support";
 
@@ -19,7 +19,7 @@ test.use({
   reducedMotion: "reduce",
 });
 test.setTimeout(180_000);
-expect.configure({ timeout: 30_000 });
+const expect = baseExpect.configure({ timeout: 30_000 });
 
 const POLICY = "GL-7731-2027";
 const CERTIFICATE = [
