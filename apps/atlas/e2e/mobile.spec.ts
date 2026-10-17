@@ -13,5 +13,5 @@ test("below md, the bottom bar carries Home, Inbox, Search, My Work and Menu", a
   await expectAccessible(page);
   await bar.getByText("Inbox", { exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/${slug}/inbox$`));
-  await expect(page.getByText("Your inbox is clear.")).toBeVisible();
+  await expect(page.getByText("Nothing needs you right now.")).toBeVisible();
 });
