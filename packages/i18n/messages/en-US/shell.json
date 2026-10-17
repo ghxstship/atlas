@@ -1041,7 +1041,8 @@
       "es-US": "Español (EE. UU.)",
       "en-XA": "Pseudo-locale (accented)",
       "ar-XB": "Pseudo-locale (right to left)"
-    }
+    },
+    "mainNav": "Main"
   },
   "settings": {
     "sections": "Settings sections",

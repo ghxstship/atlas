@@ -51334,6 +51334,14 @@ export type Database = {
           project_role: Database["app"]["Enums"]["project_role"];
         }[];
       };
+      my_subscribable_accounts: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          id: string;
+          name: string;
+          slug: string;
+        }[];
+      };
       open_help_desk_request: {
         Args: {
           p_body: string;
@@ -52236,6 +52244,7 @@ export type Database = {
         Returns: string;
       };
       submit_timesheet: { Args: { p_reason?: string; p_timesheet_id: string }; Returns: string };
+      subscribe_external_account: { Args: { p_account_id: string }; Returns: string };
       survey_results: { Args: { p_survey_id: string }; Returns: Json };
       sync_subscription_from_stripe: {
         Args: {

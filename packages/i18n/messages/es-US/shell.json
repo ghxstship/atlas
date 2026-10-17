@@ -1041,7 +1041,8 @@
       "es-US": "Español (EE. UU.)",
       "en-XA": "Pseudolocalización (acentos)",
       "ar-XB": "Pseudolocalización (derecha a izquierda)"
-    }
+    },
+    "mainNav": "Principal"
   },
   "settings": {
     "sections": "Secciones de ajustes",

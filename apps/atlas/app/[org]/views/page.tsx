@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { listAllSavedViews, listTeams, myMembershipId } from "@xos/data/views";
 import { getTranslations } from "next-intl/server";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/platform/kit";
@@ -8,13 +9,22 @@ import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { collectionLabelKey } from "@/lib/views/collections";
 import { savedViewTarget } from "@/lib/views/target";
+import { SavedViewsLoading } from "./saved-views-loading";
 
 /**
  * Saved views (Section 11.15): every view the viewer can open in the org, theirs to rename, share
  * or delete and the ones shared with them, each linking to `/{org}/views/{viewId}`, which opens it
  * on its collection's page (A35). Row level security decides what is listed and what may change.
  */
-export default async function Page({ params }: PageProps<"/[org]/views">) {
+export default function Page(props: PageProps<"/[org]/views">) {
+  return (
+    <Suspense fallback={<SavedViewsLoading />}>
+      <SavedViews {...props} />
+    </Suspense>
+  );
+}
+
+async function SavedViews({ params }: PageProps<"/[org]/views">) {
   const routeParams = await params;
   const ctx = await requireNode("saved-views", routeParams);
   const [t, label] = await Promise.all([getTranslations("savedViews"), getTranslate()]);

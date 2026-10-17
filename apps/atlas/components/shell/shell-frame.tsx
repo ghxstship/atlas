@@ -232,7 +232,7 @@ export function ShellFrame(props: ShellFrameProps) {
         />
       ) : null}
       <Sidebar
-        label={t("ui.nav.main")}
+        label={t("shell.chrome.mainNav")}
         {...(active ? { active } : {})}
         groups={[
           { items: nav.pinned.map(toItem) },
@@ -294,7 +294,7 @@ export function ShellFrame(props: ShellFrameProps) {
         }
         mobileNav={
           <TabBar
-            label={t("ui.nav.main")}
+            label={t("shell.chrome.mainNav")}
             active={active ?? ""}
             items={nav.bottomBar.map((item) => ({
               label: item.label,

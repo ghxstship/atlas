@@ -11860,6 +11860,7 @@ var shell_default$1 = {
       "en-XA": "Pseudo-locale (accented)",
       "ar-XB": "Pseudo-locale (right to left)",
     },
+    mainNav: "Main",
   },
   settings: {
     sections: "Settings sections",
@@ -27080,6 +27081,7 @@ var shell_default = {
       "en-XA": "Pseudolocalización (acentos)",
       "ar-XB": "Pseudolocalización (derecha a izquierda)",
     },
+    mainNav: "Principal",
   },
   settings: {
     sections: "Secciones de ajustes",
