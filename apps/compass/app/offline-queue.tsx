@@ -116,7 +116,9 @@ export default function OfflineQueue(): ReactElement {
               setOpen(null);
             }}
             onKeepTheirs={() => {
-              void engine?.outbox.resolve(open.id, { action: "discard" });
+              void engine?.outbox
+                .resolve(open.id, { action: "discard" })
+                .then(() => engine.drain());
               setOpen(null);
             }}
             labels={{
