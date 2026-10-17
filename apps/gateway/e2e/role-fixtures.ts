@@ -516,9 +516,22 @@ export async function publishStaffOpportunity(): Promise<{
   return { id, key: toDisplayKey("opportunity", id), title };
 }
 
-/** The org shortlists the agency's application and sends its offer (Pipeline in Atlas). */
+/** The org shortlists an application and sends its offer (Pipeline in Atlas). */
 export async function offerToApplication(
   opportunityId: string,
+  terms: {
+    rateType: string;
+    amountMinor: number;
+    starts: string;
+    ends: string;
+    message: string;
+  } = {
+    rateType: "Day",
+    amountMinor: 30000,
+    starts: "2027-06-04",
+    ends: "2027-06-06",
+    message: "Both ushers, both days.",
+  },
 ): Promise<{ applicationId: string }> {
   const [app] = await sql<{ id: string }>(
     `select id from app.applications where opportunity_id = $1 and deleted_at is null`,
@@ -526,13 +539,108 @@ export async function offerToApplication(
   );
   const applicationId = app?.id as string;
   await transition("application", applicationId, "Submitted", "In Review", "Screening.");
-  await transition("application", applicationId, "In Review", "Shortlisted", "Strongest slate.");
+  await transition(
+    "application",
+    applicationId,
+    "In Review",
+    "Shortlisted",
+    "Strongest application.",
+  );
   await asPerson(
     PEOPLE.owner,
-    `select app.send_offer($1, 'Day', 30000, 'USD', '2027-06-04'::date, '2027-06-06'::date, 'Both ushers, both days.', now() + interval '7 days')`,
-    [applicationId],
+    `select app.send_offer($1, $2::app.rate_type, $3, 'USD', $4::date, $5::date, $6, now() + interval '7 days')`,
+    [applicationId, terms.rateType, terms.amountMinor, terms.starts, terms.ends, terms.message],
   );
   return { applicationId };
+}
+
+/** An open call for artists on the demo project, invited to the demo artist (journey 45). */
+export async function publishArtistCall(): Promise<{ id: string; key: string; title: string }> {
+  const title = `Opening Night Support Set ${suffix()}`;
+  const [opp] = await sql<{ id: string }>(
+    `insert into app.opportunities (project_id, role_type, role_code, title, description, visibility, rate_type,
+       currency_code, starts_on, ends_on, deadline_at)
+     values ($1, 'Artist', '2000.50.02', $2, 'A 45-minute support set before the headliner. Send your EPK.', 'Invited',
+       'Flat', 'USD', '2027-06-05', '2027-06-05', now() + interval '30 days')
+     returning id`,
+    [PROJECT, title],
+    PEOPLE.owner,
+  );
+  const id = opp?.id as string;
+  await sql(
+    `insert into app.opportunity_invitations (opportunity_id, person_id) values ($1, $2)`,
+    [id, ROLE_PEOPLE.artist],
+    PEOPLE.owner,
+  );
+  await transition("opportunity", id, "Draft", "Pending Approval", "Ready for approval.");
+  await transition(
+    "opportunity",
+    id,
+    "Pending Approval",
+    "Published",
+    "Open call for the support slot.",
+  );
+  return { id, key: toDisplayKey("opportunity", id), title };
+}
+
+/** The artist's set: a seeded Opening Night cue linked to the engagement (Compass shows it). */
+export async function artistSetCue(engagementId: string): Promise<{ label: string }> {
+  const [cue] = await sql<{ id: string; label: string }>(
+    `select c.id, c.label from app.cues c join app.run_of_show r on r.id = c.run_of_show_id
+      where r.project_id = $1 and r.name = 'Opening Night Running Order' and c.deleted_at is null
+      order by c.position limit 1`,
+    [PROJECT],
+  );
+  await sql(`insert into app.engagement_cues (engagement_id, cue_id) values ($1, $2)`, [
+    engagementId,
+    cue?.id,
+  ]);
+  return { label: cue?.label as string };
+}
+
+/** A sent advance packet with one section, for the artist (journey 45). */
+export async function artistAdvance(person: string): Promise<{ title: string; prompt: string }> {
+  const title = `Support Set Advance ${suffix()}`;
+  const prompt = "List your backline and stage plot needs.";
+  const [packet] = await sql<{ id: string }>(
+    `insert into app.advance_packets (project_id, title, due_at) values ($1, $2, now() + interval '20 days') returning id`,
+    [PROJECT, title],
+    PEOPLE.owner,
+  );
+  await sql(
+    `insert into app.advance_sections (advance_packet_id, position, title, prompt) values ($1, 1, 'Backline', $2)`,
+    [packet?.id, prompt],
+    PEOPLE.owner,
+  );
+  await sql(`insert into app.advance_recipients (advance_packet_id, person_id) values ($1, $2)`, [
+    packet?.id,
+    person,
+  ]);
+  await sql(`select app.send_advance_packet($1)`, [packet?.id], PEOPLE.owner);
+  return { title, prompt };
+}
+
+/** A settlement for the artist engagement: the Producer drafts it and the Owner submits it. */
+export async function submittedSettlement(
+  engagementId: string,
+): Promise<{ id: string; title: string }> {
+  const title = `Support Set Settlement ${suffix()}`;
+  const [s] = await sql<{ id: string }>(
+    `insert into app.settlements (engagement_id, project_id, title, currency_code, settled_on)
+     values ($1, $2, $3, 'USD', '2027-06-05') returning id`,
+    [engagementId, PROJECT, title],
+    PEOPLE.producer,
+  );
+  const id = s?.id as string;
+  await sql(
+    `insert into app.settlement_lines (settlement_id, line_number, line_kind, description, amount_minor) values
+       ($1, 1, 'Guarantee', 'Support set guarantee', 250000),
+       ($1, 2, 'Expense', 'Backline rental reimbursement', 30000)`,
+    [id],
+    PEOPLE.producer,
+  );
+  await asPerson(PEOPLE.owner, `select app.submit_settlement($1, 'Settled after the show.')`, [id]);
+  return { id, title };
 }
 
 /** A shift for an engagement on the demo project: the position the org assigns. */
