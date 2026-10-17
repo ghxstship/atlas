@@ -5,13 +5,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
 import {
-  contextFor,
   done,
   field,
   fromDataError,
   inputError,
   type PlatformActionState,
 } from "@/lib/platform/state";
+import { contextFor } from "@/lib/platform/action-context";
 
 /**
  * Inbox actions (A36, Section 11.10 rule 5): approve (A), reject with a reason (R), Done (E) and snooze

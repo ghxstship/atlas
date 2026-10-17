@@ -13,6 +13,7 @@ import {
   viewsHelpSupportCapabilities,
   viewsHelpSupportResources,
 } from "./parts/views-help-support.ts";
+import { a36Actions, a36Capabilities, a36Corrections, a36Resources } from "./parts/a36.ts";
 import {
   workflowActions,
   workflowCapabilities,
@@ -65,11 +66,12 @@ const createAnswering =
   };
 
 export const additions = defineAdditions("Platform", {
-  resources: [...viewsHelpSupportResources, ...workflowResources],
-  actions: { ...workflowActions },
-  capabilities: { ...viewsHelpSupportCapabilities, ...workflowCapabilities },
+  resources: [...viewsHelpSupportResources, ...workflowResources, ...a36Resources],
+  actions: { ...workflowActions, ...a36Actions },
+  capabilities: { ...viewsHelpSupportCapabilities, ...workflowCapabilities, ...a36Capabilities },
   corrections: [
     ...workflowCorrections,
+    ...a36Corrections,
     {
       id: "custom-object-type-default-view",
       since: "1.0.0-draft.2",

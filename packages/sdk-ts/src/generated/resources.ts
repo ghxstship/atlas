@@ -400,6 +400,7 @@ import type {
   HideFeedPostRequest,
   HomeSummary,
   ImportBatch,
+  ImportDryRun,
   ImportJob,
   ImportJobCreate,
   ImportMappingProfile,
@@ -497,6 +498,7 @@ import type {
   ModerationAction,
   ModerationActionCreate,
   Notification,
+  NotificationActRequest,
   NotificationPreference,
   NotificationPreferenceCreate,
   NotificationPreferenceUpdate,
@@ -831,6 +833,8 @@ import type {
   StdVerbiage,
   Subscription,
   SubscriptionUpdate,
+  SupportSession,
+  SupportSessionGrantRequest,
   SupportTicket,
   SupportTicketDiagnostics,
   SupportTicketMessage,
@@ -961,6 +965,8 @@ import type {
   WebhookEndpointSecret,
   WebhookEndpointUpdate,
   WebhookEventType,
+  WholesaleBillingRequest,
+  WholesaleStatement,
   WorkOrder,
   WorkOrderBid,
   WorkOrderBidCreate,
@@ -31703,13 +31709,13 @@ export class ImportJobsResource extends $Resource {
   /**
    * Dry-run an import
    *
-   * Validates every row and reports counts of creates, updates, merges and refusals without writing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Counts what committing a validated import would write (app.import_dry_run): creates, strong key updates, merges a person chose, refusals and possible duplicates still pending. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /import-jobs/{id}/dry-run` (operation `importJobs.dryRun`).
    * Requires the capability `data.classification.write`.
    */
-  dryRun(id: string, options?: $MutationOptions): Promise<$ApiResponse<ImportJob>> {
-    return this.client.request<ImportJob>(
+  dryRun(id: string, options?: $MutationOptions): Promise<$ApiResponse<ImportDryRun>> {
+    return this.client.request<ImportDryRun>(
       $OPERATIONS["importJobs.dryRun"],
       { path: { id } },
       options,
@@ -32916,6 +32922,26 @@ export class NotificationsResource extends $Resource {
     return this.client.request<MarkAllReadResult>(
       $OPERATIONS["notifications.markAllRead"],
       {},
+      options,
+    );
+  }
+
+  /**
+   * Act on a notification
+   *
+   * Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), or mark it Done. Only the recipient acts. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /notifications/{id}/act` (operation `notifications.act`).
+   * Requires the capability `inbox.notifications.write`.
+   */
+  act(
+    id: string,
+    body: NotificationActRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Notification>> {
+    return this.client.request<Notification>(
+      $OPERATIONS["notifications.act"],
+      { path: { id }, body },
       options,
     );
   }
@@ -34981,6 +35007,194 @@ export class TemplateItemsResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["templateItems.delete"],
       { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `supportSessions`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class SupportSessionsResource extends $Resource {
+  /**
+   * List support session rows
+   *
+   * A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end. Returns a cursor page of support session rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /support-sessions` (operation `supportSessions.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  list(
+    params?: $ListParams<SupportSession>,
+    options?: $RequestOptions,
+  ): Promise<$Page<SupportSession>> {
+    return this.client.requestPage<SupportSession>(
+      $OPERATIONS["supportSessions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List support session rows
+   *
+   * A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end. Returns a cursor page of support session rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /support-sessions` (operation `supportSessions.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  listAll(
+    params?: $ListAllParams<SupportSession>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<SupportSession, void, undefined> {
+    return this.client.paginate<SupportSession>(
+      $OPERATIONS["supportSessions.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a support session
+   *
+   * A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end. Returns one support session with its `ETag`. A support session the caller may not see returns 404.
+   *
+   * `GET /support-sessions/{id}` (operation `supportSessions.get`).
+   * Requires the capability `org.settings.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<SupportSession>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<SupportSession>> {
+    return this.client.request<SupportSession>(
+      $OPERATIONS["supportSessions.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Grant the partner a support session
+   *
+   * The client org's Owner (org.support_session.grant) lets its partner's staff read the client org for 1 to 24 hours with a reason (app.grant_support_session). One open session at a time (support_session_active: 422); an org without a partner refuses (support_session_no_partner: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /support-sessions/grant` (operation `supportSessions.grant`).
+   * Requires the capability `org.support_session.grant`.
+   */
+  grant(
+    body: SupportSessionGrantRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SupportSession>> {
+    return this.client.request<SupportSession>(
+      $OPERATIONS["supportSessions.grant"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * End a support session early
+   *
+   * Ends an open session at once (app.end_support_session): the client's Owner or the partner's staff with org.partner.manage. An ended session answers 422 (support_session_ended). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /support-sessions/{id}/end` (operation `supportSessions.end`).
+   * Requires the capability `org.support_session.grant`.
+   */
+  end(id: string, options?: $MutationOptions): Promise<$ApiResponse<SupportSession>> {
+    return this.client.request<SupportSession>(
+      $OPERATIONS["supportSessions.end"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `wholesaleStatements`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class WholesaleStatementsResource extends $Resource {
+  /**
+   * List wholesale statement rows
+   *
+   * What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only. Returns a cursor page of wholesale statement rows the caller may see. The default order is `period_start` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /wholesale-statements` (operation `wholesaleStatements.list`).
+   * Requires the capability `org.billing.manage`.
+   */
+  list(
+    params?: $ListParams<WholesaleStatement>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WholesaleStatement>> {
+    return this.client.requestPage<WholesaleStatement>(
+      $OPERATIONS["wholesaleStatements.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List wholesale statement rows
+   *
+   * What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only. Returns a cursor page of wholesale statement rows the caller may see. The default order is `period_start` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /wholesale-statements` (operation `wholesaleStatements.list`).
+   * Requires the capability `org.billing.manage`.
+   */
+  listAll(
+    params?: $ListAllParams<WholesaleStatement>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WholesaleStatement, void, undefined> {
+    return this.client.paginate<WholesaleStatement>(
+      $OPERATIONS["wholesaleStatements.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a wholesale statement
+   *
+   * What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only. Returns one wholesale statement with its `ETag`. A wholesale statement the caller may not see returns 404.
+   *
+   * `GET /wholesale-statements/{id}` (operation `wholesaleStatements.get`).
+   * Requires the capability `org.billing.manage`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WholesaleStatement>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WholesaleStatement>> {
+    return this.client.request<WholesaleStatement>(
+      $OPERATIONS["wholesaleStatements.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Run wholesale billing for a month
+   *
+   * Records the partner's statement for a month (app.run_wholesale_billing, org.billing.manage): every client org at its plan's list price less the agreed discount. A month is billed once (wholesale_statement_exists: 422); a partner without an agreement refuses (partner_agreement_missing: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /wholesale-statements/run` (operation `wholesaleStatements.run`).
+   * Requires the capability `org.billing.manage`.
+   */
+  run(
+    body: WholesaleBillingRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WholesaleStatement>> {
+    return this.client.request<WholesaleStatement>(
+      $OPERATIONS["wholesaleStatements.run"],
+      { body },
       options,
     );
   }

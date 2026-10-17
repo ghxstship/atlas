@@ -1140,6 +1140,7 @@ __all__ = [
     "ImportJobPage",
     "ImportJob",
     "ImportJobCreate",
+    "ImportDryRun",
     "ImportBatchPage",
     "ImportBatch",
     "ImportRowResultPage",
@@ -1183,6 +1184,7 @@ __all__ = [
     "Notification",
     "NotificationUpdate",
     "MarkAllReadResult",
+    "NotificationActRequest",
     "NotificationPreferencePage",
     "NotificationPreference",
     "NotificationPreferenceCreate",
@@ -1266,6 +1268,12 @@ __all__ = [
     "TemplateItem",
     "TemplateItemCreate",
     "TemplateItemUpdate",
+    "SupportSessionPage",
+    "SupportSession",
+    "SupportSessionGrantRequest",
+    "WholesaleStatementPage",
+    "WholesaleStatement",
+    "WholesaleBillingRequest",
     "WorkforceGroupPage",
     "WorkforceGroup",
     "WorkforceGroupCreate",
@@ -18060,6 +18068,23 @@ class ImportJobCreate(_ImportJobCreateRequired, total=False):
     import_mapping_profile_id: Optional[str]
 
 
+class ImportDryRun(TypedDict):
+    """What committing an import would write (Section 4.6.2 step 6)."""
+
+    #: Rows that will create a record.
+    creates: int
+    #: Rows that will update the record their strong key matched.
+    updates: int
+    #: Rows that will merge into a record a person chose.
+    merges: int
+    #: Rows that are Invalid or Refused.
+    refusals: int
+    #: Rows skipped.
+    skipped: int
+    #: Possible duplicates still waiting for a person.
+    pending_reviews: int
+
+
 class ImportBatchPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -18735,6 +18760,18 @@ class MarkAllReadResult(TypedDict):
     """The MarkAllReadResult object."""
 
     updated_count: int
+
+
+class _NotificationActRequestRequired(TypedDict):
+    #: What to do.
+    action: Literal["approve", "reject", "done"]
+
+
+class NotificationActRequest(_NotificationActRequestRequired, total=False):
+    """An action on a notification."""
+
+    #: Reason, required when rejecting.
+    comment: str
 
 
 class NotificationPreferencePage(TypedDict):
@@ -20000,6 +20037,100 @@ class TemplateItemUpdate(TypedDict, total=False):
     phase_code: Optional[str]
     #: For a record: due this many days after the project start; null for none.
     due_offset_days: Optional[int]
+
+
+class SupportSessionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[SupportSession]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class SupportSession(TypedDict):
+    """A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end."""
+
+    #: Identifier of the support session.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the partner org whose staff may read while the session lasts.
+    grantee_org_id: str
+    #: Why the session was granted.
+    reason: str
+    #: When access began.
+    starts_at: str
+    #: When access ends on its own, at most 24 hours after it began.
+    ends_at: str
+    #: When someone ended the session early.
+    ended_at: Optional[str]
+    #: Identifier of the person who ended it early.
+    ended_by: Optional[str]
+
+
+class SupportSessionGrantRequest(TypedDict):
+    """A support session to grant."""
+
+    #: Length of the session in hours, 1 to 24.
+    hours: int
+    #: Why the partner needs access.
+    reason: str
+
+
+class WholesaleStatementPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WholesaleStatement]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WholesaleStatement(TypedDict):
+    """What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only."""
+
+    #: Identifier of the wholesale statement.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: First day of the month billed.
+    period_start: str
+    #: Currency of the partner agreement.
+    currency_code: str
+    #: Discount in basis points when the statement ran.
+    wholesale_discount_bps: int
+    #: Client orgs on the statement.
+    client_count: int
+    #: Sum of priced list prices in minor units; null only while a statement has no priced line.
+    list_total_minor: Optional[int]
+    #: What the partner owes, in minor units; null only while a statement has no priced line.
+    wholesale_total_minor: Optional[int]
+    #: Lines whose plan is unpriced in the currency.
+    unpriced_count: int
+
+
+class WholesaleBillingRequest(TypedDict):
+    """The month to bill."""
+
+    #: First day of the month to bill.
+    period_start: str
 
 
 class WorkforceGroupPage(TypedDict):

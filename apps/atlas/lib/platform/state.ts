@@ -1,6 +1,4 @@
 import type { DataError } from "@xos/data";
-import { notFound } from "next/navigation";
-import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 
 /**
  * Outcomes of A36's server actions (partner console, import wizard, custom objects, View as role,
@@ -43,14 +41,6 @@ export const done = (id?: string, value?: string): PlatformActionState => ({
   ...(value ? { value } : {}),
   at: Date.now(),
 });
-
-/** The org context named by a form's `org` field, or 404. */
-export async function contextFor(form: FormData): Promise<OrgContext> {
-  const slug = form.get("org");
-  const ctx = typeof slug === "string" ? await getOrgContext(slug) : null;
-  if (!ctx) notFound();
-  return ctx;
-}
 
 export function field(form: FormData, name: string): string {
   const v = form.get(name);
