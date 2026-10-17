@@ -852,6 +852,19 @@
         "fee": "Escribe la tarifa como número o déjala en blanco.",
         "bidLines": "Agrega al menos una línea con un artículo y una cantidad mayor que cero.",
         "slate": "Elige al menos un miembro del equipo para la propuesta."
+      },
+      "profileSections": "Compartir también de su perfil con {org}",
+      "profileSectionsHelp": "Solo se comparten las secciones que marque, tal como están hoy, incluidas las que su perfil mantiene privadas. Puede revocar el acceso en cualquier momento en Configuración.",
+      "sections": {
+        "headline": "Titular",
+        "bio": "Acerca de",
+        "pronouns": "Pronombres",
+        "location": "Ubicación",
+        "skills": "Habilidades",
+        "certifications": "Certificaciones",
+        "rates": "Tarifas",
+        "languages": "Idiomas",
+        "links": "Enlaces"
       }
     },
     "reportForm": {
@@ -871,6 +884,16 @@
       "visibility": "Ves una oportunidad solo cuando la organización la hizo visible para ti: por invitación, mediante sus grupos de talento o proveedores, para quienes ya trabajaron con ella, o para todo el mercado.",
       "filters": "Tus filtros acotan la lista; nunca la reordenan.",
       "back": "Volver a Explorar"
+    },
+    "organizations": {
+      "tab": "Organizaciones",
+      "lead": "Organizaciones que publican un perfil público: qué hacen, si están verificadas y qué tienen abierto.",
+      "searchLabel": "Buscar organizaciones",
+      "results": "{n, plural, =0 {Ninguna organización} one {# organización} other {# organizaciones}}",
+      "empty": "Ningún perfil público de organización coincide. Borre la búsqueda para ver todas las organizaciones.",
+      "emptyAction": "Volver a oportunidades",
+      "listLabel": "Organizaciones",
+      "open": "{n, plural, =0 {Sin oportunidades abiertas} one {# oportunidad abierta} other {# oportunidades abiertas}}"
     }
   },
   "home": {
@@ -1074,7 +1097,8 @@
       "verifiedDomain": "Dominio verificado",
       "capabilities": "Capacidades",
       "regions": "Regiones de servicio",
-      "opportunities": "Oportunidades abiertas"
+      "opportunities": "Oportunidades abiertas",
+      "caseStudies": "Casos de estudio"
     },
     "public": {
       "certifications": "Certificaciones",

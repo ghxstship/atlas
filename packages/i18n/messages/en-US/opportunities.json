@@ -275,7 +275,36 @@
     "unpaid": "Unpaid",
     "createEngagement": "Create engagement",
     "engaged": "Engagement created. Its onboarding packet is ready.",
-    "engageNeedsWrite": "Someone with engagement write access creates the engagement."
+    "engageNeedsWrite": "Someone with engagement write access creates the engagement.",
+    "shared": {
+      "title": "Shared with you",
+      "none": "The applicant shared no profile fields with your organization.",
+      "loadFailed": "What the applicant shared could not be loaded. Reload the page.",
+      "sharedOn": "Shared when applying, {date}. This is the snapshot the applicant consented to.",
+      "revoked": "Shared {date}, since revoked. Your organization keeps this snapshot only as the law requires.",
+      "empty": "Shared empty",
+      "rate": "{amount} per {unit}",
+      "units": {
+        "Hour": "hour",
+        "Day": "day",
+        "Week": "week",
+        "Project": "project"
+      },
+      "fields": {
+        "fullName": "Name",
+        "email": "Email",
+        "companyName": "Company",
+        "headline": "Headline",
+        "bio": "About",
+        "pronouns": "Pronouns",
+        "location": "Location",
+        "skills": "Skills",
+        "certifications": "Certifications",
+        "rates": "Rate",
+        "languages": "Languages",
+        "links": "Links"
+      }
+    }
   },
   "pools": {
     "title": "Pools",

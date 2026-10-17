@@ -15,6 +15,23 @@ import {
 } from "@/lib/actions/marketplace";
 
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
+
+/**
+ * Profile sections an applicant may share with the org (app.share_profile_sections, 1132); the
+ * same list as SHAREABLE_SECTIONS in @xos/data/profile-sharing, kept here so the form bundles no
+ * data code.
+ */
+const SHAREABLE_SECTIONS = [
+  "headline",
+  "bio",
+  "pronouns",
+  "location",
+  "skills",
+  "certifications",
+  "rates",
+  "languages",
+  "links",
+] as const;
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** Saves the current Explore filters as a search with alerts (Section 4.4.3, Discovery). */
@@ -141,6 +158,25 @@ export function ApplyForm(props: ApplyFormProps) {
         ) : null}
         <p className="m-0 text-text-12 text-text-secondary">{t("sharedHelp")}</p>
       </fieldset>
+
+      {props.mode === "person" ? (
+        <fieldset className="m-0 flex flex-col gap-8 rounded-control border border-border-subtle p-12">
+          <legend className="px-4 text-text-13 font-medium">
+            {t("profileSections", { org: props.org })}
+          </legend>
+          <div className="flex flex-wrap gap-x-16 gap-y-4">
+            {SHAREABLE_SECTIONS.map((section) => (
+              <Checkbox
+                key={section}
+                name="share_section"
+                value={section}
+                label={t(`sections.${section}`)}
+              />
+            ))}
+          </div>
+          <p className="m-0 text-text-12 text-text-secondary">{t("profileSectionsHelp")}</p>
+        </fieldset>
+      ) : null}
 
       {props.questions.length > 0 ? (
         <fieldset className="m-0 flex flex-col gap-12 border-0 p-0">

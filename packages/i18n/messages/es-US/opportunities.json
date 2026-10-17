@@ -275,7 +275,36 @@
     "unpaid": "No remunerado",
     "createEngagement": "Crear contratación",
     "engaged": "Contratación creada. Su paquete de incorporación está listo.",
-    "engageNeedsWrite": "Una persona con permiso de escritura de contrataciones crea la contratación."
+    "engageNeedsWrite": "Una persona con permiso de escritura de contrataciones crea la contratación.",
+    "shared": {
+      "title": "Compartido con usted",
+      "none": "La persona solicitante no compartió campos de su perfil con su organización.",
+      "loadFailed": "No se pudo cargar lo que compartió la persona solicitante. Vuelva a cargar la página.",
+      "sharedOn": "Compartido al postularse, {date}. Esta es la copia que la persona solicitante consintió.",
+      "revoked": "Compartido el {date} y luego revocado. Su organización conserva esta copia solo según lo exige la ley.",
+      "empty": "Compartido vacío",
+      "rate": "{amount} por {unit}",
+      "units": {
+        "Hour": "hora",
+        "Day": "día",
+        "Week": "semana",
+        "Project": "proyecto"
+      },
+      "fields": {
+        "fullName": "Nombre",
+        "email": "Correo electrónico",
+        "companyName": "Empresa",
+        "headline": "Titular",
+        "bio": "Acerca de",
+        "pronouns": "Pronombres",
+        "location": "Ubicación",
+        "skills": "Habilidades",
+        "certifications": "Certificaciones",
+        "rates": "Tarifa",
+        "languages": "Idiomas",
+        "links": "Enlaces"
+      }
+    }
   },
   "pools": {
     "title": "Grupos",

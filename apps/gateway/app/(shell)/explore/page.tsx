@@ -4,6 +4,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
 import { SaveSearchForm } from "@/components/explore/forms";
+import { ExploreOrganizations } from "@/components/explore/organizations";
 import { OpportunityLinkCard } from "@/components/page/opportunity-card";
 import {
   childTabLinks,
@@ -38,15 +39,38 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
   const views = exploreViews(listed, false);
   const view = pickView(query["view"], views, "gallery");
   const parsed = parseExploreQuery(query);
+  const tabs = [
+    { id: "explore", label: t("nav.gateway.primary.explore"), href: "/explore" },
+    // Public organization profiles (journey 62), a view of Explore rather than its own page.
+    {
+      id: "organizations",
+      label: t("gateway.explore.organizations.tab"),
+      href: "/explore?show=organizations",
+    },
+    ...childTabLinks(childTabs(sitemap, "explore", ctx.nav), t),
+  ];
+  const filtered = hasFilters(parsed);
+
+  if (query["show"] === "organizations") {
+    return (
+      <>
+        <PageTitle
+          title={t("gateway.explore.title")}
+          lead={t("gateway.explore.organizations.lead")}
+        />
+        <SectionTabs label={t("gateway.shell.pageTabs")} tabs={tabs} active="organizations" />
+        <ExploreOrganizations
+          db={ctx.db}
+          t={t}
+          query={typeof query["q"] === "string" ? query["q"].trim() : ""}
+        />
+      </>
+    );
+  }
   const results = await searchOpportunities(ctx.db, {
     ...parsed.filter,
     ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
   });
-  const tabs = [
-    { id: "explore", label: t("nav.gateway.primary.explore"), href: "/explore" },
-    ...childTabLinks(childTabs(sitemap, "explore", ctx.nav), t),
-  ];
-  const filtered = hasFilters(parsed);
 
   return (
     <>

@@ -852,6 +852,19 @@
         "fee": "Enter the fee as a number, or leave it blank.",
         "bidLines": "Add at least one bid line with an item and a quantity above zero.",
         "slate": "Pick at least one team member for the slate."
+      },
+      "profileSections": "Also share from your profile with {org}",
+      "profileSectionsHelp": "Only the sections you check are shared, as they read today, including ones your profile keeps private. Revoke sharing at any time in Settings.",
+      "sections": {
+        "headline": "Headline",
+        "bio": "About",
+        "pronouns": "Pronouns",
+        "location": "Location",
+        "skills": "Skills",
+        "certifications": "Certifications",
+        "rates": "Rates",
+        "languages": "Languages",
+        "links": "Links"
       }
     },
     "reportForm": {
@@ -871,6 +884,16 @@
       "visibility": "You see an opportunity only when the organization made it visible to you: by invitation, through its talent or vendor pools, to people who completed work with it, or to the whole marketplace.",
       "filters": "Your filters narrow the list; they never reorder it.",
       "back": "Back to Explore"
+    },
+    "organizations": {
+      "tab": "Organizations",
+      "lead": "Organizations that publish a public profile: what they do, whether they are verified and what they have open.",
+      "searchLabel": "Search organizations",
+      "results": "{n, plural, =0 {No organizations} one {# organization} other {# organizations}}",
+      "empty": "No public organization profile matches. Clear the search to see every organization.",
+      "emptyAction": "Back to opportunities",
+      "listLabel": "Organizations",
+      "open": "{n, plural, =0 {No open opportunities} one {# open opportunity} other {# open opportunities}}"
     }
   },
   "home": {
@@ -1074,7 +1097,8 @@
       "verifiedDomain": "Verified domain",
       "capabilities": "Capabilities",
       "regions": "Service regions",
-      "opportunities": "Open opportunities"
+      "opportunities": "Open opportunities",
+      "caseStudies": "Case studies"
     },
     "public": {
       "certifications": "Certifications",

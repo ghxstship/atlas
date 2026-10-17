@@ -51739,6 +51739,19 @@ export type Database = {
           valid_to: string;
         }[];
       };
+      explore_organizations: {
+        Args: { p_limit?: number; p_query?: string };
+        Returns: {
+          about: string;
+          handle: string;
+          indexable: boolean;
+          logo_path: string;
+          name: string;
+          open_opportunities: number;
+          verified: boolean;
+          verified_domain: string;
+        }[];
+      };
       fail_integration_sync: {
         Args: {
           p_connection_error?: boolean;
@@ -52761,6 +52774,14 @@ export type Database = {
           p_field_keys: string[];
           p_field_values: string[];
           p_org_id: string;
+        };
+        Returns: string;
+      };
+      share_profile_sections: {
+        Args: {
+          p_org_id: string;
+          p_profile_share_id: string;
+          p_sections: Database["app"]["Enums"]["profile_section"][];
         };
         Returns: string;
       };
