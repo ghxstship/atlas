@@ -6,7 +6,8 @@ import {
 } from "@xos/data/partner";
 import { WholesaleRun } from "@/components/partner/wholesale";
 import { ErrorPanel } from "@/components/platform/kit";
-import { DataTable, InlineAlert } from "@/components/platform/ui";
+import { DataTable } from "@/components/platform/client/data-table";
+import { InlineAlert } from "@/components/platform/client/inline-alert";
 import { PartnerFrame } from "@/components/partner/partner-frame";
 import { requireNode } from "@/components/shell/sitemap-page";
 import { getFormatters } from "@/lib/platform/format";

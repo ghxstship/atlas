@@ -21,7 +21,7 @@ import type {
 } from "@/components/collection-kit/types";
 import { CreateRecordDrawer, RecordPeek, type PeekField } from "@/components/objects/records";
 import { EmptyPanel, ErrorPanel } from "@/components/platform/kit";
-import { PageHeader, TemplateCollection } from "@/components/platform/ui";
+import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
 import { ButtonLink } from "@/components/ui";
 import { collectionState } from "@/lib/collection-kit/page";
 import { getFormatters, type Formatters } from "@/lib/platform/format";
