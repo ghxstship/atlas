@@ -279,3 +279,92 @@ export async function payInvoice(invoiceId: string): Promise<void> {
   );
   await transition("payment", id, "Proposed", "Approved", "Paid by ACH.");
 }
+
+/**
+ * A sign-in with the shared demo password (seed 0010's local test value), for a person a journey
+ * needs fresh on every run. Returns the person id the person trigger created.
+ */
+export async function newSignIn(email: string, fullName: string): Promise<string> {
+  await sql(
+    `with u as (
+       insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+         raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token,
+         email_change_token_new, email_change)
+       values ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', $1,
+         extensions.crypt('xos-demo-2026', extensions.gen_salt('bf')), now(),
+         '{"provider": "email", "providers": ["email"]}'::jsonb, jsonb_build_object('full_name', $2::text), now(), now(),
+         '', '', '', '')
+       returning id, email)
+     insert into auth.identities (id, user_id, provider_id, provider, identity_data, created_at, updated_at)
+     select u.id, u.id, u.id::text, 'email', jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
+       now(), now() from u`,
+    [email, fullName],
+  );
+  // As seed 0010 does: the person takes the user's id while nothing references it yet, so session
+  // claims (which carry the user id) name the person.
+  const [person] = await sql<{ id: string }>(
+    `update app.people p set id = p.user_id from auth.users u
+      where u.id = p.user_id and u.email = $1 returning p.id`,
+    [email],
+  );
+  return person?.id as string;
+}
+
+/**
+ * Journey 60: a vendor company with an external account and history with the demo org, made the
+ * way seed 1080 makes Demo Lighting Rentals: its Account Owner, a counterparty row in the demo
+ * org, and a completed vendor engagement rated by both sides.
+ */
+export async function externalAccountWithHistory(): Promise<{
+  email: string;
+  accountId: string;
+  name: string;
+  slug: string;
+  engagementId: string;
+}> {
+  const tag = suffix().toLowerCase();
+  const email = `supplier-${tag}@example.com`;
+  const name = `Demo Rigging Supply ${tag.toUpperCase()}`;
+  const slug = `demo-rigging-${tag}`;
+  const person = await newSignIn(email, `Demo Supplier ${tag.toUpperCase()}`);
+  const [account] = await asPerson<{ id: string }>(
+    person,
+    `select app.create_external_account($1, $2, 'For-Profit') as id`,
+    [name, slug],
+  );
+  const accountId = account?.id as string;
+  const [cp] = await sql<{ id: string }>(
+    `insert into app.counterparties (org_id, organization_id) values ($1, $2) returning id`,
+    [DEMO.org, accountId],
+    PEOPLE.owner,
+  );
+  const [eng] = await sql<{ id: string }>(
+    `insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification,
+       pay_basis, arrangement, start_date, end_date)
+     values ($1, $2, $3, 'Vendor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate', 'Per Engagement', '2027-02-01', '2027-02-03')
+     returning id`,
+    [PROJECT, person, cp?.id],
+    PEOPLE.owner,
+  );
+  const engagementId = eng?.id as string;
+  for (const [from, to] of [
+    ["Onboarding", "Active"],
+    ["Active", "Closing"],
+    ["Closing", "Complete"],
+  ] as const) {
+    await transition("engagement", engagementId, from, to);
+  }
+  await sql(
+    `insert into app.ratings (engagement_id, rater_side, score, comment)
+     values ($1, 'Organization', 5, 'Truss arrived early and every piece was inspected.')`,
+    [engagementId],
+    PEOPLE.owner,
+  );
+  await sql(
+    `insert into app.ratings (engagement_id, rater_side, score, comment)
+     values ($1, 'Party', 5, 'Clear load-in times and paid on schedule.')`,
+    [engagementId],
+    person,
+  );
+  return { email, accountId, name, slug, engagementId };
+}

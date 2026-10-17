@@ -11326,6 +11326,15 @@ var status_default$1 = {
   footer:
     "Measured by synthetic checks against the live service. Targets: 99.9 percent monthly availability for Atlas and the API.",
 };
+var subscribeAccount_default$1 = {
+  title: "Use your company in Atlas",
+  lead: "You own these company accounts in Gateway. Start Atlas with one of them and its profile, ratings and history come with it; no second organization is created.",
+  use: "Use {name} in Atlas",
+  acceptError: "Accept the terms to start Atlas with this company.",
+  refused: "This company already uses Atlas. Open it from the organization switcher.",
+  unexpected: "We could not start Atlas for this company. Try again in a moment.",
+  or: "Or create a new organization",
+};
 var support_default$1 = {
   categories: {
     Question: "Question",
@@ -25647,6 +25656,15 @@ var status_default = {
   footer:
     "Medido con revisiones sintéticas contra el servicio en vivo. Objetivo: 99,9 por ciento de disponibilidad mensual para Atlas y la API.",
 };
+var subscribeAccount_default = {
+  title: "Usa tu empresa en Atlas",
+  lead: "Eres propietario de estas cuentas de empresa en Gateway. Comienza Atlas con una de ellas y su perfil, calificaciones e historial la acompañan; no se crea una segunda organización.",
+  use: "Usar {name} en Atlas",
+  acceptError: "Acepta los términos para comenzar Atlas con esta empresa.",
+  refused: "Esta empresa ya usa Atlas. Ábrela desde el selector de organizaciones.",
+  unexpected: "No pudimos comenzar Atlas para esta empresa. Inténtalo de nuevo en un momento.",
+  or: "O crea una organización nueva",
+};
 var support_default = {
   categories: {
     Question: "Pregunta",
@@ -29216,6 +29234,7 @@ var enUS = {
   shipmentTracking: shipmentTracking_default$1,
   show: show_default$1,
   status: status_default$1,
+  subscribeAccount: subscribeAccount_default$1,
   support: support_default$1,
   ui: ui_default$1,
   vendors: vendors_default$1,
@@ -29261,6 +29280,7 @@ var esUS = {
   shipmentTracking: shipmentTracking_default,
   show: show_default,
   status: status_default,
+  subscribeAccount: subscribeAccount_default,
   support: support_default,
   ui: ui_default,
   vendors: vendors_default,
