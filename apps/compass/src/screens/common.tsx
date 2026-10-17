@@ -176,7 +176,13 @@ export function SyncBanner(): ReactElement | null {
         testID="sync-refresh-failed"
         tone="warning"
         message={t("compass.sync.refreshFailed", {
-          tables: lastRefresh.failed.map((f) => f.table).join(", "),
+          tables: lastRefresh.failed
+            .map((f) =>
+              t(`compass.sync.tables.${f.table}`, {
+                defaultValue: t("compass.sync.tables.other"),
+              }),
+            )
+            .join(", "),
         })}
       />
     );

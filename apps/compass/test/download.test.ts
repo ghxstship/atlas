@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getMessages } from "@xos/i18n";
 import {
   EXTERNAL_AUDIENCES,
   INTERNAL_AUDIENCES,
@@ -99,6 +100,20 @@ describe("sources", () => {
       }
     }
     expect(gaps).toEqual([]);
+  });
+
+  it("names every source in words for the refresh banner, in each locale", () => {
+    // The banner once read "Some data did not refresh: geofence_shapes".
+    type Names = { compass: { sync: { tables: Record<string, string> } } };
+    const tables = new Set(
+      [...INTERNAL_AUDIENCES, ...EXTERNAL_AUDIENCES].flatMap((a) =>
+        sourcesFor(a).map((s) => s.table),
+      ),
+    );
+    for (const locale of ["en-US", "es-US"] as const) {
+      const names = (getMessages(locale) as unknown as Names).compass.sync.tables;
+      expect([...tables].filter((t) => typeof names[t] !== "string")).toEqual([]);
+    }
   });
 
   it("maps view rows to local rows and drops rows without an id", () => {
