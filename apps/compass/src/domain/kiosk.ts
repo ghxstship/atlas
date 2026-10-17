@@ -140,17 +140,19 @@ export function buildKioskPunch(
     target: "kiosk-punch",
     table: "kiosk_punches",
     rowId: id,
+    // The kiosk-punch Edge Function's body: the punch is punchId, and optional fields are left out rather
+    // than null (its schema refused both, so every kiosk punch read "That punch could not be read").
     payload: {
-      id,
+      punchId: id,
       deviceKey: input.deviceKey,
       membershipId: input.worker.membershipId,
       pin: input.pin,
-      projectId: input.projectId,
       punchKind: kioskPunchKind(input.worker),
       deviceAt: input.deviceAt,
       monotonic_at: input.monotonicAt,
       boot_id: input.bootId,
-      photoUri: input.photoUri,
+      ...(input.projectId ? { projectId: input.projectId } : {}),
+      ...(input.photoUri ? { photoUri: input.photoUri } : {}),
     },
     policy: "append",
   };

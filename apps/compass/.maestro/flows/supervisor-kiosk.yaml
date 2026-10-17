@@ -1,38 +1,73 @@
 appId: pro.ghxstship.compass
-name: Kiosk mode refuses a wrong PIN without revealing anything
+name: Kiosk mode refuses a wrong PIN without revealing anything, then clocks a worker in
 ---
-# Needs a kiosk registered in Atlas; pass its device key as KIOSK_DEVICE_KEY. The Demo Admin holds
-# org.time_attendance.write.
+# Needs a kiosk registered in Atlas (app.register_kiosk_device) and a kiosk PIN for the Demo Field Tech
+# (app.set_kiosk_pin): pass the device key as KIOSK_DEVICE_KEY and the PIN's four digits as KIOSK_PIN_1
+# to KIOSK_PIN_4. The Demo Admin holds org.time_attendance.write.
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
       EMAIL: admin@example.com
-- tapOn:
-    id: "tab-more"
+- repeat:
+    times: 4
+    while:
+      notVisible:
+        id: "more"
+    commands:
+      - tapOn:
+          id: "tab-more"
+      - waitForAnimationToEnd:
+          timeout: 3000
+- scrollUntilVisible:
+    element:
+      id: "more-kiosk"
+    direction: DOWN
 - tapOn:
     id: "more-kiosk"
-- tapOn:
-    id: "kiosk-key"
-- inputText: ${KIOSK_DEVICE_KEY}
-- tapOn:
-    id: "kiosk-start"
+# A device that already holds its kiosk key opens straight on the roster.
+- extendedWaitUntil:
+    visible:
+      id: "kiosk-key|kiosk-search"
+    timeout: 10000
+- runFlow:
+    when:
+      visible:
+        id: "kiosk-key"
+    commands:
+      - tapOn:
+          id: "kiosk-key"
+      - inputText: ${KIOSK_DEVICE_KEY}
+      - hideKeyboard
+      - tapOn:
+          id: "kiosk-start"
 - tapOn:
     id: "kiosk-search"
-- inputText: "Field"
-- tapOn: "Demo Field Lead"
+- inputText: "Tech"
+- hideKeyboard
+- tapOn: "Demo Field Tech"
+# A wrong PIN says only how many attempts are left.
 - tapOn:
-    id: "kiosk-key-9"
+    id: "kiosk-key-0"
 - tapOn:
-    id: "kiosk-key-9"
+    id: "kiosk-key-0"
 - tapOn:
-    id: "kiosk-key-9"
+    id: "kiosk-key-0"
 - tapOn:
-    id: "kiosk-key-9"
+    id: "kiosk-key-0"
 - tapOn:
     id: "kiosk-submit"
 - assertVisible: "4 attempts left"
-- tapOn: "Back"
+# The right PIN clocks the worker in through the kiosk-punch Edge Function.
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_1}"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_2}"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_3}"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_4}"
+- tapOn:
+    id: "kiosk-submit"
 - extendedWaitUntil:
-    visible:
-      id: "kiosk-search"
-    timeout: 5000
+    visible: "Demo Field Tech clocked in"
+    timeout: 15000

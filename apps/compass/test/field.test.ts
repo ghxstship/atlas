@@ -482,11 +482,16 @@ describe("kiosk", () => {
     );
     expect(m).toMatchObject({ op: "rpc", target: "kiosk-punch", rowId: "kp-1", policy: "append" });
     expect(m.payload).toMatchObject({
-      id: "kp-1",
+      punchId: "kp-1",
       membershipId: "m2",
       punchKind: "Out",
       monotonic_at: 12,
       boot_id: "b1",
+      projectId: "proj-1",
     });
+    // The Edge Function refuses null for its optional fields and an id under any other name.
+    expect(m.payload).not.toHaveProperty("photoUri");
+    expect(m.payload).not.toHaveProperty("id");
+    expect(Object.values(m.payload).includes(null)).toBe(false);
   });
 });
