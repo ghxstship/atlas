@@ -2,35 +2,36 @@
 
 Each record states one decision, the alternatives considered and the reason. A decision changes only through a new record that supersedes it.
 
-| ADR                                                     | Title                                                             | Status   |
-| ------------------------------------------------------- | ----------------------------------------------------------------- | -------- |
-| [0001](0001-stack.md)                                   | Stack and Pinned Versions                                         | Accepted |
-| [0002](0002-schema-conventions.md)                      | Schema Conventions                                                | Accepted |
-| [0003](0003-api-conventions.md)                         | API Conventions                                                   | Accepted |
-| [0004](0004-migration-ranges-and-ownership.md)          | Migration Ranges and Path Ownership                               | Accepted |
-| [0005](0005-wave-1-ownership.md)                        | Wave 1 Ownership Clarifications                                   | Accepted |
-| [0006](0006-sitemap-interpretation.md)                  | Sitemap Interpretation Decisions                                  | Accepted |
-| [0007](0007-api-conventions-addendum.md)                | API Conventions Addendum                                          | Accepted |
-| [0008](0008-identity-and-access-rules.md)               | Identity and Access Rules                                         | Accepted |
-| [0009](0009-design-tokens-contrast-and-themes.md)       | Design Tokens, Contrast and Themes                                | Accepted |
-| [0010](0010-localization-and-right-to-left.md)          | Localization and Right-to-Left Layout                             | Accepted |
-| [0011](0011-preview-data-and-brand-slots.md)            | Preview Data and Brand Slots                                      | Accepted |
-| [0012](0012-canon-rulings.md)                           | Canon Rulings                                                     | Accepted |
-| [0013](0013-responsive-and-cross-engine-rules.md)       | Responsive and Cross-Engine Rules                                 | Accepted |
-| [0014](0014-wave-1-contract-freeze.md)                  | Wave 1 Contract Freeze                                            | Accepted |
-| [0015](0015-linear-tracking-and-commit-sync.md)         | Linear Tracking and Commit Sync                                   | Accepted |
-| [0016](0016-domain-data-decisions.md)                   | Domain Data Decisions                                             | Accepted |
-| [0017](0017-atlas-shell-decisions.md)                   | Atlas Shell Decisions                                             | Accepted |
-| [0018](0018-pricing-first-project-free.md)              | Pricing: Paid Plans, First Project Free, Plan Seed Numbering      | Accepted |
-| [0019](0019-engagement-and-marketplace-decisions.md)    | Engagement and Marketplace Decisions                              | Accepted |
-| [0020](0020-plan-packaging.md)                          | Plan Packaging: Atlas in Every Plan, Aurora AI and Legend by Tier | Accepted |
-| [0021](0021-parallel-wave-conventions.md)               | Conventions for Running Agents in Parallel                        | Accepted |
-| [0022](0022-module-migration-ranges.md)                 | Module Migration Ranges and Late Slots                            | Accepted |
-| [0023](0023-v1-contract-corrections.md)                 | v1 Contract Corrections                                           | Accepted |
-| [0024](0024-integrations-and-developer-surface.md)      | Integrations and Developer Surface                                | Accepted |
-| [0025](0025-reliability-and-operations.md)              | Reliability and Operations                                        | Accepted |
-| [0026](0026-workforce-workflow-and-wave-6-decisions.md) | Workforce, Workflow and Wave 6 Decisions                          | Accepted |
-| [0027](0027-performance-budgets.md)                     | Performance Budgets and Delivery                                  | Accepted |
-| [0028](0028-compass-launch-contracts.md)                | Compass Launch Contracts                                          | Accepted |
+| ADR                                                      | Title                                                             | Status   |
+| -------------------------------------------------------- | ----------------------------------------------------------------- | -------- |
+| [0001](0001-stack.md)                                    | Stack and Pinned Versions                                         | Accepted |
+| [0002](0002-schema-conventions.md)                       | Schema Conventions                                                | Accepted |
+| [0003](0003-api-conventions.md)                          | API Conventions                                                   | Accepted |
+| [0004](0004-migration-ranges-and-ownership.md)           | Migration Ranges and Path Ownership                               | Accepted |
+| [0005](0005-wave-1-ownership.md)                         | Wave 1 Ownership Clarifications                                   | Accepted |
+| [0006](0006-sitemap-interpretation.md)                   | Sitemap Interpretation Decisions                                  | Accepted |
+| [0007](0007-api-conventions-addendum.md)                 | API Conventions Addendum                                          | Accepted |
+| [0008](0008-identity-and-access-rules.md)                | Identity and Access Rules                                         | Accepted |
+| [0009](0009-design-tokens-contrast-and-themes.md)        | Design Tokens, Contrast and Themes                                | Accepted |
+| [0010](0010-localization-and-right-to-left.md)           | Localization and Right-to-Left Layout                             | Accepted |
+| [0011](0011-preview-data-and-brand-slots.md)             | Preview Data and Brand Slots                                      | Accepted |
+| [0012](0012-canon-rulings.md)                            | Canon Rulings                                                     | Accepted |
+| [0013](0013-responsive-and-cross-engine-rules.md)        | Responsive and Cross-Engine Rules                                 | Accepted |
+| [0014](0014-wave-1-contract-freeze.md)                   | Wave 1 Contract Freeze                                            | Accepted |
+| [0015](0015-linear-tracking-and-commit-sync.md)          | Linear Tracking and Commit Sync                                   | Accepted |
+| [0016](0016-domain-data-decisions.md)                    | Domain Data Decisions                                             | Accepted |
+| [0017](0017-atlas-shell-decisions.md)                    | Atlas Shell Decisions                                             | Accepted |
+| [0018](0018-pricing-first-project-free.md)               | Pricing: Paid Plans, First Project Free, Plan Seed Numbering      | Accepted |
+| [0019](0019-engagement-and-marketplace-decisions.md)     | Engagement and Marketplace Decisions                              | Accepted |
+| [0020](0020-plan-packaging.md)                           | Plan Packaging: Atlas in Every Plan, Aurora AI and Legend by Tier | Accepted |
+| [0021](0021-parallel-wave-conventions.md)                | Conventions for Running Agents in Parallel                        | Accepted |
+| [0022](0022-module-migration-ranges.md)                  | Module Migration Ranges and Late Slots                            | Accepted |
+| [0023](0023-v1-contract-corrections.md)                  | v1 Contract Corrections                                           | Accepted |
+| [0024](0024-integrations-and-developer-surface.md)       | Integrations and Developer Surface                                | Accepted |
+| [0025](0025-reliability-and-operations.md)               | Reliability and Operations                                        | Accepted |
+| [0026](0026-workforce-workflow-and-wave-6-decisions.md)  | Workforce, Workflow and Wave 6 Decisions                          | Accepted |
+| [0027](0027-performance-budgets.md)                      | Performance Budgets and Delivery                                  | Accepted |
+| [0028](0028-compass-launch-contracts.md)                 | Compass Launch Contracts                                          | Accepted |
+| [0029](0029-payees-reporting-and-party-notifications.md) | Individual Payees, Reporting Delivery and Party Notifications     | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.

@@ -21413,6 +21413,13 @@ export type Database = {
             foreignKeyName: "invoices_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "invoices_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },

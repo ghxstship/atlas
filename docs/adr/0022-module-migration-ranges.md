@@ -64,3 +64,7 @@ Follow-up agents that need tables from every module range take blocks after A28'
 | A33   | 1030 to 1039 | Platform workflow: approvals, trash, templates, state labels  |
 
 A32 adds `api_external` views in its own range because A28 is complete; the projection rules in ADR 0019 still apply.
+
+## Amendment (2026-10-17): orchestrator integration range
+
+Fixes that join two agents' work after both have merged (for example A43's individual payees and A44's invoice notifications) take numbers 1190 to 1199, so they sort after every agent range in use.

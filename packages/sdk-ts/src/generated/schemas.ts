@@ -13156,10 +13156,20 @@ export interface Invoice {
   readonly invoice_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
   readonly total: MoneyTotal;
   /**
-   * Identifier of the counterparty billed or billing.
+   * Identifier of the counterparty billed or billing; null for an individual payee.
    * Format: `uuid`.
    */
-  readonly counterparty_id: string;
+  readonly counterparty_id: string | null;
+  /**
+   * Identifier of the person billing as an individual.
+   * Format: `uuid`.
+   */
+  readonly payee_person_id: string | null;
+  /**
+   * Identifier of the engagement the invoice bills.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
 }
 
 /**
@@ -13196,10 +13206,15 @@ export interface InvoiceCreate {
    */
   readonly currency_code: string;
   /**
-   * Identifier of the counterparty billed or billing.
+   * Identifier of the counterparty billed or billing; null for an individual payee.
    * Format: `uuid`.
    */
-  readonly counterparty_id: string;
+  readonly counterparty_id?: string | null;
+  /**
+   * Identifier of the engagement the invoice bills.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string | null;
 }
 
 /**
@@ -13231,11 +13246,6 @@ export interface InvoiceUpdate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code?: string;
-  /**
-   * Identifier of the counterparty billed or billing.
-   * Format: `uuid`.
-   */
-  readonly counterparty_id?: string;
 }
 
 /**
@@ -13255,6 +13265,27 @@ export interface InvoiceTransitionRequest {
    * Length: 1 to unbounded.
    */
   readonly reason?: string;
+}
+
+/**
+ * A payment made on the org's own rails, recorded against an invoice.
+ */
+export interface InvoicePaymentRequest {
+  /**
+   * Date the money moved.
+   * Format: `date`.
+   */
+  readonly paid_on: string;
+  /**
+   * Amount paid; the whole balance when null or omitted. Integer minor units of the document currency.
+   * Format: `int64`. Range: 1 to unbounded.
+   */
+  readonly amount_minor?: number | null;
+  /**
+   * Remittance reference from the bank or payout provider.
+   * Length: 1 to 200.
+   */
+  readonly reference?: string;
 }
 
 /**
@@ -18155,6 +18186,10 @@ export interface Opportunity {
    * Range: 16 to unbounded.
    */
   readonly minimum_age: number | null;
+  /**
+   * Whether the work can be done remotely.
+   */
+  readonly is_remote: boolean;
 }
 
 /**
@@ -18243,6 +18278,10 @@ export interface OpportunityCreate {
    * Range: 16 to unbounded.
    */
   readonly minimum_age?: number | null;
+  /**
+   * Whether the work can be done remotely.
+   */
+  readonly is_remote?: boolean;
 }
 
 /**
@@ -18320,6 +18359,10 @@ export interface OpportunityUpdate {
    * Range: 16 to unbounded.
    */
   readonly minimum_age?: number | null;
+  /**
+   * Whether the work can be done remotely.
+   */
+  readonly is_remote?: boolean;
 }
 
 /**
@@ -30911,16 +30954,43 @@ export interface ReportSchedule {
    */
   readonly report_definition_id: string;
   /**
-   * RFC 5545 recurrence rule.
-   * Length: 1 to 300.
-   */
-  readonly rrule: string;
-  readonly format: ExportFormat;
-  /**
    * IANA time zone the local time was entered in.
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone: string;
+  /**
+   * How often the report is sent.
+   */
+  readonly cadence: "Daily" | "Weekly" | "Monthly";
+  /**
+   * Local hour of delivery, 0 to 23.
+   * Range: 0 to unbounded.
+   */
+  readonly local_hour: number;
+  /**
+   * ISO weekday (1 Monday) of a weekly delivery.
+   * Range: 1 to unbounded.
+   */
+  readonly weekday: number | null;
+  /**
+   * Day of the month (1 to 28) of a monthly delivery.
+   * Range: 1 to unbounded.
+   */
+  readonly month_day: number | null;
+  /**
+   * File format attached: CSV, XLSX or PDF.
+   */
+  readonly export_format: "CSV" | "XLSX" | "PDF";
+  /**
+   * Next delivery time, kept by the database.
+   * Format: `date-time`.
+   */
+  readonly next_run_at: string;
+  /**
+   * When the schedule was paused; null while it runs.
+   * Format: `date-time`.
+   */
+  readonly paused_at: string | null;
 }
 
 /**
@@ -30933,16 +31003,38 @@ export interface ReportScheduleCreate {
    */
   readonly report_definition_id: string;
   /**
-   * RFC 5545 recurrence rule.
-   * Length: 1 to 300.
-   */
-  readonly rrule: string;
-  readonly format: ExportFormat;
-  /**
    * IANA time zone the local time was entered in.
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone: string;
+  /**
+   * How often the report is sent.
+   */
+  readonly cadence: "Daily" | "Weekly" | "Monthly";
+  /**
+   * Local hour of delivery, 0 to 23.
+   * Range: 0 to unbounded.
+   */
+  readonly local_hour: number;
+  /**
+   * ISO weekday (1 Monday) of a weekly delivery.
+   * Range: 1 to unbounded.
+   */
+  readonly weekday?: number | null;
+  /**
+   * Day of the month (1 to 28) of a monthly delivery.
+   * Range: 1 to unbounded.
+   */
+  readonly month_day?: number | null;
+  /**
+   * File format attached: CSV, XLSX or PDF.
+   */
+  readonly export_format: "CSV" | "XLSX" | "PDF";
+  /**
+   * When the schedule was paused; null while it runs.
+   * Format: `date-time`.
+   */
+  readonly paused_at?: string | null;
 }
 
 /**
@@ -30950,16 +31042,38 @@ export interface ReportScheduleCreate {
  */
 export interface ReportScheduleUpdate {
   /**
-   * RFC 5545 recurrence rule.
-   * Length: 1 to 300.
-   */
-  readonly rrule?: string;
-  readonly format?: ExportFormat;
-  /**
    * IANA time zone the local time was entered in.
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone?: string;
+  /**
+   * How often the report is sent.
+   */
+  readonly cadence?: "Daily" | "Weekly" | "Monthly";
+  /**
+   * Local hour of delivery, 0 to 23.
+   * Range: 0 to unbounded.
+   */
+  readonly local_hour?: number;
+  /**
+   * ISO weekday (1 Monday) of a weekly delivery.
+   * Range: 1 to unbounded.
+   */
+  readonly weekday?: number | null;
+  /**
+   * Day of the month (1 to 28) of a monthly delivery.
+   * Range: 1 to unbounded.
+   */
+  readonly month_day?: number | null;
+  /**
+   * File format attached: CSV, XLSX or PDF.
+   */
+  readonly export_format?: "CSV" | "XLSX" | "PDF";
+  /**
+   * When the schedule was paused; null while it runs.
+   * Format: `date-time`.
+   */
+  readonly paused_at?: string | null;
 }
 
 /**
@@ -31020,6 +31134,11 @@ export interface Dashboard {
    * Format: `uuid`.
    */
   readonly team_id: string | null;
+  /**
+   * Identifier of the membership that owns the dashboard.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string | null;
 }
 
 /**
@@ -31113,15 +31232,25 @@ export interface DashboardTile {
    */
   readonly report_definition_id: string;
   /**
-   * Tile order.
+   * Leftmost column, 1 to 12.
    * Range: 1 to unbounded.
    */
-  readonly position: number;
+  readonly grid_column: number;
   /**
-   * Grid columns spanned.
+   * Top row, from 1.
    * Range: 1 to unbounded.
    */
-  readonly width: number;
+  readonly grid_row: number;
+  /**
+   * Columns spanned, 1 to 12.
+   * Range: 1 to unbounded.
+   */
+  readonly column_span: number;
+  /**
+   * Rows spanned, 1 to 12.
+   * Range: 1 to unbounded.
+   */
+  readonly row_span: number;
 }
 
 /**
@@ -31139,15 +31268,25 @@ export interface DashboardTileCreate {
    */
   readonly report_definition_id: string;
   /**
-   * Tile order.
+   * Leftmost column, 1 to 12.
    * Range: 1 to unbounded.
    */
-  readonly position: number;
+  readonly grid_column: number;
   /**
-   * Grid columns spanned.
+   * Top row, from 1.
    * Range: 1 to unbounded.
    */
-  readonly width: number;
+  readonly grid_row: number;
+  /**
+   * Columns spanned, 1 to 12.
+   * Range: 1 to unbounded.
+   */
+  readonly column_span: number;
+  /**
+   * Rows spanned, 1 to 12.
+   * Range: 1 to unbounded.
+   */
+  readonly row_span: number;
 }
 
 /**
@@ -31160,15 +31299,25 @@ export interface DashboardTileUpdate {
    */
   readonly report_definition_id?: string;
   /**
-   * Tile order.
+   * Leftmost column, 1 to 12.
    * Range: 1 to unbounded.
    */
-  readonly position?: number;
+  readonly grid_column?: number;
   /**
-   * Grid columns spanned.
+   * Top row, from 1.
    * Range: 1 to unbounded.
    */
-  readonly width?: number;
+  readonly grid_row?: number;
+  /**
+   * Columns spanned, 1 to 12.
+   * Range: 1 to unbounded.
+   */
+  readonly column_span?: number;
+  /**
+   * Rows spanned, 1 to 12.
+   * Range: 1 to unbounded.
+   */
+  readonly row_span?: number;
 }
 
 /**
@@ -34397,6 +34546,69 @@ export interface GuestDecisionRequest {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface Form1099NecRowPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<Form1099NecRow>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A payee paid $600 or more in approved USD payments in a tax year as an independent contractor, with the W-9 on file.
+ */
+export interface Form1099NecRow {
+  /**
+   * Identifier of the person paid as an individual.
+   * Format: `uuid`.
+   */
+  readonly payee_person_id: string | null;
+  /**
+   * Identifier of the account paid.
+   * Format: `uuid`.
+   */
+  readonly payee_organization_id: string | null;
+  /**
+   * Name on the W-9, or the payee's name.
+   * Length: 1 to 300.
+   */
+  readonly payee_name: string;
+  /**
+   * Whether a W-9 is on file with the org.
+   */
+  readonly w9_on_file: boolean;
+  /**
+   * FIRE TIN type: 1 EIN (an account), 2 SSN (a person).
+   * Range: 1 to unbounded.
+   */
+  readonly tin_type: number | null;
+  /**
+   * Last four of the TIN.
+   * Length: 1 to 4.
+   */
+  readonly tin_last4: string | null;
+  /**
+   * Whether the W-9 address is complete.
+   */
+  readonly address_complete: boolean;
+  /**
+   * Approved USD payments in the year. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor: number | null;
+  /**
+   * Payments counted.
+   * Range: 0 to unbounded.
+   */
+  readonly payment_count: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface InsuranceCertificateInsuredPage {
   /**
    * Items on this page, in the documented default order.
@@ -34596,6 +34808,166 @@ export interface RequiredAdditionalInsuredUpdate {
    */
   readonly endorsement_kind?:
     "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ReportScheduleRecipientPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ReportScheduleRecipient>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4).
+ */
+export interface ReportScheduleRecipient {
+  /**
+   * Identifier of the report schedule recipient.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the report schedule.
+   * Format: `uuid`.
+   */
+  readonly report_schedule_id: string;
+  /**
+   * Identifier of the membership of the recipient, in the schedule's org.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+}
+
+/**
+ * Fields accepted when creating a ReportScheduleRecipient.
+ */
+export interface ReportScheduleRecipientCreate {
+  /**
+   * Identifier of the report schedule.
+   * Format: `uuid`.
+   */
+  readonly report_schedule_id: string;
+  /**
+   * Identifier of the membership of the recipient, in the schedule's org.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ReportDeliveryPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ReportDelivery>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker.
+ */
+export interface ReportDelivery {
+  /**
+   * Identifier of the report delivery.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the report schedule.
+   * Format: `uuid`.
+   */
+  readonly report_schedule_id: string;
+  /**
+   * Identifier of the recipient membership.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string;
+  /**
+   * Identifier of the report run whose file is attached.
+   * Format: `uuid`.
+   */
+  readonly report_run_id: string;
+  /**
+   * The schedule slot this delivery is for.
+   * Format: `date-time`.
+   */
+  readonly scheduled_for: string;
+  /**
+   * Delivery status.
+   */
+  readonly delivery_status: "Queued" | "Sent" | "Failed";
+  /**
+   * When the email was handed to the transport.
+   * Format: `date-time`.
+   */
+  readonly sent_at: string | null;
+  /**
+   * Why the delivery failed.
+   * Length: 1 to 20000.
+   */
+  readonly last_error: string | null;
 }
 
 /**

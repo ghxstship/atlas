@@ -145,3 +145,11 @@ Renovate opens pinned upgrade pull requests weekly. Every runtime library above 
 | ------- | ----------------------------------------------------------------------- | ------- |
 | Compass | `expo-audio` (voice notes; published 2026-09-11, sdk-57 tag)            | 57.0.5  |
 | Compass | `@bacons/apple-targets` (widget extension target; published 2026-07-17) | 5.0.0   |
+
+## Amendment (2026-10-17): report rendering (A43)
+
+| Area          | Package                                                      | Version |
+| ------------- | ------------------------------------------------------------ | ------- |
+| Data and Edge | `pdfkit` (server-only report PDFs; Edge `npm:pdfkit@0.20.2`) | 0.20.2  |
+| Data          | `@types/pdfkit` (dev)                                        | 0.17.6  |
+| Edge          | `exceljs` added to the Edge import map (`npm:exceljs@4.4.0`) | 4.4.0   |

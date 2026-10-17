@@ -2223,6 +2223,7 @@ export interface Components {
     updated_by: string | null;
     name: string;
     team_id: string | null;
+    membership_id: string | null;
   };
   DashboardCreate: { name: string; team_id?: string | null };
   DashboardPage: { data: Array<Components["Dashboard"]>; next_cursor: string | null };
@@ -2235,17 +2236,27 @@ export interface Components {
     updated_by: string | null;
     dashboard_id: string;
     report_definition_id: string;
-    position: number;
-    width: number;
+    grid_column: number;
+    grid_row: number;
+    column_span: number;
+    row_span: number;
   };
   DashboardTileCreate: {
     dashboard_id: string;
     report_definition_id: string;
-    position: number;
-    width: number;
+    grid_column: number;
+    grid_row: number;
+    column_span: number;
+    row_span: number;
   };
   DashboardTilePage: { data: Array<Components["DashboardTile"]>; next_cursor: string | null };
-  DashboardTileUpdate: { report_definition_id?: string; position?: number; width?: number };
+  DashboardTileUpdate: {
+    report_definition_id?: string;
+    grid_column?: number;
+    grid_row?: number;
+    column_span?: number;
+    row_span?: number;
+  };
   DashboardUpdate: { name?: string; team_id?: string | null };
   DaySheet: {
     id: string;
@@ -2749,6 +2760,18 @@ export interface Components {
       contains?: string;
     }
   >;
+  Form1099NecRow: {
+    payee_person_id: string | null;
+    payee_organization_id: string | null;
+    payee_name: string;
+    w9_on_file: boolean;
+    tin_type: number | null;
+    tin_last4: string | null;
+    address_complete: boolean;
+    amount_minor: number | null;
+    payment_count: number;
+  };
+  Form1099NecRowPage: { data: Array<Components["Form1099NecRow"]>; next_cursor: string | null };
   FormDecisionRequest: { approve: boolean; note?: string };
   FormField: {
     key: string;
@@ -3646,7 +3669,9 @@ export interface Components {
     currency_code: string;
     invoice_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
     total: Components["MoneyTotal"];
-    counterparty_id: string;
+    counterparty_id: string | null;
+    payee_person_id: string | null;
+    engagement_id: string | null;
   };
   InvoiceCreate: {
     project_id: string;
@@ -3655,7 +3680,8 @@ export interface Components {
     issued_on?: string | null;
     due_on?: string | null;
     currency_code: string;
-    counterparty_id: string;
+    counterparty_id?: string | null;
+    engagement_id?: string | null;
   };
   InvoiceLine: {
     id: string;
@@ -3713,6 +3739,7 @@ export interface Components {
   InvoiceMatchPage: { data: Array<Components["InvoiceMatch"]>; next_cursor: string | null };
   InvoiceMatchResolveRequest: { resolution_note: string };
   InvoicePage: { data: Array<Components["Invoice"]>; next_cursor: string | null };
+  InvoicePaymentRequest: { paid_on: string; amount_minor?: number | null; reference?: string };
   InvoiceTransitionRequest: {
     expected_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
     to_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
@@ -3724,7 +3751,6 @@ export interface Components {
     issued_on?: string | null;
     due_on?: string | null;
     currency_code?: string;
-    counterparty_id?: string;
   };
   ItemId: string | null;
   JoinRequest: {
@@ -4386,6 +4412,7 @@ export interface Components {
     currency_code: string | null;
     deadline_at: string | null;
     minimum_age: number | null;
+    is_remote: boolean;
   };
   OpportunityAlert: {
     id: string;
@@ -4417,6 +4444,7 @@ export interface Components {
     currency_code?: string | null;
     deadline_at?: string | null;
     minimum_age?: number | null;
+    is_remote?: boolean;
   };
   OpportunityPage: { data: Array<Components["Opportunity"]>; next_cursor: string | null };
   OpportunityPosition: {
@@ -4527,6 +4555,7 @@ export interface Components {
     currency_code?: string | null;
     deadline_at?: string | null;
     minimum_age?: number | null;
+    is_remote?: boolean;
   };
   OpportunityVisibility: "Invited" | "Pool" | "Network" | "Public";
   OrgBranding: {
@@ -5879,6 +5908,22 @@ export interface Components {
     shared?: boolean;
     custom_object_type_id?: string | null;
   };
+  ReportDelivery: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    report_schedule_id: string;
+    membership_id: string;
+    report_run_id: string;
+    scheduled_for: string;
+    delivery_status: "Queued" | "Sent" | "Failed";
+    sent_at: string | null;
+    last_error: string | null;
+  };
+  ReportDeliveryPage: { data: Array<Components["ReportDelivery"]>; next_cursor: string | null };
   ReportMetricRow: {
     dimension: string;
     project_id: string | null;
@@ -5920,18 +5965,50 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     report_definition_id: string;
-    rrule: string;
-    format: Components["ExportFormat"];
     time_zone: string;
+    cadence: "Daily" | "Weekly" | "Monthly";
+    local_hour: number;
+    weekday: number | null;
+    month_day: number | null;
+    export_format: "CSV" | "XLSX" | "PDF";
+    next_run_at: string;
+    paused_at: string | null;
   };
   ReportScheduleCreate: {
     report_definition_id: string;
-    rrule: string;
-    format: Components["ExportFormat"];
     time_zone: string;
+    cadence: "Daily" | "Weekly" | "Monthly";
+    local_hour: number;
+    weekday?: number | null;
+    month_day?: number | null;
+    export_format: "CSV" | "XLSX" | "PDF";
+    paused_at?: string | null;
   };
   ReportSchedulePage: { data: Array<Components["ReportSchedule"]>; next_cursor: string | null };
-  ReportScheduleUpdate: { rrule?: string; format?: Components["ExportFormat"]; time_zone?: string };
+  ReportScheduleRecipient: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    report_schedule_id: string;
+    membership_id: string;
+  };
+  ReportScheduleRecipientCreate: { report_schedule_id: string; membership_id: string };
+  ReportScheduleRecipientPage: {
+    data: Array<Components["ReportScheduleRecipient"]>;
+    next_cursor: string | null;
+  };
+  ReportScheduleUpdate: {
+    time_zone?: string;
+    cadence?: "Daily" | "Weekly" | "Monthly";
+    local_hour?: number;
+    weekday?: number | null;
+    month_day?: number | null;
+    export_format?: "CSV" | "XLSX" | "PDF";
+    paused_at?: string | null;
+  };
   Representation: {
     id: string;
     created_at: string;
@@ -13313,6 +13390,15 @@ export interface Operations {
     params: { id: string };
     query: Record<string, never>;
     body: undefined;
+    responses: { 200: Components["Invoice"] };
+  };
+  "invoices.recordPayment": {
+    module: "Finance";
+    method: "post";
+    path: "/invoices/{id}/record-payment";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InvoicePaymentRequest"];
     responses: { 200: Components["Invoice"] };
   };
   "invoiceLines.list": {
@@ -22183,6 +22269,15 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
   };
+  "form1099Nec.rows": {
+    module: "Finance";
+    method: "get";
+    path: "/form-1099-nec/rows";
+    params: Record<string, never>;
+    query: { year: number };
+    body: undefined;
+    responses: { 200: Components["Form1099NecRowPage"] };
+  };
   "insuranceCertificateInsureds.list": {
     module: "Vendors";
     method: "get";
@@ -22284,6 +22379,72 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "reportScheduleRecipients.list": {
+    module: "Reports";
+    method: "get";
+    path: "/report-schedule-recipients";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ReportScheduleRecipientPage"] };
+  };
+  "reportScheduleRecipients.create": {
+    module: "Reports";
+    method: "post";
+    path: "/report-schedule-recipients";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ReportScheduleRecipientCreate"];
+    responses: { 201: Components["ReportScheduleRecipient"] };
+  };
+  "reportScheduleRecipients.get": {
+    module: "Reports";
+    method: "get";
+    path: "/report-schedule-recipients/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ReportScheduleRecipient"] };
+  };
+  "reportScheduleRecipients.delete": {
+    module: "Reports";
+    method: "delete";
+    path: "/report-schedule-recipients/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "reportDeliveries.list": {
+    module: "Reports";
+    method: "get";
+    path: "/report-deliveries";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ReportDeliveryPage"] };
+  };
+  "reportDeliveries.get": {
+    module: "Reports";
+    method: "get";
+    path: "/report-deliveries/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ReportDelivery"] };
   };
   "aurora.status": {
     module: "Settings";
@@ -25121,6 +25282,7 @@ export interface ModuleOperations {
     | "invoices.update"
     | "invoices.transition"
     | "invoices.approve"
+    | "invoices.recordPayment"
     | "invoiceLines.list"
     | "invoiceLines.create"
     | "invoiceLines.get"
@@ -25154,7 +25316,8 @@ export interface ModuleOperations {
     | "priceBooks.create"
     | "priceBooks.get"
     | "priceBooks.update"
-    | "priceBooks.delete";
+    | "priceBooks.delete"
+    | "form1099Nec.rows";
   Procurement:
     | "rfqs.list"
     | "rfqs.create"
@@ -25469,7 +25632,13 @@ export interface ModuleOperations {
     | "reports.poExposure"
     | "reports.incidentRates"
     | "reports.finalCostReport"
-    | "reports.gateReadiness";
+    | "reports.gateReadiness"
+    | "reportScheduleRecipients.list"
+    | "reportScheduleRecipients.create"
+    | "reportScheduleRecipients.get"
+    | "reportScheduleRecipients.delete"
+    | "reportDeliveries.list"
+    | "reportDeliveries.get";
   Settings:
     | "subscriptions.list"
     | "subscriptions.get"

@@ -348,6 +348,7 @@ import type {
   FeedPostCreate,
   FeedPostUpdate,
   FeedReactionRequest,
+  Form1099NecRowPage,
   FormDecisionRequest,
   FormSubmission,
   FormSubmissionCreate,
@@ -460,6 +461,7 @@ import type {
   InvoiceMatch,
   InvoiceMatchCreate,
   InvoiceMatchResolveRequest,
+  InvoicePaymentRequest,
   InvoiceTransitionRequest,
   InvoiceUpdate,
   ItemId,
@@ -703,12 +705,15 @@ import type {
   ReportDefinition,
   ReportDefinitionCreate,
   ReportDefinitionUpdate,
+  ReportDelivery,
   ReportMetricRowPage,
   ReportRowPage,
   ReportRun,
   ReportRunCreate,
   ReportSchedule,
   ReportScheduleCreate,
+  ReportScheduleRecipient,
+  ReportScheduleRecipientCreate,
   ReportScheduleUpdate,
   Representation,
   RepresentationCreate,
@@ -12107,6 +12112,26 @@ export class InvoicesResource extends $Resource {
    */
   approve(id: string, options?: $MutationOptions): Promise<$ApiResponse<Invoice>> {
     return this.client.request<Invoice>($OPERATIONS["invoices.approve"], { path: { id } }, options);
+  }
+
+  /**
+   * Record a payment
+   *
+   * Records that an approved payable (or issued receivable) was paid: a Proposed payment of the invoice's payee, its counterparty or the person engaged as an individual, applied to the invoice for the whole balance unless `amount_minor` says otherwise. Money moves on the org's own rails; XOS never holds funds. Another eligible person approves the payment. Refuses a Proposed, Disputed or Canceled invoice and an invoice with nothing left to pay (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /invoices/{id}/record-payment` (operation `invoices.recordPayment`).
+   * Requires the capability `finance.payment.write`.
+   */
+  recordPayment(
+    id: string,
+    body: InvoicePaymentRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Invoice>> {
+    return this.client.request<Invoice>(
+      $OPERATIONS["invoices.recordPayment"],
+      { path: { id }, body },
+      options,
+    );
   }
 }
 
@@ -33600,6 +33625,37 @@ export class GuestListEntriesResource extends $Resource {
 }
 
 /**
+ * Operations on `form1099Nec`, in the Finance module.
+ *
+ * Budgets, expenses, change orders, ledger, periods and the Universal Posting Line (Sections 3.11 and 4.2).
+ */
+export class Form1099NecResource extends $Resource {
+  /**
+   * 1099-NEC payees of a tax year
+   *
+   * Payees paid $600 or more in approved USD payments in the calendar year as independent contractors (individuals and accounts), with whether a W-9 and its address are on file. Full TINs are a Restricted export with step-up, in Atlas only. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /form-1099-nec/rows` (operation `form1099Nec.rows`).
+   * Requires the capability `finance.payment.read`.
+   */
+  rows(
+    params: {
+      /**
+       * Tax year.
+       */
+      readonly year: number;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Form1099NecRowPage>> {
+    return this.client.request<Form1099NecRowPage>(
+      $OPERATIONS["form1099Nec.rows"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `insuranceCertificateInsureds`, in the Vendors module.
  *
  * Vendors, classes, prequalification, insurance, scorecards and sponsor entitlements (Section 4.2).
@@ -33838,6 +33894,175 @@ export class RequiredAdditionalInsuredsResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["requiredAdditionalInsureds.delete"],
       { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `reportScheduleRecipients`, in the Reports module.
+ *
+ * Report builder, dashboards, scheduled delivery and the built-in analytics reports (Sections 4.2 and 4.6.4).
+ */
+export class ReportScheduleRecipientsResource extends $Resource {
+  /**
+   * List report schedule recipient rows
+   *
+   * A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Returns a cursor page of report schedule recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /report-schedule-recipients` (operation `reportScheduleRecipients.list`).
+   * Requires the capability `reports.report.read`.
+   */
+  list(
+    params?: $ListParams<ReportScheduleRecipient>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ReportScheduleRecipient>> {
+    return this.client.requestPage<ReportScheduleRecipient>(
+      $OPERATIONS["reportScheduleRecipients.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List report schedule recipient rows
+   *
+   * A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Returns a cursor page of report schedule recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /report-schedule-recipients` (operation `reportScheduleRecipients.list`).
+   * Requires the capability `reports.report.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ReportScheduleRecipient>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ReportScheduleRecipient, void, undefined> {
+    return this.client.paginate<ReportScheduleRecipient>(
+      $OPERATIONS["reportScheduleRecipients.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a report schedule recipient
+   *
+   * A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Creates a report schedule recipient. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /report-schedule-recipients` (operation `reportScheduleRecipients.create`).
+   * Requires the capability `reports.schedule.write`.
+   */
+  create(
+    body: ReportScheduleRecipientCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ReportScheduleRecipient>> {
+    return this.client.request<ReportScheduleRecipient>(
+      $OPERATIONS["reportScheduleRecipients.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a report schedule recipient
+   *
+   * A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Returns one report schedule recipient with its `ETag`. A report schedule recipient the caller may not see returns 404.
+   *
+   * `GET /report-schedule-recipients/{id}` (operation `reportScheduleRecipients.get`).
+   * Requires the capability `reports.report.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ReportScheduleRecipient>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ReportScheduleRecipient>> {
+    return this.client.request<ReportScheduleRecipient>(
+      $OPERATIONS["reportScheduleRecipients.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a report schedule recipient
+   *
+   * A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Soft-deletes the report schedule recipient: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /report-schedule-recipients/{id}` (operation `reportScheduleRecipients.delete`).
+   * Requires the capability `reports.schedule.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["reportScheduleRecipients.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `reportDeliveries`, in the Reports module.
+ *
+ * Report builder, dashboards, scheduled delivery and the built-in analytics reports (Sections 4.2 and 4.6.4).
+ */
+export class ReportDeliveriesResource extends $Resource {
+  /**
+   * List report delivery rows
+   *
+   * One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker. Returns a cursor page of report delivery rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /report-deliveries` (operation `reportDeliveries.list`).
+   * Requires the capability `reports.report.read`.
+   */
+  list(
+    params?: $ListParams<ReportDelivery>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ReportDelivery>> {
+    return this.client.requestPage<ReportDelivery>(
+      $OPERATIONS["reportDeliveries.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List report delivery rows
+   *
+   * One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker. Returns a cursor page of report delivery rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /report-deliveries` (operation `reportDeliveries.list`).
+   * Requires the capability `reports.report.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ReportDelivery>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ReportDelivery, void, undefined> {
+    return this.client.paginate<ReportDelivery>(
+      $OPERATIONS["reportDeliveries.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a report delivery
+   *
+   * One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker. Returns one report delivery with its `ETag`. A report delivery the caller may not see returns 404.
+   *
+   * `GET /report-deliveries/{id}` (operation `reportDeliveries.get`).
+   * Requires the capability `reports.report.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ReportDelivery>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ReportDelivery>> {
+    return this.client.request<ReportDelivery>(
+      $OPERATIONS["reportDeliveries.get"],
+      { path: { id }, query: params },
       options,
     );
   }
