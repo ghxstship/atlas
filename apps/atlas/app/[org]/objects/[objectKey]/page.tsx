@@ -7,6 +7,7 @@ import {
   type FieldValue,
   type ObjectField,
   type ObjectRecord,
+  type ObjectType,
 } from "@xos/data/custom-objects";
 import { isNodeVisible } from "@xos/ia";
 import type { RecordState } from "@xos/ui";
@@ -24,7 +25,9 @@ import { PageHeader, TemplateCollection } from "@/components/platform/ui";
 import { ButtonLink } from "@/components/ui";
 import { collectionState } from "@/lib/collection-kit/page";
 import { getFormatters, type Formatters } from "@/lib/platform/format";
-import { getOrgContext } from "@/lib/shell/context";
+import { getOrgContext, type OrgContext } from "@/lib/shell/context";
+import { PageSkeleton } from "@/components/projects/page-skeleton";
+import { Suspense } from "react";
 import { sitemap } from "@/lib/shell/sitemap";
 
 const BOARD_STATES: readonly RecordState[] = [
@@ -81,9 +84,26 @@ export default async function Page({
       </TemplateCollection>
     );
   }
+  // The object is resolved before anything streams, so a missing object answers 404; the records
+  // load behind a skeleton.
+  return (
+    <Suspense fallback={<PageSkeleton rows={6} />}>
+      <ObjectRecords ctx={ctx} object={type.data} query={await searchParams} />
+    </Suspense>
+  );
+}
+
+async function ObjectRecords({
+  ctx,
+  object,
+  query,
+}: {
+  ctx: OrgContext;
+  object: ObjectType;
+  query: Readonly<Record<string, string | string[] | undefined>>;
+}) {
   const fmt = await getFormatters(ctx);
   const { t } = fmt;
-  const object = type.data;
   const board = boardField(object);
   const calendar = calendarField(object);
   const views: ViewKind[] = [
@@ -93,7 +113,6 @@ export default async function Page({
     ...(calendar ? (["calendar"] as const) : []),
   ];
   const preferred = object.defaultView.toLowerCase() as ViewKind;
-  const query = await searchParams;
   const state = collectionState(
     query["view"] ? query : { ...query, view: views.includes(preferred) ? preferred : "list" },
     views,

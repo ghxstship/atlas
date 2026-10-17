@@ -99,4 +99,11 @@ test("journey 57: approve from the notification action, then 20 Inbox items by k
       return atOwner;
     })
     .toBe(20);
+
+  // Leave the demo tenant as it was: the requester withdraws the 21 approvals now waiting on the Owner.
+  for (const approval of approvals) {
+    await apiPost(producer.request, base, `/approval-instances/${approval}/cancel`, {
+      reason: "Journey 57 test data withdrawn.",
+    });
+  }
 });
