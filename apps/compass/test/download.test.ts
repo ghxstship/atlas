@@ -1,5 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { MemoryStore, SyncSession, type DownloadScope } from "@xos/sync";
+import {
+  EXTERNAL_AUDIENCES,
+  INTERNAL_AUDIENCES,
+  MemoryStore,
+  SyncSession,
+  TABLE_RULES,
+  type Audience,
+  type DownloadScope,
+} from "@xos/sync";
 import { describe, expect, it } from "vitest";
 import { downloadAll } from "../src/data/downloader";
 import { sourcesFor, toLocalRows } from "../src/data/sources";
@@ -55,6 +63,42 @@ describe("sources", () => {
     expect(sourcesFor("field").map((s) => s.table)).toEqual(
       expect.arrayContaining(["incident_severities", "emergency_codes"]),
     );
+  });
+
+  it("selects the column each table's device scope rule checks, for every audience", () => {
+    // A row the scope check cannot place is refused, so a source that leaves out the scope column
+    // downloads nothing (geofence shapes once lacked org_id and Today said the site had no geofence).
+    // Columns the downloader adds after the pull are listed here.
+    const enriched: Readonly<Record<string, readonly string[]>> = { cues: ["project_id"] };
+    const audiences: readonly Audience[] = [...INTERNAL_AUDIENCES, ...EXTERNAL_AUDIENCES];
+    const gaps: string[] = [];
+    for (const audience of audiences) {
+      for (const source of sourcesFor(audience)) {
+        const rule = TABLE_RULES.find((r) => r.table === source.table);
+        if (!rule) {
+          gaps.push(`${audience} ${source.table}: no scope rule`);
+          continue;
+        }
+        if (rule.global) continue;
+        const selected = Object.fromEntries(
+          source.select.split(",").map((c) => [c.split(":")[0]?.trim() ?? c, "x"]),
+        );
+        const columns = new Set([
+          ...Object.keys(source.map ? source.map(selected) : selected),
+          ...(enriched[source.table] ?? []),
+        ]);
+        const served = rule.anyOf.filter(
+          (a) => a.audiences === undefined || a.audiences.includes(audience),
+        );
+        // Externals share one source list; a table no rule serves for this audience is refused by design.
+        if (served.length > 0 && !served.some((a) => columns.has(a.column))) {
+          gaps.push(
+            `${audience} ${source.table}: needs one of ${served.map((a) => a.column).join(", ")}`,
+          );
+        }
+      }
+    }
+    expect(gaps).toEqual([]);
   });
 
   it("maps view rows to local rows and drops rows without an id", () => {

@@ -47236,6 +47236,7 @@ export type Database = {
           boundary_geojson: Json | null;
           id: string | null;
           name: string | null;
+          org_id: string | null;
           venue_id: string | null;
           zone_id: string | null;
         };
@@ -47244,6 +47245,7 @@ export type Database = {
           boundary_geojson?: never;
           id?: string | null;
           name?: string | null;
+          org_id?: string | null;
           venue_id?: string | null;
           zone_id?: string | null;
         };
@@ -47251,10 +47253,18 @@ export type Database = {
           boundary_geojson?: never;
           id?: string | null;
           name?: string | null;
+          org_id?: string | null;
           venue_id?: string | null;
           zone_id?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "geofences_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "geofences_venue_id_fkey";
             columns: ["venue_id"];

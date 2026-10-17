@@ -56,7 +56,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     table: "geofence_shapes",
     schema: "app",
     relation: "geofence_shapes",
-    select: "id,venue_id,zone_id,name,boundary_geojson",
+    select: "id,org_id,venue_id,zone_id,name,boundary_geojson",
   },
   {
     table: "day_sheets",
@@ -283,7 +283,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     schema: "api_external",
     relation: "dock_slots",
     select:
-      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at",
+      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at,engagement_id",
     projectColumn: "project_id",
   },
 ];
