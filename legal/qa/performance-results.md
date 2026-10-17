@@ -11,24 +11,24 @@ objectives are decided by the staging runs described in `packages/testing/README
 Budgets: LCP under 2.5 s, CLS under 0.1, INP under 200 ms (Total Blocking Time in the lab), route
 JavaScript under 200 KB gzip. Accessibility must score 100.
 
-| App     | Page                              | Performance | Accessibility            | LCP     | CLS   | TBT  | Route JS (gzip) | Verdict   |
-| ------- | --------------------------------- | ----------- | ------------------------ | ------- | ----- | ---- | --------------- | --------- |
-| Atlas   | /auth/sign-in                     | 100         | 100                      | 644 ms  | 0.000 | 0 ms | 481 KB          | Fail (JS) |
-| Atlas   | /demo-productions/home            | 99          | 100                      | 889 ms  | 0.000 | 0 ms | 717 KB          | Fail (JS) |
-| Atlas   | /demo-productions/projects        | 95          | 100                      | 1242 ms | 0.099 | 0 ms | 696 KB          | Fail (JS) |
-| Atlas   | /demo-productions/p/NWS/overview  | 97          | 100                      | 1203 ms | 0.000 | 0 ms | 711 KB          | Fail (JS) |
-| Atlas   | /demo-productions/inbox           | 98          | 100                      | 1121 ms | 0.000 | 0 ms | 632 KB          | Fail (JS) |
-| Atlas   | /demo-productions/crew/shifts     | 95          | 100                      | 1409 ms | 0.065 | 0 ms | 693 KB          | Fail (JS) |
-| Atlas   | /demo-productions/finance/budgets | 95          | 100                      | 1326 ms | 0.075 | 0 ms | 712 KB          | Fail (JS) |
-| Gateway | /auth/sign-in                     | 100         | 100                      | 707 ms  | 0.000 | 0 ms | 519 KB          | Fail (JS) |
-| Gateway | /home                             | 99          | 100                      | 965 ms  | 0.000 | 0 ms | 528 KB          | Fail (JS) |
-| Gateway | /explore                          | 100         | 98, fixed on this branch | 742 ms  | 0.000 | 0 ms | 530 KB          | Fail (JS) |
-| Gateway | /work                             | 99          | 100                      | 868 ms  | 0.000 | 0 ms | 519 KB          | Fail (JS) |
-| Gateway | /money                            | 100         | 100                      | 663 ms  | 0.000 | 0 ms | 519 KB          | Fail (JS) |
-| Docs    | /en-US                            | 90          | 100                      | 781 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
-| Docs    | /en-US/reference                  | 100         | 100                      | 791 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
-| Docs    | /en-US/guides/getting-started     | 100         | 100                      | 750 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
-| Docs    | /en-US/help                       | 100         | 100                      | 708 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
+| App     | Page                              | Performance | Accessibility                     | LCP     | CLS   | TBT  | Route JS (gzip) | Verdict   |
+| ------- | --------------------------------- | ----------- | --------------------------------- | ------- | ----- | ---- | --------------- | --------- |
+| Atlas   | /auth/sign-in                     | 100         | 100                               | 644 ms  | 0.000 | 0 ms | 481 KB          | Fail (JS) |
+| Atlas   | /demo-productions/home            | 99          | 100                               | 889 ms  | 0.000 | 0 ms | 717 KB          | Fail (JS) |
+| Atlas   | /demo-productions/projects        | 95          | 100                               | 1242 ms | 0.099 | 0 ms | 696 KB          | Fail (JS) |
+| Atlas   | /demo-productions/p/NWS/overview  | 97          | 100                               | 1203 ms | 0.000 | 0 ms | 711 KB          | Fail (JS) |
+| Atlas   | /demo-productions/inbox           | 98          | 100                               | 1121 ms | 0.000 | 0 ms | 632 KB          | Fail (JS) |
+| Atlas   | /demo-productions/crew/shifts     | 95          | 100                               | 1409 ms | 0.065 | 0 ms | 693 KB          | Fail (JS) |
+| Atlas   | /demo-productions/finance/budgets | 95          | 100                               | 1326 ms | 0.075 | 0 ms | 712 KB          | Fail (JS) |
+| Gateway | /auth/sign-in                     | 100         | 100                               | 707 ms  | 0.000 | 0 ms | 519 KB          | Fail (JS) |
+| Gateway | /home                             | 99          | 100                               | 965 ms  | 0.000 | 0 ms | 528 KB          | Fail (JS) |
+| Gateway | /explore                          | 100         | 98 before, 100 after the fix here | 742 ms  | 0.000 | 0 ms | 530 KB          | Fail (JS) |
+| Gateway | /work                             | 99          | 100                               | 868 ms  | 0.000 | 0 ms | 519 KB          | Fail (JS) |
+| Gateway | /money                            | 100         | 100                               | 663 ms  | 0.000 | 0 ms | 519 KB          | Fail (JS) |
+| Docs    | /en-US                            | 90          | 100                               | 781 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
+| Docs    | /en-US/reference                  | 100         | 100                               | 791 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
+| Docs    | /en-US/guides/getting-started     | 100         | 100                               | 750 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
+| Docs    | /en-US/help                       | 100         | 100                               | 708 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
 
 LCP, CLS and TBT are inside budget on every page; Atlas Projects sits at the CLS edge (0.099).
 Route JavaScript fails everywhere, mainly because the full two-locale message catalog ships to the
