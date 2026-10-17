@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations-support";
+import { expectAccessible } from "./support";
 
 /**
  * A33 journeys on the demo tenant seed (0010, 0107, 0116 and 1030):
@@ -24,8 +25,11 @@ test("approvals: the Owner decides the step a purchase order waits on", async ({
   await expectAccessibleInBothThemes(page);
   await settled(page);
   await item.getByRole("button", { name: "Approve step" }).click();
-  // The decided approval leaves the waiting list (and its confirmation with it, finding A24-001).
+  // The decided approval leaves the waiting list; the confirmation stays in the page's status
+  // region, which outlives the row (finding A24-001).
   await expect(page.getByRole("link", { name: /^Waiting on me 0$/ })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Decision recorded." })).toBeVisible();
+  await expectAccessible(page);
   await expect(
     page
       .getByRole("listitem")
@@ -41,8 +45,10 @@ test("trash: a deleted template comes back", async ({ page }) => {
   await expectAccessibleInBothThemes(page);
   await settled(page);
   await page.getByRole("button", { name: "Restore Winter Gala Format" }).click();
-  // The restored row leaves Trash (and its confirmation with it, finding A24-001).
+  // The restored row leaves Trash; the confirmation stays in the page's status region (A24-001).
   await expect(page.getByRole("button", { name: "Restore Winter Gala Format" })).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Restored 1 item." })).toBeVisible();
+  await expectAccessible(page);
 });
 
 test("templates: a project is created from the published template", async ({ page }) => {

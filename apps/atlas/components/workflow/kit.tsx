@@ -5,7 +5,17 @@ import type { ButtonProps } from "@xos/ui";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useMemo, useRef, type ReactNode } from "react";
+import {
+  createContext,
+  useActionState,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { INITIAL_STATE, type WorkflowActionState } from "@/lib/workflow/state";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
@@ -56,6 +66,37 @@ export function Feedback({ state, success }: { state: WorkflowActionState; succe
 }
 
 /**
+ * A page-level status region (finding A24-001). A decision or a restore removes its row when the
+ * page revalidates, and a message rendered inside the row would unmount with it, unseen and unheard.
+ * Forms inside the provider announce their outcome here instead, above the list, where it stays
+ * until the next outcome replaces it.
+ */
+const PageStatusContext = createContext<((message: string) => void) | null>(null);
+
+export function PageStatus({ children }: { children: ReactNode }) {
+  const [message, setMessage] = useState<{ text: string; at: number } | null>(null);
+  const announce = useCallback((text: string) => setMessage({ text, at: Date.now() }), []);
+  return (
+    <PageStatusContext.Provider value={announce}>
+      {/* The live region is always mounted, so screen readers announce what InlineAlert adds. */}
+      <div aria-live="polite" aria-atomic="true">
+        {message ? (
+          <InlineAlert key={message.at} tone="success">
+            {message.text}
+          </InlineAlert>
+        ) : null}
+      </div>
+      {children}
+    </PageStatusContext.Provider>
+  );
+}
+
+/** Announces in the nearest PageStatus; null outside one. */
+export function usePageStatus(): ((message: string) => void) | null {
+  return useContext(PageStatusContext);
+}
+
+/**
  * A form posting to a server action, with hidden values, its fields, one submit button and the
  * outcome. On success it resets, and `onDone` runs (for example to close a dialog).
  */
@@ -69,6 +110,7 @@ export function ActionForm({
   onDone,
   children,
   inline = false,
+  announce = false,
 }: {
   action: ServerAction;
   hidden?: Readonly<Record<string, string>>;
@@ -79,8 +121,22 @@ export function ActionForm({
   onDone?: (state: WorkflowActionState) => void;
   children?: ReactNode;
   inline?: boolean;
+  /** Success is announced in the page's PageStatus, for a form whose row leaves on success. */
+  announce?: boolean;
 }) {
-  const [state, formAction, pending] = useActionState(action, INITIAL_STATE);
+  const pageStatus = usePageStatus();
+  const toPage = announce && pageStatus !== null;
+  // The revalidated page can drop this form's row in the same commit as the result, so the page
+  // region hears about success from the action itself, never from an effect of this component.
+  const announcing = useCallback<ServerAction>(
+    async (previous, form) => {
+      const next = await action(previous, form);
+      if (toPage && next.ok && success) pageStatus(success);
+      return next;
+    },
+    [action, toPage, pageStatus, success],
+  );
+  const [state, formAction, pending] = useActionState(announcing, INITIAL_STATE);
   const ref = useRef<HTMLFormElement>(null);
   const seen = useRef<number | undefined>(undefined);
   useEffect(() => {
@@ -108,7 +164,7 @@ export function ActionForm({
         </Button>
       </div>
       <div aria-live="polite">
-        <Feedback state={state} {...(success ? { success } : {})} />
+        <Feedback state={state} {...(success && !toPage ? { success } : {})} />
       </div>
     </form>
   );
