@@ -186,11 +186,9 @@ export async function saveModulesAction(
   const ctx = await contextFor(form);
   const modules = form.getAll("module").filter((m): m is string => typeof m === "string");
   const enabled = new Set(form.getAll("enabled").filter((m): m is string => typeof m === "string"));
+  // Every listed module is switchable (Site Operations joined app.capability_modules in migration
+  // 1080, finding A24-003), so the form saves the whole set and the stored state matches it exactly.
   for (const code of modules) {
-    // Only switches the person changed are written: an unchanged module may be one the database
-    // keeps always on (module_not_switchable), and rewriting it would refuse the whole save.
-    const was = form.get(`was-${code}`);
-    if (was === (enabled.has(code) ? "on" : "off")) continue;
     const result = await setModuleEnabled(ctx.viewer.db, {
       orgId: ctx.org.id,
       module: code,

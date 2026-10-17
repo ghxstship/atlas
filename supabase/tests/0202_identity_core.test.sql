@@ -77,7 +77,7 @@ select is(
 );
 
 -- Generated seed --------------------------------------------------------------------------
-select is((select count(*)::integer from app.capability_modules), 28, '28 capability modules');
+select is((select count(*)::integer from app.capability_modules), 29, '29 capability modules (Site Operations joined in 1080)');
 select is((select count(*)::integer from app.capabilities), 257, '257 capabilities');
 select results_eq(
   'select code, band from app.roles where org_id is null order by band',
