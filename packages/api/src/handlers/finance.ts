@@ -15,6 +15,7 @@ import {
   approveInvoice,
   extendedMinor,
   issueInvoice,
+  recordInvoicePayment,
   listCurrencies,
   listPostingLines,
   listUplMappings,
@@ -384,6 +385,20 @@ export const handlers = defineHandlers("Finance", {
   "invoices.approve": async ({ params }, context) => {
     await invoices.read(context, params.id, ["id"]);
     unwrap(await approveInvoice(context.db, params.id, ""));
+    return ok(await reread(invoices, context, params.id));
+  },
+
+  // A payment made on the org's rails, recorded against the invoice's payee (A38-007, 1123).
+  "invoices.recordPayment": async ({ params, body }, context) => {
+    await invoices.read(context, params.id, ["id"]);
+    unwrap(
+      await recordInvoicePayment(context.db, {
+        invoiceId: params.id,
+        paidOn: body.paid_on,
+        amountMinor: body.amount_minor ?? null,
+        reference: body.reference ?? null,
+      }),
+    );
     return ok(await reread(invoices, context, params.id));
   },
 });

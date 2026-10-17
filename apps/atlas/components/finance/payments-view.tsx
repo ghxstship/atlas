@@ -6,6 +6,7 @@ import {
   listPaymentApplications,
   listPayments,
   listTransitions,
+  type Payment,
 } from "@xos/data/finance";
 import {
   SETTLEMENT_LINE_KINDS,
@@ -117,19 +118,26 @@ async function PaymentsTab({ page }: { page: FinancePage }) {
   const partyName = new Map(
     counterparties.data.map((p) => [p.id, p.name ?? t("finance.common.unnamedCounterparty")]),
   );
+  /** The payee: the counterparty, or the person paid as an individual (A38-007). */
+  const payee = (p: Payment) =>
+    p.counterpartyId !== null
+      ? (partyName.get(p.counterpartyId) ?? "")
+      : p.payeeName
+        ? t("finance.payments.individualPayee", { name: p.payeeName })
+        : t("finance.invoices.individual");
   const invoiceList = invoices.ok ? invoices.data : [];
   const term = query.q?.toLowerCase() ?? null;
   const shown = payments.data.filter(
     (p) =>
       (!query.state || p.state === query.state) &&
       (term === null ||
-        (partyName.get(p.counterpartyId) ?? "").toLowerCase().includes(term) ||
+        payee(p).toLowerCase().includes(term) ||
         (p.reference ?? "").toLowerCase().includes(term)),
   );
   const rows: Row[] = shown.map((p) => ({
     id: p.id,
     paid: c.date(p.paidOn),
-    party: partyName.get(p.counterpartyId) ?? "",
+    party: payee(p),
     direction: t(`finance.payments.directionShort.${p.direction}`),
     reference: p.reference ?? "",
     amount: c.money(p.amountMinor, p.currency),
@@ -148,6 +156,7 @@ async function PaymentsTab({ page }: { page: FinancePage }) {
     const open = invoiceList.filter(
       (i) =>
         i.counterpartyId === peek.counterpartyId &&
+        i.payeePersonId === peek.payeePersonId &&
         i.direction === peek.direction &&
         i.currency === peek.currency &&
         ["Issued", "Approved", "Disputed"].includes(i.state),
@@ -158,7 +167,7 @@ async function PaymentsTab({ page }: { page: FinancePage }) {
     detail = {
       kindLabel: t("finance.payments.kind"),
       recordKey: peek.reference ?? c.date(peek.paidOn),
-      title: partyName.get(peek.counterpartyId) ?? "",
+      title: payee(peek),
       state: iconState(peek.state),
       stateLabel: c.state("payment", peek.state),
       propertiesLabel: t("finance.common.properties"),
@@ -260,7 +269,7 @@ async function PaymentsTab({ page }: { page: FinancePage }) {
       listItems={shown.map((p) => ({
         id: p.id,
         recordKey: p.reference ?? c.date(p.paidOn),
-        title: partyName.get(p.counterpartyId) ?? "",
+        title: payee(p),
         state: iconState(p.state),
         stateLabel: c.state("payment", p.state),
         next: c.money(p.amountMinor, p.currency),

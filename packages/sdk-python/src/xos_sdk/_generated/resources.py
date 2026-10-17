@@ -635,6 +635,7 @@ if TYPE_CHECKING:
         InvoiceMatchPage,
         InvoiceMatchResolveRequest,
         InvoicePage,
+        InvoicePaymentRequest,
         InvoiceTransitionRequest,
         InvoiceUpdate,
         ItemId,
@@ -11856,6 +11857,23 @@ class InvoicesResource(Resource):
         Requires the capability ``finance.invoice.approve``.
         """
         return self._client.request(OPERATIONS["invoices.approve"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def record_payment(
+        self,
+        id: str,
+        body: InvoicePaymentRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Invoice]:
+        """Record a payment
+
+        Records that an approved payable (or issued receivable) was paid: a Proposed payment of the invoice's payee, its counterparty or the person engaged as an individual, applied to the invoice for the whole balance unless `amount_minor` says otherwise. Money moves on the org's own rails; XOS never holds funds. Another eligible person approves the payment. Refuses a Proposed, Disputed or Canceled invoice and an invoice with nothing left to pay (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /invoices/{id}/record-payment`` (operation ``invoices.recordPayment``).
+        Requires the capability ``finance.payment.write``.
+        """
+        return self._client.request(OPERATIONS["invoices.recordPayment"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class InvoiceLinesResource(Resource):

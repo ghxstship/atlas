@@ -522,7 +522,8 @@
       "issuedOn": "Issued on",
       "number": "Invoice number",
       "periodEnd": "Period ends",
-      "periodStart": "Period starts"
+      "periodStart": "Period starts",
+      "paymentAmount": "Amount paid ({currency})"
     },
     "allDirections": "All invoices",
     "applied": "Payments applied",
@@ -546,10 +547,17 @@
     "postsWhenApproved": "A payable invoice posts to the ledger when it is fully approved.",
     "postsWhenIssued": "A receivable invoice posts to the ledger when it is issued.",
     "selfBill": "Generate from timesheets",
-    "selfBillSentence": "Creates a draft payable invoice for the party from approved timesheets in the period. It needs self-billing turned on and the party's agreement in Gateway.",
+    "selfBillSentence": "Creates a draft payable invoice for the party, a company account or a person engaged as an individual, from approved timesheets and accepted milestones in the period. It needs self-billing turned on and the party's agreement in Gateway.",
     "selfBillSubmit": "Generate invoice",
     "tax": "Tax",
-    "unpricedTotal": "{count, plural, one {Unpriced, # line has no price} other {Unpriced, # lines have no price}}"
+    "unpricedTotal": "{count, plural, one {Unpriced, # line has no price} other {Unpriced, # lines have no price}}",
+    "recordPayment": "Record payment",
+    "recordPaymentSentence": "Record a payment made on your own bank or payout provider. It is applied to this invoice and waits for another approver before the payee sees it as paid.",
+    "recordPaymentSubmit": "Record payment",
+    "paymentAmountHint": "Leave blank to pay the whole balance.",
+    "paymentReferenceHint": "The remittance reference from your bank or payout provider.",
+    "payee": "Payee",
+    "individual": "Individual"
   },
   "payments": {
     "applied": "Payment applied.",
@@ -582,7 +590,8 @@
     },
     "tabs": "Payments and settlements",
     "unapplied": "Not yet applied",
-    "unnumbered": "Unnumbered invoice"
+    "unnumbered": "Unnumbered invoice",
+    "individualPayee": "{name} (individual)"
   },
   "journal": {
     "addLine": "Add line",

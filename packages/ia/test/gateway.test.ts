@@ -18,7 +18,10 @@ import { childIds, labelOf, loadApp, messages, treeIds } from "./support.ts";
 const gateway = loadApp("gateway");
 const label = (id: string) => labelOf(indexSitemap(gateway).byId.get(id)?.node.label ?? "");
 
-/** Section 4.5.8 engagement tabs by role type, in order. */
+/**
+ * Section 4.5.8 engagement tabs by role type, in order. Crew and Staff add Invoices after Timesheets
+ * (A43, finding A38-007), where an individual agrees to self-billing and follows pay.
+ */
 const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, string[]> = {
   client: [
     "Overview",
@@ -50,6 +53,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Onboarding",
     "Shifts",
     "Timesheets",
+    "Invoices",
     "Travel and Lodging",
     "Per Diem",
     "Credentials",
@@ -64,6 +68,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Positions",
     "Shifts",
     "Timesheets",
+    "Invoices",
     "Credentials",
     "Documents",
     "Messages",

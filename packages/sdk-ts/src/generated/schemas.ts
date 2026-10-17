@@ -13156,10 +13156,20 @@ export interface Invoice {
   readonly invoice_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
   readonly total: MoneyTotal;
   /**
-   * Identifier of the counterparty billed or billing.
+   * Identifier of the counterparty billed or billing; null for an individual payee.
    * Format: `uuid`.
    */
-  readonly counterparty_id: string;
+  readonly counterparty_id: string | null;
+  /**
+   * Identifier of the person billing as an individual.
+   * Format: `uuid`.
+   */
+  readonly payee_person_id: string | null;
+  /**
+   * Identifier of the engagement the invoice bills.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
 }
 
 /**
@@ -13196,10 +13206,15 @@ export interface InvoiceCreate {
    */
   readonly currency_code: string;
   /**
-   * Identifier of the counterparty billed or billing.
+   * Identifier of the counterparty billed or billing; null for an individual payee.
    * Format: `uuid`.
    */
-  readonly counterparty_id: string;
+  readonly counterparty_id?: string | null;
+  /**
+   * Identifier of the engagement the invoice bills.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string | null;
 }
 
 /**
@@ -13231,11 +13246,6 @@ export interface InvoiceUpdate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency_code?: string;
-  /**
-   * Identifier of the counterparty billed or billing.
-   * Format: `uuid`.
-   */
-  readonly counterparty_id?: string;
 }
 
 /**
@@ -13255,6 +13265,27 @@ export interface InvoiceTransitionRequest {
    * Length: 1 to unbounded.
    */
   readonly reason?: string;
+}
+
+/**
+ * A payment made on the org's own rails, recorded against an invoice.
+ */
+export interface InvoicePaymentRequest {
+  /**
+   * Date the money moved.
+   * Format: `date`.
+   */
+  readonly paid_on: string;
+  /**
+   * Amount paid; the whole balance when null or omitted. Integer minor units of the document currency.
+   * Format: `int64`. Range: 1 to unbounded.
+   */
+  readonly amount_minor?: number | null;
+  /**
+   * Remittance reference from the bank or payout provider.
+   * Length: 1 to 200.
+   */
+  readonly reference?: string;
 }
 
 /**

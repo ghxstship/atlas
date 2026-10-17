@@ -395,6 +395,12 @@ export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) 
     readView(view.ctx.db, "self_billing_agreements", { eq: { engagement_id: e.id } }),
   ]);
   if (!invoices.ok || !selfBilling.ok) return <RegionError />;
+  const ids = invoices.data.map((inv) => inv.id ?? "").filter((id) => id !== "");
+  const lines = await readView(view.ctx.db, "invoice_lines", {
+    in: ["invoice_id", ids],
+    order: ["line_number", "asc"],
+  });
+  if (!lines.ok) return <RegionError />;
   const agreement = selfBilling.data.find((a) => a.is_active);
   const currency = e.rateCurrency ?? "USD";
   const today = todayIso();
@@ -409,7 +415,12 @@ export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) 
         <ul className="m-0 flex list-none flex-col gap-12 p-0">
           {invoices.data.map((inv) => (
             <li key={inv.id ?? ""}>
-              <PaymentSteps invoice={inv} locale={locale} t={t} />
+              <PaymentSteps
+                invoice={inv}
+                lines={lines.data.filter((l) => l.invoice_id === inv.id)}
+                locale={locale}
+                t={t}
+              />
             </li>
           ))}
         </ul>

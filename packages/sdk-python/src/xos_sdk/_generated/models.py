@@ -435,6 +435,7 @@ __all__ = [
     "InvoiceCreate",
     "InvoiceUpdate",
     "InvoiceTransitionRequest",
+    "InvoicePaymentRequest",
     "InvoiceLinePage",
     "InvoiceLine",
     "InvoiceLineCreate",
@@ -8083,8 +8084,12 @@ class Invoice(TypedDict):
     #: Invoice state.
     invoice_state: Literal["Proposed", "Issued", "Approved", "Disputed", "Canceled"]
     total: MoneyTotal
-    #: Identifier of the counterparty billed or billing.
-    counterparty_id: str
+    #: Identifier of the counterparty billed or billing; null for an individual payee.
+    counterparty_id: Optional[str]
+    #: Identifier of the person billing as an individual.
+    payee_person_id: Optional[str]
+    #: Identifier of the engagement the invoice bills.
+    engagement_id: Optional[str]
 
 
 class _InvoiceCreateRequired(TypedDict):
@@ -8094,8 +8099,6 @@ class _InvoiceCreateRequired(TypedDict):
     direction: Literal["Payable", "Receivable"]
     #: ISO 4217 currency code of every money field.
     currency_code: str
-    #: Identifier of the counterparty billed or billing.
-    counterparty_id: str
 
 
 class InvoiceCreate(_InvoiceCreateRequired, total=False):
@@ -8107,6 +8110,10 @@ class InvoiceCreate(_InvoiceCreateRequired, total=False):
     issued_on: Optional[str]
     #: Due date.
     due_on: Optional[str]
+    #: Identifier of the counterparty billed or billing; null for an individual payee.
+    counterparty_id: Optional[str]
+    #: Identifier of the engagement the invoice bills.
+    engagement_id: Optional[str]
 
 
 class InvoiceUpdate(TypedDict, total=False):
@@ -8122,8 +8129,6 @@ class InvoiceUpdate(TypedDict, total=False):
     due_on: Optional[str]
     #: ISO 4217 currency code of every money field.
     currency_code: str
-    #: Identifier of the counterparty billed or billing.
-    counterparty_id: str
 
 
 class _InvoiceTransitionRequestRequired(TypedDict):
@@ -8138,6 +8143,20 @@ class InvoiceTransitionRequest(_InvoiceTransitionRequestRequired, total=False):
 
     #: Reason, required by some transitions.
     reason: str
+
+
+class _InvoicePaymentRequestRequired(TypedDict):
+    #: Date the money moved.
+    paid_on: str
+
+
+class InvoicePaymentRequest(_InvoicePaymentRequestRequired, total=False):
+    """A payment made on the org's own rails, recorded against an invoice."""
+
+    #: Amount paid; the whole balance when null or omitted. Integer minor units of the document currency.
+    amount_minor: Optional[int]
+    #: Remittance reference from the bank or payout provider.
+    reference: str
 
 
 class InvoiceLinePage(TypedDict):

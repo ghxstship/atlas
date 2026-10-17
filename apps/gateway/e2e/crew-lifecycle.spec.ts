@@ -14,7 +14,7 @@ import {
   transition,
   workedShift,
 } from "./role-fixtures";
-import { expectAccessible, signIn, sql } from "./support";
+import { DEMO, expectAccessible, signIn, sql } from "./support";
 
 /**
  * Journey 41 (Section 20.2), the crew lifecycle chained end to end with a person new to the org:
@@ -22,8 +22,8 @@ import { expectAccessible, signIn, sql } from "./support";
  * onboarding with the engagement Blocked until the background check passes (verified in Atlas);
  * the shift accepted in Gateway and worked (the Compass clock in and out's server half, as the
  * person); the timesheet submitted in Gateway and approved; both sides rated; and the credential
- * gone from the person's Gateway at close. Pay for an individual freelancer has no path yet
- * (finding A38-007).
+ * gone from the person's Gateway at close. Pay for the individual freelancer runs through
+ * self-billing, Atlas finance recording the payment, and Gateway's Money tracker (A43, A38-007).
  * opportunities.spec.ts and crew.spec.ts cover the individual steps' screens in more depth.
  */
 test.use({ reducedMotion: "reduce" });
@@ -145,17 +145,71 @@ test("journey 41: requisition to credential loss, one crew person through every 
       [timesheetId],
     );
 
-    // Paid: an individual freelancer cannot be paid yet. Self-billed invoices and payments both
-    // name an external account, a person engaged without a company has none and the engagement's
-    // party never changes, and crew have no Invoices tab (finding A38-007). The approved time is
-    // what pay would come from.
-    const [approved] = await sql<{ s: string }>(
-      `select timesheet_state::text as s from app.timesheets where id = $1`,
-      [timesheetId],
+    // Paid (A43, finding A38-007): the person, engaged as an individual with no company account,
+    // agrees to self-billing on the engagement's Invoices tab; the org bills the approved timesheet
+    // to the person, approves the invoice, Atlas finance records the payment and another approver
+    // approves it; Gateway's Money tracker follows it from Submitted to Paid.
+    await page.goto(`/work/engagements/${key}/invoices`);
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("button", { name: "Agree to self-billing" }).click();
+    await expect(page.getByText("Self-billing on")).toBeVisible();
+    await sql(
+      `select app.set_setting($1, 'finance.self_billing_enabled', 'Organization', $1, null, true, null, false)`,
+      [DEMO.org],
+      PEOPLE.owner,
     );
-    expect(approved?.s).toBe("Approved");
-    await page.goto(`/work/engagements/${key}/timesheets?view=list`);
-    await expect(page.getByText("Approved").first()).toBeVisible();
+    const [billed] = await asPerson<{ id: string }>(
+      PEOPLE.producer,
+      `select app.generate_self_billed_invoice($1, '2027-06-01', '2027-06-30') as id`,
+      [id],
+    );
+    const invoiceId = billed?.id as string;
+    const [invoice] = await sql<{ n: string; payee: string | null }>(
+      `select invoice_number as n, payee_person_id::text as payee from app.invoices where id = $1`,
+      [invoiceId],
+    );
+    expect(invoice?.payee).toBe(person);
+    const tracker = (number: string) =>
+      page.getByRole("region", { name: `Payment tracker for invoice ${number}` });
+    const current = (number: string) => tracker(number).locator('[aria-current="step"]');
+    await page.goto("/money/invoices?view=list");
+    await expect(current(invoice?.n ?? "")).toContainText("Submitted");
+    await asPerson(
+      PEOPLE.admin,
+      `select app.approve_invoice($1, 'Matches the approved timesheet.')`,
+      [invoiceId],
+    );
+    const finance = await atlasAs(browser, "admin@example.com");
+    await finance.page.goto(`/${ORG}/finance/invoices?peek=${invoiceId}&pay=1`);
+    const pay = finance.page.getByRole("dialog");
+    await pay.getByLabel("Bank or card reference").fill(`ACH-${tag.toUpperCase()}`);
+    await pay.getByRole("button", { name: "Record payment" }).click();
+    await expect
+      .poll(
+        async () =>
+          (
+            await sql<{ n: string }>(
+              `select count(*)::text as n from app.payment_applications where invoice_id = $1 and deleted_at is null`,
+              [invoiceId],
+            )
+          )[0]?.n,
+      )
+      .toBe("1");
+    await expectAccessible(finance.page);
+    await finance.context.close();
+    await page.goto("/money/invoices?view=list");
+    await expect(current(invoice?.n ?? "")).toContainText("Scheduled");
+    const [payment] = await sql<{ id: string }>(
+      `select payment_id::text as id from app.payment_applications where invoice_id = $1 and deleted_at is null`,
+      [invoiceId],
+    );
+    await asPerson(PEOPLE.owner, `select app.approve_payment($1, 'Remittance confirmed.')`, [
+      payment?.id,
+    ]);
+    await page.goto("/money/invoices?view=list");
+    await expect(current(invoice?.n ?? "")).toContainText("Paid");
+    await page.goto("/money/payments");
+    await expect(page.getByText(`ACH-${tag.toUpperCase()}`).first()).toBeVisible();
     await expectAccessible(page);
 
     // Close: rated by both, and the credential leaves the person's Gateway.

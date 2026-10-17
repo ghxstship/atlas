@@ -17702,9 +17702,21 @@
           },
           "total": { "$ref": "#/components/schemas/MoneyTotal" },
           "counterparty_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the counterparty billed or billing.",
+            "description": "Identifier of the counterparty billed or billing; null for an individual payee.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "payee_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person billing as an individual.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement the invoice bills.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
@@ -17723,7 +17735,9 @@
           "currency_code",
           "invoice_state",
           "total",
-          "counterparty_id"
+          "counterparty_id",
+          "payee_person_id",
+          "engagement_id"
         ],
         "description": "An invoice issued or received. A closed production refuses new invoices."
       },
@@ -17767,13 +17781,19 @@
             "example": "USD"
           },
           "counterparty_id": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the counterparty billed or billing.",
+            "description": "Identifier of the counterparty billed or billing; null for an individual payee.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement the invoice bills.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["project_id", "direction", "currency_code", "counterparty_id"],
+        "required": ["project_id", "direction", "currency_code"],
         "description": "Fields accepted when creating a Invoice."
       },
       "InvoiceUpdate": {
@@ -17808,12 +17828,6 @@
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
-          },
-          "counterparty_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the counterparty billed or billing.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a Invoice. Omitted fields are unchanged."
@@ -17842,6 +17856,33 @@
         },
         "required": ["expected_state", "to_state"],
         "description": "Request to move a lifecycle to another state."
+      },
+      "InvoicePaymentRequest": {
+        "type": "object",
+        "properties": {
+          "paid_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Date the money moved.",
+            "example": "2026-10-08"
+          },
+          "amount_minor": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Amount paid; the whole balance when null or omitted. Integer minor units of the document currency.",
+            "example": 349000,
+            "format": "int64"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Remittance reference from the bank or payout provider.",
+            "example": "ACH-2027-0042"
+          }
+        },
+        "required": ["paid_on"],
+        "description": "A payment made on the org's own rails, recorded against an invoice."
       },
       "InvoiceLinePage": {
         "type": "object",
@@ -82935,7 +82976,9 @@
                       "currency_code": "USD",
                       "invoice_state": "Proposed",
                       "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -82969,7 +83012,8 @@
                 "issued_on": "2026-10-08",
                 "due_on": "2026-10-08",
                 "currency_code": "USD",
-                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/InvoiceCreate" }
             }
@@ -83001,7 +83045,9 @@
                   "currency_code": "USD",
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Invoice" }
               }
@@ -83065,7 +83111,9 @@
                   "currency_code": "USD",
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Invoice" }
               }
@@ -83109,8 +83157,7 @@
                 "invoice_number": "INV-2026-0042",
                 "issued_on": "2026-10-08",
                 "due_on": "2026-10-08",
-                "currency_code": "USD",
-                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "currency_code": "USD"
               },
               "schema": { "$ref": "#/components/schemas/InvoiceUpdate" }
             }
@@ -83142,7 +83189,9 @@
                   "currency_code": "USD",
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Invoice" }
               }
@@ -83221,7 +83270,9 @@
                   "currency_code": "USD",
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Invoice" }
               }
@@ -83286,7 +83337,89 @@
                   "currency_code": "USD",
                   "invoice_state": "Proposed",
                   "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
-                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/Invoice" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/invoices/{id}/record-payment": {
+      "post": {
+        "operationId": "invoices.recordPayment",
+        "tags": ["Finance"],
+        "x-xos-table": "app.invoices",
+        "x-xos-capability": "finance.payment.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["finance"] }],
+        "summary": "Record a payment",
+        "description": "Records that an approved payable (or issued receivable) was paid: a Proposed payment of the invoice's payee, its counterparty or the person engaged as an individual, applied to the invoice for the whole balance unless `amount_minor` says otherwise. Money moves on the org's own rails; XOS never holds funds. Another eligible person approves the payment. Refuses a Proposed, Disputed or Canceled invoice and an invoice with nothing left to pay (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the invoice.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the invoice.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "paid_on": "2026-10-08",
+                "amount_minor": 349000,
+                "reference": "ACH-2027-0042"
+              },
+              "schema": { "$ref": "#/components/schemas/InvoicePaymentRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "direction": "Payable",
+                  "invoice_number": "INV-2026-0042",
+                  "issued_on": "2026-10-08",
+                  "due_on": "2026-10-08",
+                  "currency_code": "USD",
+                  "invoice_state": "Proposed",
+                  "total": { "total_minor": 1250000, "currency": "USD", "unpriced_count": 2 },
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "payee_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Invoice" }
               }

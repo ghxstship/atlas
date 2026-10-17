@@ -30,6 +30,13 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/money/i
       ...(ctx.brand.kind === "org" ? { eq: { org_id: ctx.brand.org.orgId } } : {}),
     }),
   ]);
+  const lines =
+    invoices.ok && view === "list"
+      ? await readView(ctx.db, "invoice_lines", {
+          in: ["invoice_id", invoices.data.map((inv) => inv.id ?? "")],
+          order: ["line_number", "asc"],
+        })
+      : null;
   return (
     <>
       <PageTitle
@@ -50,7 +57,12 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/money/i
         <ul className="m-0 flex list-none flex-col gap-12 p-0">
           {invoices.data.map((inv) => (
             <li key={inv.id ?? ""}>
-              <PaymentSteps invoice={inv} locale={locale} t={t} />
+              <PaymentSteps
+                invoice={inv}
+                lines={lines?.ok ? lines.data.filter((l) => l.invoice_id === inv.id) : []}
+                locale={locale}
+                t={t}
+              />
             </li>
           ))}
         </ul>

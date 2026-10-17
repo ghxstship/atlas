@@ -197,16 +197,23 @@ export function revokeSelfBilling(db: XosClient, engagementId: string): Promise<
   return call(db.rpc("revoke_self_billing", { p_engagement_id: engagementId }));
 }
 
-/** Where an invoice stands on the payment tracker: Submitted, Approved, Scheduled, Paid. */
+/**
+ * Where an invoice stands on the payment tracker: Submitted, Approved, Scheduled, Paid. Scheduled
+ * means a payment is recorded against it and awaits approval (`scheduled_minor`, 1123) or part of it
+ * is paid; Paid means approved payments cover the whole total. Invoice states themselves stay
+ * Proposed, Issued, Approved, Disputed and Canceled.
+ */
 export function invoiceTrackerStep(row: {
   readonly invoice_state: string | null;
   readonly approved_at: string | null;
   readonly balance_minor: number | null;
   readonly applied_minor: number | null;
   readonly last_paid_on: string | null;
+  readonly scheduled_minor?: number | null;
 }): 0 | 1 | 2 | 3 {
   if (row.balance_minor === 0 && (row.applied_minor ?? 0) > 0) return 3;
-  if ((row.applied_minor ?? 0) > 0 || row.last_paid_on !== null) return 2;
+  if ((row.applied_minor ?? 0) > 0 || row.last_paid_on !== null || (row.scheduled_minor ?? 0) > 0)
+    return 2;
   if (row.invoice_state === "Approved" || row.approved_at !== null) return 1;
   return 0;
 }

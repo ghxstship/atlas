@@ -3619,7 +3619,9 @@ export interface Components {
     currency_code: string;
     invoice_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
     total: Components["MoneyTotal"];
-    counterparty_id: string;
+    counterparty_id: string | null;
+    payee_person_id: string | null;
+    engagement_id: string | null;
   };
   InvoiceCreate: {
     project_id: string;
@@ -3628,7 +3630,8 @@ export interface Components {
     issued_on?: string | null;
     due_on?: string | null;
     currency_code: string;
-    counterparty_id: string;
+    counterparty_id?: string | null;
+    engagement_id?: string | null;
   };
   InvoiceLine: {
     id: string;
@@ -3686,6 +3689,7 @@ export interface Components {
   InvoiceMatchPage: { data: Array<Components["InvoiceMatch"]>; next_cursor: string | null };
   InvoiceMatchResolveRequest: { resolution_note: string };
   InvoicePage: { data: Array<Components["Invoice"]>; next_cursor: string | null };
+  InvoicePaymentRequest: { paid_on: string; amount_minor?: number | null; reference?: string };
   InvoiceTransitionRequest: {
     expected_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
     to_state: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
@@ -3697,7 +3701,6 @@ export interface Components {
     issued_on?: string | null;
     due_on?: string | null;
     currency_code?: string;
-    counterparty_id?: string;
   };
   ItemId: string | null;
   JoinRequest: {
@@ -13259,6 +13262,15 @@ export interface Operations {
     params: { id: string };
     query: Record<string, never>;
     body: undefined;
+    responses: { 200: Components["Invoice"] };
+  };
+  "invoices.recordPayment": {
+    module: "Finance";
+    method: "post";
+    path: "/invoices/{id}/record-payment";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InvoicePaymentRequest"];
     responses: { 200: Components["Invoice"] };
   };
   "invoiceLines.list": {
@@ -24965,6 +24977,7 @@ export interface ModuleOperations {
     | "invoices.update"
     | "invoices.transition"
     | "invoices.approve"
+    | "invoices.recordPayment"
     | "invoiceLines.list"
     | "invoiceLines.create"
     | "invoiceLines.get"

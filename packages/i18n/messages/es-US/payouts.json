@@ -1,0 +1,9 @@
+{
+  "invoice": {
+    "detail": "{count, plural, one {Mostrar # línea} other {Mostrar # líneas}}",
+    "linesCaption": "Líneas de la factura {number}",
+    "description": "Concepto facturado",
+    "quantity": "Cantidad",
+    "amount": "Importe"
+  }
+}

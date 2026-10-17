@@ -533,7 +533,8 @@
       "issuedOn": "Emitida el",
       "number": "Número de factura",
       "periodEnd": "Fin del período",
-      "periodStart": "Inicio del período"
+      "periodStart": "Inicio del período",
+      "paymentAmount": "Importe pagado ({currency})"
     },
     "kind": {
       "Payable": "Factura por pagar",
@@ -546,10 +547,17 @@
     "postsWhenApproved": "Una factura por pagar se contabiliza cuando queda totalmente aprobada.",
     "postsWhenIssued": "Una factura por cobrar se contabiliza cuando se emite.",
     "selfBill": "Generar desde hojas de horas",
-    "selfBillSentence": "Crea un borrador de factura por pagar para la parte a partir de las hojas de horas aprobadas del período. Requiere la autofacturación activada y la aceptación de la parte en Gateway.",
+    "selfBillSentence": "Crea una factura por pagar en borrador para la parte, una cuenta de empresa o una persona contratada a título individual, a partir de las hojas de horas aprobadas y los hitos aceptados en el período. Requiere activar la autofacturación y el acuerdo de la parte en Gateway.",
     "selfBillSubmit": "Generar factura",
     "tax": "Impuesto",
-    "unpricedTotal": "{count, plural, one {Sin precio, # línea no tiene precio} other {Sin precio, # líneas no tienen precio}}"
+    "unpricedTotal": "{count, plural, one {Sin precio, # línea no tiene precio} other {Sin precio, # líneas no tienen precio}}",
+    "recordPayment": "Registrar pago",
+    "recordPaymentSentence": "Registra un pago hecho con tu propio banco o proveedor de pagos. Se aplica a esta factura y espera a otro aprobador antes de que el beneficiario lo vea como pagado.",
+    "recordPaymentSubmit": "Registrar pago",
+    "paymentAmountHint": "Déjalo en blanco para pagar todo el saldo.",
+    "paymentReferenceHint": "La referencia de la remesa de tu banco o proveedor de pagos.",
+    "payee": "Beneficiario",
+    "individual": "Individual"
   },
   "payments": {
     "applications": "Aplicado a facturas",
@@ -582,7 +590,8 @@
     },
     "tabs": "Pagos y liquidaciones",
     "unapplied": "Sin aplicar",
-    "unnumbered": "Factura sin número"
+    "unnumbered": "Factura sin número",
+    "individualPayee": "{name} (individual)"
   },
   "journal": {
     "addLine": "Agregar línea",

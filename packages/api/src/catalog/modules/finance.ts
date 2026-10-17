@@ -11,7 +11,7 @@ import { z } from "@hono/zod-openapi";
 import { canonCodes, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, setOrder } from "../correct.ts";
-import { collectionAction, transition } from "../define.ts";
+import { collectionAction, itemAction, transition } from "../define.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -60,7 +60,35 @@ const PostingExport = z
       "Universal Posting Lines of one period projected to one platform through the canon mapping.",
   });
 
+/** Recording that an invoice was paid (A38-007, app.record_invoice_payment, 1123). */
+const RecordPaymentRequest = z
+  .object({
+    paid_on: fields.date("Date the money moved."),
+    amount_minor: minor("Amount paid; the whole balance when null or omitted.", 349000, 1)
+      .nullable()
+      .optional(),
+    reference: z.string().min(1).max(200).optional().meta({
+      description: "Remittance reference from the bank or payout provider.",
+      example: "ACH-2027-0042",
+    }),
+  })
+  .meta({
+    id: "InvoicePaymentRequest",
+    description: "A payment made on the org's own rails, recorded against an invoice.",
+  });
+
 export const additions = defineAdditions("Finance", {
+  actions: {
+    invoices: [
+      itemAction("recordPayment", {
+        summary: "Record a payment",
+        description:
+          "Records that an approved payable (or issued receivable) was paid: a Proposed payment of the invoice's payee, its counterparty or the person engaged as an individual, applied to the invoice for the whole balance unless `amount_minor` says otherwise. Money moves on the org's own rails; XOS never holds funds. Another eligible person approves the payment. Refuses a Proposed, Disputed or Canceled invoice and an invoice with nothing left to pay (422).",
+        body: RecordPaymentRequest,
+      }),
+    ],
+  },
+  capabilities: { invoices: { actions: { recordPayment: "finance.payment.write" } } },
   corrections: [
     {
       id: "budget-columns",
@@ -361,6 +389,34 @@ export const additions = defineAdditions("Finance", {
           ),
         ]),
       ),
+    },
+    {
+      id: "invoice-individual-payee",
+      since: SINCE,
+      resources: ["invoices"],
+      change:
+        "`counterparty_id` becomes nullable, optional on create and no longer accepted on update (the payee is fixed, `invoice_immutable`); adds the server-set `payee_person_id` and an optional `engagement_id`. Exactly one of `counterparty_id` and `payee_person_id` is set.",
+      reason:
+        "A person engaged as an individual has no counterparty (finding A38-007). app.invoices (1120) names exactly one payee: the counterparty, or the engaged person on a payable, which self-billing (app.generate_self_billed_invoice) and the person's own submission (app.submit_engagement_invoice) set together with the engagement billed.",
+      apply: editShape({
+        add: {
+          counterparty_id: {
+            schema: orNull(
+              fields.ref("counterparty billed or billing; null for an individual payee"),
+            ),
+            create: "optional",
+            update: false,
+          },
+          payee_person_id: {
+            schema: orNull(fields.ref("person billing as an individual")),
+          },
+          engagement_id: {
+            schema: orNull(fields.ref("engagement the invoice bills")),
+            create: "optional",
+            update: false,
+          },
+        },
+      }),
     },
     {
       id: "invoice-line-columns",

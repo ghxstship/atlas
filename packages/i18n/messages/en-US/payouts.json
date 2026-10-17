@@ -1,0 +1,9 @@
+{
+  "invoice": {
+    "detail": "{count, plural, one {Show # line} other {Show # lines}}",
+    "linesCaption": "Lines of invoice {number}",
+    "description": "What is billed",
+    "quantity": "Quantity",
+    "amount": "Amount"
+  }
+}

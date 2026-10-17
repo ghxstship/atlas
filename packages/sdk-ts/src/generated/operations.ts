@@ -489,6 +489,7 @@ export type OperationId =
   | "invoices.update"
   | "invoices.transition"
   | "invoices.approve"
+  | "invoices.recordPayment"
   | "invoiceLines.list"
   | "invoiceLines.create"
   | "invoiceLines.get"
@@ -12632,6 +12633,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     tag: "Finance",
     summary: "Approve a invoice",
     capability: "finance.invoice.approve",
+    scopes: ["finance"],
+  },
+  "invoices.recordPayment": {
+    id: "invoices.recordPayment",
+    resource: "invoices",
+    verb: "recordPayment",
+    method: "POST",
+    path: "/invoices/{id}/record-payment",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "InvoicePaymentRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "Invoice",
+    item: null,
+    tag: "Finance",
+    summary: "Record a payment",
+    capability: "finance.payment.write",
     scopes: ["finance"],
   },
   "invoiceLines.list": {
@@ -37759,6 +37783,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "invoices.update",
       "invoices.transition",
       "invoices.approve",
+      "invoices.recordPayment",
     ],
   },
   {

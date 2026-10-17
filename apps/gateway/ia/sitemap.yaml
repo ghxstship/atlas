@@ -5,7 +5,8 @@
 #
 # Visibility keys are the person's standing: individual (no company account) or an
 # account role. Engagement tabs render only for the engagement's role type, from the
-# sets under engagementTabs, in order.
+# sets under engagementTabs, in order. Crew and Staff carry Invoices after Timesheets (A43, finding
+# A38-007): a person engaged as an individual agrees to self-billing and follows pay there.
 schemaVersion: 1
 shell: gateway
 home: home
@@ -66,6 +67,7 @@ engagementTabs:
         - engagement.onboarding
         - engagement.shifts
         - engagement.timesheets
+        - engagement.invoices
         - engagement.travel-and-lodging
         - engagement.per-diem
         - engagement.credentials
@@ -80,6 +82,7 @@ engagementTabs:
         - engagement.positions
         - engagement.shifts
         - engagement.timesheets
+        - engagement.invoices
         - engagement.credentials
         - engagement.documents
         - engagement.messages

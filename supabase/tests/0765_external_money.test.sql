@@ -55,8 +55,8 @@ select pg_temp.as_user('sam');
 select throws_ok(format($$select app.submit_engagement_invoice('%s', 'BA-1002', null, null, 'USD', '[{"description": "Day"}]')$$, pg_temp.id('eng_vendor_a')),
   '42501', null, 'a supplied person cannot invoice for the account');
 select pg_temp.as_user('ivy');
-select throws_ok(format($$select app.submit_engagement_invoice('%s', 'IM-1', null, null, 'USD', '[{"description": "Day"}]')$$, pg_temp.id('eng_ivy_a')),
-  'XR001', null, 'an individual without an account is told to add one');
+select lives_ok(format($$select app.submit_engagement_invoice('%s', 'IM-1', null, null, 'USD', '[{"description": "Day"}]')$$, pg_temp.id('eng_ivy_a')),
+  'an individual without an account invoices as themselves (A38-007, 1122)');
 select pg_temp.as_user('quinn');
 select throws_ok(format($$select app.submit_engagement_invoice('%s', 'Q-1', null, null, 'USD', '[{"description": "Day"}]')$$, pg_temp.id('eng_vendor_a')),
   '42501', null, 'denial: another party cannot invoice on this engagement');

@@ -158,6 +158,9 @@ describe("money helpers", () => {
     expect(invoiceTrackerStep(base)).toBe(0);
     expect(invoiceTrackerStep({ ...base, invoice_state: "Approved" })).toBe(1);
     expect(invoiceTrackerStep({ ...base, applied_minor: 40 })).toBe(2);
+    expect(invoiceTrackerStep({ ...base, invoice_state: "Approved", scheduled_minor: 100 })).toBe(
+      2,
+    );
     expect(invoiceTrackerStep({ ...base, applied_minor: 100, balance_minor: 0 })).toBe(3);
   });
 

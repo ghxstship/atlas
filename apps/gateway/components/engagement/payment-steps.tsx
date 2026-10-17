@@ -10,10 +10,13 @@ import { enumLabelKey, type Translate } from "@/lib/shell/translate";
  */
 export function PaymentSteps({
   invoice: inv,
+  lines,
   locale,
   t,
 }: {
   invoice: ExternalRow<"invoices">;
+  /** The invoice's lines, shown as its detail when given (A38-007). */
+  lines?: readonly ExternalRow<"invoice_lines">[];
   locale: string;
   t: Translate;
 }) {
@@ -26,7 +29,7 @@ export function PaymentSteps({
       key: "scheduled",
       date:
         step >= 2
-          ? date(inv.last_paid_on)
+          ? date(inv.scheduled_on ?? inv.last_paid_on)
           : inv.due_on
             ? t("gateway.money.invoices.due", { date: date(inv.due_on) })
             : "",
@@ -92,6 +95,45 @@ export function PaymentSteps({
           );
         })}
       </ol>
+      {lines && lines.length > 0 ? (
+        <details className="text-text-13">
+          <summary className="cursor-pointer text-accent-text">
+            {t("payouts.invoice.detail", { count: lines.length })}
+          </summary>
+          <table className="mt-8 w-full border-collapse">
+            <caption className="sr-only">
+              {t("payouts.invoice.linesCaption", { number: inv.invoice_number ?? "" })}
+            </caption>
+            <thead>
+              <tr className="text-start text-text-12 text-text-secondary">
+                <th scope="col" className="py-4 text-start font-medium">
+                  {t("payouts.invoice.description")}
+                </th>
+                <th scope="col" className="py-4 text-end font-medium">
+                  {t("payouts.invoice.quantity")}
+                </th>
+                <th scope="col" className="py-4 text-end font-medium">
+                  {t("payouts.invoice.amount")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((l) => (
+                <tr key={l.id ?? ""} className="border-t border-border-subtle">
+                  <td className="py-4">{l.description}</td>
+                  <td className="py-4 text-end tabular-nums">
+                    {new Intl.NumberFormat(locale).format(l.quantity ?? 0)}
+                  </td>
+                  <td className="py-4 text-end tabular-nums">
+                    {formatMoney(locale, l.amount_minor, inv.currency_code) ??
+                      t("gateway.common.unpriced")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </details>
+      ) : null}
     </section>
   );
 }

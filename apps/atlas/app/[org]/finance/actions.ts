@@ -475,6 +475,36 @@ export async function applyPaymentAction(_: ActionState, form: FormData): Promis
   );
 }
 
+/**
+ * Records that an approved payable (or issued receivable) was paid, as a Proposed payment of the
+ * invoice's payee applied to it (A38-007). A blank amount pays the whole balance. Money moves on the
+ * org's own rails; the reference is the remittance the bank or payout provider gave.
+ */
+export async function recordInvoicePaymentAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const f = fields(form);
+  const invoice = z.uuid().safeParse(f["invoiceId"]);
+  if (!invoice.success) return { error: { kind: "not-found" } };
+  const code = currency.safeParse(f["currency"]);
+  if (!code.success) return { error: { kind: "invalid" } };
+  const amount = await money(ctx, f["amount"], code.data, false);
+  if (amount === "invalid" || (amount !== null && amount <= 0)) return inputError("amount");
+  const paidOn = isoDate.safeParse(f["paidOn"]);
+  if (!paidOn.success) return inputError("paidOn", "date");
+  const reference = optionalText(200).safeParse(f["reference"] ?? "");
+  if (!reference.success) return inputError("reference");
+  const result = await finance.payInvoice(ctx.viewer.db, finance.manualPayout(reference.data), {
+    invoiceId: invoice.data,
+    amountMinor: amount,
+    currency: code.data,
+    paidOn: paidOn.data,
+  });
+  return finish(ctx, result, result.ok ? { id: result.data.id } : {});
+}
+
 // Periods, journal, cost centers and rates ---------------------------------------------------------------
 
 export async function createPeriodAction(_: ActionState, form: FormData): Promise<ActionState> {

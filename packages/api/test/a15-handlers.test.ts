@@ -415,6 +415,11 @@ function world() {
         return true;
       },
       transition_invoice: transitionRpc("invoices", "invoice_state", "p_invoice_id", "invoice"),
+      record_invoice_payment: (args, self) => {
+        if (stateOf(self, "invoices", String(args["p_invoice_id"]), "invoice_state") !== "Approved")
+          throw refusal("invoice_payment_state");
+        return id(2402);
+      },
       run_report: (args, self) => {
         const run = tenantRow(id(3402), ORG, {
           report_definition_id: args["p_report_definition_id"],
@@ -969,6 +974,31 @@ describe("invoices and payments", () => {
       to_state: "Canceled",
     });
     expect(stale.status).toBe(409);
+  });
+
+  it("records a payment against an approved invoice (A38-007)", async () => {
+    const { db, http } = world();
+    const early = await http.post(`/invoices/${INVOICE}/record-payment`, { paid_on: "2026-10-12" });
+    expect(early.status).toBe(422);
+    expect(((await early.json()) as Row)["rule"]).toBe("invoice_payment_state");
+    setState(db, "invoices", INVOICE, "invoice_state", "Approved");
+    const sent = await success(
+      http.post(`/invoices/${INVOICE}/record-payment`, {
+        paid_on: "2026-10-12",
+        reference: "ACH-2027-0042",
+      }),
+    );
+    const paid = (await expectContract(sent, "invoices.recordPayment")) as Row;
+    expect(paid["id"]).toBe(INVOICE);
+    expect(db.calls.findLast((c) => c.name === "record_invoice_payment")?.args).toEqual({
+      p_invoice_id: INVOICE,
+      p_paid_on: "2026-10-12",
+      p_reference: "ACH-2027-0042",
+    });
+    const missing = await http.post(`/invoices/${MISSING}/record-payment`, {
+      paid_on: "2026-10-12",
+    });
+    expect(missing.status).toBe(404);
   });
 
   it("serves billing draws, tax jurisdictions, tax rates and FX rates", async () => {
