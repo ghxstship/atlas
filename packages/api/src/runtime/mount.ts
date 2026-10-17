@@ -304,6 +304,28 @@ async function runIdempotent(
   return { result, replayed: false };
 }
 
+/**
+ * Per-phase durations for the `Server-Timing` response header (A24-010): credential resolution,
+ * the rate limit, request validation and the handler with its idempotency ledger. They show where
+ * a slow request spent its time without a profiler, in browser tools and in load test output.
+ */
+export function serverTiming(now: () => number = () => performance.now()) {
+  const phases: [string, number][] = [];
+  return {
+    async measure<T>(name: string, run: () => T | Promise<T>): Promise<T> {
+      const start = now();
+      try {
+        return await run();
+      } finally {
+        phases.push([name, now() - start]);
+      }
+    },
+    header(): string {
+      return phases.map(([name, ms]) => `${name};dur=${ms.toFixed(1)}`).join(", ");
+    },
+  };
+}
+
 function serve(
   op: OperationRoute,
   handler: ErasedHandler,
@@ -315,20 +337,25 @@ function serve(
   return async (c: Context): Promise<Response> => {
     const requestId = options.requestId?.() ?? crypto.randomUUID();
     const instance = new URL(c.req.url).pathname;
+    const timing = serverTiming();
     let base: Record<string, string> = { "X-Request-Id": requestId };
     try {
-      const context = await options.authenticate(c.req.raw, requestId);
+      const context = await timing.measure("auth", () =>
+        options.authenticate(c.req.raw, requestId),
+      );
       if (context === null) throw unauthorized("Send a valid bearer token or session cookie.");
       assertScope(op, context);
       if (limiter !== undefined) {
-        const decision = await limiter.take(`${context.credential}:${context.user.id}`, context);
+        const decision = await timing.measure("rate", () =>
+          limiter.take(`${context.credential}:${context.user.id}`, context),
+        );
         base = { ...base, ...rateLimitHeaders(decision) };
         enforce(decision);
       }
-      const request = await validateRequest(c, op);
+      const request = await timing.measure("validate", () => validateRequest(c, op));
       if (op.method === "patch" && request.ifMatch === undefined) throw preconditionRequired();
-      const { result, replayed } = await runIdempotent(store, context, op, request, instance, () =>
-        handler(request, context),
+      const { result, replayed } = await timing.measure("handler", () =>
+        runIdempotent(store, context, op, request, instance, () => handler(request, context)),
       );
       if (!op.responses.has(result.status)) {
         throw contractViolation(op, `status ${result.status} is not a documented success status`);
@@ -339,7 +366,11 @@ function serve(
         const found = checkBody(schema, result.body, sparse);
         if (found.length > 0) throw contractViolation(op, found.join("; "));
       }
-      const headers: Record<string, string> = { ...base, ...result.headers };
+      const headers: Record<string, string> = {
+        ...base,
+        ...result.headers,
+        "Server-Timing": timing.header(),
+      };
       if (replayed) headers["Idempotent-Replayed"] = "true";
       if (result.status === 204 || schema === undefined) {
         return new Response(null, { status: result.status, headers });
@@ -355,7 +386,7 @@ function serve(
       const problem = toProblem(error, requestId, options);
       return problemResponse(
         { ...problem.body, instance: problem.body.instance ?? instance },
-        { ...base, ...problem.headers },
+        { ...base, ...problem.headers, "Server-Timing": timing.header() },
       );
     }
   };
