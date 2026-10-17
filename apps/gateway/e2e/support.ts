@@ -72,9 +72,14 @@ export async function expectAccessible(page: Page): Promise<void> {
 
 /** Checks a page in both themes (Section 11.6: System default, Dark and Light complete). */
 export async function expectAccessibleInBothThemes(page: Page): Promise<void> {
-  // Color transitions would let axe sample a half-switched theme.
-  await page.addStyleTag({
-    content: "*, *::before, *::after { transition: none !important; animation: none !important; }",
+  // Color transitions would let axe sample a half-switched theme. A constructed stylesheet turns them
+  // off without an inline <style>, which the production CSP (style-src with a nonce) refuses.
+  await page.evaluate(() => {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(
+      "*, *::before, *::after { transition: none !important; animation: none !important; }",
+    );
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
   });
   for (const theme of ["dark", "light"] as const) {
     await page.evaluate((t) => {

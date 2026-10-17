@@ -77,7 +77,7 @@ which step is not yet automated; "Missing" names the cause. Findings are in `leg
 | 69  | Gate chip definition, `?` help, support ticket with diagnostics                        | Covered                                                                                                                                                             | atlas views-help.spec.ts                                                    |
 | 70  | Trash, restore, duplicate with children, watch                                         | Covered                                                                                                                                                             | atlas schedule-work.spec.ts, a33-workflow.spec.ts                           |
 
-Totals: 38 covered, 19 partial, 13 missing.
+Totals: 36 covered, 17 partial, 17 missing (of 70).
 
 Beyond the journey list, every app has: the sitemap crawl (atlas crawl.spec.ts), axe sweeps
 (e2e/a11y in Atlas and Gateway), security headers and CSRF (atlas security.spec.ts), the docs site

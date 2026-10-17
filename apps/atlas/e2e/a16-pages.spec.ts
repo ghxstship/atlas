@@ -70,7 +70,12 @@ for (const p of PAGES) {
     await expectAccessibleInBothThemes(page);
     if (p.row === undefined) return;
     await page.goto(`/${ORG}/${p.path}?view=list`);
-    const row = page.getByRole("row").filter({ hasText: p.row }).first();
+    // Record rows carry Open; the column header row (RecordList headers) does not.
+    const row = page
+      .getByRole("row")
+      .filter({ hasText: p.row })
+      .filter({ has: page.getByRole("button", { name: "Open" }) })
+      .first();
     await row.getByRole("button", { name: "Open" }).click();
     const peek = page.getByRole("dialog");
     await expect(peek).toBeVisible();
