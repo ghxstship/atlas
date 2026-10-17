@@ -213,11 +213,12 @@ describe("Clock In App Shortcut", () => {
     }
   });
 
-  it("offers the shortcut from the app only and runs without opening Compass", () => {
+  it("offers Clock In as an App Shortcut that runs without opening Compass", () => {
     expect(swift).toContain("struct ClockInIntent: LiveActivityIntent");
     expect(swift).toContain("static var openAppWhenRun: Bool = false");
-    const guarded = swift.slice(swift.indexOf("#if canImport(ExpoModulesCore)"));
-    expect(guarded).toContain("struct CompassShortcuts: AppShortcutsProvider");
-    expect(guarded).toContain("#endif");
+    expect(swift).toContain("struct CompassShortcuts: AppShortcutsProvider");
+    expect(swift).toContain('shortTitle: "Clock In"');
+    // A compile-time guard leaves the provider out of the app target too (verified on the simulator).
+    expect(swift).not.toContain("#if canImport");
   });
 });

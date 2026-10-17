@@ -75,8 +75,8 @@ struct ClockInIntent: LiveActivityIntent {
   }
 }
 
-// Only the app offers the shortcut: the widget extension compiles this file too, but has no Expo modules.
-#if canImport(ExpoModulesCore)
+// The app offers the shortcut. The widget extension compiles this file too; its copy is never registered, because
+// Shortcuts and Siri read App Shortcuts from the app bundle.
 @available(iOS 17.0, *)
 struct CompassShortcuts: AppShortcutsProvider {
   static var appShortcuts: [AppShortcut] {
@@ -90,4 +90,3 @@ struct CompassShortcuts: AppShortcutsProvider {
       systemImageName: "clock.badge.checkmark")
   }
 }
-#endif
