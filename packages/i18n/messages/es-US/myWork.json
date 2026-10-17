@@ -1,0 +1,46 @@
+{
+  "title": "Mi trabajo",
+  "label": "Mi trabajo",
+  "views": "Vistas de Mi trabajo",
+  "groups": {
+    "overdue": "Vencido",
+    "today": "Hoy",
+    "upcoming": "Próximo",
+    "undated": "Sin fecha de vencimiento"
+  },
+  "groupEmpty": {
+    "overdue": "Nada vencido.",
+    "today": "Nada vence hoy.",
+    "upcoming": "Nada próximo.",
+    "undated": "Todos tus registros tienen fecha."
+  },
+  "groupCount": "{count, plural, one {# registro} other {# registros}}",
+  "columns": {
+    "key": "Clave",
+    "title": "Título",
+    "project": "Proyecto",
+    "state": "Estado",
+    "due": "Vence",
+    "when": "Cuándo",
+    "roles": "Por qué es tuyo"
+  },
+  "roles": {
+    "owner": "Responsable",
+    "accountable": "Encargado final",
+    "assigned": "Asignado"
+  },
+  "due": "Vence {when}",
+  "starts": "Empieza {when}",
+  "noDate": "Sin fecha de vencimiento",
+  "open": "Abrir",
+  "previousMonth": "Mes anterior",
+  "nextMonth": "Mes siguiente",
+  "undatedNote": "{count, plural, one {# registro no tiene fecha y no aparece en el calendario.} other {# registros no tienen fecha y no aparecen en el calendario.}}",
+  "truncated": "Se muestran tus primeros {count} registros. Abre un proyecto para ver el resto de su trabajo.",
+  "empty": "Todavía no tienes nada asignado. Abre Proyectos para tomar trabajo o pide a un líder que te asigne.",
+  "emptyAction": "Abrir Proyectos",
+  "loadError": "No se pudo cargar tu trabajo. Inténtalo de nuevo en un momento.",
+  "refusal": "Mi trabajo muestra los registros asignados a una persona, y esta sesión no tiene una persona en esta organización. Inicia sesión como miembro para ver tu trabajo.",
+  "refusalAction": "Ir a Inicio",
+  "loading": "Cargando tu trabajo"
+}

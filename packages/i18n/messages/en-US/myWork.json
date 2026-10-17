@@ -1,0 +1,46 @@
+{
+  "title": "My Work",
+  "label": "My work",
+  "views": "My Work views",
+  "groups": {
+    "overdue": "Overdue",
+    "today": "Today",
+    "upcoming": "Upcoming",
+    "undated": "No due date"
+  },
+  "groupEmpty": {
+    "overdue": "Nothing overdue.",
+    "today": "Nothing due today.",
+    "upcoming": "Nothing coming up.",
+    "undated": "Every record you hold has a date."
+  },
+  "groupCount": "{count, plural, one {# record} other {# records}}",
+  "columns": {
+    "key": "Key",
+    "title": "Title",
+    "project": "Project",
+    "state": "State",
+    "due": "Due",
+    "when": "When",
+    "roles": "Why it is yours"
+  },
+  "roles": {
+    "owner": "Owner",
+    "accountable": "Accountable",
+    "assigned": "Assigned"
+  },
+  "due": "Due {when}",
+  "starts": "Starts {when}",
+  "noDate": "No due date",
+  "open": "Open",
+  "previousMonth": "Previous month",
+  "nextMonth": "Next month",
+  "undatedNote": "{count, plural, one {# record has no date and is left off the calendar.} other {# records have no date and are left off the calendar.}}",
+  "truncated": "Showing your first {count} records. Open a project to see the rest of its work.",
+  "empty": "Nothing is assigned to you yet. Open Projects to pick up work, or ask a lead to assign you.",
+  "emptyAction": "Open Projects",
+  "loadError": "Your work could not be loaded. Try again in a moment.",
+  "refusal": "My Work lists the records assigned to a person, and this session has no person in this organization. Sign in as a member to see your work.",
+  "refusalAction": "Go to Home",
+  "loading": "Loading your work"
+}
