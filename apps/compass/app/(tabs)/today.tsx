@@ -1,11 +1,12 @@
 import type { Row } from "@xos/sync";
-import { useRouter } from "expo-router";
-import { useState, type ReactElement } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { access, todayBlocks } from "../../src/domain/access";
 import {
   formatElapsed,
+  needsPreciseFix,
   primaryPunch,
   secondaryPunches,
   workedMs,
@@ -15,7 +16,13 @@ import {
 import { formatCountdown, showState, type Cue } from "../../src/domain/show";
 import { punchAnnouncementKey } from "../../src/domain/announce";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
-import { formatDay, formatTime, ProjectPicker, SyncBanner } from "../../src/screens/common";
+import {
+  formatDay,
+  formatTime,
+  ProjectPicker,
+  SyncBanner,
+  useRoleTitle,
+} from "../../src/screens/common";
 import { useClock } from "../../src/screens/useClock";
 import {
   announce,
@@ -54,7 +61,18 @@ function ClockCard(): ReactElement {
   const { settings, status } = useCompass();
   const [punching, setPunching] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const clock = useClock(punching);
+  // Today is the clock: while it is in front and the person is clocked out, sample precisely so Clock In
+  // has a fix to decide on (the battery plan alone turns location off away from a call time).
+  const [open, setOpen] = useState(false);
+  const [clockedOut, setClockedOut] = useState(true);
+  useFocusEffect(
+    useCallback(() => {
+      setOpen(true);
+      return () => setOpen(false);
+    }, []),
+  );
+  const clock = useClock(needsPreciseFix(open, clockedOut ? "out" : "on", punching));
+  useEffect(() => setClockedOut(clock.snapshot.state === "out"), [clock.snapshot.state]);
   const primary = primaryPunch(clock.snapshot.state);
   const refusal = clock.refusal(primary);
   const geofenceText = (() => {
@@ -185,6 +203,7 @@ function NextCue({ projectId }: { readonly projectId: string }): ReactElement | 
 
 export default function TodayScreen(): ReactElement {
   const { t } = useTranslation();
+  const roleTitle = useRoleTitle();
   const router = useRouter();
   const { resolved, projectId, refresh } = useCompass();
   const [refreshing, setRefreshing] = useState(false);
@@ -232,7 +251,7 @@ export default function TodayScreen(): ReactElement {
                   ? "compass.schedule.accepted"
                   : "compass.schedule.published",
               )}
-              role={s.job_title ?? s.role_code ?? ""}
+              role={roleTitle(s)}
               date={formatDay(s.starts_at, s.time_zone)}
               time={t("compass.schedule.timeRange", {
                 start: formatTime(s.starts_at, s.time_zone),

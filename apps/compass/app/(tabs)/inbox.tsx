@@ -4,7 +4,13 @@ import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { dispatchQueue, type IncidentRow, type Severity } from "../../src/domain/incidents";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
-import { formatDay, ProjectPicker, SyncBanner, useAllowed } from "../../src/screens/common";
+import {
+  formatDay,
+  ProjectPicker,
+  SyncBanner,
+  useAllowed,
+  useRoleTitle,
+} from "../../src/screens/common";
 import { Card, EmptyState, ListRow, Screen } from "../../src/ui";
 
 /**
@@ -14,6 +20,7 @@ import { Card, EmptyState, ListRow, Screen } from "../../src/ui";
  */
 export default function InboxScreen(): ReactElement {
   const { t } = useTranslation();
+  const roleTitle = useRoleTitle();
   const router = useRouter();
   const { resolved, projectId, status } = useCompass();
   const canDispatch = useAllowed("incidents.dispatch");
@@ -47,7 +54,7 @@ export default function InboxScreen(): ReactElement {
     ...mine.map((s) => ({
       id: `shift-${s.id}`,
       icon: "calendar",
-      title: s.job_title ?? s.role_code ?? t("compass.schedule.myShifts"),
+      title: roleTitle(s) || t("compass.schedule.myShifts"),
       subtitle: `${t("compass.schedule.published")} · ${formatDay(s.starts_at)}`,
       go: "/schedule" as const,
     })),

@@ -322,6 +322,13 @@ const CANON_SOURCES: readonly Source[] = [
       sortOrder: Number(r["sort_order"]),
     }),
   },
+  {
+    table: "roles",
+    schema: "xpms",
+    relation: "role",
+    select: "role_code,job_title",
+    map: (r) => ({ id: r["role_code"], job_title: r["job_title"] }),
+  },
 ];
 
 /** Canon enumeration domain each canon table filters on. */

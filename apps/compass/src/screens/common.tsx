@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { access, type Denial, type Feature } from "../domain/access";
 import { queueAnnouncement } from "../domain/announce";
-import { useCompass } from "../runtime/CompassProvider";
+import { useCompass, useRows } from "../runtime/CompassProvider";
 import { countKey } from "../runtime/i18n";
 import {
   announce,
@@ -223,4 +223,20 @@ export function formatDay(iso: string, timeZone?: string | null): string {
     day: "numeric",
     ...(timeZone ? { timeZone } : {}),
   }).format(new Date(iso));
+}
+
+/**
+ * The canon job title for a shift (xpms.role, cached as the roles canon table), so a shift reads
+ * "Head Arena / Festival Rigger" rather than its role code. Falls back to the code while canon loads.
+ */
+export function useRoleTitle(): (shift: {
+  readonly job_title?: string | null;
+  readonly role_code?: string | null;
+}) => string {
+  const { rows } = useRows<{ id: string; job_title?: string | null }>("roles");
+  return (shift) =>
+    shift.job_title ??
+    rows.find((r) => r.id === shift.role_code)?.job_title ??
+    shift.role_code ??
+    "";
 }

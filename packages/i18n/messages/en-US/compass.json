@@ -92,7 +92,8 @@
       "sops": "SOPs",
       "time_entries": "time entries",
       "zones": "zones",
-      "other": "other data"
+      "other": "other data",
+      "roles": "job titles"
     }
   },
   "queue": {

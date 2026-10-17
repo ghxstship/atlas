@@ -92,7 +92,8 @@
       "sops": "procedimientos",
       "time_entries": "horas trabajadas",
       "zones": "zonas",
-      "other": "otros datos"
+      "other": "otros datos",
+      "roles": "puestos"
     }
   },
   "queue": {

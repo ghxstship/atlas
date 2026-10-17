@@ -12,11 +12,18 @@ import {
   type ShiftRow,
 } from "../../src/domain/shifts";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
-import { formatDay, formatTime, ProjectPicker, SyncBanner } from "../../src/screens/common";
+import {
+  formatDay,
+  formatTime,
+  ProjectPicker,
+  SyncBanner,
+  useRoleTitle,
+} from "../../src/screens/common";
 import { Button, EmptyState, InlineAlert, Screen, ShiftCard, Text } from "../../src/ui";
 
 export default function ScheduleScreen(): ReactElement {
   const { t } = useTranslation();
+  const roleTitle = useRoleTitle();
   const { resolved, projectId, enqueue, refresh } = useCompass();
   const identity = resolved?.identity;
   const { rows } = useRows<ShiftRow & Row>("shifts", (s) => s.project_id === projectId);
@@ -67,7 +74,7 @@ export default function ScheduleScreen(): ReactElement {
         }
         stateLabel={t(`compass.schedule.${state}`)}
         {...(countdown ? { countdown: t("compass.schedule.startsIn", { time: countdown }) } : {})}
-        role={s.job_title ?? s.role_code ?? ""}
+        role={roleTitle(s)}
         date={formatDay(s.starts_at, s.time_zone)}
         time={t("compass.schedule.timeRange", {
           start: formatTime(s.starts_at, s.time_zone),

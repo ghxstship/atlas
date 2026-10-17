@@ -6,8 +6,8 @@
 --   * Demo Field Tech (tech@example.com), a Field member of the demo org, signing in with 0010's local
 --     demo value
 --   * two finished shifts on the two days before the reset, accepted, with their time entries
---   * a shift today, published to the Field Tech and not yet accepted, so the Field Tech accepts it in
---     Compass and then clocks in on it (journey 10)
+--   * a long show-day shift today (07:00 to 23:30), published to the Field Tech and not yet accepted, so
+--     the Field Tech accepts it in Compass and then clocks in on it (journey 10)
 --   * a Crew badge valid today, so gate scans grant at the Main Gate when 0217 has loaded
 -- Fixed ids continue 0011's numbering:
 --   Field Tech user and person   01920000-0000-7000-8000-000000000106
@@ -93,7 +93,7 @@ begin
   insert into app.shifts (id, org_id, project_id, membership_id, role_code, starts_at, ends_at, time_zone) values
     (c_shift_past2, c_org, c_project, c_tech_m, c_role, v_day - interval '2 days' + interval '8 hours', v_day - interval '2 days' + interval '17 hours', 'America/New_York'),
     (c_shift_past1, c_org, c_project, c_tech_m, c_role, v_day - interval '1 day' + interval '8 hours', v_day - interval '1 day' + interval '17 hours', 'America/New_York'),
-    (c_shift_today, c_org, c_project, c_tech_m, c_role, v_day + interval '6 hours', v_day + interval '22 hours', 'America/New_York');
+    (c_shift_today, c_org, c_project, c_tech_m, c_role, v_day + interval '7 hours', v_day + interval '23 hours 30 minutes', 'America/New_York');
   perform app.publish_shifts(array[c_shift_past2, c_shift_past1, c_shift_today], 'Site prep crew schedule published.');
 
   -- Field Tech: accepts the two past shifts and records the time worked on them. Today's shift stays
