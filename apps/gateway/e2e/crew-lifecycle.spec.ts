@@ -160,7 +160,7 @@ test("journey 41: requisition to credential loss, one crew person through every 
     );
     const [billed] = await asPerson<{ id: string }>(
       PEOPLE.producer,
-      `select app.generate_self_billed_invoice($1, '2027-06-01', '2027-06-30') as id`,
+      `select app.generate_self_billed_invoice($1, current_date - 7, current_date) as id`,
       [id],
     );
     const invoiceId = billed?.id as string;

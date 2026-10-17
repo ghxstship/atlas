@@ -348,6 +348,7 @@ import type {
   FeedPostCreate,
   FeedPostUpdate,
   FeedReactionRequest,
+  Form1099NecRowPage,
   FormDecisionRequest,
   FormSubmission,
   FormSubmissionCreate,
@@ -33609,6 +33610,37 @@ export class GuestListEntriesResource extends $Resource {
     return this.client.request<GuestListEntry>(
       $OPERATIONS["guestListEntries.checkIn"],
       { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `form1099Nec`, in the Finance module.
+ *
+ * Budgets, expenses, change orders, ledger, periods and the Universal Posting Line (Sections 3.11 and 4.2).
+ */
+export class Form1099NecResource extends $Resource {
+  /**
+   * 1099-NEC payees of a tax year
+   *
+   * Payees paid $600 or more in approved USD payments in the calendar year as independent contractors (individuals and accounts), with whether a W-9 and its address are on file. Full TINs are a Restricted export with step-up, in Atlas only. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /form-1099-nec/rows` (operation `form1099Nec.rows`).
+   * Requires the capability `finance.payment.read`.
+   */
+  rows(
+    params: {
+      /**
+       * Tax year.
+       */
+      readonly year: number;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Form1099NecRowPage>> {
+    return this.client.request<Form1099NecRowPage>(
+      $OPERATIONS["form1099Nec.rows"],
+      { query: params },
       options,
     );
   }

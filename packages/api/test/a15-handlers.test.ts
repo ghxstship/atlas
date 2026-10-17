@@ -415,6 +415,25 @@ function world() {
         return true;
       },
       transition_invoice: transitionRpc("invoices", "invoice_state", "p_invoice_id", "invoice"),
+      form_1099_nec_rows: () => [
+        {
+          payee_person_id: id(4101),
+          payee_organization_id: null,
+          payee_name: "Ivy Marchetti",
+          tax_form_id: id(4102),
+          w9_on_file: true,
+          tin_type: 2,
+          tin_last4: "6789",
+          tin: null,
+          street_address: "1 Pier Way",
+          locality: "Miami",
+          region_code: "FL",
+          postal_code: "33101",
+          address_complete: true,
+          amount_minor: 75000,
+          payment_count: 2,
+        },
+      ],
       record_invoice_payment: (args, self) => {
         if (stateOf(self, "invoices", String(args["p_invoice_id"]), "invoice_state") !== "Approved")
           throw refusal("invoice_payment_state");
@@ -974,6 +993,19 @@ describe("invoices and payments", () => {
       to_state: "Canceled",
     });
     expect(stale.status).toBe(409);
+  });
+
+  it("lists the 1099-NEC payees of a tax year without full TINs (A38-006)", async () => {
+    const { db, http } = world();
+    const sent = await success(http.get("/form-1099-nec/rows?year=2025"));
+    const page = (await expectContract(sent, "form1099Nec.rows")) as { data: Row[] };
+    expect(page.data[0]).toMatchObject({ payee_name: "Ivy Marchetti", amount_minor: 75000 });
+    expect(page.data[0]).not.toHaveProperty("tin");
+    expect(db.calls.findLast((c) => c.name === "form_1099_nec_rows")?.args).toEqual({
+      p_org_id: ORG,
+      p_year: 2025,
+      p_include_tin: false,
+    });
   });
 
   it("records a payment against an approved invoice (A38-007)", async () => {

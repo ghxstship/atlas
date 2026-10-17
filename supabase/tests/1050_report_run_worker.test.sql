@@ -58,7 +58,9 @@ insert into k (key, id) values ('dave_run', pg_temp.new_run('dave@org_a')), ('ca
 
 -- Storage ------------------------------------------------------------------------------------------------------
 select is((select public from storage.buckets where id = 'report-results'), false, 'the report-results bucket is private');
-select is((select allowed_mime_types from storage.buckets where id = 'report-results'), array['text/csv'], 'it takes CSV only');
+select is((select allowed_mime_types from storage.buckets where id = 'report-results'),
+  array['text/csv', 'application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+  'it takes CSV, PDF and .xlsx run files (1126)');
 select is(private.report_result_run(private.report_result_path(pg_temp.id('org_a'), (select id from k where key = 'dave_run'))),
   (select id from k where key = 'dave_run'), 'a result file name names its run');
 select is(private.report_result_run('elsewhere/file.csv'), null::uuid, 'any other name names no run');

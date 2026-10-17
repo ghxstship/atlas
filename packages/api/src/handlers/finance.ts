@@ -33,6 +33,7 @@ import {
   type InvoiceState,
   type PeriodState,
 } from "@xos/data/finance";
+import { listForm1099NecRows } from "@xos/data/form-1099";
 import { conflict, refused } from "../problem.ts";
 import type { RequestContext } from "../runtime/context.ts";
 import { requireOrg } from "../runtime/context.ts";
@@ -386,6 +387,27 @@ export const handlers = defineHandlers("Finance", {
     await invoices.read(context, params.id, ["id"]);
     unwrap(await approveInvoice(context.db, params.id, ""));
     return ok(await reread(invoices, context, params.id));
+  },
+
+  // 1099-NEC payees of a tax year, without full TINs (A38-006, 1124).
+  "form1099Nec.rows": async ({ query }, context) => {
+    const rows = unwrap(
+      await listForm1099NecRows(context.db, { orgId: requireOrg(context).id, year: query.year }),
+    );
+    return ok({
+      data: rows.map((r) => ({
+        payee_person_id: r.payeePersonId,
+        payee_organization_id: r.payeeOrganizationId,
+        payee_name: r.payeeName,
+        w9_on_file: r.w9OnFile,
+        tin_type: r.tinType,
+        tin_last4: r.tinLast4,
+        address_complete: r.addressComplete,
+        amount_minor: r.amountMinor,
+        payment_count: r.paymentCount,
+      })),
+      next_cursor: null,
+    } as never);
   },
 
   // A payment made on the org's rails, recorded against the invoice's payee (A38-007, 1123).

@@ -305,7 +305,7 @@
     "self_billing_currency": "The engagement has no currency. Set its rate and currency first.",
     "self_billing_disabled": "Self-billing is off for this project. Turn it on in Legal Entities and Fiscal settings.",
     "self_billing_not_agreed": "The party has not agreed to self-billing on this engagement; they agree in Gateway.",
-    "self_billing_nothing_to_bill": "No approved timesheets in this period are waiting to be billed.",
+    "self_billing_nothing_to_bill": "No approved timesheets or accepted milestones in this period are waiting to be billed.",
     "self_billing_period": "Choose a period whose end is on or after its start.",
     "settlement_immutable": "A settlement keeps its engagement, project, number and currency.",
     "settlement_line_immutable": "A line stays on its settlement.",
@@ -330,7 +330,18 @@
     "tax_rate_overlap": "Rates of one tax jurisdiction and tax type never overlap.",
     "tax_type_unknown": "That is not a canon tax type.",
     "transition_reason_required": "Every state change needs a reason.",
-    "urid_unknown": "That URID is not a canon discipline or category."
+    "urid_unknown": "That URID is not a canon discipline or category.",
+    "invoice_payment_state": "Record a payment against an approved payable or an issued receivable.",
+    "invoice_payment_amount": "Nothing is left to pay on this invoice.",
+    "invoice_payment_date": "Give the date the money moved.",
+    "payment_payee_not_engaged": "A payment to a person pays someone this organization engages as an individual.",
+    "invoice_engagement_payee": "The payee of an engagement invoice is the engaged party: its account, or the person when no account bills.",
+    "invoice_engagement_project": "An invoice bills an engagement of its own project.",
+    "export_restricted": "This file carries Restricted tax identifiers. Ask an Owner or Admin with the restricted export capability.",
+    "step_up_required": "Exporting Restricted data needs step-up authentication. Sign in again with your second factor, then download.",
+    "form_1099_year": "Choose a tax year from 2020 to this year.",
+    "deliverable_fee_fixed": "An accepted milestone keeps its fee.",
+    "deliverable_fee_currency": "Set the engagement's currency before pricing its milestones."
   },
   "collab": {
     "attachments": "Attachments",
@@ -749,5 +760,34 @@
     "noLines": "No lines yet. Add the guarantee, bonuses, expenses and deductions.",
     "noLinesRead": "This settlement has no lines yet.",
     "unpricedNet": "{count, plural, one {Unpriced, # line has no amount} other {Unpriced, # lines have no amount}}"
+  },
+  "yearEnd": {
+    "empty": "No payee reached {threshold} in approved USD payments as an independent contractor in {year}. Payees appear here once their payments are approved.",
+    "emptyAction": "Open payments",
+    "loadError": "The year-end payees could not load. Reload the page; if it keeps failing, check the payments page.",
+    "yearFilter": "Tax year",
+    "taxYear": "Tax year {year}",
+    "summary": "{count, plural, =0 {No payees} one {# payee} other {# payees}} paid {threshold} or more. {missingForm, plural, =0 {Every payee has a W-9 on file.} one {# has no W-9 on file: ask for one in Gateway before filing.} other {# have no W-9 on file: ask for them in Gateway before filing.}} {missingAddress, plural, =0 {} one {# W-9 has no complete address yet.} other {# W-9s have no complete address yet.}}",
+    "export": "Download 1099-NEC file",
+    "exportSentence": "A CSV in the IRS FIRE payee record layout, with full tax identifiers. It is a Restricted export: you need step-up authentication, and the download is written to the audit log. Payees without a W-9 or address are left out.",
+    "exported": "Downloaded {file}.",
+    "exportNeedsCapability": "The 1099-NEC file carries full tax identifiers. Ask an Owner or Admin with the restricted export capability to download it.",
+    "w9OnFile": "W-9 on file",
+    "w9Missing": "No W-9",
+    "addressMissing": "Address missing",
+    "tinLast4": "Ending {last4}",
+    "kind": {
+      "person": "Individual",
+      "account": "Company account"
+    },
+    "columns": {
+      "payee": "Payee",
+      "kind": "Payee type",
+      "form": "Tax form",
+      "tin": "TIN",
+      "address": "Address",
+      "payments": "Payments",
+      "amount": "Paid in year"
+    }
   }
 }

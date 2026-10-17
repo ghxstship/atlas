@@ -17,7 +17,7 @@ alter table app.engagement_deliverables
 
 comment on column app.engagement_deliverables.fee_minor is 'Agreed price of the milestone in minor units of the engagement''s currency; NULL is unpriced. Fixed once accepted; billed by self-billing.';
 
-create or replace function app.set_deliverable_fee(p_deliverable_id uuid, p_fee_minor bigint)
+create or replace function app.set_deliverable_fee(p_deliverable_id uuid, p_fee_minor bigint default null)
 returns uuid
 language plpgsql
 volatile

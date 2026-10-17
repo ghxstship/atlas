@@ -34,6 +34,7 @@ import enUS_platform from "../messages/en-US/platform.json" with { type: "json" 
 import enUS_procurement from "../messages/en-US/procurement.json" with { type: "json" };
 import enUS_profiles from "../messages/en-US/profiles.json" with { type: "json" };
 import enUS_projects from "../messages/en-US/projects.json" with { type: "json" };
+import enUS_reporting from "../messages/en-US/reporting.json" with { type: "json" };
 import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
 import enUS_savedViews from "../messages/en-US/savedViews.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
@@ -83,6 +84,7 @@ import esUS_platform from "../messages/es-US/platform.json" with { type: "json" 
 import esUS_procurement from "../messages/es-US/procurement.json" with { type: "json" };
 import esUS_profiles from "../messages/es-US/profiles.json" with { type: "json" };
 import esUS_projects from "../messages/es-US/projects.json" with { type: "json" };
+import esUS_reporting from "../messages/es-US/reporting.json" with { type: "json" };
 import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
 import esUS_savedViews from "../messages/es-US/savedViews.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
@@ -134,6 +136,7 @@ export const enUS = {
   procurement: enUS_procurement,
   profiles: enUS_profiles,
   projects: enUS_projects,
+  reporting: enUS_reporting,
   reports: enUS_reports,
   savedViews: enUS_savedViews,
   schedule: enUS_schedule,
@@ -186,6 +189,7 @@ export const esUS = {
   procurement: esUS_procurement,
   profiles: esUS_profiles,
   projects: esUS_projects,
+  reporting: esUS_reporting,
   reports: esUS_reports,
   savedViews: esUS_savedViews,
   schedule: esUS_schedule,

@@ -1211,6 +1211,8 @@ __all__ = [
     "GuestListEntryCreate",
     "GuestListEntryUpdate",
     "GuestDecisionRequest",
+    "Form1099NecRowPage",
+    "Form1099NecRow",
     "AuroraStatus",
     "AiFeature",
     "AuroraResult",
@@ -10711,6 +10713,8 @@ class Opportunity(TypedDict):
     deadline_at: Optional[str]
     #: Minimum age for the work, 16 or older (Section 14.9).
     minimum_age: Optional[int]
+    #: Whether the work can be done remotely.
+    is_remote: bool
 
 
 class _OpportunityCreateRequired(TypedDict):
@@ -10751,6 +10755,8 @@ class OpportunityCreate(_OpportunityCreateRequired, total=False):
     deadline_at: Optional[str]
     #: Minimum age for the work, 16 or older (Section 14.9).
     minimum_age: Optional[int]
+    #: Whether the work can be done remotely.
+    is_remote: bool
 
 
 class OpportunityUpdate(TypedDict, total=False):
@@ -10788,6 +10794,8 @@ class OpportunityUpdate(TypedDict, total=False):
     deadline_at: Optional[str]
     #: Minimum age for the work, 16 or older (Section 14.9).
     minimum_age: Optional[int]
+    #: Whether the work can be done remotely.
+    is_remote: bool
 
 
 class _OpportunityTransitionRequestRequired(TypedDict):
@@ -19159,6 +19167,38 @@ class GuestDecisionRequest(TypedDict):
 
     #: Approved or Declined.
     outcome: Literal["Approved", "Declined"]
+
+
+class Form1099NecRowPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Form1099NecRow]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Form1099NecRow(TypedDict):
+    """A payee paid $600 or more in approved USD payments in a tax year as an independent contractor, with the W-9 on file."""
+
+    #: Identifier of the person paid as an individual.
+    payee_person_id: Optional[str]
+    #: Identifier of the account paid.
+    payee_organization_id: Optional[str]
+    #: Name on the W-9, or the payee's name.
+    payee_name: str
+    #: Whether a W-9 is on file with the org.
+    w9_on_file: bool
+    #: FIRE TIN type: 1 EIN (an account), 2 SSN (a person).
+    tin_type: Optional[int]
+    #: Last four of the TIN.
+    tin_last4: Optional[str]
+    #: Whether the W-9 address is complete.
+    address_complete: bool
+    #: Approved USD payments in the year. Integer minor units of the resource currency; null means unpriced, never zero.
+    amount_minor: Optional[int]
+    #: Payments counted.
+    payment_count: int
 
 
 class AuroraStatus(TypedDict):

@@ -80,6 +80,22 @@ export const additions = defineAdditions("Opportunities", {
       }),
     },
     {
+      id: "opportunity-remote-work",
+      since: "1.0.0-draft.2",
+      resources: ["opportunities"],
+      change: "Adds `is_remote`, optional on create and update and fixed once published.",
+      reason:
+        "app.opportunities.is_remote (1125, A43): a remote posting follows the pay transparency rules that cover remote roles in its country, so publishing it without a pay range can be refused (finding A38-006).",
+      apply: editShape({
+        add: {
+          is_remote: {
+            schema: fields.bool("Whether the work can be done remotely.", false),
+            create: "optional",
+          },
+        },
+      }),
+    },
+    {
       id: "opportunity-positions-are-rows",
       since: "1.0.0-draft.2",
       resources: ["opportunityPositions"],

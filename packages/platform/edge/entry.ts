@@ -12,7 +12,7 @@ import plansYaml from "@xos/schemas/plans.yaml?raw";
 import { parsePlanRegistry, type PlanRegistry } from "@xos/schemas/plans";
 
 export * from "../src/index.ts";
-export { createTransport, readEmailEnv } from "@xos/email";
+export { createTransport, readEmailEnv, recipientAllowed } from "@xos/email";
 export { createLogger, identityFromEnv } from "../../../infra/observability/src/logger.ts";
 export { createObservability, observe } from "../../../infra/observability/src/index.ts";
 export { observeEdgeFunction } from "../../../infra/observability/src/edge.ts";

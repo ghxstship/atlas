@@ -491,6 +491,7 @@ if TYPE_CHECKING:
         FeedPostPage,
         FeedPostUpdate,
         FeedReactionRequest,
+        Form1099NecRowPage,
         FormDecisionRequest,
         FormSubmission,
         FormSubmissionCreate,
@@ -31406,6 +31407,25 @@ class GuestListEntriesResource(Resource):
         Requires the capability ``advancing.rider.write``.
         """
         return self._client.request(OPERATIONS["guestListEntries.checkIn"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class Form1099NecResource(Resource):
+    """Operations on ``form1099Nec``, in the Finance module."""
+
+    def rows(
+        self,
+        *,
+        year: int,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Form1099NecRowPage]:
+        """1099-NEC payees of a tax year
+
+        Payees paid $600 or more in approved USD payments in the calendar year as independent contractors (individuals and accounts), with whether a W-9 and its address are on file. Full TINs are a Restricted export with step-up, in Atlas only. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /form-1099-nec/rows`` (operation ``form1099Nec.rows``).
+        Requires the capability ``finance.payment.read``.
+        """
+        return self._client.request(OPERATIONS["form1099Nec.rows"], query={"year": year}, options=options)
 
 
 class AuroraResource(Resource):

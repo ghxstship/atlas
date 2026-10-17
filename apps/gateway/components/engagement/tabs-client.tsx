@@ -375,6 +375,11 @@ export async function DeliverablesTab({ view, t, locale, engagementKey }: TabPro
                 })
               : null,
             d.deliverable_state === "Returned" ? d.return_reason : null,
+            d.fee_minor !== null && d.fee_minor !== undefined
+              ? t("payouts.milestone.fee", {
+                  amount: formatMoney(locale, d.fee_minor, d.currency_code) ?? "",
+                })
+              : null,
           ],
           ...(d.deliverable_state
             ? {

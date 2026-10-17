@@ -1,0 +1,2 @@
+# Hand-written Atlas pages owned by A43 (finance and reporting gaps, RRR-87). One sitemap node id per line.
+finance.year-end

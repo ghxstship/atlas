@@ -1323,6 +1323,7 @@ export type OperationId =
   | "guestListEntries.delete"
   | "guestListEntries.decide"
   | "guestListEntries.checkIn"
+  | "form1099Nec.rows"
   | "aurora.status"
   | "aurora.ask"
   | "aurora.filter"
@@ -31817,6 +31818,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "advancing.rider.write",
     scopes: ["advancing"],
   },
+  "form1099Nec.rows": {
+    id: "form1099Nec.rows",
+    resource: "form1099Nec",
+    verb: "rows",
+    method: "GET",
+    path: "/form-1099-nec/rows",
+    pathParams: [],
+    queryParams: ["year"],
+    requiredQueryParams: ["year"],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "Form1099NecRowPage",
+    item: null,
+    tag: "Finance",
+    summary: "1099-NEC payees of a tax year",
+    capability: "finance.payment.read",
+    scopes: ["finance"],
+  },
   "aurora.status": {
     id: "aurora.status",
     resource: "aurora",
@@ -39506,6 +39530,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "guestListEntries.checkIn",
     ],
   },
+  { name: "form1099Nec", tag: "Finance", operations: ["form1099Nec.rows"] },
   {
     name: "aurora",
     tag: "Settings",

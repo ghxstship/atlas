@@ -343,6 +343,7 @@ from .resources import (
     TemplatesResource,
     TemplateApplicationsResource,
     GuestListEntriesResource,
+    Form1099NecResource,
     AuroraResource,
     AiSuggestionsResource,
     AiRequestsResource,
@@ -745,6 +746,7 @@ class XosClient(XosClientCore):
     templates: TemplatesResource
     template_applications: TemplateApplicationsResource
     guest_list_entries: GuestListEntriesResource
+    form1099_nec: Form1099NecResource
     aurora: AuroraResource
     ai_suggestions: AiSuggestionsResource
     ai_requests: AiRequestsResource
@@ -1135,6 +1137,7 @@ class XosClient(XosClientCore):
         self.templates = TemplatesResource(self)
         self.template_applications = TemplateApplicationsResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
+        self.form1099_nec = Form1099NecResource(self)
         self.aurora = AuroraResource(self)
         self.ai_suggestions = AiSuggestionsResource(self)
         self.ai_requests = AiRequestsResource(self)

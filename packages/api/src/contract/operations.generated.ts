@@ -2749,6 +2749,18 @@ export interface Components {
       contains?: string;
     }
   >;
+  Form1099NecRow: {
+    payee_person_id: string | null;
+    payee_organization_id: string | null;
+    payee_name: string;
+    w9_on_file: boolean;
+    tin_type: number | null;
+    tin_last4: string | null;
+    address_complete: boolean;
+    amount_minor: number | null;
+    payment_count: number;
+  };
+  Form1099NecRowPage: { data: Array<Components["Form1099NecRow"]>; next_cursor: string | null };
   FormDecisionRequest: { approve: boolean; note?: string };
   FormField: {
     key: string;
@@ -4362,6 +4374,7 @@ export interface Components {
     currency_code: string | null;
     deadline_at: string | null;
     minimum_age: number | null;
+    is_remote: boolean;
   };
   OpportunityAlert: {
     id: string;
@@ -4393,6 +4406,7 @@ export interface Components {
     currency_code?: string | null;
     deadline_at?: string | null;
     minimum_age?: number | null;
+    is_remote?: boolean;
   };
   OpportunityPage: { data: Array<Components["Opportunity"]>; next_cursor: string | null };
   OpportunityPosition: {
@@ -4503,6 +4517,7 @@ export interface Components {
     currency_code?: string | null;
     deadline_at?: string | null;
     minimum_age?: number | null;
+    is_remote?: boolean;
   };
   OpportunityVisibility: "Invited" | "Pool" | "Network" | "Public";
   OrgBranding: {
@@ -22141,6 +22156,15 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
   };
+  "form1099Nec.rows": {
+    module: "Finance";
+    method: "get";
+    path: "/form-1099-nec/rows";
+    params: Record<string, never>;
+    query: { year: number };
+    body: undefined;
+    responses: { 200: Components["Form1099NecRowPage"] };
+  };
   "aurora.status": {
     module: "Settings";
     method: "get";
@@ -25011,7 +25035,8 @@ export interface ModuleOperations {
     | "priceBooks.create"
     | "priceBooks.get"
     | "priceBooks.update"
-    | "priceBooks.delete";
+    | "priceBooks.delete"
+    | "form1099Nec.rows";
   Procurement:
     | "rfqs.list"
     | "rfqs.create"

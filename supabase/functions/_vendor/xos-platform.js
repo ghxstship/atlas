@@ -4268,7 +4268,8 @@ var finance_default$1 = {
       "Self-billing is off for this project. Turn it on in Legal Entities and Fiscal settings.",
     self_billing_not_agreed:
       "The party has not agreed to self-billing on this engagement; they agree in Gateway.",
-    self_billing_nothing_to_bill: "No approved timesheets in this period are waiting to be billed.",
+    self_billing_nothing_to_bill:
+      "No approved timesheets or accepted milestones in this period are waiting to be billed.",
     self_billing_period: "Choose a period whose end is on or after its start.",
     settlement_immutable: "A settlement keeps its engagement, project, number and currency.",
     settlement_line_immutable: "A line stays on its settlement.",
@@ -4302,6 +4303,21 @@ var finance_default$1 = {
     tax_type_unknown: "That is not a canon tax type.",
     transition_reason_required: "Every state change needs a reason.",
     urid_unknown: "That URID is not a canon discipline or category.",
+    invoice_payment_state: "Record a payment against an approved payable or an issued receivable.",
+    invoice_payment_amount: "Nothing is left to pay on this invoice.",
+    invoice_payment_date: "Give the date the money moved.",
+    payment_payee_not_engaged:
+      "A payment to a person pays someone this organization engages as an individual.",
+    invoice_engagement_payee:
+      "The payee of an engagement invoice is the engaged party: its account, or the person when no account bills.",
+    invoice_engagement_project: "An invoice bills an engagement of its own project.",
+    export_restricted:
+      "This file carries Restricted tax identifiers. Ask an Owner or Admin with the restricted export capability.",
+    step_up_required:
+      "Exporting Restricted data needs step-up authentication. Sign in again with your second factor, then download.",
+    form_1099_year: "Choose a tax year from 2020 to this year.",
+    deliverable_fee_fixed: "An accepted milestone keeps its fee.",
+    deliverable_fee_currency: "Set the engagement's currency before pricing its milestones.",
   },
   collab: {
     attachments: "Attachments",
@@ -4506,6 +4522,7 @@ var finance_default$1 = {
       number: "Invoice number",
       periodEnd: "Period ends",
       periodStart: "Period starts",
+      paymentAmount: "Amount paid ({currency})",
     },
     allDirections: "All invoices",
     applied: "Payments applied",
@@ -4531,11 +4548,19 @@ var finance_default$1 = {
     postsWhenIssued: "A receivable invoice posts to the ledger when it is issued.",
     selfBill: "Generate from timesheets",
     selfBillSentence:
-      "Creates a draft payable invoice for the party from approved timesheets in the period. It needs self-billing turned on and the party's agreement in Gateway.",
+      "Creates a draft payable invoice for the party, a company account or a person engaged as an individual, from approved timesheets and accepted milestones in the period. It needs self-billing turned on and the party's agreement in Gateway.",
     selfBillSubmit: "Generate invoice",
     tax: "Tax",
     unpricedTotal:
       "{count, plural, one {Unpriced, # line has no price} other {Unpriced, # lines have no price}}",
+    recordPayment: "Record payment",
+    recordPaymentSentence:
+      "Record a payment made on your own bank or payout provider. It is applied to this invoice and waits for another approver before the payee sees it as paid.",
+    recordPaymentSubmit: "Record payment",
+    paymentAmountHint: "Leave blank to pay the whole balance.",
+    paymentReferenceHint: "The remittance reference from your bank or payout provider.",
+    payee: "Payee",
+    individual: "Individual",
   },
   payments: {
     applied: "Payment applied.",
@@ -4569,6 +4594,7 @@ var finance_default$1 = {
     tabs: "Payments and settlements",
     unapplied: "Not yet applied",
     unnumbered: "Unnumbered invoice",
+    individualPayee: "{name} (individual)",
   },
   journal: {
     addLine: "Add line",
@@ -4734,6 +4760,40 @@ var finance_default$1 = {
     noLinesRead: "This settlement has no lines yet.",
     unpricedNet:
       "{count, plural, one {Unpriced, # line has no amount} other {Unpriced, # lines have no amount}}",
+  },
+  yearEnd: {
+    empty:
+      "No payee reached {threshold} in approved USD payments as an independent contractor in {year}. Payees appear here once their payments are approved.",
+    emptyAction: "Open payments",
+    loadError:
+      "The year-end payees could not load. Reload the page; if it keeps failing, check the payments page.",
+    yearFilter: "Tax year",
+    taxYear: "Tax year {year}",
+    summary:
+      "{count, plural, =0 {No payees} one {# payee} other {# payees}} paid {threshold} or more. {missingForm, plural, =0 {Every payee has a W-9 on file.} one {# has no W-9 on file: ask for one in Gateway before filing.} other {# have no W-9 on file: ask for them in Gateway before filing.}} {missingAddress, plural, =0 {} one {# W-9 has no complete address yet.} other {# W-9s have no complete address yet.}}",
+    export: "Download 1099-NEC file",
+    exportSentence:
+      "A CSV in the IRS FIRE payee record layout, with full tax identifiers. It is a Restricted export: you need step-up authentication, and the download is written to the audit log. Payees without a W-9 or address are left out.",
+    exported: "Downloaded {file}.",
+    exportNeedsCapability:
+      "The 1099-NEC file carries full tax identifiers. Ask an Owner or Admin with the restricted export capability to download it.",
+    w9OnFile: "W-9 on file",
+    w9Missing: "No W-9",
+    addressMissing: "Address missing",
+    tinLast4: "Ending {last4}",
+    kind: {
+      person: "Individual",
+      account: "Company account",
+    },
+    columns: {
+      payee: "Payee",
+      kind: "Payee type",
+      form: "Tax form",
+      tin: "TIN",
+      address: "Address",
+      payments: "Payments",
+      amount: "Paid in year",
+    },
   },
 };
 var gateway_default$1 = {
@@ -7272,6 +7332,7 @@ var nav_default$1 = {
         universalPostingLineExport: "Universal Posting Line Export",
         chartOfAccounts: "Chart of Accounts",
         costCenters: "Cost Centers",
+        yearEnd: "Year-End",
       },
       procurement: {
         rfqs: "RFQs",
@@ -7779,6 +7840,7 @@ var opportunities_default$1 = {
     validDays: "Valid for days",
     visibility: "Visibility",
     when: "When",
+    isRemote: "The work can be done remotely",
   },
   fieldErrors: {
     required: "Fill in this field to continue.",
@@ -8068,6 +8130,9 @@ var opportunities_default$1 = {
     addToPool: "Add to pool",
     noPools: "No matching pool yet. Create one on the Pools page.",
     poolNeedsWrite: "Someone with pool access records re-engagement.",
+    milestoneFee: "Fee: {amount}. Self-billing bills it once the milestone is accepted.",
+    milestoneFeeLabel: "Fee ({currency})",
+    setFee: "Set fee",
   },
   ratings: {
     title: "Ratings",
@@ -8322,6 +8387,65 @@ var opportunities_default$1 = {
     missingPayRange: "Missing Pay Range",
     safety: "Safety",
   },
+};
+var payouts_default$1 = {
+  invoice: {
+    detail: "{count, plural, one {Show # line} other {Show # lines}}",
+    linesCaption: "Lines of invoice {number}",
+    description: "What is billed",
+    quantity: "Quantity",
+    amount: "Amount",
+  },
+  payTransparency: {
+    title: "Pay transparency rules",
+    description:
+      "Where these rules apply, a Contractor, Crew or Staff posting cannot be published without a pay range. A rule covers its jurisdiction and every place within it; a remote posting follows the rules that cover remote roles in its country. The platform maintains this list.",
+    caption: "Pay transparency rules by jurisdiction",
+    loadError:
+      "The pay transparency rules could not load. Reload the page; publishing still checks them.",
+    empty:
+      "No pay transparency rules are loaded, so no posting is refused for a missing pay range.",
+    counselPending:
+      "{count, plural, one {# rule has} other {# rules have}} not yet been confirmed with counsel. Treat them as the platform's reading of the law until they are.",
+    needsReview: "Needs counsel review",
+    confirmed: "Confirmed",
+    remote: {
+      covered: "Covers remote roles",
+      onSiteOnly: "On site only",
+    },
+    columns: {
+      jurisdiction: "Jurisdiction",
+      effective: "In force from",
+      remote: "Remote roles",
+      citation: "Law",
+      review: "Review",
+    },
+  },
+  w9: {
+    title: "W-9 name and mailing address",
+    body: "Each organization that pays you $600 or more in a year files a 1099-NEC with the name and address on your W-9. Keep them current here.",
+    formFor: "W-9 for {org}, ending {last4}",
+    missing: "No mailing address yet. Add it so the organization can file your 1099-NEC.",
+    add: "Add the address",
+    edit: "Change the address",
+    formTitle: "W-9 name and mailing address",
+    legalName: "Name as shown on your W-9",
+    legalNameHelp: "Leave blank to use your profile name.",
+    street: "Street address",
+    locality: "City",
+    region: "State",
+    postal: "ZIP code",
+    submit: "Save address",
+    done: "Address saved.",
+    errors: {
+      legalName: "Keep the name to 200 characters.",
+      streetAddress: "Enter the street address as it appears on your W-9.",
+      locality: "Enter the city.",
+      regionCode: "Enter the two-letter state code, for example CA.",
+      postalCode: "Enter a five-digit ZIP code, or ZIP+4 such as 33101-2040.",
+    },
+  },
+  milestone: { fee: "Fee {amount}" },
 };
 var peek_default$1 = {
   loading: "Opening {key}.",
@@ -10819,6 +10943,18 @@ var projects_default$1 = {
     complete: "Complete",
     deferred: "Deferred",
     canceled: "Canceled",
+  },
+};
+var reporting_default$1 = {
+  file: {
+    unpriced: "Unpriced rows",
+    subtitle:
+      "Run {date}. Rows: {rows}. Rows with an unpriced amount, left out of their total: {unpriced}.",
+    truncated: "This file stops at the row limit. Narrow the report's filters to see every row.",
+  },
+  email: {
+    subject: "{report} from {org}",
+    body: "Your scheduled report {report} from {org} is attached. It has {rows} rows; {unpriced} carry an unpriced amount, left out of their totals. It ran with your own access, so it shows only what you may see.",
   },
 };
 var reports_default$1 = {
@@ -19177,146 +19313,9 @@ var finance_default = {
         "Un precio en cero necesita marcar Sin costo; de lo contrario, deje el precio en blanco.",
     },
   },
-  refusals: {
-    unknown: "La base de datos rechazó este cambio según la regla {rule}.",
-    budget_line_budget_immutable: "Una partida permanece en su presupuesto.",
-    budget_line_xyz_basis:
-      "Una etiqueta XYZ con base Categoría debe ser igual a la de la categoría; declárela para que sea distinta.",
-    change_order_budget_project:
-      "Una orden de cambio modifica un presupuesto de su propio proyecto.",
-    change_order_immutable:
-      "Una orden de cambio conserva su solicitante, número, proyecto y presupuesto.",
-    change_order_line_budget:
-      "Una línea de orden de cambio ajusta una partida del presupuesto de la orden.",
-    change_order_line_immutable: "Una línea permanece en su orden de cambio.",
-    change_order_locked:
-      "Las líneas solo cambian mientras la orden está Propuesta. Rehágala primero.",
-    change_order_not_priced:
-      "Solo se aprueba una orden de cambio con precio. Ponga precio a cada línea y márquela con precio.",
-    change_order_priced_by: "Quien fija el precio se registra al marcar la orden con precio.",
-    change_order_state_conflict:
-      "Otra persona cambió esta orden primero. Actualice para ver su estado.",
-    change_order_transition_not_allowed:
-      "Una orden de cambio no puede pasar a ese estado desde aquí.",
-    change_order_unpriced:
-      "Cada línea necesita un precio, o Sin costo, antes de marcar la orden con precio.",
-    change_order_use_rpc: "Fije el precio y apruebe una orden de cambio con sus propias acciones.",
-    contingency_exhausted: "La transferencia supera la contingencia restante.",
-    contingency_source: "Las transferencias salen de una línea de Contingencia.",
-    contingency_target:
-      "Las transferencias van a una línea que no es de contingencia del mismo presupuesto.",
-    contingency_unpriced:
-      "Una contingencia sin precio no tiene nada que transferir. Póngale precio primero.",
-    counterparty_name_required: "Una contraparte nueva necesita el nombre de la empresa.",
-    expense_budget_line_immutable:
-      "Un gasto se asigna a una sola partida del presupuesto, que nunca cambia.",
-    expense_currency: "El gasto debe estar en la moneda de su presupuesto.",
-    expense_locked: "El importe y la fecha de un gasto solo cambian mientras está enviado.",
-    expense_state_conflict:
-      "Otra persona decidió este gasto primero. Actualice para ver su estado.",
-    expense_submitter_immutable: "Quien envía un gasto nunca cambia.",
-    expense_transition_not_allowed: "Un gasto no puede pasar a ese estado desde aquí.",
-    expense_use_approval_rpc: "Apruebe o rechace un gasto con sus propias acciones.",
-    gl_account_unresolved:
-      "No se encuentra una cuenta de gastos para la clase del URID de esta línea.",
-    invoice_direction: "Las facturas por cobrar se emiten; las facturas por pagar se aprueban.",
-    invoice_immutable: "Una factura conserva su proyecto, dirección, contraparte y moneda.",
-    invoice_line_budget:
-      "Una línea de factura se cobra contra una partida del proyecto de la factura.",
-    invoice_line_dimension_missing:
-      "Cada línea de factura necesita un URID o una partida antes de contabilizarse.",
-    invoice_line_immutable: "Una línea permanece en su factura.",
-    invoice_locked: "Las líneas de factura solo cambian mientras la factura es un borrador.",
-    invoice_needs_account:
-      "Las facturas provienen de una cuenta externa; la contratación no tiene ninguna.",
-    invoice_overpaid: "Una factura nunca se paga por encima de su total.",
-    invoice_state_conflict:
-      "Otra persona cambió esta factura primero. Actualice para ver su estado.",
-    invoice_transition_not_allowed: "Una factura no puede pasar a ese estado desde aquí.",
-    invoice_unpriced: "Cada línea necesita un precio antes de emitir o aprobar la factura.",
-    invoice_use_rpc: "Emita o apruebe una factura con sus propias acciones.",
-    journal_line_entry_immutable: "Una línea de diario permanece en su asiento.",
-    journal_period_dates: "La fecha del asiento debe estar dentro de su período contable.",
-    journal_posted_immutable:
-      "Un asiento contabilizado o cancelado nunca cambia; prepare un asiento de reversión.",
-    journal_preparer_immutable: "Quien prepara un asiento nunca cambia.",
-    journal_state_conflict:
-      "Otra persona cambió este asiento primero. Actualice para ver su estado.",
-    journal_transition_not_allowed: "Un asiento no puede pasar a ese estado desde aquí.",
-    journal_unbalanced:
-      "Un asiento se contabiliza solo cuando sus débitos igualan sus créditos en una moneda.",
-    accounting_period_state_conflict:
-      "Otra persona movió este período primero. Actualice para ver su estado.",
-    accounting_period_transition_not_allowed:
-      "Un período llega a Auditado solo pasando por Cerrado, un paso a la vez.",
-    payment_applied: "Quite las aplicaciones del pago antes de cancelarlo.",
-    payment_application_immutable:
-      "Una aplicación se quita y se registra de nuevo, nunca se edita.",
-    payment_application_mismatch:
-      "Un pago liquida facturas de la misma contraparte, dirección y moneda.",
-    payment_application_state: "Aplique pagos vigentes a facturas emitidas o aprobadas.",
-    payment_immutable:
-      "Un pago conserva su contraparte, dirección, moneda e importe; cancélelo y registre otro.",
-    payment_overapplied: "Un pago nunca se aplica por encima de su importe.",
-    payment_state_conflict: "Otra persona cambió este pago primero. Actualice para ver su estado.",
-    payment_transition_not_allowed: "Un pago no puede pasar a ese estado desde aquí.",
-    payroll_line_role_missing:
-      "Cada línea de nómina necesita un rol del canon antes de contabilizar la corrida.",
-    period_closed:
-      "Ese período está Cerrado, Auditado o Archivado y rechaza contabilizaciones. Use un período abierto.",
-    period_dates_locked: "Las fechas de un período solo cambian mientras está Abierto.",
-    period_missing:
-      "Ningún período contable cubre esa fecha. Abra uno en Períodos antes de contabilizar.",
-    period_overlap:
-      "Los períodos contables nunca se superponen. Elija fechas fuera de los períodos existentes.",
-    period_unposted_entries:
-      "Contabilice o cancele cada asiento preparado del período antes de cerrarlo.",
-    production_closed: "Esta producción está cerrada y rechaza documentos financieros nuevos.",
-    report_run_unfinished:
-      "Solo se comparte una ejecución de informe terminada. Espere a que la ejecución finalice.",
-    self_billing_currency: "La contratación no tiene moneda. Defina primero su tarifa y moneda.",
-    self_billing_disabled:
-      "La autofacturación está desactivada en este proyecto. Actívela en la configuración de Entidades legales y fiscal.",
-    self_billing_not_agreed:
-      "La parte no aceptó la autofacturación en esta contratación; la acepta en Gateway.",
-    self_billing_nothing_to_bill:
-      "No hay hojas de horas aprobadas en este período pendientes de facturar.",
-    self_billing_period: "Elija un período cuyo fin sea igual o posterior a su inicio.",
-    settlement_immutable: "Una liquidación conserva su contratación, proyecto, número y moneda.",
-    settlement_line_immutable: "Una línea permanece en su liquidación.",
-    settlement_locked:
-      "Las líneas de la liquidación solo cambian mientras es un borrador. Rehágala primero.",
-    settlement_state_conflict:
-      "Otra persona cambió esta liquidación primero. Actualice para ver su estado.",
-    settlement_transition_not_allowed: "Una liquidación no puede pasar a ese estado desde aquí.",
-    settlement_unpriced: "Cada línea de la liquidación necesita un importe antes de enviarla.",
-    settlement_use_rpc: "La parte acepta o disputa una liquidación enviada en Gateway.",
-    share_already_revoked: "Este informe ya no está compartido.",
-    share_expiry_past:
-      "Un enlace compartido vence en el futuro. Elija una fecha posterior o ninguna.",
-    sod_approval_requester:
-      "Una aprobación la decide una persona habilitada, nunca quien registró el documento.",
-    sod_change_order_requester:
-      "Quien solicita una orden de cambio no puede fijar su precio y aprobarla solo. Pídaselo a otra persona.",
-    sod_expense_submitter: "Quien envía un gasto no puede aprobarlo. Pídaselo a otra persona.",
-    sod_journal_preparer:
-      "Quien prepara un asiento no puede contabilizarlo. Pídaselo a otra persona.",
-    sod_po_creator: "Quien crea una orden de compra no puede aprobarla.",
-    sod_self_grant: "Una persona no puede fijar un límite o permiso que se aplique a sí misma.",
-    sod_vendor_payment:
-      "Quien creó un proveedor o editó sus datos bancarios no puede aprobar pagos a ese proveedor.",
-    spend_approval_duplicate: "Ya aprobó esto. Una segunda aprobación necesita a otra persona.",
-    spend_authority_exceeded:
-      "Esto supera su autoridad de gasto. Envíelo a la siguiente persona aprobadora de la política.",
-    spend_authority_missing:
-      "Ninguna autoridad de gasto le permite aprobar este tipo de documento en esta moneda. Pida a un Administrador que la configure.",
-    spend_unpriced: "Un importe sin precio no se puede aprobar. Póngale precio primero.",
-    tax_rate_overlap:
-      "Las tasas de una jurisdicción fiscal y un tipo de impuesto nunca se superponen.",
-    tax_type_unknown: "Ese no es un tipo de impuesto del canon.",
-    transition_reason_required: "Todo cambio de estado necesita un motivo.",
-    urid_unknown: "Ese URID no es una disciplina ni una categoría del canon.",
-  },
+  refusals: /* @__PURE__ */ JSON.parse(
+    '{"unknown":"La base de datos rechazó este cambio según la regla {rule}.","budget_line_budget_immutable":"Una partida permanece en su presupuesto.","budget_line_xyz_basis":"Una etiqueta XYZ con base Categoría debe ser igual a la de la categoría; declárela para que sea distinta.","change_order_budget_project":"Una orden de cambio modifica un presupuesto de su propio proyecto.","change_order_immutable":"Una orden de cambio conserva su solicitante, número, proyecto y presupuesto.","change_order_line_budget":"Una línea de orden de cambio ajusta una partida del presupuesto de la orden.","change_order_line_immutable":"Una línea permanece en su orden de cambio.","change_order_locked":"Las líneas solo cambian mientras la orden está Propuesta. Rehágala primero.","change_order_not_priced":"Solo se aprueba una orden de cambio con precio. Ponga precio a cada línea y márquela con precio.","change_order_priced_by":"Quien fija el precio se registra al marcar la orden con precio.","change_order_state_conflict":"Otra persona cambió esta orden primero. Actualice para ver su estado.","change_order_transition_not_allowed":"Una orden de cambio no puede pasar a ese estado desde aquí.","change_order_unpriced":"Cada línea necesita un precio, o Sin costo, antes de marcar la orden con precio.","change_order_use_rpc":"Fije el precio y apruebe una orden de cambio con sus propias acciones.","contingency_exhausted":"La transferencia supera la contingencia restante.","contingency_source":"Las transferencias salen de una línea de Contingencia.","contingency_target":"Las transferencias van a una línea que no es de contingencia del mismo presupuesto.","contingency_unpriced":"Una contingencia sin precio no tiene nada que transferir. Póngale precio primero.","counterparty_name_required":"Una contraparte nueva necesita el nombre de la empresa.","expense_budget_line_immutable":"Un gasto se asigna a una sola partida del presupuesto, que nunca cambia.","expense_currency":"El gasto debe estar en la moneda de su presupuesto.","expense_locked":"El importe y la fecha de un gasto solo cambian mientras está enviado.","expense_state_conflict":"Otra persona decidió este gasto primero. Actualice para ver su estado.","expense_submitter_immutable":"Quien envía un gasto nunca cambia.","expense_transition_not_allowed":"Un gasto no puede pasar a ese estado desde aquí.","expense_use_approval_rpc":"Apruebe o rechace un gasto con sus propias acciones.","gl_account_unresolved":"No se encuentra una cuenta de gastos para la clase del URID de esta línea.","invoice_direction":"Las facturas por cobrar se emiten; las facturas por pagar se aprueban.","invoice_immutable":"Una factura conserva su proyecto, dirección, contraparte y moneda.","invoice_line_budget":"Una línea de factura se cobra contra una partida del proyecto de la factura.","invoice_line_dimension_missing":"Cada línea de factura necesita un URID o una partida antes de contabilizarse.","invoice_line_immutable":"Una línea permanece en su factura.","invoice_locked":"Las líneas de factura solo cambian mientras la factura es un borrador.","invoice_needs_account":"Las facturas provienen de una cuenta externa; la contratación no tiene ninguna.","invoice_overpaid":"Una factura nunca se paga por encima de su total.","invoice_state_conflict":"Otra persona cambió esta factura primero. Actualice para ver su estado.","invoice_transition_not_allowed":"Una factura no puede pasar a ese estado desde aquí.","invoice_unpriced":"Cada línea necesita un precio antes de emitir o aprobar la factura.","invoice_use_rpc":"Emita o apruebe una factura con sus propias acciones.","journal_line_entry_immutable":"Una línea de diario permanece en su asiento.","journal_period_dates":"La fecha del asiento debe estar dentro de su período contable.","journal_posted_immutable":"Un asiento contabilizado o cancelado nunca cambia; prepare un asiento de reversión.","journal_preparer_immutable":"Quien prepara un asiento nunca cambia.","journal_state_conflict":"Otra persona cambió este asiento primero. Actualice para ver su estado.","journal_transition_not_allowed":"Un asiento no puede pasar a ese estado desde aquí.","journal_unbalanced":"Un asiento se contabiliza solo cuando sus débitos igualan sus créditos en una moneda.","accounting_period_state_conflict":"Otra persona movió este período primero. Actualice para ver su estado.","accounting_period_transition_not_allowed":"Un período llega a Auditado solo pasando por Cerrado, un paso a la vez.","payment_applied":"Quite las aplicaciones del pago antes de cancelarlo.","payment_application_immutable":"Una aplicación se quita y se registra de nuevo, nunca se edita.","payment_application_mismatch":"Un pago liquida facturas de la misma contraparte, dirección y moneda.","payment_application_state":"Aplique pagos vigentes a facturas emitidas o aprobadas.","payment_immutable":"Un pago conserva su contraparte, dirección, moneda e importe; cancélelo y registre otro.","payment_overapplied":"Un pago nunca se aplica por encima de su importe.","payment_state_conflict":"Otra persona cambió este pago primero. Actualice para ver su estado.","payment_transition_not_allowed":"Un pago no puede pasar a ese estado desde aquí.","payroll_line_role_missing":"Cada línea de nómina necesita un rol del canon antes de contabilizar la corrida.","period_closed":"Ese período está Cerrado, Auditado o Archivado y rechaza contabilizaciones. Use un período abierto.","period_dates_locked":"Las fechas de un período solo cambian mientras está Abierto.","period_missing":"Ningún período contable cubre esa fecha. Abra uno en Períodos antes de contabilizar.","period_overlap":"Los períodos contables nunca se superponen. Elija fechas fuera de los períodos existentes.","period_unposted_entries":"Contabilice o cancele cada asiento preparado del período antes de cerrarlo.","production_closed":"Esta producción está cerrada y rechaza documentos financieros nuevos.","report_run_unfinished":"Solo se comparte una ejecución de informe terminada. Espere a que la ejecución finalice.","self_billing_currency":"La contratación no tiene moneda. Defina primero su tarifa y moneda.","self_billing_disabled":"La autofacturación está desactivada en este proyecto. Actívela en la configuración de Entidades legales y fiscal.","self_billing_not_agreed":"La parte no aceptó la autofacturación en esta contratación; la acepta en Gateway.","self_billing_nothing_to_bill":"No hay hojas de horas aprobadas ni hitos aceptados en este período pendientes de facturar.","self_billing_period":"Elija un período cuyo fin sea igual o posterior a su inicio.","settlement_immutable":"Una liquidación conserva su contratación, proyecto, número y moneda.","settlement_line_immutable":"Una línea permanece en su liquidación.","settlement_locked":"Las líneas de la liquidación solo cambian mientras es un borrador. Rehágala primero.","settlement_state_conflict":"Otra persona cambió esta liquidación primero. Actualice para ver su estado.","settlement_transition_not_allowed":"Una liquidación no puede pasar a ese estado desde aquí.","settlement_unpriced":"Cada línea de la liquidación necesita un importe antes de enviarla.","settlement_use_rpc":"La parte acepta o disputa una liquidación enviada en Gateway.","share_already_revoked":"Este informe ya no está compartido.","share_expiry_past":"Un enlace compartido vence en el futuro. Elija una fecha posterior o ninguna.","sod_approval_requester":"Una aprobación la decide una persona habilitada, nunca quien registró el documento.","sod_change_order_requester":"Quien solicita una orden de cambio no puede fijar su precio y aprobarla solo. Pídaselo a otra persona.","sod_expense_submitter":"Quien envía un gasto no puede aprobarlo. Pídaselo a otra persona.","sod_journal_preparer":"Quien prepara un asiento no puede contabilizarlo. Pídaselo a otra persona.","sod_po_creator":"Quien crea una orden de compra no puede aprobarla.","sod_self_grant":"Una persona no puede fijar un límite o permiso que se aplique a sí misma.","sod_vendor_payment":"Quien creó un proveedor o editó sus datos bancarios no puede aprobar pagos a ese proveedor.","spend_approval_duplicate":"Ya aprobó esto. Una segunda aprobación necesita a otra persona.","spend_authority_exceeded":"Esto supera su autoridad de gasto. Envíelo a la siguiente persona aprobadora de la política.","spend_authority_missing":"Ninguna autoridad de gasto le permite aprobar este tipo de documento en esta moneda. Pida a un Administrador que la configure.","spend_unpriced":"Un importe sin precio no se puede aprobar. Póngale precio primero.","tax_rate_overlap":"Las tasas de una jurisdicción fiscal y un tipo de impuesto nunca se superponen.","tax_type_unknown":"Ese no es un tipo de impuesto del canon.","transition_reason_required":"Todo cambio de estado necesita un motivo.","urid_unknown":"Ese URID no es una disciplina ni una categoría del canon.","invoice_payment_state":"Registra un pago contra una factura por pagar aprobada o una factura por cobrar emitida.","invoice_payment_amount":"No queda nada por pagar en esta factura.","invoice_payment_date":"Indica la fecha en que se movió el dinero.","payment_payee_not_engaged":"Un pago a una persona se hace a alguien que esta organización contrata a título individual.","invoice_engagement_payee":"El beneficiario de una factura de una contratación es la parte contratada: su cuenta, o la persona cuando no factura ninguna cuenta.","invoice_engagement_project":"Una factura cobra una contratación de su propio proyecto.","export_restricted":"Este archivo incluye identificadores fiscales restringidos. Pide ayuda a un Propietario o Administrador con la capacidad de exportación restringida.","step_up_required":"Exportar datos restringidos requiere autenticación reforzada. Vuelve a iniciar sesión con tu segundo factor y descarga de nuevo.","form_1099_year":"Elige un año fiscal entre 2020 y este año.","deliverable_fee_fixed":"Un hito aceptado conserva su tarifa.","deliverable_fee_currency":"Define la moneda de la contratación antes de poner precio a sus hitos."}',
+  ),
   collab: {
     attachments: "Adjuntos",
     comments: "Comentarios",
@@ -19542,6 +19541,7 @@ var finance_default = {
       number: "Número de factura",
       periodEnd: "Fin del período",
       periodStart: "Inicio del período",
+      paymentAmount: "Importe pagado ({currency})",
     },
     kind: {
       Payable: "Factura por pagar",
@@ -19556,11 +19556,19 @@ var finance_default = {
     postsWhenIssued: "Una factura por cobrar se contabiliza cuando se emite.",
     selfBill: "Generar desde hojas de horas",
     selfBillSentence:
-      "Crea un borrador de factura por pagar para la parte a partir de las hojas de horas aprobadas del período. Requiere la autofacturación activada y la aceptación de la parte en Gateway.",
+      "Crea una factura por pagar en borrador para la parte, una cuenta de empresa o una persona contratada a título individual, a partir de las hojas de horas aprobadas y los hitos aceptados en el período. Requiere activar la autofacturación y el acuerdo de la parte en Gateway.",
     selfBillSubmit: "Generar factura",
     tax: "Impuesto",
     unpricedTotal:
       "{count, plural, one {Sin precio, # línea no tiene precio} other {Sin precio, # líneas no tienen precio}}",
+    recordPayment: "Registrar pago",
+    recordPaymentSentence:
+      "Registra un pago hecho con tu propio banco o proveedor de pagos. Se aplica a esta factura y espera a otro aprobador antes de que el beneficiario lo vea como pagado.",
+    recordPaymentSubmit: "Registrar pago",
+    paymentAmountHint: "Déjalo en blanco para pagar todo el saldo.",
+    paymentReferenceHint: "La referencia de la remesa de tu banco o proveedor de pagos.",
+    payee: "Beneficiario",
+    individual: "Individual",
   },
   payments: {
     applications: "Aplicado a facturas",
@@ -19594,6 +19602,7 @@ var finance_default = {
     tabs: "Pagos y liquidaciones",
     unapplied: "Sin aplicar",
     unnumbered: "Factura sin número",
+    individualPayee: "{name} (individual)",
   },
   journal: {
     addLine: "Agregar línea",
@@ -19764,6 +19773,40 @@ var finance_default = {
     noLinesRead: "Esta liquidación aún no tiene líneas.",
     unpricedNet:
       "{count, plural, one {Sin precio, # línea no tiene importe} other {Sin precio, # líneas no tienen importe}}",
+  },
+  yearEnd: {
+    empty:
+      "Ningún beneficiario alcanzó {threshold} en pagos aprobados en USD como contratista independiente en {year}. Los beneficiarios aparecen aquí cuando se aprueban sus pagos.",
+    emptyAction: "Abrir pagos",
+    loadError:
+      "No se pudieron cargar los beneficiarios del cierre del año. Vuelve a cargar la página; si sigue fallando, revisa la página de pagos.",
+    yearFilter: "Año fiscal",
+    taxYear: "Año fiscal {year}",
+    summary:
+      "{count, plural, =0 {Ningún beneficiario} one {# beneficiario} other {# beneficiarios}} con pagos de {threshold} o más. {missingForm, plural, =0 {Todos tienen un W-9 registrado.} one {# no tiene W-9 registrado: pídelo en Gateway antes de presentar.} other {# no tienen W-9 registrado: pídelos en Gateway antes de presentar.}} {missingAddress, plural, =0 {} one {# W-9 aún no tiene la dirección completa.} other {# W-9 aún no tienen la dirección completa.}}",
+    export: "Descargar archivo 1099-NEC",
+    exportSentence:
+      "Un CSV con el formato de registro de beneficiario FIRE del IRS, con los identificadores fiscales completos. Es una exportación restringida: necesitas autenticación reforzada y la descarga queda en el registro de auditoría. Se omiten los beneficiarios sin W-9 o sin dirección.",
+    exported: "Se descargó {file}.",
+    exportNeedsCapability:
+      "El archivo 1099-NEC incluye identificadores fiscales completos. Pide a un Propietario o Administrador con la capacidad de exportación restringida que lo descargue.",
+    w9OnFile: "W-9 registrado",
+    w9Missing: "Sin W-9",
+    addressMissing: "Falta la dirección",
+    tinLast4: "Termina en {last4}",
+    kind: {
+      person: "Individual",
+      account: "Cuenta de empresa",
+    },
+    columns: {
+      payee: "Beneficiario",
+      kind: "Tipo de beneficiario",
+      form: "Formulario fiscal",
+      tin: "TIN",
+      address: "Dirección",
+      payments: "Pagos",
+      amount: "Pagado en el año",
+    },
   },
 };
 var gateway_default = {
@@ -22358,6 +22401,7 @@ var nav_default = {
         universalPostingLineExport: "Exportación de la línea de registro universal",
         chartOfAccounts: "Catálogo de cuentas",
         costCenters: "Centros de costos",
+        yearEnd: "Cierre del año",
       },
       procurement: {
         rfqs: "Solicitudes de cotización",
@@ -22865,6 +22909,7 @@ var opportunities_default = {
     validDays: "Días de validez",
     visibility: "Visibilidad",
     when: "Cuándo",
+    isRemote: "El trabajo se puede hacer a distancia",
   },
   fieldErrors: {
     required: "Completa este campo para continuar.",
@@ -23175,6 +23220,9 @@ var opportunities_default = {
     addToPool: "Añadir al grupo",
     noPools: "Aún no hay un grupo adecuado. Crea uno en la página Grupos.",
     poolNeedsWrite: "Una persona con acceso a grupos registra la nueva contratación.",
+    milestoneFee: "Tarifa: {amount}. La autofacturación la cobra cuando se acepta el hito.",
+    milestoneFeeLabel: "Tarifa ({currency})",
+    setFee: "Fijar tarifa",
   },
   ratings: {
     title: "Valoraciones",
@@ -23429,6 +23477,66 @@ var opportunities_default = {
     missingPayRange: "Falta el rango de pago",
     safety: "Seguridad",
   },
+};
+var payouts_default = {
+  invoice: {
+    detail: "{count, plural, one {Mostrar # línea} other {Mostrar # líneas}}",
+    linesCaption: "Líneas de la factura {number}",
+    description: "Concepto facturado",
+    quantity: "Cantidad",
+    amount: "Importe",
+  },
+  payTransparency: {
+    title: "Reglas de transparencia salarial",
+    description:
+      "Donde aplican estas reglas, no se puede publicar una oferta de Contratista, Equipo o Personal sin un rango de pago. Una regla cubre su jurisdicción y cada lugar dentro de ella; una oferta remota sigue las reglas de su país que cubren puestos remotos. La plataforma mantiene esta lista.",
+    caption: "Reglas de transparencia salarial por jurisdicción",
+    loadError:
+      "No se pudieron cargar las reglas de transparencia salarial. Vuelve a cargar la página; la publicación las sigue verificando.",
+    empty:
+      "No hay reglas de transparencia salarial cargadas, así que ninguna oferta se rechaza por falta de rango de pago.",
+    counselPending:
+      "{count, plural, one {# regla aún no está confirmada} other {# reglas aún no están confirmadas}} con asesoría legal. Tómalas como la lectura de la ley que hace la plataforma hasta que lo estén.",
+    needsReview: "Requiere revisión legal",
+    confirmed: "Confirmada",
+    remote: {
+      covered: "Cubre puestos remotos",
+      onSiteOnly: "Solo presencial",
+    },
+    columns: {
+      jurisdiction: "Jurisdicción",
+      effective: "Vigente desde",
+      remote: "Puestos remotos",
+      citation: "Ley",
+      review: "Revisión",
+    },
+  },
+  w9: {
+    title: "Nombre y dirección postal del W-9",
+    body: "Cada organización que te paga $600 o más en un año presenta un 1099-NEC con el nombre y la dirección de tu W-9. Mantenlos al día aquí.",
+    formFor: "W-9 para {org}, termina en {last4}",
+    missing:
+      "Aún no hay dirección postal. Agrégala para que la organización pueda presentar tu 1099-NEC.",
+    add: "Agregar la dirección",
+    edit: "Cambiar la dirección",
+    formTitle: "Nombre y dirección postal del W-9",
+    legalName: "Nombre como aparece en tu W-9",
+    legalNameHelp: "Déjalo en blanco para usar el nombre de tu perfil.",
+    street: "Dirección",
+    locality: "Ciudad",
+    region: "Estado",
+    postal: "Código postal",
+    submit: "Guardar dirección",
+    done: "Dirección guardada.",
+    errors: {
+      legalName: "Limita el nombre a 200 caracteres.",
+      streetAddress: "Escribe la dirección como aparece en tu W-9.",
+      locality: "Escribe la ciudad.",
+      regionCode: "Escribe el código de estado de dos letras, por ejemplo CA.",
+      postalCode: "Escribe un código postal de cinco dígitos, o ZIP+4 como 33101-2040.",
+    },
+  },
+  milestone: { fee: "Tarifa {amount}" },
 };
 var peek_default = {
   loading: "Abriendo {key}.",
@@ -26021,6 +26129,19 @@ var projects_default = {
     complete: "Completo",
     deferred: "Aplazado",
     canceled: "Cancelado",
+  },
+};
+var reporting_default = {
+  file: {
+    unpriced: "Filas sin precio",
+    subtitle:
+      "Ejecutado el {date}. Filas: {rows}. Filas con un importe sin precio, fuera de su total: {unpriced}.",
+    truncated:
+      "Este archivo llega hasta el límite de filas. Ajusta los filtros del informe para ver todas las filas.",
+  },
+  email: {
+    subject: "{report} de {org}",
+    body: "Adjuntamos tu informe programado {report} de {org}. Tiene {rows} filas; {unpriced} tienen un importe sin precio, fuera de sus totales. Se ejecutó con tu propio acceso, así que solo muestra lo que puedes ver.",
   },
 };
 var reports_default = {
@@ -30989,6 +31110,7 @@ var enUS = {
   myWork: myWork_default$1,
   nav: nav_default$1,
   opportunities: opportunities_default$1,
+  payouts: payouts_default$1,
   peek: peek_default$1,
   people: people_default$1,
   permits: permits_default$1,
@@ -30997,6 +31119,7 @@ var enUS = {
   procurement: procurement_default$1,
   profiles: profiles_default$1,
   projects: projects_default$1,
+  reporting: reporting_default$1,
   reports: reports_default$1,
   savedViews: savedViews_default$1,
   schedule: schedule_default$1,
@@ -31039,6 +31162,7 @@ var esUS = {
   myWork: myWork_default,
   nav: nav_default,
   opportunities: opportunities_default,
+  payouts: payouts_default,
   peek: peek_default,
   people: people_default,
   permits: permits_default,
@@ -31047,6 +31171,7 @@ var esUS = {
   procurement: procurement_default,
   profiles: profiles_default,
   projects: projects_default,
+  reporting: reporting_default,
   reports: reports_default,
   savedViews: savedViews_default,
   schedule: schedule_default,
@@ -31851,7 +31976,7 @@ function layout(name) {
   return named(layoutTokens, name, "layout");
 }
 /** A type style such as text-14, as inline style properties. */
-function text$3(name) {
+function text$4(name) {
   const style = typeStyles.find((s) => s.name === name);
   if (style === void 0) throw new Error(`Unknown type style ${name}`);
   return {
@@ -31880,12 +32005,12 @@ var styles = {
     padding: space("space-32"),
   },
   heading: {
-    ...text$3("heading-20"),
+    ...text$4("heading-20"),
     color: color("text-primary"),
     margin: `0 0 ${space("space-16")}`,
   },
   button: {
-    ...text$3("label-13"),
+    ...text$4("label-13"),
     backgroundColor: color("accent-default"),
     borderRadius: radius("radius-control"),
     color: color("accent-text-on"),
@@ -31897,7 +32022,7 @@ var styles = {
     margin: `${space("space-24")} 0`,
   },
   footer: {
-    ...text$3("text-12"),
+    ...text$4("text-12"),
     color: color("text-secondary"),
     margin: `0 0 ${space("space-8")}`,
   },
@@ -31907,7 +32032,7 @@ var styles = {
 function Paragraph({ children }) {
   return /* @__PURE__ */ jsx(Text, {
     style: {
-      ...text$3("text-14"),
+      ...text$4("text-14"),
       color: color("text-primary"),
       margin: `0 0 ${space("space-16")}`,
     },
@@ -32073,7 +32198,7 @@ var templates = {
                     {
                       children: /* @__PURE__ */ jsx(Text, {
                         style: {
-                          ...text$3("text-14"),
+                          ...text$4("text-14"),
                           color: color("text-primary"),
                           margin: `0 0 ${space("space-8")}`,
                         },
@@ -32511,7 +32636,7 @@ function supabaseDb(client) {
 function rows$2(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$2(row, key) {
+function text$3(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -32535,7 +32660,7 @@ function billingStore(db) {
           p_org_id: event.orgId,
         }),
       )[0];
-      const rowId = text$2(row, "stripe_event_row_id");
+      const rowId = text$3(row, "stripe_event_row_id");
       const stored = await db.selectOne("stripe_events", "processed_at", { id: rowId });
       return {
         rowId,
@@ -32577,11 +32702,11 @@ function webhookStore(db) {
   return {
     async claim(limit) {
       return rows$2(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
-        deliveryId: text$2(row, "delivery_id"),
-        url: text$2(row, "url"),
-        eventType: text$2(row, "event_type"),
-        body: text$2(row, "body"),
-        signature: text$2(row, "signature"),
+        deliveryId: text$3(row, "delivery_id"),
+        url: text$3(row, "url"),
+        eventType: text$3(row, "event_type"),
+        body: text$3(row, "body"),
+        signature: text$3(row, "signature"),
       }));
     },
     async record(deliveryId, responseStatus, error) {
@@ -32598,7 +32723,7 @@ function webhookStore(db) {
 /** NotificationStore over the 0520 RPCs and identity reads. */
 function notificationStore(db, options) {
   const orgSlug = async (orgId) =>
-    text$2((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
+    text$3((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
   return {
     async claimEmail(limit) {
       return rows$2(
@@ -32607,12 +32732,12 @@ function notificationStore(db, options) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$2(row, "delivery_id"),
-        orgId: text$2(row, "org_id"),
-        recipientPersonId: text$2(row, "recipient_person_id"),
-        address: text$2(row, "address"),
-        kind: text$2(row, "kind"),
-        emailTemplateCode: text$2(row, "email_template_code"),
+        deliveryId: text$3(row, "delivery_id"),
+        orgId: text$3(row, "org_id"),
+        recipientPersonId: text$3(row, "recipient_person_id"),
+        address: text$3(row, "address"),
+        kind: text$3(row, "kind"),
+        emailTemplateCode: text$3(row, "email_template_code"),
         messageArgs: row["message_args"] ?? {},
         subjectTable: optionalText$1(row, "subject_table"),
         subjectId: optionalText$1(row, "subject_id"),
@@ -32620,8 +32745,8 @@ function notificationStore(db, options) {
     },
     async senderFor(orgId, personId) {
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
-      const slug = text$2(org, "slug");
-      const name = text$2(org, "name");
+      const slug = text$3(org, "slug");
+      const name = text$3(org, "name");
       return {
         orgName: name,
         postalAddress: options.postalAddress,
@@ -33311,7 +33436,7 @@ async function runUploadScans(options) {
 function rows$1(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$1(row, key) {
+function text$2(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -33336,8 +33461,8 @@ function scanStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        jobId: text$1(row, "id"),
-        attachmentVersionId: text$1(row, "subject_id"),
+        jobId: text$2(row, "id"),
+        attachmentVersionId: text$2(row, "subject_id"),
         attempts: count(row, "attempts"),
       }));
     },
@@ -33349,11 +33474,11 @@ function scanStore(db) {
       );
       if (row === null) return null;
       return {
-        objectName: text$1(row, "object_name"),
-        filename: text$1(row, "filename"),
-        contentType: text$1(row, "content_type"),
+        objectName: text$2(row, "object_name"),
+        filename: text$2(row, "filename"),
+        contentType: text$2(row, "content_type"),
         checksumSha256: optionalText(row, "checksum_sha256"),
-        scanStatus: text$1(row, "scan_status"),
+        scanStatus: text$2(row, "scan_status"),
       };
     },
     async recordAttachmentScan(attachmentVersionId, clean, detail) {
@@ -33381,9 +33506,9 @@ function scanStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        objectScanId: text$1(row, "object_scan_id"),
-        bucketId: text$1(row, "bucket_id"),
-        objectName: text$1(row, "object_name"),
+        objectScanId: text$2(row, "object_scan_id"),
+        bucketId: text$2(row, "bucket_id"),
+        objectName: text$2(row, "object_name"),
         contentType: optionalText(row, "content_type"),
         attempts: count(row, "attempts"),
       }));
@@ -34859,29 +34984,199 @@ function previewCsv(preview, headers, groupHeader) {
   return `${lines.join("\n")}\n`;
 }
 //#endregion
+//#region ../data/src/report-files.ts
+var fractionDigits = (currency) =>
+  currency
+    ? (new Intl.NumberFormat("en", {
+        style: "currency",
+        currency,
+      }).resolvedOptions().maximumFractionDigits ?? 2)
+    : 2;
+/** A money cell in major units, or null while unpriced. */
+function majorUnits(cell) {
+  if (cell.totalMinor === null) return null;
+  return cell.totalMinor / 10 ** fractionDigits(cell.currency);
+}
+/** A cell as display text: money with its currency code, blank when unpriced. */
+function cellText(cell) {
+  if (cell.kind === "value") return cell.value === null ? "" : String(cell.value);
+  const major = majorUnits(cell);
+  if (major === null) return "";
+  return `${major.toFixed(fractionDigits(cell.currency))} ${cell.currency}`.trim();
+}
+var hasMoney = (preview) => preview.columns.some((c) => c.type === "money");
+var rowUnpriced = (cells) =>
+  Math.max(0, ...cells.map((c) => (c.kind === "money" ? c.unpricedCount : 0)));
+/** The table every format writes: header row, then one row per group or source row. */
+function reportMatrix(input) {
+  const money = hasMoney(input.preview);
+  return {
+    header: [
+      ...(input.groupHeader ? [input.groupHeader] : []),
+      ...input.headers,
+      ...(money ? [input.unpricedHeader] : []),
+    ],
+    rows: input.preview.rows.map((r) => r.cells),
+    groups: input.preview.rows.map((r) => r.group),
+    unpriced: money ? input.preview.rows.map((r) => rowUnpriced(r.cells)) : [],
+  };
+}
+/** The .xlsx workbook: one sheet, money as numbers in its currency's decimals. */
+async function renderReportXlsx(input) {
+  const { default: ExcelJS } = await import("exceljs");
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "XOS";
+  const sheet = workbook.addWorksheet(input.title.slice(0, 31) || "Report");
+  const m = reportMatrix(input);
+  sheet.addRow([input.title]).font = {
+    bold: true,
+    size: 14,
+  };
+  sheet.addRow([input.subtitle]);
+  sheet.addRow([]);
+  const header = sheet.addRow([...m.header]);
+  header.font = { bold: true };
+  const money = hasMoney(input.preview);
+  m.rows.forEach((cells, i) => {
+    const values = [];
+    if (input.groupHeader) values.push(m.groups[i] ?? "");
+    for (const c of cells) values.push(c.kind === "value" ? c.value : majorUnits(c));
+    if (money) values.push(m.unpriced[i] ?? 0);
+    const row = sheet.addRow(values);
+    cells.forEach((c, j) => {
+      if (c.kind !== "money") return;
+      const digits = fractionDigits(c.currency);
+      const cell = row.getCell(j + 1 + (input.groupHeader ? 1 : 0));
+      cell.numFmt = `#,##0${digits > 0 ? `.${"0".repeat(digits)}` : ""} "${c.currency}"`;
+    });
+  });
+  if (input.truncatedNote) {
+    sheet.addRow([]);
+    sheet.addRow([input.truncatedNote]);
+  }
+  sheet.columns.forEach((column) => {
+    column.width = 18;
+  });
+  const buffer = await workbook.xlsx.writeBuffer();
+  return new Uint8Array(buffer);
+}
+/** The PDF: title, subtitle, then the table with repeated headers across pages. */
+async function renderReportPdf(input) {
+  const { default: PDFDocument } = await import("pdfkit");
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({
+      size: "LETTER",
+      layout: "landscape",
+      margin: 40,
+      info: {
+        Title: input.title,
+        Creator: "XOS",
+      },
+    });
+    const chunks = [];
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("error", reject);
+    doc.on("end", () => {
+      const total = chunks.reduce((n, c) => n + c.length, 0);
+      const out = new Uint8Array(total);
+      let offset = 0;
+      for (const c of chunks) {
+        out.set(c, offset);
+        offset += c.length;
+      }
+      resolve(out);
+    });
+    const m = reportMatrix(input);
+    const left = doc.page.margins.left;
+    const width = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const columnWidth = width / Math.max(m.header.length, 1);
+    const bottom = () => doc.page.height - doc.page.margins.bottom;
+    const money = hasMoney(input.preview);
+    doc.font("Helvetica-Bold").fontSize(16).text(input.title, left, doc.y, { width });
+    doc.moveDown(0.25);
+    doc.font("Helvetica").fontSize(9).fillColor("dimgray").text(input.subtitle, { width });
+    doc.fillColor("black").moveDown(1);
+    const drawRow = (cells, bold, numeric) => {
+      doc.font(bold ? "Helvetica-Bold" : "Helvetica").fontSize(9);
+      const height =
+        Math.max(
+          ...cells.map((c) => doc.heightOfString(c || " ", { width: columnWidth - 6 })),
+          10,
+        ) + 6;
+      if (doc.y + height > bottom()) doc.addPage();
+      const y = doc.y;
+      cells.forEach((c, i) => {
+        doc.text(c, left + i * columnWidth + 3, y + 3, {
+          width: columnWidth - 6,
+          align: numeric[i] ? "right" : "left",
+        });
+      });
+      doc
+        .moveTo(left, y + height)
+        .lineTo(left + width, y + height)
+        .lineWidth(0.5)
+        .strokeColor("silver")
+        .stroke();
+      doc.x = left;
+      doc.y = y + height;
+    };
+    const numeric = [
+      ...(input.groupHeader ? [false] : []),
+      ...input.preview.columns.map((c) => c.type === "money" || c.type === "number"),
+      ...(money ? [true] : []),
+    ];
+    drawRow(m.header, true, numeric);
+    m.rows.forEach((cells, i) => {
+      if (doc.y + 20 > bottom()) {
+        doc.addPage();
+        drawRow(m.header, true, numeric);
+      }
+      drawRow(
+        [
+          ...(input.groupHeader ? [m.groups[i] ?? ""] : []),
+          ...cells.map(cellText),
+          ...(money ? [String(m.unpriced[i] ?? 0)] : []),
+        ],
+        false,
+        numeric,
+      );
+    });
+    if (input.truncatedNote)
+      doc
+        .moveDown(1)
+        .font("Helvetica-Oblique")
+        .fontSize(9)
+        .text(input.truncatedNote, left, doc.y, { width });
+    doc.end();
+  });
+}
+//#endregion
 //#region ../data/src/report-runs.ts
 /**
  * The report.run worker (A35, RRR-79; migration 1050). A18 queues a report.run job for every run
  * (app.run_report); this worker claims them from the 0510 job queue and, for each, reads the source
  * rows as the person the run is for (app.report_run_rows switches to their identity, so their row
- * level security applies), aggregates them exactly as the builder preview does, stores the CSV in the
- * private report-results bucket and records the outcome. A failed attempt goes back to Queued while
+ * level security applies), aggregates them exactly as the builder preview does, stores the file in
+ * the run's format (CSV, .xlsx or PDF, migration 1126) in the private report-results bucket and
+ * records the outcome. A failed attempt goes back to Queued while
  * the job has attempts left, then the run is marked Failed with its error.
  */
 var REPORT_RUN_JOB = "report.run";
 var REPORT_RESULTS_BUCKET = "report-results";
 /** Source rows a run reads at most; the run file says so when it is cut. */
 var RUN_ROW_LIMIT = 5e4;
-/** The object name of a run's CSV, the same as private.report_result_path. */
-function resultPath(orgId, runId) {
-  return `${orgId}/${runId}.csv`;
+/** Media type of each run format. */
+var RESULT_CONTENT_TYPES = {
+  CSV: "text/csv",
+  XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  PDF: "application/pdf",
+};
+/** The object name of a run's file, the same as private.report_result_path. */
+function resultPath(orgId, runId, format = "CSV") {
+  return `${orgId}/${runId}.${format.toLowerCase()}`;
 }
-/** Builds the CSV of one running run, as its person; throws an Error whose message is for the person. */
+/** Builds the file of one running run, as its person; throws an Error whose message is for the person. */
 async function renderRun(store, labels, runId, run) {
-  if (run.exportFormat !== "CSV")
-    throw new Error(
-      `${run.exportFormat} report files are not available yet. Run the report as CSV.`,
-    );
   const definition = await store.definition(run.reportDefinitionId, run.membershipId);
   if (!definition) throw new Error("The report no longer exists.");
   const plan = planReport(definition);
@@ -34892,18 +35187,38 @@ async function renderRun(store, labels, runId, run) {
   const truncated = rows.length > RUN_ROW_LIMIT;
   const summary = summarizeReport(plan, truncated ? rows.slice(0, RUN_ROW_LIMIT) : rows, truncated);
   const code = definition.sourceCode;
+  const headers = summary.columns.map((c) =>
+    c.aggregate === "None"
+      ? labels.field(code, c.field)
+      : labels.column(code, c.field, c.aggregate),
+  );
+  const groupHeader = plan.group ? labels.field(code, plan.group) : null;
+  const rowCount = summary.rows.length;
+  const unpricedCount = unpricedRows(summary);
+  if (run.exportFormat === "CSV")
+    return {
+      body: previewCsv(summary, headers, groupHeader),
+      rowCount,
+      unpricedCount,
+    };
+  const file = {
+    title: definition.name,
+    subtitle:
+      labels.subtitle?.({
+        rows: rowCount,
+        unpriced: unpricedCount,
+        at: /* @__PURE__ */ new Date(),
+      }) ?? `${rowCount} rows, ${unpricedCount} unpriced`,
+    preview: summary,
+    headers,
+    groupHeader,
+    unpricedHeader: labels.unpriced ?? "Unpriced",
+    truncatedNote: truncated ? (labels.truncated ?? null) : null,
+  };
   return {
-    csv: previewCsv(
-      summary,
-      summary.columns.map((c) =>
-        c.aggregate === "None"
-          ? labels.field(code, c.field)
-          : labels.column(code, c.field, c.aggregate),
-      ),
-      plan.group ? labels.field(code, plan.group) : null,
-    ),
-    rowCount: summary.rows.length,
-    unpricedCount: unpricedRows(summary),
+    body: run.exportFormat === "XLSX" ? await renderReportXlsx(file) : await renderReportPdf(file),
+    rowCount,
+    unpricedCount,
   };
 }
 /** One pass of the worker: claims ready report.run jobs and runs one attempt of each. */
@@ -34925,8 +35240,13 @@ async function runReportJobs(options) {
     await store.start(job.runId);
     try {
       const out = await renderRun(store, labels, job.runId, run);
-      const path = resultPath(run.orgId, job.runId);
-      await storage.upload(REPORT_RESULTS_BUCKET, path, out.csv, "text/csv");
+      const path = resultPath(run.orgId, job.runId, run.exportFormat);
+      await storage.upload(
+        REPORT_RESULTS_BUCKET,
+        path,
+        out.body,
+        RESULT_CONTENT_TYPES[run.exportFormat],
+      );
       await store.finish(job.runId, {
         status: "Succeeded",
         path,
@@ -34957,7 +35277,7 @@ async function runReportJobs(options) {
   }
   return results;
 }
-function text(row, key) {
+function text$1(row, key) {
   const value = row[key];
   if (typeof value !== "string")
     throw new Error(`Expected text in ${key} of the database response.`);
@@ -34980,8 +35300,8 @@ function supabaseReportRunStore(client) {
           p_limit: limit,
         })) ?? []
       ).map((r) => ({
-        jobId: text(r, "id"),
-        runId: text(r, "subject_id"),
+        jobId: text$1(r, "id"),
+        runId: text$1(r, "subject_id"),
       }));
     },
     async run(runId) {
@@ -34995,11 +35315,11 @@ function supabaseReportRunStore(client) {
       if (!data) return null;
       const row = data;
       return {
-        orgId: text(row, "org_id"),
-        reportDefinitionId: text(row, "report_definition_id"),
-        membershipId: text(row, "run_for_membership_id"),
-        exportFormat: text(row, "export_format"),
-        runStatus: text(row, "run_status"),
+        orgId: text$1(row, "org_id"),
+        reportDefinitionId: text$1(row, "report_definition_id"),
+        membershipId: text$1(row, "run_for_membership_id"),
+        exportFormat: text$1(row, "export_format"),
+        runStatus: text$1(row, "run_status"),
       };
     },
     async definition(id, membershipId) {
@@ -35058,20 +35378,327 @@ function supabaseResultStorage(client) {
     async upload(bucket, name, body, contentType) {
       const { error } = await client.storage
         .from(bucket)
-        .upload(name, new Blob([body], { type: contentType }), {
-          contentType,
-          upsert: true,
-        });
+        .upload(
+          name,
+          new Blob([typeof body === "string" ? body : new Uint8Array(body)], { type: contentType }),
+          {
+            contentType,
+            upsert: true,
+          },
+        );
       if (error) throw new Error(`storage ${bucket}: ${error.message}`);
+    },
+  };
+}
+//#endregion
+//#region ../data/src/report-deliveries.ts
+/**
+ * The report.deliver worker (A43, finding A38-004; Section 4.6.4, journey 29; migration 1127). The
+ * scheduler queues a report run per recipient for each due schedule; when a run succeeds the database
+ * queues a report.deliver job for its delivery, and this worker emails the run's file to the
+ * recipient as an attachment, then records the outcome. Recipients are members of the org only.
+ *
+ * Mail goes through a ReportMailer: mailpitMailer sends to the local stack's Inbucket (Mailpit) and
+ * refuses any host that is not this machine, so a development or test run never emails anyone; the
+ * production transport is plugged in by the Edge Function from the email environment, with its
+ * recipient allow-list.
+ */
+var REPORT_DELIVER_JOB = "report.deliver";
+var CONTENT_TYPES = {
+  CSV: "text/csv",
+  XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  PDF: "application/pdf",
+};
+var escapeHtml = (s) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+/** The attachment's file name: the report name in safe characters, then the format's extension. */
+function attachmentName(report, format) {
+  return `${
+    report
+      .normalize("NFKD")
+      .replace(/[^A-Za-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .toLowerCase() || "report"
+  }.${format.toLowerCase()}`;
+}
+/** One pass of the delivery worker: sends each claimed delivery once. */
+async function runReportDeliveries(options) {
+  const { store, files, mailer, copy, worker } = options;
+  const claimed = await store.claim(worker, options.limit ?? 10);
+  const results = [];
+  for (const job of claimed) {
+    const d = await store.delivery(job.deliveryId);
+    if (!d || d.status !== "Queued") {
+      await store.finishJob(job.jobId, true, null);
+      results.push({
+        jobId: job.jobId,
+        deliveryId: job.deliveryId,
+        status: "Skipped",
+      });
+      continue;
+    }
+    try {
+      if (!d.recipientEmail) throw new Error("The recipient has no email address on file.");
+      if (!d.storagePath) throw new Error("The report run has no file to attach.");
+      const content = await files.download(REPORT_RESULTS_BUCKET, d.storagePath);
+      const words = {
+        report: d.reportName,
+        org: d.orgName,
+      };
+      const body = copy.body({
+        ...words,
+        rows: d.rowCount ?? 0,
+        unpriced: d.unpricedCount ?? 0,
+      });
+      const sent = await mailer.send({
+        to: d.recipientEmail,
+        toName: d.recipientName,
+        subject: copy.subject(words),
+        text: body,
+        html: `<p>${escapeHtml(body)}</p>`,
+        attachment: {
+          filename: attachmentName(d.reportName, d.exportFormat),
+          contentType: CONTENT_TYPES[d.exportFormat],
+          content,
+        },
+      });
+      await store.finish(d.deliveryId, {
+        sent: true,
+        messageId: sent.messageId,
+      });
+      await store.finishJob(job.jobId, true, null);
+      results.push({
+        jobId: job.jobId,
+        deliveryId: d.deliveryId,
+        status: "Sent",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const jobStatus = await store.finishJob(job.jobId, false, message);
+      if (jobStatus !== "Queued")
+        await store.finish(d.deliveryId, {
+          sent: false,
+          error: message,
+        });
+      results.push({
+        jobId: job.jobId,
+        deliveryId: d.deliveryId,
+        status: jobStatus === "Queued" ? "Queued" : "Failed",
+        error: message,
+      });
+    }
+  }
+  return results;
+}
+/**
+ * The whole scheduled pass the report-run Edge Function makes: queue the due schedules, render every
+ * queued run (each finished run releases its deliveries), then email the deliveries.
+ */
+async function runScheduledReports(options) {
+  return {
+    queued: await options.deliveries.queueDue(),
+    runs: await runReportJobs({
+      store: options.runs,
+      storage: options.storage,
+      labels: options.labels,
+      worker: options.worker,
+      limit: 25,
+    }),
+    deliveries: await runReportDeliveries({
+      store: options.deliveries,
+      files: options.files,
+      mailer: options.mailer,
+      copy: options.copy,
+      worker: options.worker,
+      limit: 25,
+    }),
+  };
+}
+/** Base64 of bytes without Node's Buffer, so the Edge runtime can use it too. */
+function toBase64(bytes) {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 32768)
+    binary += String.fromCharCode(...bytes.subarray(i, i + 32768));
+  return btoa(binary);
+}
+var LOCAL_HOSTS = /* @__PURE__ */ new Set([
+  "127.0.0.1",
+  "localhost",
+  "[::1]",
+  "::1",
+  "host.docker.internal",
+]);
+/**
+ * Sends through Mailpit's HTTP API (`POST /api/v1/send`), the Inbucket of a local Supabase stack.
+ * Only a local host is accepted (or a Docker service name of a supabase_inbucket container), so this
+ * mailer can never reach a real recipient (Section 19.8).
+ */
+function mailpitMailer(baseUrl, from, fetchImpl = fetch) {
+  const url = new URL(baseUrl);
+  if (!LOCAL_HOSTS.has(url.hostname) && !url.hostname.startsWith("supabase_inbucket_"))
+    throw new Error(`The Mailpit mailer only sends to a local inbox, not ${url.hostname}.`);
+  return {
+    name: "mailpit",
+    async send(email) {
+      const response = await fetchImpl(new URL("/api/v1/send", url), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          From: {
+            Email: from.email,
+            Name: from.name,
+          },
+          To: [
+            {
+              Email: email.to,
+              Name: email.toName ?? "",
+            },
+          ],
+          Subject: email.subject,
+          Text: email.text,
+          HTML: email.html,
+          Attachments: [
+            {
+              Content: toBase64(email.attachment.content),
+              Filename: email.attachment.filename,
+              ContentType: email.attachment.contentType,
+            },
+          ],
+        }),
+      });
+      if (!response.ok)
+        throw new Error(`Mailpit refused the message: ${response.status} ${await response.text()}`);
+      return { messageId: (await response.json()).ID ?? "" };
+    },
+  };
+}
+/**
+ * Sends through the owner's Resend account, only to recipients `allowed` accepts (the email
+ * environment's allow-list outside production, Section 19.8).
+ */
+function resendMailer(client, from, allowed) {
+  return {
+    name: "resend",
+    async send(email) {
+      if (!allowed(email.to)) throw new Error(`${email.to} is outside the email allow-list.`);
+      const { data, error } = await client.emails.send({
+        from,
+        to: [email.to],
+        subject: email.subject,
+        text: email.text,
+        html: email.html,
+        attachments: [
+          {
+            filename: email.attachment.filename,
+            content: toBase64(email.attachment.content),
+            contentType: email.attachment.contentType,
+          },
+        ],
+      });
+      if (error || !data) throw new Error(`Resend refused the message: ${error?.message ?? ""}`);
+      return { messageId: data.id };
+    },
+  };
+}
+var text = (row, key) => {
+  const value = row[key];
+  if (typeof value !== "string")
+    throw new Error(`Expected text in ${key} of the database response.`);
+  return value;
+};
+var textOrNull = (row, key) => {
+  const value = row[key];
+  return typeof value === "string" ? value : null;
+};
+var numberOrNull = (row, key) => {
+  const value = row[key];
+  return typeof value === "number" ? value : null;
+};
+/** ReportDeliveryStore over the service-role client: the 0510 queue RPCs and the 1127 RPCs. */
+function supabaseReportDeliveryStore(client) {
+  const app = client.schema("app");
+  const call = async (fn, args) => {
+    const { data, error } = await app.rpc(fn, args);
+    if (error) throw new Error(`${fn}: ${error.message}`);
+    return data;
+  };
+  return {
+    async queueDue() {
+      return Number(await call("queue_due_report_schedules", {}));
+    },
+    async claim(worker, limit) {
+      return (
+        (await call("claim_jobs", {
+          p_worker: worker,
+          p_job_kind: "report.deliver",
+          p_limit: limit,
+        })) ?? []
+      ).map((r) => ({
+        jobId: text(r, "id"),
+        deliveryId: text(r, "subject_id"),
+      }));
+    },
+    async delivery(id) {
+      const r = (await call("report_delivery", { p_delivery_id: id }))?.[0];
+      if (!r) return null;
+      return {
+        deliveryId: text(r, "delivery_id"),
+        orgName: text(r, "org_name"),
+        reportName: text(r, "report_name"),
+        exportFormat: text(r, "export_format"),
+        storagePath: textOrNull(r, "storage_object_path"),
+        rowCount: numberOrNull(r, "row_count"),
+        unpricedCount: numberOrNull(r, "unpriced_count"),
+        recipientEmail: textOrNull(r, "recipient_email"),
+        recipientName: textOrNull(r, "recipient_name"),
+        status: text(r, "delivery_status"),
+        scheduledFor: text(r, "scheduled_for"),
+      };
+    },
+    async finish(id, outcome) {
+      await call(
+        "finish_report_delivery",
+        outcome.sent
+          ? {
+              p_delivery_id: id,
+              p_sent: true,
+              p_provider_message_id: outcome.messageId,
+            }
+          : {
+              p_delivery_id: id,
+              p_sent: false,
+              p_error: outcome.error,
+            },
+      );
+    },
+    async finishJob(jobId, succeeded, error) {
+      return String(
+        await call("finish_job", {
+          p_job_id: jobId,
+          p_succeeded: succeeded,
+          p_error: error,
+        }),
+      );
+    },
+  };
+}
+/** ResultFiles over Supabase Storage of the service-role client. */
+function supabaseResultFiles(client) {
+  return {
+    async download(bucket, name) {
+      const { data, error } = await client.storage.from(bucket).download(name);
+      if (error || !data) throw new Error(`storage ${bucket}: ${error?.message ?? "missing file"}`);
+      return new Uint8Array(await data.arrayBuffer());
     },
   };
 }
 //#endregion
 //#region edge/reports.ts
 /**
- * The report.run worker for the Edge bundle (A35, RRR-79). The worker itself lives with the report
- * builder in @xos/data (report-runs.ts), so a run aggregates exactly as the preview does; this file
- * re-exports it and adds the CSV headers from the report builder copy in @xos/i18n.
+ * The report.run and report.deliver workers for the Edge bundle (A35, RRR-79; A43, RRR-87). The
+ * workers live with the report builder in @xos/data (report-runs.ts, report-deliveries.ts), so a run
+ * aggregates exactly as the preview does; this file re-exports them and adds the file headers and
+ * the scheduled email copy from @xos/i18n.
  */
 function lookup(tree, path) {
   let node = tree;
@@ -35081,13 +35708,32 @@ function lookup(tree, path) {
   }
   return typeof node === "string" ? node : null;
 }
-/** Column headers of a run file in a locale (en-US when unknown), from the builder's field labels. */
+/** Fills the `{name}` slots of a catalog template with their values. */
+function fill(template, values) {
+  return template.replace(/\{(\w+)\}/g, (all, name) =>
+    values[name] === void 0 ? all : String(values[name]),
+  );
+}
+/** Column headers and file copy of a run file in a locale (en-US when unknown). */
 function reportRunLabels(locale) {
-  const messages = getMessages(isLocale(locale) ? locale : defaultLocale);
+  const known = isLocale(locale) ? locale : defaultLocale;
+  const messages = getMessages(known);
   const field = (source, key) =>
     lookup(messages, ["workflow", "builder", "fields", source, key]) ?? key;
+  const file = (key) => lookup(messages, ["reporting", "file", key]) ?? key;
   return {
     field,
+    unpriced: file("unpriced"),
+    truncated: file("truncated"),
+    subtitle: ({ rows, unpriced, at }) =>
+      fill(file("subtitle"), {
+        rows,
+        unpriced,
+        date: new Intl.DateTimeFormat(known, {
+          dateStyle: "medium",
+          timeZone: "UTC",
+        }).format(at),
+      }),
     column(source, key, aggregate) {
       const template = lookup(messages, ["workflow", "builder", "columnAggregate"]);
       const name = lookup(messages, ["workflow", "builder", "aggregates", aggregate]) ?? aggregate;
@@ -35095,6 +35741,15 @@ function reportRunLabels(locale) {
         ? `${name} ${field(source, key)}`
         : template.replace("{aggregate}", name).replace("{field}", field(source, key));
     },
+  };
+}
+/** The scheduled report email in a locale (en-US when unknown). */
+function reportDeliveryCopy(locale) {
+  const messages = getMessages(isLocale(locale) ? locale : defaultLocale);
+  const email = (key) => lookup(messages, ["reporting", "email", key]) ?? key;
+  return {
+    subject: (values) => fill(email("subject"), values),
+    body: (values) => fill(email("body"), values),
   };
 }
 //#endregion
@@ -35119,6 +35774,7 @@ export {
   PUNCH_KINDS,
   PlatformDbError,
   PriceNotFoundError,
+  REPORT_DELIVER_JOB,
   REPORT_RESULTS_BUCKET,
   REPORT_RUN_JOB,
   ScannerUnavailableError,
@@ -35148,6 +35804,7 @@ export {
   kioskPunch,
   localPartFor,
   lookupKeyFor,
+  mailpitMailer,
   notificationStore,
   observe,
   observeEdgeFunction,
@@ -35158,17 +35815,24 @@ export {
   readEmailEnv,
   readZipDirectory,
   receiveInbound,
+  recipientAllowed,
+  reportDeliveryCopy,
   reportRunLabels,
   requestIdFor,
+  resendMailer,
   resolvePriceId,
+  runReportDeliveries,
   runReportJobs,
+  runScheduledReports,
   runUploadScans,
   scanStore,
   signWebhook,
   sniffFamilies,
   stripQuotedText,
   supabaseDb,
+  supabaseReportDeliveryStore,
   supabaseReportRunStore,
+  supabaseResultFiles,
   supabaseResultStorage,
   supabaseStorage,
   verifyWebhook,

@@ -113,7 +113,8 @@
     "title": "Title",
     "validDays": "Valid for days",
     "visibility": "Visibility",
-    "when": "When"
+    "when": "When",
+    "isRemote": "The work can be done remotely"
   },
   "fieldErrors": {
     "required": "Fill in this field to continue.",
@@ -369,7 +370,10 @@
     "reengagement": "Re-engagement",
     "addToPool": "Add to pool",
     "noPools": "No matching pool yet. Create one on the Pools page.",
-    "poolNeedsWrite": "Someone with pool access records re-engagement."
+    "poolNeedsWrite": "Someone with pool access records re-engagement.",
+    "milestoneFee": "Fee: {amount}. Self-billing bills it once the milestone is accepted.",
+    "milestoneFeeLabel": "Fee ({currency})",
+    "setFee": "Set fee"
   },
   "ratings": {
     "title": "Ratings",

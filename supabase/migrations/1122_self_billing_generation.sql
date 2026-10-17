@@ -130,6 +130,7 @@ declare
   v_invoice uuid;
   v_line jsonb;
   v_number integer := 0;
+  v_urid text;
   v_person uuid := private.require_person();
 begin
   select e.* into v_engagement from app.engagements e where e.id = p_engagement_id and e.deleted_at is null;
@@ -158,13 +159,16 @@ begin
           case when v_engagement.counterparty_id is null then v_person end, v_engagement.id,
           btrim(p_invoice_number), p_issued_on, p_due_on, p_currency_code)
   returning id into v_invoice;
+  -- Lines post under the engagement role's discipline, as self-billed lines do, so the org can approve them.
+  select d.disc_code into v_urid from xpms.role ro join xpms.dim_discipline d on d.disc_code = left(ro.role_code, 7)
+  where ro.role_code = v_engagement.role_code;
   for v_line in select x from jsonb_array_elements(p_lines) x loop
     v_number := v_number + 1;
-    insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor)
-    values (v_invoice, v_number, v_line ->> 'description', coalesce((v_line ->> 'quantity')::numeric, 1), (v_line ->> 'unit_price_minor')::bigint);
+    insert into app.invoice_lines (invoice_id, line_number, description, quantity, unit_price_minor, urid)
+    values (v_invoice, v_number, v_line ->> 'description', coalesce((v_line ->> 'quantity')::numeric, 1), (v_line ->> 'unit_price_minor')::bigint, v_urid);
   end loop;
   return v_invoice;
 end;
 $$;
 
-comment on function app.submit_engagement_invoice(uuid, text, date, date, text, jsonb) is 'The engaged party submits a payable invoice against its engagement while the money area is open (Section 4.4.5): the account''s Owner, Admin or Finance member for an account, or the person engaged as an individual. Lines are an array of {description, quantity, unit_price_minor}; a missing price stays unpriced. The invoice arrives Proposed for the org to approve. Returns the invoice id.';
+comment on function app.submit_engagement_invoice(uuid, text, date, date, text, jsonb) is 'The engaged party submits a payable invoice against its engagement while the money area is open (Section 4.4.5): the account''s Owner, Admin or Finance member for an account, or the person engaged as an individual. Lines are an array of {description, quantity, unit_price_minor}; a missing price stays unpriced, and each line carries the engagement role''s discipline as its URID for posting. The invoice arrives Proposed for the org to approve. Returns the invoice id.';

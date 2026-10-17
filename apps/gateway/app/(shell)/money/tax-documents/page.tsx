@@ -1,9 +1,11 @@
+import { listW9Addresses } from "@xos/data/form-1099";
 import { listPayoutAccounts, listTaxForms } from "@xos/data/gateway";
 import { getNode } from "@xos/ia";
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
 import { LinkTable } from "@/components/page/collections";
 import { RowList } from "@/components/engagement/rows";
+import { TaxAddressForm, type TaxAddressCopy } from "@/components/forms/tax-address-form";
 import { PageTitle, pickView, RegionError, Section, ViewSwitcher } from "@/components/page/page";
 import { DestinationTabs } from "@/components/page/work-tabs";
 import { EmptyStateLink, InlineAlert } from "@/components/ui";
@@ -28,12 +30,31 @@ export default async function TaxDocumentsPage({
   const query = await searchParams;
   const views = getNode(sitemap, "money.tax-documents").node.list?.views ?? ["table"];
   const view = pickView(query["view"], views, "table");
-  const [t, locale, forms, payouts] = await Promise.all([
+  const [t, locale, forms, payouts, w9s] = await Promise.all([
     getTranslate(),
     getLocale(),
     listTaxForms(ctx.db),
     listPayoutAccounts(ctx.db),
+    listW9Addresses(ctx.db),
   ]);
+  const addressCopy: TaxAddressCopy = {
+    title: t("payouts.w9.formTitle"),
+    legalName: t("payouts.w9.legalName"),
+    legalNameHelp: t("payouts.w9.legalNameHelp"),
+    street: t("payouts.w9.street"),
+    locality: t("payouts.w9.locality"),
+    region: t("payouts.w9.region"),
+    postal: t("payouts.w9.postal"),
+    submit: t("payouts.w9.submit"),
+    done: t("payouts.w9.done"),
+    errors: {
+      legalName: t("payouts.w9.errors.legalName"),
+      streetAddress: t("payouts.w9.errors.streetAddress"),
+      locality: t("payouts.w9.errors.locality"),
+      regionCode: t("payouts.w9.errors.regionCode"),
+      postalCode: t("payouts.w9.errors.postalCode"),
+    },
+  };
   return (
     <>
       <PageTitle
@@ -88,6 +109,40 @@ export default async function TaxDocumentsPage({
           }))}
         />
       )}
+      {w9s.ok && w9s.data.length > 0 ? (
+        <Section title={t("payouts.w9.title")}>
+          <p className="m-0 text-text-13 text-text-secondary">{t("payouts.w9.body")}</p>
+          <ul className="m-0 flex list-none flex-col gap-16 p-0">
+            {w9s.data.map((w) => (
+              <li
+                key={w.taxFormId}
+                className="flex flex-col gap-8 rounded-card border border-border-subtle p-16"
+              >
+                <strong className="font-semibold">
+                  {t("payouts.w9.formFor", { org: w.orgName, last4: w.tinLast4 })}
+                </strong>
+                {w.complete ? (
+                  <p className="m-0 text-text-13 text-text-secondary">
+                    {[w.streetAddress, w.locality, w.regionCode, w.postalCode].join(", ")}
+                  </p>
+                ) : (
+                  <p className="m-0 text-text-13 text-warning-text">{t("payouts.w9.missing")}</p>
+                )}
+                <details open={!w.complete}>
+                  <summary className="cursor-pointer text-text-13 text-accent-text">
+                    {w.complete ? t("payouts.w9.edit") : t("payouts.w9.add")}
+                  </summary>
+                  <div className="pt-8">
+                    <TaxAddressForm taxFormId={w.taxFormId} copy={addressCopy} initial={w} />
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : !w9s.ok ? (
+        <RegionError />
+      ) : null}
       <Section title={t("gateway.money.tax.payouts")}>
         {!payouts.ok ? (
           <RegionError />

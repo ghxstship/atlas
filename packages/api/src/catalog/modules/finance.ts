@@ -8,10 +8,10 @@
  * of their own. Totals are `MoneyTotal`: the sum of the priced inputs with the unpriced count.
  */
 import { z } from "@hono/zod-openapi";
-import { canonCodes, fields } from "@xos/schemas";
+import { canonCodes, defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, setOrder } from "../correct.ts";
-import { collectionAction, itemAction, transition } from "../define.ts";
+import { collectionAction, collectionQuery, itemAction, resource, transition } from "../define.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -77,7 +77,53 @@ const RecordPaymentRequest = z
     description: "A payment made on the org's own rails, recorded against an invoice.",
   });
 
+/**
+ * A payee of the 1099-NEC data export (A38-006, app.form_1099_nec_rows, 1124). The API never returns
+ * the full TIN: that Restricted export needs step-up authentication, which an API key cannot give,
+ * so it stays in Atlas.
+ */
+const Form1099NecRow = defineResource({
+  name: "Form1099NecRow",
+  table: "app.form_1099_nec_rows",
+  description:
+    "A payee paid $600 or more in approved USD payments in a tax year as an independent contractor, with the W-9 on file.",
+  base: "view",
+  fields: {
+    payee_person_id: orNull(fields.ref("person paid as an individual")),
+    payee_organization_id: orNull(fields.ref("account paid")),
+    payee_name: fields.text("Name on the W-9, or the payee's name.", "Ivy Marchetti"),
+    w9_on_file: fields.bool("Whether a W-9 is on file with the org.", true),
+    tin_type: orNull(fields.int("FIRE TIN type: 1 EIN (an account), 2 SSN (a person).", 2, 1)),
+    tin_last4: orNull(fields.text("Last four of the TIN.", "6789", 4)),
+    address_complete: fields.bool("Whether the W-9 address is complete.", true),
+    amount_minor: fields.money("Approved USD payments in the year.", 75000),
+    payment_count: fields.int("Payments counted.", 2),
+  },
+});
+
 export const additions = defineAdditions("Finance", {
+  resources: [
+    resource("Finance", "/form-1099-nec", Form1099NecRow, {
+      verbs: [],
+      label: "1099-NEC payee",
+      actions: [
+        collectionQuery("rows", {
+          summary: "1099-NEC payees of a tax year",
+          description:
+            "Payees paid $600 or more in approved USD payments in the calendar year as independent contractors (individuals and accounts), with whether a W-9 and its address are on file. Full TINs are a Restricted export with step-up, in Atlas only.",
+          paged: true,
+          response: Form1099NecRow.read,
+          query: z.object({
+            year: z.coerce
+              .number()
+              .int()
+              .min(2020)
+              .meta({ description: "Tax year.", example: 2025 }),
+          }),
+        }),
+      ],
+    }),
+  ],
   actions: {
     invoices: [
       itemAction("recordPayment", {
@@ -88,7 +134,10 @@ export const additions = defineAdditions("Finance", {
       }),
     ],
   },
-  capabilities: { invoices: { actions: { recordPayment: "finance.payment.write" } } },
+  capabilities: {
+    invoices: { actions: { recordPayment: "finance.payment.write" } },
+    form1099Nec: { actions: { rows: "finance.payment.read" } },
+  },
   corrections: [
     {
       id: "budget-columns",

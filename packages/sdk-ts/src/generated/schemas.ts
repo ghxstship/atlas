@@ -18186,6 +18186,10 @@ export interface Opportunity {
    * Range: 16 to unbounded.
    */
   readonly minimum_age: number | null;
+  /**
+   * Whether the work can be done remotely.
+   */
+  readonly is_remote: boolean;
 }
 
 /**
@@ -18274,6 +18278,10 @@ export interface OpportunityCreate {
    * Range: 16 to unbounded.
    */
   readonly minimum_age?: number | null;
+  /**
+   * Whether the work can be done remotely.
+   */
+  readonly is_remote?: boolean;
 }
 
 /**
@@ -18351,6 +18359,10 @@ export interface OpportunityUpdate {
    * Range: 16 to unbounded.
    */
   readonly minimum_age?: number | null;
+  /**
+   * Whether the work can be done remotely.
+   */
+  readonly is_remote?: boolean;
 }
 
 /**
@@ -34423,6 +34435,69 @@ export interface GuestDecisionRequest {
    * Approved or Declined.
    */
   readonly outcome: "Approved" | "Declined";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface Form1099NecRowPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<Form1099NecRow>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A payee paid $600 or more in approved USD payments in a tax year as an independent contractor, with the W-9 on file.
+ */
+export interface Form1099NecRow {
+  /**
+   * Identifier of the person paid as an individual.
+   * Format: `uuid`.
+   */
+  readonly payee_person_id: string | null;
+  /**
+   * Identifier of the account paid.
+   * Format: `uuid`.
+   */
+  readonly payee_organization_id: string | null;
+  /**
+   * Name on the W-9, or the payee's name.
+   * Length: 1 to 300.
+   */
+  readonly payee_name: string;
+  /**
+   * Whether a W-9 is on file with the org.
+   */
+  readonly w9_on_file: boolean;
+  /**
+   * FIRE TIN type: 1 EIN (an account), 2 SSN (a person).
+   * Range: 1 to unbounded.
+   */
+  readonly tin_type: number | null;
+  /**
+   * Last four of the TIN.
+   * Length: 1 to 4.
+   */
+  readonly tin_last4: string | null;
+  /**
+   * Whether the W-9 address is complete.
+   */
+  readonly address_complete: boolean;
+  /**
+   * Approved USD payments in the year. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly amount_minor: number | null;
+  /**
+   * Payments counted.
+   * Range: 0 to unbounded.
+   */
+  readonly payment_count: number;
 }
 
 /**

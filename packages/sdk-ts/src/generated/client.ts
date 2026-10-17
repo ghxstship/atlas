@@ -337,6 +337,7 @@ import {
   TemplatesResource,
   TemplateApplicationsResource,
   GuestListEntriesResource,
+  Form1099NecResource,
   AuroraResource,
   AiSuggestionsResource,
   AiRequestsResource,
@@ -1155,6 +1156,8 @@ export class XosClient extends XosClientCore {
   );
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
+  /** Finance: operations on `form1099Nec`. */
+  readonly form1099Nec: Form1099NecResource = new Form1099NecResource(this);
   /** Settings: operations on `aurora`. */
   readonly aurora: AuroraResource = new AuroraResource(this);
   /** Settings: operations on `aiSuggestions`. */
