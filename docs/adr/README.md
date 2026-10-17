@@ -30,5 +30,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0024](0024-integrations-and-developer-surface.md)      | Integrations and Developer Surface                                | Accepted |
 | [0025](0025-reliability-and-operations.md)              | Reliability and Operations                                        | Accepted |
 | [0026](0026-workforce-workflow-and-wave-6-decisions.md) | Workforce, Workflow and Wave 6 Decisions                          | Accepted |
+| [0027](0027-performance-budgets.md)                     | Performance Budgets and Delivery                                  | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.
