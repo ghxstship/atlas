@@ -11,6 +11,7 @@
   "back": "Back to help",
   "related": "Related",
   "loadFailed": "Your tours and tips could not be loaded. Help articles still work; reopen Help to try again.",
+  "bodyFailed": "This article could not be loaded. Reload the page, then open Help again.",
   "kinds": {
     "guide": "Guide",
     "page": "Page",

@@ -5745,6 +5745,7 @@ var help_default$1 = {
   related: "Related",
   loadFailed:
     "Your tours and tips could not be loaded. Help articles still work; reopen Help to try again.",
+  bodyFailed: "This article could not be loaded. Reload the page, then open Help again.",
   kinds: {
     guide: "Guide",
     page: "Page",
@@ -19875,6 +19876,7 @@ var help_default = {
   related: "Relacionado",
   loadFailed:
     "No se pudieron cargar sus recorridos y consejos. Los artículos funcionan; vuelva a abrir la Ayuda para intentarlo de nuevo.",
+  bodyFailed: "No se pudo cargar este artículo. Recargue la página y vuelva a abrir la Ayuda.",
   kinds: {
     guide: "Guía",
     page: "Página",

@@ -1,4 +1,5 @@
-import { PARAM_TYPES, type Sitemap } from "./schema";
+import { PARAM_TYPES } from "./constants";
+import type { Sitemap } from "./schema";
 
 /** One segment of a route pattern: a lowercase hyphenated slug or a typed `{param}`. */
 export type RouteSegment =

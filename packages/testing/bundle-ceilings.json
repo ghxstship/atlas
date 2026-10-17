@@ -1,1 +1,16 @@
-{ "pages": {} }
+{
+  "about": "Route JavaScript ceilings (gzip bytes) for key pages still over the 200 KB budget, each recorded with its cause in legal/qa/performance-results.md. A ceiling holds a page where it is (measured plus 3 KB); lower it when a page shrinks, never raise it.",
+  "pages": {
+    "atlas/demo-productions/home": 271360,
+    "atlas/demo-productions/projects": 309248,
+    "atlas/demo-productions/p/NWS/overview": 305152,
+    "atlas/demo-productions/inbox": 265216,
+    "atlas/demo-productions/crew/shifts": 304128,
+    "atlas/demo-productions/finance/budgets": 342016,
+    "gateway/auth/sign-in": 209920,
+    "gateway/home": 219136,
+    "gateway/explore": 221184,
+    "gateway/work": 218112,
+    "gateway/money": 218112
+  }
+}

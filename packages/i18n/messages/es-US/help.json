@@ -11,6 +11,7 @@
   "back": "Volver a la ayuda",
   "related": "Relacionado",
   "loadFailed": "No se pudieron cargar sus recorridos y consejos. Los artículos funcionan; vuelva a abrir la Ayuda para intentarlo de nuevo.",
+  "bodyFailed": "No se pudo cargar este artículo. Recargue la página y vuelva a abrir la Ayuda.",
   "kinds": {
     "guide": "Guía",
     "page": "Página",

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PARAM_TYPES, type ParamType } from "./constants";
 
 /**
  * Sitemap file schema (Section 3.15: the sitemap is the single source of navigation).
@@ -26,7 +27,6 @@ export const NODE_KINDS = [
   "action",
 ] as const;
 export type NodeKind = (typeof NODE_KINDS)[number];
-export const NON_NAVIGABLE_KINDS: ReadonlySet<NodeKind> = new Set(["group", "action"]);
 
 /** Where a group renders. `none` holds direct routes that no menu lists. */
 export const PLACEMENTS = [
@@ -179,20 +179,8 @@ export const SHELL_VIEWS: Record<Shell, readonly ViewType[]> = {
   ],
 };
 
-/** Query parameters every list route accepts (Section 4.5.3, route conventions). */
-export const LIST_QUERY_PARAMS = ["view", "group", "sort", "filter", "scope"] as const;
+export { LIST_QUERY_PARAMS, NON_NAVIGABLE_KINDS, PARAM_TYPES, type ParamType } from "./constants";
 
-/** Typed route parameters. Display keys are uppercase so they never collide with static slugs. */
-export const PARAM_TYPES = {
-  slug: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-  "project-key": /^[A-Z]{2,5}$/,
-  "record-key": /^[A-Z]{2,5}-[1-9][0-9]*$/,
-  "display-key": /^[A-Z][A-Z0-9]{1,4}(?:-[A-Z0-9]+)+$/,
-  handle: /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/,
-  uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-  token: /^[A-Za-z0-9_-]{16,128}$/,
-} as const;
-export type ParamType = keyof typeof PARAM_TYPES;
 const PARAM_TYPE_NAMES = Object.keys(PARAM_TYPES) as [ParamType, ...ParamType[]];
 
 /** Tags that compound visibility values resolve against. */

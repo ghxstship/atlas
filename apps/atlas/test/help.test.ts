@@ -4,7 +4,7 @@ import { format, resolveConfig } from "prettier";
 import { describe, expect, it } from "vitest";
 import enHelp from "../../../packages/i18n/messages/en-US/help.json";
 import esHelp from "../../../packages/i18n/messages/es-US/help.json";
-import { loadHelpContent, parseArticle, renderHelpModule } from "../help/load";
+import { loadHelpContent, parseArticle, renderHelpBodies, renderHelpModule } from "../help/load";
 import {
   articlesForNode,
   coversNode,
@@ -19,17 +19,21 @@ import { sitemap } from "../ia/sitemap.generated";
 
 /**
  * The help content (Section 11.16). Runs with XOS_WRITE_GENERATED=1 to write
- * help/content.generated.ts; every other run fails on drift. Also checks that every article exists
+ * help/content.generated.ts and help/bodies.generated.ts; every other run fails on drift. Also checks that every article exists
  * in every locale, names real pages, and links only to articles that exist, and that every tour,
  * tip and What's New entry has its copy.
  */
 const content = loadHelpContent();
 const target = fileURLToPath(new URL("../help/content.generated.ts", import.meta.url));
-const expected = await format(renderHelpModule(content), {
-  ...((await resolveConfig(target)) ?? {}),
-  filepath: target,
-});
-if (process.env["XOS_WRITE_GENERATED"] === "1") writeFileSync(target, expected);
+const bodiesTarget = fileURLToPath(new URL("../help/bodies.generated.ts", import.meta.url));
+const formatted = async (source: string, file: string) =>
+  format(source, { ...((await resolveConfig(file)) ?? {}), filepath: file });
+const expected = await formatted(renderHelpModule(content), target);
+const expectedBodies = await formatted(renderHelpBodies(content), bodiesTarget);
+if (process.env["XOS_WRITE_GENERATED"] === "1") {
+  writeFileSync(target, expected);
+  writeFileSync(bodiesTarget, expectedBodies);
+}
 
 function nodeIds(): Set<string> {
   const ids = new Set<string>();
@@ -55,6 +59,12 @@ const lookup = (catalog: unknown, path: string): unknown =>
 describe("help content", () => {
   it("matches the generated module", () => {
     expect(existsSync(target) ? readFileSync(target, "utf8") : "").toBe(expected);
+    expect(existsSync(bodiesTarget) ? readFileSync(bodiesTarget, "utf8") : "").toBe(expectedBodies);
+  });
+
+  it("keeps article bodies out of the index the shell loads on every page", () => {
+    expect(expected).not.toContain('"body"');
+    expect(expected).not.toMatch(/\bbody:/);
   });
 
   it("has every article in every locale with the same pages", () => {
