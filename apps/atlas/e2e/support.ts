@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
+import { settle } from "./engine-test";
 
 /** Unique test identities so runs never collide on the shared local stack. */
 export function uniqueId(): string {
@@ -17,6 +18,24 @@ export async function expectAccessible(page: Page): Promise<void> {
   // axe measures the resting state; a pointer left on a button after a click would measure its hover
   // colors instead (hover contrast is tracked separately, finding A24-004).
   await page.mouse.move(0, 0);
+  // Drawers and dialogs fade in; Firefox runs the fade even under reduced motion, and axe would
+  // sample the half-faded colors (finding A24-008). The page goes quiet and paints twice, so a
+  // drawer that just mounted has started its fade, and finite animations finish first.
+  await settle(page);
+  await page.evaluate(
+    () =>
+      new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))),
+  );
+  await page
+    .waitForFunction(
+      () =>
+        document
+          .getAnimations()
+          .every((a) => a.playState !== "running" || a.effect?.getTiming().iterations === Infinity),
+      undefined,
+      { timeout: 5_000 },
+    )
+    .catch(() => undefined);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();

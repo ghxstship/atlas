@@ -17,7 +17,7 @@ import { getExponents, moneyFormatter } from "@/lib/finance/money";
 import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { CancelForm, DecisionForm, SubmitForm } from "./approvals-client";
-import { EmptyPanel, ErrorPanel } from "./kit";
+import { EmptyPanel, ErrorPanel, PageStatus } from "./kit";
 
 /**
  * Approvals (Section 4.10 workflow engine, A33): spend documents going through their org's approval
@@ -127,160 +127,162 @@ export async function ApprovalsView({
         </nav>
       }
     >
-      <div className="flex flex-col gap-24">
-        {active.length === 0 ? (
-          <InlineAlert tone="info" title={t("approvals.noPolicy.title")}>
-            {admin ? (
-              <>
-                {t("approvals.noPolicy.admin")}{" "}
-                <Link
-                  href={settingsRoute as Route}
-                  className="font-medium text-accent-text underline"
-                >
-                  {t("approvals.noPolicy.link")}
-                </Link>
-              </>
-            ) : (
-              t("approvals.noPolicy.member")
-            )}
-          </InlineAlert>
-        ) : null}
-
-        {shown.length === 0 ? (
-          <EmptyPanel
-            icon="CheckCircle2"
-            sentence={t(`approvals.empty.${tab}`)}
-            actionLabel={t(
-              tab === "waiting" ? "approvals.empty.waitingAction" : "approvals.empty.otherAction",
-            )}
-            href={
-              tab === "waiting" ? `/${org}/approvals?tab=mine` : `/${org}/approvals?tab=waiting`
-            }
-          />
-        ) : (
-          <ul
-            className="m-0 flex list-none flex-col gap-12 p-0"
-            aria-label={t("approvals.listLabel")}
-          >
-            {shown.map((a) => {
-              const policy = policyOf.get(a.policyId);
-              const steps = policy?.steps ?? [];
-              const step = steps.find((s) => s.order === a.currentStep);
-              const decidable = canDecide(a, policy, viewer);
-              const withdrawable =
-                (a.state === "In Review" || a.state === "Approved") &&
-                (a.requestedBy === personId || admin);
-              return (
-                <li
-                  key={a.id}
-                  className="flex flex-col gap-12 rounded-card border border-border-subtle p-16"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-8">
-                    <div className="flex min-w-0 flex-col gap-4">
-                      <h2 className="m-0 text-text-15 font-semibold">
-                        {t(`documentTypes.${a.documentType}`)}
-                        {a.subjectReference ? ` ${a.subjectReference}` : ""}
-                      </h2>
-                      <p className="m-0 text-text-13 text-text-secondary">
-                        {t("approvals.meta", {
-                          amount: money(a.amountMinor, a.currency),
-                          project: a.projectId
-                            ? (projectKey.get(a.projectId) ?? t("common.otherProject"))
-                            : t("common.orgWide"),
-                          requester: a.requesterName ?? t("common.someone"),
-                          when: when(a.createdAt),
-                        })}
-                      </p>
-                      <p className="m-0 text-text-12 text-text-tertiary">
-                        {t("approvals.policy", { policy: a.policyName })}
-                      </p>
-                    </div>
-                    <StateChip state={CHIP[a.state]} label={t(`approvalStates.${a.state}`)} />
-                  </div>
-                  <ol
-                    className="m-0 flex list-none flex-col gap-6 p-0"
-                    aria-label={t("approvals.stepsLabel")}
+      <PageStatus>
+        <div className="flex flex-col gap-24">
+          {active.length === 0 ? (
+            <InlineAlert tone="info" title={t("approvals.noPolicy.title")}>
+              {admin ? (
+                <>
+                  {t("approvals.noPolicy.admin")}{" "}
+                  <Link
+                    href={settingsRoute as Route}
+                    className="font-medium text-accent-text underline"
                   >
-                    {steps.map((s) => {
-                      const decision = a.decisions.find((d) => d.step === s.order);
-                      const status = decision
-                        ? decision.approved
-                          ? t("approvals.stepApproved", {
-                              name: decision.approverName ?? t("common.someone"),
-                              when: when(decision.decidedAt),
-                            })
-                          : t("approvals.stepRejected", {
-                              name: decision.approverName ?? t("common.someone"),
-                              when: when(decision.decidedAt),
-                            })
-                        : a.state === "In Review" && s.order === a.currentStep
-                          ? t("approvals.stepWaiting")
-                          : t("approvals.stepPending");
-                      return (
-                        <li key={s.id} className="flex flex-col gap-2 text-text-13">
-                          <span>
-                            <span className="font-medium">
-                              {t("approvals.stepName", { order: s.order, name: s.name })}
-                            </span>{" "}
-                            <span className="text-text-secondary">{status}</span>
-                          </span>
-                          {decision?.comment ? (
-                            <span className="text-text-12 text-text-secondary">
-                              {decision.comment}
-                            </span>
-                          ) : null}
-                        </li>
-                      );
-                    })}
-                  </ol>
-                  {decidable ? (
-                    <section
-                      aria-label={t("approvals.decide.label")}
-                      className="flex flex-col gap-8"
-                    >
-                      <p className="m-0 text-text-12 text-text-secondary">
-                        {t("approvals.decide.youDecide", { step: step?.name ?? "" })}
-                      </p>
-                      <DecisionForm org={org} id={a.id} />
-                    </section>
-                  ) : null}
-                  {withdrawable ? <CancelForm org={org} id={a.id} /> : null}
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                    {t("approvals.noPolicy.link")}
+                  </Link>
+                </>
+              ) : (
+                t("approvals.noPolicy.member")
+              )}
+            </InlineAlert>
+          ) : null}
 
-        {active.length > 0 ? (
-          <section aria-labelledby="approvals-submit" className="flex flex-col gap-8">
-            <h2 id="approvals-submit" className="m-0 text-heading-16 font-semibold">
-              {t("approvals.submit.title")}
-            </h2>
-            <p className="m-0 max-w-layout-reading text-text-13 text-text-secondary">
-              {t("approvals.submit.sentence", {
-                types: active.map((p) => t(`documentTypes.${p.documentType}`)).join(", "),
+          {shown.length === 0 ? (
+            <EmptyPanel
+              icon="CheckCircle2"
+              sentence={t(`approvals.empty.${tab}`)}
+              actionLabel={t(
+                tab === "waiting" ? "approvals.empty.waitingAction" : "approvals.empty.otherAction",
+              )}
+              href={
+                tab === "waiting" ? `/${org}/approvals?tab=mine` : `/${org}/approvals?tab=waiting`
+              }
+            />
+          ) : (
+            <ul
+              className="m-0 flex list-none flex-col gap-12 p-0"
+              aria-label={t("approvals.listLabel")}
+            >
+              {shown.map((a) => {
+                const policy = policyOf.get(a.policyId);
+                const steps = policy?.steps ?? [];
+                const step = steps.find((s) => s.order === a.currentStep);
+                const decidable = canDecide(a, policy, viewer);
+                const withdrawable =
+                  (a.state === "In Review" || a.state === "Approved") &&
+                  (a.requestedBy === personId || admin);
+                return (
+                  <li
+                    key={a.id}
+                    className="flex flex-col gap-12 rounded-card border border-border-subtle p-16"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-8">
+                      <div className="flex min-w-0 flex-col gap-4">
+                        <h2 className="m-0 text-text-15 font-semibold">
+                          {t(`documentTypes.${a.documentType}`)}
+                          {a.subjectReference ? ` ${a.subjectReference}` : ""}
+                        </h2>
+                        <p className="m-0 text-text-13 text-text-secondary">
+                          {t("approvals.meta", {
+                            amount: money(a.amountMinor, a.currency),
+                            project: a.projectId
+                              ? (projectKey.get(a.projectId) ?? t("common.otherProject"))
+                              : t("common.orgWide"),
+                            requester: a.requesterName ?? t("common.someone"),
+                            when: when(a.createdAt),
+                          })}
+                        </p>
+                        <p className="m-0 text-text-12 text-text-tertiary">
+                          {t("approvals.policy", { policy: a.policyName })}
+                        </p>
+                      </div>
+                      <StateChip state={CHIP[a.state]} label={t(`approvalStates.${a.state}`)} />
+                    </div>
+                    <ol
+                      className="m-0 flex list-none flex-col gap-6 p-0"
+                      aria-label={t("approvals.stepsLabel")}
+                    >
+                      {steps.map((s) => {
+                        const decision = a.decisions.find((d) => d.step === s.order);
+                        const status = decision
+                          ? decision.approved
+                            ? t("approvals.stepApproved", {
+                                name: decision.approverName ?? t("common.someone"),
+                                when: when(decision.decidedAt),
+                              })
+                            : t("approvals.stepRejected", {
+                                name: decision.approverName ?? t("common.someone"),
+                                when: when(decision.decidedAt),
+                              })
+                          : a.state === "In Review" && s.order === a.currentStep
+                            ? t("approvals.stepWaiting")
+                            : t("approvals.stepPending");
+                        return (
+                          <li key={s.id} className="flex flex-col gap-2 text-text-13">
+                            <span>
+                              <span className="font-medium">
+                                {t("approvals.stepName", { order: s.order, name: s.name })}
+                              </span>{" "}
+                              <span className="text-text-secondary">{status}</span>
+                            </span>
+                            {decision?.comment ? (
+                              <span className="text-text-12 text-text-secondary">
+                                {decision.comment}
+                              </span>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ol>
+                    {decidable ? (
+                      <section
+                        aria-label={t("approvals.decide.label")}
+                        className="flex flex-col gap-8"
+                      >
+                        <p className="m-0 text-text-12 text-text-secondary">
+                          {t("approvals.decide.youDecide", { step: step?.name ?? "" })}
+                        </p>
+                        <DecisionForm org={org} id={a.id} />
+                      </section>
+                    ) : null}
+                    {withdrawable ? <CancelForm org={org} id={a.id} /> : null}
+                  </li>
+                );
               })}
-            </p>
-            {!documents.ok ? (
-              <InlineAlert tone="danger">{t("approvals.submit.loadError")}</InlineAlert>
-            ) : submittable.length === 0 ? (
-              <p className="m-0 text-text-13 text-text-secondary">{t("approvals.submit.none")}</p>
-            ) : (
-              <SubmitForm
-                org={org}
-                documents={submittable.map((d) => ({
-                  value: `${d.documentType}|${d.id}`,
-                  label: `${t(`documentTypes.${d.documentType}`)}: ${d.reference}${
-                    d.projectId && projectKey.get(d.projectId)
-                      ? ` (${projectKey.get(d.projectId)})`
-                      : ""
-                  }`,
-                }))}
-              />
-            )}
-          </section>
-        ) : null}
-      </div>
+            </ul>
+          )}
+
+          {active.length > 0 ? (
+            <section aria-labelledby="approvals-submit" className="flex flex-col gap-8">
+              <h2 id="approvals-submit" className="m-0 text-heading-16 font-semibold">
+                {t("approvals.submit.title")}
+              </h2>
+              <p className="m-0 max-w-layout-reading text-text-13 text-text-secondary">
+                {t("approvals.submit.sentence", {
+                  types: active.map((p) => t(`documentTypes.${p.documentType}`)).join(", "),
+                })}
+              </p>
+              {!documents.ok ? (
+                <InlineAlert tone="danger">{t("approvals.submit.loadError")}</InlineAlert>
+              ) : submittable.length === 0 ? (
+                <p className="m-0 text-text-13 text-text-secondary">{t("approvals.submit.none")}</p>
+              ) : (
+                <SubmitForm
+                  org={org}
+                  documents={submittable.map((d) => ({
+                    value: `${d.documentType}|${d.id}`,
+                    label: `${t(`documentTypes.${d.documentType}`)}: ${d.reference}${
+                      d.projectId && projectKey.get(d.projectId)
+                        ? ` (${projectKey.get(d.projectId)})`
+                        : ""
+                    }`,
+                  }))}
+                />
+              )}
+            </section>
+          ) : null}
+        </div>
+      </PageStatus>
     </TemplateCollection>
   );
 }

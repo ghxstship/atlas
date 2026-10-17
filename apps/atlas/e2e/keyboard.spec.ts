@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { ORG, settled, signIn } from "./operations-support";
 
 /**
@@ -11,6 +11,7 @@ test.use({ reducedMotion: "reduce" });
 
 test("journey 24: Atlas by keyboard only, through the command menu, J and K, and the peek", async ({
   page,
+  browserName,
 }) => {
   await signIn(page, "producer@example.com");
   await page.waitForLoadState("networkidle");
@@ -38,7 +39,8 @@ test("journey 24: Atlas by keyboard only, through the command menu, J and K, and
   await expect(rows.nth(1)).toBeFocused();
 
   // Tab reaches the row's Open control, Enter opens the peek; Escape closes it and returns focus.
-  await page.keyboard.press("Tab");
+  // WebKit follows Safari: Tab moves between fields and links, Option+Tab reaches every control.
+  await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
   await expect(rows.nth(1).getByRole("button", { name: "Open" })).toBeFocused();
   await page.keyboard.press("Enter");
   const peek = page

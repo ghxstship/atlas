@@ -1,4 +1,5 @@
 import {
+  APP_ENUMS,
   bidTotal,
   listMyApplications,
   listOnboardingItems,
@@ -13,7 +14,7 @@ import { hasArea, tabHref } from "@/lib/engagement";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
-import { AdvanceAnswerForm } from "./forms";
+import { AdvanceAnswerForm, TaxFormForm } from "./forms";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 
@@ -388,7 +389,14 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
   const compliance = items.data.filter(
     (i) => i.kind === "Document Upload" || i.kind === "Certification",
   );
-  if (insurance.data.length === 0 && prequal.data.length === 0 && compliance.length === 0) {
+  // Vendors have no Onboarding tab, so an open tax form step (journey 43's W-9) is filed here.
+  const taxStep = items.data.find((i) => i.kind === "Tax Form" && !i.satisfied);
+  if (
+    insurance.data.length === 0 &&
+    prequal.data.length === 0 &&
+    compliance.length === 0 &&
+    !taxStep
+  ) {
     return (
       <TabEmpty
         icon="ShieldCheck"
@@ -400,6 +408,18 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
   }
   return (
     <div className="flex flex-col gap-16">
+      {taxStep ? (
+        <Section title={taxStep.name}>
+          <TaxFormForm
+            orgId={view.engagement.orgId}
+            asAccount={view.ctx.acting !== null}
+            kinds={APP_ENUMS.tax_form_kind.map((k) => ({
+              value: k,
+              label: t(enumLabelKey("taxFormKind", k)),
+            }))}
+          />
+        </Section>
+      ) : null}
       <Section title={t("gateway.engagement.compliance.insurance")}>
         {insurance.data.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">

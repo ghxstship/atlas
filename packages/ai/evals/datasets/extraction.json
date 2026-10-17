@@ -7,10 +7,13 @@
       "kind": "insurance_certificate",
       "document": "CERTIFICATE OF LIABILITY INSURANCE\nInsured: Harborline Staging Co.\nInsurer A: Atlantic Mutual\nType of insurance: COMMERCIAL GENERAL LIABILITY\nEACH OCCURRENCE $ 2,000,000\nPolicy effective 04/01/2026 Policy expiration 03/31/2027\nAll amounts in USD.",
       "expected": {
+        "insurer": "Atlantic Mutual",
+        "policy_identifier": "NO_ANSWER",
         "coverage_type": "General Liability",
-        "each_occurrence_minor": 200000000,
-        "currency": "USD",
-        "expires_on": "2027-03-31"
+        "coverage_limit_minor": 200000000,
+        "currency_code": "USD",
+        "valid_from": "2026-04-01",
+        "valid_to": "2027-03-31"
       }
     },
     {
@@ -18,10 +21,13 @@
       "kind": "insurance_certificate",
       "document": "CERTIFICATE OF INSURANCE\nInsured: Northwind Rigging LLC\nCoverage: General Liability\nPolicy period: January 15, 2026 to January 15, 2027\nLimits: see attached schedule.",
       "expected": {
+        "insurer": "NO_ANSWER",
+        "policy_identifier": "NO_ANSWER",
         "coverage_type": "General Liability",
-        "each_occurrence_minor": "NO_ANSWER",
-        "currency": "NO_ANSWER",
-        "expires_on": "2027-01-15"
+        "coverage_limit_minor": "NO_ANSWER",
+        "currency_code": "NO_ANSWER",
+        "valid_from": "2026-01-15",
+        "valid_to": "2027-01-15"
       }
     },
     {

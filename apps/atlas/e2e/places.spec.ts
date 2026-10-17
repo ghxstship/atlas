@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./engine-test";
 import { expectAccessible, uniqueId } from "./support";
 
 /**
@@ -25,6 +25,17 @@ async function signIn(page: Page, email = "owner@example.com") {
  * Waits until every horizontally scrolling region has hydrated: ScrollRegion measures its content on
  * the client and only then becomes focusable, so axe runs on the page a keyboard user meets.
  */
+/**
+ * Picks the filtered Production Leadership category with Enter, the picker's keyboard path; WebKit
+ * never sees the re-filtering list as stable enough to click (finding A24-008).
+ */
+async function pickCategory(page: Page) {
+  await expect(
+    page.getByRole("option", { name: /Production Leadership 0000\.01\.01/ }),
+  ).toBeVisible();
+  await page.keyboard.press("Enter");
+}
+
 async function hydrated(page: Page) {
   await page.waitForFunction(() =>
     [...document.querySelectorAll<HTMLElement>(".overscroll-x-contain")].every(
@@ -211,7 +222,7 @@ test("reconciliation: an UNKNOWN claim on a critical requirement is a gate 3 gap
 
   const requirements = page.getByRole("region", { name: "Requirements", exact: true });
   await requirements.getByRole("combobox", { name: "Category" }).fill("Production Leadership");
-  await page.getByRole("option", { name: /Production Leadership 0000\.01\.01/ }).click();
+  await pickCategory(page);
   await requirements.getByLabel("What is required").fill(`Show caller on headset ${id}`);
   await requirements.getByLabel("Critical: an Unknown here is a gate 3 gap").check();
   await requirements.getByRole("button", { name: "Add requirement" }).click();
@@ -224,7 +235,7 @@ test("reconciliation: an UNKNOWN claim on a critical requirement is a gate 3 gap
 
   const capabilities = page.getByRole("region", { name: "Capabilities", exact: true });
   await capabilities.getByRole("combobox", { name: "Category" }).fill("Production Leadership");
-  await page.getByRole("option", { name: /Production Leadership 0000\.01\.01/ }).click();
+  await pickCategory(page);
   await capabilities.getByLabel("What is provided").fill(`Venue stage manager ${id}`);
   await capabilities.getByLabel("Claim strength").selectOption("DOCUMENTED");
   await capabilities.getByRole("button", { name: "Add capability" }).click();

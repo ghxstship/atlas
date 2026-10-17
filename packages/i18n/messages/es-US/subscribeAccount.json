@@ -1,0 +1,9 @@
+{
+  "title": "Usa tu empresa en Atlas",
+  "lead": "Eres propietario de estas cuentas de empresa en Gateway. Comienza Atlas con una de ellas y su perfil, calificaciones e historial la acompañan; no se crea una segunda organización.",
+  "use": "Usar {name} en Atlas",
+  "acceptError": "Acepta los términos para comenzar Atlas con esta empresa.",
+  "refused": "Esta empresa ya usa Atlas. Ábrela desde el selector de organizaciones.",
+  "unexpected": "No pudimos comenzar Atlas para esta empresa. Inténtalo de nuevo en un momento.",
+  "or": "O crea una organización nueva"
+}

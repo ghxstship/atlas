@@ -1,6 +1,13 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { addCrewOnboardingUpload, publishCrewOpportunity, sendCrewAgreement } from "./fixtures";
-import { DEMO, expectAccessible, expectAccessibleInBothThemes, signIn, uniqueId } from "./support";
+import {
+  DEMO,
+  expectAccessible,
+  expectAccessibleInBothThemes,
+  reloadSettled,
+  signIn,
+  uniqueId,
+} from "./support";
 
 /**
  * Crew journeys on Gateway, external side (Section 20.2, journeys 41 and 55): find an opportunity
@@ -45,7 +52,7 @@ test("a crew member signs the agreement the org sent from Home", async ({ page }
   await expect(row).toBeVisible();
   await row.getByRole("button", { name: "Sign", exact: true }).click();
   await expect(row.getByText("Signed. The organization countersigns next.")).toBeVisible();
-  await page.reload();
+  await reloadSettled(page);
   await expect(page.getByText(`Sign ${agreement.title}`)).toHaveCount(0);
   await expectAccessible(page);
 });

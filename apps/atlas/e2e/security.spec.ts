@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 
 test("pages carry a nonce-based CSP and the security headers, with no CSP violations", async ({
   page,

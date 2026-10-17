@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { settle } from "./engine-test";
 import { expectAccessible } from "./support";
 
 /** Shared steps of the A16 journeys on the demo tenant (seeds 0010, 0107 and 0116). */
@@ -15,11 +16,15 @@ export async function signIn(page: Page, email = "owner@example.com") {
 }
 
 async function hydrated(page: Page) {
-  await page.waitForLoadState("networkidle");
-  // Drawers mount after hydration and slide in; axe measures contrast once they settle.
+  // A live page (chat, a realtime list) never reaches networkidle; settle waits five seconds at most.
+  await settle(page);
+  // Drawers mount after hydration and slide in; axe measures contrast once they settle. A looping
+  // indicator never finishes, so only finite animations are awaited.
   await page.waitForTimeout(400);
   await page.waitForFunction(() =>
-    document.getAnimations().every((a) => a.playState !== "running"),
+    document
+      .getAnimations()
+      .every((a) => a.playState !== "running" || a.effect?.getTiming().iterations === Infinity),
   );
   await page.waitForFunction(() =>
     [...document.querySelectorAll<HTMLElement>(".overscroll-x-contain")].every(

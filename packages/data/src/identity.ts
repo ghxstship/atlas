@@ -164,6 +164,28 @@ export async function createOrganization(
   return ok({ orgId: data });
 }
 
+/** External accounts the caller owns that could start using Atlas (app.my_subscribable_accounts). */
+export async function listSubscribableAccounts(
+  db: XosClient,
+): Promise<Result<{ id: string; name: string; slug: string }[]>> {
+  const { data, error } = await db.rpc("my_subscribable_accounts");
+  if (error) return fail(toDataError(error));
+  return ok(data ?? []);
+}
+
+/**
+ * Journey 60: the caller's external account starts using Atlas as the same organization
+ * (app.subscribe_external_account), so its history carries over with no duplicate.
+ */
+export async function subscribeExternalAccount(
+  db: XosClient,
+  accountId: string,
+): Promise<Result<{ orgId: string }>> {
+  const { data, error } = await db.rpc("subscribe_external_account", { p_account_id: accountId });
+  if (error) return fail(toDataError(error));
+  return ok({ orgId: data });
+}
+
 /** Every org the person holds an active membership in, with the roles held, by name. */
 export async function listMyOrganizations(
   db: XosClient,

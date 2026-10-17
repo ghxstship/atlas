@@ -2,14 +2,27 @@
 # .github/workflows/ci.yml under `jobs:`. Action pins match the ones ci.yml already uses. Not loaded
 # by GitHub from this path; it lives here so the proposal is versioned and reviewable.
 
+# A38 (finding A24-008): the journeys run in Chromium, Firefox and WebKit, an `engine` matrix
+# dimension (E2E_ENGINES narrows the configs to one engine per job; the phone project runs with
+# Chromium). About three times the minutes of a Chromium-only job: an owner decision. Gateway's
+# external role journeys also drive Atlas, so its job builds and starts both apps; Atlas's config
+# starts the XOS_AI_FAKE=1 development server for the Aurora journeys (35 and 36) itself.
 e2e:
-  name: Playwright journeys (${{ matrix.app }}) (gate 6)
+  name: Playwright journeys (${{ matrix.app }}, ${{ matrix.engine }}) (gate 6)
   runs-on: ubuntu-24.04
-  timeout-minutes: 60
+  timeout-minutes: 75
   strategy:
     fail-fast: false
     matrix:
       app: [atlas, gateway, docs]
+      engine: [chromium, firefox, webkit]
+      exclude:
+        - app: docs
+          engine: firefox
+        - app: docs
+          engine: webkit
+  env:
+    E2E_ENGINES: ${{ matrix.engine }}
   steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -21,7 +34,7 @@ e2e:
       with:
         version: 2.120.0
     - run: pnpm install --frozen-lockfile
-    - run: pnpm exec playwright install --with-deps chromium
+    - run: pnpm exec playwright install --with-deps chromium ${{ matrix.engine }}
       working-directory: apps/${{ matrix.app }}
     # The full stack (Auth, PostgREST, Storage) with migrations and the demo seed, on the default
     # 554xx ports of the committed config.toml.
@@ -30,16 +43,20 @@ e2e:
       run: |
         ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
         printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\n' "$ANON" > apps/atlas/.env.local
+        printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
+        echo "E2E_ATLAS_URL=http://127.0.0.1:3006" >> "$GITHUB_ENV"
+        echo "E2E_GATEWAY_URL=http://127.0.0.1:3127" >> "$GITHUB_ENV"
         echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
         echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
     # Journeys run against production builds: dev compiles each route on first visit, and typing
     # before hydration is the race the journeys guard against.
-    - run: pnpm turbo run build --filter=@xos/${{ matrix.app }}
+    - run: pnpm turbo run build --filter=@xos/${{ matrix.app }} ${{ matrix.app == 'gateway' && '--filter=@xos/atlas' || '' }}
     - name: Start the production server
       if: matrix.app != 'docs'
       run: |
         PORT=$([ "${{ matrix.app }}" = atlas ] && echo 3006 || echo 3127)
         (cd apps/${{ matrix.app }} && pnpm exec next start --port "$PORT" &)
+        if [ "${{ matrix.app }}" = gateway ]; then (cd apps/atlas && pnpm exec next start --port 3006 &); fi
         echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
         # Production builds offer no pseudo-locales; the ar-XB journey runs in e2e-pseudo-locales.
         echo "E2E_PRODUCTION_BUILD=1" >> "$GITHUB_ENV"
@@ -48,7 +65,7 @@ e2e:
     - if: always()
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
-        name: e2e-${{ matrix.app }}
+        name: e2e-${{ matrix.app }}-${{ matrix.engine }}
         path: apps/${{ matrix.app }}/node_modules/.cache/playwright
         if-no-files-found: ignore
 

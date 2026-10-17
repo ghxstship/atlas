@@ -12,6 +12,7 @@ import {
   deleteCertificateAction,
   updateCertificateAction,
 } from "@/app/[org]/vendors/actions";
+import { CertificateExtraction } from "@/components/aurora/certificate-extraction";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
@@ -57,7 +58,8 @@ function standingOf(c: InsuranceCertificate, t: Copy, now: string): KitState {
 /**
  * Vendors > Insurance certificates: certificates of insurance on file, whether each is current
  * (derived from its validity window at read time), with a calendar of expiries. Recording needs
- * vendors.coi.write. The assistant-assisted extraction of journey 36 belongs to A25.
+ * vendors.coi.write. The new-certificate drawer offers Aurora's extraction (journey 36): fields are
+ * proposed with confidences and saved only when the person confirms.
  */
 export async function InsuranceCertificates({
   ctx,
@@ -248,6 +250,12 @@ export async function InsuranceCertificates({
   if (state.create && canWrite) {
     drawer = (
       <FormDrawer title={t("certificates.create")} closeHref={withQuery(path, state)}>
+        <CertificateExtraction
+          vendors={vendors.data.map((v) => ({
+            value: v.id,
+            label: v.name ?? t("directory.unnamed"),
+          }))}
+        />
         <EntityForm
           id="coi-create"
           action={createCertificateAction}

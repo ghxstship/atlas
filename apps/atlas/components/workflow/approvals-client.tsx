@@ -24,6 +24,7 @@ export function DecisionForm({ org, id }: { org: string; id: string }) {
       }
       submitVariant={decision === "approve" ? "primary" : "danger"}
       success={t("approvals.decide.done")}
+      announce
     >
       <fieldset className="m-0 flex flex-wrap gap-12 border-0 p-0">
         <legend className="mb-4 text-text-13 font-medium">{t("approvals.decide.legend")}</legend>
@@ -81,6 +82,7 @@ export function CancelForm({ org, id }: { org: string; id: string }) {
       submitLabel={t("approvals.cancel.submit")}
       submitVariant="danger"
       success={t("approvals.cancel.done")}
+      announce
       onDone={() => setOpen(false)}
     >
       <Textarea

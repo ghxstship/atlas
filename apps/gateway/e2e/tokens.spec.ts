@@ -1,6 +1,11 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { issueAdvanceLink, issueSigningLink } from "./fixtures";
-import { DEMO_PASSWORD, expectAccessible, expectAccessibleInBothThemes } from "./support";
+import {
+  DEMO_PASSWORD,
+  expectAccessible,
+  expectAccessibleInBothThemes,
+  reloadSettled,
+} from "./support";
 
 /**
  * Token flows without an account (Section 4.4.6; Section 20.2, journeys 9 and 50): a signing link
@@ -34,7 +39,7 @@ test("a signing link opens with its code and signs once", async ({ page }) => {
   await expectAccessible(page);
 
   // The signature is final: the same link no longer offers to sign.
-  await page.reload();
+  await reloadSettled(page);
   await page.getByLabel("Access code").fill(link.code);
   await page.getByRole("button", { name: "Open", exact: true }).click();
   await expect(page.getByText("Status: Signed")).toBeVisible();

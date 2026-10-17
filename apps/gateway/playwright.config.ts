@@ -1,23 +1,56 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices, type Project } from "@playwright/test";
 
 /**
  * Gateway end-to-end tests (Section 18, gate 6; Section 20.2 Gateway journeys) against a local
  * Supabase stack with the demo seed and a running Gateway. `pnpm --filter @xos/gateway e2e` starts
- * `next dev` on E2E_PORT (3127 by default) unless a server already answers there.
+ * `next dev` on E2E_PORT (3127 by default) unless a server already answers there; start
+ * `next start` first to run the journeys against a production build.
+ *
+ * The external role journeys cross into Atlas for the org's side (journeys 4, 29, 41 to 48 and
+ * 59 to 62), so Atlas is started too, on E2E_ATLAS_URL (http://127.0.0.1:3006 by default), unless
+ * it already answers there. Each person drives their own browser context.
  *
  * E2E_SUPABASE_URL and E2E_DATABASE_URL name the stack (by default the A27 stack on block 569);
  * fixtures connect as postgres to that local stack only, to build the states a journey needs.
- * PLAYWRIGHT_CHROMIUM_EXECUTABLE points at a locally installed Chromium when the pinned build is
- * not installed; CI installs the pinned build with `playwright install chromium`.
+ *
+ * Section 18, gate 6: the journeys run in Chromium, Firefox and WebKit, plus a phone viewport.
+ * E2E_ENGINES narrows the desktop engines (for example `E2E_ENGINES=chromium`); all three run by
+ * default. PLAYWRIGHT_CHROMIUM_EXECUTABLE, PLAYWRIGHT_FIREFOX_EXECUTABLE and
+ * PLAYWRIGHT_WEBKIT_EXECUTABLE point at locally installed browsers when the pinned builds are not
+ * installed; CI installs the pinned builds with `playwright install chromium firefox webkit`.
  */
 const port = Number(process.env["E2E_PORT"] ?? 3127);
 const baseURL = process.env["E2E_BASE_URL"] ?? `http://127.0.0.1:${port}`;
-const executablePath = process.env["PLAYWRIGHT_CHROMIUM_EXECUTABLE"];
+const atlasURL = process.env["E2E_ATLAS_URL"] ?? "http://127.0.0.1:3006";
 const supabaseUrl = process.env["E2E_SUPABASE_URL"] ?? "http://127.0.0.1:56921";
 // The anon key is the publishable key of every local Supabase stack; RLS guards every row.
 const anonKey =
   process.env["E2E_SUPABASE_ANON_KEY"] ??
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+const engines = new Set(
+  (process.env["E2E_ENGINES"] ?? "chromium,firefox,webkit").split(",").map((e) => e.trim()),
+);
+
+/** Launch options naming a locally installed browser, when the variable is set. */
+function launch(variable: string) {
+  const executablePath = process.env[variable];
+  return executablePath ? { launchOptions: { executablePath } } : {};
+}
+
+const desktop: Project[] = [
+  {
+    name: "chromium",
+    use: { ...devices["Desktop Chrome"], ...launch("PLAYWRIGHT_CHROMIUM_EXECUTABLE") },
+  },
+  {
+    name: "firefox",
+    use: { ...devices["Desktop Firefox"], ...launch("PLAYWRIGHT_FIREFOX_EXECUTABLE") },
+  },
+  {
+    name: "webkit",
+    use: { ...devices["Desktop Safari"], ...launch("PLAYWRIGHT_WEBKIT_EXECUTABLE") },
+  },
+];
 
 export default defineConfig({
   testDir: "./e2e",
@@ -30,22 +63,37 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "retain-on-failure",
-    ...(executablePath ? { launchOptions: { executablePath } } : {}),
+    // A missing control fails the step in seconds instead of holding the whole test timeout.
+    actionTimeout: 20_000,
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] }, testIgnore: /mobile\.spec\.ts/ },
-    { name: "mobile", use: { ...devices["Pixel 7"] }, testMatch: /mobile\.spec\.ts/ },
-  ],
-  webServer: {
-    command: `pnpm exec next dev --port ${port}`,
-    url: `${baseURL}/auth/sign-in`,
-    reuseExistingServer: true,
-    timeout: 180_000,
-    env: {
-      SUPABASE_URL: supabaseUrl,
-      SUPABASE_ANON_KEY: anonKey,
-      GATEWAY_SITE_URL: baseURL,
-      GATEWAY_PLATFORM_HOSTS: "127.0.0.1,localhost",
+    ...desktop
+      .filter((p) => engines.has(p.name ?? ""))
+      .map((p) => ({ ...p, testIgnore: /mobile\.spec\.ts/ })),
+    {
+      name: "mobile",
+      use: { ...devices["Pixel 7"], ...launch("PLAYWRIGHT_CHROMIUM_EXECUTABLE") },
+      testMatch: /mobile\.spec\.ts/,
     },
-  },
+  ],
+  webServer: [
+    {
+      command: `pnpm exec next dev --port ${port}`,
+      url: `${baseURL}/auth/sign-in`,
+      reuseExistingServer: true,
+      timeout: 180_000,
+      env: {
+        SUPABASE_URL: supabaseUrl,
+        SUPABASE_ANON_KEY: anonKey,
+        GATEWAY_SITE_URL: baseURL,
+        GATEWAY_PLATFORM_HOSTS: "127.0.0.1,localhost",
+      },
+    },
+    {
+      command: `pnpm --filter @xos/atlas exec next dev --port ${new URL(atlasURL).port}`,
+      url: `${atlasURL}/auth/sign-in`,
+      reuseExistingServer: true,
+      timeout: 180_000,
+    },
+  ],
 });

@@ -1,6 +1,12 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { completeVendorEngagement } from "./fixtures";
-import { expectAccessible, expectAccessibleInBothThemes, signIn, uniqueId } from "./support";
+import {
+  expectAccessible,
+  expectAccessibleInBothThemes,
+  reloadSettled,
+  signIn,
+  uniqueId,
+} from "./support";
 
 /**
  * Vendor reputation on Gateway (Section 20.2, journey 49): after a Complete engagement the vendor
@@ -25,7 +31,7 @@ test("a vendor rates a completed engagement and replies to the org's rating", as
   await form.getByRole("button", { name: "Send rating" }).click();
   await expect(page.getByText(/^Rating sent\./)).toBeVisible();
 
-  await page.reload();
+  await reloadSettled(page);
   await expect(page.getByRole("form", { name: "Rate Demo Productions" })).toHaveCount(0);
   await expect(page.getByText(/^Thanks\. Both ratings appear/)).toBeVisible();
 
@@ -37,7 +43,7 @@ test("a vendor rates a completed engagement and replies to the org's rating", as
   await rating.getByRole("textbox", { name: "Public reply" }).fill(reply);
   await rating.getByRole("button", { name: "Reply" }).click();
   await expect(rating.getByText("Reply posted.")).toBeVisible();
-  await page.reload();
+  await reloadSettled(page);
   await expect(
     page.getByRole("listitem").filter({ hasText: engagement.comment }).getByText(`Reply: ${reply}`),
   ).toBeVisible();

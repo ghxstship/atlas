@@ -45,21 +45,26 @@ export interface ExtractionTarget {
 
 /** Targets follow the OpenAPI v1 create schemas; ids such as document_id come from the caller. */
 export const EXTRACTION_TARGETS: Readonly<Record<DocumentKind, ExtractionTarget>> = {
+  // Field paths follow the corrected insuranceCertificates.create body (the API catalog's Vendors
+  // correction); the insured vendor_id comes from the person when they confirm.
   insurance_certificate: {
     operationId: "insuranceCertificates.create",
     fields: [
+      { path: "insurer", kind: "text", description: "Insurer as printed, for example Insurer A." },
+      { path: "policy_identifier", kind: "text", description: "Policy number as printed." },
       {
         path: "coverage_type",
         kind: "text",
         description: "Coverage type, for example General Liability.",
       },
       {
-        path: "each_occurrence_minor",
+        path: "coverage_limit_minor",
         kind: "money",
         description: "Each occurrence limit in minor units.",
       },
-      { path: "currency", kind: "currency", description: "ISO 4217 currency of the limit." },
-      { path: "expires_on", kind: "date", description: "Policy expiry date, YYYY-MM-DD." },
+      { path: "currency_code", kind: "currency", description: "ISO 4217 currency of the limit." },
+      { path: "valid_from", kind: "date", description: "Policy effective date, YYYY-MM-DD." },
+      { path: "valid_to", kind: "date", description: "Policy expiry date, YYYY-MM-DD." },
     ],
   },
   invoice: {

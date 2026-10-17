@@ -3,7 +3,7 @@ import { listTrash } from "@xos/data/workflow";
 import { getLocale, getTranslations } from "next-intl/server";
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
 import type { OrgContext } from "@/lib/shell/context";
-import { EmptyPanel, ErrorPanel } from "./kit";
+import { EmptyPanel, ErrorPanel, PageStatus } from "./kit";
 import { RestoreButton, TrashFilters } from "./trash-client";
 
 /**
@@ -56,72 +56,74 @@ export async function TrashView({
       header={<PageHeader title={title} count={items.data.length} />}
       filters={<TrashFilters tables={tables} table={table} q={q} />}
     >
-      <div className="flex flex-col gap-12">
-        <p className="m-0 max-w-layout-reading text-text-13 text-text-secondary">
-          {t("trash.sentence")}
-        </p>
-        {items.data.length === 0 ? (
-          <EmptyPanel
-            icon="Trash2"
-            sentence={filtered ? t("trash.emptyFiltered") : t("trash.empty")}
-            actionLabel={filtered ? t("trash.clearFilters") : t("trash.emptyAction")}
-            href={filtered ? `/${org}/trash` : `/${org}/home`}
-          />
-        ) : (
-          <div className="overflow-x-auto rounded-card border border-border-subtle">
-            <table className="w-full border-collapse text-text-13">
-              <caption className="sr-only">{t("trash.caption")}</caption>
-              <thead>
-                <tr className="border-b border-border-subtle text-left text-text-12 text-text-secondary">
-                  <th scope="col" className="px-12 py-8 font-medium">
-                    {t("trash.columns.title")}
-                  </th>
-                  <th scope="col" className="px-12 py-8 font-medium">
-                    {t("trash.columns.kind")}
-                  </th>
-                  <th scope="col" className="px-12 py-8 font-medium">
-                    {t("trash.columns.project")}
-                  </th>
-                  <th scope="col" className="px-12 py-8 font-medium">
-                    {t("trash.columns.deleted")}
-                  </th>
-                  <th scope="col" className="px-12 py-8 font-medium">
-                    {t("trash.columns.purge")}
-                  </th>
-                  <th scope="col" className="px-12 py-8 text-right font-medium">
-                    {t("trash.columns.actions")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.data.map((i) => (
-                  <tr key={i.urn} className="border-b border-border-subtle last:border-b-0">
-                    <th scope="row" className="px-12 py-8 text-left font-medium">
-                      {i.title ?? t("trash.untitled")}
+      <PageStatus>
+        <div className="flex flex-col gap-12">
+          <p className="m-0 max-w-layout-reading text-text-13 text-text-secondary">
+            {t("trash.sentence")}
+          </p>
+          {items.data.length === 0 ? (
+            <EmptyPanel
+              icon="Trash2"
+              sentence={filtered ? t("trash.emptyFiltered") : t("trash.empty")}
+              actionLabel={filtered ? t("trash.clearFilters") : t("trash.emptyAction")}
+              href={filtered ? `/${org}/trash` : `/${org}/home`}
+            />
+          ) : (
+            <div className="overflow-x-auto rounded-card border border-border-subtle">
+              <table className="w-full border-collapse text-text-13">
+                <caption className="sr-only">{t("trash.caption")}</caption>
+                <thead>
+                  <tr className="border-b border-border-subtle text-left text-text-12 text-text-secondary">
+                    <th scope="col" className="px-12 py-8 font-medium">
+                      {t("trash.columns.title")}
                     </th>
-                    <td className="px-12 py-8 font-mono text-text-12">{i.table}</td>
-                    <td className="px-12 py-8">
-                      {i.projectId
-                        ? (projectKey.get(i.projectId) ?? t("common.otherProject"))
-                        : t("common.orgWide")}
-                    </td>
-                    <td className="px-12 py-8">{when(i.deletedAt)}</td>
-                    <td className="px-12 py-8">{day(i.purgeAfter)}</td>
-                    <td className="px-12 py-8 text-right">
-                      <RestoreButton
-                        org={org}
-                        table={i.table}
-                        id={i.id}
-                        title={i.title ?? i.table}
-                      />
-                    </td>
+                    <th scope="col" className="px-12 py-8 font-medium">
+                      {t("trash.columns.kind")}
+                    </th>
+                    <th scope="col" className="px-12 py-8 font-medium">
+                      {t("trash.columns.project")}
+                    </th>
+                    <th scope="col" className="px-12 py-8 font-medium">
+                      {t("trash.columns.deleted")}
+                    </th>
+                    <th scope="col" className="px-12 py-8 font-medium">
+                      {t("trash.columns.purge")}
+                    </th>
+                    <th scope="col" className="px-12 py-8 text-right font-medium">
+                      {t("trash.columns.actions")}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                </thead>
+                <tbody>
+                  {items.data.map((i) => (
+                    <tr key={i.urn} className="border-b border-border-subtle last:border-b-0">
+                      <th scope="row" className="px-12 py-8 text-left font-medium">
+                        {i.title ?? t("trash.untitled")}
+                      </th>
+                      <td className="px-12 py-8 font-mono text-text-12">{i.table}</td>
+                      <td className="px-12 py-8">
+                        {i.projectId
+                          ? (projectKey.get(i.projectId) ?? t("common.otherProject"))
+                          : t("common.orgWide")}
+                      </td>
+                      <td className="px-12 py-8">{when(i.deletedAt)}</td>
+                      <td className="px-12 py-8">{day(i.purgeAfter)}</td>
+                      <td className="px-12 py-8 text-right">
+                        <RestoreButton
+                          org={org}
+                          table={i.table}
+                          id={i.id}
+                          title={i.title ?? i.table}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </PageStatus>
     </TemplateCollection>
   );
 }

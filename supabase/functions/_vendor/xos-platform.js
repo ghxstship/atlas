@@ -1903,6 +1903,48 @@ var aurora_default$1 = {
     menuDescription: "Ask about your shifts, SOPs and handbook.",
   },
 };
+var auroraCertificates_default$1 = {
+  title: "Read a certificate with Aurora",
+  sentence:
+    "Choose the vendor and the certificate file. Aurora proposes each field with its confidence; nothing is saved until you confirm.",
+  vendor: "Insured vendor",
+  chooseVendor: "Choose a vendor",
+  file: "Certificate file",
+  fileHelp: "A PDF, image or text file of the certificate, up to 10 MB.",
+  extract: "Read with Aurora",
+  running: "Aurora is reading the certificate.",
+  tooLarge: "This file is larger than 10 MB. Choose a smaller file.",
+  needVendor: "Choose the insured vendor before reading the certificate.",
+  noAnswer: "Aurora could not read any field from this certificate: {missing}",
+  failed: "Aurora could not read the certificate. Nothing was changed. Try again.",
+  review:
+    "Review what Aurora read. Confirm to save the certificate, or discard it and enter it by hand.",
+  caption: "Fields Aurora read from the certificate",
+  field: "Field",
+  value: "Value",
+  confidence: "Confidence",
+  confidenceValue: "{percent}%",
+  notRead: "Not read: {missing}",
+  provenance: "Proposed by Aurora, an AI assistant",
+  missingRequired:
+    "Aurora could not read every required field. Discard this proposal and enter the certificate by hand.",
+  confirm: "Confirm and save",
+  discard: "Discard",
+  confirmReason: "Confirmed after review of the extracted certificate.",
+  discardReason: "Discarded after review of the extracted certificate.",
+  saved: "Certificate saved from the document.",
+  discarded: "Proposal discarded. Nothing was saved.",
+  saveFailed: "The certificate was not saved: {detail}",
+  fields: {
+    insurer: "Insurer",
+    policy_identifier: "Policy number",
+    coverage_type: "Coverage type",
+    coverage_limit_minor: "Each occurrence limit",
+    currency_code: "Currency",
+    valid_from: "Valid from",
+    valid_to: "Valid to",
+  },
+};
 var canonBrowser_default$1 = {
   what: "the canon",
   empty:
@@ -5913,6 +5955,11 @@ var gateway_default$1 = {
       },
     },
   },
+};
+var gatewayOnboarding_default$1 = {
+  acknowledge: "I have read and acknowledge this",
+  acknowledged: "Acknowledged. The organization verifies it next.",
+  acknowledgeHint: "Read the briefing the organization shared, then acknowledge it here.",
 };
 var help_default$1 = {
   button: "Help",
@@ -12145,6 +12192,15 @@ var status_default$1 = {
   footer:
     "Measured by synthetic checks against the live service. Targets: 99.9 percent monthly availability for Atlas and the API.",
 };
+var subscribeAccount_default$1 = {
+  title: "Use your company in Atlas",
+  lead: "You own these company accounts in Gateway. Start Atlas with one of them and its profile, ratings and history come with it; no second organization is created.",
+  use: "Use {name} in Atlas",
+  acceptError: "Accept the terms to start Atlas with this company.",
+  refused: "This company already uses Atlas. Open it from the organization switcher.",
+  unexpected: "We could not start Atlas for this company. Try again in a moment.",
+  or: "Or create a new organization",
+};
 var support_default$1 = {
   categories: {
     Question: "Question",
@@ -16787,6 +16843,48 @@ var aurora_default = {
     menuDescription: "Pregunta sobre tus turnos, SOP y manual.",
   },
 };
+var auroraCertificates_default = {
+  title: "Leer un certificado con Aurora",
+  sentence:
+    "Elige el proveedor y el archivo del certificado. Aurora propone cada campo con su confianza; no se guarda nada hasta que lo confirmes.",
+  vendor: "Proveedor asegurado",
+  chooseVendor: "Elige un proveedor",
+  file: "Archivo del certificado",
+  fileHelp: "Un archivo PDF, imagen o texto del certificado, de hasta 10 MB.",
+  extract: "Leer con Aurora",
+  running: "Aurora está leyendo el certificado.",
+  tooLarge: "Este archivo supera los 10 MB. Elige un archivo más pequeño.",
+  needVendor: "Elige el proveedor asegurado antes de leer el certificado.",
+  noAnswer: "Aurora no pudo leer ningún campo de este certificado: {missing}",
+  failed: "Aurora no pudo leer el certificado. No se cambió nada. Inténtalo de nuevo.",
+  review:
+    "Revisa lo que leyó Aurora. Confirma para guardar el certificado, o descártalo e ingrésalo a mano.",
+  caption: "Campos que Aurora leyó del certificado",
+  field: "Campo",
+  value: "Valor",
+  confidence: "Confianza",
+  confidenceValue: "{percent} %",
+  notRead: "No leído: {missing}",
+  provenance: "Propuesto por Aurora, un asistente de IA",
+  missingRequired:
+    "Aurora no pudo leer todos los campos obligatorios. Descarta esta propuesta e ingresa el certificado a mano.",
+  confirm: "Confirmar y guardar",
+  discard: "Descartar",
+  confirmReason: "Confirmado tras revisar el certificado extraído.",
+  discardReason: "Descartado tras revisar el certificado extraído.",
+  saved: "Certificado guardado desde el documento.",
+  discarded: "Propuesta descartada. No se guardó nada.",
+  saveFailed: "No se guardó el certificado: {detail}",
+  fields: {
+    insurer: "Aseguradora",
+    policy_identifier: "Número de póliza",
+    coverage_type: "Tipo de cobertura",
+    coverage_limit_minor: "Límite por ocurrencia",
+    currency_code: "Moneda",
+    valid_from: "Válido desde",
+    valid_to: "Válido hasta",
+  },
+};
 var canonBrowser_default = {
   what: "el canon",
   empty:
@@ -20909,6 +21007,11 @@ var gateway_default = {
       },
     },
   },
+};
+var gatewayOnboarding_default = {
+  acknowledge: "Lo he leído y lo acepto",
+  acknowledged: "Aceptado. La organización lo verifica a continuación.",
+  acknowledgeHint: "Lee la sesión informativa que compartió la organización y luego acéptala aquí.",
 };
 var help_default = {
   button: "Ayuda",
@@ -27315,6 +27418,15 @@ var status_default = {
   footer:
     "Medido con revisiones sintéticas contra el servicio en vivo. Objetivo: 99,9 por ciento de disponibilidad mensual para Atlas y la API.",
 };
+var subscribeAccount_default = {
+  title: "Usa tu empresa en Atlas",
+  lead: "Eres propietario de estas cuentas de empresa en Gateway. Comienza Atlas con una de ellas y su perfil, calificaciones e historial la acompañan; no se crea una segunda organización.",
+  use: "Usar {name} en Atlas",
+  acceptError: "Acepta los términos para comenzar Atlas con esta empresa.",
+  refused: "Esta empresa ya usa Atlas. Ábrela desde el selector de organizaciones.",
+  unexpected: "No pudimos comenzar Atlas para esta empresa. Inténtalo de nuevo en un momento.",
+  or: "O crea una organización nueva",
+};
 var support_default = {
   categories: {
     Question: "Pregunta",
@@ -30855,6 +30967,7 @@ var enUS = {
   advancing: advancing_default$1,
   assets: assets_default$1,
   aurora: aurora_default$1,
+  auroraCertificates: auroraCertificates_default$1,
   canonBrowser: canonBrowser_default$1,
   compass: compass_default$1,
   credentials: credentials_default$1,
@@ -30863,6 +30976,7 @@ var enUS = {
   email: email_default$1,
   finance: finance_default$1,
   gateway: gateway_default$1,
+  gatewayOnboarding: gatewayOnboarding_default$1,
   help: help_default$1,
   home: home_default$1,
   hospitality: hospitality_default$1,
@@ -30889,6 +31003,7 @@ var enUS = {
   shipmentTracking: shipmentTracking_default$1,
   show: show_default$1,
   status: status_default$1,
+  subscribeAccount: subscribeAccount_default$1,
   support: support_default$1,
   ui: ui_default$1,
   vendors: vendors_default$1,
@@ -30902,6 +31017,7 @@ var esUS = {
   advancing: advancing_default,
   assets: assets_default,
   aurora: aurora_default,
+  auroraCertificates: auroraCertificates_default,
   canonBrowser: canonBrowser_default,
   compass: compass_default,
   credentials: credentials_default,
@@ -30910,6 +31026,7 @@ var esUS = {
   email: email_default,
   finance: finance_default,
   gateway: gateway_default,
+  gatewayOnboarding: gatewayOnboarding_default,
   help: help_default,
   home: home_default,
   hospitality: hospitality_default,
@@ -30936,6 +31053,7 @@ var esUS = {
   shipmentTracking: shipmentTracking_default,
   show: show_default,
   status: status_default,
+  subscribeAccount: subscribeAccount_default,
   support: support_default,
   ui: ui_default,
   vendors: vendors_default,

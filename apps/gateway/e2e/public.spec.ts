@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { DEMO, expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
 
 /**

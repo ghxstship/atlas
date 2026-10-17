@@ -56,21 +56,21 @@ describe("document extraction", () => {
             missing: null,
           },
           {
-            field_path: "each_occurrence_minor",
+            field_path: "coverage_limit_minor",
             value: 200000000,
             confidence: 0.9,
             source_excerpt: "EACH OCCURRENCE $ 2,000,000",
             missing: null,
           },
           {
-            field_path: "currency",
+            field_path: "currency_code",
             value: "USD",
             confidence: 0.7,
             source_excerpt: null,
             missing: null,
           },
           {
-            field_path: "expires_on",
+            field_path: "valid_to",
             value: "2027-03-31",
             confidence: 0.6,
             source_excerpt: "Policy period ends next spring",
@@ -86,14 +86,24 @@ describe("document extraction", () => {
       fileName: "coi-atlantic.pdf",
       subject: { table: "app.documents", id: "d1" },
     });
-    expect(result).toMatchObject({ kind: "answer", value: { answered: 3, refused: 1 } });
+    // Insurer, policy number and effective date are not in the answer: NO_ANSWER, never guessed.
+    expect(result).toMatchObject({ kind: "answer", value: { answered: 3, refused: 4 } });
     const fields = log.proposed[0]?.change.fields ?? [];
     expect(log.proposed[0]?.change.operationId).toBe("insuranceCertificates.create");
-    expect(fields.find((f) => f.field_path === "each_occurrence_minor")).toMatchObject({
+    expect(fields.map((f) => f.field_path)).toEqual([
+      "insurer",
+      "policy_identifier",
+      "coverage_type",
+      "coverage_limit_minor",
+      "currency_code",
+      "valid_from",
+      "valid_to",
+    ]);
+    expect(fields.find((f) => f.field_path === "coverage_limit_minor")).toMatchObject({
       value: 200000000,
       confidence: 0.9,
     });
-    expect(fields.find((f) => f.field_path === "expires_on")).toMatchObject({
+    expect(fields.find((f) => f.field_path === "valid_to")).toMatchObject({
       refusal: "NO_ANSWER",
     });
     expect(model.requests[0]?.messages[0]?.content[0]).toEqual(pdf);

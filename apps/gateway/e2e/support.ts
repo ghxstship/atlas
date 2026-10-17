@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
 import pg from "pg";
+import { settle } from "./engine-test";
 
 /**
  * Gateway end-to-end support: sign-in as the demo people of the seed (supabase/seeds/0010, shared
@@ -87,6 +88,15 @@ export async function expectAccessibleInBothThemes(page: Page): Promise<void> {
     }, theme);
     await expectAccessible(page);
   }
+}
+
+/**
+ * Reloads once the page is quiet. A server action ends with Next refreshing the route; Firefox
+ * aborts a reload issued while that refresh is in flight (NS_BINDING_ABORTED, finding A24-008).
+ */
+export async function reloadSettled(page: Page): Promise<void> {
+  await settle(page);
+  await page.reload();
 }
 
 /** Signs in with the demo password and waits for the page the sign-in sends to. */

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { DEMO_VENDOR_ACCOUNT, publishVendorBidOpportunity } from "./fixtures";
 import { expectAccessible, signIn, sql } from "./support";
 

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { fillRoute, flattenRoutes, isNodeVisible } from "@xos/ia";
 import { sitemap } from "../ia/sitemap.generated";
 import { DATA_PARAMS, DELEGATED } from "../ia/routes.config";

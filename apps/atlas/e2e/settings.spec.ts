@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
 
 /**
@@ -77,4 +77,20 @@ test("settings pages render axe clean and the org lock holds", async ({ page }) 
   await expect(page.getByText("Saved.")).toBeVisible();
   await page.goto(`/${slug}/home`);
   await expect(page.locator(`a[href="/${slug}/hospitality"]`)).toHaveCount(0);
+
+  // A24-003: Site Operations is switchable too, and the whole form saves in one pass.
+  await page.goto(`/${slug}/settings/modules`);
+  await expect(page.getByRole("checkbox", { name: "Hospitality" })).not.toBeChecked();
+  await page.getByRole("checkbox", { name: "Site Operations" }).uncheck();
+  await page.getByRole("button", { name: "Save modules" }).click();
+  await expect(page.getByText("Saved.")).toBeVisible();
+  await page.goto(`/${slug}/home`);
+  await expect(page.locator(`a[href="/${slug}/site-ops"]`)).toHaveCount(0);
+  await expect(page.locator(`a[href="/${slug}/hospitality"]`)).toHaveCount(0);
+  await page.goto(`/${slug}/settings/modules`);
+  await page.getByRole("checkbox", { name: "Site Operations" }).check();
+  await page.getByRole("button", { name: "Save modules" }).click();
+  await expect(page.getByText("Saved.")).toBeVisible();
+  await page.goto(`/${slug}/home`);
+  await expect(page.locator(`a[href="/${slug}/site-ops"]`).first()).toBeAttached();
 });

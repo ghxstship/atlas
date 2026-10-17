@@ -3,10 +3,10 @@
 import { Button, Input, Select } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useActionState, useState } from "react";
+import { useActionState, useCallback, useState } from "react";
 import { restoreAction } from "@/app/[org]/trash/actions";
-import { INITIAL_STATE } from "@/lib/workflow/state";
-import { Feedback, useWorkflowT } from "./kit";
+import { INITIAL_STATE, type WorkflowActionState } from "@/lib/workflow/state";
+import { Feedback, usePageStatus, useWorkflowT } from "./kit";
 
 /** Restore one row; the outcome (rows restored, or why not) shows beside the button. */
 export function RestoreButton({
@@ -21,7 +21,18 @@ export function RestoreButton({
   title: string;
 }) {
   const t = useWorkflowT();
-  const [state, action, pending] = useActionState(restoreAction, INITIAL_STATE);
+  const pageStatus = usePageStatus();
+  // The restored row leaves Trash on revalidation, so success is announced in the page's status
+  // region (finding A24-001); refusals stay beside the button, whose row is still there.
+  const restoring = useCallback(
+    async (previous: WorkflowActionState, form: FormData) => {
+      const next = await restoreAction(previous, form);
+      if (next.ok && pageStatus) pageStatus(t("trash.restored", { count: Number(next.id ?? 1) }));
+      return next;
+    },
+    [pageStatus, t],
+  );
+  const [state, action, pending] = useActionState(restoring, INITIAL_STATE);
   return (
     <form action={action} className="flex flex-col items-end gap-4">
       <input type="hidden" name="org" value={org} />
@@ -36,7 +47,12 @@ export function RestoreButton({
         {t("trash.restore")}
       </Button>
       <div aria-live="polite">
-        <Feedback state={state} success={t("trash.restored", { count: Number(state.id ?? 1) })} />
+        <Feedback
+          state={state}
+          {...(pageStatus
+            ? {}
+            : { success: t("trash.restored", { count: Number(state.id ?? 1) }) })}
+        />
       </div>
     </form>
   );
