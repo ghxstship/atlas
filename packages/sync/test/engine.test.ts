@@ -7,6 +7,8 @@ function setup(network: NetworkState = OFFLINE) {
   const store = new MemoryStore();
   const server = new FakeServer();
   const outbox = new Outbox(store, { now: clock.now, newId: sequentialIds() });
+  /** Retry timers the engine armed, still pending; tests fire them by hand. */
+  const timers: { ms: number; run: () => void; cancelled: boolean }[] = [];
   const engine = new SyncEngine({
     store,
     outbox,
@@ -15,8 +17,23 @@ function setup(network: NetworkState = OFFLINE) {
     now: clock.now,
     random: () => 0.5,
     backoff: { baseMs: 1_000, maxMs: 60_000 },
+    schedule: (ms, run) => {
+      const timer = {
+        ms,
+        run: () => {
+          timer.cancelled = true;
+          run();
+        },
+        cancelled: false,
+      };
+      timers.push(timer);
+      return () => {
+        timer.cancelled = true;
+      };
+    },
   });
-  return { clock, store, server, outbox, engine };
+  const pending = () => timers.filter((t) => !t.cancelled);
+  return { clock, store, server, outbox, engine, pending };
 }
 
 function punch(id: string, kind: string) {
@@ -88,6 +105,41 @@ describe("airplane mode", () => {
     expect(await engine.drain()).toEqual({ uploaded: 1, conflicts: 0, stoppedBy: "empty" });
     expect(server.tables.get("clock_punches")?.size).toBe(1);
     expect(await outbox.count()).toBe(0);
+  });
+});
+
+describe("retry on its own (simulator defect: a queue left by a server outage never drained)", () => {
+  it("arms a timer for the earliest retry after a transient failure and drains when it fires", async () => {
+    const { clock, server, outbox, engine, pending } = setup(ONLINE);
+    await outbox.enqueue(punch("p1", "In"));
+    server.script.push("network-down");
+    expect((await engine.drain()).stoppedBy).toBe("transient");
+    // First retry: base 1 s, jittered by 0.75.
+    expect(pending().map((t) => t.ms)).toEqual([750]);
+    clock.advance(750);
+    pending()[0]?.run();
+    await engine.drain();
+    expect(await outbox.count()).toBe(0);
+    expect(server.received.map((m) => m.rowId)).toEqual(["p1", "p1"]);
+    expect(pending()).toEqual([]);
+  });
+
+  it("keeps a single timer, arms none once the queue is empty or offline, and stops on dispose", async () => {
+    const { server, outbox, engine, pending } = setup(ONLINE);
+    await outbox.enqueue(punch("p1", "In"));
+    server.script.push("network-down");
+    await engine.drain();
+    expect((await engine.drain()).stoppedBy).toBe("backoff");
+    expect(pending()).toHaveLength(1);
+    engine.dispose();
+    expect(pending()).toHaveLength(0);
+    const empty = setup(ONLINE);
+    expect((await empty.engine.drain()).stoppedBy).toBe("empty");
+    expect(empty.pending()).toHaveLength(0);
+    const offline = setup(OFFLINE);
+    await offline.outbox.enqueue(punch("p1", "In"));
+    expect((await offline.engine.drain()).stoppedBy).toBe("offline");
+    expect(offline.pending()).toHaveLength(0);
   });
 });
 

@@ -206,6 +206,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     return () => {
       stopStatus();
       stopNetwork();
+      engine.dispose();
     };
   }, [engine]);
 

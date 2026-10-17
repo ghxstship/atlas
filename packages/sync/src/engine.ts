@@ -36,6 +36,17 @@ export interface SyncEngineOptions {
   readonly backoff?: BackoffOptions;
   /** Automatic field merges allowed per mutation in one drain before it goes to the resolution sheet. */
   readonly maxRebases?: number;
+  /**
+   * Arms a timer and returns its cancel function; setTimeout by default. A drain that stops on a
+   * transient failure or a backoff uses it to try again at the earliest retry time, so a queue left by a
+   * server outage drains on its own while the device stays online.
+   */
+  readonly schedule?: (ms: number, run: () => void) => () => void;
+}
+
+function defaultSchedule(ms: number, run: () => void): () => void {
+  const timer = setTimeout(run, ms);
+  return () => clearTimeout(timer);
 }
 
 export type DrainStop = "empty" | "offline" | "backoff" | "transient" | "auth" | "blocked";
@@ -68,6 +79,8 @@ export class SyncEngine {
   readonly #backoff: BackoffOptions;
   readonly #maxRebases: number;
   readonly #listeners = new Set<StatusListener>();
+  readonly #schedule: (ms: number, run: () => void) => () => void;
+  #cancelRetry: (() => void) | null = null;
   #network: NetworkState;
   #draining: Promise<DrainReport> | null = null;
   #authRequired = false;
@@ -82,6 +95,7 @@ export class SyncEngine {
     this.#random = options.random ?? Math.random;
     this.#backoff = options.backoff ?? DEFAULT_BACKOFF;
     this.#maxRebases = options.maxRebases ?? 3;
+    this.#schedule = options.schedule ?? defaultSchedule;
     options.store.subscribe(() => {
       void this.#emit();
     });
@@ -108,14 +122,42 @@ export class SyncEngine {
   /** Drains the queue. Concurrent calls share one drain. */
   drain(): Promise<DrainReport> {
     if (this.#draining) return this.#draining;
-    const run = this.#drain().finally(() => {
-      this.#draining = null;
-      this.#lastDrainAt = this.#now();
-      void this.#emit();
-    });
+    this.#cancelRetry?.();
+    this.#cancelRetry = null;
+    const run = this.#drain()
+      .then(async (report) => {
+        if (report.stoppedBy === "transient" || report.stoppedBy === "backoff") {
+          await this.#armRetry();
+        }
+        return report;
+      })
+      .finally(() => {
+        this.#draining = null;
+        this.#lastDrainAt = this.#now();
+        void this.#emit();
+      });
     this.#draining = run;
     void this.#emit();
     return run;
+  }
+
+  /** Stops the retry timer, when the session ends. */
+  dispose(): void {
+    this.#cancelRetry?.();
+    this.#cancelRetry = null;
+  }
+
+  /** Drains again once the earliest waiting mutation's backoff runs out. */
+  async #armRetry(): Promise<void> {
+    const due = (await this.outbox.all())
+      .filter((m) => m.status !== "conflict")
+      .reduce((min, m) => Math.min(min, m.nextAttemptAt), Number.POSITIVE_INFINITY);
+    if (!Number.isFinite(due)) return;
+    this.#cancelRetry?.();
+    this.#cancelRetry = this.#schedule(Math.max(0, due - this.#now()), () => {
+      this.#cancelRetry = null;
+      void this.drain();
+    });
   }
 
   subscribe(listener: StatusListener): () => void {
