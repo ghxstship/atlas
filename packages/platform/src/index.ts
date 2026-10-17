@@ -59,6 +59,7 @@ export {
   billingStore,
   inboundStore,
   kioskPunch,
+  gatewayLink,
   notificationStore,
   supabaseDb,
   webhookStore,

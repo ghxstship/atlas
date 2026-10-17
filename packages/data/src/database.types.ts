@@ -27931,6 +27931,75 @@ export type Database = {
           },
         ];
       };
+      person_notification_preferences: {
+        Row: {
+          category_code: string;
+          channel: Database["app"]["Enums"]["notification_channel"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          enabled: boolean;
+          id: string;
+          person_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          category_code: string;
+          channel: Database["app"]["Enums"]["notification_channel"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          enabled: boolean;
+          id?: string;
+          person_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          category_code?: string;
+          channel?: Database["app"]["Enums"]["notification_channel"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          enabled?: boolean;
+          id?: string;
+          person_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "person_notification_preferences_category_code_fkey";
+            columns: ["category_code"];
+            isOneToOne: false;
+            referencedRelation: "notification_categories";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "person_notification_preferences_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_notification_preferences_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_notification_preferences_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       person_profiles: {
         Row: {
           bio: string | null;

@@ -29,6 +29,8 @@ serve(async (request) => {
       return `${functionsUrl}/email-unsubscribe?token=${encodeURIComponent(String(token))}`;
     },
     inboundDomain: Deno.env.get("XOS_INBOUND_DOMAIN") ?? null,
+    // External parties' notifications (1131) link to Gateway.
+    gatewayUrl: Deno.env.get("XOS_GATEWAY_URL") ?? null,
   });
   return json(200, await dispatchEmail(store, createTransport(emailEnv)));
 });

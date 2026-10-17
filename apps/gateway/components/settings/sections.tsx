@@ -18,6 +18,7 @@ import {
   listSectionVisibility,
   PROFILE_SECTIONS,
 } from "@xos/data/profiles";
+import { listMyNotificationPreferences } from "@xos/data/party-notifications";
 import { resolveSettings } from "@xos/data/settings";
 import { getNode } from "@xos/ia";
 import type { Route } from "next";
@@ -48,6 +49,7 @@ import { choiceLabelKey, formText, NO_ORG, personalSettings } from "@/lib/settin
 import type { GatewayContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
+import { NotificationPreferences } from "./notification-preferences";
 import { PersonalSetting } from "./personal-setting";
 
 /**
@@ -670,6 +672,20 @@ function NoteSection(
   );
 }
 
+/**
+ * The person's own notification choices as an external party (migration 1131, finding A38-002):
+ * Email and Push per category.
+ */
+async function NotificationsSection(props: SectionProps) {
+  const prefs = await listMyNotificationPreferences(props.ctx.db);
+  return (
+    <>
+      <Header t={props.t} node={props.node} />
+      {prefs.ok ? <NotificationPreferences rows={prefs.data} /> : <RegionError />}
+    </>
+  );
+}
+
 async function RegistrySection(props: SectionProps) {
   return (
     <>
@@ -961,6 +977,7 @@ export async function SettingsSection({ node, ctx }: { node: string; ctx: Gatewa
         />
       );
     case "settings.notifications":
+      return <NotificationsSection {...props} />;
     case "settings.company.notifications":
       return (
         <NoteSection

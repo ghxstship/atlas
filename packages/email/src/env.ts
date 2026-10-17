@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { z } from "zod";
 import {
   GuardedTransport,
+  MailpitTransport,
   RecordingTransport,
   ResendTransport,
   type EmailTransport,
@@ -12,10 +13,13 @@ import {
  * Email environment, validated once at start-up. Without XOS_EMAIL_TRANSPORT=resend nothing is sent:
  * messages are recorded. With Resend, recipients are limited to XOS_EMAIL_ALLOWLIST unless
  * XOS_EMAIL_DELIVER_TO_ANY=true, which only the production deployment sets (Section 19.8).
+ * XOS_EMAIL_TRANSPORT=mailpit delivers into the local stack's inbox at XOS_EMAIL_MAILPIT_URL, for
+ * development and end-to-end tests; it refuses any host that is not local.
  */
 export const emailEnvSchema = z
   .object({
-    XOS_EMAIL_TRANSPORT: z.enum(["record", "resend"]).default("record"),
+    XOS_EMAIL_TRANSPORT: z.enum(["record", "resend", "mailpit"]).default("record"),
+    XOS_EMAIL_MAILPIT_URL: z.url({ protocol: /^https?$/ }).optional(),
     RESEND_API_KEY: z
       .string()
       .regex(/^re_[A-Za-z0-9_]{8,}$/, "RESEND_API_KEY must be a Resend API key")
@@ -43,6 +47,13 @@ export const emailEnvSchema = z
         message: "RESEND_API_KEY is required for the resend transport",
       });
     }
+    if (env.XOS_EMAIL_TRANSPORT === "mailpit" && env.XOS_EMAIL_MAILPIT_URL === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["XOS_EMAIL_MAILPIT_URL"],
+        message: "XOS_EMAIL_MAILPIT_URL is required for the mailpit transport",
+      });
+    }
   });
 
 export type EmailEnv = z.output<typeof emailEnvSchema>;
@@ -67,7 +78,9 @@ export function createTransport(
   env: EmailEnv,
   makeClient: (apiKey: string) => ResendClient = (apiKey) => new Resend(apiKey),
 ): EmailTransport {
-  if (env.XOS_EMAIL_TRANSPORT === "record" || env.RESEND_API_KEY === undefined)
+  if (env.XOS_EMAIL_TRANSPORT === "mailpit" && env.XOS_EMAIL_MAILPIT_URL !== undefined)
+    return new MailpitTransport(env.XOS_EMAIL_MAILPIT_URL);
+  if (env.XOS_EMAIL_TRANSPORT !== "resend" || env.RESEND_API_KEY === undefined)
     return new RecordingTransport();
   return new GuardedTransport(new ResendTransport(makeClient(env.RESEND_API_KEY)), {
     allowed: env.XOS_EMAIL_ALLOWLIST,

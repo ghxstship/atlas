@@ -53,6 +53,18 @@
       "approved": {
         "subject": "Invoice approved: {title}",
         "body": "{actorName} approved invoice {title}."
+      },
+      "submitted": {
+        "subject": "Invoice received: {title}",
+        "body": "{actorName} received your invoice {title}. Follow it in Gateway under Money, Invoices."
+      },
+      "scheduled": {
+        "subject": "Payment scheduled: {title}",
+        "body": "{actorName} scheduled a payment for your invoice {title}."
+      },
+      "paid": {
+        "subject": "Invoice paid: {title}",
+        "body": "{actorName} paid your invoice {title} in full."
       }
     },
     "incident": {

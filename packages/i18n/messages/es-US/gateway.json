@@ -910,6 +910,16 @@
       "all": "Ver todas",
       "empty": "Ahora no hay oportunidades abiertas para ti. Crea una alerta y te avisaremos cuando haya una.",
       "emptyAction": "Crear alerta"
+    },
+    "updates": {
+      "title": "Novedades",
+      "new": "Nuevo",
+      "kinds": {
+        "invoiceSubmitted": "{orgName} recibió la factura {title}",
+        "invoiceApproved": "{orgName} aprobó la factura {title}",
+        "invoiceScheduled": "{orgName} programó un pago para la factura {title}",
+        "invoicePaid": "{orgName} pagó la factura {title}"
+      }
     }
   },
   "messages": {
@@ -1295,6 +1305,25 @@
       "toCompanyProfile": "Abrir perfil de empresa",
       "dangerZone": "Transferir la propiedad o cerrar una cuenta de empresa se hace con el soporte de la plataforma para conservar los registros que exige la ley. El último propietario no puede salir.",
       "toTeam": "Abrir equipo"
+    },
+    "notifications": {
+      "formLabel": "Preferencias de notificaciones",
+      "save": "Guardar preferencias",
+      "saved": "Guardado. Las nuevas notificaciones siguen estas opciones.",
+      "channels": {
+        "Email": "Correo electrónico",
+        "Push": "Aviso en Compass"
+      },
+      "categories": {
+        "finance": {
+          "label": "Facturas y pagos",
+          "help": "Cada paso de sus facturas: recibida, aprobada, pago programado y pagada. Las novedades siempre aparecen en Inicio."
+        }
+      },
+      "errors": {
+        "denied": "No se pudieron guardar estas preferencias en su cuenta. Inicie sesión de nuevo e intente otra vez.",
+        "unexpected": "Algo salió mal al guardar sus preferencias. Inténtelo de nuevo en un momento."
+      }
     }
   },
   "shell": {

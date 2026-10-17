@@ -910,6 +910,16 @@
       "all": "See all",
       "empty": "No open opportunities match you right now. Set an alert and we will tell you when one does.",
       "emptyAction": "Set an alert"
+    },
+    "updates": {
+      "title": "Updates",
+      "new": "New",
+      "kinds": {
+        "invoiceSubmitted": "{orgName} received invoice {title}",
+        "invoiceApproved": "{orgName} approved invoice {title}",
+        "invoiceScheduled": "{orgName} scheduled a payment for invoice {title}",
+        "invoicePaid": "{orgName} paid invoice {title}"
+      }
     }
   },
   "messages": {
@@ -1295,6 +1305,25 @@
       "toCompanyProfile": "Open company profile",
       "dangerZone": "Transferring ownership or closing a company account is done with platform support so records the law requires are kept. The last Account Owner cannot leave.",
       "toTeam": "Open team"
+    },
+    "notifications": {
+      "formLabel": "Notification preferences",
+      "save": "Save preferences",
+      "saved": "Saved. New notifications follow these choices.",
+      "channels": {
+        "Email": "Email",
+        "Push": "Push to Compass"
+      },
+      "categories": {
+        "finance": {
+          "label": "Invoices and payments",
+          "help": "Each step of your invoices: received, approved, payment scheduled and paid. Updates always show on Home."
+        }
+      },
+      "errors": {
+        "denied": "These preferences could not be saved for your account. Sign in again and retry.",
+        "unexpected": "Something went wrong saving your preferences. Try again in a moment."
+      }
     }
   },
   "shell": {

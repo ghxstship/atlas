@@ -20,6 +20,7 @@ export {
 export {
   EmailSendError,
   GuardedTransport,
+  MailpitTransport,
   RecipientRefusedError,
   RecordingTransport,
   ResendTransport,
