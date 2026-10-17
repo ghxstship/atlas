@@ -2,7 +2,7 @@ import { isActionableApproval, listInbox, type InboxItem } from "@xos/data/inbox
 import { getTranslations } from "next-intl/server";
 import { InboxView, type InboxRow } from "@/components/inbox/inbox-view";
 import { ErrorPanel } from "@/components/platform/kit";
-import { PageHeader, TemplateCollection } from "@/components/platform/ui";
+import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
 import { requireNode } from "@/components/shell/sitemap-page";
 import { getFormatters } from "@/lib/platform/format";
 

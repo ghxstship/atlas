@@ -1,7 +1,7 @@
 import { getImport, listImports, listImportTargets } from "@xos/data/imports";
 import { ImportList, ImportWizard } from "@/components/imports/import-wizard";
 import { ErrorPanel } from "@/components/platform/kit";
-import { PageHeader, TemplateCollection } from "@/components/platform/ui";
+import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
 import { requireNode } from "@/components/shell/sitemap-page";
 import { getFormatters } from "@/lib/platform/format";
 

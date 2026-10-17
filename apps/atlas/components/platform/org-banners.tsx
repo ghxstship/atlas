@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import type { OrgContext } from "@/lib/shell/context";
 import { getFormatters } from "@/lib/platform/format";
 import { endViewAsAction } from "@/lib/platform/settings-actions";
-import { Banner } from "@/components/platform/ui";
+import { Banner } from "@/components/platform/client/banner";
 
 /**
  * Org-wide banners above every page (A36): the read-only banner of a canceled org during its 30-day
