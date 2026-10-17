@@ -7,6 +7,7 @@ import {
   buildShiftAction,
   claimConflict,
   groupByDay,
+  isMine,
   isOpenShift,
   startsIn,
   type ShiftRow,
@@ -32,7 +33,7 @@ export default function ScheduleScreen(): ReactElement {
     membershipId: identity?.membershipId ?? null,
     engagementIds: identity ? operationalEngagements(identity, null).map((e) => e.id) : [],
   };
-  const mine = rows.filter((s) => !isOpenShift(s));
+  const mine = rows.filter((s) => isMine(s, me));
   const open = rows.filter(isOpenShift);
   const [notice, setNotice] = useState<{ tone: "success" | "warning"; text: string } | null>(null);
   const held = mine.filter((s) => s.membership_id === me.membershipId);

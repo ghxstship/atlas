@@ -3,7 +3,8 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
-import { access, todayBlocks } from "../../src/domain/access";
+import { access, operationalEngagements, todayBlocks } from "../../src/domain/access";
+import { isMine } from "../../src/domain/shifts";
 import {
   formatElapsed,
   needsPreciseFix,
@@ -221,8 +222,12 @@ export default function TodayScreen(): ReactElement {
     );
   const canClock = access(identity, "clock", projectId).allowed;
   const today = new Date().toISOString().slice(0, 10);
+  const me = {
+    membershipId: identity.membershipId,
+    engagementIds: operationalEngagements(identity, null).map((e) => e.id),
+  };
   const upcoming = shifts
-    .filter((s) => Date.parse(s.ends_at) >= Date.now())
+    .filter((s) => isMine(s, me) && Date.parse(s.ends_at) >= Date.now())
     .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at));
   const sheet = sheets.find((s) => s.day === today);
   const blocks = todayBlocks(identity.audience).map((b) => b.id);
