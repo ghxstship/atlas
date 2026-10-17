@@ -1,5 +1,6 @@
 "use client";
 
+import { reportClientError } from "@xos/infra/observability/browser";
 import { ErrorState, Skeleton } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
@@ -31,6 +32,7 @@ export function CrewError({
   const t = useTranslations("crew.segment");
   useEffect(() => {
     console.error(error);
+    reportClientError(error);
   }, [error]);
   return (
     <ErrorState

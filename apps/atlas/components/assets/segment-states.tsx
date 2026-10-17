@@ -1,5 +1,6 @@
 "use client";
 
+import { reportClientError } from "@xos/infra/observability/browser";
 import { ErrorState, Skeleton } from "@xos/ui";
 import { useEffect } from "react";
 import { useAssetsCopy } from "./copy";
@@ -30,6 +31,7 @@ export function AssetsError({
   const t = useAssetsCopy();
   useEffect(() => {
     console.error(error);
+    reportClientError(error);
   }, [error]);
   return (
     <ErrorState

@@ -8,7 +8,8 @@
         "SUPABASE_ANON_KEY",
         "GATEWAY_SITE_URL",
         "GATEWAY_PLATFORM_HOSTS",
-        "SUPABASE_INBUCKET_URL"
+        "SUPABASE_INBUCKET_URL",
+        "VERCEL_GIT_COMMIT_SHA"
       ]
     },
     "test": {

@@ -1,5 +1,6 @@
 "use client";
 
+import { reportClientError } from "@xos/infra/observability/browser";
 import { ErrorState } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
@@ -15,6 +16,7 @@ export default function ErrorBoundary({
   const t = useTranslations("gateway.system.error");
   useEffect(() => {
     console.error(error);
+    reportClientError(error);
   }, [error]);
   return (
     <ErrorState
