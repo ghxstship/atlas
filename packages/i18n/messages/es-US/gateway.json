@@ -1379,6 +1379,11 @@
         "denied": "No se pudieron guardar estas preferencias en su cuenta. Inicie sesión de nuevo e intente otra vez.",
         "unexpected": "Algo salió mal al guardar sus preferencias. Inténtelo de nuevo en un momento."
       }
+    },
+    "deleteAccount": {
+      "confirmTitle": "¿Eliminar su cuenta ahora?",
+      "confirmBody": "No se puede deshacer. Su inicio de sesión, su nombre y su perfil se borran de inmediato, y se avisa a cada organización con la que trabaja.",
+      "cancel": "Conservar mi cuenta"
     }
   },
   "shell": {

@@ -49,6 +49,7 @@ import { choiceLabelKey, formText, NO_ORG, personalSettings } from "@/lib/settin
 import type { GatewayContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
+import { DeleteAccountSection } from "./delete-account";
 import { NotificationPreferences } from "./notification-preferences";
 import { PersonalSetting } from "./personal-setting";
 
@@ -515,6 +516,7 @@ function AccountSection(props: SectionProps) {
       <p className="m-0 text-text-13 text-text-secondary">
         {t("gateway.settings.account.oneAccount")}
       </p>
+      <DeleteAccountSection ctx={ctx} t={t} />
     </>
   );
 }

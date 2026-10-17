@@ -1379,6 +1379,11 @@
         "denied": "These preferences could not be saved for your account. Sign in again and retry.",
         "unexpected": "Something went wrong saving your preferences. Try again in a moment."
       }
+    },
+    "deleteAccount": {
+      "confirmTitle": "Delete your account now?",
+      "confirmBody": "This cannot be undone. Your sign-in, name and profile are erased at once, and every organization you work with is told.",
+      "cancel": "Keep my account"
     }
   },
   "shell": {
