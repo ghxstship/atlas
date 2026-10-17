@@ -7,10 +7,12 @@ import { createErrorReporter, type ErrorReporter, type ErrorSink } from "./error
 import { createLogger, identityFromEnv, isLogLevel, type Logger } from "./logger.ts";
 import type { TracerLike } from "./tracing.ts";
 
+export * from "./client-errors.ts";
 export * from "./errors.ts";
 export * from "./http.ts";
 export * from "./logger.ts";
 export * from "./redact.ts";
+export * from "./sentry.ts";
 export * from "./trace-context.ts";
 export * from "./tracing.ts";
 

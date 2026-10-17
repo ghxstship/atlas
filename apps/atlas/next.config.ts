@@ -11,6 +11,7 @@ const config: NextConfig = {
     "@xos/ia",
     "@xos/data",
     "@xos/icons",
+    "@xos/infra",
     "@xos/integrations",
     "@xos/ui",
   ],

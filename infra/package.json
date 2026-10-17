@@ -7,6 +7,7 @@
   "type": "module",
   "exports": {
     "./observability": "./observability/src/index.ts",
+    "./observability/browser": "./observability/src/browser.ts",
     "./flags": "./flags/src/index.ts",
     "./delivery": "./delivery/src/index.ts",
     "./synthetics": "./synthetics/src/index.ts"
