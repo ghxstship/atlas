@@ -172,6 +172,8 @@ describe("FormFillScreen", () => {
       />,
     );
     expect(screen.getByText("Before every lift.")).toBeTruthy();
+    // A yes/no question shows its text, not only Yes and No (simulator defect).
+    expect(screen.getByText('requiredField("Hoist inspected")')).toBeTruthy();
     expect(screen.getByText("location")).toBeTruthy();
     await press("submit");
     expect(onSubmit).not.toHaveBeenCalled();

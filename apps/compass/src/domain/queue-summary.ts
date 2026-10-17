@@ -178,7 +178,7 @@ export function summarizeMutation(
 
 /** Postgres and PostgREST wording a crew member should never read. */
 const TECHNICAL =
-  /violates|row-level security|permission denied|relation "|column "|syntax error|duplicate key|null value in column|invalid input syntax|PGRST|SQLSTATE/i;
+  /violates|row-level security|permission denied|relation "|column "|syntax error|duplicate key|null value in column|invalid input syntax|PGRST|SQLSTATE|Exception|fetch failed|\.swift:|\.kt:/i;
 
 /**
  * Why the server refused a queued write, in words. Rule refusals read "rule_code: sentence" and show the

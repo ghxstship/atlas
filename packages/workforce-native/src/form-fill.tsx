@@ -87,16 +87,21 @@ function FieldInput({
   const error = showErrors && field.required && empty ? labels.required : undefined;
   switch (field.kind) {
     case "yes_no":
+      // The control's label is only spoken; the question shows above it, as for a choice field (on the
+      // simulator a form read just "Yes | No" with no question).
       return (
-        <SegmentedControl
-          label={label}
-          value={value === true ? "yes" : value === false ? "no" : ""}
-          options={[
-            { value: "yes", label: labels.yes },
-            { value: "no", label: labels.no },
-          ]}
-          onChange={(v) => onChange(v === "yes")}
-        />
+        <Stack>
+          <Text variant="label13">{label}</Text>
+          <SegmentedControl
+            label={label}
+            value={value === true ? "yes" : value === false ? "no" : ""}
+            options={[
+              { value: "yes", label: labels.yes },
+              { value: "no", label: labels.no },
+            ]}
+            onChange={(v) => onChange(v === "yes")}
+          />
+        </Stack>
       );
     case "choice":
       return (
@@ -185,6 +190,9 @@ export function FormFillScreen({
 }: FormFillScreenProps): ReactElement {
   const [answers, setAnswers] = useState<Record<string, FormAnswer>>({});
   const [signature, setSignature] = useState<string | null>(null);
+  // Bumped after each submission to remount the pad: its drawing is its own state, and an old signature
+  // left on screen read as signed when it no longer counted.
+  const [round, setRound] = useState(0);
   const [tried, setTried] = useState(false);
   const [done, setDone] = useState(false);
   const { busy, run, alert } = useActionRunner(labels.failed);
@@ -222,6 +230,7 @@ export function FormFillScreen({
     if (await run("submit", () => onSubmit(visible, signature))) {
       setAnswers({});
       setSignature(null);
+      setRound((r) => r + 1);
       setTried(false);
       setDone(true);
     }
@@ -273,6 +282,7 @@ export function FormFillScreen({
       ) : null}
       {template?.requiresSignature ? (
         <SignaturePad
+          key={round}
           label={labels.signature}
           attestation={labels.attestation}
           clearLabel={labels.clearSignature}

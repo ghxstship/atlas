@@ -55,10 +55,8 @@ export function fieldMediaUploader(client: SupabaseClient) {
       .from("field-media")
       .upload(path, body, { contentType, upsert: false });
     if (!error) return { error: null };
-    const statusCode =
-      "statusCode" in error
-        ? String((error as { statusCode?: string | number }).statusCode)
-        : undefined;
+    const raw = (error as { statusCode?: string | number }).statusCode;
+    const statusCode = raw === undefined || raw === null ? undefined : String(raw);
     return { error: { message: error.message, ...(statusCode ? { statusCode } : {}) } };
   };
 }

@@ -14,7 +14,7 @@ import {
 import { buildAccessScan, buildAssetScan, buildIntake } from "../src/domain/scan";
 import { buildShiftAction } from "../src/domain/shifts";
 import { buildCallCue } from "../src/domain/show";
-import { workforceWrite } from "../src/workforce/writes";
+import { WORKFORCE_SYNC_RPCS, workforceWrite } from "../src/workforce/writes";
 
 const T0 = Date.UTC(2026, 9, 16, 2, 51, 30);
 const PROJECT = "01920000-0000-7000-8000-000000001001";
@@ -363,5 +363,25 @@ describe("refusal reasons in words (simulator defect: raw RLS text in the queue)
     expect(refusalReason({ code: "400", message: "" }).key).toBe("refusedTechnical");
     expect(en.queue).toHaveProperty("refusedTechnical");
     expect(es.queue).toHaveProperty("refusedTechnical");
+  });
+});
+
+describe("queue names (simulator defect: a form read form_submissions)", () => {
+  it("names every workforce table a queued write can belong to, in each locale", () => {
+    type Kinds = { compass: { queue: { kinds: Record<string, string> } } };
+    const tables = WORKFORCE_SYNC_RPCS.map((rpc) => workforceWrite(rpc, {}, 0, () => "id").table);
+    for (const locale of ["en-US", "es-US"] as const) {
+      const kinds = (getMessages(locale) as unknown as Kinds).compass.queue.kinds;
+      expect(tables.filter((t) => typeof kinds[t] !== "string")).toEqual([]);
+    }
+  });
+  it("keeps native exception text out of refusals", () => {
+    expect(
+      refusalReason({
+        code: "0",
+        message:
+          "fetch failed: UnexpectedException: Could not connect to the server. (at ExpoModulesCore/Promise.swift:56)",
+      }).key,
+    ).toBe("refusedTechnical");
   });
 });

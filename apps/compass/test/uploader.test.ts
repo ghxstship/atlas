@@ -418,6 +418,20 @@ describe("field media", () => {
     });
     expect((await down.upload(photo())).kind).toBe("transient");
     expect(failed.calls).toEqual([]);
+    // Simulator defect: storage-js reported a dropped connection with statusCode "undefined"; that
+    // retries instead of asking the person to decide.
+    const lost = new SupabaseUploader({
+      client: failed.client,
+      ...base,
+      uploadFile: () =>
+        Promise.resolve({
+          error: {
+            message: "fetch failed: Could not connect to the server.",
+            statusCode: "undefined",
+          },
+        }),
+    });
+    expect((await lost.upload(photo())).kind).toBe("transient");
     const none = new SupabaseUploader({ client: failed.client, ...base });
     expect((await none.upload(photo())).kind).toBe("transient");
   });
