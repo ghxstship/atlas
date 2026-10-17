@@ -14,6 +14,7 @@ import { defineConfig, devices, type Project } from "@playwright/test";
  */
 const port = Number(process.env["E2E_PORT"] ?? 3006);
 const baseURL = process.env["E2E_BASE_URL"] ?? `http://127.0.0.1:${port}`;
+const auroraURL = process.env["E2E_AURORA_URL"] ?? "http://127.0.0.1:3016";
 const engines = new Set(
   (process.env["E2E_ENGINES"] ?? "chromium,firefox,webkit").split(",").map((e) => e.trim()),
 );
@@ -62,10 +63,21 @@ export default defineConfig({
       testMatch: /mobile\.spec\.ts/,
     },
   ],
-  webServer: {
-    command: `pnpm exec next dev --port ${port}`,
-    url: `${baseURL}/auth/sign-in`,
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: `pnpm exec next dev --port ${port}`,
+      url: `${baseURL}/auth/sign-in`,
+      reuseExistingServer: true,
+      timeout: 120_000,
+    },
+    // Journeys 35 and 36 (aurora-journeys.spec.ts) need Aurora's fixture model, which exists only
+    // outside production (finding A24-007), so they run against their own development server.
+    {
+      command: `pnpm exec next dev --port ${new URL(auroraURL).port}`,
+      url: `${auroraURL}/auth/sign-in`,
+      reuseExistingServer: true,
+      timeout: 180_000,
+      env: { XOS_AI_FAKE: "1", ATLAS_SITE_URL: auroraURL },
+    },
+  ],
 });

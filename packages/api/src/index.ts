@@ -46,6 +46,7 @@ export {
   sessionCookieName,
 } from "./runtime/auth.ts";
 export type { SupabaseAuthOptions } from "./runtime/auth.ts";
+export { handlersWithAuroraModel } from "./runtime/aurora-model.ts";
 export { requireOrg, requirePerson } from "./runtime/context.ts";
 export type { Authenticate, RequestContext, RequestOrg, RequestUser } from "./runtime/context.ts";
 export { accepted, created, defineHandlers, noContent, ok } from "./runtime/handler.ts";
