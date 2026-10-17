@@ -83,6 +83,7 @@ export interface CompassContextValue {
   /** Queues a write (optimistic locally) and drains when online. Returns the mutation id. */
   readonly enqueue: (input: MutationInput) => Promise<string>;
   readonly refresh: () => Promise<DownloadReport | null>;
+  readonly refreshTables: (tables: readonly string[]) => Promise<void>;
   readonly lastRefresh: DownloadReport | null;
   readonly retryIdentity: () => void;
   readonly signOut: () => Promise<void>;
@@ -268,6 +269,15 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     return report;
   }, [client, syncSession]);
 
+  /** Pulls a few tables for the current project, for a live screen (the run of show). */
+  const refreshTables = useCallback(
+    async (tables: readonly string[]) => {
+      if (!syncSession) return;
+      await downloadAll({ client, session: syncSession, projectId, only: tables });
+    },
+    [client, syncSession, projectId],
+  );
+
   useEffect(() => {
     if (phase.kind === "ready" && network.isConnected) void refresh();
   }, [phase.kind, network.isConnected, refresh]);
@@ -305,6 +315,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     updateSettings,
     enqueue,
     refresh,
+    refreshTables,
     lastRefresh,
     retryIdentity: () => setIdentityAttempt((n) => n + 1),
     signOut,

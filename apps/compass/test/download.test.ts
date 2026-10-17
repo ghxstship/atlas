@@ -211,4 +211,39 @@ describe("REST download", () => {
     expect(filters).toContain("api_external.shifts project_id=proj-1");
     expect((await store.list("shifts")).map((r) => r.id).sort()).toEqual(["s1", "s2"]);
   });
+
+  it("pulls only the tables a live screen asks for (the run of show follows called cues)", async () => {
+    const store = new MemoryStore();
+    const session = new SyncSession(store, {
+      audience: "field",
+      personIds: ["person-1"],
+      orgIds: ["org-1"],
+      membershipIds: ["mem-1"],
+      readableProjectIds: ["proj-1"],
+      engagementIds: [],
+      engagedProjectIds: [],
+    });
+    const { client: api } = client({
+      "app.shifts": [{ id: "s1", membership_id: "mem-1", project_id: "proj-1" }],
+      "app.run_of_show": [{ id: "ros-1", org_id: "org-1", project_id: "proj-1" }],
+      "app.cues": [
+        {
+          id: "c1",
+          org_id: "org-1",
+          project_id: "proj-1",
+          run_of_show_id: "ros-1",
+          called_at: "2026-10-17T08:03:59Z",
+        },
+      ],
+    });
+    const report = await downloadAll({
+      client: api,
+      session,
+      projectId: "proj-1",
+      only: ["run_of_show", "cues"],
+    });
+    expect(report.failed).toEqual([]);
+    expect(await store.get("cues", "c1")).toMatchObject({ called_at: "2026-10-17T08:03:59Z" });
+    expect(await store.list("shifts")).toEqual([]);
+  });
 });
