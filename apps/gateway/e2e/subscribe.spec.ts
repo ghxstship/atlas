@@ -57,7 +57,7 @@ test("journey 60: a vendor company starts Atlas with its own record, history int
        (select count(*) from app.ratings where engagement_id = $3)::text as ratings`,
     [company.accountId, company.name, company.engagementId],
   );
-  expect(state).toEqual({ orgs: "1", subscribed: "1", cp: company.accountId, ratings: "2" });
+  expect(state).toEqual({ orgs: "1", subscribed: "1", cp: company.accountId, ratings: "1" });
 
   // Gateway still shows the same history to the company.
   await page.goto("/work/engagements?view=list");

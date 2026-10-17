@@ -5773,6 +5773,11 @@ var gateway_default$1 = {
     },
   },
 };
+var gatewayOnboarding_default$1 = {
+  acknowledge: "I have read and acknowledge this",
+  acknowledged: "Acknowledged. The organization verifies it next.",
+  acknowledgeHint: "Read the briefing the organization shared, then acknowledge it here.",
+};
 var help_default$1 = {
   button: "Help",
   title: "Help",
@@ -19952,6 +19957,11 @@ var gateway_default = {
     },
   },
 };
+var gatewayOnboarding_default = {
+  acknowledge: "Lo he leído y lo acepto",
+  acknowledged: "Aceptado. La organización lo verifica a continuación.",
+  acknowledgeHint: "Lee la sesión informativa que compartió la organización y luego acéptala aquí.",
+};
 var help_default = {
   button: "Ayuda",
   title: "Ayuda",
@@ -29211,6 +29221,7 @@ var enUS = {
   email: email_default$1,
   finance: finance_default$1,
   gateway: gateway_default$1,
+  gatewayOnboarding: gatewayOnboarding_default$1,
   help: help_default$1,
   home: home_default$1,
   hospitality: hospitality_default$1,
@@ -29257,6 +29268,7 @@ var esUS = {
   email: email_default,
   finance: finance_default,
   gateway: gateway_default,
+  gatewayOnboarding: gatewayOnboarding_default,
   help: help_default,
   home: home_default,
   hospitality: hospitality_default,

@@ -19,7 +19,7 @@ import {
   Tag,
 } from "@/components/ui";
 import { PaymentSteps } from "./payment-steps";
-import { signDocumentAction } from "@/lib/actions/engagement";
+import { signDocumentAction, submitOnboardingItemAction } from "@/lib/actions/engagement";
 import { agreeSelfBillingAction, revokeSelfBillingAction } from "@/lib/actions/operations";
 import { hasArea, tabHref } from "@/lib/engagement";
 import {
@@ -291,6 +291,20 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
                       <p className="m-0 text-text-13 text-text-secondary">
                         {t("gateway.engagement.onboarding.signHint")}
                       </p>
+                    ) : i.kind === "Acknowledgment" ? (
+                      // A training or briefing acknowledgment is the person's statement, no file
+                      // (journey 42); the organization verifies it like any other step.
+                      <div className="flex flex-col gap-8">
+                        <p className="m-0 text-text-13 text-text-secondary">
+                          {t("gatewayOnboarding.acknowledgeHint")}
+                        </p>
+                        <ActionButton
+                          action={submitOnboardingItemAction.bind(null, i.id)}
+                          label={t("gatewayOnboarding.acknowledge")}
+                          variant="primary"
+                          done={t("gatewayOnboarding.acknowledged")}
+                        />
+                      </div>
                     ) : i.kind === "Background Check" ? (
                       <p className="m-0 text-text-13 text-text-secondary">
                         {t("gateway.engagement.onboarding.backgroundHint")}

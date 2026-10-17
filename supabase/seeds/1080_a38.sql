@@ -16,7 +16,8 @@
 --               external account with history that subscribes in journey 60)
 --   Accounts    the six external accounts above, without subscriptions, each a counterparty of the
 --               demo org
---   History     Demo Lighting Rentals' completed vendor engagement with the demo org, rated by both
+--   History     Demo Lighting Rentals' completed vendor engagement with the demo org, rated by the org
+--               (one-sided, so the rating stays unreleased until the 14 days pass or the vendor rates)
 
 do $$
 declare
@@ -245,9 +246,7 @@ begin
     perform private.transition_lifecycle('engagement', 'app.engagements', 'engagement_state', 'app.engagement_state_transitions',
       'engagement_id', e_supplier, 'Closing', 'Complete', 'Final invoice paid.');
     insert into app.ratings (engagement_id, rater_side, score, comment)
-    values
-      (e_supplier, 'Organization', 5, 'Moving heads arrived early and every fixture worked.'),
-      (e_supplier, 'Party', 5, 'Clear load-in times and paid on schedule.');
+    values (e_supplier, 'Organization', 5, 'Moving heads arrived early and every fixture worked.');
   end if;
 end;
 $$;

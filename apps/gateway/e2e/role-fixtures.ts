@@ -470,6 +470,81 @@ export async function contractorMilestone(
   return { id: deliverable?.id as string, file };
 }
 
+/**
+ * A Staff opportunity published from an Approved staff requisition, with a posted pay range,
+ * invited to the demo staffing agency (journey 42).
+ */
+export async function publishStaffOpportunity(): Promise<{
+  id: string;
+  key: string;
+  title: string;
+}> {
+  const title = `Event Staff Ushers ${suffix()}`;
+  const [req] = await sql<{ id: string }>(
+    `insert into app.requisitions (project_id, role_type, role_code, worker_classification, pay_basis, arrangement,
+       headcount, rate_minor, currency_code, starts_on, ends_on, justification, requested_by)
+     values ($1, 'Staff', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', 2, 30000, 'USD',
+       '2027-06-04', '2027-06-06', 'Two ushers for the main gates on show days.', $2)
+     returning id`,
+    [PROJECT, PEOPLE.owner],
+    PEOPLE.owner,
+  );
+  await transition(
+    "requisition",
+    req?.id as string,
+    "Proposed",
+    "Approved",
+    "Within the staffing budget.",
+  );
+  const [opp] = await sql<{ id: string }>(
+    `insert into app.opportunities (project_id, requisition_id, role_type, role_code, title, description, visibility,
+       rate_type, pay_min_minor, pay_max_minor, currency_code, starts_on, ends_on, deadline_at)
+     values ($1, $2, 'Staff', '5000.51.02', $3, 'Two ushers for the main gates, June 5 and 6.', 'Invited',
+       'Day', 28000, 32000, 'USD', '2027-06-04', '2027-06-06', now() + interval '30 days')
+     returning id`,
+    [PROJECT, req?.id, title],
+    PEOPLE.owner,
+  );
+  const id = opp?.id as string;
+  await sql(
+    `insert into app.opportunity_invitations (opportunity_id, organization_id) values ($1, $2)`,
+    [id, ROLE_ACCOUNTS.agency],
+    PEOPLE.owner,
+  );
+  await transition("opportunity", id, "Draft", "Pending Approval", "Ready for approval.");
+  await transition("opportunity", id, "Pending Approval", "Published", "Approved for the agency.");
+  return { id, key: toDisplayKey("opportunity", id), title };
+}
+
+/** The org shortlists the agency's application and sends its offer (Pipeline in Atlas). */
+export async function offerToApplication(
+  opportunityId: string,
+): Promise<{ applicationId: string }> {
+  const [app] = await sql<{ id: string }>(
+    `select id from app.applications where opportunity_id = $1 and deleted_at is null`,
+    [opportunityId],
+  );
+  const applicationId = app?.id as string;
+  await transition("application", applicationId, "Submitted", "In Review", "Screening.");
+  await transition("application", applicationId, "In Review", "Shortlisted", "Strongest slate.");
+  await asPerson(
+    PEOPLE.owner,
+    `select app.send_offer($1, 'Day', 30000, 'USD', '2027-06-04'::date, '2027-06-06'::date, 'Both ushers, both days.', now() + interval '7 days')`,
+    [applicationId],
+  );
+  return { applicationId };
+}
+
+/** A shift for an engagement on the demo project: the position the org assigns. */
+export async function engagementShift(engagementId: string): Promise<void> {
+  await sql(
+    `insert into app.shifts (project_id, engagement_id, role_code, starts_at, ends_at, time_zone)
+     values ($1, $2, '5000.51.02', '2027-06-05T16:00:00Z', '2027-06-06T00:00:00Z', 'America/New_York')`,
+    [PROJECT, engagementId],
+    PEOPLE.owner,
+  );
+}
+
 /** A sponsor entitlement of the sponsor's package on the demo project (journey 47). */
 export async function sponsorEntitlement(description: string): Promise<{ id: string }> {
   const [row] = await sql<{ id: string }>(
@@ -515,7 +590,7 @@ export async function newSignIn(email: string, fullName: string): Promise<string
 /**
  * Journey 60: a vendor company with an external account and history with the demo org, made the
  * way seed 1080 makes Demo Lighting Rentals: its Account Owner, a counterparty row in the demo
- * org, and a completed vendor engagement rated by both sides.
+ * org, and a completed vendor engagement the org rated.
  */
 export async function externalAccountWithHistory(): Promise<{
   email: string;
@@ -561,12 +636,6 @@ export async function externalAccountWithHistory(): Promise<{
      values ($1, 'Organization', 5, 'Truss arrived early and every piece was inspected.')`,
     [engagementId],
     PEOPLE.owner,
-  );
-  await sql(
-    `insert into app.ratings (engagement_id, rater_side, score, comment)
-     values ($1, 'Party', 5, 'Clear load-in times and paid on schedule.')`,
-    [engagementId],
-    person,
   );
   return { email, accountId, name, slug, engagementId };
 }
