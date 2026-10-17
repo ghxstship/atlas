@@ -554,6 +554,96 @@ export async function offerToApplication(
   return { applicationId };
 }
 
+/**
+ * A crew call published from the demo requisition (seed 0228) and invited to one person, with a
+ * posted pay range and no question (journey 41).
+ */
+export async function publishCrewCall(
+  personId: string,
+): Promise<{ id: string; key: string; title: string }> {
+  const title = `Festival Deck Crew ${suffix()}`;
+  const [opp] = await sql<{ id: string }>(
+    `insert into app.opportunities (project_id, requisition_id, role_type, role_code, title, description, visibility,
+       rate_type, pay_min_minor, pay_max_minor, currency_code, starts_on, ends_on, deadline_at)
+     values ($1, '01920000-0000-7000-8000-000000228001', 'Crew', '5000.51.02', $2, 'Deck crew for the main stage changeovers.',
+       'Invited', 'Day', 85000, 95000, 'USD', '2027-06-04', '2027-06-06', now() + interval '30 days')
+     returning id`,
+    [PROJECT, title],
+    PEOPLE.owner,
+  );
+  const id = opp?.id as string;
+  await sql(
+    `insert into app.opportunity_invitations (opportunity_id, person_id) values ($1, $2)`,
+    [id, personId],
+    PEOPLE.owner,
+  );
+  await transition("opportunity", id, "Draft", "Pending Approval", "Ready for approval.");
+  await transition(
+    "opportunity",
+    id,
+    "Pending Approval",
+    "Published",
+    "Approved for the invited crew.",
+  );
+  return { id, key: toDisplayKey("opportunity", id), title };
+}
+
+/** A published shift for the engagement, the crew person's call on show day. */
+export async function publishedShift(engagementId: string): Promise<{ id: string }> {
+  const [row] = await sql<{ id: string }>(
+    `insert into app.shifts (project_id, engagement_id, role_code, starts_at, ends_at, time_zone)
+     values ($1, $2, '5000.51.02', '2027-06-05T14:00:00Z', '2027-06-05T22:00:00Z', 'America/New_York') returning id`,
+    [PROJECT, engagementId],
+    PEOPLE.owner,
+  );
+  const id = row?.id as string;
+  await transition("shift", id, "Draft", "Published", "Published to the crew.");
+  return { id };
+}
+
+/**
+ * The crew person's clock in and out on the shift (the Compass punches' server half, as the
+ * person), and the timesheet for the show day the org opens for them.
+ */
+export async function workedShift(
+  engagementId: string,
+  shiftId: string,
+  person: string,
+): Promise<{ timesheetId: string }> {
+  // app.record_punch is what Compass calls on a phone: In, then Out, as the person.
+  for (const kind of ["In", "Out"] as const) {
+    await asPerson(
+      person,
+      `select app.record_punch(gen_random_uuid(), $1, $2::app.punch_kind, now(), 0, $3, null, null, null, null,
+         'Mobile', null, null, null, $4)`,
+      [PROJECT, kind, shiftId, engagementId],
+    );
+  }
+  const [ts] = await sql<{ id: string }>(
+    `insert into app.timesheets (project_id, engagement_id, period_start, period_end)
+     values ($1, $2, '2027-06-05', '2027-06-05') returning id`,
+    [PROJECT, engagementId],
+    PEOPLE.owner,
+  );
+  return { timesheetId: ts?.id as string };
+}
+
+/** A credential of the project's Production category for the engagement's person. */
+export async function engagementCredential(
+  engagementId: string,
+  person: string,
+): Promise<{ number: string }> {
+  // The credential number comes from the project's sequence.
+  const [row] = await sql<{ credential_number: string }>(
+    `insert into app.credentials (credential_category_id, holder_person_id, valid_from, valid_to, project_id, engagement_id)
+     values ('01920000-0000-7000-8000-000000114022', $1, '2027-06-01', '2027-06-07', $2, $3)
+     returning credential_number`,
+    [person, PROJECT, engagementId],
+    PEOPLE.owner,
+  );
+  return { number: row?.credential_number as string };
+}
+
 /** An open call for artists on the demo project, invited to the demo artist (journey 45). */
 export async function publishArtistCall(): Promise<{ id: string; key: string; title: string }> {
   const title = `Opening Night Support Set ${suffix()}`;
