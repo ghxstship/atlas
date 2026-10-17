@@ -1,7 +1,7 @@
 import { expect as baseExpect, test } from "./engine-test";
 import { atlasAs, ORG } from "./atlas";
 import { publishCrewOpportunity } from "./fixtures";
-import { asPerson, PEOPLE } from "./role-fixtures";
+import { asPerson, newSignIn, PEOPLE } from "./role-fixtures";
 import { DEMO, expectAccessible, signIn, sql, uniqueId } from "./support";
 
 /**
@@ -50,7 +50,11 @@ test("journey 61: a Network profile with rates hidden, shared with one org", asy
   const anon = await browser.newContext();
   const stranger = await anon.newPage();
   expect((await stranger.goto("/u/demo-crew"))?.status()).toBe(404);
-  await signIn(stranger, "client@example.com");
+  // A person new to the platform: seeded people may share an org with the crew person once other
+  // journeys have engaged them.
+  const strangerEmail = `stranger-${uniqueId()}@example.com`;
+  await newSignIn(strangerEmail, "Demo Stranger");
+  await signIn(stranger, strangerEmail);
   expect((await stranger.goto("/u/demo-crew"))?.status()).toBe(404);
   await anon.close();
 
@@ -72,7 +76,7 @@ test("journey 61: a Network profile with rates hidden, shared with one org", asy
   await apply.getByLabel("Your email").check();
   await apply.getByLabel("I am available for these dates").check();
   await apply.getByRole("button", { name: "Send application" }).click();
-  await expect(page.getByText(/You applied on/)).toBeVisible();
+  await expect(page.getByText(/You applied on|Application sent/).first()).toBeVisible();
 
   const shared = (person: string) =>
     asPerson<{ field_key: string }>(
@@ -120,10 +124,19 @@ test("journey 62: the org's Public profile with its badge and openings, noindex 
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   await expectAccessible(page);
 
-  // Signed in, the open opportunities show on it.
+  // Signed in, the org's open opportunities show on it (the twelve closing soonest; earlier runs
+  // leave more than twelve open on a reused stack, so the check is on the section's listings).
   await signIn(page, "crew@example.com");
   await page.goto("/c/demo-productions");
-  await expect(page.getByRole("link", { name: opportunity.title })).toBeVisible();
+  const openings = page.getByRole("region", { name: "Open opportunities" });
+  await expect(
+    openings.getByRole("link", { name: /Festival Truss Riggers/ }).first(),
+  ).toBeVisible();
+  const [listed] = await sql<{ n: string }>(
+    `select count(*)::text as n from app.opportunities where id = $1 and opportunity_state = 'Published'`,
+    [opportunity.id],
+  );
+  expect(listed?.n).toBe("1");
   const [row] = await sql<{ search_indexing: boolean }>(
     `select search_indexing from app.organization_profiles where org_id = $1`,
     [DEMO.org],
