@@ -6,6 +6,7 @@
 --   0010_demo_identity.sql      A30: the demo org, its members, people and external parties
 --   0100 to 0199                A07 to A16: one file per module, numbered by agent (A07 0107 ...)
 --   0200 to 0299                A18, A19, A25, A27, A28, A29, A31 (A18 0218, A27 0227 ...)
+--   1000 to 1099                later agents, numbered from their migration range (A33 1030, A39 1090)
 --
 -- Fixed ids every seed may reference. A30's 0010 file creates these rows. A seed that needs them
 -- guards its inserts with `where exists (select 1 from app.organizations where id = <demo org>)`,
@@ -15,6 +16,10 @@
 --   Demo Admin user and person                      01920000-0000-7000-8000-000000000102
 --   Demo Producer user and person                   01920000-0000-7000-8000-000000000103
 --   Demo Field user and person                      01920000-0000-7000-8000-000000000104
+--   Demo Viewer user and person (0011)              01920000-0000-7000-8000-000000000105
+--   Demo Field Tech user and person (1090)          01920000-0000-7000-8000-000000000106
+--     A Field member whose worked time is all before the reset day, so clock-in works (SIM-001);
+--     tech@example.com. Membership 01920000-0000-7000-8000-00000000a106.
 --   Demo external crew person                       01920000-0000-7000-8000-000000000201
 --   Demo vendor organization                        01920000-0000-7000-8000-000000000301
 --   Demo project                                    01920000-0000-7000-8000-000000001001
