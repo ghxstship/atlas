@@ -1,0 +1,2 @@
+# Icons A36 pages draw by name (custom object empty state). One lucide-react name per line.
+Box

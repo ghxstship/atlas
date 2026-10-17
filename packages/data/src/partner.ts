@@ -505,3 +505,12 @@ export async function listClientVenues(
     })),
   );
 }
+
+/** The partner org of a client org, by id, or null when the org has no partner (its own row, read by a member). */
+export async function getPartnerOf(db: XosClient, orgId: string): Promise<Result<string | null>> {
+  const result = await rows(
+    untyped(db).from("organizations").select("parent_org_id").eq("id", orgId).limit(1),
+  );
+  if (!result.ok) return result;
+  return ok(strOrNull(result.data[0]?.["parent_org_id"]));
+}

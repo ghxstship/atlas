@@ -5,6 +5,7 @@ import {
   getDefaultBrand,
   getEffectiveBrand,
   getPartnerAgreement,
+  getPartnerOf,
   grantSupportSession,
   listClientOrgs,
   listClientPrices,
@@ -20,7 +21,6 @@ import {
 } from "../src/partner.ts";
 import {
   explainAccess,
-  listPreviewRoles,
   parseViewAsCookie,
   previewOrgCapabilities,
   viewAsCapabilities,
@@ -242,6 +242,15 @@ describe("partner console repository", () => {
     });
   });
 
+  it("reads a client org's partner", async () => {
+    const { db } = moduleClient({
+      "from:organizations": [ok([{ parent_org_id: "p1" }]), ok([{ parent_org_id: null }]), denied],
+    });
+    expect(await getPartnerOf(db, "c1")).toEqual({ ok: true, data: "p1" });
+    expect(await getPartnerOf(db, "o1")).toEqual({ ok: true, data: null });
+    expect((await getPartnerOf(db, "o1")).ok).toBe(false);
+  });
+
   it("formats the first of the month in UTC", () => {
     expect(monthStart(new Date("2026-03-31T23:59:00Z"))).toBe("2026-03-01");
     expect(monthStart(new Date("2026-12-05T00:00:00Z"))).toBe("2026-12-01");
@@ -293,7 +302,6 @@ describe("partner console repository", () => {
 describe("access transparency repository", () => {
   it("lists preview roles and the capped preview", async () => {
     const { db } = moduleClient({
-      "from:roles": [ok([{ id: "r6", code: "field", name: null, band: 6, org_id: null }])],
       "rpc:view_as_capabilities": [
         ok([
           {
@@ -316,10 +324,6 @@ describe("access transparency repository", () => {
           },
         ]),
       ],
-    });
-    expect(await listPreviewRoles(db, "o1")).toEqual({
-      ok: true,
-      data: [{ id: "r6", code: "field", name: null, band: 6, system: true }],
     });
     const preview = await viewAsCapabilities(db, "o1", "r6");
     expect(preview.ok && [...previewOrgCapabilities(preview.data)]).toEqual(["crew.shift.read"]);

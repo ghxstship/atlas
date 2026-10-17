@@ -745,17 +745,15 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
     async insertColumns(jobId, sheet, columns) {
       if (columns.length === 0) return;
       await exec(
-        app
-          .from("import_job_columns")
-          .insert(
-            columns.map((c, i) => ({
-              import_job_id: jobId,
-              sheet_name: sheet,
-              column_index: i,
-              header: c.header,
-              suggested_field_name: c.suggested,
-            })),
-          ),
+        app.from("import_job_columns").insert(
+          columns.map((c, i) => ({
+            import_job_id: jobId,
+            sheet_name: sheet,
+            column_index: i,
+            header: c.header,
+            suggested_field_name: c.suggested,
+          })),
+        ),
         "import_job_columns",
       );
     },
@@ -787,15 +785,13 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
     },
     async recordCellIssues(rowId, issues) {
       await exec(
-        app
-          .from("import_cell_issues")
-          .insert(
-            issues.map((i) => ({
-              import_row_result_id: rowId,
-              column_index: i.columnIndex,
-              issue_code: i.issue,
-            })),
-          ),
+        app.from("import_cell_issues").insert(
+          issues.map((i) => ({
+            import_row_result_id: rowId,
+            column_index: i.columnIndex,
+            issue_code: i.issue,
+          })),
+        ),
         "import_cell_issues",
       );
     },

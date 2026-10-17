@@ -43,6 +43,8 @@ export interface ImportTargetField {
 
 export interface ImportTarget {
   readonly code: string;
+  /** Capability that authorizes importing into the target. */
+  readonly writeCapability: string;
   readonly fuzzyMatch: boolean;
   readonly fields: readonly ImportTargetField[];
 }
@@ -53,7 +55,7 @@ export async function listImportTargets(db: XosClient): Promise<Result<ImportTar
     rows(
       untyped(db)
         .from("import_targets")
-        .select("code, fuzzy_match, sort_order")
+        .select("code, write_capability, fuzzy_match, sort_order")
         .order("sort_order"),
     ),
     rows(
@@ -67,6 +69,7 @@ export async function listImportTargets(db: XosClient): Promise<Result<ImportTar
   return ok(
     targets.data.map((t) => ({
       code: str(t["code"]),
+      writeCapability: str(t["write_capability"]),
       fuzzyMatch: t["fuzzy_match"] === true,
       fields: fields.data
         .filter((f) => f["target_code"] === t["code"])

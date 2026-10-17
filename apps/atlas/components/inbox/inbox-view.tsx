@@ -1,0 +1,285 @@
+"use client";
+
+import { Button, Dialog, Kbd, Textarea } from "@xos/ui";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { quickInboxAction, rejectInboxAction } from "@/app/[org]/inbox/actions";
+import { ActionForm, EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
+import type { PlatformActionState } from "@/lib/platform/state";
+
+export interface InboxRow {
+  readonly id: string;
+  readonly section: "Needs You" | "For Your Information";
+  readonly kind: string;
+  readonly unread: boolean;
+  readonly summary: string;
+  readonly detail: string;
+  readonly when: string;
+  /** True when the item is an approval request that can be decided from here now. */
+  readonly approvable: boolean;
+}
+
+type Quick = "approve" | "done" | "snooze";
+
+/** Shortcut keys shown above the list; the keys are the same in every language. */
+const KEY_HINTS: readonly (readonly [readonly string[], string])[] = [
+  [["J", "K"], "move"],
+  [["A"], "approve"],
+  [["R"], "reject"],
+  [["E"], "done"],
+  [["H"], "snooze"],
+];
+
+/**
+ * The Inbox list (Section 11.10 rule 5). Keyboard: J or Down and K or Up move between items, A approves,
+ * R rejects with a reason, E marks Done and H snoozes until tomorrow. Acting removes the item at once and
+ * moves to the next, so a queue is cleared without waiting; a refusal puts the item back and says why.
+ */
+export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[] }) {
+  const t = usePlatformT();
+  const router = useRouter();
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
+  const [selected, setSelected] = useState(0);
+  const [outcome, setOutcome] = useState<PlatformActionState>({});
+  const [rejecting, setRejecting] = useState<InboxRow | null>(null);
+  const [handled, setHandled] = useState(0);
+  const items = rows.filter((r) => !hidden.has(r.id));
+  const refs = useRef(new Map<string, HTMLElement>());
+  const listRef = useRef<HTMLUListElement>(null);
+
+  const current = Math.min(selected, Math.max(items.length - 1, 0));
+
+  const focusItem = useCallback(
+    (index: number) => {
+      const row = items[index];
+      if (!row) return;
+      setSelected(index);
+      refs.current.get(row.id)?.focus();
+    },
+    [items],
+  );
+
+  const act = useCallback(
+    (row: InboxRow, action: Quick) => {
+      if (action === "approve" && !row.approvable) return;
+      setHidden((prev) => new Set(prev).add(row.id));
+      setHandled((n) => n + 1);
+      void quickInboxAction({ org, id: row.id, action }).then((result) => {
+        setOutcome(result);
+        if (!result.ok) {
+          setHidden((prev) => {
+            const next = new Set(prev);
+            next.delete(row.id);
+            return next;
+          });
+          setHandled((n) => n - 1);
+        }
+      });
+    },
+    [org],
+  );
+
+  const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.target instanceof HTMLButtonElement && (event.key === "Enter" || event.key === " "))
+      return;
+    const row = items[current];
+    switch (event.key.toLowerCase()) {
+      case "j":
+      case "arrowdown":
+        event.preventDefault();
+        focusItem(Math.min(current + 1, items.length - 1));
+        return;
+      case "k":
+      case "arrowup":
+        event.preventDefault();
+        focusItem(Math.max(current - 1, 0));
+        return;
+      case "a":
+        if (row?.approvable) {
+          event.preventDefault();
+          act(row, "approve");
+        }
+        return;
+      case "e":
+        if (row) {
+          event.preventDefault();
+          act(row, "done");
+        }
+        return;
+      case "h":
+        if (row) {
+          event.preventDefault();
+          act(row, "snooze");
+        }
+        return;
+      case "r":
+        if (row?.approvable) {
+          event.preventDefault();
+          setRejecting(row);
+        }
+        return;
+    }
+  };
+
+  // Keep focus on the item that took the acted-on item's place.
+  useEffect(() => {
+    const row = items[current];
+    if (row && listRef.current?.contains(document.activeElement)) refs.current.get(row.id)?.focus();
+  }, [items, current]);
+
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col gap-12">
+        {handled > 0 ? (
+          <p role="status" className="m-0 text-text-13">
+            {t("inbox.cleared", { count: handled })}
+          </p>
+        ) : null}
+        <EmptyPanel
+          icon="Inbox"
+          sentence={t("inbox.empty")}
+          actionLabel={t("inbox.emptyAction")}
+          href={`/${org}/my-work`}
+        />
+      </div>
+    );
+  }
+
+  const sections = (["Needs You", "For Your Information"] as const).map((section) => ({
+    section,
+    rows: items.filter((r) => r.section === section),
+  }));
+
+  return (
+    <div className="flex flex-col gap-16">
+      <p className="m-0 flex flex-wrap items-center gap-8 text-text-12 text-text-secondary">
+        <span>{t("inbox.keys.title")}</span>
+        {KEY_HINTS.map(([keys, label]) => (
+          <span key={label} className="inline-flex items-center gap-4">
+            {keys.map((k) => (
+              <Kbd key={k}>{k}</Kbd>
+            ))}
+            {t(`inbox.keys.${label}`)}
+          </span>
+        ))}
+      </p>
+      <div aria-live="polite" className="flex flex-col gap-4">
+        {handled > 0 ? (
+          <p role="status" className="m-0 text-text-13">
+            {t("inbox.handled", { count: handled })}
+          </p>
+        ) : null}
+        <Feedback state={outcome} />
+      </div>
+      <ul
+        ref={listRef}
+        aria-label={t("inbox.listLabel")}
+        onKeyDown={onKeyDown}
+        className="m-0 flex list-none flex-col gap-16 p-0"
+      >
+        {sections.map(({ section, rows: sectionRows }) =>
+          sectionRows.length === 0 ? null : (
+            <li key={section} className="flex flex-col gap-8">
+              <h2 className="m-0 text-text-13 font-semibold text-text-secondary">
+                {t(section === "Needs You" ? "inbox.needsYou" : "inbox.fyi")} · {sectionRows.length}
+              </h2>
+              <ul className="m-0 flex list-none flex-col gap-4 p-0">
+                {sectionRows.map((row) => {
+                  const index = items.indexOf(row);
+                  const isCurrent = index === current;
+                  return (
+                    <li key={row.id}>
+                      <article
+                        ref={(el) => {
+                          if (el) refs.current.set(row.id, el);
+                          else refs.current.delete(row.id);
+                        }}
+                        tabIndex={isCurrent ? 0 : -1}
+                        aria-label={`${row.summary}. ${row.detail}`}
+                        aria-current={isCurrent ? "true" : undefined}
+                        data-inbox-item={row.id}
+                        onFocus={() => setSelected(index)}
+                        className={`flex flex-wrap items-start justify-between gap-12 rounded-card border p-12 focus-visible:outline-(length:--stroke-width-focus) focus-visible:outline-focus-ring ${
+                          isCurrent ? "border-border-strong bg-bg-selected" : "border-border-subtle"
+                        }`}
+                      >
+                        <div className="flex min-w-0 flex-col gap-2">
+                          <p className={`m-0 text-text-14 ${row.unread ? "font-semibold" : ""}`}>
+                            {row.summary}
+                          </p>
+                          <p className="m-0 text-text-13 text-text-secondary">{row.detail}</p>
+                          <p className="m-0 text-text-12 text-text-tertiary">{row.when}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-4">
+                          {row.approvable ? (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={() => act(row, "approve")}
+                              >
+                                {t("inbox.approve")}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => setRejecting(row)}
+                              >
+                                {t("inbox.reject")}
+                              </Button>
+                            </>
+                          ) : null}
+                          <Button size="sm" variant="ghost" onClick={() => act(row, "done")}>
+                            {t("inbox.done")}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => act(row, "snooze")}>
+                            {t("inbox.snooze")}
+                          </Button>
+                        </div>
+                      </article>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ),
+        )}
+      </ul>
+      {rejecting ? (
+        <Dialog
+          title={t("inbox.rejectTitle")}
+          open
+          onOpenChange={(open) => (open ? null : setRejecting(null))}
+          actions={null}
+        >
+          <p className="m-0 text-text-13">{rejecting.summary}</p>
+          <ActionForm
+            action={rejectInboxAction}
+            hidden={{ org, id: rejecting.id }}
+            label={t("inbox.rejectTitle")}
+            submitLabel={t("inbox.rejectSubmit")}
+            submitVariant="danger"
+            onDone={() => {
+              setHidden((prev) => new Set(prev).add(rejecting.id));
+              setHandled((n) => n + 1);
+              setRejecting(null);
+              router.refresh();
+            }}
+          >
+            <Textarea
+              id="reject-reason"
+              name="reason"
+              label={t("inbox.rejectReason")}
+              required
+              maxLength={2000}
+              rows={3}
+              width="100%"
+              autoFocus
+            />
+          </ActionForm>
+        </Dialog>
+      ) : null}
+    </div>
+  );
+}

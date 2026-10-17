@@ -1,7 +1,6 @@
 import type { XosClient } from "./client.ts";
-import { ok, type Result } from "./result.ts";
-import { num, rows, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
-import { untyped } from "./untyped.ts";
+import type { Result } from "./result.ts";
+import { rpc, str, strOrNull, type Raw } from "./platform-common.ts";
 
 /**
  * Access transparency (A36, migration 1062; Section 8.4): View as role and Why can I see this. A
@@ -10,39 +9,6 @@ import { untyped } from "./untyped.ts";
  */
 
 export type Reach = "own" | "assigned" | "organization";
-
-export interface PreviewRole {
-  readonly id: string;
-  readonly code: string;
-  readonly name: string | null;
-  readonly band: number;
-  readonly system: boolean;
-}
-
-/** Roles a viewer may preview: the platform roles and the org's custom roles, highest band first. */
-export async function listPreviewRoles(
-  db: XosClient,
-  orgId: string,
-): Promise<Result<PreviewRole[]>> {
-  const result = await rows(
-    untyped(db)
-      .from("roles")
-      .select("id, code, name, band, org_id")
-      .or(`org_id.is.null,org_id.eq.${orgId}`)
-      .is("deleted_at", null)
-      .order("band"),
-  );
-  if (!result.ok) return result;
-  return ok(
-    result.data.map((r) => ({
-      id: str(r["id"]),
-      code: str(r["code"]),
-      name: strOrNull(r["name"]),
-      band: num(r["band"]),
-      system: r["org_id"] === null,
-    })),
-  );
-}
 
 export interface PreviewCapability {
   readonly capability: string;

@@ -28,6 +28,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/session": "Route handler: session expiry for the re-authentication dialog.",
   "/auth/organization": "Auth template: create an organization.",
   "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
+  "/{org}/export":
+    "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",
   "/api/v1/{...path}": "Public API: every v1 operation, served by the @xos/api Hono app (A04R).",
 };

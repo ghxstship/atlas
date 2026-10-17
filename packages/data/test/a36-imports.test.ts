@@ -91,7 +91,16 @@ describe("spreadsheet reading", () => {
 describe("import repository", () => {
   it("lists targets with their fields", async () => {
     const { db } = moduleClient({
-      "from:import_targets": [ok([{ code: "venues", fuzzy_match: true, sort_order: 1 }])],
+      "from:import_targets": [
+        ok([
+          {
+            code: "venues",
+            write_capability: "places.venue.write",
+            fuzzy_match: true,
+            sort_order: 1,
+          },
+        ]),
+      ],
       "from:import_target_fields": [
         ok([{ target_code: "venues", field_name: "name", required: true, strong_key: false }]),
       ],
@@ -101,6 +110,7 @@ describe("import repository", () => {
       data: [
         {
           code: "venues",
+          writeCapability: "places.venue.write",
           fuzzyMatch: true,
           fields: [{ name: "name", required: true, strongKey: false }],
         },
