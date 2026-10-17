@@ -364,3 +364,23 @@
 .xos-compass[data-theme="sunlight"] :where(button, input, select) {
   border-width: var(--stroke-width-focus);
 }
+
+/* Hovered and pressed accent fills (A24-004): the scrim at the hover or pressed opacity over the
+   accent. The label is white on every accent that passes, so the darker fill only gains contrast
+   (5.28:1 hovered in Dark, against 4.06:1 from the old brightness filter), and a white-label
+   accent darkens the same way. The contrast gate checks both states (contrast-pairs.json). */
+.xos-fill-accent:hover:not(:disabled, [aria-disabled="true"]) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent-default),
+    var(--color-scrim) calc(var(--opacity-hover) * 100%)
+  );
+}
+
+.xos-fill-accent:active:not(:disabled, [aria-disabled="true"]) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-accent-default),
+    var(--color-scrim) calc(var(--opacity-pressed) * 100%)
+  );
+}

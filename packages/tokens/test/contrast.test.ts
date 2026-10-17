@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { checkContrast, formatFailure, ratio, resolveColor } from "../scripts/check-contrast.js";
+import {
+  checkContrast,
+  composite,
+  formatFailure,
+  ratio,
+  resolveColor,
+} from "../scripts/check-contrast.js";
 import type { ContrastSpec, TokenSource } from "../scripts/check-contrast.js";
 import { readJson } from "./source.ts";
 
@@ -11,7 +17,10 @@ describe("contrast gate", () => {
     const result = checkContrast(tokens, spec);
     expect(result.failures.map(formatFailure)).toEqual([]);
     expect(result.themes).toBe(3);
-    const perTheme = spec.rules.reduce((n, r) => n + r.fg.length * r.bg.length, 0);
+    const perTheme = spec.rules.reduce(
+      (n, r) => n + r.fg.length * r.bg.length * (1 + (r.overlays?.length ?? 0)),
+      0,
+    );
     expect(result.checked).toBe(perTheme * 3);
   });
 
@@ -43,5 +52,35 @@ describe("contrast gate", () => {
     const names = new Set(tokens.color.tokens.map((t) => t.name));
     for (const rule of spec.rules)
       for (const n of [...rule.fg, ...rule.bg]) expect(names).toContain(n);
+  });
+
+  it("composites an overlay over a fill, as color-mix in sRGB does", () => {
+    expect(composite("#FFFFFF", "#000000", 0.1)).toBe("#e6e6e6");
+    expect(composite("#5B63E8", "#000000", 0)).toBe("#5b63e8");
+  });
+
+  it("checks the accent fill hovered and pressed, at the opacity tokens' values (A24-004)", () => {
+    const base = readJson<{ opacity: Record<string, { $value: number }> }>(
+      "tokens/base.tokens.json",
+    );
+    const rule = spec.rules.find((r) => r.overlays !== undefined);
+    expect(rule?.overlays?.map((o) => [o.state, o.color, o.opacity])).toEqual([
+      ["hover", "scrim", base.opacity["hover"]?.$value],
+      ["pressed", "scrim", base.opacity["pressed"]?.$value],
+    ]);
+    const failing = checkContrast(tokens, {
+      rules: [
+        {
+          name: "Light overlay",
+          min: 4.5,
+          fg: ["accent-text-on"],
+          bg: ["accent-default"],
+          overlays: [{ state: "hover", color: "accent-text-on", opacity: 0.2 }],
+        },
+      ],
+    });
+    expect(failing.failures.map((f) => f.bg)).toContain(
+      "accent-default hover (accent-text-on at 0.2)",
+    );
   });
 });

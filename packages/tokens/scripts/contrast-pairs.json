@@ -20,7 +20,11 @@
       "name": "Label on accent fill",
       "min": 4.5,
       "fg": ["accent-text-on"],
-      "bg": ["accent-default"]
+      "bg": ["accent-default"],
+      "overlays": [
+        { "state": "hover", "color": "scrim", "opacity": 0.06 },
+        { "state": "pressed", "color": "scrim", "opacity": 0.1 }
+      ]
     },
     { "name": "Label on danger fill", "min": 4.5, "fg": ["danger-text-on"], "bg": ["danger"] },
     {
