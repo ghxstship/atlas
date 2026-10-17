@@ -185,7 +185,8 @@
     "nextCue": "Next cue",
     "callTime": "Call {time}",
     "blockEmpty": "Nothing here today.",
-    "orgChip": "{org}"
+    "orgChip": "{org}",
+    "nextCueAt": "Planned for {day} at {time}"
   },
   "clock": {
     "in": "Clock In",

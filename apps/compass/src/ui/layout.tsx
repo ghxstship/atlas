@@ -98,9 +98,13 @@ export function Card({ title, meta, footer, onPress, children, testID }: CardPro
             gap: theme.space["8"],
           }}
         >
-          <Text variant="heading16" heading>
-            {title}
-          </Text>
+          {/* The title takes the room left and wraps, so a long one never pushes the status tag off the
+              card (seen on the simulator with long incident titles). */}
+          <View style={{ flex: 1, flexShrink: 1 }}>
+            <Text variant="heading16" heading>
+              {title}
+            </Text>
+          </View>
           {meta}
         </View>
       ) : null}

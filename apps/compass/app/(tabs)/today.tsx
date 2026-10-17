@@ -14,7 +14,7 @@ import {
   type PunchKind,
   type PunchRefusal,
 } from "../../src/domain/clock";
-import { formatCountdown, showState, type Cue } from "../../src/domain/show";
+import { formatCountdown, showState, showsCountdown, type Cue } from "../../src/domain/show";
 import { punchAnnouncementKey } from "../../src/domain/announce";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import {
@@ -197,7 +197,16 @@ function NextCue({ projectId }: { readonly projectId: string }): ReactElement | 
   return (
     <Card title={t("compass.today.nextCue")}>
       <Text variant="heading20">{s.next.label}</Text>
-      {s.msToNext !== null ? <Text tone="accent">{formatCountdown(s.msToNext)}</Text> : null}
+      {showsCountdown(s.msToNext) ? (
+        <Text tone="accent">{formatCountdown(s.msToNext)}</Text>
+      ) : s.next.planned_at ? (
+        <Text tone="secondary">
+          {t("compass.today.nextCueAt", {
+            day: formatDay(s.next.planned_at),
+            time: formatTime(s.next.planned_at),
+          })}
+        </Text>
+      ) : null}
     </Card>
   );
 }

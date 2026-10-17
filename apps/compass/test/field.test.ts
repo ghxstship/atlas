@@ -30,6 +30,8 @@ import {
 import {
   buildCallCue,
   formatCountdown,
+  showsCountdown,
+  COUNTDOWN_HORIZON_MS,
   preCueHapticDue,
   PRE_CUE_WARNING_MS,
   showState,
@@ -370,6 +372,11 @@ describe("live run of show", () => {
   it("formats countdowns readable at arm's length", () => {
     expect(formatCountdown(65_000)).toBe("1:05");
     expect(formatCountdown(3_725_000)).toBe("1:02:05");
+    // A cue months away names its day instead of a countdown such as "3547:45:52".
+    expect(showsCountdown(COUNTDOWN_HORIZON_MS)).toBe(true);
+    expect(showsCountdown(COUNTDOWN_HORIZON_MS + 1)).toBe(false);
+    expect(showsCountdown(-5_000)).toBe(true);
+    expect(showsCountdown(null)).toBe(false);
     expect(formatCountdown(-12_000)).toBe("+0:12");
   });
 
