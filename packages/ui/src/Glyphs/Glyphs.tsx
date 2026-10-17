@@ -6,7 +6,7 @@ import {
   phaseIcon,
   recordKindIcon,
   recordKinds,
-} from "@xos/icons";
+} from "@xos/icons/glyphs";
 import type {
   DepartmentCode,
   DepartmentGlyphProps as ReferenceDepartmentGlyphProps,

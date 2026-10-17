@@ -250,6 +250,11 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
       );
     }
   }
+  items.push({
+    label: t("menu.manage"),
+    icon: "Bookmark",
+    onSelect: () => router.push(`/${org}/views` as Route),
+  });
 
   return (
     <div className="flex flex-wrap items-center gap-8">
@@ -464,7 +469,7 @@ function SaveDialog({
   );
 }
 
-function ShareDialog({
+export function ShareDialog({
   view,
   teams,
   onClose,

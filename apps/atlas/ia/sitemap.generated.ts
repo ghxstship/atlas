@@ -2004,6 +2004,21 @@ export const sitemap: Sitemap = {
           },
         },
         {
+          id: "saved-views",
+          kind: "page",
+          label: "nav.atlas.routes.savedViews",
+          route: "/{org}/views",
+          visibility: {
+            owner: "full",
+            admin: "full",
+            manager: "full",
+            member: "full",
+            collaborator: "assigned",
+            field: "assigned",
+            viewer: "read",
+          },
+        },
+        {
           id: "saved-view",
           kind: "page",
           label: "nav.atlas.routes.savedView",

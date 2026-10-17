@@ -20,6 +20,7 @@ import enUS_incidents from "../messages/en-US/incidents.json" with { type: "json
 import enUS_integrations from "../messages/en-US/integrations.json" with { type: "json" };
 import enUS_knowledge from "../messages/en-US/knowledge.json" with { type: "json" };
 import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json" };
+import enUS_myWork from "../messages/en-US/myWork.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
 import enUS_peek from "../messages/en-US/peek.json" with { type: "json" };
@@ -31,6 +32,7 @@ import enUS_procurement from "../messages/en-US/procurement.json" with { type: "
 import enUS_profiles from "../messages/en-US/profiles.json" with { type: "json" };
 import enUS_projects from "../messages/en-US/projects.json" with { type: "json" };
 import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
+import enUS_savedViews from "../messages/en-US/savedViews.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
@@ -63,6 +65,7 @@ import esUS_incidents from "../messages/es-US/incidents.json" with { type: "json
 import esUS_integrations from "../messages/es-US/integrations.json" with { type: "json" };
 import esUS_knowledge from "../messages/es-US/knowledge.json" with { type: "json" };
 import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json" };
+import esUS_myWork from "../messages/es-US/myWork.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
 import esUS_peek from "../messages/es-US/peek.json" with { type: "json" };
@@ -74,6 +77,7 @@ import esUS_procurement from "../messages/es-US/procurement.json" with { type: "
 import esUS_profiles from "../messages/es-US/profiles.json" with { type: "json" };
 import esUS_projects from "../messages/es-US/projects.json" with { type: "json" };
 import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
+import esUS_savedViews from "../messages/es-US/savedViews.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
@@ -108,6 +112,7 @@ export const enUS = {
   integrations: enUS_integrations,
   knowledge: enUS_knowledge,
   logistics: enUS_logistics,
+  myWork: enUS_myWork,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
   peek: enUS_peek,
@@ -119,6 +124,7 @@ export const enUS = {
   profiles: enUS_profiles,
   projects: enUS_projects,
   reports: enUS_reports,
+  savedViews: enUS_savedViews,
   schedule: enUS_schedule,
   settings: enUS_settings,
   shell: enUS_shell,
@@ -154,6 +160,7 @@ export const esUS = {
   integrations: esUS_integrations,
   knowledge: esUS_knowledge,
   logistics: esUS_logistics,
+  myWork: esUS_myWork,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
   peek: esUS_peek,
@@ -165,6 +172,7 @@ export const esUS = {
   profiles: esUS_profiles,
   projects: esUS_projects,
   reports: esUS_reports,
+  savedViews: esUS_savedViews,
   schedule: esUS_schedule,
   settings: esUS_settings,
   shell: esUS_shell,

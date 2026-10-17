@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 import { GatewayFrame } from "@/components/shell/gateway-frame";
+import { ReporterUser } from "@/components/shell/reporter-user";
 import { selectableLocales } from "@/i18n/negotiate";
 import { buildNav } from "@/lib/shell/nav-model";
 import { requireContext } from "@/lib/shell/context";
@@ -57,6 +58,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
       locale={locale}
       locales={selectableLocales(process.env.NODE_ENV === "production")}
     >
+      <ReporterUser personId={ctx.personId} />
       {children}
     </GatewayFrame>
   );
