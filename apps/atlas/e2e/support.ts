@@ -17,6 +17,13 @@ export async function expectAccessible(page: Page): Promise<void> {
   // axe measures the resting state; a pointer left on a button after a click would measure its hover
   // colors instead (hover contrast is tracked separately, finding A24-004).
   await page.mouse.move(0, 0);
+  // Drawers and dialogs fade in; Firefox runs the fade even under reduced motion, and axe would
+  // sample the half-faded colors (finding A24-008). Finite animations finish first.
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .every((a) => a.playState !== "running" || a.effect?.getTiming().iterations === Infinity),
+  );
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();

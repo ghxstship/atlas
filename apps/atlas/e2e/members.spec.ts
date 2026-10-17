@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
 
 test("invite a member, accept as them, and hide what their role may not see", async ({

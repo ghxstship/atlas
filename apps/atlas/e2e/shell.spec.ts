@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./engine-test";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
 
 test("the shell navigates from the sitemap: sidebar, command menu, breadcrumbs, focus mode", async ({

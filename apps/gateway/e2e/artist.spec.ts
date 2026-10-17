@@ -1,4 +1,4 @@
-import { expect as baseExpect, test } from "@playwright/test";
+import { expect as baseExpect, test } from "./engine-test";
 import {
   artistAdvance,
   artistSetCue,

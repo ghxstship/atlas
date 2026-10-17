@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import { expect, test, type Browser, type Page } from "./engine-test";
 import { expectAccessible, uniqueId } from "./support";
 
 /**
