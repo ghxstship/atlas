@@ -17,6 +17,7 @@ import {
 import { formatCountdown, showState, showsCountdown, type Cue } from "../../src/domain/show";
 import { punchAnnouncementKey } from "../../src/domain/announce";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
+import { useClockLiveActivity, useLockScreenPunchDrain } from "../../src/runtime/liveActivity";
 import {
   formatDay,
   formatTime,
@@ -59,7 +60,7 @@ const REFUSAL_KEY: Readonly<Record<PunchRefusal, string>> = {
 function ClockCard(): ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { settings, status } = useCompass();
+  const { settings, status, resolved, projectId, enqueue, engine } = useCompass();
   const [punching, setPunching] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   // Today is the clock: while it is in front and the person is clocked out, sample precisely so Clock In
@@ -74,6 +75,26 @@ function ClockCard(): ReactElement {
   );
   const clock = useClock(needsPreciseFix(open, clockedOut ? "out" : "on", punching));
   useEffect(() => setClockedOut(clock.snapshot.state === "out"), [clock.snapshot.state]);
+  // The iOS Live Activity mirrors this clock on the lock screen and in the Dynamic Island (SIM-005); punches
+  // made there arrive through the drain into the same outbox.
+  const lockScreenFailure = useClockLiveActivity(clock.snapshot, clock.context, {
+    projectName: resolved?.projects.find((p) => p.id === projectId)?.name ?? "",
+    onShift: t("compass.clock.onShift"),
+    onBreak: t("compass.clock.onBreak"),
+    since: t("compass.clock.live.since"),
+    worked: t("compass.clock.live.worked"),
+    startBreak: t("compass.clock.startBreak"),
+    endBreak: t("compass.clock.endBreak"),
+    clockOut: t("compass.clock.out"),
+  });
+  const drainProblem = useLockScreenPunchDrain(engine ? enqueue : null);
+  const lockScreenNotice = lockScreenFailure
+    ? t("compass.clock.live.lockScreenFailed", { reason: lockScreenFailure })
+    : drainProblem?.error
+      ? t("compass.clock.live.drainFailed", { reason: drainProblem.error })
+      : drainProblem && drainProblem.dropped > 0
+        ? t("compass.clock.live.drainDropped", { count: drainProblem.dropped })
+        : null;
   const primary = primaryPunch(clock.snapshot.state);
   const refusal = clock.refusal(primary);
   const geofenceText = (() => {
@@ -138,6 +159,9 @@ function ClockCard(): ReactElement {
           <InlineAlert tone="warning" message={t("compass.clock.forgotten")} />
         ) : null}
         {notice ? <InlineAlert testID="clock-notice" tone="info" message={notice} /> : null}
+        {lockScreenNotice ? (
+          <InlineAlert testID="clock-lock-screen" tone="warning" message={lockScreenNotice} />
+        ) : null}
       </View>
     );
   }
@@ -171,6 +195,9 @@ function ClockCard(): ReactElement {
         <InlineAlert tone="warning" message={t("compass.clock.forgotten")} />
       ) : null}
       {notice ? <InlineAlert testID="clock-notice" tone="info" message={notice} /> : null}
+      {lockScreenNotice ? (
+        <InlineAlert testID="clock-lock-screen" tone="warning" message={lockScreenNotice} />
+      ) : null}
     </View>
   );
 }

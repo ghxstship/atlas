@@ -166,6 +166,7 @@
       "shiftClaimUnknown": "Claim an open shift",
       "incidentReport": "Report \"{title}\" at {time}",
       "incidentPhoto": "Incident photo taken at {time}",
+      "incidentVoiceNote": "Incident voice note ({length}) recorded at {time}",
       "incidentParty": "Person involved: {description}",
       "incidentMove": "Move the incident to {state}",
       "fulfillmentMove": "Move the fulfillment to {state}",
@@ -239,7 +240,12 @@
     },
     "live": {
       "shift": "Current shift",
-      "ends": "Ends {time}"
+      "ends": "Ends {time}",
+      "since": "Since",
+      "worked": "Worked",
+      "lockScreenFailed": "The lock screen Live Activity did not start: {reason}. The card here keeps your clock.",
+      "drainFailed": "Punches from the lock screen did not reach the upload queue: {reason}. Open Compass again to retry.",
+      "drainDropped": "Punches from the lock screen that had no shift attached: {count}. They were not recorded; punch here instead."
     }
   },
   "schedule": {
@@ -342,7 +348,19 @@
     },
     "dispatchReason": "Dispatched from Compass.",
     "containReason": "Marked contained from Compass.",
-    "typeGroup": "Incident type"
+    "typeGroup": "Incident type",
+    "voice": {
+      "record": "Hold to Record a Voice Note",
+      "recording": "Recording {time}. Release to stop.",
+      "hint": "Hold to record and release to stop. With VoiceOver, double-tap to start and again to stop.",
+      "note": "Voice note {index}, {length}",
+      "play": "Play voice note {index}",
+      "pause": "Pause voice note {index}",
+      "delete": "Delete voice note {index}",
+      "permissionDenied": "Compass cannot use the microphone. Allow it in Settings, then hold to record again.",
+      "failed": "The voice note did not record: {reason}. Hold to try again.",
+      "tooShort": "That was too short to keep. Hold a little longer to record a voice note."
+    }
   },
   "inspections": {
     "title": "Inspections",

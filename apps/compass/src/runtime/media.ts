@@ -25,9 +25,11 @@ export async function processPhoto(uri: string, width: number, height: number): 
   return saved.uri;
 }
 
-/** The content type field-media expects for an object name (images only, 0368). */
+/** The content type field-media expects for an object name (images, 0368; AAC voice notes, 1113). */
 export function contentTypeFor(path: string): string {
-  return path.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
+  const lower = path.toLowerCase();
+  if (lower.endsWith(".m4a")) return "audio/mp4";
+  return lower.endsWith(".png") ? "image/png" : "image/jpeg";
 }
 
 /**

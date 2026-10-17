@@ -12,6 +12,7 @@ import {
   forgottenClockOut,
   type ClockSnapshot,
   type Punch,
+  type PunchContext,
   type PunchKind,
   type PunchRefusal,
 } from "../domain/clock";
@@ -72,6 +73,8 @@ export interface ClockModel {
   readonly refusal: (kind: PunchKind) => PunchRefusal | null;
   readonly punch: (kind: PunchKind) => Promise<void>;
   readonly now: number;
+  /** Who punches and where, for punches made outside the app (the Live Activity); null before scope loads. */
+  readonly context: PunchContext | null;
 }
 
 export function useClock(punching: boolean): ClockModel {
@@ -125,6 +128,18 @@ export function useClock(punching: boolean): ClockModel {
   const geofence = evaluateGeofence(fix, geofences, now);
   const policy = { requireGeofence: geofences.length > 0, requireShift: false };
 
+  const engagementId = identity?.membershipId ? null : (engagement?.id ?? null);
+  const context: PunchContext | null =
+    projectId && identity && (identity.membershipId !== null || engagementId !== null)
+      ? {
+          projectId,
+          shiftId: shift?.id ?? null,
+          membershipId: identity.membershipId,
+          engagementId,
+          source: "Mobile",
+        }
+      : null;
+
   return {
     snapshot,
     geofence,
@@ -133,17 +148,12 @@ export function useClock(punching: boolean): ClockModel {
     locationDenied: permission === "denied",
     now,
     refusal: (kind) => checkPunch(kind, snapshot, geofence, policy, shift !== null),
+    context,
     punch: async (kind) => {
-      if (!projectId || !identity) return;
+      if (!context) return;
       const input = buildPunch(
         kind,
-        {
-          projectId,
-          shiftId: shift?.id ?? null,
-          membershipId: identity.membershipId,
-          engagementId: identity.membershipId ? null : (engagement?.id ?? null),
-          source: "Mobile",
-        },
+        context,
         stampEvent(deviceClock, null),
         fix,
         geofences,

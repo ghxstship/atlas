@@ -1,0 +1,7 @@
+{
+  "type": "widget",
+  "displayName": "Compass Clock",
+  "deploymentTarget": "17.0",
+  "bundleIdentifier": ".clock-activity",
+  "frameworks": ["SwiftUI", "WidgetKit", "ActivityKit", "AppIntents"]
+}

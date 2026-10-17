@@ -2,7 +2,7 @@
  * Incidents (Section 4.3 item 5, Section 11.13 Incidents).
  *
  * A three-step quick report: severity from the canon Incident Severity grid, the location (filled from the
- * last fix), then photos or a note. Critical incidents use hold to confirm. Reports queue offline with
+ * last fix), then photos or a voice note. Critical incidents use hold to confirm. Reports queue offline with
  * client ids, so a report filed in a dead zone lands once when the device reconnects.
  */
 import { uuidv7, type MutationInput } from "@xos/sync";
@@ -42,11 +42,47 @@ export interface IncidentDraft {
     readonly uri: string;
     readonly capturedAt: string;
   }[];
+  /** Voice notes recorded on the device (SIM-003): an AAC file each, uploaded like a photo. */
+  readonly voiceNotes: readonly VoiceNote[];
   readonly parties: readonly {
     readonly id: string;
     readonly personId: string | null;
     readonly description: string;
   }[];
+}
+
+export interface VoiceNote {
+  readonly id: string;
+  /** Local file the recorder wrote. */
+  readonly uri: string;
+  readonly capturedAt: string;
+  readonly durationMs: number;
+}
+
+/** A voice note runs at least half a second (a slipped tap records nothing) and at most ten minutes. */
+export const VOICE_NOTE_MIN_MS = 500;
+export const VOICE_NOTE_MAX_MS = 600_000;
+
+/** The note to keep from a finished recording, or null when it is too short to hold anything. */
+export function keepVoiceNote(
+  uri: string | null,
+  durationMs: number,
+  capturedAt: string,
+  newId: () => string = () => uuidv7(),
+): VoiceNote | null {
+  if (!uri || !Number.isFinite(durationMs) || durationMs < VOICE_NOTE_MIN_MS) return null;
+  return {
+    id: newId(),
+    uri,
+    capturedAt,
+    durationMs: Math.min(Math.round(durationMs), VOICE_NOTE_MAX_MS),
+  };
+}
+
+/** Formats a voice note's length as M:SS. */
+export function formatNoteLength(ms: number): string {
+  const total = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(total / 60)}:${(total % 60).toString().padStart(2, "0")}`;
 }
 
 export function newDraft(
@@ -67,6 +103,7 @@ export function newDraft(
     fix,
     occurredAt,
     photos: [],
+    voiceNotes: [],
     parties: [],
   };
 }
@@ -158,6 +195,37 @@ export function buildReport(
         p_captured_at: photo.capturedAt,
         // Device-only: the uploader sends the file to the field-media bucket before the RPC.
         local_uri: photo.uri,
+        storage_path: path,
+      },
+      policy: "append",
+      optimistic: row,
+    });
+  }
+  for (const note of draft.voiceNotes) {
+    // Same folder as the photos; field-media takes AAC audio since 1113.
+    const path = `${draft.orgId}/incidents/${draft.id}/${note.id}.m4a`;
+    const row = {
+      id: note.id,
+      incident_id: draft.id,
+      project_id: draft.projectId,
+      media_uri: path,
+      captured_at: note.capturedAt,
+      media_kind: "Voice Note",
+      duration_ms: note.durationMs,
+    };
+    writes.push({
+      op: "rpc",
+      target: "app.add_incident_media",
+      table: "incident_media",
+      rowId: note.id,
+      payload: {
+        p_id: note.id,
+        p_incident_id: draft.id,
+        p_media_uri: path,
+        p_captured_at: note.capturedAt,
+        p_media_kind: "Voice Note",
+        p_duration_ms: note.durationMs,
+        local_uri: note.uri,
         storage_path: path,
       },
       policy: "append",

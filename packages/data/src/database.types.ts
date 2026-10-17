@@ -18552,8 +18552,10 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          duration_ms: number | null;
           id: string;
           incident_id: string;
+          media_kind: string;
           media_uri: string;
           org_id: string;
           project_id: string;
@@ -18566,8 +18568,10 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          duration_ms?: number | null;
           id?: string;
           incident_id: string;
+          media_kind?: string;
           media_uri: string;
           org_id: string;
           project_id: string;
@@ -18579,8 +18583,10 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          duration_ms?: number | null;
           id?: string;
           incident_id?: string;
+          media_kind?: string;
           media_uri?: string;
           org_id?: string;
           project_id?: string;
@@ -50269,7 +50275,14 @@ export type Database = {
         Returns: string;
       };
       add_incident_media: {
-        Args: { p_captured_at?: string; p_id?: string; p_incident_id: string; p_media_uri: string };
+        Args: {
+          p_captured_at?: string;
+          p_duration_ms?: number;
+          p_id?: string;
+          p_incident_id: string;
+          p_media_kind?: string;
+          p_media_uri: string;
+        };
         Returns: string;
       };
       add_incident_party: {
