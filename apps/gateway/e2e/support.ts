@@ -89,6 +89,15 @@ export async function expectAccessibleInBothThemes(page: Page): Promise<void> {
   }
 }
 
+/**
+ * Reloads once the page is quiet. A server action ends with Next refreshing the route; Firefox
+ * aborts a reload issued while that refresh is in flight (NS_BINDING_ABORTED, finding A24-008).
+ */
+export async function reloadSettled(page: Page): Promise<void> {
+  await page.waitForLoadState("networkidle");
+  await page.reload();
+}
+
 /** Signs in with the demo password and waits for the page the sign-in sends to. */
 export async function signIn(page: Page, email: string, next = "/home"): Promise<void> {
   await page.goto(`/auth/sign-in?next=${encodeURIComponent(next)}`);
