@@ -17,6 +17,7 @@ import {
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/finance/panels";
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
 import { RevokeShareButton, RunReportForm, ShareReportForm } from "./client";
+import { ReportDeliveryPanel } from "./delivery-panel";
 
 /**
  * Reports > Saved reports (Section 4.5.5, 4.6.4) and the project Reports tab (Section 4.5.4). Saved
@@ -124,6 +125,12 @@ export async function SavedReportsView({ page }: { page: FinancePage }) {
             ]}
           >
             <RunReportForm org={org} reportDefinitionId={peek.id} />
+            <ReportDeliveryPanel
+              ctx={ctx}
+              reportDefinitionId={peek.id}
+              canPlace={access.can("reports.report.read")}
+              canSchedule={peek.mine && access.can("reports.schedule.write")}
+            />
             <SimpleTable
               caption={t("reports.saved.recentRuns")}
               head={[

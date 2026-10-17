@@ -338,6 +338,8 @@ import {
   TemplateApplicationsResource,
   GuestListEntriesResource,
   Form1099NecResource,
+  ReportScheduleRecipientsResource,
+  ReportDeliveriesResource,
   AuroraResource,
   AiSuggestionsResource,
   AiRequestsResource,
@@ -1158,6 +1160,11 @@ export class XosClient extends XosClientCore {
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
   /** Finance: operations on `form1099Nec`. */
   readonly form1099Nec: Form1099NecResource = new Form1099NecResource(this);
+  /** Reports: operations on `reportScheduleRecipients`. */
+  readonly reportScheduleRecipients: ReportScheduleRecipientsResource =
+    new ReportScheduleRecipientsResource(this);
+  /** Reports: operations on `reportDeliveries`. */
+  readonly reportDeliveries: ReportDeliveriesResource = new ReportDeliveriesResource(this);
   /** Settings: operations on `aurora`. */
   readonly aurora: AuroraResource = new AuroraResource(this);
   /** Settings: operations on `aiSuggestions`. */

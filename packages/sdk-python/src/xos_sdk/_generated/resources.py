@@ -965,6 +965,8 @@ if TYPE_CHECKING:
         ReportDefinitionCreate,
         ReportDefinitionPage,
         ReportDefinitionUpdate,
+        ReportDelivery,
+        ReportDeliveryPage,
         ReportMetricRowPage,
         ReportRowPage,
         ReportRun,
@@ -973,6 +975,9 @@ if TYPE_CHECKING:
         ReportSchedule,
         ReportScheduleCreate,
         ReportSchedulePage,
+        ReportScheduleRecipient,
+        ReportScheduleRecipientCreate,
+        ReportScheduleRecipientPage,
         ReportScheduleUpdate,
         Representation,
         RepresentationCreate,
@@ -31426,6 +31431,155 @@ class Form1099NecResource(Resource):
         Requires the capability ``finance.payment.read``.
         """
         return self._client.request(OPERATIONS["form1099Nec.rows"], query={"year": year}, options=options)
+
+
+class ReportScheduleRecipientsResource(Resource):
+    """Operations on ``reportScheduleRecipients``, in the Reports module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ReportScheduleRecipient]:
+        """List report schedule recipient rows
+
+        A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Returns a cursor page of report schedule recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /report-schedule-recipients`` (operation ``reportScheduleRecipients.list``).
+        Requires the capability ``reports.report.read``.
+        """
+        return self._client.request_page(OPERATIONS["reportScheduleRecipients.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ReportScheduleRecipient]:
+        """List report schedule recipient rows
+
+        A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Returns a cursor page of report schedule recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /report-schedule-recipients`` (operation ``reportScheduleRecipients.list``).
+        Requires the capability ``reports.report.read``.
+        """
+        return self._client.paginate(OPERATIONS["reportScheduleRecipients.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ReportScheduleRecipientCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ReportScheduleRecipient]:
+        """Create a report schedule recipient
+
+        A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Creates a report schedule recipient. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /report-schedule-recipients`` (operation ``reportScheduleRecipients.create``).
+        Requires the capability ``reports.schedule.write``.
+        """
+        return self._client.request(OPERATIONS["reportScheduleRecipients.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ReportScheduleRecipient]:
+        """Get a report schedule recipient
+
+        A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Returns one report schedule recipient with its `ETag`. A report schedule recipient the caller may not see returns 404.
+
+        ``GET /report-schedule-recipients/{id}`` (operation ``reportScheduleRecipients.get``).
+        Requires the capability ``reports.report.read``.
+        """
+        return self._client.request(OPERATIONS["reportScheduleRecipients.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a report schedule recipient
+
+        A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Soft-deletes the report schedule recipient: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /report-schedule-recipients/{id}`` (operation ``reportScheduleRecipients.delete``).
+        Requires the capability ``reports.schedule.write``.
+        """
+        return self._client.request(OPERATIONS["reportScheduleRecipients.delete"], path={"id": id}, options=options)
+
+
+class ReportDeliveriesResource(Resource):
+    """Operations on ``reportDeliveries``, in the Reports module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ReportDelivery]:
+        """List report delivery rows
+
+        One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker. Returns a cursor page of report delivery rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /report-deliveries`` (operation ``reportDeliveries.list``).
+        Requires the capability ``reports.report.read``.
+        """
+        return self._client.request_page(OPERATIONS["reportDeliveries.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ReportDelivery]:
+        """List report delivery rows
+
+        One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker. Returns a cursor page of report delivery rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /report-deliveries`` (operation ``reportDeliveries.list``).
+        Requires the capability ``reports.report.read``.
+        """
+        return self._client.paginate(OPERATIONS["reportDeliveries.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ReportDelivery]:
+        """Get a report delivery
+
+        One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker. Returns one report delivery with its `ETag`. A report delivery the caller may not see returns 404.
+
+        ``GET /report-deliveries/{id}`` (operation ``reportDeliveries.get``).
+        Requires the capability ``reports.report.read``.
+        """
+        return self._client.request(OPERATIONS["reportDeliveries.get"], path={"id": id}, query={"fields": fields}, options=options)
 
 
 class AuroraResource(Resource):

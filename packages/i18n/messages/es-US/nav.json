@@ -161,7 +161,8 @@
         "incidents": "Incidentes",
         "finalCostReport": "Informe de costo final",
         "savedReports": "Informes guardados",
-        "builder": "Generador de informes"
+        "builder": "Generador de informes",
+        "dashboards": "Tableros"
       },
       "canon": {
         "departments": "Departamentos",

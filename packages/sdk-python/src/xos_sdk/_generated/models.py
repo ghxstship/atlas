@@ -1213,6 +1213,11 @@ __all__ = [
     "GuestDecisionRequest",
     "Form1099NecRowPage",
     "Form1099NecRow",
+    "ReportScheduleRecipientPage",
+    "ReportScheduleRecipient",
+    "ReportScheduleRecipientCreate",
+    "ReportDeliveryPage",
+    "ReportDelivery",
     "AuroraStatus",
     "AiFeature",
     "AuroraResult",
@@ -17383,33 +17388,65 @@ class ReportSchedule(TypedDict):
     updated_by: Optional[str]
     #: Identifier of the report definition.
     report_definition_id: str
-    #: RFC 5545 recurrence rule.
-    rrule: str
-    format: ExportFormat
     #: IANA time zone the local time was entered in.
     time_zone: str
+    #: How often the report is sent.
+    cadence: Literal["Daily", "Weekly", "Monthly"]
+    #: Local hour of delivery, 0 to 23.
+    local_hour: int
+    #: ISO weekday (1 Monday) of a weekly delivery.
+    weekday: Optional[int]
+    #: Day of the month (1 to 28) of a monthly delivery.
+    month_day: Optional[int]
+    #: File format attached: CSV, XLSX or PDF.
+    export_format: Literal["CSV", "XLSX", "PDF"]
+    #: Next delivery time, kept by the database.
+    next_run_at: str
+    #: When the schedule was paused; null while it runs.
+    paused_at: Optional[str]
 
 
-class ReportScheduleCreate(TypedDict):
-    """Fields accepted when creating a ReportSchedule."""
-
+class _ReportScheduleCreateRequired(TypedDict):
     #: Identifier of the report definition.
     report_definition_id: str
-    #: RFC 5545 recurrence rule.
-    rrule: str
-    format: ExportFormat
     #: IANA time zone the local time was entered in.
     time_zone: str
+    #: How often the report is sent.
+    cadence: Literal["Daily", "Weekly", "Monthly"]
+    #: Local hour of delivery, 0 to 23.
+    local_hour: int
+    #: File format attached: CSV, XLSX or PDF.
+    export_format: Literal["CSV", "XLSX", "PDF"]
+
+
+class ReportScheduleCreate(_ReportScheduleCreateRequired, total=False):
+    """Fields accepted when creating a ReportSchedule."""
+
+    #: ISO weekday (1 Monday) of a weekly delivery.
+    weekday: Optional[int]
+    #: Day of the month (1 to 28) of a monthly delivery.
+    month_day: Optional[int]
+    #: When the schedule was paused; null while it runs.
+    paused_at: Optional[str]
 
 
 class ReportScheduleUpdate(TypedDict, total=False):
     """Fields accepted when updating a ReportSchedule. Omitted fields are unchanged."""
 
-    #: RFC 5545 recurrence rule.
-    rrule: str
-    format: ExportFormat
     #: IANA time zone the local time was entered in.
     time_zone: str
+    #: How often the report is sent.
+    cadence: Literal["Daily", "Weekly", "Monthly"]
+    #: Local hour of delivery, 0 to 23.
+    local_hour: int
+    #: ISO weekday (1 Monday) of a weekly delivery.
+    weekday: Optional[int]
+    #: Day of the month (1 to 28) of a monthly delivery.
+    month_day: Optional[int]
+    #: File format attached: CSV, XLSX or PDF.
+    export_format: Literal["CSV", "XLSX", "PDF"]
+    #: When the schedule was paused; null while it runs.
+    paused_at: Optional[str]
 
 
 class DashboardPage(TypedDict):
@@ -17440,6 +17477,8 @@ class Dashboard(TypedDict):
     name: str
     #: Identifier of the team.
     team_id: Optional[str]
+    #: Identifier of the membership that owns the dashboard.
+    membership_id: Optional[str]
 
 
 class _DashboardCreateRequired(TypedDict):
@@ -17491,10 +17530,14 @@ class DashboardTile(TypedDict):
     dashboard_id: str
     #: Identifier of the report definition.
     report_definition_id: str
-    #: Tile order.
-    position: int
-    #: Grid columns spanned.
-    width: int
+    #: Leftmost column, 1 to 12.
+    grid_column: int
+    #: Top row, from 1.
+    grid_row: int
+    #: Columns spanned, 1 to 12.
+    column_span: int
+    #: Rows spanned, 1 to 12.
+    row_span: int
 
 
 class DashboardTileCreate(TypedDict):
@@ -17504,10 +17547,14 @@ class DashboardTileCreate(TypedDict):
     dashboard_id: str
     #: Identifier of the report definition.
     report_definition_id: str
-    #: Tile order.
-    position: int
-    #: Grid columns spanned.
-    width: int
+    #: Leftmost column, 1 to 12.
+    grid_column: int
+    #: Top row, from 1.
+    grid_row: int
+    #: Columns spanned, 1 to 12.
+    column_span: int
+    #: Rows spanned, 1 to 12.
+    row_span: int
 
 
 class DashboardTileUpdate(TypedDict, total=False):
@@ -17515,10 +17562,14 @@ class DashboardTileUpdate(TypedDict, total=False):
 
     #: Identifier of the report definition.
     report_definition_id: str
-    #: Tile order.
-    position: int
-    #: Grid columns spanned.
-    width: int
+    #: Leftmost column, 1 to 12.
+    grid_column: int
+    #: Top row, from 1.
+    grid_row: int
+    #: Columns spanned, 1 to 12.
+    column_span: int
+    #: Rows spanned, 1 to 12.
+    row_span: int
 
 
 class ReportRowPage(TypedDict):
@@ -19199,6 +19250,85 @@ class Form1099NecRow(TypedDict):
     amount_minor: Optional[int]
     #: Payments counted.
     payment_count: int
+
+
+class ReportScheduleRecipientPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ReportScheduleRecipient]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ReportScheduleRecipient(TypedDict):
+    """A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4)."""
+
+    #: Identifier of the report schedule recipient.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the report schedule.
+    report_schedule_id: str
+    #: Identifier of the membership of the recipient, in the schedule's org.
+    membership_id: str
+
+
+class ReportScheduleRecipientCreate(TypedDict):
+    """Fields accepted when creating a ReportScheduleRecipient."""
+
+    #: Identifier of the report schedule.
+    report_schedule_id: str
+    #: Identifier of the membership of the recipient, in the schedule's org.
+    membership_id: str
+
+
+class ReportDeliveryPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ReportDelivery]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ReportDelivery(TypedDict):
+    """One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker."""
+
+    #: Identifier of the report delivery.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the report schedule.
+    report_schedule_id: str
+    #: Identifier of the recipient membership.
+    membership_id: str
+    #: Identifier of the report run whose file is attached.
+    report_run_id: str
+    #: The schedule slot this delivery is for.
+    scheduled_for: str
+    #: Delivery status.
+    delivery_status: Literal["Queued", "Sent", "Failed"]
+    #: When the email was handed to the transport.
+    sent_at: Optional[str]
+    #: Why the delivery failed.
+    last_error: Optional[str]
 
 
 class AuroraStatus(TypedDict):

@@ -2223,6 +2223,7 @@ export interface Components {
     updated_by: string | null;
     name: string;
     team_id: string | null;
+    membership_id: string | null;
   };
   DashboardCreate: { name: string; team_id?: string | null };
   DashboardPage: { data: Array<Components["Dashboard"]>; next_cursor: string | null };
@@ -2235,17 +2236,27 @@ export interface Components {
     updated_by: string | null;
     dashboard_id: string;
     report_definition_id: string;
-    position: number;
-    width: number;
+    grid_column: number;
+    grid_row: number;
+    column_span: number;
+    row_span: number;
   };
   DashboardTileCreate: {
     dashboard_id: string;
     report_definition_id: string;
-    position: number;
-    width: number;
+    grid_column: number;
+    grid_row: number;
+    column_span: number;
+    row_span: number;
   };
   DashboardTilePage: { data: Array<Components["DashboardTile"]>; next_cursor: string | null };
-  DashboardTileUpdate: { report_definition_id?: string; position?: number; width?: number };
+  DashboardTileUpdate: {
+    report_definition_id?: string;
+    grid_column?: number;
+    grid_row?: number;
+    column_span?: number;
+    row_span?: number;
+  };
   DashboardUpdate: { name?: string; team_id?: string | null };
   DaySheet: {
     id: string;
@@ -5870,6 +5881,22 @@ export interface Components {
     shared?: boolean;
     custom_object_type_id?: string | null;
   };
+  ReportDelivery: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    report_schedule_id: string;
+    membership_id: string;
+    report_run_id: string;
+    scheduled_for: string;
+    delivery_status: "Queued" | "Sent" | "Failed";
+    sent_at: string | null;
+    last_error: string | null;
+  };
+  ReportDeliveryPage: { data: Array<Components["ReportDelivery"]>; next_cursor: string | null };
   ReportMetricRow: {
     dimension: string;
     project_id: string | null;
@@ -5911,18 +5938,50 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     report_definition_id: string;
-    rrule: string;
-    format: Components["ExportFormat"];
     time_zone: string;
+    cadence: "Daily" | "Weekly" | "Monthly";
+    local_hour: number;
+    weekday: number | null;
+    month_day: number | null;
+    export_format: "CSV" | "XLSX" | "PDF";
+    next_run_at: string;
+    paused_at: string | null;
   };
   ReportScheduleCreate: {
     report_definition_id: string;
-    rrule: string;
-    format: Components["ExportFormat"];
     time_zone: string;
+    cadence: "Daily" | "Weekly" | "Monthly";
+    local_hour: number;
+    weekday?: number | null;
+    month_day?: number | null;
+    export_format: "CSV" | "XLSX" | "PDF";
+    paused_at?: string | null;
   };
   ReportSchedulePage: { data: Array<Components["ReportSchedule"]>; next_cursor: string | null };
-  ReportScheduleUpdate: { rrule?: string; format?: Components["ExportFormat"]; time_zone?: string };
+  ReportScheduleRecipient: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    report_schedule_id: string;
+    membership_id: string;
+  };
+  ReportScheduleRecipientCreate: { report_schedule_id: string; membership_id: string };
+  ReportScheduleRecipientPage: {
+    data: Array<Components["ReportScheduleRecipient"]>;
+    next_cursor: string | null;
+  };
+  ReportScheduleUpdate: {
+    time_zone?: string;
+    cadence?: "Daily" | "Weekly" | "Monthly";
+    local_hour?: number;
+    weekday?: number | null;
+    month_day?: number | null;
+    export_format?: "CSV" | "XLSX" | "PDF";
+    paused_at?: string | null;
+  };
   Representation: {
     id: string;
     created_at: string;
@@ -22165,6 +22224,72 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["Form1099NecRowPage"] };
   };
+  "reportScheduleRecipients.list": {
+    module: "Reports";
+    method: "get";
+    path: "/report-schedule-recipients";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ReportScheduleRecipientPage"] };
+  };
+  "reportScheduleRecipients.create": {
+    module: "Reports";
+    method: "post";
+    path: "/report-schedule-recipients";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ReportScheduleRecipientCreate"];
+    responses: { 201: Components["ReportScheduleRecipient"] };
+  };
+  "reportScheduleRecipients.get": {
+    module: "Reports";
+    method: "get";
+    path: "/report-schedule-recipients/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ReportScheduleRecipient"] };
+  };
+  "reportScheduleRecipients.delete": {
+    module: "Reports";
+    method: "delete";
+    path: "/report-schedule-recipients/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "reportDeliveries.list": {
+    module: "Reports";
+    method: "get";
+    path: "/report-deliveries";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ReportDeliveryPage"] };
+  };
+  "reportDeliveries.get": {
+    module: "Reports";
+    method: "get";
+    path: "/report-deliveries/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ReportDelivery"] };
+  };
   "aurora.status": {
     module: "Settings";
     method: "get";
@@ -25341,7 +25466,13 @@ export interface ModuleOperations {
     | "reports.poExposure"
     | "reports.incidentRates"
     | "reports.finalCostReport"
-    | "reports.gateReadiness";
+    | "reports.gateReadiness"
+    | "reportScheduleRecipients.list"
+    | "reportScheduleRecipients.create"
+    | "reportScheduleRecipients.get"
+    | "reportScheduleRecipients.delete"
+    | "reportDeliveries.list"
+    | "reportDeliveries.get";
   Settings:
     | "subscriptions.list"
     | "subscriptions.get"

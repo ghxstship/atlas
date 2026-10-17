@@ -1451,6 +1451,13 @@ export const sitemap: Sitemap = {
               list: { views: ["list", "table"], default: "list" },
             },
             {
+              id: "reports.dashboards",
+              kind: "page",
+              label: "nav.atlas.pages.reports.dashboards",
+              route: "/{org}/reports/dashboards",
+              list: { views: ["gallery", "list"], default: "gallery" },
+            },
+            {
               id: "reports.builder",
               kind: "page",
               label: "nav.atlas.pages.reports.builder",

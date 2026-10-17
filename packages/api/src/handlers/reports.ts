@@ -13,16 +13,48 @@ import {
   runReport,
   type BudgetDimension,
 } from "@xos/data/reports";
-import { refused } from "../problem.ts";
-import { requireOrg } from "../runtime/context.ts";
+import { badRequest, refused } from "../problem.ts";
+import { requireOrg, type RequestContext } from "../runtime/context.ts";
 import type { HandlerSet } from "../runtime/handler.ts";
 import { created, defineHandlers, ok } from "../runtime/handler.ts";
 import { moneyTotal } from "./finance.ts";
 import { reportMetricHandlers } from "./parts/report-metrics.ts";
-import { handlersFor, tableResource, unwrap } from "./support/table.ts";
+import { from, handlersFor, run, tableResource, unwrap } from "./support/table.ts";
 
 const reportDefinitions = tableResource("reportDefinitions", { verbs: ["list", "get"] });
 const reportRuns = tableResource("reportRuns", { verbs: ["list", "get"] });
+
+/** The caller's membership in the active org, which owns what they create here. */
+async function myMembership(context: RequestContext): Promise<string> {
+  const org = requireOrg(context);
+  if (context.personId === null) throw badRequest("This operation needs a signed-in person.");
+  const row = await run<{ id: string } | null>(
+    from(context.db, "memberships")
+      .select("id")
+      .eq("org_id", org.id)
+      .eq("person_id", context.personId)
+      .is("deleted_at", null)
+      .limit(1)
+      .maybeSingle(),
+  );
+  if (!row) throw badRequest("The caller has no membership in the active organization.");
+  return row.id;
+}
+
+// Dashboards and scheduled delivery (A43, finding A38-004): A18's tables (0550), read and written as
+// the caller, so row level security decides every refusal.
+const reportSchedules = tableResource("reportSchedules", {
+  // The database computes next_run_at from the cadence (private.guard_report_schedule).
+  beforeCreate: () => ({ next_run_at: new Date().toISOString() }),
+});
+const dashboards = tableResource("dashboards", {
+  // A dashboard without a team belongs to the caller (dashboards_one_owner).
+  beforeCreate: async (body, context) =>
+    body["team_id"] ? {} : { membership_id: await myMembership(context) },
+});
+const dashboardTiles = tableResource("dashboardTiles");
+const reportScheduleRecipients = tableResource("reportScheduleRecipients");
+const reportDeliveries = tableResource("reportDeliveries", { verbs: ["list", "get"] });
 
 /** One page holding every row: the built-in reports are bounded aggregates. */
 const page = <T>(data: readonly T[]) => ({ data, next_cursor: null });
@@ -36,6 +68,11 @@ const total = (minor: number | null, currency: string, unpriced: number) => ({
 export const handlers = defineHandlers("Reports", {
   ...handlersFor("Reports", reportDefinitions),
   ...handlersFor("Reports", reportRuns),
+  ...handlersFor("Reports", reportSchedules),
+  ...handlersFor("Reports", dashboards),
+  ...handlersFor("Reports", dashboardTiles),
+  ...handlersFor("Reports", reportScheduleRecipients),
+  ...handlersFor("Reports", reportDeliveries),
   ...(reportMetricHandlers as unknown as HandlerSet<"Reports">),
 
   "reportRuns.create": async ({ body }, context) => {

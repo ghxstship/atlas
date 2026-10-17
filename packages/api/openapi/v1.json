@@ -41141,19 +41141,53 @@
             "description": "Identifier of the report definition.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "rrule": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "RFC 5545 recurrence rule.",
-            "example": "FREQ=WEEKLY;BYDAY=MO"
-          },
-          "format": { "$ref": "#/components/schemas/ExportFormat" },
           "time_zone": {
             "type": "string",
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
             "description": "IANA time zone the local time was entered in.",
             "example": "America/New_York"
+          },
+          "cadence": {
+            "type": "string",
+            "enum": ["Daily", "Weekly", "Monthly"],
+            "description": "How often the report is sent.",
+            "example": "Daily"
+          },
+          "local_hour": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Local hour of delivery, 0 to 23.",
+            "example": 8
+          },
+          "weekday": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "ISO weekday (1 Monday) of a weekly delivery.",
+            "example": 1
+          },
+          "month_day": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Day of the month (1 to 28) of a monthly delivery.",
+            "example": 1
+          },
+          "export_format": {
+            "type": "string",
+            "enum": ["CSV", "XLSX", "PDF"],
+            "description": "File format attached: CSV, XLSX or PDF.",
+            "example": "CSV"
+          },
+          "next_run_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Next delivery time, kept by the database.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "paused_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the schedule was paused; null while it runs.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -41164,9 +41198,14 @@
           "updated_at",
           "updated_by",
           "report_definition_id",
-          "rrule",
-          "format",
-          "time_zone"
+          "time_zone",
+          "cadence",
+          "local_hour",
+          "weekday",
+          "month_day",
+          "export_format",
+          "next_run_at",
+          "paused_at"
         ],
         "description": "A scheduled email delivery of a report to org members only."
       },
@@ -41179,40 +41218,96 @@
             "description": "Identifier of the report definition.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "rrule": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "RFC 5545 recurrence rule.",
-            "example": "FREQ=WEEKLY;BYDAY=MO"
-          },
-          "format": { "$ref": "#/components/schemas/ExportFormat" },
           "time_zone": {
             "type": "string",
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
             "description": "IANA time zone the local time was entered in.",
             "example": "America/New_York"
+          },
+          "cadence": {
+            "type": "string",
+            "enum": ["Daily", "Weekly", "Monthly"],
+            "description": "How often the report is sent.",
+            "example": "Daily"
+          },
+          "local_hour": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Local hour of delivery, 0 to 23.",
+            "example": 8
+          },
+          "weekday": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "ISO weekday (1 Monday) of a weekly delivery.",
+            "example": 1
+          },
+          "month_day": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Day of the month (1 to 28) of a monthly delivery.",
+            "example": 1
+          },
+          "export_format": {
+            "type": "string",
+            "enum": ["CSV", "XLSX", "PDF"],
+            "description": "File format attached: CSV, XLSX or PDF.",
+            "example": "CSV"
+          },
+          "paused_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the schedule was paused; null while it runs.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["report_definition_id", "rrule", "format", "time_zone"],
+        "required": ["report_definition_id", "time_zone", "cadence", "local_hour", "export_format"],
         "description": "Fields accepted when creating a ReportSchedule."
       },
       "ReportScheduleUpdate": {
         "type": "object",
         "properties": {
-          "rrule": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "RFC 5545 recurrence rule.",
-            "example": "FREQ=WEEKLY;BYDAY=MO"
-          },
-          "format": { "$ref": "#/components/schemas/ExportFormat" },
           "time_zone": {
             "type": "string",
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
             "description": "IANA time zone the local time was entered in.",
             "example": "America/New_York"
+          },
+          "cadence": {
+            "type": "string",
+            "enum": ["Daily", "Weekly", "Monthly"],
+            "description": "How often the report is sent.",
+            "example": "Daily"
+          },
+          "local_hour": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Local hour of delivery, 0 to 23.",
+            "example": 8
+          },
+          "weekday": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "ISO weekday (1 Monday) of a weekly delivery.",
+            "example": 1
+          },
+          "month_day": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "Day of the month (1 to 28) of a monthly delivery.",
+            "example": 1
+          },
+          "export_format": {
+            "type": "string",
+            "enum": ["CSV", "XLSX", "PDF"],
+            "description": "File format attached: CSV, XLSX or PDF.",
+            "example": "CSV"
+          },
+          "paused_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the schedule was paused; null while it runs.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "description": "Fields accepted when updating a ReportSchedule. Omitted fields are unchanged."
@@ -41285,6 +41380,12 @@
             "format": "uuid",
             "description": "Identifier of the team.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the membership that owns the dashboard.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -41295,7 +41396,8 @@
           "updated_at",
           "updated_by",
           "name",
-          "team_id"
+          "team_id",
+          "membership_id"
         ],
         "description": "A grid of report tiles, saved per user or per team."
       },
@@ -41406,17 +41508,29 @@
             "description": "Identifier of the report definition.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "position": {
+          "grid_column": {
             "type": "integer",
             "minimum": 1,
-            "description": "Tile order.",
+            "description": "Leftmost column, 1 to 12.",
             "example": 1
           },
-          "width": {
+          "grid_row": {
             "type": "integer",
             "minimum": 1,
-            "description": "Grid columns spanned.",
+            "description": "Top row, from 1.",
+            "example": 1
+          },
+          "column_span": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Columns spanned, 1 to 12.",
             "example": 6
+          },
+          "row_span": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Rows spanned, 1 to 12.",
+            "example": 1
           }
         },
         "required": [
@@ -41428,8 +41542,10 @@
           "updated_by",
           "dashboard_id",
           "report_definition_id",
-          "position",
-          "width"
+          "grid_column",
+          "grid_row",
+          "column_span",
+          "row_span"
         ],
         "description": "A report tile on a dashboard."
       },
@@ -41448,20 +41564,39 @@
             "description": "Identifier of the report definition.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "position": {
+          "grid_column": {
             "type": "integer",
             "minimum": 1,
-            "description": "Tile order.",
+            "description": "Leftmost column, 1 to 12.",
             "example": 1
           },
-          "width": {
+          "grid_row": {
             "type": "integer",
             "minimum": 1,
-            "description": "Grid columns spanned.",
+            "description": "Top row, from 1.",
+            "example": 1
+          },
+          "column_span": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Columns spanned, 1 to 12.",
             "example": 6
+          },
+          "row_span": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Rows spanned, 1 to 12.",
+            "example": 1
           }
         },
-        "required": ["dashboard_id", "report_definition_id", "position", "width"],
+        "required": [
+          "dashboard_id",
+          "report_definition_id",
+          "grid_column",
+          "grid_row",
+          "column_span",
+          "row_span"
+        ],
         "description": "Fields accepted when creating a DashboardTile."
       },
       "DashboardTileUpdate": {
@@ -41473,17 +41608,29 @@
             "description": "Identifier of the report definition.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "position": {
+          "grid_column": {
             "type": "integer",
             "minimum": 1,
-            "description": "Tile order.",
+            "description": "Leftmost column, 1 to 12.",
             "example": 1
           },
-          "width": {
+          "grid_row": {
             "type": "integer",
             "minimum": 1,
-            "description": "Grid columns spanned.",
+            "description": "Top row, from 1.",
+            "example": 1
+          },
+          "column_span": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Columns spanned, 1 to 12.",
             "example": 6
+          },
+          "row_span": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Rows spanned, 1 to 12.",
+            "example": 1
           }
         },
         "description": "Fields accepted when updating a DashboardTile. Omitted fields are unchanged."
@@ -45914,6 +46061,223 @@
           "payment_count"
         ],
         "description": "A payee paid $600 or more in approved USD payments in a tax year as an independent contractor, with the W-9 on file."
+      },
+      "ReportScheduleRecipientPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReportScheduleRecipient" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ReportScheduleRecipient": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the report schedule recipient.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "report_schedule_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the report schedule.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership of the recipient, in the schedule's org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "report_schedule_id",
+          "membership_id"
+        ],
+        "description": "A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4)."
+      },
+      "ReportScheduleRecipientCreate": {
+        "type": "object",
+        "properties": {
+          "report_schedule_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the report schedule.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the membership of the recipient, in the schedule's org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["report_schedule_id", "membership_id"],
+        "description": "Fields accepted when creating a ReportScheduleRecipient."
+      },
+      "ReportDeliveryPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReportDelivery" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ReportDelivery": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the report delivery.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "report_schedule_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the report schedule.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the recipient membership.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "report_run_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the report run whose file is attached.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "scheduled_for": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The schedule slot this delivery is for.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "delivery_status": {
+            "type": "string",
+            "enum": ["Queued", "Sent", "Failed"],
+            "description": "Delivery status.",
+            "example": "Queued"
+          },
+          "sent_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the email was handed to the transport.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "last_error": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why the delivery failed.",
+            "example": "The report run failed."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "report_schedule_id",
+          "membership_id",
+          "report_run_id",
+          "scheduled_for",
+          "delivery_status",
+          "sent_at",
+          "last_error"
+        ],
+        "description": "One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker."
       },
       "AuroraStatus": {
         "type": "object",
@@ -121965,9 +122329,14 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "rrule": "FREQ=WEEKLY;BYDAY=MO",
-                      "format": "CSV",
-                      "time_zone": "America/New_York"
+                      "time_zone": "America/New_York",
+                      "cadence": "Daily",
+                      "local_hour": 8,
+                      "weekday": 1,
+                      "month_day": 1,
+                      "export_format": "CSV",
+                      "next_run_at": "2026-10-08T14:30:00Z",
+                      "paused_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -121996,9 +122365,13 @@
             "application/json": {
               "example": {
                 "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "rrule": "FREQ=WEEKLY;BYDAY=MO",
-                "format": "CSV",
-                "time_zone": "America/New_York"
+                "time_zone": "America/New_York",
+                "cadence": "Daily",
+                "local_hour": 8,
+                "weekday": 1,
+                "month_day": 1,
+                "export_format": "CSV",
+                "paused_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/ReportScheduleCreate" }
             }
@@ -122023,9 +122396,14 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "rrule": "FREQ=WEEKLY;BYDAY=MO",
-                  "format": "CSV",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "cadence": "Daily",
+                  "local_hour": 8,
+                  "weekday": 1,
+                  "month_day": 1,
+                  "export_format": "CSV",
+                  "next_run_at": "2026-10-08T14:30:00Z",
+                  "paused_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ReportSchedule" }
               }
@@ -122082,9 +122460,14 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "rrule": "FREQ=WEEKLY;BYDAY=MO",
-                  "format": "CSV",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "cadence": "Daily",
+                  "local_hour": 8,
+                  "weekday": 1,
+                  "month_day": 1,
+                  "export_format": "CSV",
+                  "next_run_at": "2026-10-08T14:30:00Z",
+                  "paused_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ReportSchedule" }
               }
@@ -122124,9 +122507,13 @@
           "content": {
             "application/json": {
               "example": {
-                "rrule": "FREQ=WEEKLY;BYDAY=MO",
-                "format": "CSV",
-                "time_zone": "America/New_York"
+                "time_zone": "America/New_York",
+                "cadence": "Daily",
+                "local_hour": 8,
+                "weekday": 1,
+                "month_day": 1,
+                "export_format": "CSV",
+                "paused_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/ReportScheduleUpdate" }
             }
@@ -122151,9 +122538,14 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "rrule": "FREQ=WEEKLY;BYDAY=MO",
-                  "format": "CSV",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "cadence": "Daily",
+                  "local_hour": 8,
+                  "weekday": 1,
+                  "month_day": 1,
+                  "export_format": "CSV",
+                  "next_run_at": "2026-10-08T14:30:00Z",
+                  "paused_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/ReportSchedule" }
               }
@@ -122236,7 +122628,8 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Show Week",
-                      "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -122287,7 +122680,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Show Week",
-                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Dashboard" }
               }
@@ -122344,7 +122738,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Show Week",
-                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Dashboard" }
               }
@@ -122407,7 +122802,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Show Week",
-                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Dashboard" }
               }
@@ -122491,8 +122887,10 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "dashboard_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "position": 1,
-                      "width": 6
+                      "grid_column": 1,
+                      "grid_row": 1,
+                      "column_span": 6,
+                      "row_span": 1
                     }
                   ],
                   "next_cursor": null
@@ -122522,8 +122920,10 @@
               "example": {
                 "dashboard_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "position": 1,
-                "width": 6
+                "grid_column": 1,
+                "grid_row": 1,
+                "column_span": 6,
+                "row_span": 1
               },
               "schema": { "$ref": "#/components/schemas/DashboardTileCreate" }
             }
@@ -122549,8 +122949,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "dashboard_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "position": 1,
-                  "width": 6
+                  "grid_column": 1,
+                  "grid_row": 1,
+                  "column_span": 6,
+                  "row_span": 1
                 },
                 "schema": { "$ref": "#/components/schemas/DashboardTile" }
               }
@@ -122608,8 +123010,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "dashboard_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "position": 1,
-                  "width": 6
+                  "grid_column": 1,
+                  "grid_row": 1,
+                  "column_span": 6,
+                  "row_span": 1
                 },
                 "schema": { "$ref": "#/components/schemas/DashboardTile" }
               }
@@ -122650,8 +123054,10 @@
             "application/json": {
               "example": {
                 "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "position": 1,
-                "width": 6
+                "grid_column": 1,
+                "grid_row": 1,
+                "column_span": 6,
+                "row_span": 1
               },
               "schema": { "$ref": "#/components/schemas/DashboardTileUpdate" }
             }
@@ -122677,8 +123083,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "dashboard_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "report_definition_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "position": 1,
-                  "width": 6
+                  "grid_column": 1,
+                  "grid_row": 1,
+                  "column_span": 6,
+                  "row_span": 1
                 },
                 "schema": { "$ref": "#/components/schemas/DashboardTile" }
               }
@@ -129680,6 +130088,315 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/report-schedule-recipients": {
+      "get": {
+        "operationId": "reportScheduleRecipients.list",
+        "tags": ["Reports"],
+        "x-xos-table": "app.report_schedule_recipients",
+        "x-xos-capability": "reports.report.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["reports"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List report schedule recipient rows",
+        "description": "A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Returns a cursor page of report schedule recipient rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of report schedule recipient rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "report_schedule_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ReportScheduleRecipientPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "reportScheduleRecipients.create",
+        "tags": ["Reports"],
+        "x-xos-table": "app.report_schedule_recipients",
+        "x-xos-capability": "reports.schedule.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["reports"] }],
+        "summary": "Create a report schedule recipient",
+        "description": "A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Creates a report schedule recipient. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "report_schedule_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/ReportScheduleRecipientCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created report schedule recipient.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "report_schedule_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ReportScheduleRecipient" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/report-schedule-recipients/{id}": {
+      "get": {
+        "operationId": "reportScheduleRecipients.get",
+        "tags": ["Reports"],
+        "x-xos-table": "app.report_schedule_recipients",
+        "x-xos-capability": "reports.report.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["reports"] }],
+        "summary": "Get a report schedule recipient",
+        "description": "A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Returns one report schedule recipient with its `ETag`. A report schedule recipient the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the report schedule recipient.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the report schedule recipient.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The report schedule recipient.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "report_schedule_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ReportScheduleRecipient" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "reportScheduleRecipients.delete",
+        "tags": ["Reports"],
+        "x-xos-table": "app.report_schedule_recipients",
+        "x-xos-capability": "reports.schedule.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["reports"] }],
+        "summary": "Delete a report schedule recipient",
+        "description": "A member of the org a scheduled report is emailed to; each receives it run with their own access, so a report never leaves the org (Section 4.6.4). Soft-deletes the report schedule recipient: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the report schedule recipient.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the report schedule recipient.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The report schedule recipient moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/report-deliveries": {
+      "get": {
+        "operationId": "reportDeliveries.list",
+        "tags": ["Reports"],
+        "x-xos-table": "app.report_deliveries",
+        "x-xos-capability": "reports.report.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["reports"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List report delivery rows",
+        "description": "One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker. Returns a cursor page of report delivery rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of report delivery rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "report_schedule_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "report_run_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "scheduled_for": "2026-10-08T14:30:00Z",
+                      "delivery_status": "Queued",
+                      "sent_at": "2026-10-08T14:30:00Z",
+                      "last_error": "The report run failed."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ReportDeliveryPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/report-deliveries/{id}": {
+      "get": {
+        "operationId": "reportDeliveries.get",
+        "tags": ["Reports"],
+        "x-xos-table": "app.report_deliveries",
+        "x-xos-capability": "reports.report.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["reports"] }],
+        "summary": "Get a report delivery",
+        "description": "One email of a scheduled report to one recipient: the run made as that member for the slot, and whether the email went out. Written only by the scheduler and the delivery worker. Returns one report delivery with its `ETag`. A report delivery the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the report delivery.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the report delivery.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The report delivery.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "report_schedule_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "report_run_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "scheduled_for": "2026-10-08T14:30:00Z",
+                  "delivery_status": "Queued",
+                  "sent_at": "2026-10-08T14:30:00Z",
+                  "last_error": "The report run failed."
+                },
+                "schema": { "$ref": "#/components/schemas/ReportDelivery" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
