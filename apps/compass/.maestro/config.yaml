@@ -1,7 +1,14 @@
-# Maestro flows for the Compass field journeys (Wave 4 exit).
-# Run against a local stack seeded with supabase/seeds (0010 identity, 0107 project, 0217 Compass data):
-#   maestro test -e XOS_DEMO_PASSWORD=<the demo password from 0010_demo_identity.sql> apps/compass/.maestro
-# The app build must point EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY at that local stack.
+# Maestro flows for the Compass field journeys (Wave 4 exit, walked on the iOS simulator by A39).
+# Run against a freshly reset local stack seeded with supabase/seeds (0010 identity, 0107 project, 0217
+# Compass data, 1090 the Demo Field Tech) and the app built against it:
+#   maestro test -e XOS_DEMO_PASSWORD=<the demo password from 0010_demo_identity.sql> \
+#     -e SUPABASE_URL=<local API URL> -e SUPABASE_ANON_KEY=<local anon key> \
+#     -e KIOSK_DEVICE_KEY=<from app.register_kiosk_device> -e KIOSK_PIN_1=.. -e KIOSK_PIN_4=.. \
+#     apps/compass/.maestro
+# Against a development build also pass DEV_URL, the expo-development-client link to Metro. On an iOS
+# simulator grant location, camera and microphone first (xcrun simctl privacy booted grant ...).
+# Flows that change state (accepting and claiming shifts, the kiosk punch) expect the fresh seed;
+# field-clock-offline needs airplane mode, which Maestro sets only on Android.
 flows:
   - "flows/*.yaml"
 executionOrder:
