@@ -129,3 +129,12 @@ Dependencies the Wave 1 agents needed that the original table did not list, each
 ## Consequences
 
 Renovate opens pinned upgrade pull requests weekly. Every runtime library above is installed only when its owning wave starts, at the version listed here unless a newer ADR supersedes it.
+
+## Amendment (2026-10-16): testing tools (A24)
+
+| Area    | Tool                                                                                                                   | Version       |
+| ------- | ---------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Testing | `@lhci/cli` (devDependency of `packages/testing`)                                                                      | 0.15.1        |
+| Testing | Lighthouse, bundled by `@lhci/cli`; not a direct dependency, because 13.x needs Node 22.19 and the repo floor is 22.12 | 12.6.1        |
+| Testing | k6, run only as the official Docker image `grafana/k6` against local stacks                                            | 2.3.0         |
+| Testing | Playwright image for the Storybook visual job, `mcr.microsoft.com/playwright`                                          | v1.64.0-noble |
