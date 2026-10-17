@@ -18,6 +18,7 @@
     "e2e": "maestro test .maestro"
   },
   "dependencies": {
+    "@bacons/apple-targets": "5.0.0",
     "@op-engineering/op-sqlite": "18.2.5",
     "@powersync/react-native": "2.3.1",
     "@supabase/supabase-js": "2.117.3",
@@ -29,6 +30,7 @@
     "@xos/ui-native": "workspace:*",
     "@xos/workforce-native": "workspace:*",
     "expo": "57.0.27",
+    "expo-audio": "57.0.5",
     "expo-brightness": "57.0.2",
     "expo-camera": "57.0.6",
     "expo-constants": "57.0.21",

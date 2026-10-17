@@ -13,7 +13,12 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Compass uses the camera to scan badges, asset tags and barcodes, and to take incident and inspection photos.",
         "NSLocationWhenInUseUsageDescription": "Compass checks that you are at the venue when you clock in and pins incident reports to where they happened.",
-        "NSFaceIDUsageDescription": "Compass uses Face ID to unlock your work data on this device."
+        "NSFaceIDUsageDescription": "Compass uses Face ID to unlock your work data on this device.",
+        "NSMicrophoneUsageDescription": "Compass records voice notes for incident reports when you hold the microphone button.",
+        "NSSupportsLiveActivities": true
+      },
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.pro.ghxstship.compass"]
       }
     },
     "android": {
@@ -23,7 +28,8 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "USE_BIOMETRIC",
-        "WRITE_SETTINGS"
+        "WRITE_SETTINGS",
+        "RECORD_AUDIO"
       ]
     },
     "plugins": [
@@ -46,7 +52,15 @@
         {
           "faceIDPermission": "Compass uses Face ID to unlock your work data on this device."
         }
-      ]
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Compass records voice notes for incident reports when you hold the microphone button.",
+          "recordAudioAndroid": true
+        }
+      ],
+      "@bacons/apple-targets"
     ],
     "experiments": {
       "typedRoutes": false

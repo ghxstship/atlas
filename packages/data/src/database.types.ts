@@ -18552,8 +18552,10 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          duration_ms: number | null;
           id: string;
           incident_id: string;
+          media_kind: string;
           media_uri: string;
           org_id: string;
           project_id: string;
@@ -18566,8 +18568,10 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          duration_ms?: number | null;
           id?: string;
           incident_id: string;
+          media_kind?: string;
           media_uri: string;
           org_id: string;
           project_id: string;
@@ -18579,8 +18583,10 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          duration_ms?: number | null;
           id?: string;
           incident_id?: string;
+          media_kind?: string;
           media_uri?: string;
           org_id?: string;
           project_id?: string;
@@ -50223,6 +50229,7 @@ export type Database = {
         };
         Returns: string;
       };
+      account_deletion_preview: { Args: Record<PropertyKey, never>; Returns: Json };
       acknowledge_feed_post: { Args: { p_post_id: string }; Returns: string };
       acknowledge_handbook_article: { Args: { p_article_id: string }; Returns: string };
       acknowledge_purchase_order: { Args: { p_purchase_order_id: string }; Returns: string };
@@ -50268,7 +50275,14 @@ export type Database = {
         Returns: string;
       };
       add_incident_media: {
-        Args: { p_captured_at?: string; p_id?: string; p_incident_id: string; p_media_uri: string };
+        Args: {
+          p_captured_at?: string;
+          p_duration_ms?: number;
+          p_id?: string;
+          p_incident_id: string;
+          p_media_kind?: string;
+          p_media_uri: string;
+        };
         Returns: string;
       };
       add_incident_party: {
@@ -51011,6 +51025,7 @@ export type Database = {
       };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
+      delete_my_account: { Args: { p_confirm_email: string }; Returns: Json };
       dispatch_responder: {
         Args: { p_id?: string; p_incident_id: string; p_membership_id: string };
         Returns: string;
@@ -51309,6 +51324,14 @@ export type Database = {
           published_at: string;
           title: string;
           version: number;
+        }[];
+      };
+      my_project_role_capabilities: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          capability_code: string;
+          project_id: string;
+          project_role: Database["app"]["Enums"]["project_role"];
         }[];
       };
       open_help_desk_request: {

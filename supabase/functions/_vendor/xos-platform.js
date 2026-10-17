@@ -2252,6 +2252,7 @@ var compass_default$1 = {
       shiftClaimUnknown: "Claim an open shift",
       incidentReport: 'Report "{title}" at {time}',
       incidentPhoto: "Incident photo taken at {time}",
+      incidentVoiceNote: "Incident voice note ({length}) recorded at {time}",
       incidentParty: "Person involved: {description}",
       incidentMove: "Move the incident to {state}",
       fulfillmentMove: "Move the fulfillment to {state}",
@@ -2330,6 +2331,14 @@ var compass_default$1 = {
     live: {
       shift: "Current shift",
       ends: "Ends {time}",
+      since: "Since",
+      worked: "Worked",
+      lockScreenFailed:
+        "The lock screen Live Activity did not start: {reason}. The card here keeps your clock.",
+      drainFailed:
+        "Punches from the lock screen did not reach the upload queue: {reason}. Open Compass again to retry.",
+      drainDropped:
+        "Punches from the lock screen that had no shift attached: {count}. They were not recorded; punch here instead.",
     },
   },
   schedule: {
@@ -2438,6 +2447,21 @@ var compass_default$1 = {
     dispatchReason: "Dispatched from Compass.",
     containReason: "Marked contained from Compass.",
     typeGroup: "Incident type",
+    voice: {
+      record: "Hold to Record a Voice Note",
+      recording: "Recording {time}. Release to stop.",
+      hint: "Hold to record and release to stop. With VoiceOver, double-tap to start and again to stop.",
+      note: "Voice note {index}, {length}",
+      play: "Play voice note {index}",
+      pause: "Pause voice note {index}",
+      delete: "Delete voice note {index}",
+      permissionDenied:
+        "Compass cannot use the microphone. Allow it in Settings, then hold to record again.",
+      failed: "The voice note did not record: {reason}. Hold to try again.",
+      tooShort: "That was too short to keep. Hold a little longer to record a voice note.",
+      micDidNotStart:
+        "The microphone did not start, so nothing was recorded. Close any app using it, then hold to try again.",
+    },
   },
   inspections: {
     title: "Inspections",
@@ -2572,7 +2596,7 @@ var compass_default$1 = {
     signOutQueued: "{count} changes have not uploaded. Signing out deletes them from this device.",
     signOutConfirm: "Sign Out Anyway",
     deleteAccount: "Delete Account",
-    deleteAccountHelp: "Deletes your account and the data you own. Opens Gateway to confirm.",
+    deleteAccountHelp: "Deletes your account and the data you own, after you confirm.",
     version: "Version {version}",
     personal: "Personal settings",
     biometric: "Biometric Unlock",
@@ -2689,6 +2713,48 @@ var compass_default$1 = {
     versions: "This build {current}. Needed {minimum} or later.",
     action: "Update Compass",
     recheck: "Check Again",
+  },
+  account: {
+    title: "Delete Account",
+    intro:
+      "Deleting your account signs you out and erases your sign-in, name, profile, devices and preferences. Every organization you work with is told.",
+    offline: "Deleting your account needs a connection. Connect, then try again.",
+    previewFailedTitle: "Your account could not be checked",
+    previewFailed: "{reason}. Check your connection, then try again.",
+    retry: "Try Again",
+    blockersTitle: "Your account cannot be deleted yet",
+    blocker: {
+      account_delete_legal_hold:
+        "{org} keeps your records under a legal hold ({matter}). Ask {org} to release the hold, then delete your account.",
+      account_delete_on_shift: "You are clocked in at {org}. Clock out, then delete your account.",
+      account_delete_sole_owner:
+        "You are the only owner of {org}. Make someone else an owner, then delete your account.",
+    },
+    keptTitle: "What is kept, and why",
+    kept: {
+      time_and_pay: "Your time and pay records, kept 7 years because payroll law requires it.",
+      tax_forms: "Your tax forms, kept 7 years because tax law requires it.",
+      engagements: "Your engagement records and signed agreements, kept 7 years.",
+      org_records:
+        "Records you created for an organization, such as incident reports, kept by that organization without your name.",
+      audit_trail:
+        "The security audit trail, kept 7 years. Your personal details in it are removed after 90 days.",
+      erasure_request:
+        "A record that you asked for this erasure, so each organization can show it was done.",
+    },
+    emailLabel: "Type your sign-in email to confirm",
+    emailHelp: "You sign in as {email}.",
+    emailMismatch: "That is not the email you sign in with.",
+    delete: "Delete My Account",
+    deleteHoldHint: "Hold for 2 seconds to delete your account",
+    stepUpPrompt: "Confirm it is you to delete your account",
+    stepUpFailed: "That did not confirm it is you, so nothing was deleted. Try again.",
+    refusedTitle: "Your account was not deleted",
+    failed: "Your account was not deleted: {reason}. Try again.",
+    doneTitle: "Your account is deleted",
+    doneSentence: "Your sign-in, name and profile are erased. Organizations told: {count}.",
+    done: "Done",
+    signOutFailed: "Compass could not clear this device: {reason}. Try Done again.",
   },
 };
 var credentials_default$1 = {
@@ -17076,6 +17142,7 @@ var compass_default = {
       shiftClaimUnknown: "Reclamar un turno abierto",
       incidentReport: 'Reportar "{title}" a las {time}',
       incidentPhoto: "Foto del incidente tomada a las {time}",
+      incidentVoiceNote: "Nota de voz del incidente ({length}) grabada a las {time}",
       incidentParty: "Persona involucrada: {description}",
       incidentMove: "Pasar el incidente a {state}",
       fulfillmentMove: "Pasar la entrega a {state}",
@@ -17154,6 +17221,14 @@ var compass_default = {
     live: {
       shift: "Turno actual",
       ends: "Termina a las {time}",
+      since: "Desde",
+      worked: "Trabajado",
+      lockScreenFailed:
+        "La Actividad en Vivo de la pantalla bloqueada no se inició: {reason}. Esta tarjeta sigue llevando tu reloj.",
+      drainFailed:
+        "Las marcas de la pantalla bloqueada no llegaron a la cola de envío: {reason}. Abre Compass otra vez para reintentar.",
+      drainDropped:
+        "Marcas de la pantalla bloqueada sin turno asociado: {count}. No se registraron; marca aquí.",
     },
   },
   schedule: {
@@ -17262,6 +17337,22 @@ var compass_default = {
     dispatchReason: "Despachado desde Compass.",
     containReason: "Marcado como contenido desde Compass.",
     typeGroup: "Tipo de incidente",
+    voice: {
+      record: "Mantén presionado para grabar una nota de voz",
+      recording: "Grabando {time}. Suelta para detener.",
+      hint: "Mantén presionado para grabar y suelta para detener. Con VoiceOver, toca dos veces para empezar y otra vez para detener.",
+      note: "Nota de voz {index}, {length}",
+      play: "Reproducir la nota de voz {index}",
+      pause: "Pausar la nota de voz {index}",
+      delete: "Eliminar la nota de voz {index}",
+      permissionDenied:
+        "Compass no puede usar el micrófono. Permítelo en Ajustes y vuelve a mantener presionado para grabar.",
+      failed: "La nota de voz no se grabó: {reason}. Mantén presionado para intentarlo otra vez.",
+      tooShort:
+        "Fue demasiado corta para guardarla. Mantén presionado un poco más para grabar una nota de voz.",
+      micDidNotStart:
+        "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado.",
+    },
   },
   inspections: {
     title: "Inspecciones",
@@ -17400,7 +17491,7 @@ var compass_default = {
     signOutQueued: "{count} cambios no se han subido. Cerrar sesión los borra de este dispositivo.",
     signOutConfirm: "Cerrar sesión de todos modos",
     deleteAccount: "Eliminar cuenta",
-    deleteAccountHelp: "Elimina tu cuenta y tus datos. Abre Gateway para confirmar.",
+    deleteAccountHelp: "Elimina tu cuenta y los datos que te pertenecen, después de que confirmes.",
     version: "Versión {version}",
     personal: "Ajustes personales",
     biometric: "Desbloqueo biométrico",
@@ -17518,6 +17609,51 @@ var compass_default = {
     versions: "Esta versión {current}. Se necesita {minimum} o posterior.",
     action: "Actualizar Compass",
     recheck: "Comprobar de nuevo",
+  },
+  account: {
+    title: "Eliminar cuenta",
+    intro:
+      "Eliminar tu cuenta cierra tu sesión y borra tu acceso, tu nombre, tu perfil, tus dispositivos y tus preferencias. Se avisa a cada organización con la que trabajas.",
+    offline: "Eliminar tu cuenta necesita conexión. Conéctate y vuelve a intentarlo.",
+    previewFailedTitle: "No se pudo revisar tu cuenta",
+    previewFailed: "{reason}. Revisa tu conexión y vuelve a intentarlo.",
+    retry: "Reintentar",
+    blockersTitle: "Tu cuenta todavía no se puede eliminar",
+    blocker: {
+      account_delete_legal_hold:
+        "{org} conserva tus registros bajo una retención legal ({matter}). Pide a {org} que la libere y luego elimina tu cuenta.",
+      account_delete_on_shift:
+        "Tienes un turno abierto en {org}. Marca la salida y luego elimina tu cuenta.",
+      account_delete_sole_owner:
+        "Eres el único propietario de {org}. Nombra a otro propietario y luego elimina tu cuenta.",
+    },
+    keptTitle: "Qué se conserva y por qué",
+    kept: {
+      time_and_pay:
+        "Tus registros de tiempo y pago, conservados 7 años porque lo exige la ley de nómina.",
+      tax_forms: "Tus formularios fiscales, conservados 7 años porque lo exige la ley fiscal.",
+      engagements: "Tus registros de contratación y acuerdos firmados, conservados 7 años.",
+      org_records:
+        "Los registros que creaste para una organización, como reportes de incidentes, que esa organización conserva sin tu nombre.",
+      audit_trail:
+        "El registro de auditoría de seguridad, conservado 7 años. Tus datos personales se quitan a los 90 días.",
+      erasure_request:
+        "Un registro de que pediste este borrado, para que cada organización pueda demostrar que se hizo.",
+    },
+    emailLabel: "Escribe tu correo de acceso para confirmar",
+    emailHelp: "Inicias sesión como {email}.",
+    emailMismatch: "Ese no es el correo con el que inicias sesión.",
+    delete: "Eliminar mi cuenta",
+    deleteHoldHint: "Mantén presionado 2 segundos para eliminar tu cuenta",
+    stepUpPrompt: "Confirma que eres tú para eliminar tu cuenta",
+    stepUpFailed: "No se confirmó que eres tú, así que no se eliminó nada. Vuelve a intentarlo.",
+    refusedTitle: "Tu cuenta no se eliminó",
+    failed: "Tu cuenta no se eliminó: {reason}. Vuelve a intentarlo.",
+    doneTitle: "Tu cuenta está eliminada",
+    doneSentence:
+      "Tu acceso, tu nombre y tu perfil están borrados. Organizaciones avisadas: {count}.",
+    done: "Listo",
+    signOutFailed: "Compass no pudo limpiar este dispositivo: {reason}. Toca Listo otra vez.",
   },
 };
 var credentials_default = {

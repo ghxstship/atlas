@@ -8,6 +8,7 @@
  * them; formatting of times and names comes from the context.
  */
 import type { Mutation, Row } from "@xos/sync";
+import { formatNoteLength } from "./incidents";
 
 export interface QueueSummary {
   /** Key under compass.queue.summary. */
@@ -103,7 +104,13 @@ export function summarizeMutation(
       }
       case "app.add_incident_media": {
         const at = text(a["p_captured_at"]);
-        return { key: "incidentPhoto", values: { time: at ? ctx.time(at) : "" } };
+        const time = at ? ctx.time(at) : "";
+        if (a["p_media_kind"] === "Voice Note" && typeof a["p_duration_ms"] === "number")
+          return {
+            key: "incidentVoiceNote",
+            values: { time, length: formatNoteLength(a["p_duration_ms"]) },
+          };
+        return { key: "incidentPhoto", values: { time } };
       }
       case "app.add_incident_party": {
         const description = text(a["p_description"]);

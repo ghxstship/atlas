@@ -17,6 +17,7 @@ import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { useLocation } from "../../src/runtime/location";
 import { Gate } from "../../src/screens/common";
 import { PhotoSheet } from "../../src/screens/PhotoSheet";
+import { VoiceNotes } from "../../src/screens/VoiceNotes";
 import {
   Button,
   InlineAlert,
@@ -118,6 +119,10 @@ function Report(): ReactElement {
               icon="camera"
               label={t("compass.incidents.addPhoto")}
               onPress={() => setPhotoOpen(true)}
+            />
+            <VoiceNotes
+              notes={draft.voiceNotes}
+              onChange={(voiceNotes) => setDraft((current) => ({ ...current, voiceNotes }))}
             />
           </View>
         }

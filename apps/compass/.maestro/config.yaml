@@ -23,9 +23,11 @@ executionOrder:
     - field-inspection-walk
     - field-gate-scan
     - field-receive-batch
+    - field-asset-scan
     - desk-asset-custody
     - field-run-of-show
     - supervisor-kiosk
     - crew-external-today
     - vendor-external-scan
+    - account-delete
     - settings-sunlight-sign-out

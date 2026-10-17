@@ -171,7 +171,7 @@ describe("offline queue summaries (SIM-002)", () => {
     ).toBe("Shift on 2026-10-16 at 10:00, now Accepted");
   });
 
-  it("describes an offline incident, its photo and its party", () => {
+  it("describes an offline incident, its photo, its voice note and its party", () => {
     const writes = buildReport(
       {
         id: "inc-1",
@@ -183,6 +183,14 @@ describe("offline queue summaries (SIM-002)", () => {
         occurredAt: new Date(T0).toISOString(),
         fix: null,
         photos: [{ id: "ph-1", uri: "file:///photo.jpg", capturedAt: new Date(T0).toISOString() }],
+        voiceNotes: [
+          {
+            id: "vn-1",
+            uri: "file:///note.m4a",
+            capturedAt: new Date(T0).toISOString(),
+            durationMs: 14_000,
+          },
+        ],
         parties: [{ id: "pa-1", personId: null, description: "Bartender on shift" }],
       } as never,
       T0,
@@ -192,6 +200,7 @@ describe("offline queue summaries (SIM-002)", () => {
     expect(sentences).toEqual([
       'Report "Guest slipped at the bar" at 02:51',
       "Incident photo taken at 02:51",
+      "Incident voice note (0:14) recorded at 02:51",
       "Person involved: Bartender on shift",
     ]);
     expect(sentences.join(" ")).not.toContain("file://");

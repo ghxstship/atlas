@@ -79,6 +79,7 @@ function fake(results: Record<string, { data: unknown; error: { message: string 
   };
   return {
     from: (t: string) => builder(`app.${t}`),
+    rpc: (fn: string) => Promise.resolve(results[`rpc.${fn}`] ?? { data: [], error: null }),
     schema: (s: string) => ({ from: (t: string) => builder(`${s}.${t}`) }),
   } as unknown as SupabaseClient;
 }
@@ -112,6 +113,57 @@ describe("resolveIdentity", () => {
       orgIds: ["o1"],
     });
     expect(r.orgId).toBe("o1");
+  });
+
+  it("reads a Field member as field, and as field-supervisor once a project role adds dispatch", async () => {
+    const base = {
+      "app.people": { data: { id: "person-2", full_name: "Demo Field Tech" }, error: null },
+      "app.memberships": { data: [{ id: "m2", org_id: "o1" }], error: null },
+      "app.membership_roles": { data: [{ role_id: "field" }], error: null },
+      "app.role_capabilities": {
+        data: [
+          { capability_code: "crew.time_entry.write" },
+          { capability_code: "safety.incident.write" },
+        ],
+        error: null,
+      },
+      "app.projects": { data: [{ id: "p1", name: "Fest" }], error: null },
+    };
+    const field = await resolveIdentity(fake(base), "user-2");
+    expect(field.identity.audience).toBe("field");
+    expect(field.identity.capabilities).not.toContain("safety.incident.dispatch");
+    const supervisor = await resolveIdentity(
+      fake({
+        ...base,
+        "rpc.my_project_role_capabilities": {
+          data: [
+            {
+              project_id: "p1",
+              project_role: "Field Supervisor",
+              capability_code: "safety.incident.dispatch",
+            },
+          ],
+          error: null,
+        },
+      }),
+      "user-2",
+    );
+    expect(supervisor.identity.audience).toBe("field-supervisor");
+    expect(supervisor.identity.capabilities).toContain("safety.incident.dispatch");
+  });
+
+  it("names the capabilities step when the project role read fails", async () => {
+    await expect(
+      resolveIdentity(
+        fake({
+          "app.people": { data: { id: "person-2", full_name: "Demo Field Tech" }, error: null },
+          "app.memberships": { data: [{ id: "m2", org_id: "o1" }], error: null },
+          "app.membership_roles": { data: [], error: null },
+          "rpc.my_project_role_capabilities": { data: null, error: { message: "boom" } },
+        }),
+        "user-2",
+      ),
+    ).rejects.toMatchObject({ step: "capabilities" });
   });
 
   it("resolves an external crew member from api_external engagements", async () => {

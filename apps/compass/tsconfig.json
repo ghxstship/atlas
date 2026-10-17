@@ -9,6 +9,6 @@
     "allowImportingTsExtensions": true,
     "types": ["node"]
   },
-  "include": ["app", "src", "test", "scripts", "*.ts", "*.mjs"],
+  "include": ["app", "src", "test", "scripts", "modules", "*.ts", "*.mjs"],
   "exclude": ["node_modules", "ios", "android"]
 }

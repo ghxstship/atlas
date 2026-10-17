@@ -5,7 +5,9 @@ import {
   CRITICAL_HOLD_MS,
   dispatchQueue,
   draftProblems,
+  formatNoteLength,
   isCritical,
+  keepVoiceNote,
   newDraft,
   nextStep,
   withIncidentDependency,
@@ -156,6 +158,52 @@ describe("incident quick report", () => {
     });
     const dependents = withIncidentDependency(writes, "mut-1");
     expect(dependents.map((d) => d.dependsOn)).toEqual([["mut-1"], ["mut-1"]]);
+  });
+
+  it("keeps a voice note longer than half a second and caps it at ten minutes", () => {
+    const at = new Date(now).toISOString();
+    expect(keepVoiceNote("file:///n.m4a", 12_345.6, at, () => "vn-1")).toEqual({
+      id: "vn-1",
+      uri: "file:///n.m4a",
+      capturedAt: at,
+      durationMs: 12_346,
+    });
+    expect(keepVoiceNote("file:///n.m4a", 300, at)).toBeNull();
+    expect(keepVoiceNote(null, 5_000, at)).toBeNull();
+    expect(keepVoiceNote("file:///n.m4a", Number.NaN, at)).toBeNull();
+    expect(keepVoiceNote("file:///n.m4a", 700_000, at, () => "vn-2")?.durationMs).toBe(600_000);
+    expect(formatNoteLength(12_345)).toBe("0:12");
+    expect(formatNoteLength(75_000)).toBe("1:15");
+  });
+
+  it("queues a voice note like a photo, in the incident's folder, after the incident", () => {
+    const draft = {
+      ...newDraft("org-1", "proj-1", new Date(now).toISOString(), null, now, () => "inc-2"),
+      severityId: "ENM-098",
+      title: "Smoke at the merch tent",
+      voiceNotes: [
+        {
+          id: "vn-1",
+          uri: "file:///vn.m4a",
+          capturedAt: new Date(now).toISOString(),
+          durationMs: 9_000,
+        },
+      ],
+    };
+    const writes = buildReport(draft, now);
+    expect(writes.map((w) => `${w.table}:${w.rowId}`)).toEqual([
+      "incidents:inc-2",
+      "incident_media:vn-1",
+    ]);
+    expect(writes[1]?.payload).toMatchObject({
+      p_media_uri: "org-1/incidents/inc-2/vn-1.m4a",
+      p_media_kind: "Voice Note",
+      p_duration_ms: 9_000,
+      local_uri: "file:///vn.m4a",
+      storage_path: "org-1/incidents/inc-2/vn-1.m4a",
+    });
+    expect(writes[1]?.optimistic).toMatchObject({ media_kind: "Voice Note", duration_ms: 9_000 });
+    expect(withIncidentDependency(writes, "mut-2").map((d) => d.dependsOn)).toEqual([["mut-2"]]);
   });
 
   it("orders the dispatch queue by severity then age and hides closed incidents", () => {

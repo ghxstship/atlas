@@ -166,6 +166,7 @@
       "shiftClaimUnknown": "Reclamar un turno abierto",
       "incidentReport": "Reportar \"{title}\" a las {time}",
       "incidentPhoto": "Foto del incidente tomada a las {time}",
+      "incidentVoiceNote": "Nota de voz del incidente ({length}) grabada a las {time}",
       "incidentParty": "Persona involucrada: {description}",
       "incidentMove": "Pasar el incidente a {state}",
       "fulfillmentMove": "Pasar la entrega a {state}",
@@ -239,7 +240,12 @@
     },
     "live": {
       "shift": "Turno actual",
-      "ends": "Termina a las {time}"
+      "ends": "Termina a las {time}",
+      "since": "Desde",
+      "worked": "Trabajado",
+      "lockScreenFailed": "La Actividad en Vivo de la pantalla bloqueada no se inició: {reason}. Esta tarjeta sigue llevando tu reloj.",
+      "drainFailed": "Las marcas de la pantalla bloqueada no llegaron a la cola de envío: {reason}. Abre Compass otra vez para reintentar.",
+      "drainDropped": "Marcas de la pantalla bloqueada sin turno asociado: {count}. No se registraron; marca aquí."
     }
   },
   "schedule": {
@@ -342,7 +348,20 @@
     },
     "dispatchReason": "Despachado desde Compass.",
     "containReason": "Marcado como contenido desde Compass.",
-    "typeGroup": "Tipo de incidente"
+    "typeGroup": "Tipo de incidente",
+    "voice": {
+      "record": "Mantén presionado para grabar una nota de voz",
+      "recording": "Grabando {time}. Suelta para detener.",
+      "hint": "Mantén presionado para grabar y suelta para detener. Con VoiceOver, toca dos veces para empezar y otra vez para detener.",
+      "note": "Nota de voz {index}, {length}",
+      "play": "Reproducir la nota de voz {index}",
+      "pause": "Pausar la nota de voz {index}",
+      "delete": "Eliminar la nota de voz {index}",
+      "permissionDenied": "Compass no puede usar el micrófono. Permítelo en Ajustes y vuelve a mantener presionado para grabar.",
+      "failed": "La nota de voz no se grabó: {reason}. Mantén presionado para intentarlo otra vez.",
+      "tooShort": "Fue demasiado corta para guardarla. Mantén presionado un poco más para grabar una nota de voz.",
+      "micDidNotStart": "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado."
+    }
   },
   "inspections": {
     "title": "Inspecciones",
@@ -476,7 +495,7 @@
     "signOutQueued": "{count} cambios no se han subido. Cerrar sesión los borra de este dispositivo.",
     "signOutConfirm": "Cerrar sesión de todos modos",
     "deleteAccount": "Eliminar cuenta",
-    "deleteAccountHelp": "Elimina tu cuenta y tus datos. Abre Gateway para confirmar.",
+    "deleteAccountHelp": "Elimina tu cuenta y los datos que te pertenecen, después de que confirmes.",
     "version": "Versión {version}",
     "personal": "Ajustes personales",
     "biometric": "Desbloqueo biométrico",
@@ -590,5 +609,41 @@
     "versions": "Esta versión {current}. Se necesita {minimum} o posterior.",
     "action": "Actualizar Compass",
     "recheck": "Comprobar de nuevo"
+  },
+  "account": {
+    "title": "Eliminar cuenta",
+    "intro": "Eliminar tu cuenta cierra tu sesión y borra tu acceso, tu nombre, tu perfil, tus dispositivos y tus preferencias. Se avisa a cada organización con la que trabajas.",
+    "offline": "Eliminar tu cuenta necesita conexión. Conéctate y vuelve a intentarlo.",
+    "previewFailedTitle": "No se pudo revisar tu cuenta",
+    "previewFailed": "{reason}. Revisa tu conexión y vuelve a intentarlo.",
+    "retry": "Reintentar",
+    "blockersTitle": "Tu cuenta todavía no se puede eliminar",
+    "blocker": {
+      "account_delete_legal_hold": "{org} conserva tus registros bajo una retención legal ({matter}). Pide a {org} que la libere y luego elimina tu cuenta.",
+      "account_delete_on_shift": "Tienes un turno abierto en {org}. Marca la salida y luego elimina tu cuenta.",
+      "account_delete_sole_owner": "Eres el único propietario de {org}. Nombra a otro propietario y luego elimina tu cuenta."
+    },
+    "keptTitle": "Qué se conserva y por qué",
+    "kept": {
+      "time_and_pay": "Tus registros de tiempo y pago, conservados 7 años porque lo exige la ley de nómina.",
+      "tax_forms": "Tus formularios fiscales, conservados 7 años porque lo exige la ley fiscal.",
+      "engagements": "Tus registros de contratación y acuerdos firmados, conservados 7 años.",
+      "org_records": "Los registros que creaste para una organización, como reportes de incidentes, que esa organización conserva sin tu nombre.",
+      "audit_trail": "El registro de auditoría de seguridad, conservado 7 años. Tus datos personales se quitan a los 90 días.",
+      "erasure_request": "Un registro de que pediste este borrado, para que cada organización pueda demostrar que se hizo."
+    },
+    "emailLabel": "Escribe tu correo de acceso para confirmar",
+    "emailHelp": "Inicias sesión como {email}.",
+    "emailMismatch": "Ese no es el correo con el que inicias sesión.",
+    "delete": "Eliminar mi cuenta",
+    "deleteHoldHint": "Mantén presionado 2 segundos para eliminar tu cuenta",
+    "stepUpPrompt": "Confirma que eres tú para eliminar tu cuenta",
+    "stepUpFailed": "No se confirmó que eres tú, así que no se eliminó nada. Vuelve a intentarlo.",
+    "refusedTitle": "Tu cuenta no se eliminó",
+    "failed": "Tu cuenta no se eliminó: {reason}. Vuelve a intentarlo.",
+    "doneTitle": "Tu cuenta está eliminada",
+    "doneSentence": "Tu acceso, tu nombre y tu perfil están borrados. Organizaciones avisadas: {count}.",
+    "done": "Listo",
+    "signOutFailed": "Compass no pudo limpiar este dispositivo: {reason}. Toca Listo otra vez."
   }
 }
