@@ -280,6 +280,112 @@ export async function payInvoice(invoiceId: string): Promise<void> {
   await transition("payment", id, "Proposed", "Approved", "Paid by ACH.");
 }
 
+/** Seed 1080's people and accounts for the role journeys. */
+export const ROLE_PEOPLE = {
+  agency: "01920000-0000-7000-8000-000010800101",
+  staffOne: "01920000-0000-7000-8000-000010800102",
+  staffTwo: "01920000-0000-7000-8000-000010800103",
+  contractor: "01920000-0000-7000-8000-000010800104",
+  artist: "01920000-0000-7000-8000-000010800105",
+  agent: "01920000-0000-7000-8000-000010800106",
+  client: "01920000-0000-7000-8000-000010800107",
+  sponsor: "01920000-0000-7000-8000-000010800108",
+} as const;
+
+export const ROLE_ACCOUNTS = {
+  agency: "01920000-0000-7000-8000-000010800301",
+  studio: "01920000-0000-7000-8000-000010800302",
+  talent: "01920000-0000-7000-8000-000010800303",
+  client: "01920000-0000-7000-8000-000010800304",
+  sponsor: "01920000-0000-7000-8000-000010800305",
+} as const;
+
+/**
+ * An engagement on the demo project for one of seed 1080's external parties, in Onboarding, with
+ * the party's account as counterparty when it has one.
+ */
+export async function roleEngagement(input: {
+  person: string;
+  account?: string | null;
+  roleType: "Client" | "Contractor" | "Staff" | "Artist" | "Sponsor";
+  roleCode?: string;
+  workerClassification?: string;
+  payBasis?: string | null;
+  rateMinor?: number | null;
+  applicationId?: string | null;
+}): Promise<EngagementFixture> {
+  const [row] = await sql<{ id: string }>(
+    `insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification,
+       pay_basis, arrangement, agreed_rate_minor, currency_code, start_date, end_date, application_id)
+     values ($1, $2,
+       (select c.id from app.counterparties c where c.org_id = $3 and c.organization_id = $4 and c.deleted_at is null limit 1),
+       $5, $6, $7, $8, 'Per Engagement', $9, 'USD', '2027-06-04', '2027-06-06', $10)
+     returning id`,
+    [
+      PROJECT,
+      input.person,
+      DEMO.org,
+      input.account ?? null,
+      input.roleType,
+      input.roleCode ?? (input.roleType === "Artist" ? "2000.50.02" : "5000.51.02"),
+      input.workerClassification ?? "INDEPENDENT_CONTRACTOR",
+      input.payBasis === undefined ? "Day Rate" : input.payBasis,
+      input.rateMinor ?? null,
+      input.applicationId ?? null,
+    ],
+    PEOPLE.owner,
+  );
+  const id = row?.id as string;
+  return { id, key: toDisplayKey("engagement", id) };
+}
+
+/**
+ * A priced change order on the demo project's working budget (seed 0115), with its client-facing
+ * purpose and an internal comment thread the client must never see, sent to the client engagement
+ * for approval (journey 46).
+ */
+export async function changeOrderForClient(
+  engagementId: string,
+): Promise<{ id: string; title: string; internal: string }> {
+  const title = `Add a VIP riser ${suffix()}`;
+  const internal = `Internal: margin 34 percent on the riser hire ${suffix()}`;
+  const [co] = await sql<{ id: string }>(
+    `insert into app.change_orders (project_id, budget_id, title, order_type_enum_id, reason)
+     values ($1, '01920000-0000-7000-8000-000000115022', $2, 'ENM-092', 'The client asked for a VIP riser at the lawn.')
+     returning id`,
+    [PROJECT, title],
+    PEOPLE.owner,
+  );
+  const id = co?.id as string;
+  const [thread] = await sql<{ id: string }>(
+    `insert into app.comment_threads (org_id, subject_table, subject_id) values ($1, 'app.change_orders', $2) returning id`,
+    [DEMO.org, id],
+    PEOPLE.owner,
+  );
+  await sql(
+    `insert into app.comments (org_id, comment_thread_id, author_person_id, body) values ($1, $2, $3, $4)`,
+    [DEMO.org, thread?.id, PEOPLE.owner, internal],
+    PEOPLE.owner,
+  );
+  await sql(
+    `insert into app.change_order_lines (change_order_id, description, urid, quantity, unit_price_minor)
+     values ($1, 'VIP riser, 16 ft x 24 ft, carpeted.', '4000.01.01', 1, 640000)`,
+    [id],
+    PEOPLE.owner,
+  );
+  await asPerson(
+    PEOPLE.owner,
+    `select app.price_change_order($1, 'Priced from the staging quote.')`,
+    [id],
+  );
+  await asPerson(
+    PEOPLE.owner,
+    `select app.request_client_approval($1, $2, null, 'Please approve the VIP riser for opening night.')`,
+    [engagementId, id],
+  );
+  return { id, title, internal };
+}
+
 /**
  * A sign-in with the shared demo password (seed 0010's local test value), for a person a journey
  * needs fresh on every run. Returns the person id the person trigger created.
