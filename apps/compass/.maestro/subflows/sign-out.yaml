@@ -1,0 +1,24 @@
+appId: pro.ghxstship.compass
+---
+# Signs out from Settings, confirming when changes still wait to upload. Sign-out wipes the device.
+- tapOn:
+    id: "tab-more"
+- scrollUntilVisible:
+    element:
+      id: "more-settings"
+    direction: DOWN
+- tapOn:
+    id: "more-settings"
+- scrollUntilVisible:
+    element:
+      id: "settings-sign-out"
+    direction: DOWN
+- tapOn:
+    id: "settings-sign-out"
+- runFlow:
+    when:
+      notVisible:
+        id: "sign-in"
+    commands:
+      - tapOn:
+          id: "settings-sign-out"

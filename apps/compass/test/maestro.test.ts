@@ -30,6 +30,7 @@ const DYNAMIC = [
   "project-",
   "template-",
   "incident-type-",
+  "shift-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {
@@ -59,7 +60,8 @@ describe("Maestro flows", () => {
 
   it.each(files)("%s only targets test ids the app renders", (file) => {
     const steps = parseAllDocuments(readFileSync(file, "utf8"))[1]?.toJS() as unknown;
-    for (const id of ids(steps)) {
+    // An id may be a Maestro regex of alternatives ("sign-in|tab-bar"); each one must exist.
+    for (const id of ids(steps).flatMap((i) => i.split("|"))) {
       const literal = code.includes(`"${id}"`) || code.includes(`\`${id}\``);
       const dynamic = DYNAMIC.some(
         (p) => id.startsWith(p) && (code.includes(p) || code.includes(`"${p.slice(0, -1)}"`)),

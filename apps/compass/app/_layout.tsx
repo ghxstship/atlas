@@ -44,14 +44,22 @@ function Gatekeeper(): ReactElement {
       <BiometricLock enabled={settings.biometric}>
         <Stack
           screenOptions={{
-            headerShown: false,
+            // Pushed screens keep the native header for its back button alone (each Screen draws its own
+            // title), so they can be left by keyboard, Switch Control and VoiceOver, not only by an edge
+            // swipe.
+            headerShown: true,
+            title: "",
+            headerBackButtonDisplayMode: "minimal",
+            headerShadowVisible: false,
+            headerStyle: { backgroundColor: theme.color.bgCanvas },
+            headerTintColor: theme.color.textPrimary,
             contentStyle: { backgroundColor: theme.color.bgCanvas },
           }}
         >
-          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="kiosk"
-            options={{ gestureEnabled: settings.kioskDeviceKey === null }}
+            options={{ headerShown: false, gestureEnabled: settings.kioskDeviceKey === null }}
           />
         </Stack>
       </BiometricLock>

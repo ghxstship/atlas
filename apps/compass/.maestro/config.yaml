@@ -9,6 +9,7 @@ executionOrder:
   flowsOrder:
     - field-sign-in
     - field-clock-in-out
+    - field-shift-second-device
     - field-clock-offline
     - field-incident-report
     - field-inspection-walk
