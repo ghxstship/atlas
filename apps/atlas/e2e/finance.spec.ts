@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { expect, test, type Browser, type Page } from "./engine-test";
+import { expect, settle, test, type Browser, type Page } from "./engine-test";
 import { expectAccessible, uniqueId } from "./support";
 
 /**
@@ -168,6 +168,8 @@ test.describe("Budgets (journeys 3, 33, 34 and 37)", () => {
     await other.keyboard.type("Delay towers, two sets");
     await other.keyboard.press("Enter");
     await expect(grid(other)).toContainText("Delay towers, two sets");
+    // The grid shows the edit before the save lands; the conflict needs the save committed first.
+    await settle(other);
 
     await description(page).dblclick();
     await page.keyboard.press("ControlOrMeta+a");

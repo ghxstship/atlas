@@ -8,6 +8,17 @@ const INTERRUPTED = /NS_BINDING_ABORTED|interrupted by another navigation|frame 
 /** At most this many tries of one navigation that Next's refresh keeps cutting off. */
 const ATTEMPTS = 3;
 
+/** How long a page may take to go quiet before a step goes ahead anyway. */
+const QUIET_MS = 5_000;
+
+/**
+ * Waits for the page to go quiet, but no longer than five seconds: a live page (a show run, a
+ * realtime list) keeps a request open and never reaches networkidle, and the step goes ahead.
+ */
+export async function settle(page: Page): Promise<void> {
+  await page.waitForLoadState("networkidle", { timeout: QUIET_MS }).catch(() => undefined);
+}
+
 /**
  * Makes `page.goto` and `page.reload` the same in every engine (finding A24-008). A server action
  * ends with Next refreshing the route; Chromium lets a following navigation win, while Firefox
@@ -18,7 +29,7 @@ const ATTEMPTS = 3;
 export function settledGoto(page: Page): Page {
   const settled = async <T>(navigate: () => Promise<T>): Promise<T> => {
     for (let attempt = 1; ; attempt += 1) {
-      await page.waitForLoadState("networkidle");
+      await settle(page);
       try {
         return await navigate();
       } catch (error) {
