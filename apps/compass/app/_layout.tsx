@@ -1,3 +1,4 @@
+import * as Linking from "expo-linking";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import type { ReactElement } from "react";
@@ -7,16 +8,41 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CompassProvider, useCompass } from "../src/runtime/CompassProvider";
 import { playHaptic } from "../src/runtime/haptics";
 import { initI18n } from "../src/runtime/i18n";
+import { useUpdateGate } from "../src/runtime/minimumVersion";
 import { BiometricLock } from "../src/screens/BiometricLock";
 import { SignIn } from "../src/screens/SignIn";
-import { ErrorState, Screen, Skeleton, ThemeProvider, useTheme } from "../src/ui";
+import {
+  ErrorState,
+  ForceUpdateScreen,
+  Screen,
+  Skeleton,
+  ThemeProvider,
+  useTheme,
+} from "../src/ui";
 
 initI18n();
 
 function Gatekeeper(): ReactElement {
-  const { phase, retryIdentity, settings } = useCompass();
+  const { phase, retryIdentity, settings, client } = useCompass();
   const { t } = useTranslation();
   const theme = useTheme();
+  const update = useUpdateGate(client);
+  // Below the server-advertised minimum version nothing else runs, signed in or not (Section 5.1).
+  if (update.blocked && update.floor) {
+    const url = update.floor.updateUrl;
+    return (
+      <ForceUpdateScreen
+        testID="force-update"
+        message={t(url ? "compass.update.message" : "compass.update.messageNoLink")}
+        version={t("compass.update.versions", {
+          current: update.current,
+          minimum: update.floor.minimumVersion,
+        })}
+        actionLabel={t(url ? "compass.update.action" : "compass.update.recheck")}
+        onUpdate={() => void (url ? Linking.openURL(url) : update.recheck())}
+      />
+    );
+  }
   if (phase.kind === "starting") {
     return (
       <Screen testID="starting">
@@ -44,14 +70,22 @@ function Gatekeeper(): ReactElement {
       <BiometricLock enabled={settings.biometric}>
         <Stack
           screenOptions={{
-            headerShown: false,
+            // Pushed screens keep the native header for its back button alone (each Screen draws its own
+            // title), so they can be left by keyboard, Switch Control and VoiceOver, not only by an edge
+            // swipe.
+            headerShown: true,
+            title: "",
+            headerBackButtonDisplayMode: "minimal",
+            headerShadowVisible: false,
+            headerStyle: { backgroundColor: theme.color.bgCanvas },
+            headerTintColor: theme.color.textPrimary,
             contentStyle: { backgroundColor: theme.color.bgCanvas },
           }}
         >
-          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="kiosk"
-            options={{ gestureEnabled: settings.kioskDeviceKey === null }}
+            options={{ headerShown: false, gestureEnabled: settings.kioskDeviceKey === null }}
           />
         </Stack>
       </BiometricLock>

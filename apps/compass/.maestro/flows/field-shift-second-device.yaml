@@ -1,0 +1,65 @@
+appId: pro.ghxstship.compass
+name: Journey 10, accept today's shift, clock in, a second device is refused, clock out
+---
+# The Demo Field Tech (seed 1090) has a shift today published to them and no worked time after the reset
+# day, so a clock-in overlaps nothing (SIM-001). The simulator stands inside Pier Site, the geofence of
+# the demo project's venue (seed 0109).
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: tech@example.com
+- setLocation:
+    latitude: 25.7752
+    longitude: -80.1855
+# Accept the shift in Schedule.
+- tapOn:
+    id: "tab-schedule"
+- extendedWaitUntil:
+    visible:
+      id: "shift-accept-01920000-0000-7000-8000-000010900003"
+    timeout: 20000
+- tapOn:
+    id: "shift-accept-01920000-0000-7000-8000-000010900003"
+- extendedWaitUntil:
+    notVisible:
+      id: "shift-accept-01920000-0000-7000-8000-000010900003"
+    timeout: 15000
+# Clock in on site from Today.
+- tapOn:
+    id: "tab-today"
+- extendedWaitUntil:
+    visible: "You're at Pier Site"
+    timeout: 20000
+- tapOn:
+    id: "clock-button"
+- extendedWaitUntil:
+    visible:
+      id: "clock-live"
+    timeout: 5000
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued"
+    timeout: 30000
+# A second phone signed in as the same person sends its own Clock In: the server refuses it.
+- runScript:
+    file: ../scripts/second-device-punch.js
+    env:
+      EMAIL: tech@example.com
+      PROJECT_ID: "01920000-0000-7000-8000-000000001001"
+- assertTrue: ${output.secondDevice.status >= 400 && output.secondDevice.body.indexOf("already clocked in") >= 0}
+# This device is still on shift; clock out.
+- assertVisible:
+    id: "clock-live"
+- tapOn: "Clock Out"
+- extendedWaitUntil:
+    notVisible:
+      id: "clock-live"
+    timeout: 5000
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-offline-queue"
+- extendedWaitUntil:
+    visible:
+      id: "queue-empty"
+    timeout: 30000

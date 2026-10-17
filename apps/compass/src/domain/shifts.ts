@@ -46,6 +46,21 @@ export function isOpenShift(s: ShiftRow): boolean {
   );
 }
 
+/**
+ * A shift assigned to this person: through their membership, or one of their operational engagements.
+ * Open shifts and colleagues' shifts are not "mine", so Today and My shifts never label them "Waiting
+ * for you".
+ */
+export function isMine(
+  s: ShiftRow,
+  me: { readonly membershipId: string | null; readonly engagementIds: readonly string[] },
+): boolean {
+  return (
+    (me.membershipId !== null && s.membership_id === me.membershipId) ||
+    (typeof s.engagement_id === "string" && me.engagementIds.includes(s.engagement_id))
+  );
+}
+
 export type ShiftAction = "accept" | "claim" | null;
 
 /**

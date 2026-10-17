@@ -66,6 +66,7 @@ insert into rule_sources values
   ('canon_reference', 'xpms.emergency_code', 'code,label,emergency,swatch,sort_order', null),
   ('canon_reference', 'xpms.std_enumeration', 'record_id,enum_code,enum_label,sort_order,color_code', null),
   ('canon_reference', 'xpms.std_enumeration', 'record_id,enum_code,enum_label,sort_order', null),
+  ('canon_reference', 'xpms.role', 'role_code,job_title', null),
   -- sync-rules: end
   ('parameters', 'private.sync_scope_grants', 'scope_value,person_user_id,scope_key,audience', null);
 

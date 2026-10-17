@@ -26,3 +26,9 @@ This ADR records how those numbers are kept.
 
 - **Gateway is 2 to 13 KB over budget**, held at its ceilings until the icon sprite lands.
 - **`record_display_key` costs about 1.8 ms per row.** The API now composes the key itself; a cheaper database form is a follow-up for the schema owner.
+
+## Amendment (2026-10-17): icon sprite (A41)
+
+Web icons draw from one SVG sprite generated from the `@xos/icons` registry (`@xos/icons/sprite.svg`, 207 icons, 10 KB gzip). `@xos/ui` `<Icon>` renders `<svg><use href="{sprite}#{Name}"/></svg>` with stroke and size on the outer element. The bundler emits the sprite as a content-hashed, immutable static asset. Web bundles import `@xos/icons/glyphs` and `@xos/icons/names`, never the component registry, which stays for server and native use. No icon data ships in page JavaScript.
+
+Every key page dropped 15 to 19 KB. Gateway is now 184 to 195 KB, inside the 200 KB budget, and its ceilings are removed. The Atlas ceilings were lowered to the new measurements plus 3 KB.

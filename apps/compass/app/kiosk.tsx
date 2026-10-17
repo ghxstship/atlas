@@ -98,7 +98,8 @@ function PinPad({
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.space["12"] }}>
         {keys.map((k, i) =>
           k === "" ? (
-            <View key={i} style={{ width: "30%" }} />
+            // A string key of its own: the index 9 collided with the "9" key and React dropped a key.
+            <View key={`gap-${i}`} style={{ width: "30%" }} />
           ) : (
             <Pressable
               key={k}

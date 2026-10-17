@@ -324,9 +324,14 @@ export function TextField({
     phone: "phone-pad",
     url: "url",
   } as const;
-  /* Addresses, codes and secrets are typed exactly: iOS must not capitalize or autocorrect them. */
+  /* Addresses, codes and secrets are typed exactly: iOS must not capitalize or autocorrect them. A field
+     with autofill off (a scanned code typed by hand) is literal too. */
   const literal =
-    secure || keyboard === "email" || keyboard === "url" || autoComplete === "one-time-code";
+    secure ||
+    keyboard === "email" ||
+    keyboard === "url" ||
+    autoComplete === "one-time-code" ||
+    autoComplete === "off";
   const contentType = secure
     ? "password"
     : keyboard === "email"

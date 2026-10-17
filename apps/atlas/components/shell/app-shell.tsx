@@ -11,6 +11,7 @@ import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { WORKSPACE_COOKIE } from "@/lib/shell/workspace";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";
+import { ReporterUser } from "./reporter-user";
 import { ShellFrame } from "./shell-frame";
 
 /**
@@ -76,6 +77,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       email={ctx.viewer.email}
       canManageAi={ctx.capabilities.has("org.ai.write")}
     >
+      <ReporterUser personId={ctx.viewer.person?.id ?? null} />
       {children}
     </ShellFrame>
   );

@@ -14,12 +14,12 @@ import * as prettier from "prettier";
 const here = dirname(fileURLToPath(import.meta.url));
 const target = join(here, "../src/icons.generated.ts");
 const registry = readFileSync(
-  join(here, "../node_modules/@xos/icons/src/registry.generated.ts"),
+  join(here, "../node_modules/@xos/icons/src/names.generated.ts"),
   "utf8",
 );
 const match = /registeredIconNames = (\[[^\]]*\]) as const/.exec(registry);
 if (!match) {
-  console.error("Cannot read registeredIconNames from @xos/icons/src/registry.generated.ts");
+  console.error("Cannot read registeredIconNames from @xos/icons/src/names.generated.ts");
   process.exit(1);
 }
 const names = [...match[1].matchAll(/"([A-Za-z0-9]+)"/g)].map((m) => m[1]);

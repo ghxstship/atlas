@@ -11,7 +11,7 @@ export {
   type ThemePreference,
   type XosNativeTheme,
 } from "@xos/ui-native/theme";
-export { announce, LiveActivity, OfflineBanner } from "@xos/ui-native";
+export { announce, ForceUpdateScreen, LiveActivity, OfflineBanner } from "@xos/ui-native";
 export { useReducedMotion } from "@xos/ui-native";
 export { Button, Icon, IconButton, SegmentedControl, Switch, Text, TextField } from "./primitives";
 export {

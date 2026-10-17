@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildAccessScan,
   assetScanAction,
+  effectiveAssetState,
   buildAssetScan,
   custodyBlocked,
   resolveAsset,
@@ -439,5 +440,39 @@ describe("intake and custody", () => {
         { membershipId: "m1", engagementIds: [] },
       ),
     ).toBe(true);
+  });
+});
+
+describe("scan again before the next download (simulator defect: check-out then return refused)", () => {
+  const me = { membershipId: "m1", engagementIds: [] as string[] };
+  const unit = {
+    id: "u1",
+    asset_tag: "AUD-0042",
+    asset_state: "Available",
+    updated_at: "2026-10-17T03:31:12.800813+00:00",
+  };
+  const mine = {
+    id: "k1",
+    asset_unit_id: "u1",
+    custodian_membership_id: "m1",
+    venue_id: null,
+    created_at: "2026-10-17T05:12:30.706Z",
+  };
+  it("treats a newer custody row as the state: checked out to me, so the next scan returns it", () => {
+    expect(effectiveAssetState(unit, mine)).toBe("Deployed");
+    expect(assetScanAction(unit, mine, me)).toBe("check-in");
+  });
+  it("treats a newer return as Available, so the next scan checks it out again", () => {
+    const deployed = { ...unit, asset_state: "Deployed" };
+    const returned = { ...mine, custodian_membership_id: null };
+    expect(effectiveAssetState(deployed, returned)).toBe("Available");
+    expect(assetScanAction(deployed, returned, me)).toBe("check-out");
+  });
+  it("keeps the server state when the custody row is older, unknown, or the unit cannot move", () => {
+    const older = { ...mine, created_at: "2026-10-17T03:00:00Z" };
+    expect(effectiveAssetState(unit, older)).toBe("Available");
+    expect(effectiveAssetState({ ...unit, updated_at: null }, mine)).toBe("Available");
+    expect(effectiveAssetState(unit, null)).toBe("Available");
+    expect(effectiveAssetState({ ...unit, asset_state: "Damaged" }, mine)).toBe("Damaged");
   });
 });

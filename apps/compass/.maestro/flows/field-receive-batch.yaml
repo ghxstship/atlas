@@ -1,0 +1,60 @@
+appId: pro.ghxstship.compass
+name: Journeys 5 and 53, receive a batch in continuous mode, review it, save
+---
+# The simulator has no camera, so the codes are typed into the manual entry, as at a worn label; typing
+# cannot show the 30-items-in-60-seconds pace, which needs a camera. The batch review is the same.
+# Receiving needs procurement.receipt.write, which the Producer (manager) holds and Field does not; a
+# Field member sees the mode with its "Permission needed" refusal.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: producer@example.com
+- tapOn:
+    id: "tab-scan"
+- tapOn:
+    id: "scan-mode-receiving"
+- tapOn:
+    id: "scan-manual"
+- inputText: "4006381333931"
+- tapOn:
+    id: "scan-manual-submit"
+- assertVisible: "Delivery acknowledged"
+- tapOn:
+    id: "scan-manual"
+- inputText: "5901234123457"
+- tapOn:
+    id: "scan-manual-submit"
+- tapOn:
+    id: "scan-manual"
+- inputText: "4006381333931"
+- tapOn:
+    id: "scan-manual-submit"
+- tapOn:
+    id: "scan-manual"
+- inputText: "4006381333931"
+- tapOn:
+    id: "scan-manual-submit"
+- hideKeyboard
+# Done opens the review: two lines, three of the first code. One was counted twice; remove it.
+- tapOn: "Done"
+- extendedWaitUntil:
+    visible:
+      id: "batch-review"
+    timeout: 5000
+- assertVisible: "Review 4 scanned"
+- assertVisible:
+    id: "batch-item-4006381333931"
+- assertVisible: ".*3 scanned.*"
+- tapOn:
+    id: "batch-remove-4006381333931"
+- assertVisible: ".*2 scanned.*"
+- tapOn:
+    id: "batch-save"
+- extendedWaitUntil:
+    visible:
+      id: "today"
+    timeout: 5000
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued"
+    timeout: 30000

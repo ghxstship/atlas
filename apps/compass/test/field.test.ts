@@ -30,6 +30,8 @@ import {
 import {
   buildCallCue,
   formatCountdown,
+  showsCountdown,
+  COUNTDOWN_HORIZON_MS,
   preCueHapticDue,
   PRE_CUE_WARNING_MS,
   showState,
@@ -268,14 +270,27 @@ describe("inspection walk", () => {
     expect(criticalFailures(walk, results).map((i) => i.id)).toEqual(["it-2"]);
     const writes = buildInspection(walk, now, ids);
     expect(writes[0]).toMatchObject({ table: "inspections", rowId: "insp-1" });
-    expect(writes.slice(1).map((w) => w.payload["inspection_item_id"])).toEqual(["it-1", "it-2"]);
+    // Results go through app.record_inspection_result, which opens the punch item for a Failed result
+    // (journey 17; a plain insert, as before, opened none).
+    expect(writes.slice(1).map((w) => [w.op, w.target])).toEqual([
+      ["rpc", "app.record_inspection_result"],
+      ["rpc", "app.record_inspection_result"],
+    ]);
+    expect(writes.slice(1).map((w) => w.payload["p_item_id"])).toEqual(["it-1", "it-2"]);
     expect(writes[2]?.payload).toMatchObject({
-      note: "Exit 3 blocked by cases",
-      photo_uri: expect.stringMatching(/^org-1\/inspections\/insp-1\/id-\d+\.jpg$/),
+      p_inspection_id: "insp-1",
+      p_result_enum_id: "ENM-084",
+      p_note: "Exit 3 blocked by cases",
+      p_photo_uri: expect.stringMatching(/^org-1\/inspections\/insp-1\/id-\d+\.jpg$/),
       local_uri: "file:///exit3.jpg",
-      project_id: "proj-1",
     });
-    expect(writes[1]?.payload["note"]).toBeNull();
+    expect(writes[2]?.payload["storage_path"]).toBe(writes[2]?.payload["p_photo_uri"]);
+    expect(writes[2]?.optimistic).toMatchObject({
+      project_id: "proj-1",
+      inspection_item_id: "it-2",
+    });
+    expect(writes[1]?.payload["p_note"]).toBeNull();
+    expect(writes[1]?.payload).not.toHaveProperty("local_uri");
     expect(isComplete(startWalk("org-1", "t", "p", [], now))).toBe(false);
   });
 
@@ -357,6 +372,11 @@ describe("live run of show", () => {
   it("formats countdowns readable at arm's length", () => {
     expect(formatCountdown(65_000)).toBe("1:05");
     expect(formatCountdown(3_725_000)).toBe("1:02:05");
+    // A cue months away names its day instead of a countdown such as "3547:45:52".
+    expect(showsCountdown(COUNTDOWN_HORIZON_MS)).toBe(true);
+    expect(showsCountdown(COUNTDOWN_HORIZON_MS + 1)).toBe(false);
+    expect(showsCountdown(-5_000)).toBe(true);
+    expect(showsCountdown(null)).toBe(false);
     expect(formatCountdown(-12_000)).toBe("+0:12");
   });
 
@@ -462,11 +482,16 @@ describe("kiosk", () => {
     );
     expect(m).toMatchObject({ op: "rpc", target: "kiosk-punch", rowId: "kp-1", policy: "append" });
     expect(m.payload).toMatchObject({
-      id: "kp-1",
+      punchId: "kp-1",
       membershipId: "m2",
       punchKind: "Out",
       monotonic_at: 12,
       boot_id: "b1",
+      projectId: "proj-1",
     });
+    // The Edge Function refuses null for its optional fields and an id under any other name.
+    expect(m.payload).not.toHaveProperty("photoUri");
+    expect(m.payload).not.toHaveProperty("id");
+    expect(Object.values(m.payload).includes(null)).toBe(false);
   });
 });

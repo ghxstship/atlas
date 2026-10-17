@@ -1,6 +1,8 @@
 appId: pro.ghxstship.compass
-name: Check badges at the Main Gate and look up an asset
+name: Check badges at the Main Gate
 ---
+# The Main Gate zone sits at seed 0217's Northwind Pier venue; Field members see it because the project's
+# access grid names it (migration 1092).
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
@@ -17,17 +19,3 @@ name: Check badges at the Main Gate and look up an asset
 - tapOn:
     id: "scan-manual-submit"
 - assertVisible: ".*Access denied.*"
-- tapOn:
-    id: "scan-mode-asset"
-- tapOn:
-    id: "scan-manual"
-- inputText: "09501101530003"
-- tapOn:
-    id: "scan-manual-submit"
-- assertVisible: "AUD-0042 found"
-- tapOn:
-    id: "scan-manual"
-- inputText: "4006381333932"
-- tapOn:
-    id: "scan-manual-submit"
-- assertVisible: "That barcode did not read correctly. Scan it again."

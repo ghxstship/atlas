@@ -4,16 +4,16 @@ name: Clock in at the venue, take a break, clock out
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
-      EMAIL: field@example.com
-# The simulator stands inside the Northwind Pier geofence from seed 0217.
+      EMAIL: tech@example.com
+# The Demo Field Tech (seed 1090) has no worked time after the reset day, so the clock-in overlaps
+# nothing (SIM-001). The simulator stands inside Pier Site, the geofence of the demo project's venue
+# (seed 0109); seed 0217's Northwind Pier venue is not the project's, so Field members never see it.
 - setLocation:
-    latitude: 25.7795
-    longitude: -80.1860
+    latitude: 25.7752
+    longitude: -80.1855
 - extendedWaitUntil:
-    visible:
-      id: "clock-button-geofence"
-    timeout: 15000
-- assertVisible: "You're at Northwind Pier Site"
+    visible: "You're at Pier Site"
+    timeout: 20000
 - tapOn:
     id: "clock-button"
 # On shift, the Live Activity card holds the break toggle and clock out.

@@ -23,7 +23,7 @@ import {
   useFieldId,
 } from "../Field/Field.tsx";
 import { ScrollRegion } from "../Layout/Layout.tsx";
-import { isRecordKind } from "@xos/icons";
+import { isRecordKind } from "@xos/icons/glyphs";
 import { ratio } from "@xos/tokens/ratio";
 
 type Filter = ReferenceFilterBuilderProps["filters"][number];

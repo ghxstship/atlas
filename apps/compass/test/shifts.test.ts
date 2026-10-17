@@ -3,6 +3,7 @@ import {
   actionFor,
   buildShiftAction,
   groupByDay,
+  isMine,
   isOpenShift,
   startsIn,
   type ShiftRow,
@@ -68,5 +69,19 @@ describe("schedule", () => {
     expect(startsIn(new Date(now + 3 * h + 20 * 60_000).toISOString(), now)).toBe("3h 20m");
     expect(startsIn(new Date(now + 15 * 60_000).toISOString(), now)).toBe("15m");
     expect(startsIn(new Date(now - 1).toISOString(), now)).toBeNull();
+  });
+});
+
+describe("my shifts (simulator defect: Today listed open and colleagues' shifts)", () => {
+  const me = { membershipId: "m1", engagementIds: ["e1"] };
+  it("keeps shifts held through my membership or an operational engagement", () => {
+    expect(isMine(shift("a", 1), me)).toBe(true);
+    expect(isMine(shift("b", 1, { membership_id: null, engagement_id: "e1" }), me)).toBe(true);
+  });
+  it("leaves out open shifts and other people's shifts", () => {
+    expect(isMine(shift("c", 1, { membership_id: null }), me)).toBe(false);
+    expect(isMine(shift("d", 1, { membership_id: "m2" }), me)).toBe(false);
+    expect(isMine(shift("e", 1, { membership_id: null, engagement_id: "e9" }), me)).toBe(false);
+    expect(isMine(shift("f", 1), { membershipId: null, engagementIds: [] })).toBe(false);
   });
 });

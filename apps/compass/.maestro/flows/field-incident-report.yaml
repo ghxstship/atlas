@@ -1,13 +1,16 @@
 appId: pro.ghxstship.compass
-name: Report an incident in three steps
+name: Journeys 16 and 54, report an incident in three steps with photos, filed once
 ---
+# Offline: run with the device offline up to "incident-filed" (on an Android emulator setAirplaneMode;
+# on an iOS simulator cut the server instead, for example by stopping the local stack's API gateway),
+# then reconnect; the report and its photos replay once, keyed by their device-minted ids.
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
-      EMAIL: field@example.com
+      EMAIL: tech@example.com
 - setLocation:
-    latitude: 25.7795
-    longitude: -80.1860
+    latitude: 25.7752
+    longitude: -80.1855
 - tapOn:
     id: "tab-more"
 - tapOn:
@@ -25,6 +28,17 @@ name: Report an incident in three steps
     id: "incident-title"
 - inputText: "Guest slipped near Gate A"
 - hideKeyboard
+# Two photos; the simulator's capture returns an image without a camera.
+- tapOn:
+    id: "incident-photo"
+- tapOn:
+    id: "photo-take"
+- assertVisible: "1 attached"
+- tapOn:
+    id: "incident-photo"
+- tapOn:
+    id: "photo-take"
+- assertVisible: "2 attached"
 - tapOn:
     id: "incident-submit"
 - extendedWaitUntil:
@@ -32,3 +46,13 @@ name: Report an incident in three steps
       id: "incident-filed"
     timeout: 10000
 - assertVisible: "Guest slipped near Gate A"
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued"
+    timeout: 60000
+- runScript:
+    file: ../scripts/incident-filed-once.js
+    env:
+      EMAIL: tech@example.com
+      TITLE: "Guest slipped near Gate A"
+- assertTrue: ${output.filed.status == 200 && output.filed.incidents == 1 && output.filed.photos == 2}

@@ -3,14 +3,14 @@ import { fileURLToPath } from "node:url";
 import { build } from "vite";
 import type { Rollup } from "vite";
 import { describe, expect, it } from "vitest";
-import { iconRegistry } from "@xos/icons";
+import { registeredIconNames } from "@xos/icons/names";
 
 /**
- * RRR-70: a production bundle of the Icon component carries only the @xos/icons registry, never the
- * whole lucide-react namespace.
+ * ADR 0027 (after RRR-70): a production bundle of the Icon component carries no icon geometry and
+ * no icon name list. Icons draw from the sprite file, which the bundle references as an asset.
  */
 describe("Icon bundle", () => {
-  it("tree-shakes lucide-react down to the registered icons", async () => {
+  it("ships no lucide-react icon and references the sprite as an asset", async () => {
     const entry = fileURLToPath(new URL("../src/Icon/Icon.tsx", import.meta.url));
     const result = await build({
       configFile: false,
@@ -19,19 +19,24 @@ describe("Icon bundle", () => {
       build: {
         write: false,
         minify: false,
-        lib: { entry, formats: ["es"], fileName: "icon" },
-        rollupOptions: { external: ["react", "react/jsx-runtime", "react-dom"] },
+        assetsInlineLimit: 0,
+        // Library mode inlines every asset, so build the entry as an app chunk instead.
+        rollupOptions: {
+          input: entry,
+          preserveEntrySignatures: "strict",
+          external: ["react", "react/jsx-runtime", "react-dom"],
+        },
       },
     });
     const outputs = (Array.isArray(result) ? result : [result]) as Rollup.RollupOutput[];
-    const code = outputs
-      .flatMap((o) => o.output)
-      .map((chunk) => (chunk.type === "chunk" ? chunk.code : ""))
-      .join("\n");
-    const bundled = new Set(
-      [...code.matchAll(/name: "([a-z0-9-]+)",\s*size: 24,/g)].map((m) => m[1]),
-    );
-    expect(bundled.size).toBe(new Set(Object.values(iconRegistry)).size);
-    expect(bundled.has("airplay")).toBe(false);
+    const files = outputs.flatMap((o) => o.output);
+    const code = files.map((f) => (f.type === "chunk" ? f.code : "")).join("\n");
+    expect(code).not.toMatch(/size: 24,/);
+    expect(code).not.toContain("createLucideIcon");
+    // The registry's names stay out of production bundles.
+    expect(code).not.toContain(`"${registeredIconNames[0]}"`);
+    const sprite = files.find((f) => f.type === "asset" && f.fileName.endsWith(".svg"));
+    expect(sprite?.fileName).toMatch(/sprite\.generated-[\w-]+\.svg$/);
+    expect(code).toContain(sprite?.fileName ?? "missing");
   });
 });

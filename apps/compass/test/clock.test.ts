@@ -7,13 +7,14 @@ import {
   deriveClock,
   forgottenClockOut,
   formatElapsed,
+  needsPreciseFix,
   primaryPunch,
   secondaryPunches,
   workedMs,
   type Punch,
   type PunchKind,
 } from "../src/domain/clock";
-import type { Geofence } from "../src/domain/geo";
+import { samplingPlan, type Geofence } from "../src/domain/geo";
 
 const T0 = Date.UTC(2026, 9, 14, 14, 0, 0);
 const min = 60_000;
@@ -291,5 +292,31 @@ describe("queued punch", () => {
         T0,
       ),
     ).toThrow("exactly one");
+  });
+});
+
+describe("precise location while the clock is open (simulator defect)", () => {
+  const plan = (precise: boolean) =>
+    samplingPlan({
+      battery: { level: 1, charging: false, lowPowerMode: false },
+      onShift: false,
+      minutesToCall: null,
+      punching: precise,
+      batterySaver: false,
+    });
+
+  it("samples precisely while a clocked-out person has the clock open, even with no call today", () => {
+    expect(plan(needsPreciseFix(true, "out", false)).accuracy).toBe("high");
+  });
+
+  it("leaves the battery plan alone once clocked in or when the clock is not in front", () => {
+    expect(needsPreciseFix(true, "on", false)).toBe(false);
+    expect(needsPreciseFix(true, "break", false)).toBe(false);
+    expect(needsPreciseFix(false, "out", false)).toBe(false);
+    expect(plan(needsPreciseFix(false, "out", false)).accuracy).toBe("off");
+  });
+
+  it("always samples precisely during a punch", () => {
+    expect(needsPreciseFix(false, "on", true)).toBe(true);
   });
 });

@@ -162,6 +162,52 @@ export async function listSavedViews(
   return ok([...list.filter((v) => v.mine), ...list.filter((v) => !v.mine)]);
 }
 
+/**
+ * Every saved view the signed-in person can open in an org, across collections: their own first,
+ * then shared ones, each by name. Defaults are flagged per collection.
+ */
+export async function listAllSavedViews(
+  db: XosClient,
+  input: { readonly orgId: string; readonly membershipId: string },
+): Promise<Result<SavedView[]>> {
+  const [views, defaults] = await Promise.all([
+    db
+      .from("saved_views")
+      .select(VIEW_COLUMNS)
+      .eq("org_id", input.orgId)
+      .is("deleted_at", null)
+      .order("name")
+      .limit(500),
+    db
+      .from("saved_view_defaults")
+      .select("saved_view_id")
+      .eq("membership_id", input.membershipId)
+      .is("deleted_at", null),
+  ]);
+  if (views.error) return fail(toDataError(views.error));
+  if (defaults.error) return fail(toDataError(defaults.error));
+  const defaultIds = new Set((defaults.data ?? []).map((d) => d.saved_view_id));
+  const rows = (views.data ?? []) as unknown as ViewRow[];
+  const list = rows.map((r) => toView(r, input.membershipId, defaultIds.has(r.id) ? r.id : null));
+  return ok([...list.filter((v) => v.mine), ...list.filter((v) => !v.mine)]);
+}
+
+/** Renames a view, keeping its query. Only the owner may. */
+export async function renameSavedView(
+  db: XosClient,
+  viewId: string,
+  name: string,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("saved_views")
+    .update({ name: name.trim() })
+    .eq("id", viewId)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data && data.length > 0 ? ok(null) : fail({ kind: "not-found" });
+}
+
 /** One saved view the signed-in person can open, by id; not-found when it is missing or not theirs. */
 export async function getSavedView(
   db: XosClient,

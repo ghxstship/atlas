@@ -36,8 +36,12 @@ export function Screen({
 }: ScreenProps): ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  // Without scrolling the body fills the screen, so a flex child (the scan sheet's camera) gets the room
+  // left; it collapsed to nothing before, and its Done button drew over the manual entry.
   const body = (
-    <View style={{ padding: theme.space["16"], gap: theme.space["16"] }}>
+    <View
+      style={{ padding: theme.space["16"], gap: theme.space["16"], ...(scroll ? {} : { flex: 1 }) }}
+    >
       {title ? (
         <Text variant="heading24" heading>
           {title}
@@ -98,9 +102,13 @@ export function Card({ title, meta, footer, onPress, children, testID }: CardPro
             gap: theme.space["8"],
           }}
         >
-          <Text variant="heading16" heading>
-            {title}
-          </Text>
+          {/* The title takes the room left and wraps, so a long one never pushes the status tag off the
+              card (seen on the simulator with long incident titles). */}
+          <View style={{ flex: 1, flexShrink: 1 }}>
+            <Text variant="heading16" heading>
+              {title}
+            </Text>
+          </View>
           {meta}
         </View>
       ) : null}
@@ -176,8 +184,11 @@ export function ListRow({
             </Text>
           ) : null}
         </View>
-        {trailing}
       </Pressable>
+      {/* Outside the row's Pressable: an accessible Pressable merges its children into one element, so a
+          trailing button (an inspection's Start) inside it was unreachable by VoiceOver and Switch
+          Control. */}
+      {trailing}
       {actions.map((a) => (
         <Pressable
           key={a.label}

@@ -30,7 +30,8 @@
     "clearDefault": "Dejar de abrir {name} de forma predeterminada",
     "share": "Compartir {name}",
     "delete": "Eliminar {name}",
-    "pageDefault": "Vista predeterminada de la página"
+    "pageDefault": "Vista predeterminada de la página",
+    "manage": "Administrar vistas guardadas"
   },
   "save": {
     "title": "Guardar la vista actual",

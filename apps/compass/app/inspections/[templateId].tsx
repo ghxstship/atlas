@@ -143,11 +143,21 @@ function WalkScreen({ templateId }: { readonly templateId: string }): ReactEleme
                   : {})}
               />
               <Button
+                testID="fail-photo"
                 variant="secondary"
                 icon="camera"
-                label={t("compass.inspections.failPhoto")}
+                label={t(
+                  photo ? "compass.inspections.failPhotoRetake" : "compass.inspections.failPhoto",
+                )}
                 onPress={() => setPhotoOpen(true)}
               />
+              {photo ? (
+                <InlineAlert
+                  testID="fail-photo-added"
+                  tone="success"
+                  message={t("compass.inspections.failPhotoAdded")}
+                />
+              ) : null}
               {missing.includes("photo") ? (
                 <InlineAlert tone="danger" message={t("compass.inspections.failPhotoMissing")} />
               ) : null}

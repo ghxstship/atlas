@@ -161,18 +161,24 @@ export function buildInspection(
       note: a.note.trim() || null,
       // <org_id>/inspections/<inspection_id>/<file>, the object name the field-media bucket expects.
       photo_uri: a.photoUri ? `${walk.orgId}/inspections/${walk.inspectionId}/${id}.jpg` : null,
-      ...(a.photoUri
-        ? {
-            local_uri: a.photoUri,
-            storage_path: `${walk.orgId}/inspections/${walk.inspectionId}/${id}.jpg`,
-          }
-        : {}),
     };
+    // Through app.record_inspection_result (A09 0421, allowlisted for app.apply_sync_mutation), not a plain
+    // insert: the RPC is what opens the punch item for a Failed result (journey 17). A replay finds the
+    // result already recorded for the item and updates it, and the punch item opens once per result.
     writes.push({
-      op: "insert",
+      op: "rpc",
+      target: "app.record_inspection_result",
       table: "inspection_results",
       rowId: id,
-      payload: row,
+      payload: {
+        p_inspection_id: walk.inspectionId,
+        p_item_id: item.id,
+        p_result_enum_id: a.resultId,
+        p_note: row.note,
+        p_photo_uri: row.photo_uri,
+        // Device-only: the uploader sends the photo to field-media before the RPC.
+        ...(a.photoUri ? { local_uri: a.photoUri, storage_path: row.photo_uri } : {}),
+      },
       policy: "append",
       optimistic: row,
     });

@@ -2,19 +2,16 @@ import type { Mutation } from "@xos/sync";
 import { useRouter } from "expo-router";
 import { useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import { useCompass } from "../src/runtime/CompassProvider";
+import {
+  summarizeMutation,
+  refusalReason,
+  summarizeServerRow,
+  type QueueSummary,
+  type SummaryContext,
+} from "../src/domain/queue-summary";
+import { useCompass, useRows } from "../src/runtime/CompassProvider";
+import { formatDay, formatTime } from "../src/screens/common";
 import { Button, Card, EmptyState, Screen, Sheet, SyncConflictSheet, Tag, Text } from "../src/ui";
-
-function describe(row: Readonly<Record<string, unknown>> | null): string {
-  if (!row) return "";
-  const shown = Object.entries(row).filter(
-    ([k, v]) => k !== "id" && !k.startsWith("p_") && v !== null && typeof v !== "object",
-  );
-  return shown
-    .slice(0, 4)
-    .map(([k, v]) => `${k.replace(/_/g, " ")}: ${String(v)}`)
-    .join(" · ");
-}
 
 /**
  * The visible queue (Section 13): every write waiting to upload, with conflicts settled in a resolution
@@ -23,7 +20,8 @@ function describe(row: Readonly<Record<string, unknown>> | null): string {
 export default function OfflineQueue(): ReactElement {
   const { t } = useTranslation();
   const router = useRouter();
-  const { engine, store, status } = useCompass();
+  const { engine, store, status, resolved } = useCompass();
+  const { rows: zones } = useRows<{ id: string; name: string }>("zones");
   const [queue, setQueue] = useState<Mutation[]>([]);
   const [open, setOpen] = useState<Mutation | null>(null);
   useEffect(() => {
@@ -35,6 +33,21 @@ export default function OfflineQueue(): ReactElement {
     });
   }, [engine, store]);
   const kind = (m: Mutation) => t(`compass.queue.kinds.${m.table}`, { defaultValue: m.table });
+  const ctx: SummaryContext = {
+    time: formatTime,
+    day: formatDay,
+    projectName: (id) => resolved?.projects.find((p) => p.id === id)?.name ?? null,
+    zoneName: (id) => zones.find((z) => z.id === id)?.name ?? null,
+    punchAction: (k) => t(`compass.queue.punchActions.${PUNCH_ACTION[k] ?? "in"}`),
+    kind: (table) => t(`compass.queue.kinds.${table}`, { defaultValue: t("compass.queue.field") }),
+  };
+  const say = (s: QueueSummary) => t(`compass.queue.summary.${s.key}`, s.values);
+  const refused = (e: { code: string; message: string }) => {
+    const r = refusalReason(e);
+    return r.key === "refusedReason"
+      ? t("compass.queue.refusedMessage", r.values)
+      : t(`compass.queue.${r.key}`);
+  };
   return (
     <Screen
       testID="offline-queue"
@@ -79,14 +92,11 @@ export default function OfflineQueue(): ReactElement {
             }
             {...(m.status === "conflict" ? { onPress: () => setOpen(m) } : {})}
           >
+            <Text testID={`queue-summary-${m.id}`}>{say(summarizeMutation(m, ctx))}</Text>
             <Text variant="text13" tone="tertiary">
-              {new Date(m.queuedAt).toLocaleString()}
+              {t("compass.queue.mineMeta", { time: new Date(m.queuedAt).toLocaleString() })}
             </Text>
-            {m.lastError ? (
-              <Text tone="secondary">
-                {t("compass.queue.refusedMessage", { reason: plainReason(m.lastError.message) })}
-              </Text>
-            ) : null}
+            {m.lastError ? <Text tone="secondary">{refused(m.lastError)}</Text> : null}
           </Card>
         ))
       )}
@@ -99,17 +109,17 @@ export default function OfflineQueue(): ReactElement {
         {open ? (
           <SyncConflictSheet
             testID="conflict-sheet"
-            message={
-              open.lastError
-                ? t("compass.queue.refusedMessage", { reason: plainReason(open.lastError.message) })
-                : t("compass.queue.conflictMessage")
-            }
+            message={open.lastError ? refused(open.lastError) : t("compass.queue.conflictMessage")}
             field={kind(open)}
-            mine={describe(open.payload)}
+            mine={say(summarizeMutation(open, ctx))}
             mineMeta={t("compass.queue.mineMeta", {
               time: new Date(open.queuedAt).toLocaleTimeString(),
             })}
-            theirs={open.serverRow ? describe(open.serverRow) : t("compass.queue.noServerVersion")}
+            theirs={
+              open.serverRow
+                ? say(summarizeServerRow(open.table, open.serverRow, ctx))
+                : t("compass.queue.noServerVersion")
+            }
             theirsMeta={t("compass.queue.theirsMeta")}
             onKeepMine={() => {
               void engine?.outbox.resolve(open.id, { action: "retry" }).then(() => engine.drain());
@@ -134,7 +144,10 @@ export default function OfflineQueue(): ReactElement {
   );
 }
 
-/** Server refusals read "rule_code: sentence"; people see the sentence, not the rule code. */
-function plainReason(message: string): string {
-  return message.replace(/^[a-z][a-z0-9_]*:\s+/, "");
-}
+/** Punch kinds as the database spells them, mapped to their compass.queue.punchActions keys. */
+const PUNCH_ACTION: Readonly<Record<string, string>> = {
+  In: "in",
+  "Break Start": "breakStart",
+  "Break End": "breakEnd",
+  Out: "out",
+};

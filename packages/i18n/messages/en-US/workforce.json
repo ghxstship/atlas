@@ -1003,11 +1003,9 @@
       "submitted": "Form saved. It submits now, or when you're back online.",
       "required": "Required",
       "requiredField": "{label} (required)",
-      "missing": "Fill in {count} more required answers.",
       "score": "Score {score} of {max}",
       "scorePass": "Score {score} of {max}, pass at {pass}",
       "addPhoto": "Add Photo",
-      "photos": "{count} photos",
       "dateHelp": "Year, month and day, such as 2027-06-01.",
       "numberError": "Enter a number.",
       "signature": "Signature",
@@ -1016,7 +1014,11 @@
       "signatureMissing": "Sign in the box before submitting.",
       "locationStamped": "Location stamped near {latitude}, {longitude}",
       "locating": "Finding your location for the stamp. You can keep filling in the form.",
-      "locationOff": "Location is off. Turn it on to stamp this form with where you are."
+      "locationOff": "Location is off. Turn it on to stamp this form with where you are.",
+      "missingOne": "Fill in 1 more required answer.",
+      "missingOther": "Fill in {count} more required answers.",
+      "photosOne": "1 photo",
+      "photosOther": "{count} photos"
     },
     "training": {
       "title": "Training",

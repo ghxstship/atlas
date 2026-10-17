@@ -19,24 +19,24 @@ Two measurements of the same budget (200 KB gzip):
   signed-in pages it adds 60 to 85 KB that Next.js prefetches for the sidebar links in the viewport,
   which belong to the routes those links open.
 
-| App     | Page                              | Before | Route JS (build) | Lighthouse JS | Verdict                     |
-| ------- | --------------------------------- | ------ | ---------------- | ------------- | --------------------------- |
-| Atlas   | /auth/sign-in                     | 481 KB | 183 KB           | 189 KB        | Pass                        |
-| Atlas   | /demo-productions/home            | 717 KB | 262 KB           | 347 KB        | Over (cause 1, 2)           |
-| Atlas   | /demo-productions/projects        | 696 KB | 299 KB           | 309 KB        | Over (cause 1, 2, 3)        |
-| Atlas   | /demo-productions/p/NWS/overview  | 711 KB | 295 KB           | 321 KB        | Over (cause 1, 2, 3)        |
-| Atlas   | /demo-productions/inbox           | 632 KB | 256 KB           | 264 KB        | Over (cause 1, 2)           |
-| Atlas   | /demo-productions/crew/shifts     | 693 KB | 294 KB           | 305 KB        | Over (cause 1, 2, 3)        |
-| Atlas   | /demo-productions/finance/budgets | 712 KB | 331 KB           | 342 KB        | Over (cause 1, 2, 3, 4)     |
-| Gateway | /auth/sign-in                     | 519 KB | 202 KB           | 208 KB        | Over by 2 to 8 KB (cause 1) |
-| Gateway | /home                             | 528 KB | 211 KB           | 217 KB        | Over (cause 1)              |
-| Gateway | /explore                          | 530 KB | 213 KB           | 219 KB        | Over (cause 1)              |
-| Gateway | /work                             | 519 KB | 210 KB           | 208 KB        | Over (cause 1)              |
-| Gateway | /money                            | 519 KB | 210 KB           | 208 KB        | Over (cause 1)              |
-| Docs    | /en-US                            | 466 KB | 169 KB           | 174 KB        | Pass                        |
-| Docs    | /en-US/reference                  | 466 KB | 169 KB           | 174 KB        | Pass                        |
-| Docs    | /en-US/guides/getting-started     | 466 KB | 169 KB           | 174 KB        | Pass                        |
-| Docs    | /en-US/help                       | 466 KB | 169 KB           | 174 KB        | Pass                        |
+| App     | Page                              | Before | Route JS (build, A41) | Lighthouse JS (A37) | Verdict              |
+| ------- | --------------------------------- | ------ | --------------------- | ------------------- | -------------------- |
+| Atlas   | /auth/sign-in                     | 481 KB | 164 KB                | 189 KB              | Pass                 |
+| Atlas   | /demo-productions/home            | 717 KB | 243 KB                | 347 KB              | Over (cause 2)       |
+| Atlas   | /demo-productions/projects        | 696 KB | 280 KB                | 309 KB              | Over (cause 2, 3)    |
+| Atlas   | /demo-productions/p/NWS/overview  | 711 KB | 277 KB                | 321 KB              | Over (cause 2, 3)    |
+| Atlas   | /demo-productions/inbox           | 632 KB | 241 KB                | 264 KB              | Over (cause 2)       |
+| Atlas   | /demo-productions/crew/shifts     | 693 KB | 276 KB                | 305 KB              | Over (cause 2, 3)    |
+| Atlas   | /demo-productions/finance/budgets | 712 KB | 312 KB                | 342 KB              | Over (cause 2, 3, 4) |
+| Gateway | /auth/sign-in                     | 519 KB | 184 KB                | 208 KB              | Pass                 |
+| Gateway | /home                             | 528 KB | 193 KB                | 217 KB              | Pass                 |
+| Gateway | /explore                          | 530 KB | 195 KB                | 219 KB              | Pass                 |
+| Gateway | /work                             | 519 KB | 192 KB                | 208 KB              | Pass                 |
+| Gateway | /money                            | 519 KB | 192 KB                | 208 KB              | Pass                 |
+| Docs    | /en-US                            | 466 KB | 150 KB                | 174 KB              | Pass                 |
+| Docs    | /en-US/reference                  | 466 KB | 150 KB                | 174 KB              | Pass                 |
+| Docs    | /en-US/guides/getting-started     | 466 KB | 150 KB                | 174 KB              | Pass                 |
+| Docs    | /en-US/help                       | 466 KB | 150 KB                | 174 KB              | Pass                 |
 
 What came out (A24-009): the two-locale message catalog (305 KB on every page), Zod and the YAML
 parser through `@xos/ia` (61 KB), the help article bodies (20 KB), the visx chart library on pages
@@ -46,11 +46,11 @@ JavaScript budget" lists the two rules that keep them out.
 What remains, with its cause:
 
 1. **Framework and shell, on every page.** Next.js 16 with React 19 is 128 KB of every page, which
-   leaves 72 KB for the app. The `@xos/icons` registry draws any of 206 Lucide icons by name (15 KB),
-   and the next-intl runtime with its ICU parser adds 7 KB. Gateway pages are 2 to 13 KB over on
-   these alone. Moving the icon registry to an SVG sprite served as a static file, and next-intl's
-   message precompilation, are the two changes that would bring Gateway under budget; both need a
-   design decision (proposed in the A37 completion report).
+   leaves 72 KB for the app. The next-intl runtime with its ICU parser adds 7 KB; precompiling
+   messages is the next reduction. Icons no longer count (A41, ADR 0027): `@xos/ui` `<Icon>` draws
+   from one SVG sprite of the 207 registered icons (10 KB gzip), which the bundler emits under
+   `/_next/static/media` with a content hash, so a browser fetches it once and caches it. That took
+   15 to 19 KB off every page and brought Gateway under budget; its ceilings are gone.
 2. **The Atlas shell (about 105 KB over the framework).** Command menu (cmdk), menus and dialogs
    (Radix), the sitemap the breadcrumbs and help read on the client (6 KB), the help index (4 KB),
    the help and Aurora panels (8 KB) and the `ui` catalog (4 KB). Signed-in Atlas pages cannot reach

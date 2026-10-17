@@ -56,7 +56,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     table: "geofence_shapes",
     schema: "app",
     relation: "geofence_shapes",
-    select: "id,venue_id,zone_id,name,boundary_geojson",
+    select: "id,org_id,venue_id,zone_id,name,boundary_geojson",
   },
   {
     table: "day_sheets",
@@ -181,7 +181,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     table: "asset_units",
     schema: "app",
     relation: "asset_units",
-    select: "id,org_id,asset_class_id,asset_tag,asset_state",
+    select: "id,org_id,asset_class_id,asset_tag,asset_state,updated_at",
   },
   {
     table: "asset_identifiers",
@@ -283,7 +283,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     schema: "api_external",
     relation: "dock_slots",
     select:
-      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at",
+      "id,project_id,project_name,zone_code,zone_name,shipment_id,direction,tracking_identifier,starts_at,ends_at,engagement_id",
     projectColumn: "project_id",
   },
 ];
@@ -321,6 +321,13 @@ const CANON_SOURCES: readonly Source[] = [
       label: r["enum_label"],
       sortOrder: Number(r["sort_order"]),
     }),
+  },
+  {
+    table: "roles",
+    schema: "xpms",
+    relation: "role",
+    select: "role_code,job_title",
+    map: (r) => ({ id: r["role_code"], job_title: r["job_title"] }),
   },
 ];
 

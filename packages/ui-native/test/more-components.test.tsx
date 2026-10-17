@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { expectAccessible } from "./expect-accessible.ts";
 import { describe, expect, it, vi } from "vitest";
+import { PanResponder } from "react-native";
 import {
   Avatar,
   Banner,
@@ -419,5 +420,28 @@ describe("screens and Compass layouts", () => {
     ).toEqual([1, 1, 1, 1, 1, 1, 1]);
     expect(screen.getByRole("button", { name: "End Break" })).toBeTruthy();
     await expectAccessible(container);
+  });
+});
+
+describe("SignaturePad inside a scrolling form (simulator defect)", () => {
+  it("keeps the stroke from the scroll view and still counts a stroke that is taken", () => {
+    const create = vi.spyOn(PanResponder, "create");
+    const onChange = vi.fn();
+    render(
+      <SignaturePad label="Signature" attestation="True." clearLabel="Clear" onChange={onChange} />,
+    );
+    const config = create.mock.calls.at(-1)?.[0] as unknown as Record<
+      string,
+      (...a: unknown[]) => unknown
+    >;
+    const at = (x: number, y: number) => ({ nativeEvent: { locationX: x, locationY: y } });
+    expect(config["onPanResponderTerminationRequest"]?.()).toBe(false);
+    act(() => {
+      config["onPanResponderGrant"]?.(at(10, 10));
+      config["onPanResponderMove"]?.(at(60, 20));
+      config["onPanResponderTerminate"]?.();
+    });
+    expect(onChange).toHaveBeenLastCalledWith("M10.0 10.0L60.0 20.0");
+    create.mockRestore();
   });
 });

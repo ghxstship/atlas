@@ -6,10 +6,14 @@ name: Clock in during airplane mode, then the queue drains on reconnect
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
-      EMAIL: field@example.com
+      EMAIL: tech@example.com
+# Pier Site, the demo project's venue geofence (seed 0109); the Field Tech can clock in (SIM-001).
 - setLocation:
-    latitude: 25.7795
-    longitude: -80.1860
+    latitude: 25.7752
+    longitude: -80.1855
+- extendedWaitUntil:
+    visible: "You're at Pier Site"
+    timeout: 20000
 - setAirplaneMode: enabled
 - extendedWaitUntil:
     visible:

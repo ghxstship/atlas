@@ -128,6 +128,16 @@ export function forgottenClockOut(punches: readonly Punch[], nowMs: number): boo
   return openSince !== null && nowMs - openSince >= AUTO_CLOSE_MS;
 }
 
+/**
+ * Whether the clock samples location precisely (samplingPlan's "punching"): while a punch is under way,
+ * and while the clock is open in front of a person who is clocked out. Away from a call the battery plan
+ * turns sampling off, so without the open clock a person who arrives early, or works without a rostered
+ * shift, never gets a fix and the clock refuses with location-unknown for good.
+ */
+export function needsPreciseFix(clockOpen: boolean, state: ClockState, punching: boolean): boolean {
+  return punching || (clockOpen && state === "out");
+}
+
 /** The one primary action the Today screen leads with (Section 11.13). */
 export function primaryPunch(state: ClockState): PunchKind {
   if (state === "out") return "In";

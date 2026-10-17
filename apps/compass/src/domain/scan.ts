@@ -402,6 +402,32 @@ export interface AssetUnitRow {
   readonly id: string;
   readonly asset_tag: string;
   readonly asset_state: string;
+  /** When the server last changed the unit; a custody row newer than this decides its state. */
+  readonly updated_at?: string | null;
+}
+
+/**
+ * The unit's state as the device knows it now. A scan writes its custody row on the device at once, but
+ * the unit row only changes at the next download; until then a newer custody row decides: a custodian
+ * means Deployed, none means returned (Available). On the simulator a check-out followed by an
+ * immediate return was sent as a second check-out and refused.
+ */
+export function effectiveAssetState(unit: AssetUnitRow, custody: CustodyRow | null): string {
+  const custodyAt = custody?.created_at ? Date.parse(custody.created_at) : Number.NaN;
+  const unitAt = unit.updated_at ? Date.parse(unit.updated_at) : Number.NaN;
+  if (!custody || Number.isNaN(custodyAt) || Number.isNaN(unitAt) || custodyAt <= unitAt) {
+    return unit.asset_state;
+  }
+  if (
+    unit.asset_state !== "Available" &&
+    unit.asset_state !== "Reserved" &&
+    unit.asset_state !== "Deployed"
+  ) {
+    return unit.asset_state;
+  }
+  const held =
+    custody.custodian_membership_id !== null || (custody.custodian_engagement_id ?? null) !== null;
+  return held ? "Deployed" : "Available";
 }
 
 export interface AssetIdentifierRow {
@@ -493,7 +519,7 @@ export function assetScanAction(
     ((me.membershipId !== null && custody.custodian_membership_id === me.membershipId) ||
       (typeof custody.custodian_engagement_id === "string" &&
         me.engagementIds.includes(custody.custodian_engagement_id)));
-  if (unit.asset_state === "Deployed") return mine ? "check-in" : "transfer";
+  if (effectiveAssetState(unit, custody) === "Deployed") return mine ? "check-in" : "transfer";
   return "check-out";
 }
 

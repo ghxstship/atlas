@@ -30,7 +30,8 @@
     "clearDefault": "Stop opening {name} by default",
     "share": "Share {name}",
     "delete": "Delete {name}",
-    "pageDefault": "Page default"
+    "pageDefault": "Page default",
+    "manage": "Manage saved views"
   },
   "save": {
     "title": "Save current view",

@@ -1,0 +1,21 @@
+appId: pro.ghxstship.compass
+---
+# Development builds only: loads the Metro bundle named by DEV_URL and closes the development menu's
+# first-run sheet when it shows, since it covers the screen.
+- openLink: ${DEV_URL}
+# launchApp already started the last bundle; the link reloads it, so let the reload finish first.
+- waitForAnimationToEnd:
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible:
+      id: "starting"
+    timeout: 120000
+- extendedWaitUntil:
+    visible:
+      id: "sign-in|tab-bar|starting"
+    timeout: 120000
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
