@@ -7,6 +7,7 @@ import {
   deleteSavedView,
   listSavedViews,
   listTeams,
+  renameSavedView,
   myMembershipId,
   setDefaultSavedView,
   shareSavedView,
@@ -180,5 +181,21 @@ export async function setDefaultViewAction(
     viewId === null
       ? await clearDefaultSavedView(c.db, { membershipId: c.membershipId, collectionKey })
       : await setDefaultSavedView(c.db, viewId);
+  return result.ok ? { ok: true, data: null } : { ok: false, error: errorOf(result.error) };
+}
+
+/** Renames one of the viewer's views, keeping its query. */
+export async function renameViewAction(
+  orgSlug: string,
+  viewId: string,
+  name: string,
+): Promise<ViewsResult> {
+  const parsed = z.string().trim().min(1).max(100).safeParse(name);
+  if (!parsed.success || !z.uuid().safeParse(viewId).success) {
+    return { ok: false, error: "invalid" };
+  }
+  const c = await context(orgSlug);
+  if (!c) return { ok: false, error: "denied" };
+  const result = await renameSavedView(c.db, viewId, parsed.data);
   return result.ok ? { ok: true, data: null } : { ok: false, error: errorOf(result.error) };
 }
