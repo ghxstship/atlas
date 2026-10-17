@@ -1,5 +1,5 @@
-import { lucideName, resolveIcon as resolveRegisteredIcon } from "@xos/icons";
-import type { IconComponent } from "@xos/icons";
+import { isRegisteredIcon, lucideName } from "@xos/icons/names";
+import sprite from "@xos/icons/sprite.svg";
 
 export { lucideName };
 
@@ -15,22 +15,30 @@ const MIRRORED = new Set([
   "ExternalLink",
 ]);
 
+/**
+ * URL of the icon sprite (ADR 0027): one SVG file of every registered icon, emitted by the bundler
+ * with a content hash so browsers cache it as a static asset. Next.js imports a static file as
+ * `{ src }`, Vite as a string.
+ */
+export const iconSpriteUrl: string =
+  typeof sprite === "string" ? sprite : (sprite as { src: string }).src;
+
 const warned = new Set<string>();
 
 /**
- * Resolves an icon from the @xos/icons registry, the closed set that keeps lucide-react tree-shaken
- * (RRR-70). Returns null for a name outside the registry and warns once per name so the
- * missing name is added to the owner's registry list rather than shipping a blank square.
+ * The sprite symbol id for an icon name. In development a name outside the @xos/icons registry
+ * warns once, so it is added to the owner's registry list rather than shipping an empty square;
+ * production skips the check, so no name list reaches the page.
  */
-export function resolveIcon(name: string): IconComponent | null {
-  const icon = resolveRegisteredIcon(name);
-  if (icon === null && !warned.has(name)) {
+export function iconSymbol(name: string): string {
+  const id = lucideName(name);
+  if (process.env.NODE_ENV !== "production" && !warned.has(name) && !isRegisteredIcon(name)) {
     warned.add(name);
     console.warn(
-      `@xos/ui Icon: "${name}" is not in the @xos/icons registry. Add ${lucideName(name)} to packages/icons/registry/<owner>.txt and run pnpm --filter @xos/icons generate:registry.`,
+      `@xos/ui Icon: "${name}" is not in the @xos/icons registry. Add ${id} to packages/icons/registry/<owner>.txt and run pnpm --filter @xos/icons generate:registry.`,
     );
   }
-  return icon;
+  return id;
 }
 
 export function isMirrored(name: string): boolean {
