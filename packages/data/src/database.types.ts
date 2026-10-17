@@ -2198,6 +2198,48 @@ export type Database = {
           },
         ];
       };
+      sponsor_assets: {
+        Row: {
+          account_id: string | null;
+          asset_kind: Database["app"]["Enums"]["sponsor_asset_kind"] | null;
+          asset_state: Database["app"]["Enums"]["review_state"] | null;
+          awaiting_sponsor: boolean | null;
+          decided_at: string | null;
+          due_on: string | null;
+          entitlement_description: string | null;
+          id: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          revision: number | null;
+          sponsor_entitlement_id: string | null;
+          title: string | null;
+          usage_note: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+          {
+            foreignKeyName: "sponsor_assets_sponsor_entitlement_id_fkey";
+            columns: ["sponsor_entitlement_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_entitlements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sponsor_entitlements: {
         Row: {
           account_id: string | null;
@@ -52611,6 +52653,15 @@ export type Database = {
           value_text: string;
           value_type: Database["app"]["Enums"]["setting_value_type"];
         }[];
+      };
+      respond_sponsor_asset: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["review_state"];
+          p_next: Database["app"]["Enums"]["review_state"];
+          p_reason: string;
+          p_sponsor_asset_id: string;
+        };
+        Returns: string;
       };
       respond_to_settlement: {
         Args: { p_accept: boolean; p_reason: string; p_settlement_id: string };
