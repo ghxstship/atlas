@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import {
   summarizeMutation,
+  refusalReason,
   summarizeServerRow,
   type QueueSummary,
   type SummaryContext,
@@ -41,6 +42,12 @@ export default function OfflineQueue(): ReactElement {
     kind: (table) => t(`compass.queue.kinds.${table}`, { defaultValue: t("compass.queue.field") }),
   };
   const say = (s: QueueSummary) => t(`compass.queue.summary.${s.key}`, s.values);
+  const refused = (e: { code: string; message: string }) => {
+    const r = refusalReason(e);
+    return r.key === "refusedReason"
+      ? t("compass.queue.refusedMessage", r.values)
+      : t(`compass.queue.${r.key}`);
+  };
   return (
     <Screen
       testID="offline-queue"
@@ -89,11 +96,7 @@ export default function OfflineQueue(): ReactElement {
             <Text variant="text13" tone="tertiary">
               {t("compass.queue.mineMeta", { time: new Date(m.queuedAt).toLocaleString() })}
             </Text>
-            {m.lastError ? (
-              <Text tone="secondary">
-                {t("compass.queue.refusedMessage", { reason: plainReason(m.lastError.message) })}
-              </Text>
-            ) : null}
+            {m.lastError ? <Text tone="secondary">{refused(m.lastError)}</Text> : null}
           </Card>
         ))
       )}
@@ -106,11 +109,7 @@ export default function OfflineQueue(): ReactElement {
         {open ? (
           <SyncConflictSheet
             testID="conflict-sheet"
-            message={
-              open.lastError
-                ? t("compass.queue.refusedMessage", { reason: plainReason(open.lastError.message) })
-                : t("compass.queue.conflictMessage")
-            }
+            message={open.lastError ? refused(open.lastError) : t("compass.queue.conflictMessage")}
             field={kind(open)}
             mine={say(summarizeMutation(open, ctx))}
             mineMeta={t("compass.queue.mineMeta", {
@@ -152,8 +151,3 @@ const PUNCH_ACTION: Readonly<Record<string, string>> = {
   "Break End": "breakEnd",
   Out: "out",
 };
-
-/** Server refusals read "rule_code: sentence"; people see the sentence, not the rule code. */
-function plainReason(message: string): string {
-  return message.replace(/^[a-z][a-z0-9_]*:\s+/, "");
-}

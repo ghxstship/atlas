@@ -130,6 +130,8 @@ export function summarizeMutation(
           values: { code },
         };
       }
+      case "app.record_inspection_result":
+        return { key: "inspectionAnswer", values: {} };
       case "app.call_cue": {
         const label = m.base ? text(m.base["label"]) : null;
         return label
@@ -172,6 +174,27 @@ export function summarizeMutation(
     default:
       return generic(m, ctx);
   }
+}
+
+/** Postgres and PostgREST wording a crew member should never read. */
+const TECHNICAL =
+  /violates|row-level security|permission denied|relation "|column "|syntax error|duplicate key|null value in column|invalid input syntax|PGRST|SQLSTATE/i;
+
+/**
+ * Why the server refused a queued write, in words. Rule refusals read "rule_code: sentence" and show the
+ * sentence. A permission refusal (42501) and any raw database wording get a plain sentence instead (on
+ * the simulator the queue printed 'new row violates row-level security policy for table "inspections"').
+ */
+export function refusalReason(error: {
+  readonly code: string;
+  readonly message: string;
+}): QueueSummary {
+  if (error.code === "42501" || /row-level security|permission denied/i.test(error.message)) {
+    return { key: "refusedPermission", values: {} };
+  }
+  const sentence = error.message.replace(/^[a-z][a-z0-9_]*:\s+/, "").trim();
+  if (!sentence || TECHNICAL.test(sentence)) return { key: "refusedTechnical", values: {} };
+  return { key: "refusedReason", values: { reason: sentence } };
 }
 
 /**

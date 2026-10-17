@@ -1,12 +1,22 @@
 appId: pro.ghxstship.compass
 ---
 # Signs out from Settings, confirming when changes still wait to upload. Sign-out wipes the device.
-- tapOn:
-    id: "tab-more"
+# Tapped until More shows: right after a bundle reload the first tap can land before the tabs take touches.
+- repeat:
+    times: 4
+    while:
+      notVisible:
+        id: "more"
+    commands:
+      - tapOn:
+          id: "tab-more"
+      - waitForAnimationToEnd:
+          timeout: 3000
 - scrollUntilVisible:
     element:
       id: "more-settings"
     direction: DOWN
+    centerElement: true
 - tapOn:
     id: "more-settings"
 - scrollUntilVisible:

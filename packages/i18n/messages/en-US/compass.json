@@ -170,7 +170,9 @@
       "serverState": "{title}, now {state}",
       "serverCue": "{label}, called at {time}",
       "serverGeneric": "The server holds a different version of this {kind}."
-    }
+    },
+    "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
+    "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
   },
   "today": {
     "title": "Today",
@@ -335,7 +337,9 @@
     "signOffOwn": "Someone other than the inspector signs off.",
     "recent": "Recent Inspections",
     "notSigned": "Waiting for sign-off",
-    "signed": "Signed off"
+    "signed": "Signed off",
+    "failPhotoRetake": "Retake Photo",
+    "failPhotoAdded": "Photo added. It uploads with the inspection."
   },
   "show": {
     "title": "Show",

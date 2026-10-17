@@ -170,7 +170,9 @@
       "serverState": "{title}, ahora {state}",
       "serverCue": "{label}, dado a las {time}",
       "serverGeneric": "El servidor tiene otra versión de este registro: {kind}."
-    }
+    },
+    "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
+    "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
   },
   "today": {
     "title": "Hoy",
@@ -335,7 +337,9 @@
     "signOffOwn": "Aprueba alguien distinto al inspector.",
     "recent": "Inspecciones recientes",
     "notSigned": "Esperando aprobación",
-    "signed": "Aprobada"
+    "signed": "Aprobada",
+    "failPhotoRetake": "Tomar otra foto",
+    "failPhotoAdded": "Foto agregada. Se sube con la inspección."
   },
   "show": {
     "title": "Show",

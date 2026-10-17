@@ -10,6 +10,7 @@ executionOrder:
     - field-sign-in
     - field-clock-in-out
     - field-shift-second-device
+    - field-claim-open-shift
     - field-clock-offline
     - field-incident-report
     - field-inspection-walk

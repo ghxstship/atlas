@@ -5,6 +5,7 @@ import { buildPunch } from "../src/domain/clock";
 import { buildReport } from "../src/domain/incidents";
 import { buildKioskPunch } from "../src/domain/kiosk";
 import {
+  refusalReason,
   summarizeMutation,
   summarizeServerRow,
   type QueueSummary,
@@ -55,7 +56,9 @@ function queued(input: MutationInput): Mutation {
   };
 }
 
-type Catalog = { compass: { queue: { summary: Record<string, string> } } };
+type Catalog = {
+  compass: { queue: { summary: Record<string, string> } & Record<string, unknown> };
+};
 const en = (getMessages("en-US") as unknown as Catalog).compass;
 const es = (getMessages("es-US") as unknown as Catalog).compass;
 
@@ -326,5 +329,39 @@ describe("offline queue summaries (SIM-002)", () => {
     expect(readable(summarizeServerRow("things", { id: "x", p_secret: "y" }, ctx))).toBe(
       "The server holds a different version of this <things>.",
     );
+  });
+});
+
+describe("refusal reasons in words (simulator defect: raw RLS text in the queue)", () => {
+  it("shows a rule refusal's sentence without its rule code", () => {
+    expect(
+      refusalReason({
+        code: "XR001",
+        message: "time_entry_overlap: Time entries of one person cannot overlap.",
+      }),
+    ).toEqual({
+      key: "refusedReason",
+      values: { reason: "Time entries of one person cannot overlap." },
+    });
+  });
+  it("turns a permission refusal into a plain sentence", () => {
+    const r = refusalReason({
+      code: "42501",
+      message: 'new row violates row-level security policy for table "inspections"',
+    });
+    expect(r).toEqual({ key: "refusedPermission", values: {} });
+    expect(en.queue).toHaveProperty("refusedPermission");
+    expect(es.queue).toHaveProperty("refusedPermission");
+  });
+  it("never shows raw database wording", () => {
+    expect(
+      refusalReason({
+        code: "23502",
+        message: 'null value in column "org_id" violates not-null constraint',
+      }).key,
+    ).toBe("refusedTechnical");
+    expect(refusalReason({ code: "400", message: "" }).key).toBe("refusedTechnical");
+    expect(en.queue).toHaveProperty("refusedTechnical");
+    expect(es.queue).toHaveProperty("refusedTechnical");
   });
 });

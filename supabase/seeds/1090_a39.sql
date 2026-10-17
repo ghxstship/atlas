@@ -5,6 +5,7 @@
 -- clock-in the Field Lead makes. The Field Tech below has no entry after the reset day:
 --   * Demo Field Tech (tech@example.com), a Field member of the demo org, signing in with 0010's local
 --     demo value
+--   * a member of the demo project with the Field project role, as the Field Lead is (0107)
 --   * two finished shifts on the two days before the reset, accepted, with their time entries
 --   * a long show-day shift today (07:00 to 23:30), published to the Field Tech and not yet accepted, so
 --     the Field Tech accepts it in Compass and then clocks in on it (journey 10)
@@ -88,8 +89,10 @@ begin
     return;
   end if;
 
-  -- Producer: two past shifts and today's, published to the Field Tech.
+  -- Producer: puts the Field Tech on the project crew (Field members reach a project's inspections,
+  -- incidents and forms only as its members), then publishes two past shifts and today's.
   perform set_config('request.jwt.claims', json_build_object('sub', c_producer, 'role', 'authenticated')::text, true);
+  insert into app.project_members (project_id, membership_id, project_role) values (c_project, c_tech_m, 'Field');
   insert into app.shifts (id, org_id, project_id, membership_id, role_code, starts_at, ends_at, time_zone) values
     (c_shift_past2, c_org, c_project, c_tech_m, c_role, v_day - interval '2 days' + interval '8 hours', v_day - interval '2 days' + interval '17 hours', 'America/New_York'),
     (c_shift_past1, c_org, c_project, c_tech_m, c_role, v_day - interval '1 day' + interval '8 hours', v_day - interval '1 day' + interval '17 hours', 'America/New_York'),

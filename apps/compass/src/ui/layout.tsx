@@ -176,8 +176,11 @@ export function ListRow({
             </Text>
           ) : null}
         </View>
-        {trailing}
       </Pressable>
+      {/* Outside the row's Pressable: an accessible Pressable merges its children into one element, so a
+          trailing button (an inspection's Start) inside it was unreachable by VoiceOver and Switch
+          Control. */}
+      {trailing}
       {actions.map((a) => (
         <Pressable
           key={a.label}

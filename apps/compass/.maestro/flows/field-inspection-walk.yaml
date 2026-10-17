@@ -1,15 +1,18 @@
 appId: pro.ghxstship.compass
-name: Walk the Stage Safety inspection one card at a time
+name: Journey 17, walk the Stage Safety inspection, fail an item, see its punch record
 ---
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
-      EMAIL: field@example.com
+      EMAIL: tech@example.com
 - tapOn:
     id: "tab-more"
 - tapOn:
     id: "more-inspections"
-- tapOn: "Start"
+# Templates list by name: Crowd Barrier Check, Daily Stage Walk (seed 0109), Stage Safety Walk (0217).
+- tapOn:
+    text: "Start"
+    index: 2
 - assertVisible: "Fire extinguishers tagged and in place"
 - tapOn:
     id: "checklist-pass"
@@ -21,16 +24,42 @@ name: Walk the Stage Safety inspection one card at a time
     id: "fail-save"
 - assertVisible: "Say what failed so someone can fix it."
 - assertVisible: "Add a photo of the failure."
-# Pass the remaining items; the simulator has no camera for the photo.
+- tapOn:
+    id: "fail-note"
+- inputText: "Exit 3 blocked by road cases"
+- hideKeyboard
+# The simulator has no camera; the iOS simulator's capture still returns an image, which is enough to
+# exercise compression, upload to field-media and the RPC.
+- tapOn:
+    id: "fail-photo"
+- tapOn:
+    id: "photo-take"
+- extendedWaitUntil:
+    visible:
+      id: "fail-photo-added"
+    timeout: 10000
+- tapOn:
+    id: "fail-save"
+- assertVisible: "Cable runs taped or ramped"
 - tapOn:
     id: "checklist-pass"
 - tapOn:
     id: "checklist-pass"
-- tapOn:
-    id: "checklist-pass"
+- assertVisible: "Critical items failed: 1.*"
 - tapOn:
     id: "inspection-submit"
 - extendedWaitUntil:
     visible:
       id: "inspection-done"
     timeout: 10000
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued"
+    timeout: 60000
+# The failed result opened its punch record on the server.
+- runScript:
+    file: ../scripts/punch-item-for-failure.js
+    env:
+      EMAIL: tech@example.com
+      PROMPT: "Emergency exits clear and lit"
+- assertTrue: ${output.punch.status == 200 && output.punch.count >= 1}
